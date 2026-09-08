@@ -1,0 +1,290 @@
+using HotChocolate.Fusion.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
+
+namespace HotChocolate.Fusion.Policies.Rego;
+
+/// <summary>
+/// Owns the registered <see cref="IRegoDataProvider"/> instances, keeps their last known good data
+/// snapshot, and produces the merged data document <see cref="RegoPolicyProvider"/> compiles the
+/// policy set with.
+/// </summary>
+/// <remarks>
+/// Every provider is refreshed independently: a provider's own change token drives its own
+/// refresh, concurrent refresh requests for the same provider are coalesced into at most one
+/// follow-up run, a refresh that throws or times out keeps the provider's last good snapshot, and
+/// nothing is published while the aggregator is disposed.
+/// </remarks>
+internal sealed class RegoDataAggregator : IAsyncDisposable
+{
+    internal static readonly TimeSpan DefaultRefreshTimeout = TimeSpan.FromSeconds(30);
+
+    private const long SizeWarningThresholdBytes = 16 * 1024 * 1024;
+
+    private readonly ProviderState[] _providers;
+    private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly ILogger _logger;
+    private readonly TimeSpan _refreshTimeout;
+
+    // Canceled on disposal so a refresh that is awaiting a slow provider is not left running
+    // (and cannot dispose-race a factory-owned provider instance): every refresh's timeout token
+    // is linked to this one.
+    private readonly CancellationTokenSource _disposalSource = new();
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
+    private readonly object _sync = new();
+#endif
+    private bool _disposed;
+
+    public RegoDataAggregator(
+        IReadOnlyList<RegoDataProviderRegistration> registrations,
+        IServiceProvider services,
+        IFusionExecutionDiagnosticEvents diagnosticEvents,
+        ILogger logger,
+        TimeSpan? refreshTimeout = null)
+    {
+        ArgumentNullException.ThrowIfNull(registrations);
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(diagnosticEvents);
+        ArgumentNullException.ThrowIfNull(logger);
+
+        var seenNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var registration in registrations)
+        {
+            if (!seenNames.Add(registration.Name))
+            {
+                throw new InvalidOperationException(
+                    $"A Rego data provider named '{registration.Name}' is already registered. "
+                    + "Provider names must be unique on a gateway.");
+            }
+        }
+
+        _diagnosticEvents = diagnosticEvents;
+        _logger = logger;
+        _refreshTimeout = refreshTimeout ?? DefaultRefreshTimeout;
+
+        _providers = new ProviderState[registrations.Count];
+
+        for (var i = 0; i < registrations.Count; i++)
+        {
+            var registration = registrations[i];
+            _providers[i] = new ProviderState(
+                registration.Name,
+                registration.Factory(services),
+                registration.OwnsInstance);
+        }
+    }
+
+    /// <summary>
+    /// Raised whenever a provider publishes a data snapshot that differs from the one it last
+    /// published, once every provider has loaded at least once.
+    /// </summary>
+    public event Action? DataChanged;
+
+    /// <summary>
+    /// Subscribes to every provider's change token and kicks off its initial load. Never blocks:
+    /// every refresh runs on the thread pool.
+    /// </summary>
+    public void Start()
+    {
+        foreach (var state in _providers)
+        {
+            state.ChangeSubscription = ChangeToken.OnChange(
+                state.Instance.GetChangeToken,
+                () => ScheduleRefresh(state));
+            ScheduleRefresh(state);
+        }
+    }
+
+    /// <summary>
+    /// Attempts to build the merged data document from the FAR data document and every provider's
+    /// last known good snapshot.
+    /// </summary>
+    public RegoDataMergeStatus TryBuildMergedData(
+        byte[] farData,
+        out byte[]? merged,
+        out Exception? error)
+    {
+        merged = null;
+        error = null;
+
+        var documents = new List<ReadOnlyMemory<byte>>(_providers.Length + 1) { farData };
+
+        lock (_sync)
+        {
+            foreach (var state in _providers)
+            {
+                if (state.Snapshot is null)
+                {
+                    return RegoDataMergeStatus.NotReady;
+                }
+
+                documents.Add(state.Snapshot.Data);
+            }
+        }
+
+        try
+        {
+            merged = RegoDataMerge.Merge(documents);
+        }
+        catch (RegoDataMergeException ex)
+        {
+            error = ex;
+            return RegoDataMergeStatus.Failed;
+        }
+
+        if (merged.Length > SizeWarningThresholdBytes)
+        {
+            _logger.LogWarning(
+                "The merged Rego data document is {SizeInBytes} bytes, which exceeds the "
+                + "{ThresholdInBytes} byte warning threshold.",
+                merged.Length,
+                SizeWarningThresholdBytes);
+        }
+
+        return RegoDataMergeStatus.Ready;
+    }
+
+    private void ScheduleRefresh(ProviderState state)
+    {
+        lock (_sync)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            if (state.RefreshInFlight)
+            {
+                state.RefreshPending = true;
+                return;
+            }
+
+            state.RefreshInFlight = true;
+        }
+
+        _ = RunRefreshLoopAsync(state);
+    }
+
+    private async Task RunRefreshLoopAsync(ProviderState state)
+    {
+        while (true)
+        {
+            await RefreshOnceAsync(state).ConfigureAwait(false);
+
+            lock (_sync)
+            {
+                if (state.RefreshPending && !_disposed)
+                {
+                    state.RefreshPending = false;
+                    continue;
+                }
+
+                state.RefreshInFlight = false;
+                return;
+            }
+        }
+    }
+
+    private async Task RefreshOnceAsync(ProviderState state)
+    {
+        using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(_disposalSource.Token);
+        timeoutSource.CancelAfter(_refreshTimeout);
+        var changed = false;
+
+        try
+        {
+            var snapshot = await state.Instance.GetDataAsync(timeoutSource.Token).ConfigureAwait(false);
+
+            lock (_sync)
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+
+                if (state.Snapshot?.Equals(snapshot) == true)
+                {
+                    return;
+                }
+
+                state.Snapshot = snapshot;
+                changed = true;
+            }
+        }
+        catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
+        {
+            // Refresh timed out, or the aggregator was disposed while the refresh was in flight:
+            // keep the last good snapshot, no diagnostics event either way.
+        }
+        catch (Exception ex)
+        {
+            if (!_disposed)
+            {
+                _diagnosticEvents.PolicyUpdateError(new RegoDataProviderException(state.Name, ex));
+            }
+        }
+
+        if (changed)
+        {
+            DataChanged?.Invoke();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        lock (_sync)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+        }
+
+        // Cancels the token every in-flight refresh is awaiting on, so a well-behaved provider
+        // observes cancellation right away instead of the aggregator waiting out its timeout.
+        await _disposalSource.CancelAsync().ConfigureAwait(false);
+        _disposalSource.Dispose();
+
+        foreach (var state in _providers)
+        {
+            state.ChangeSubscription?.Dispose();
+
+            if (!state.OwnsInstance)
+            {
+                continue;
+            }
+
+            switch (state.Instance)
+            {
+                case IAsyncDisposable asyncDisposable:
+                    await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                    break;
+                case IDisposable disposable:
+                    disposable.Dispose();
+                    break;
+            }
+        }
+    }
+
+    private sealed class ProviderState(string name, IRegoDataProvider instance, bool ownsInstance)
+    {
+        public string Name { get; } = name;
+
+        public IRegoDataProvider Instance { get; } = instance;
+
+        public bool OwnsInstance { get; } = ownsInstance;
+
+        public bool RefreshInFlight;
+
+        public bool RefreshPending;
+
+        public RegoDataSnapshot? Snapshot;
+
+        public IDisposable? ChangeSubscription;
+    }
+}

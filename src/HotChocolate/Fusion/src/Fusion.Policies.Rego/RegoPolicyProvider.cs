@@ -23,6 +23,7 @@ public sealed class RegoPolicyProvider
     private readonly object _publishSync = new();
 #endif
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly RegoDataAggregator? _dataAggregator;
 
     // The provider keeps only the handle it last published. An earlier handle is dropped on
     // rebuild, not retired into a list: the RegoPolicy instances built from it that are still
@@ -30,8 +31,21 @@ public sealed class RegoPolicyProvider
     // compiled policy set's SafeHandle releases the native policy engine memory once nothing
     // references it any more.
     private PolicySetHandle? _currentHandle;
+
+    // The last successfully compiled and published code/data pair. Compared against on every
+    // incoming snapshot to detect a real change, and reused verbatim when a data provider change
+    // alone triggers a recompile. Only ever assigned once a compile attempt with this exact pair
+    // has succeeded, so a candidate that failed to compile is never mistaken for the current state.
     private Dictionary<string, PolicyContent> _contents = new(StringComparer.Ordinal);
     private byte[]? _data;
+
+    // The candidate a rebuild attempt is currently working towards. Set at the start of every
+    // rebuild attempt and cleared once that attempt commits, so a provider-driven retry (for
+    // example once every provider has finished its initial load) resumes with the same FAR
+    // content the attempt that is still pending was started with, rather than the last committed
+    // one.
+    private Dictionary<string, PolicyContent>? _pendingContents;
+    private byte[]? _pendingData;
 
     // The currently published snapshot. Guarded by _publishSync.
     private ImmutableArray<IPolicy> _current = [];
@@ -42,10 +56,28 @@ public sealed class RegoPolicyProvider
     /// Initializes a new instance of <see cref="RegoPolicyProvider"/>.
     /// </summary>
     public RegoPolicyProvider(IFusionExecutionDiagnosticEvents diagnosticEvents)
+        : this(diagnosticEvents, dataAggregator: null)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="RegoPolicyProvider"/> that merges data from
+    /// registered <see cref="IRegoDataProvider"/> instances into the FAR data document before every
+    /// compile.
+    /// </summary>
+    internal RegoPolicyProvider(
+        IFusionExecutionDiagnosticEvents diagnosticEvents,
+        RegoDataAggregator? dataAggregator)
     {
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
         _diagnosticEvents = diagnosticEvents;
+        _dataAggregator = dataAggregator;
+
+        if (_dataAggregator is not null)
+        {
+            _dataAggregator.DataChanged += OnProviderDataChanged;
+        }
     }
 
     /// <inheritdoc />
@@ -100,8 +132,10 @@ public sealed class RegoPolicyProvider
     {
         if (content is not { Language: RegoLanguage })
         {
-            _contents.Clear();
+            _contents = new Dictionary<string, PolicyContent>(StringComparer.Ordinal);
             _data = null;
+            _pendingContents = null;
+            _pendingData = null;
             _currentHandle = null;
             Emit([]);
             return;
@@ -131,29 +165,85 @@ public sealed class RegoPolicyProvider
             return;
         }
 
-        _contents = contents;
-        _data = data;
-        Rebuild();
+        Rebuild(contents, data);
     }
 
-    private void Rebuild()
+    // Called when a registered data provider publishes a change: the FAR code and data are
+    // unaffected, but the data merged in from providers is not, so whatever candidate is
+    // currently pending (a startup load still waiting on providers) or, failing that, the last
+    // committed pair is recompiled against the freshly merged data.
+    private void OnProviderDataChanged()
     {
-        if (_contents.Count == 0)
+        lock (_publishSync)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            var contents = _pendingContents ?? (_contents.Count > 0 ? _contents : null);
+
+            if (contents is null)
+            {
+                return;
+            }
+
+            var data = _pendingContents is not null ? _pendingData : _data;
+
+            Rebuild(contents, data);
+        }
+    }
+
+    // Stages the candidate and compiles it; the committed _contents/_data pair (against which the
+    // next snapshot is compared for changes) is only ever assigned once compilation with this
+    // exact candidate has succeeded, so a candidate that fails to compile is never mistaken for
+    // the current state and an identical retry is attempted again rather than silently suppressed.
+    private void Rebuild(Dictionary<string, PolicyContent> contents, byte[]? data)
+    {
+        _pendingContents = contents;
+        _pendingData = data;
+
+        if (contents.Count == 0)
+        {
+            _contents = contents;
+            _data = data;
+            _pendingContents = null;
+            _pendingData = null;
             _currentHandle = null;
             Emit([]);
             return;
         }
 
-        if (_data is null)
+        if (data is null)
         {
             return;
         }
 
-        var policies = new List<PolicyDefinition>();
-        var modules = new List<PolicyModule>(_contents.Count);
+        var compileData = data;
 
-        foreach (var content in _contents.Values)
+        if (_dataAggregator is not null)
+        {
+            switch (_dataAggregator.TryBuildMergedData(data, out var merged, out var mergeError))
+            {
+                case RegoDataMergeStatus.NotReady:
+                    // A registered provider has not completed its initial load yet: stay on the
+                    // existing "no data yet" path (nothing published) until it does.
+                    return;
+
+                case RegoDataMergeStatus.Failed:
+                    _diagnosticEvents.PolicyUpdateError(mergeError!);
+                    return;
+
+                case RegoDataMergeStatus.Ready:
+                    compileData = merged!;
+                    break;
+            }
+        }
+
+        var policies = new List<PolicyDefinition>();
+        var modules = new List<PolicyModule>(contents.Count);
+
+        foreach (var content in contents.Values)
         {
             var source = NormalizeSource(Encoding.UTF8.GetString(content.Source.Span));
             modules.Add(new PolicyModule(
@@ -187,13 +277,18 @@ public sealed class RegoPolicyProvider
 
         try
         {
-            set = CompiledPolicySet.Compile(_data, modules, entryPoints);
+            set = CompiledPolicySet.Compile(compileData, modules, entryPoints);
         }
         catch (Exception ex)
         {
             ReportCompileFailure(policies, ex);
             return;
         }
+
+        _contents = contents;
+        _data = data;
+        _pendingContents = null;
+        _pendingData = null;
 
         var handle = new PolicySetHandle(set);
         var compiledPolicies = ImmutableArray.CreateBuilder<IPolicy>(policies.Count);
@@ -252,24 +347,30 @@ public sealed class RegoPolicyProvider
     }
 
     /// <inheritdoc />
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         lock (_publishSync)
         {
             if (_disposed)
             {
-                return ValueTask.CompletedTask;
+                return;
             }
 
             _disposed = true;
             _current = [];
             _observers = [];
             _currentHandle = null;
-            _contents.Clear();
+            _contents = new Dictionary<string, PolicyContent>(StringComparer.Ordinal);
             _data = null;
+            _pendingContents = null;
+            _pendingData = null;
         }
 
-        return ValueTask.CompletedTask;
+        if (_dataAggregator is not null)
+        {
+            _dataAggregator.DataChanged -= OnProviderDataChanged;
+            await _dataAggregator.DisposeAsync().ConfigureAwait(false);
+        }
     }
 
     private sealed class Subscription(

@@ -107,6 +107,26 @@ public sealed class RegoPolicyProviderTests
     }
 
     [Fact]
+    public async Task Code_Should_RetryCompile_When_IdenticalBrokenContentIsResent()
+    {
+        // arrange
+        var diagnostics = new CapturingDiagnostics();
+        await using var config = new MutableFusionConfigurationProvider(Config(Broken("p1", "c1-broken")));
+        await using var provider = new RegoPolicyProvider(diagnostics);
+
+        // act
+        // The exact same broken candidate is published twice. Neither attempt is ever committed
+        // as the "current" content, so the second attempt is not mistaken for a no-op and is
+        // retried (and reported) just like the first.
+        provider.OnNext(config.Configuration!.Policies);
+        config.Publish(Config(Broken("p1", "c1-broken")));
+        provider.OnNext(config.Configuration!.Policies);
+
+        // assert
+        Assert.Equal(2, diagnostics.Errors.Count);
+    }
+
+    [Fact]
     public async Task Code_Should_DropPolicy_When_PolicyIsRemoved()
     {
         // arrange
