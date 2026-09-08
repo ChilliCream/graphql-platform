@@ -8,6 +8,7 @@ type Query {
 
 type CompositeType {
   listField: [ElementType]
+  listOfScalarsField: [Scalar] @cost(weight: "1")
 }
 
 type ElementType {
