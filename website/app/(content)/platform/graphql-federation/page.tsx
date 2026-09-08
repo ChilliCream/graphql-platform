@@ -13,7 +13,7 @@ import { FEDERATION_FAQ_ITEMS } from "./faq";
 import { FEDERATION_DEFINITION, FEDERATION_TERMS } from "./terms";
 
 const PAGE = {
-  title: "GraphQL Federation: what it is, why, and how it works",
+  title: "GraphQL Federation: what, why, and how",
   description:
     "A plain-language guide to GraphQL Federation: what it is, why teams adopt it, how composition, entities and the gateway work, and whether it fits your setup.",
   path: "/platform/graphql-federation",
