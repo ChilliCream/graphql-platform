@@ -568,6 +568,29 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void CreatePlan_Should_IncludeNestedLeafCopyCandidate_WhenSourceOperationSelectsNestedRequirement()
+    {
+        // arrange
+        var schema = CreateNestedLeafCopyRequirementPolicySchema();
+
+        // act
+        var plan = PlanOperation(schema, "{ product { details { sku reviews } } }");
+
+        // assert
+        var policyNode = Assert.Single(plan.AllNodes.OfType<PolicyExecutionNode>());
+        var operationNodes = plan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .ToDictionary(node => node.SchemaName!, StringComparer.Ordinal);
+        var root = operationNodes["a"];
+        var productLevel = root.ResultSelectionSet.TryGetChild("product");
+        Assert.NotNull(productLevel);
+        Assert.Null(productLevel.TryGetChild("details"));
+        Assert.Equal(
+            [operationNodes["a"].Id, operationNodes["b"].Id],
+            policyNode.Dependencies.ToArray().Select(node => ((ExecutionNode)node).Id).ToArray());
+    }
+
+    [Fact]
     public void CreatePlan_Should_UseNewRequirement_When_PolicyChangesFromEmptyRequirement()
     {
         // arrange
@@ -4388,6 +4411,56 @@ public sealed class PolicyPlanningTests : FusionTestBase
             new TestPolicy(
                 "CanReadReviews",
                 Utf8GraphQLParser.Syntax.ParseSelectionSet("{ productSku }")));
+
+    // Product is intentionally shared (defined in both a and b) with no lookup targeting it, so
+    // it is a value type and its own child selections survive result-selection-set pruning
+    // (FusionComplexTypeDefinition.IsValueType). ProductDetails carries @key and a lookup in b,
+    // so it is an entity boundary that gets pruned to a leaf inside product's own child level.
+    // This yields the nested leaf-copy cell: product (non-leaf) -> details (leaf), with the
+    // policy requirement crossing details into sku.
+    private static FusionSchemaDefinition CreateNestedLeafCopyRequirementPolicySchema()
+        => CreateSchema(
+            ComposeSchemaDocument(
+                """
+                # name: a
+                type Query {
+                  product: Product @shareable
+                }
+
+                type Product {
+                  id: ID! @shareable
+                  details: ProductDetails!
+                }
+
+                type ProductDetails @key(fields: "id") {
+                  id: ID!
+                  sku: String!
+                }
+                """,
+                """
+                # name: b
+                enum PolicyDenialBehavior { NULL ERROR ABORT }
+
+                directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior)
+                  repeatable on OBJECT | FIELD_DEFINITION
+
+                type Query {
+                  product: Product @shareable
+                  productDetailsById(id: ID!): ProductDetails @lookup @internal
+                }
+
+                type Product {
+                  id: ID! @shareable
+                }
+
+                type ProductDetails @key(fields: "id") {
+                  id: ID!
+                  reviews: [String!]! @policy(names: "CanReadReviews", onDenied: NULL)
+                }
+                """),
+            new TestPolicy(
+                "CanReadReviews",
+                Utf8GraphQLParser.Syntax.ParseSelectionSet("{ sku }")));
 
     private static FusionSchemaDefinition CreateMultipleResidualApplicationSchema()
         => CreateSchema(
