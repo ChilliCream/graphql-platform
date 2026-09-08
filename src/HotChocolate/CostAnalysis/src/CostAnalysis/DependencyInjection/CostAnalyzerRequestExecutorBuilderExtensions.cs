@@ -57,7 +57,7 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
                             requestOptions.MaxTypeCost,
                             requestOptions.EnforceCostLimits,
                             requestOptions.SkipAnalyzer,
-                            requestOptions.Filtering.VariableMultiplier);
+                            requestOptions.MaxResponseSize);
                     });
                 })
             .AddDirectiveType<CostDirectiveType>()

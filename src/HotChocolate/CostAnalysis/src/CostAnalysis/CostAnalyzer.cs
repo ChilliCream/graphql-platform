@@ -272,9 +272,9 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 
                             if ((argument.Flags & FieldFlags.FilterArgument) == FieldFlags.FilterArgument
                                 && argumentNode.Value.Kind == SyntaxKind.Variable
-                                && options.FilterVariableMultiplier.HasValue)
+                                && options.LegacyFilterVariableMultiplier.HasValue)
                             {
-                                argumentCost *= options.FilterVariableMultiplier.Value;
+                                argumentCost *= options.LegacyFilterVariableMultiplier.Value;
                             }
 
                             fieldCost += argumentCost;
