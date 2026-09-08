@@ -3,6 +3,13 @@ export interface FederationComparison {
   readonly title: string;
   readonly summary: string;
   readonly href: string;
+  /**
+   * Meta description of the comparison page, when the summary is too long to
+   * serve as one. Defaults to {@link FederationComparison.summary}.
+   */
+  readonly metaDescription?: string;
+  /** Search intent the comparison page is written for. Editors only; not emitted. */
+  readonly keywords?: readonly string[];
 }
 
 /**
