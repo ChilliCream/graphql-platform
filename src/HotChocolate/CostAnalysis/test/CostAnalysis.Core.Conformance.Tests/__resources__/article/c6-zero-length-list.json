@@ -1,0 +1,15 @@
+{
+  "id": "c6-zero-length-list",
+  "source": "article",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION\n\ntype Item {\n  value: Int @cost(weight: \"3\")\n}\n\ntype Query {\n  items(limit: Int!): [Item] @listSize(slicingArguments: [\"limit\"])\n}\n",
+  "operation": "query Zero($n: Int!) {\n  items(limit: $n) { value }\n}\n",
+  "operationName": "Zero",
+  "variables": { "n": 0 },
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 1,
+    "fieldCost": 1
+  },
+  "notes": "A supplied slicing value of 0 means the list multiplier is exactly 0 (children contribute nothing), while the field-call cost of the list field itself is still paid once. Schema RECONSTRUCTED; operation/variables/expected verbatim from the article."
+}

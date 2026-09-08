@@ -1,0 +1,15 @@
+{
+  "id": "c3-complementary-include-skip",
+  "source": "article",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION\n\ntype Side {\n  costly: Int @cost(weight: \"10\")\n}\n\ntype Query {\n  left: Side\n  right: Side\n}\n",
+  "operation": "query Example($x: Boolean!) {\n  left { costly @include(if: $x) }\n  right { costly @skip(if: $x) }\n}\n",
+  "operationName": "Example",
+  "variables": { "x": true },
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 3,
+    "fieldCost": 12
+  },
+  "notes": "@include(if: $x) and @skip(if: $x) on sibling fields are complementary: for either value of $x exactly one costly field is active, so a precise analysis charges it once. Schema RECONSTRUCTED; operation/variables/expected verbatim from the article. The ExactCases backend gets 12 without needing the variable value at all: it maximizes over both feasible assignments of $x, and both evaluate to 12."
+}

@@ -1,0 +1,15 @@
+{
+  "id": "c5-signed-weights-merged-control",
+  "source": "article",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION\n\nscalar Text @cost(weight: \"5\")\n\ntype Query @cost(weight: \"0\") {\n  book: Book\n}\n\ntype Book @cost(weight: \"-7\") {\n  title: Text\n  author: Author\n}\n\ntype Author {\n  name: Text\n}\n",
+  "operation": "query {\n  book {\n    title\n    author { name }\n  }\n}\n",
+  "operationName": null,
+  "variables": null,
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 4,
+    "fieldCost": 2
+  },
+  "notes": "The already-merged control for c5-signed-weights: book selected once with both children written directly, instead of split across two @include-guarded selections. Must equal c5-signed-weights's result. Merged type contribution: Book + Text + Author + Text = -7 + 5 + 1 + 5 = 4; fieldCost = book(1) + author(1) = 2. Schema VERBATIM from the article; expected verbatim."
+}

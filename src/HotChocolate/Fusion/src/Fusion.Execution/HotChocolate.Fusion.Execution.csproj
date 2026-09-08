@@ -6,6 +6,7 @@
     <LangVersion>preview</LangVersion>
     <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>HC8002;$(NoWarn)</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +23,7 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Diagnostics" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis.Core.Conformance.Tests" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +39,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Caching\src\Caching.Memory\HotChocolate.Caching.Memory.csproj" />
+    <ProjectReference Include="..\..\..\CostAnalysis\src\CostAnalysis.Core\HotChocolate.CostAnalysis.Core.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Abstractions\HotChocolate.Execution.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Operation.Abstractions\HotChocolate.Execution.Operation.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Execution.Pipeline\HotChocolate.Execution.Pipeline.csproj" />
