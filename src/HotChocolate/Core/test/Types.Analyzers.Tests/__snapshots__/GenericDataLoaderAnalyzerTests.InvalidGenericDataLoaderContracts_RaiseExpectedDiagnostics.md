@@ -53,7 +53,7 @@
     "WarningLevel": 0,
     "Location": ": (32,20)-(32,46)",
     "MessageFormat": "The return type of a [DataLoader<T>] method must be {0}",
-    "Message": "The return type of a [DataLoader<T>] method must be Task/ValueTask of IReadOnlyDictionary<TKey, TValue> or IDictionary<TKey, TValue>",
+    "Message": "The return type of a [DataLoader<T>] method must be Task/ValueTask of IReadOnlyDictionary<TKey, TValue>, IDictionary<TKey, TValue>, or Dictionary<TKey, TValue>",
     "Category": "DataLoader",
     "CustomTags": []
   },
@@ -65,6 +65,28 @@
     "Location": ": (37,20)-(37,29)",
     "MessageFormat": "The return type of a [DataLoader<T>] method must be {0}",
     "Message": "The return type of a [DataLoader<T>] method must be Task/ValueTask of TValue",
+    "Category": "DataLoader",
+    "CustomTags": []
+  },
+  {
+    "Id": "HC0124",
+    "Title": "Invalid DataLoader Return Type",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (40,20)-(40,52)",
+    "MessageFormat": "The return type of a [DataLoader<T>] method must be {0}",
+    "Message": "The return type of a [DataLoader<T>] method must be Task/ValueTask of IReadOnlyDictionary<TKey, TValue>, IDictionary<TKey, TValue>, or Dictionary<TKey, TValue>",
+    "Category": "DataLoader",
+    "CustomTags": []
+  },
+  {
+    "Id": "HC0124",
+    "Title": "Invalid DataLoader Return Type",
+    "Severity": "Error",
+    "WarningLevel": 0,
+    "Location": ": (45,20)-(45,51)",
+    "MessageFormat": "The return type of a [DataLoader<T>] method must be {0}",
+    "Message": "The return type of a [DataLoader<T>] method must be Task/ValueTask of IReadOnlyDictionary<TKey, TValue>, IDictionary<TKey, TValue>, or Dictionary<TKey, TValue>",
     "Category": "DataLoader",
     "CustomTags": []
   }

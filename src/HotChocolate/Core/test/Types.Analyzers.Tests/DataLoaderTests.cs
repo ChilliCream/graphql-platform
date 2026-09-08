@@ -713,7 +713,7 @@ public class DataLoaderTests
                 "",
                 "IBatchDataLoader<int, string>",
                 "Task<Dictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
-            null
+            DataLoaderKind.Batch
         ];
         yield return
         [
