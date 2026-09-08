@@ -342,6 +342,66 @@ public class FusionArchiveRegoPolicyBundleTests
         await Assert.ThrowsAsync<ArgumentException>(write);
     }
 
+    [Fact]
+    public async Task GetRegoPolicyBundle_Should_Throw_When_ArchiveContainsExtraDataMount()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        var bundle = new RegoPolicyBundle
+        {
+            Packages =
+            [
+                new RegoPolicyBundlePackage(
+                    "cart",
+                    [new RegoPolicyBundleModule("allow", Encoding.UTF8.GetBytes(CartAllowSource))],
+                    Requirements: null)
+            ],
+            Data = Encoding.UTF8.GetBytes("""{"role":"admin"}""")
+        };
+        await using var stream = new MemoryStream();
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetRegoPolicyBundleAsync(bundle, s_bundleVersion, ct);
+            await archive.SetRegoDataAsync("roles", """{"admin":true}"""u8.ToArray(), s_bundleVersion, ct);
+            await archive.CommitAsync(ct);
+        }
+
+        stream.Position = 0;
+
+        // act
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var read = () => readArchive.GetRegoPolicyBundleAsync(s_bundleVersion, ct);
+
+        // assert
+        await Assert.ThrowsAsync<InvalidDataException>(read);
+    }
+
+    [Fact]
+    public async Task GetRegoPolicyBundle_Should_Throw_When_DataDocumentIsNotListed()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        var bundle = SinglePackageBundle();
+        await using var stream = new MemoryStream();
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetRegoPolicyBundleAsync(bundle, s_bundleVersion, ct);
+            await archive.SetRegoDataAsync("", """{"role":"admin"}"""u8.ToArray(), s_bundleVersion, ct);
+            await archive.CommitAsync(ct);
+        }
+
+        stream.Position = 0;
+
+        // act
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        var read = () => readArchive.GetRegoPolicyBundleAsync(s_bundleVersion, ct);
+
+        // assert
+        await Assert.ThrowsAsync<InvalidDataException>(read);
+    }
+
     private static RegoPolicyBundle SinglePackageBundle()
         => new()
         {

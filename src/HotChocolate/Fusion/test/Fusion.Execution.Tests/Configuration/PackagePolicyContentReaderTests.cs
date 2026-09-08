@@ -94,6 +94,40 @@ public class PackagePolicyContentReaderTests
     }
 
     [Fact]
+    public async Task ReadAsync_Should_ReadFlatPair_When_PairVersionIsTwoAndMaxVersionIsTwo()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        await using var stream = new MemoryStream();
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetRegoPolicyAsync(
+                "cart",
+                Encoding.UTF8.GetBytes(CartAllowSource),
+                "fragment Requirements on Cart { id }"u8.ToArray(),
+                s_bundleVersion,
+                ct);
+            await archive.CommitAsync(ct);
+        }
+
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+
+        // act
+        var snapshot = await PackagePolicyContentReader.ReadAsync(
+            readArchive, WellKnownVersions.LatestRegoPolicyFormatVersion, ct);
+
+        // assert
+        Assert.NotNull(snapshot);
+        Assert.Equal(s_bundleVersion, snapshot.FormatVersion);
+        var policy = Assert.Single(snapshot.Policies);
+        Assert.Equal("cart", policy.Name);
+        Assert.Empty(snapshot.Libraries);
+        snapshot.Dispose();
+    }
+
+    [Fact]
     public async Task ReadAsync_Should_Throw_When_OnlyBundleFormatExceedsRuntimeMax()
     {
         // arrange

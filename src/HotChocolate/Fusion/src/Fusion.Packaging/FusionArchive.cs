@@ -531,6 +531,22 @@ public sealed class FusionArchive : IDisposable
             .ToArray();
     }
 
+    /// <summary>
+    /// Determines whether a Rego policy format version is a manifest-indexed bundle rather than the
+    /// flat policy-pair format, keying off the presence of a nested manifest.json.
+    /// </summary>
+    /// <param name="version">The Rego policy format version.</param>
+    /// <returns><see langword="true"/> when the version is a manifest-indexed bundle.</returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    public bool IsRegoPolicyBundleFormat(Version version)
+    {
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        return ReadRegoPolicyBundleVersions().Contains(version);
+    }
+
     // A version directory is a manifest-indexed bundle, rather than a flat policy-pair format, when it
     // contains a nested manifest.json. Detecting this by content rather than by a hardcoded version
     // number keeps the flat-pair format free to keep using arbitrary version numbers of its own.
@@ -899,15 +915,13 @@ public sealed class FusionArchive : IDisposable
         }
 
         var directory = FileNames.GetRegoBundleDirectory(version);
-        var dataDirectory = FileNames.GetRegoDataDirectory(version);
         var manifestRelativePath = manifestPath[directory.Length..];
         var onDisk = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var path in _session.GetFiles())
         {
             if (path.EndsWith("/", StringComparison.Ordinal)
-                || !path.StartsWith(directory, StringComparison.Ordinal)
-                || path.StartsWith(dataDirectory, StringComparison.Ordinal))
+                || !path.StartsWith(directory, StringComparison.Ordinal))
             {
                 continue;
             }
@@ -1112,13 +1126,6 @@ public sealed class FusionArchive : IDisposable
                 Encoding.UTF8.GetBytes(library.Sha256)));
         }
 
-        var extra = onDisk.FirstOrDefault(path => !referencedPaths.Contains(path));
-
-        if (extra is not null)
-        {
-            throw ThrowHelper.RegoPolicyBundlePathUnlisted(extra);
-        }
-
         ReadOnlyMemory<byte>? data = null;
         byte[] dataDigest;
 
@@ -1132,6 +1139,8 @@ public sealed class FusionArchive : IDisposable
                     version,
                     $"the data mount must be located at '{dataRelativePath}'.");
             }
+
+            referencedPaths.Add(dataRelativePath);
 
             var dataPath = FileNames.GetRegoDataPath(version, string.Empty);
 
@@ -1162,6 +1171,13 @@ public sealed class FusionArchive : IDisposable
         else
         {
             dataDigest = Encoding.UTF8.GetBytes(ComputeRegoBundleSha256("{}"u8));
+        }
+
+        var extra = onDisk.FirstOrDefault(path => !referencedPaths.Contains(path));
+
+        if (extra is not null)
+        {
+            throw ThrowHelper.RegoPolicyBundlePathUnlisted(extra);
         }
 
         return new RegoPolicyBundleContent

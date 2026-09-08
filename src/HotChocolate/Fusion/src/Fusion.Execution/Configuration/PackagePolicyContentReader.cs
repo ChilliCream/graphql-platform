@@ -52,7 +52,7 @@ internal static class PackagePolicyContentReader
             throw ThrowHelper.UnsupportedRegoPolicyFormatVersion(allVersions[0], maxFormatVersion);
         }
 
-        if (version >= WellKnownVersions.RegoPolicyBundleFormatVersion)
+        if (archive.IsRegoPolicyBundleFormat(version))
         {
             return await ReadBundleAsync(archive, version, cancellationToken).ConfigureAwait(false);
         }
