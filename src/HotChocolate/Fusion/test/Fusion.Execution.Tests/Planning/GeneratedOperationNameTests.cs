@@ -27,7 +27,7 @@ public sealed class GeneratedOperationNameTests : FusionTestBase
     private static OperationPlan CreatePlan(FusionSchemaDefinition schema, string shortHash)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
         var planner = new OperationPlanner(schema, new OperationCompiler(schema, pool));
 
         return planner.CreatePlan(

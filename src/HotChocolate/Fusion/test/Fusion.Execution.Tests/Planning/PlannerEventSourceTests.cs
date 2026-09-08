@@ -292,7 +292,7 @@ public sealed class PlannerEventSourceTests : FusionTestBase
         OperationPlannerOptions? options = null)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
         var compiler = new OperationCompiler(schema, pool);
 
         return options is null

@@ -209,7 +209,7 @@ public class OperationMergePolicyTests : FusionTestBase
         OperationMergePolicy mergePolicy)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 

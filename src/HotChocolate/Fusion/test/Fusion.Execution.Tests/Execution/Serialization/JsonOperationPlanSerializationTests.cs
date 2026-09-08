@@ -103,7 +103,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
@@ -209,7 +209,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
@@ -283,7 +283,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
@@ -440,7 +440,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
 
         // act
@@ -482,7 +482,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
 
         // act
@@ -534,7 +534,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
 
         // act
@@ -584,7 +584,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
 
         // act
@@ -655,7 +655,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
@@ -695,7 +695,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
@@ -782,7 +782,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
@@ -895,7 +895,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
 
         // act
@@ -1060,7 +1060,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             schema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
@@ -1132,7 +1132,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             schema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
 
         // act
@@ -1200,7 +1200,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
 
         // act
@@ -1344,7 +1344,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var compiler = new OperationCompiler(
             compositeSchema,
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+                new FieldMapPooledObjectPolicy()));
         var parser = new JsonOperationPlanParser(compiler);
 
         return parser.Parse(Encoding.UTF8.GetBytes(planSource.ToJsonString()));
@@ -1396,7 +1396,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             new OperationCompiler(
                 schema,
                 new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-                    new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>())));
+                    new FieldMapPooledObjectPolicy())));
 
     // Source schema "a" owns 'Bar.y' and source schema "b" requires it for
     // 'Bar.x', so the lookup on "b" binds its requirement on the nested 'bar'
