@@ -42,7 +42,9 @@ export const COMPARISONS: readonly FederationComparison[] = [
     title: "GraphQL Federation vs a GraphQL monolith",
     summary:
       "One GraphQL server wins for one team, or for teams that can still ship together; GraphQL Federation wins once teams need to change and deploy their part of the API on their own schedules.",
-    href: "#vs-graphql-monolith",
+    href: "/platform/graphql-federation/vs-graphql-monolith",
+    metaDescription:
+      "One GraphQL server is the right start. What changes when the deploy train becomes the bottleneck, what federation costs, and how a monolith becomes a subgraph.",
   },
   {
     slug: "vs-apollo-federation",
