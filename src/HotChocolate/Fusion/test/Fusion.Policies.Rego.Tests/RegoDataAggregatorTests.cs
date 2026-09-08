@@ -56,12 +56,15 @@ public sealed class RegoDataAggregatorTests
         aggregator.Start();
         await WaitUntilAsync(() => aggregator.TryBuildMergedData(s_farData, out _, out _)
             == RegoDataMergeStatus.Ready);
-        var status = aggregator.TryBuildMergedData(s_farData, out var merged, out var error);
+        var status = aggregator.TryBuildMergedData(s_farData, out var attempt, out var error);
 
         // assert
         Assert.Equal(RegoDataMergeStatus.Ready, status);
         Assert.Null(error);
-        Assert.Contains("orders", System.Text.Encoding.UTF8.GetString(merged!), StringComparison.Ordinal);
+        Assert.Contains(
+            "orders",
+            System.Text.Encoding.UTF8.GetString(attempt!.MergedData),
+            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -100,12 +103,12 @@ public sealed class RegoDataAggregatorTests
         // The default in-memory provider loads synchronously, so a single call after Start
         // already observes the merged, oversized document.
         aggregator.Start();
-        var status = aggregator.TryBuildMergedData(s_farData, out var merged, out var error);
+        var status = aggregator.TryBuildMergedData(s_farData, out var attempt, out var error);
 
         // assert
         Assert.Equal(RegoDataMergeStatus.Ready, status);
         Assert.Null(error);
-        Assert.NotNull(merged);
+        Assert.NotNull(attempt);
         Assert.Single(logger.Warnings);
     }
 
@@ -129,9 +132,10 @@ public sealed class RegoDataAggregatorTests
         var reported = Assert.Single(diagnostics.UpdateErrors);
         var providerError = Assert.IsType<RegoDataProviderException>(reported);
         Assert.Equal("orders", providerError.ProviderName);
-        aggregator.TryBuildMergedData(s_farData, out var merged, out _);
-        Assert.Contains("orders", System.Text.Encoding.UTF8.GetString(merged!), StringComparison.Ordinal);
-        Assert.DoesNotContain("stale", System.Text.Encoding.UTF8.GetString(merged!), StringComparison.Ordinal);
+        aggregator.TryBuildMergedData(s_farData, out var attempt, out _);
+        var merged = System.Text.Encoding.UTF8.GetString(attempt!.MergedData);
+        Assert.Contains("orders", merged, StringComparison.Ordinal);
+        Assert.DoesNotContain("stale", merged, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -159,8 +163,11 @@ public sealed class RegoDataAggregatorTests
 
         // assert
         Assert.Empty(diagnostics.UpdateErrors);
-        aggregator.TryBuildMergedData(s_farData, out var merged, out _);
-        Assert.DoesNotContain("stale", System.Text.Encoding.UTF8.GetString(merged!), StringComparison.Ordinal);
+        aggregator.TryBuildMergedData(s_farData, out var attempt, out _);
+        Assert.DoesNotContain(
+            "stale",
+            System.Text.Encoding.UTF8.GetString(attempt!.MergedData),
+            StringComparison.Ordinal);
     }
 
     [Fact]

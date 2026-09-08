@@ -101,31 +101,37 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
     }
 
     /// <summary>
-    /// Attempts to build the merged data document from the FAR data document and every provider's
-    /// last known good snapshot. Before doing so, retries promoting every provider's pending
-    /// candidate (a freshly fetched snapshot held back because it previously collided) against the
-    /// given FAR data and the other providers' current snapshots, so a provider-side fix or a new
-    /// FAR publish resolves a collision without the provider needing to refresh again.
+    /// Attempts to build the merged data document from the given FAR data document and every
+    /// provider's best known data, without committing anything: a provider's still-pending
+    /// candidate is only ever promoted to that provider's last-good snapshot by calling
+    /// <see cref="RegoDataMergeAttempt.Commit"/> on the <see cref="RegoDataMergeAttempt"/> this
+    /// returns on <see cref="RegoDataMergeStatus.Ready"/>. The caller commits only once it has
+    /// successfully compiled the policy set with <see cref="RegoDataMergeAttempt.MergedData"/>;
+    /// an attempt that is discarded instead leaves every provider's last-good snapshot exactly as
+    /// it was.
     /// </summary>
     public RegoDataMergeStatus TryBuildMergedData(
         byte[] farData,
-        out byte[]? merged,
+        out RegoDataMergeAttempt? attempt,
         out Exception? error)
     {
-        merged = null;
+        attempt = null;
         error = null;
 
         List<ReadOnlyMemory<byte>> documents;
+        List<(ProviderState State, RegoDataSnapshot Snapshot)> promotions;
 
         lock (_sync)
         {
-            ReconcilePendingSnapshots(farData);
+            promotions = ComputePendingPromotions(farData);
 
             documents = new List<ReadOnlyMemory<byte>>(_providers.Length + 1) { farData };
 
             foreach (var state in _providers)
             {
-                if (state.Snapshot is { } snapshot)
+                var snapshot = FindPromotion(promotions, state)?.Snapshot ?? state.Snapshot;
+
+                if (snapshot is not null)
                 {
                     documents.Add(snapshot.Data);
                     continue;
@@ -138,11 +144,15 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
                 }
 
                 // The provider has responded at least once, but every attempt so far has
-                // collided: there is no last-good to fall back to yet, so fail instead of
-                // waiting forever.
+                // collided and it has no last-good to fall back to: fail instead of waiting
+                // forever. The failure this produces below is the only diagnostic reported for
+                // this provider's collision (ComputePendingPromotions deliberately did not
+                // report it, to avoid reporting the same collision twice).
                 documents.Add(state.PendingSnapshot.Data);
             }
         }
+
+        byte[] merged;
 
         try
         {
@@ -163,20 +173,41 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
                 SizeWarningThresholdBytes);
         }
 
+        attempt = new RegoDataMergeAttempt(this, merged, promotions);
         return RegoDataMergeStatus.Ready;
     }
 
-    // Must be called while holding _sync. A provider snapshot that collides with the current FAR
-    // content or another provider's snapshot is never committed as that provider's last-good: the
-    // candidate is kept as PendingSnapshot and retried here (on every subsequent provider refresh
-    // and every FAR publish) rather than replacing a value that is still valid, so a rejected
-    // candidate never displaces a provider's last-good snapshot. Other providers are validated
-    // against using their own best known value (last-good if promoted, otherwise their own still-
-    // pending candidate) rather than requiring them to already be promoted: two providers whose
-    // very first snapshots both arrive before either is validated must still be able to promote
-    // each other in the same pass instead of deadlocking on one another.
-    private void ReconcilePendingSnapshots(byte[] farData)
+    private static (ProviderState State, RegoDataSnapshot Snapshot)? FindPromotion(
+        List<(ProviderState State, RegoDataSnapshot Snapshot)> promotions,
+        ProviderState state)
     {
+        foreach (var promotion in promotions)
+        {
+            if (ReferenceEquals(promotion.State, state))
+            {
+                return promotion;
+            }
+        }
+
+        return null;
+    }
+
+    // Must be called while holding _sync. Computes, without mutating any provider's committed
+    // Snapshot, which pending candidates would be safe to promote: a provider snapshot that
+    // collides with the given FAR data or another provider's snapshot never becomes that
+    // provider's last-good here - the caller commits the returned promotions only after
+    // successfully compiling the policy set with the resulting merged data, so a candidate that
+    // looked safe here but turns out to break compilation never displaces a still-valid last-good
+    // snapshot. Other providers are validated against using their own best known value (last-good
+    // if any, otherwise their own still-pending candidate, otherwise an already-computed promotion
+    // from earlier in this same pass) rather than requiring them to already be promoted: two
+    // providers whose very first snapshots both arrive before either is committed must still be
+    // able to validate against each other in the same pass instead of deadlocking on one another.
+    private List<(ProviderState State, RegoDataSnapshot Snapshot)> ComputePendingPromotions(
+        byte[] farData)
+    {
+        var promotions = new List<(ProviderState State, RegoDataSnapshot Snapshot)>();
+
         foreach (var candidate in _providers)
         {
             if (candidate.PendingSnapshot is null)
@@ -191,7 +222,7 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
             {
                 var snapshot = ReferenceEquals(state, candidate)
                     ? state.PendingSnapshot
-                    : state.Snapshot ?? state.PendingSnapshot;
+                    : FindPromotion(promotions, state)?.Snapshot ?? state.Snapshot ?? state.PendingSnapshot;
 
                 if (snapshot is null)
                 {
@@ -215,12 +246,49 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
             }
             catch (RegoDataMergeException ex)
             {
-                _diagnosticEvents.PolicyUpdateError(new RegoDataProviderException(candidate.Name, ex));
+                if (candidate.Snapshot is not null)
+                {
+                    // This provider already has a last-good snapshot, so the caller's own merge
+                    // attempt below will silently keep using it instead of re-discovering this
+                    // same failure: report it here, once, or it would never surface at all.
+                    _diagnosticEvents.PolicyUpdateError(new RegoDataProviderException(candidate.Name, ex));
+                }
+
+                // Else: this provider has no last-good yet, so it has no fallback value - the
+                // caller's overall merge attempt is forced to fall through with this same
+                // colliding candidate and will fail identically, reporting the failure once
+                // there. Reporting here too would report the same collision twice (F3).
                 continue;
             }
 
-            candidate.Snapshot = candidate.PendingSnapshot;
-            candidate.PendingSnapshot = null;
+            promotions.Add((candidate, candidate.PendingSnapshot));
+        }
+
+        return promotions;
+    }
+
+    // Commits every promotion an accepted RegoDataMergeAttempt staged: a provider whose pending
+    // candidate is still exactly the value validated when the attempt was built becomes that
+    // provider's new last-good snapshot. A provider whose pending candidate has since moved on (a
+    // newer refresh arrived while the caller was compiling) is left untouched - the newer
+    // candidate stays pending for the next rebuild to retry.
+    private void CommitPromotions(List<(ProviderState State, RegoDataSnapshot Snapshot)> promotions)
+    {
+        if (promotions.Count == 0)
+        {
+            return;
+        }
+
+        lock (_sync)
+        {
+            foreach (var (state, snapshot) in promotions)
+            {
+                if (state.PendingSnapshot?.Equals(snapshot) == true)
+                {
+                    state.Snapshot = state.PendingSnapshot;
+                    state.PendingSnapshot = null;
+                }
+            }
         }
     }
 
@@ -293,9 +361,9 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
                 }
 
                 // The fetched snapshot is not committed directly: it only becomes this
-                // provider's last-good once TryBuildMergedData confirms it merges cleanly with
-                // the current FAR content and every other provider, so a colliding snapshot never
-                // displaces a still-valid last-good snapshot.
+                // provider's last-good once the caller confirms it merges cleanly with the
+                // current FAR content and every other provider AND compiles, so a colliding or
+                // otherwise broken candidate never displaces a still-valid last-good snapshot.
                 state.PendingSnapshot = snapshot;
                 changed = true;
             }
@@ -366,7 +434,45 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
         }
     }
 
-    private sealed class ProviderState(string name, IRegoDataProvider instance, bool ownsInstance)
+    /// <summary>
+    /// A validated, not-yet-committed outcome of <see cref="RegoDataAggregator.TryBuildMergedData"/>.
+    /// </summary>
+    /// <remarks>
+    /// Carries the merged data document together with the set of provider promotions that
+    /// produced it. Nothing about the aggregator's state changes until <see cref="Commit"/> is
+    /// called; an attempt that is simply discarded (because, for example, the caller failed to
+    /// compile the policy set with <see cref="MergedData"/>) leaves every provider's last-good
+    /// snapshot exactly as it was before the attempt was built.
+    /// </remarks>
+    internal sealed class RegoDataMergeAttempt
+    {
+        private readonly RegoDataAggregator _owner;
+        private readonly List<(ProviderState State, RegoDataSnapshot Snapshot)> _promotions;
+
+        internal RegoDataMergeAttempt(
+            RegoDataAggregator owner,
+            byte[] mergedData,
+            List<(ProviderState State, RegoDataSnapshot Snapshot)> promotions)
+        {
+            _owner = owner;
+            MergedData = mergedData;
+            _promotions = promotions;
+        }
+
+        /// <summary>
+        /// Gets the merged data document this attempt produced.
+        /// </summary>
+        public byte[] MergedData { get; }
+
+        /// <summary>
+        /// Commits every promotion this attempt staged. Call only after the policy set has been
+        /// successfully compiled with <see cref="MergedData"/>; calling it any other time risks
+        /// promoting provider data that was never actually used to produce a served policy set.
+        /// </summary>
+        public void Commit() => _owner.CommitPromotions(_promotions);
+    }
+
+    internal sealed class ProviderState(string name, IRegoDataProvider instance, bool ownsInstance)
     {
         public string Name { get; } = name;
 
@@ -381,10 +487,11 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
         public RegoDataSnapshot? Snapshot;
 
         // A freshly fetched snapshot that has not yet been confirmed to merge cleanly with the
-        // current FAR content and every other provider. Set by every refresh that returns a
-        // different value than whichever of Snapshot/PendingSnapshot is currently newest, and
-        // cleared once ReconcilePendingSnapshots promotes it to Snapshot. It is never overwritten
-        // with null on a failed reconciliation: it stays here for the next retry.
+        // current FAR content and every other provider AND to compile. Set by every refresh that
+        // returns a different value than whichever of Snapshot/PendingSnapshot is currently
+        // newest, and cleared only once RegoDataMergeAttempt.Commit promotes it to Snapshot. It is
+        // never overwritten with null on a failed validation or a discarded attempt: it stays here
+        // for the next retry.
         public RegoDataSnapshot? PendingSnapshot;
 
         public IDisposable? ChangeSubscription;

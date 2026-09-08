@@ -32,23 +32,25 @@ public sealed class RegoPolicyProvider
     // references it any more.
     private PolicySetHandle? _currentHandle;
 
-    // The last successfully compiled and published code/data pair. Compared against on every
-    // incoming snapshot to detect a real change, and reused verbatim when a data provider change
-    // alone triggers a recompile. Only ever assigned once a compile attempt with this exact pair
-    // has succeeded, so a candidate that failed to compile is never mistaken for the current state.
+    // The last successfully compiled and published code/data pair. _data is the FAR data document
+    // as received (used to detect a real FAR change); _lastMergedData is the exact bytes the last
+    // successful CompiledPolicySet.Compile call ran with (the FAR data merged with provider data,
+    // or the same as _data when there is no data aggregator). Both are only ever assigned once a
+    // compile attempt with this exact pair has succeeded, so a candidate that failed to compile is
+    // never mistaken for the current state.
     private Dictionary<string, PolicyContent> _contents = new(StringComparer.Ordinal);
     private byte[]? _data;
+    private byte[]? _lastMergedData;
 
-    // The candidate a rebuild attempt is currently working towards. Set at the start of every
-    // rebuild attempt. It is retained (kept pending) while it is still waiting on a data
-    // provider's initial load, or once its data (merged before compiling) collides with the
-    // current provider data: a provider-driven retry or the next FAR publish (which replaces this
-    // candidate) then re-attempts the merge against fresh data, so a provider-side fix resolves
-    // the collision without a FAR republish, and the last-good set keeps serving meanwhile. A
-    // candidate that fails to COMPILE is cleared immediately instead: it never survives across a
-    // failed compile, so a provider refresh recompiles the last committed (last-good) FAR content
-    // rather than the broken one, and an identical FAR re-send is retried rather than silently
-    // suppressed.
+    // The FAR candidate a merge collision is currently keeping pending. Set whenever a new FAR
+    // candidate's code compiles (against the last-good data) but its own data collides with the
+    // current provider data: a provider-driven retry (OnProviderDataChanged) or the next FAR
+    // publish (which replaces this candidate) then re-attempts the merge against fresh data, so a
+    // provider-side fix resolves the collision without a FAR republish, and the last-good set keeps
+    // serving meanwhile. A candidate whose CODE fails to compile never reaches this state: it is
+    // dropped immediately (see RebuildFarCandidate) so a provider-side fix can never be asked to
+    // resolve what is actually a broken policy, and an identical FAR re-send is retried rather than
+    // silently suppressed.
     private Dictionary<string, PolicyContent>? _pendingContents;
     private byte[]? _pendingData;
 
@@ -139,6 +141,7 @@ public sealed class RegoPolicyProvider
         {
             _contents = new Dictionary<string, PolicyContent>(StringComparer.Ordinal);
             _data = null;
+            _lastMergedData = null;
             _pendingContents = null;
             _pendingData = null;
             _currentHandle = null;
@@ -170,13 +173,15 @@ public sealed class RegoPolicyProvider
             return;
         }
 
-        Rebuild(contents, data);
+        RebuildFarCandidate(contents, data);
     }
 
-    // Called when a registered data provider publishes a change: the FAR code and data are
-    // unaffected, but the data merged in from providers is not, so whatever candidate is
-    // currently pending (a startup load still waiting on providers) or, failing that, the last
-    // committed pair is recompiled against the freshly merged data.
+    // Called when a registered data provider publishes a change. Two independent rebuild attempts
+    // follow, both reported on: the currently served last-good FAR content is recompiled against
+    // the freshest provider data (so the served set never goes stale just because a FAR candidate
+    // happens to be stuck pending elsewhere), and, separately, whatever FAR candidate is currently
+    // pending (a startup load still waiting on providers, or a merge collision) is retried against
+    // the same fresh data.
     private void OnProviderDataChanged()
     {
         lock (_publishSync)
@@ -186,24 +191,22 @@ public sealed class RegoPolicyProvider
                 return;
             }
 
-            var contents = _pendingContents ?? (_contents.Count > 0 ? _contents : null);
-
-            if (contents is null)
+            if (_contents.Count > 0)
             {
-                return;
+                TryMergeAndCommit(_contents, _data!, isPendingCandidate: false);
             }
 
-            var data = _pendingContents is not null ? _pendingData : _data;
-
-            Rebuild(contents, data);
+            if (_pendingContents is not null)
+            {
+                TryMergeAndCommit(_pendingContents, _pendingData!, isPendingCandidate: true);
+            }
         }
     }
 
-    // Stages the candidate and compiles it; the committed _contents/_data pair (against which the
-    // next snapshot is compared for changes) is only ever assigned once compilation with this
-    // exact candidate has succeeded, so a candidate that fails to compile is never mistaken for
-    // the current state and an identical retry is attempted again rather than silently suppressed.
-    private void Rebuild(Dictionary<string, PolicyContent> contents, byte[]? data)
+    // Handles a new FAR candidate (a code and/or data change reported by the configuration
+    // stream). Replaces whatever candidate was previously pending, exactly like a fresh FAR
+    // publish always does regardless of what it replaces.
+    private void RebuildFarCandidate(Dictionary<string, PolicyContent> contents, byte[] data)
     {
         _pendingContents = contents;
         _pendingData = data;
@@ -212,6 +215,7 @@ public sealed class RegoPolicyProvider
         {
             _contents = contents;
             _data = data;
+            _lastMergedData = null;
             _pendingContents = null;
             _pendingData = null;
             _currentHandle = null;
@@ -219,38 +223,127 @@ public sealed class RegoPolicyProvider
             return;
         }
 
-        if (data is null)
+        if (_dataAggregator is null)
         {
+            CompileAndCommitOrDrop(contents, data, data);
             return;
         }
 
-        var compileData = data;
+        // ORDER fix (F4): validate that the candidate's CODE compiles at all - against whatever
+        // data last compiled successfully, or the candidate's own data if there is no last-good
+        // yet, since there is nothing else to check it against - before it can ever become a
+        // pending merge-collision candidate. A candidate whose code is broken is always dropped
+        // here and reported, never left stuck waiting on a provider-side fix that could never
+        // resolve a compile error.
+        var precheckData = _lastMergedData ?? data;
 
-        if (_dataAggregator is not null)
+        if (!TryCompile(contents, precheckData, out _, out var precheckPolicies, out _, out var precheckError))
         {
-            switch (_dataAggregator.TryBuildMergedData(data, out var merged, out var mergeError))
-            {
-                case RegoDataMergeStatus.NotReady:
-                    // A registered provider has not completed its initial load yet: stay on the
-                    // existing "no data yet" path (nothing published) until it does.
-                    return;
-
-                case RegoDataMergeStatus.Failed:
-                    // The candidate's data collides with the current provider data: keep it
-                    // pending rather than dropping it, so a provider-side fix (on its next
-                    // refresh) or the next FAR publish (which replaces this candidate) retries
-                    // the merge. Every failed attempt is reported here, so the diagnostic is
-                    // never suppressed.
-                    _diagnosticEvents.PolicyUpdateError(mergeError!);
-                    return;
-
-                case RegoDataMergeStatus.Ready:
-                    compileData = merged!;
-                    break;
-            }
+            ReportCompileFailure(precheckPolicies, precheckError!);
+            _pendingContents = null;
+            _pendingData = null;
+            return;
         }
 
-        var policies = new List<PolicyDefinition>();
+        TryMergeAndCommit(contents, data, isPendingCandidate: true);
+    }
+
+    // The simple, no-data-aggregator path: a single compile attempt, committed on success and
+    // dropped (with a diagnostic) on failure.
+    private void CompileAndCommitOrDrop(
+        Dictionary<string, PolicyContent> contents,
+        byte[] data,
+        byte[] compileData)
+    {
+        if (!TryCompile(contents, compileData, out var set, out var policies, out var entryPoints, out var error))
+        {
+            ReportCompileFailure(policies, error!);
+            _pendingContents = null;
+            _pendingData = null;
+            return;
+        }
+
+        CommitCompiledSet(contents, data, compileData, set!, policies, entryPoints);
+        _pendingContents = null;
+        _pendingData = null;
+    }
+
+    // Attempts to merge the given contents/data through the data aggregator and, on a clean merge,
+    // compile and commit the result. The candidate's code is assumed to already compile (either
+    // because RebuildFarCandidate just precheck-validated it, or because it is a retry of a
+    // candidate that already did). isPendingCandidate controls whether _pendingContents/_pendingData
+    // are cleared: true when the contents/data being attempted ARE the tracked pending candidate
+    // (so a resolution or a fresh compile failure retires it), false when recompiling the currently
+    // served last-good content on a provider refresh (which must never disturb an unrelated pending
+    // candidate).
+    private void TryMergeAndCommit(
+        Dictionary<string, PolicyContent> contents,
+        byte[] data,
+        bool isPendingCandidate)
+    {
+        switch (_dataAggregator!.TryBuildMergedData(data, out var attempt, out var mergeError))
+        {
+            case RegoDataMergeStatus.NotReady:
+                // A registered provider has not completed its initial load yet: stay on the
+                // existing "no data yet" path (nothing published) until it does.
+                return;
+
+            case RegoDataMergeStatus.Failed:
+                // The candidate's data collides with the current provider data: keep it pending
+                // (it is already known to compile) rather than dropping it, so a provider-side
+                // fix or the next FAR publish (which replaces this candidate) retries the merge.
+                // Every failed attempt is reported here, so the diagnostic is never suppressed.
+                _diagnosticEvents.PolicyUpdateError(mergeError!);
+                return;
+
+            case RegoDataMergeStatus.Ready:
+                if (!TryCompile(
+                    contents,
+                    attempt!.MergedData,
+                    out var set,
+                    out var policies,
+                    out var entryPoints,
+                    out var compileError))
+                {
+                    // Compiled fine against the last-good data but not against the actual merged
+                    // data: drop it like any other compile failure. Nothing was committed, so the
+                    // provider promotions this attempt staged are simply discarded - no provider's
+                    // last-good snapshot is ever touched by a candidate that never got compiled.
+                    ReportCompileFailure(policies, compileError!);
+
+                    if (isPendingCandidate)
+                    {
+                        _pendingContents = null;
+                        _pendingData = null;
+                    }
+
+                    return;
+                }
+
+                // Compile succeeded: only now does the aggregator commit the provider promotions
+                // this attempt staged, atomically with this policy set becoming the served one.
+                attempt.Commit();
+                CommitCompiledSet(contents, data, attempt.MergedData, set!, policies, entryPoints);
+
+                if (isPendingCandidate)
+                {
+                    _pendingContents = null;
+                    _pendingData = null;
+                }
+
+                return;
+        }
+    }
+
+    private static bool TryCompile(
+        Dictionary<string, PolicyContent> contents,
+        byte[] compileData,
+        out CompiledPolicySet? set,
+        out List<PolicyDefinition> policies,
+        out List<string> entryPoints,
+        out Exception? error)
+    {
+        policies = new List<PolicyDefinition>();
         var modules = new List<PolicyModule>(contents.Count);
 
         foreach (var content in contents.Values)
@@ -281,26 +374,33 @@ public sealed class RegoPolicyProvider
             }
         }
 
-        var entryPoints = policies.Select(static p => $"data.{p.Name}").ToList();
-
-        CompiledPolicySet set;
+        entryPoints = policies.Select(static p => $"data.{p.Name}").ToList();
 
         try
         {
             set = CompiledPolicySet.Compile(compileData, modules, entryPoints);
+            error = null;
+            return true;
         }
         catch (Exception ex)
         {
-            ReportCompileFailure(policies, ex);
-            _pendingContents = null;
-            _pendingData = null;
-            return;
+            set = null;
+            error = ex;
+            return false;
         }
+    }
 
+    private void CommitCompiledSet(
+        Dictionary<string, PolicyContent> contents,
+        byte[] data,
+        byte[] mergedData,
+        CompiledPolicySet set,
+        List<PolicyDefinition> policies,
+        List<string> entryPoints)
+    {
         _contents = contents;
         _data = data;
-        _pendingContents = null;
-        _pendingData = null;
+        _lastMergedData = mergedData;
 
         var handle = new PolicySetHandle(set);
         var compiledPolicies = ImmutableArray.CreateBuilder<IPolicy>(policies.Count);
@@ -374,6 +474,7 @@ public sealed class RegoPolicyProvider
             _currentHandle = null;
             _contents = new Dictionary<string, PolicyContent>(StringComparer.Ordinal);
             _data = null;
+            _lastMergedData = null;
             _pendingContents = null;
             _pendingData = null;
         }
