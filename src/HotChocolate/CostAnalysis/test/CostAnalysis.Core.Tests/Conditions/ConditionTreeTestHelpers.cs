@@ -22,8 +22,9 @@ internal static class ConditionTreeTestHelpers
 
     /// <summary>
     /// Renders every node of <paramref name="tree"/>, in arena order, as
-    /// <c>[possible types] (boolean literals) responseName:occurrenceCount ...</c>,
-    /// one line per node, the root marked with a leading <c>*</c>.
+    /// <c>[possible types] (boolean literals) responseName:occurrenceCount ... branches=label->targetId,...</c>,
+    /// one line per node, the root marked with a leading <c>*</c>. The
+    /// <c>branches</c> segment is omitted for a node with no outgoing edges.
     /// </summary>
     public static string Dump(CostSchemaSnapshot snapshot, ConditionTree tree, params string[] objectTypeNames)
     {
@@ -42,6 +43,12 @@ internal static class ConditionTreeTestHelpers
                 line.Append(' ').Append(group.ResponseName).Append(':').Append(group.Fields.Count);
             }
 
+            if (node.Branches.Count > 0)
+            {
+                line.Append(" branches=");
+                line.Append(string.Join(",", node.Branches.Select(branch => $"{DescribeBranch(branch.Condition)}->{branch.TargetNodeId}")));
+            }
+
             lines.Add(line.ToString());
         }
 
@@ -50,4 +57,7 @@ internal static class ConditionTreeTestHelpers
 
     private static string DescribeTypes(CostSchemaSnapshot snapshot, PossibleTypeSet types, string[] objectTypeNames)
         => string.Join(",", objectTypeNames.Where(name => types.Contains(snapshot.GetObjectTypeIndex(name))));
+
+    private static string DescribeBranch(BranchCondition condition)
+        => condition.TypeName ?? condition.Literal.ToString()!;
 }

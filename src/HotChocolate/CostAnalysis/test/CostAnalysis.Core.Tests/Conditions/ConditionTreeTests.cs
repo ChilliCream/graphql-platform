@@ -65,7 +65,7 @@ public class ConditionTreeTests
         // assert
         ConditionTreeTestHelpers.Dump(snapshot, childTree, "A", "B").MatchInlineSnapshot(
             """
-            *[A,B] ()
+            *[A,B] () branches=A->1,B->2
              [A] () a:1
              [B] () b:1
             """);
@@ -157,5 +157,108 @@ public class ConditionTreeTests
         Assert.Equal(2, tree.Nodes.Count);
         Assert.Empty(tree.Root.FieldGroups);
         Assert.Equal("book", tree.Nodes[1].FieldGroups.Single().ResponseName);
+    }
+
+    [Fact]
+    public void ExtractOperation_Should_Graft_Single_Edge_When_Nested_Fragment_Narrows_To_Object()
+    {
+        // arrange: Node={A,B} under the wider Result={A,B,C} scope, narrowed further to A
+        const string sdl =
+            """
+            interface Node { id: String }
+            type A implements Node { id: String a: Int }
+            type B implements Node { id: String b: Int }
+            type C { c: Int }
+            union Result = A | B | C
+            type Query { result: Result }
+            """;
+        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var document = Utf8GraphQLParser.Parse(
+            "{ result { ... on Node { ... on A { a } } } }");
+        var operation = ConditionTreeTestHelpers.ParseOperation(document);
+        var rootTree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
+        var childRoot = new Condition(snapshot.GetPossibleTypeSet("Result"), []);
+
+        // act: the intermediate Node edge is never grafted, only the edge to A is
+        var childTree = ConditionTreeExtractor.ExtractBoundary(
+            snapshot,
+            ConditionTreeExtractor.IndexFragments(document),
+            resultGroup.MergedSelectionSet(),
+            childRoot);
+
+        // assert
+        ConditionTreeTestHelpers.Dump(snapshot, childTree, "A", "B", "C").MatchInlineSnapshot(
+            """
+            *[A,B,C] () branches=A->1
+             [A] () a:1
+            """);
+    }
+
+    [Fact]
+    public void ExtractOperation_Should_Label_Edge_With_Object_Name_When_Interface_Narrows_To_Singleton()
+    {
+        // arrange: Node={A} under the wider Result={A,B} scope
+        const string sdl =
+            """
+            interface Node { a: Int }
+            type A implements Node { a: Int }
+            type B { b: Int }
+            union Result = A | B
+            type Query { result: Result }
+            """;
+        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var document = Utf8GraphQLParser.Parse("{ result { ... on Node { a } } }");
+        var operation = ConditionTreeTestHelpers.ParseOperation(document);
+        var rootTree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
+        var childRoot = new Condition(snapshot.GetPossibleTypeSet("Result"), []);
+
+        // act: the singleton-object rewrite relabels the Node edge as A
+        var childTree = ConditionTreeExtractor.ExtractBoundary(
+            snapshot,
+            ConditionTreeExtractor.IndexFragments(document),
+            resultGroup.MergedSelectionSet(),
+            childRoot);
+
+        // assert
+        ConditionTreeTestHelpers.Dump(snapshot, childTree, "A", "B").MatchInlineSnapshot(
+            """
+            *[A,B] () branches=A->1
+             [A] () a:1
+            """);
+    }
+
+    [Fact]
+    public void ExtractOperation_Should_Emit_One_Edge_When_Two_Spellings_Reach_Same_Condition()
+    {
+        // arrange: Node={A} under the wider Result={A,B} scope, spelled two different ways
+        const string sdl =
+            """
+            interface Node { a: Int }
+            type A implements Node { a: Int }
+            type B { b: Int }
+            union Result = A | B
+            type Query { result: Result }
+            """;
+        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var document = Utf8GraphQLParser.Parse(
+            "{ result { ... on Node { ... on A { a } } ... on A { a } } }");
+        var operation = ConditionTreeTestHelpers.ParseOperation(document);
+        var rootTree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
+        var childRoot = new Condition(snapshot.GetPossibleTypeSet("Result"), []);
+
+        // act
+        var childTree = ConditionTreeExtractor.ExtractBoundary(
+            snapshot,
+            ConditionTreeExtractor.IndexFragments(document),
+            resultGroup.MergedSelectionSet(),
+            childRoot);
+
+        // assert: both spellings reach the node for A through the same single edge
+        var branch = Assert.Single(childTree.Root.Branches);
+        var targetNode = childTree.Nodes[branch.TargetNodeId];
+        Assert.Equal(2, targetNode.FieldGroups.Single().Fields.Count);
     }
 }
