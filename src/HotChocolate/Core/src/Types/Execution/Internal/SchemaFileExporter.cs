@@ -38,7 +38,7 @@ internal static class SchemaFileExporter
 
         var directory = System.IO.Path.GetDirectoryName(schemaFileName)!;
 
-        if (Directory.Exists(directory))
+        if (directory.Length > 0)
         {
             Directory.CreateDirectory(directory);
         }
