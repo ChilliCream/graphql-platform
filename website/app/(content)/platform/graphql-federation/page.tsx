@@ -13,15 +13,18 @@ import { FEDERATION_FAQ_ITEMS } from "./faq";
 import { FEDERATION_DEFINITION, FEDERATION_TERMS } from "./terms";
 
 const PAGE = {
-  title: "What is GraphQL Federation?",
+  title: "GraphQL Federation: what it is, why, and how it works",
   description:
-    "GraphQL Federation lets each team own a GraphQL service while clients see one API. A plain-language guide to composition, entities, lookups and the open spec.",
+    "A plain-language guide to GraphQL Federation: what it is, why teams adopt it, how composition, entities and the gateway work, and whether it fits your setup.",
   path: "/platform/graphql-federation",
   keywords: [
     "graphql federation",
     "what is graphql federation",
     "graphql federation explained",
     "graphql federation vs schema stitching",
+    "graphql federation vs bff",
+    "graphql federation vs apollo federation",
+    "graphql federation vs monolith",
     "apollo federation vs graphql federation",
     "graphql federation specification",
     "graphql federation gateway",

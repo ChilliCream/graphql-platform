@@ -35,7 +35,7 @@ const PLATFORM_SECTIONS = [
     href: "/platform/graphql-federation",
     title: "GraphQL Federation",
     description:
-      "What federation is, how composition works, and how Fusion composes any GraphQL server.",
+      "What GraphQL Federation is, why teams adopt it, how it works, and why to choose Fusion for it.",
   },
   {
     href: "/platform/analytics",

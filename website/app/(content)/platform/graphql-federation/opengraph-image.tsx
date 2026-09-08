@@ -7,7 +7,8 @@ import {
 
 export const dynamic = "force-static";
 
-export const alt = "What is GraphQL Federation? - ChilliCream";
+export const alt =
+  "GraphQL Federation: what it is, why, and how it works - ChilliCream";
 export const size = shareCardSize;
 export const contentType = shareCardContentType;
 
