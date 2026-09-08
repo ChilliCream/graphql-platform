@@ -1,3 +1,6 @@
+using HotChocolate.Language;
+using HotChocolate.Types.Mutable.Serialization;
+
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
@@ -234,5 +237,130 @@ public class CostAlgebraTests
 
         // assert
         Assert.Equal(new CostEstimate(4.0, 0.0, null), root);
+    }
+
+    // -- CostAlgebra: CostFieldRule and ListSizeResolver wired against a real snapshot ---------
+
+    [Fact]
+    public void CostAlgebra_Should_DelegateToCostFieldRule_When_EmptyCombineJoinRootAreInvoked()
+    {
+        // arrange
+        var snapshot = CostSchemaSnapshot.Create(SchemaParser.Parse("type Query { a: Int }"), new CostEngineOptions());
+        var algebra = new CostAlgebra(snapshot);
+        var left = new CostEstimate(2.0, 3.0, null);
+        var right = new CostEstimate(5.0, -1.0, null);
+
+        // act
+        var empty = algebra.Empty;
+        var combined = algebra.Combine(left, right);
+        var joined = algebra.Join(left, right);
+        var root = algebra.Root(rootTypeWeight: 1.0, left);
+
+        // assert
+        Assert.Equal(CostFieldRule.Empty, empty);
+        Assert.Equal(CostFieldRule.Combine(left, right), combined);
+        Assert.Equal(CostFieldRule.Join(left, right), joined);
+        Assert.Equal(CostFieldRule.Root(1.0, left), root);
+    }
+
+    [Fact]
+    public void CostAlgebra_Field_Should_PriceDirectiveArguments_When_QueryDirectiveCarriesOwnWeight()
+    {
+        // arrange
+        // estimator.rs: custom_directive_argument_weights_affect_field_cost (R-DIRECTIVE-ARG-COST)
+        const string sdl =
+            """
+            directive @approx(tolerance: Float @cost(weight: "-1.0")) on FIELD
+            type Query { value: Int @cost(weight: "5") }
+            """;
+        var (algebra, members, field) = ParseRootField(sdl, "{ value @approx(tolerance: 0) }", "Query", "value");
+
+        // act
+        var estimate = algebra.Field(
+            new CollectedFieldGroup("value", members, listMultiplier: 1.0, field.Arguments, field.Directives),
+            algebra.Empty);
+
+        // assert: 5 (field weight) - 1 (tolerance's own weight, charged once) = 4
+        Assert.Equal(4.0, estimate.FieldCost);
+    }
+
+    [Fact]
+    public void CostAlgebra_Field_Should_UseDefaultListSize_When_FieldCarriesNoListSizeAnnotation()
+    {
+        // arrange: an unannotated list of composites costs +Infinity through the default list size
+        const string sdl =
+            """
+            type Item { value: Int @cost(weight: "3") }
+            type Query { items: [Item] }
+            """;
+        var (algebra, members, field) = ParseRootField(sdl, "{ items { value } }", "Query", "items");
+        var valueField = CostFieldRule.Field(1.0, 3.0, 0.0, 0.0, 0.0, algebra.Empty);
+
+        // act
+        var estimate = algebra.Field(
+            new CollectedFieldGroup("items", members, listMultiplier: 1.0, field.Arguments, field.Directives),
+            valueField);
+
+        // assert
+        Assert.Equal(double.PositiveInfinity, estimate.FieldCost);
+    }
+
+    [Fact]
+    public void CostAlgebra_Field_Should_ApplyZeroInfinityGuard_When_ListOfLeavesCarriesNoAnnotation()
+    {
+        // arrange: R-DEFAULT-LIST-SIZE addendum, a list of leaves costs 0 through the 0 * inf guard
+        const string sdl = "type Query { names: [String] }";
+        var (algebra, members, field) = ParseRootField(sdl, "{ names }", "Query", "names");
+
+        // act
+        var estimate = algebra.Field(
+            new CollectedFieldGroup("names", members, listMultiplier: 1.0, field.Arguments, field.Directives),
+            algebra.Empty);
+
+        // assert
+        Assert.Equal(new CostEstimate(0.0, 0.0, null), estimate);
+    }
+
+    [Fact]
+    public void CostAlgebra_Field_Should_ResolveListMultiplier_When_SlicingArgumentIsSuppliedAsLiteral()
+    {
+        // arrange: rank 2 of the locked list-size priority chain, a literal Int slicing argument
+        const string sdl =
+            """
+            type Item { value: Int @cost(weight: "3") }
+            type Query { items(first: Int): [Item] @listSize(slicingArguments: ["first"]) }
+            """;
+        var (algebra, members, field) = ParseRootField(sdl, "{ items(first: 4) { value } }", "Query", "items");
+        var valueField = CostFieldRule.Field(1.0, 3.0, 0.0, 0.0, 0.0, algebra.Empty);
+
+        // act
+        var estimate = algebra.Field(
+            new CollectedFieldGroup("items", members, listMultiplier: 1.0, field.Arguments, field.Directives),
+            valueField);
+
+        // assert: n = 4, items' own weight 1 (default) + 4 * value's fieldCost 3
+        Assert.Equal(13.0, estimate.FieldCost);
+    }
+
+    /// <summary>
+    /// Builds a snapshot from <paramref name="sdl"/>, parses
+    /// <paramref name="operationText"/>'s single root field, and returns a
+    /// <see cref="CostAlgebra"/> over that snapshot together with the root
+    /// field's one-member <see cref="CollectedFieldGroupMember"/> array.
+    /// </summary>
+    private static (CostAlgebra Algebra, CollectedFieldGroupMember[] Members, FieldNode Field) ParseRootField(
+        string sdl,
+        string operationText,
+        string typeName,
+        string fieldName)
+    {
+        var schema = SchemaParser.Parse(sdl);
+        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var document = Utf8GraphQLParser.Parse(operationText);
+        var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var field = (FieldNode)operation.SelectionSet.Selections[0];
+        var parentType = snapshot.GetObjectTypeDefinition(snapshot.GetObjectTypeIndex(typeName));
+        var members = new CollectedFieldGroupMember[] { new(parentType, parentType.Fields[fieldName]) };
+        return (new CostAlgebra(snapshot), members, field);
     }
 }

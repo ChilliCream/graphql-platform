@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.CostAnalysis;
@@ -6,7 +7,9 @@ namespace HotChocolate.CostAnalysis;
 /// <summary>
 /// One response-name group of collected fields at a selection-set boundary:
 /// the parent-type/field-definition pair for every possible type the group
-/// applies to, and the list multiplier in effect at this boundary.
+/// applies to, the list multiplier in effect at this boundary, and the
+/// literal arguments and directives of the operation's field call, shared by
+/// every occurrence merged into this group.
 /// </summary>
 [Experimental(CostExperiments.AnalysisAlgebra)]
 public readonly ref struct CollectedFieldGroup
@@ -24,14 +27,26 @@ public readonly ref struct CollectedFieldGroup
     /// <param name="listMultiplier">
     /// The list multiplier in effect at this boundary.
     /// </param>
+    /// <param name="arguments">
+    /// The arguments supplied to this field call in the operation, as
+    /// literal syntax.
+    /// </param>
+    /// <param name="directives">
+    /// The directives applied to this field call in the operation, as
+    /// literal syntax.
+    /// </param>
     public CollectedFieldGroup(
         string responseName,
         ReadOnlySpan<CollectedFieldGroupMember> members,
-        double listMultiplier)
+        double listMultiplier,
+        IReadOnlyList<ArgumentNode> arguments,
+        IReadOnlyList<DirectiveNode> directives)
     {
         ResponseName = responseName;
         Members = members;
         ListMultiplier = listMultiplier;
+        Arguments = arguments;
+        Directives = directives;
     }
 
     /// <summary>
@@ -49,6 +64,20 @@ public readonly ref struct CollectedFieldGroup
     /// Gets the list multiplier in effect at this boundary.
     /// </summary>
     public double ListMultiplier { get; }
+
+    /// <summary>
+    /// Gets the arguments supplied to this field call in the operation, as
+    /// literal syntax; every occurrence merged into this group carries the
+    /// same arguments.
+    /// </summary>
+    public IReadOnlyList<ArgumentNode> Arguments { get; }
+
+    /// <summary>
+    /// Gets the directives applied to this field call in the operation, as
+    /// literal syntax; every occurrence merged into this group carries the
+    /// same directives.
+    /// </summary>
+    public IReadOnlyList<DirectiveNode> Directives { get; }
 }
 
 /// <summary>

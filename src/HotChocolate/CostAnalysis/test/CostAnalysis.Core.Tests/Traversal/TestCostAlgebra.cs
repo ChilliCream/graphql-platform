@@ -43,6 +43,9 @@ internal sealed class TestCostAlgebra : IAnalysisAlgebra<(double TypeCost, doubl
         (double TypeCost, double FieldCost) right)
         => (Math.Max(left.TypeCost, right.TypeCost), Math.Max(left.FieldCost, right.FieldCost));
 
+    public (double TypeCost, double FieldCost) Root(double rootTypeWeight, (double TypeCost, double FieldCost) selection)
+        => (ClampZero(rootTypeWeight + selection.TypeCost), selection.FieldCost);
+
     private static double DefaultWeight(TypeKind kind)
         => kind is TypeKind.Object or TypeKind.Interface or TypeKind.Union ? 1.0 : 0.0;
 

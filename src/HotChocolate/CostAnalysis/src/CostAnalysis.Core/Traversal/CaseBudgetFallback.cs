@@ -111,7 +111,9 @@ internal static class CaseBudgetFallback
             var childValue = childSelections.Count == 0
                 ? algebra.Empty
                 : EvaluateChildEnvelope(snapshot, fragments, algebra, budget, assignment, members, childSelections);
-            var groupValue = algebra.Field(new CollectedFieldGroup(responseName, members, listMultiplier: 1.0), childValue);
+            var groupValue = algebra.Field(
+                new CollectedFieldGroup(responseName, members, listMultiplier: 1.0, fields[0].Arguments, fields[0].Directives),
+                childValue);
 
             combined = hasCombined ? algebra.Combine(combined!, groupValue) : groupValue;
             hasCombined = true;

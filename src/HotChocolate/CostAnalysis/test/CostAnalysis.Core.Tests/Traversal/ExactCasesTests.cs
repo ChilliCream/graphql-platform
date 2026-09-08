@@ -18,8 +18,9 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: 20 (the max of 10/20), not 30 (their sum)
-        Assert.Equal((1.0, 21.0), decision.Resolve(_ => false));
+        // assert: 20 (the max of 10/20), not 30 (their sum); typeCost 2 = Query's own root weight (1,
+        // applied once by the Root hook) + the selection's 1
+        Assert.Equal((2.0, 21.0), decision.Resolve(_ => false));
     }
 
     [Fact]
@@ -37,9 +38,10 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: the same total either way, never both branches' cost at once
-        Assert.Equal((2.0, 12.0), decision.Resolve(_ => true));
-        Assert.Equal((2.0, 12.0), decision.Resolve(_ => false));
+        // assert: the same total either way, never both branches' cost at once; typeCost 3 = Query's
+        // own root weight (1, applied once by the Root hook) + the selection's 2
+        Assert.Equal((3.0, 12.0), decision.Resolve(_ => true));
+        Assert.Equal((3.0, 12.0), decision.Resolve(_ => false));
     }
 
     [Fact]
@@ -107,9 +109,10 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: both fields fire together (1 + 10 + 3 = 14) or neither does (1 + 0 = 1)
-        Assert.Equal((1.0, 14.0), decision.Resolve(_ => true));
-        Assert.Equal((1.0, 1.0), decision.Resolve(_ => false));
+        // assert: both fields fire together (1 + 10 + 3 = 14) or neither does (1 + 0 = 1); typeCost
+        // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's
+        Assert.Equal((2.0, 14.0), decision.Resolve(_ => true));
+        Assert.Equal((2.0, 1.0), decision.Resolve(_ => false));
     }
 
     [Fact]
@@ -139,8 +142,9 @@ public class ExactCasesTests
         var folded = decision.FoldWithJoin((a, b) => (Math.Max(a.TypeCost, b.TypeCost), Math.Max(a.FieldCost, b.FieldCost)));
 
         // assert: the true static bound is the max over the 4 real assignments (103),
-        // never the decorrelated 104 that lets $x read false for `p` and true for `q`
-        Assert.Equal((4.0, 103.0), folded);
+        // never the decorrelated 104 that lets $x read false for `p` and true for `q`; typeCost
+        // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's 4
+        Assert.Equal((5.0, 103.0), folded);
     }
 
     [Fact]
@@ -159,8 +163,9 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: name priced at 9 (max of 3/9), hero itself contributes its own weight
-        Assert.Equal((1.0, 10.0), decision.Resolve(_ => false));
+        // assert: name priced at 9 (max of 3/9), hero itself contributes its own weight; typeCost
+        // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's 1
+        Assert.Equal((2.0, 10.0), decision.Resolve(_ => false));
     }
 
     [Fact]
@@ -180,8 +185,9 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: the Droid region (700) is not dropped in favor of the Human region (5)
-        Assert.Equal((2.0, 702.0), decision.Resolve(_ => false));
+        // assert: the Droid region (700) is not dropped in favor of the Human region (5); typeCost
+        // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's 2
+        Assert.Equal((3.0, 702.0), decision.Resolve(_ => false));
     }
 
     [Fact]
@@ -194,8 +200,9 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: no possible type resolves __typename, so the group contributes nothing
-        Assert.Equal((0.0, 0.0), decision.Resolve(_ => false));
+        // assert: no possible type resolves __typename, so the group contributes nothing; the root
+        // rule still charges Query's own weight (1, applied once by the Root hook) for an empty selection
+        Assert.Equal((1.0, 0.0), decision.Resolve(_ => false));
     }
 
     [Fact]
@@ -214,7 +221,8 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: hero's own weight is still charged, __typename itself contributes nothing
-        Assert.Equal((1.0, 1.0), decision.Resolve(_ => false));
+        // assert: hero's own weight is still charged, __typename itself contributes nothing; typeCost
+        // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's 1
+        Assert.Equal((2.0, 1.0), decision.Resolve(_ => false));
     }
 }

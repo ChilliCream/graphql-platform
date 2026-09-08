@@ -32,13 +32,44 @@ internal static class ExactCasesTraversal
     /// The per-operation case budget, shared across every boundary this
     /// evaluation recurses into.
     /// </param>
+    /// <remarks>
+    /// Applies <see cref="IAnalysisAlgebra{T}.Root"/> exactly once, mapped
+    /// over every leaf of the root selection's decision, after the root
+    /// boundary has been fully combined and joined.
+    /// </remarks>
     public static BooleanDecision<TSummary> Evaluate<TSummary>(
         CostSchemaSnapshot snapshot,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget)
-        => EvaluateBoundary(snapshot, fragments, tree, algebra, budget, BooleanAssignment.Empty);
+    {
+        var selection = EvaluateBoundary(snapshot, fragments, tree, algebra, budget, BooleanAssignment.Empty);
+        var rootTypeName = snapshot.GetSingletonObjectTypeName(tree.Root.Condition.PossibleTypes);
+        var rootTypeWeight = snapshot.GetTypeWeight(rootTypeName);
+        return MapRoot(algebra, rootTypeWeight, selection);
+    }
+
+    /// <summary>
+    /// Maps <see cref="IAnalysisAlgebra{T}.Root"/> over every leaf of the
+    /// root selection's possibly-split decision.
+    /// </summary>
+    private static BooleanDecision<TSummary> MapRoot<TSummary>(
+        IAnalysisAlgebra<TSummary> algebra,
+        double rootTypeWeight,
+        BooleanDecision<TSummary> selection)
+    {
+        if (selection is LeafDecision<TSummary> leaf)
+        {
+            return BooleanDecision<TSummary>.Leaf(algebra.Root(rootTypeWeight, leaf.Value));
+        }
+
+        var split = (SplitDecision<TSummary>)selection;
+        return BooleanDecision<TSummary>.Split(
+            split.Variable,
+            MapRoot(algebra, rootTypeWeight, split.WhenFalse),
+            MapRoot(algebra, rootTypeWeight, split.WhenTrue));
+    }
 
     /// <summary>
     /// Evaluates one boundary: joins the result of every type region in its
@@ -202,7 +233,7 @@ internal static class ExactCasesTraversal
             var childDecision = childSelections.Count == 0
                 ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
                 : EvaluateChild(snapshot, fragments, algebra, budget, assignment, members, childSelections);
-            var groupDecision = MapField(algebra, responseName, members, childDecision);
+            var groupDecision = MapField(algebra, responseName, members, fields[0].Arguments, fields[0].Directives, childDecision);
 
             combined = combined is null
                 ? groupDecision
@@ -272,19 +303,23 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         string responseName,
         CollectedFieldGroupMember[] members,
+        IReadOnlyList<ArgumentNode> arguments,
+        IReadOnlyList<DirectiveNode> directives,
         BooleanDecision<TSummary> child)
     {
         if (child is LeafDecision<TSummary> leaf)
         {
             return BooleanDecision<TSummary>.Leaf(
-                algebra.Field(new CollectedFieldGroup(responseName, members, listMultiplier: 1.0), leaf.Value));
+                algebra.Field(
+                    new CollectedFieldGroup(responseName, members, listMultiplier: 1.0, arguments, directives),
+                    leaf.Value));
         }
 
         var split = (SplitDecision<TSummary>)child;
         return BooleanDecision<TSummary>.Split(
             split.Variable,
-            MapField(algebra, responseName, members, split.WhenFalse),
-            MapField(algebra, responseName, members, split.WhenTrue));
+            MapField(algebra, responseName, members, arguments, directives, split.WhenFalse),
+            MapField(algebra, responseName, members, arguments, directives, split.WhenTrue));
     }
 
     /// <summary>

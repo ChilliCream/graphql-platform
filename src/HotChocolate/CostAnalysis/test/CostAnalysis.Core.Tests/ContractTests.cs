@@ -8,7 +8,8 @@ namespace HotChocolate.CostAnalysis;
 /// unimplemented member is published as a <see cref="NotImplementedException"/>
 /// shell, per hc-3-r2l.1, until a follow-up task fills it in.
 /// <see cref="CostSchemaSnapshot"/> is implemented (hc-3-r2l.2) and covered
-/// by its own Snapshot test suite instead.
+/// by its own Snapshot test suite instead; <see cref="CostAlgebra"/> is
+/// implemented and covered by its own CostAlgebra test suite instead.
 /// </summary>
 public class ContractTests
 {
@@ -50,25 +51,6 @@ public class ContractTests
     }
 
     [Fact]
-    public void CostAlgebra_Should_ThrowNotImplemented_When_Members_Are_Invoked()
-    {
-        // arrange
-        var algebra = new CostAlgebra();
-
-        // act
-        void Empty() => _ = algebra.Empty;
-        void Field() => algebra.Field(default, default);
-        void Combine() => algebra.Combine(default, default);
-        void Join() => algebra.Join(default, default);
-
-        // assert
-        Assert.Throws<NotImplementedException>(Empty);
-        Assert.Throws<NotImplementedException>(Field);
-        Assert.Throws<NotImplementedException>(Combine);
-        Assert.Throws<NotImplementedException>(Join);
-    }
-
-    [Fact]
     public void ResponseSizeAlgebra_Should_ThrowNotImplemented_When_Members_Are_Invoked()
     {
         // arrange
@@ -79,11 +61,13 @@ public class ContractTests
         void Field() => algebra.Field(default, default);
         void Combine() => algebra.Combine(default, default);
         void Join() => algebra.Join(default, default);
+        void Root() => algebra.Root(default, default);
 
         // assert
         Assert.Throws<NotImplementedException>(Empty);
         Assert.Throws<NotImplementedException>(Field);
         Assert.Throws<NotImplementedException>(Combine);
         Assert.Throws<NotImplementedException>(Join);
+        Assert.Throws<NotImplementedException>(Root);
     }
 }
