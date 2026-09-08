@@ -1813,13 +1813,17 @@ internal static class PolicyArtifactBinder
 
         // An action policy's decision depends on its own occurrence's arguments, so two
         // occurrences that share this coordinate's shape (same type, field, and root-ness) are
-        // only the SAME coordinate when they are literally the same field occurrence (matched by
-        // response name); every other candidate with a matching shape belongs to a distinct
-        // coordinate instead of being aggregated into this one.
+        // only the SAME coordinate when they are literally the same compiled occurrence (matched
+        // by position); every other candidate with a matching shape belongs to a distinct
+        // coordinate instead of being aggregated into this one. Response name is not a safe
+        // discriminator here: two distinct occurrences (e.g. the same field under different
+        // parents) can share a response name.
         if (IsActionCoordinate(coordinate, expressions, policySnapshot))
         {
-            return candidate.ResponseName is not null
-                && coordinate.ResponseNames.Contains(candidate.ResponseName, StringComparer.Ordinal);
+            var position = coordinate.Occurrences[0];
+            return candidate.Reference.PlanPart == position.PlanPart
+                && candidate.Reference.SelectionSetId == position.SelectionSetId
+                && candidate.Reference.SelectionId == position.SelectionId;
         }
 
         return true;
@@ -1849,11 +1853,13 @@ internal static class PolicyArtifactBinder
         }
 
         // As in MatchesCoordinate: an action coordinate never aggregates another occurrence's
-        // candidates just because they share its shape.
+        // candidates just because they share its shape; match by compiled occurrence position.
         if (IsActionCoordinate(coordinate, expressions, policySnapshot))
         {
-            return candidate.ResponseName is not null
-                && coordinate.ResponseNames.Contains(candidate.ResponseName, StringComparer.Ordinal);
+            var position = coordinate.Occurrences[0];
+            return candidate.Reference.PlanPart == position.PlanPart
+                && candidate.Reference.SelectionSetId == position.SelectionSetId
+                && candidate.Reference.SelectionId == position.SelectionId;
         }
 
         return true;

@@ -28,6 +28,7 @@ internal sealed class PolicyRequestState
     private bool[] _evaluatedExpressions = [];
     private OperationResult?[]? _shortCircuitResults;
     private PolicySlotDenial[][] _coordinateDenials = [];
+    private readonly Dictionary<ActionDecisionKey, PolicyDecision> _actionDecisions = [];
 
     private PolicyRequestState(
         RequestContext requestContext,
@@ -307,12 +308,16 @@ internal sealed class PolicyRequestState
                 {
                     var expression = operationPlan.PolicyExpressions[application.ExpressionOrdinal];
                     var expressionDecision = IsActionExpression(expression)
-                        ? await EvaluateActionExpressionAsync(
+                        ? await GetOrEvaluateActionExpressionAsync(
                             operationPlan,
                             expression,
                             coordinate,
+                            slot.Ordinal,
+                            coordinateOrdinal,
+                            application.ExpressionOrdinal,
                             variables,
                             user,
+                            isEventReevaluation: eventContext is not null,
                             cancellationToken)
                             .ConfigureAwait(false)
                         : _expressionDecisions[application.ExpressionOrdinal];
@@ -587,6 +592,51 @@ internal sealed class PolicyRequestState
     }
 
     /// <summary>
+    /// Evaluates an action expression for one coordinate, or replays the decision already
+    /// computed during the pre-subscribe request-level pass when this call is a per-event
+    /// subscription re-evaluation: a subscription-root action policy is evaluated once before
+    /// stream setup, independent of the per-event resource re-evaluation (repo-ctf.11). The
+    /// initial (non-event) pass always evaluates fresh and records its decision so a later event
+    /// can replay it; a non-event pass (including every variable-batch item) never reads the
+    /// cache, so variable-batch isolation is unaffected.
+    /// </summary>
+    private async ValueTask<PolicyDecision> GetOrEvaluateActionExpressionAsync(
+        OperationPlan operationPlan,
+        PolicyConditionExpression expression,
+        PolicyConditionCoordinate coordinate,
+        int slotOrdinal,
+        int coordinateOrdinal,
+        int expressionOrdinal,
+        IVariableValueCollection variables,
+        ClaimsPrincipal user,
+        bool isEventReevaluation,
+        CancellationToken cancellationToken)
+    {
+        var key = new ActionDecisionKey(slotOrdinal, coordinateOrdinal, expressionOrdinal);
+
+        if (isEventReevaluation && _actionDecisions.TryGetValue(key, out var cachedDecision))
+        {
+            return cachedDecision;
+        }
+
+        var decision = await EvaluateActionExpressionAsync(
+            operationPlan,
+            expression,
+            coordinate,
+            variables,
+            user,
+            cancellationToken)
+            .ConfigureAwait(false);
+
+        if (!isEventReevaluation)
+        {
+            _actionDecisions[key] = decision;
+        }
+
+        return decision;
+    }
+
+    /// <summary>
     /// Evaluates an action expression for one coordinate's own occurrence: the guarded field's
     /// name and coerced arguments are reconstructed from the compiled operation and the request's
     /// coerced variables, never read from a serialized plan value. Every named policy is evaluated
@@ -728,6 +778,11 @@ internal sealed class PolicyRequestState
     private static string? GetSubjectId(ClaimsPrincipal user)
         => user.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? user.FindFirst("sub")?.Value;
+
+    private readonly record struct ActionDecisionKey(
+        int SlotOrdinal,
+        int CoordinateOrdinal,
+        int ExpressionOrdinal);
 
     private readonly record struct PolicyEvaluationState(
         PolicyRequestState RequestState,

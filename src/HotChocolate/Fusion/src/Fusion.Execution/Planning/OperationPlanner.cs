@@ -1845,6 +1845,15 @@ public sealed partial class OperationPlanner
 
             if (overflowed)
             {
+                // The residual (post-fetch) PolicyExecutionNode fallback cannot carry action
+                // input and would let a denied mutation's fetch run, so an action slot that
+                // overflows the gate table must fail the plan instead of silently falling back.
+                if (isActionSlot)
+                {
+                    throw HotChocolate.Fusion.Execution.ThrowHelper.InvalidOperationPlan(
+                        "An operation plan cannot contain more than 64 policy gates.");
+                }
+
                 AddResidualTargets(coordinate, policyTarget.Occurrences, condition: null);
                 continue;
             }

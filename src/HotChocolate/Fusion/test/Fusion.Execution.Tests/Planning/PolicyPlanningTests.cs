@@ -4320,6 +4320,86 @@ public sealed class PolicyPlanningTests : FusionTestBase
         Assert.Throws<InvalidOperationException>(read);
     }
 
+    [Fact]
+    public void JsonParser_Should_RoundTripDistinctActionCoordinates_When_SameFieldSharesResponseNameAcrossParents()
+    {
+        // arrange: u1.info and u2.info are distinct compiled occurrences that both materialize
+        // under the response name "info"; an action policy's decision depends on its own
+        // occurrence's arguments, so they must plan as two independent gate slots rather than
+        // being aggregated into one coordinate by response name.
+        var schema = CreateActionPolicySharedResponseNameSchema();
+        var plan = PlanOperation(
+            schema,
+            """{ u1 { info(scope: "a") } u2 { info(scope: "b") } }""");
+        var (json, parser) = SerializePlan(schema, plan);
+
+        // act
+        var parsed = parser.Parse(Encoding.UTF8.GetBytes(json.ToJsonString()));
+
+        // assert
+        Assert.Equal(2, plan.PolicySlots.Length);
+        Assert.Equal(2, parsed.PolicySlots.Length);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_AllocateOneSlotPerOccurrence_When_ActionPolicyGuardsSixtyFourAliases()
+    {
+        // arrange
+        var schema = CreateActionPolicySchema();
+        var aliases = string.Join(
+            " ",
+            Enumerable.Range(0, 64).Select(index => $"a{index}: write(value: {index})"));
+
+        // act
+        var plan = PlanOperation(schema, $"mutation {{ {aliases} }}");
+
+        // assert
+        Assert.Equal(64, plan.PolicySlots.Length);
+    }
+
+    [Fact]
+    public void CreatePlan_Should_RejectSixtyFiveActionOccurrences_When_GateTableOverflows()
+    {
+        // arrange
+        var schema = CreateActionPolicySchema();
+        var aliases = string.Join(
+            " ",
+            Enumerable.Range(0, 65).Select(index => $"a{index}: write(value: {index})"));
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => PlanOperation(schema, $"mutation {{ {aliases} }}"));
+
+        // assert
+        Assert.Equal(
+            "An operation plan cannot contain more than 64 policy gates.",
+            exception.Message);
+    }
+
+    private static FusionSchemaDefinition CreateActionPolicySharedResponseNameSchema()
+        => CreateSchema(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              u1: User @fusion__field(schema: A)
+              u2: User @fusion__field(schema: A)
+            }
+
+            type User @fusion__type(schema: A) {
+              info(scope: String): String
+                @fusion__field(schema: A)
+                @fusion__policy(names: "CanRead", onDenied: NULL)
+            }
+
+            enum fusion__Schema {
+              A @fusion__schema_metadata(name: "A")
+            }
+            """,
+            new TestPolicy("CanRead", new PolicyRequirements { Kind = PolicyEvaluationKind.ActionOccurrence }));
+
     private static FusionSchemaDefinition CreateActionPolicySchema()
         => CreateSchema(
             """

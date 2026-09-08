@@ -188,6 +188,268 @@ public sealed partial class PolicySlotGatewayTests
             """);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_Should_DenyOnlyMatchingParent_When_SameFieldSharesResponseNameAcrossParents()
+    {
+        // arrange: u1.info and u2.info are distinct compiled occurrences that both materialize
+        // under the response name "info"; an action policy's decision depends on its own
+        // occurrence's arguments, so denying u1 must never bleed into u2's decision.
+        var client = new RecordingClient(
+            """{"data":{"u1":{"info":"secretA"},"u2":{"info":"secretB"}}}""");
+        var policy = new DenyOnArgumentPolicy("CanRead", "scope", "\"a\"");
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query {
+                  u1: User
+                  u2: User
+                }
+                type User {
+                  info(scope: String): String @policy(names: "CanRead", onDenied: NULL)
+                }
+                """),
+            policy,
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            """{ u1 { info(scope: "a") } u2 { info(scope: "b") } }""",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "u1": {
+                  "info": null
+                },
+                "u2": {
+                  "info": "secretB"
+                }
+              }
+            }
+            """);
+        Assert.Equal(1, client.ExecuteCount);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_EvaluateActionPolicyBeforeInitialPayload_When_DeferredFieldIsDenied()
+    {
+        // arrange
+        var client = new RecordingClient(
+            request => request.OperationSourceText.Value.Span.IndexOf("immediate"u8) >= 0
+                ? """{"data":{"immediate":"initial"}}"""
+                : """{"data":{"secret":"classified"}}"""
+        );
+        var policy = new DenyOnArgumentPolicy("CanReadSecret", "scope", "\"a\"");
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query {
+                  immediate: String
+                  secret(scope: String): String @policy(names: "CanReadSecret", onDenied: NULL)
+                }
+                """),
+            policy,
+            client,
+            enableDefer: true);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            """
+            query {
+              immediate
+              ... @defer {
+                secret(scope: "a")
+              }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert: the action policy is evaluated before the initial payload is produced (a denied
+        // deferred field's fetch never runs), so the source is invoked only once for "immediate".
+        Assert.Equal(1, client.ExecuteCount);
+        responses.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "immediate": "initial"
+              },
+              "pending": [
+                {
+                  "id": "0",
+                  "path": []
+                }
+              ],
+              "hasNext": true
+            }
+            """,
+            """
+            {
+              "incremental": [
+                {
+                  "id": "0",
+                  "data": {
+                    "secret": null
+                  }
+                }
+              ],
+              "completed": [
+                {
+                  "id": "0"
+                }
+              ],
+              "hasNext": false
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_Should_NotSubscribeSource_When_ActionPolicyDeniesArgument()
+    {
+        // arrange
+        var client = new RecordingClient(
+            """{"data":{"placeholder":null}}""",
+            """{"data":{"onMessage":"classified"}}"""
+        );
+        var policy = new DenyOnArgumentPolicy("CanReadMessage", "scope", "\"a\"");
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                type Subscription {
+                  onMessage(scope: String): String @policy(names: "CanReadMessage", onDenied: NULL)
+                }
+                """),
+            policy,
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            """subscription { onMessage(scope: "a") }""",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(0, client.SubscribeCount);
+        NormalizeReasonId(result.ToJson()).MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_Should_DeliverEvents_When_ActionPolicyAllowsArgument()
+    {
+        // arrange
+        var client = new RecordingClient(
+            """{"data":{"placeholder":null}}""",
+            """{"data":{"onMessage":"visible"}}"""
+        );
+        var policy = new DenyOnArgumentPolicy("CanReadMessage", "scope", "\"a\"");
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                type Subscription {
+                  onMessage(scope: String): String @policy(names: "CanReadMessage", onDenied: NULL)
+                }
+                """),
+            policy,
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            """subscription { onMessage(scope: "b") }""",
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert
+        Assert.Equal(1, client.SubscribeCount);
+        responses.MatchInlineSnapshots(
+        [
+            """
+            {
+              "data": {
+                "onMessage": "visible"
+              }
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public async Task SubscribeAsync_Should_EvaluateActionPolicyOnce_When_MultipleEventsAreDelivered()
+    {
+        // arrange: ruling 700 requires a subscription-root action policy to be evaluated once
+        // before stream setup, independent of ctf.11's per-event resource re-evaluation.
+        var policy = new CountingActionPolicy("CanReadMessage");
+        var client = new RecordingClient(
+            """{"data":{"placeholder":null}}""",
+            [
+                () => """{"data":{"onMessage":"first"}}""",
+                () => """{"data":{"onMessage":"second"}}"""
+            ]);
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                type Subscription {
+                  onMessage(scope: String): String @policy(names: "CanReadMessage", onDenied: NULL)
+                }
+                """),
+            policy,
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            """subscription { onMessage(scope: "b") }""",
+            TestContext.Current.CancellationToken);
+        await using var stream = result.ExpectResponseStream();
+        var responses = new List<string>();
+
+        await foreach (var response in stream
+            .ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            responses.Add(response.ToJson());
+        }
+
+        // assert
+        Assert.Equal(2, responses.Count);
+        Assert.Equal(1, policy.EvaluationCount);
+    }
+
     private sealed class DenyOnArgumentPolicy(string name, string argumentName, string deniedRawValue) : IPolicy
     {
         public string Name => name;
@@ -223,6 +485,24 @@ public sealed partial class PolicySlotGatewayTests
         public ValueTask EvaluateAsync(IPolicyContext context, CancellationToken cancellationToken)
         {
             _actions.Add(context.Action!);
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class CountingActionPolicy(string name) : IPolicy
+    {
+        private int _evaluationCount;
+
+        public string Name => name;
+
+        public PolicyRequirements Requirements { get; } =
+            new() { Kind = PolicyEvaluationKind.ActionOccurrence };
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
+
+        public ValueTask EvaluateAsync(IPolicyContext context, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _evaluationCount);
             return ValueTask.CompletedTask;
         }
     }

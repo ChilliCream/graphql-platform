@@ -798,11 +798,12 @@ public sealed record OperationPlan : IOperationPlan
             }
 
             // An object coordinate (no field name) must be unique per (type, root-ness). A field
-            // coordinate is keyed by response name instead: an action policy's decision depends on
-            // its own occurrence's arguments, so the same field may legitimately appear as more
-            // than one coordinate (one per alias) as long as no response name is claimed twice.
+            // coordinate is keyed by its first compiled occurrence's position instead: an action
+            // policy's decision depends on its own occurrence's arguments, so the same field may
+            // legitimately appear as more than one coordinate (one per alias), and two aliases can
+            // share a response name, so response name is not a safe uniqueness key here.
             var objectCoordinateKeys = new HashSet<(string TypeName, bool IsRoot)>();
-            var fieldCoordinateResponseKeys = new HashSet<(string TypeName, string FieldName, string ResponseName)>();
+            var fieldCoordinateKeys = new HashSet<(string TypeName, string FieldName, int PlanPart, int SelectionId)>();
             var slotApplicationSet = slot.Applications.ToHashSet();
             var coordinateLiveMasks = ImmutableArray.CreateBuilder<ConditionFlags>();
             foreach (var coordinate in slot.Coordinates)
@@ -819,8 +820,11 @@ public sealed record OperationPlan : IOperationPlan
                     || coordinate.GateGuardMasks.IsDefault
                     || (coordinate.FieldName is null
                         ? !objectCoordinateKeys.Add((coordinate.TypeName, coordinate.IsRoot))
-                        : coordinate.ResponseNames.Any(responseName => !fieldCoordinateResponseKeys.Add(
-                            (coordinate.TypeName, coordinate.FieldName, responseName)))))
+                        : !fieldCoordinateKeys.Add((
+                            coordinate.TypeName,
+                            coordinate.FieldName,
+                            coordinate.Occurrences.IsDefaultOrEmpty ? -1 : coordinate.Occurrences[0].PlanPart,
+                            coordinate.Occurrences.IsDefaultOrEmpty ? -1 : coordinate.Occurrences[0].SelectionId))))
                 {
                     throw ThrowHelper.InvalidOperationPlan("A policy gate coordinate is malformed.");
                 }
@@ -942,6 +946,9 @@ public sealed record OperationPlan : IOperationPlan
             // duplicate identities when they also gate the same coordinates: an action policy's
             // decision depends on its own occurrence's arguments, so it legitimately allocates one
             // slot per occurrence even though every such slot shares the same formula and Rmax.
+            // Occurrence positions (not response names) discriminate identity here, since two
+            // distinct occurrences (e.g. the same field under different parents) can share a
+            // response name.
             foreach (var coordinate in slot.Coordinates)
             {
                 identity.Append("|c:");
@@ -951,7 +958,10 @@ public sealed record OperationPlan : IOperationPlan
                 identity.Append(':');
                 identity.Append(coordinate.IsRoot);
                 identity.Append(':');
-                identity.Append(string.Join(",", coordinate.ResponseNames));
+                identity.Append(coordinate.Occurrences.IsDefaultOrEmpty
+                    ? string.Empty
+                    : string.Join(",", coordinate.Occurrences.Select(occurrence =>
+                        $"{occurrence.PlanPart}:{occurrence.SelectionSetId}:{occurrence.SelectionId}")));
             }
 
             if (!gateIdentities.Add(identity.ToString()))
