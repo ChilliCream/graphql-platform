@@ -147,22 +147,30 @@ public class CostReportingTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var response = await client.PostAsync(batch, s_endpoint, TestContext.Current.CancellationToken);
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(batch, s_endpoint)
+            {
+                OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ReportCost)
+            },
+            TestContext.Current.CancellationToken);
 
         // assert - each batch result carries its own operationCost; the n=1000 result fails
         var errorKinds = new List<JsonValueKind>();
+        var hasCost = new List<bool>();
         await foreach (var result in response.ReadAsResultStreamAsync()
             .WithCancellation(TestContext.Current.CancellationToken))
         {
             using (result)
             {
                 errorKinds.Add(result.Errors.ValueKind);
+                hasCost.Add(result.Extensions.TryGetProperty("operationCost", out _));
             }
         }
 
         Assert.Equal(2, errorKinds.Count);
         Assert.Equal(JsonValueKind.Undefined, errorKinds[0]);
         Assert.NotEqual(JsonValueKind.Undefined, errorKinds[1]);
+        Assert.All(hasCost, Assert.True);
     }
 
     [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]

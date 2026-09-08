@@ -47,7 +47,17 @@ public class ArticleCasesTests : FusionTestBase
         using var response = await client.SendAsync(httpRequest, TestContext.Current.CancellationToken);
 
         // assert
-        await MatchSnapshotAsync(gateway, request, response, postFix: fixture.Id);
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            response,
+            results =>
+            {
+                var operationCost = Assert.Single(results).Extensions.GetProperty("operationCost");
+                Assert.Equal(fixture.Expected.TypeCost, operationCost.GetProperty("typeCost").GetDouble());
+                Assert.Equal(fixture.Expected.FieldCost, operationCost.GetProperty("fieldCost").GetDouble());
+            },
+            postFix: fixture.Id);
     }
 
     /// <summary>
@@ -62,13 +72,20 @@ public class ArticleCasesTests : FusionTestBase
         [property: JsonPropertyName("operation")] string Operation,
         [property: JsonPropertyName("operationName")] string? OperationName,
         [property: JsonPropertyName("variables")] JsonElement? Variables,
-        [property: JsonPropertyName("defaultListSize")] JsonElement DefaultListSizeValue);
+        [property: JsonPropertyName("defaultListSize")] JsonElement DefaultListSizeValue,
+        [property: JsonPropertyName("expected")] ArticleCaseExpected Expected);
+
+    /// <summary>
+    /// The expected typeCost/fieldCost pair of an <see cref="ArticleCaseFixture"/>.
+    /// </summary>
+    private sealed record ArticleCaseExpected(
+        [property: JsonPropertyName("typeCost")] double TypeCost,
+        [property: JsonPropertyName("fieldCost")] double FieldCost);
 
     /// <summary>
     /// The article fixture resolved into the shapes this test needs to build a gateway request:
     /// the raw JSON's <c>defaultListSize</c> ("Infinity" or a number) resolved to a
-    /// <see cref="double"/>, and its <c>variables</c> object resolved to a plain dictionary. The
-    /// expected typeCost/fieldCost pair is not read here: it is what the recorded snapshot pins.
+    /// <see cref="double"/>, and its <c>variables</c> object resolved to a plain dictionary.
     /// </summary>
     private sealed class ArticleCaseFixture
     {
@@ -81,7 +98,8 @@ public class ArticleCasesTests : FusionTestBase
             string operation,
             string? operationName,
             IReadOnlyDictionary<string, object?>? variables,
-            double defaultListSize)
+            double defaultListSize,
+            ArticleCaseExpected expected)
         {
             Id = id;
             Sdl = sdl;
@@ -89,6 +107,7 @@ public class ArticleCasesTests : FusionTestBase
             OperationName = operationName;
             Variables = variables;
             DefaultListSize = defaultListSize;
+            Expected = expected;
         }
 
         public string Id { get; }
@@ -102,6 +121,8 @@ public class ArticleCasesTests : FusionTestBase
         public IReadOnlyDictionary<string, object?>? Variables { get; }
 
         public double DefaultListSize { get; }
+
+        public ArticleCaseExpected Expected { get; }
 
         public static TheoryData<string> DiscoverPaths()
         {
@@ -130,7 +151,8 @@ public class ArticleCasesTests : FusionTestBase
                 data.Operation,
                 data.OperationName,
                 ToVariables(data.Variables),
-                ToDefaultListSize(data.DefaultListSizeValue));
+                ToDefaultListSize(data.DefaultListSizeValue),
+                data.Expected);
         }
 
         private static IReadOnlyDictionary<string, object?>? ToVariables(JsonElement? variables)
