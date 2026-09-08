@@ -16,7 +16,8 @@ public sealed class ObjectTypeInfo
         Resolver? nodeResolver,
         ClassDeclarationSyntax classDeclarationSyntax,
         ImmutableArray<Resolver> resolvers,
-        ImmutableArray<AttributeData> attributes)
+        ImmutableArray<AttributeData> attributes,
+        bool isInterfaceObject = false)
     {
         Name = schemaType.Name;
         SchemaTypeName = TypeNameInfo.Create(schemaType);
@@ -31,6 +32,7 @@ public sealed class ObjectTypeInfo
         Shareable = attributes.GetShareableScope();
         Inaccessible = attributes.GetInaccessibleScope();
         DescriptorAttributes = attributes.GetUserAttributes();
+        IsInterfaceObject = isInterfaceObject;
     }
 
     public string Name { get; }
@@ -64,6 +66,8 @@ public sealed class ObjectTypeInfo
     public DirectiveScope Inaccessible { get; }
 
     public ImmutableArray<AttributeData> DescriptorAttributes { get; }
+
+    public bool IsInterfaceObject { get; }
 
     public void ReplaceResolver(Resolver current, Resolver replacement)
         => Resolvers = Resolvers.Replace(current, replacement);

@@ -53,3 +53,13 @@ public sealed class InterfaceObjectAttribute
         descriptor.InterfaceObject();
     }
 }
+
+/// <summary>
+/// Marks the annotated class as a stand-in for the interface defined by <typeparamref name="T"/>.
+/// This class is used by the Hot Chocolate source generator.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+public sealed class InterfaceObjectAttribute<T> : Attribute
+{
+    public Type Type => typeof(T);
+}

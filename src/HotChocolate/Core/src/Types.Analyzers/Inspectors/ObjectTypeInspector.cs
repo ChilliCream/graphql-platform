@@ -25,7 +25,12 @@ public class ObjectTypeInspector : ISyntaxInspector
         var includeInternalMembers = context.SemanticModel.Compilation.IncludeInternalMembers();
 
         OperationType? operationType = null;
-        if (!IsObjectTypeExtension(context, out var possibleType, out var classSymbol, out var runtimeType))
+        if (!IsObjectTypeExtension(
+            context,
+            out var possibleType,
+            out var classSymbol,
+            out var runtimeType,
+            out var isInterfaceObject))
         {
             if (!IsOperationType(context, out possibleType, out classSymbol, out operationType))
             {
@@ -146,7 +151,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                 nodeResolver,
                 possibleType,
                 i == 0 ? [] : ImmutableCollectionsMarshal.AsImmutableArray(resolvers),
-                classSymbol.GetAttributes());
+                classSymbol.GetAttributes(),
+                isInterfaceObject);
             syntaxInfo = objectTypeInfo;
 
             if (diagnostics.Length > 0)
@@ -184,7 +190,8 @@ public class ObjectTypeInspector : ISyntaxInspector
         GeneratorSyntaxContext context,
         [NotNullWhen(true)] out ClassDeclarationSyntax? resolverTypeSyntax,
         [NotNullWhen(true)] out INamedTypeSymbol? resolverTypeSymbol,
-        [NotNullWhen(true)] out INamedTypeSymbol? runtimeType)
+        [NotNullWhen(true)] out INamedTypeSymbol? runtimeType,
+        out bool isInterfaceObject)
     {
         if (context.Node is ClassDeclarationSyntax { AttributeLists.Count: > 0 } possibleType)
         {
@@ -212,6 +219,21 @@ public class ObjectTypeInspector : ISyntaxInspector
                         resolverTypeSyntax = possibleType;
                         resolverTypeSymbol = rts;
                         runtimeType = rt;
+                        isInterfaceObject = false;
+                        return true;
+                    }
+
+                    // The generic [InterfaceObject<T>] marks a static resolver class as the
+                    // stand-in for the interface defined by T, mirroring [ObjectType<T>].
+                    if (fullName.StartsWith(InterfaceObjectAttribute, Ordinal)
+                        && attributeContainingTypeSymbol.TypeArguments.Length == 1
+                        && attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol iot
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol iots)
+                    {
+                        resolverTypeSyntax = possibleType;
+                        resolverTypeSymbol = iots;
+                        runtimeType = iot;
+                        isInterfaceObject = true;
                         return true;
                     }
                 }
@@ -221,6 +243,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         resolverTypeSyntax = null;
         resolverTypeSymbol = null;
         runtimeType = null;
+        isInterfaceObject = false;
         return false;
     }
 

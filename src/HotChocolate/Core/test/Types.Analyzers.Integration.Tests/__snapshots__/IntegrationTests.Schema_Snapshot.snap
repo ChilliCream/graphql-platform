@@ -4,6 +4,12 @@ schema {
   subscription: Subscription
 }
 
+"""
+Contributes the covering lookup for Programme to the shared Query type through
+a by-name object type extension, rather than a direct partial of the generator-owned Query
+root type, so this probe does not flip every other test that builds this assembly's module
+into source-schema mode (that switch is assembly-wide once a [QueryType] root sees a lookup).
+"""
 type Query {
   someBooks(
     "Returns the first _n_ elements from the list."
@@ -164,6 +170,7 @@ type Query {
   shapes: [Shape!]!
   configuredLocalState(state: ConfiguredLocalStateInput!): String!
   issue8057Entity(id: ID!): Issue8057Entity @cost(weight: "10")
+  programmeById(id: String! @is(field: "id")): Programme @lookup @internal
 }
 
 type Mutation {
@@ -338,6 +345,24 @@ type ProductsEdge {
   node: Product!
 }
 
+"""
+The entity that ProgrammeType and the non-generic Programme2
+stand in for.
+"""
+type Programme @interfaceObject @key(fields: "id") {
+  allowedUserActions: [String!]!
+  id: String!
+}
+
+"""
+Declares the @interfaceObject stand-in through the non-generic InterfaceObjectAttribute
+applied directly to the runtime class, with no [ObjectType] attribute alongside it. This
+relies solely on the generated module's auto-registration.
+"""
+type Programme2 @interfaceObject @key(fields: "id") {
+  id: String!
+}
+
 type Publisher {
   books(
     "Returns the first _n_ elements from the list."
@@ -461,6 +486,10 @@ enum FauxFlagsKind {
   SECOND
 }
 
+scalar FieldSelectionMap
+
+scalar FieldSelectionSet
+
 scalar Version
 
 scalar Version2
@@ -477,6 +506,62 @@ directive @cost(
   | ENUM
   | INPUT_FIELD_DEFINITION
 
+"""
+The @interfaceObject directive is used within a source schema to declare an object type that
+acts as a stand-in for an interface defined in another source schema. The stand-in carries the
+same name as the interface and allows a source schema to contribute fields to that interface
+without defining any of its implementing types.
+
+
+
+
+
+type Media @interfaceObject @key(fields: "id") {
+  id: ID!
+  reviews: [Review!]!
+}
+            
+directive @interfaceObject on OBJECT
+"""
+directive @interfaceObject on OBJECT
+
+"""
+The @internal directive is used in combination with lookup fields and allows you
+to declare internal types and fields. Internal types and fields do not appear in
+the final client-facing composite schema and do not participate in the standard
+schema-merging process. This allows a source schema to define lookup fields for
+resolving entities that should not be accessible through the client-facing
+composite schema.
+
+
+
+
+
+type User @internal {
+  id: ID!
+  name: String!
+}
+            
+directive @internal on OBJECT | FIELD_DEFINITION
+"""
+directive @internal on OBJECT | FIELD_DEFINITION
+
+"""
+The @is directive is utilized on lookup fields to describe how the arguments
+can be mapped from the entity type that the lookup field resolves.
+"""
+directive @is("The field selection map syntax." field: FieldSelectionMap!) on
+  | ARGUMENT_DEFINITION
+
+"""
+The @key directive is used to designate an entity's unique key,
+which identifies how to uniquely reference an instance of
+an entity across different source schemas.
+"""
+directive @key("The field selection set syntax." fields: FieldSelectionSet!) repeatable on
+  | OBJECT
+  | INTERFACE
+
 "The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
 directive @listSize(
   "The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field."
@@ -490,3 +575,10 @@ directive @listSize(
   "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error."
   requireOneSlicingArgument: Boolean = true
 ) on FIELD_DEFINITION
+
+"""
+The @lookup directive is used within a source schema to specify output fields
+that can be used by the distributed GraphQL executor to resolve an entity by
+a stable key.
+"""
+directive @lookup on FIELD_DEFINITION
