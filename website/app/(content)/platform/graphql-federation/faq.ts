@@ -1,3 +1,9 @@
+import { SUBGRAPH_SERVER_EXAMPLES } from "./terms";
+
+const SUBGRAPH_SERVER_LIST = SUBGRAPH_SERVER_EXAMPLES.map(
+  ({ server, language }) => `${language} with ${server}`,
+).join(", ");
+
 export interface FederationFaqItem {
   readonly question: string;
   readonly answer: string;
@@ -38,8 +44,7 @@ export const FEDERATION_FAQ_ITEMS: readonly FederationFaqItem[] = [
   },
   {
     question: "Which languages can subgraphs be written in?",
-    answer:
-      "Any language with a GraphQL server: Java or Kotlin with Spring for GraphQL, Node.js with NestJS or GraphQL Yoga, Go with gqlgen, Python with Strawberry, Rust with async-graphql, Ruby with graphql-ruby, .NET with Hot Chocolate. The gateway talks to a subgraph with ordinary GraphQL queries over HTTP, so the language behind the endpoint does not matter. A service that only speaks REST or gRPC joins through a GraphQL server in front of it, or through a gateway that composes OpenAPI and gRPC sources directly.",
+    answer: `Any language with a GraphQL server: ${SUBGRAPH_SERVER_LIST}. The gateway talks to a subgraph with ordinary GraphQL queries over HTTP, so the language behind the endpoint does not matter. A service that only speaks REST or gRPC joins through a GraphQL server in front of it, or through a gateway that composes OpenAPI and gRPC sources directly.`,
   },
   {
     question:

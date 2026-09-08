@@ -1,3 +1,4 @@
+import { SUBGRAPH_SERVER_EXAMPLES } from "../terms";
 import {
   ExternalLink,
   Intro,
@@ -6,6 +7,10 @@ import {
   SPEC_URL,
   SubHeading,
 } from "./shared";
+
+const SUBGRAPH_SERVER_LIST = SUBGRAPH_SERVER_EXAMPLES.map(
+  ({ server, language }) => `${server} in ${language}`,
+).join(", ");
 
 const WORKING_GROUP_ANNOUNCEMENT_URL =
   "https://graphql.org/blog/2024-05-16-composite-schemas-announcement/";
@@ -98,12 +103,10 @@ export function WhySection() {
             subgraph without changing its schema.
           </p>
           <p>
-            That holds for a server in any language. Spring for GraphQL in Java
-            or Kotlin, NestJS or GraphQL Yoga in Node.js, gqlgen in Go,
-            Strawberry in Python, async-graphql in Rust, graphql-ruby, Hot
-            Chocolate in .NET: each publishes a schema and answers a query, and
-            that is all the distributed executor needs. Nothing in the
-            architecture ties your teams to one language or one vendor.
+            That holds for a server in any language. {SUBGRAPH_SERVER_LIST}:
+            each publishes a schema and answers a query, and that is all the
+            distributed executor needs. Nothing in the architecture ties your
+            teams to one language or one vendor.
           </p>
           <p>
             Read <ExternalLink href={SPEC_URL}>the specification</ExternalLink>,{" "}
