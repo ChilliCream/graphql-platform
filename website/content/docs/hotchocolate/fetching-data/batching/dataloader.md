@@ -260,12 +260,12 @@ public static async Task<IReadOnlyDictionary<int, User>> GetUserByIdAsync(
 
 The method signature must match the selected contract:
 
-| Contract                         | First parameter       | Return type                                                                                                                                                             |
-| -------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `IBatchDataLoader<TKey, TValue>` | `IReadOnlyList<TKey>` | `Task<IReadOnlyDictionary<TKey, TValue>>`, `ValueTask<IReadOnlyDictionary<TKey, TValue>>`, `Task<IDictionary<TKey, TValue>>`, or `ValueTask<IDictionary<TKey, TValue>>` |
-| `ICacheDataLoader<TKey, TValue>` | `TKey`                | `Task<TValue>` or `ValueTask<TValue>`                                                                                                                                   |
+| Contract                         | First parameter       | Return type                                                                                                                              |
+| -------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `IBatchDataLoader<TKey, TValue>` | `IReadOnlyList<TKey>` | `Task<T>` or `ValueTask<T>` where `T` is `IReadOnlyDictionary<TKey, TValue>`, `IDictionary<TKey, TValue>`, or `Dictionary<TKey, TValue>` |
+| `ICacheDataLoader<TKey, TValue>` | `TKey`                | `Task<TValue>` or `ValueTask<TValue>`                                                                                                    |
 
-Group loading uses the batch contract with an array value. For example, `IBatchDataLoader<int, Order[]>` requires a method returning `Task<IReadOnlyDictionary<int, Order[]>>`. `[DataLoader<T>]` batch methods do not accept `ILookup<TKey, TValue>` return types.
+Group loading uses the batch contract with an array value. For example, `IBatchDataLoader<int, Order[]>` can use a method returning `Task<Dictionary<int, Order[]>>`. `[DataLoader<T>]` batch methods do not accept `ILookup<TKey, TValue>` return types.
 
 When a closed `T` is used by one `[DataLoader<T>]` method in an assembly, it is registered for dependency injection and can be injected by interface. When multiple methods use the same closed `T`, each generated DataLoader is registered only by its concrete class. Inject the generated class in that case.
 

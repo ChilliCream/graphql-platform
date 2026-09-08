@@ -101,6 +101,104 @@ namespace TestNamespace
             }
         }
     }
+
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.TestClass.GetDictionaryByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;)"/>.
+    /// </summary>
+    public sealed partial class DictionaryByIdDataLoader
+        : global::GreenDonut.DataLoaderBase<int, string>
+        , global::GreenDonut.IBatchDataLoader<int, string>
+    {
+        private readonly global::System.IServiceProvider _services;
+
+        public DictionaryByIdDataLoader(
+            global::System.IServiceProvider services,
+            global::GreenDonut.IBatchScheduler batchScheduler,
+            global::GreenDonut.DataLoaderOptions options)
+            : base(batchScheduler, options)
+        {
+            _services = services ??
+                throw new global::System.ArgumentNullException(nameof(services));
+        }
+
+        protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
+            global::System.Collections.Generic.IReadOnlyList<int> keys,
+            global::System.Memory<GreenDonut.Result<string?>> results,
+            global::GreenDonut.DataLoaderFetchContext<string> context,
+            global::System.Threading.CancellationToken ct)
+        {
+            var temp = await global::TestNamespace.TestClass.GetDictionaryByIdAsync(keys).ConfigureAwait(false);
+            CopyResults(keys, results.Span, temp);
+        }
+
+        private void CopyResults(
+            global::System.Collections.Generic.IReadOnlyList<int> keys,
+            global::System.Span<GreenDonut.Result<string?>> results,
+            global::System.Collections.Generic.Dictionary<int, string> resultMap)
+        {
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                if (resultMap.TryGetValue(key, out var value))
+                {
+                    results[i] = global::GreenDonut.Result<string?>.Resolve(value);
+                }
+                else
+                {
+                    results[i] = global::GreenDonut.Result<string?>.Resolve(default(string));
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// A DataLoader generated from <see cref="global::TestNamespace.TestClass.GetDictionaryGroupsByIdAsync(global::System.Collections.Generic.IReadOnlyList&lt;int&gt;)"/>.
+    /// </summary>
+    public sealed partial class DictionaryGroupsByIdDataLoader
+        : global::GreenDonut.DataLoaderBase<int, string[]>
+        , global::TestNamespace.IEntitiesByIdDataLoader
+    {
+        private readonly global::System.IServiceProvider _services;
+
+        public DictionaryGroupsByIdDataLoader(
+            global::System.IServiceProvider services,
+            global::GreenDonut.IBatchScheduler batchScheduler,
+            global::GreenDonut.DataLoaderOptions options)
+            : base(batchScheduler, options)
+        {
+            _services = services ??
+                throw new global::System.ArgumentNullException(nameof(services));
+        }
+
+        protected override async global::System.Threading.Tasks.ValueTask FetchAsync(
+            global::System.Collections.Generic.IReadOnlyList<int> keys,
+            global::System.Memory<GreenDonut.Result<string[]?>> results,
+            global::GreenDonut.DataLoaderFetchContext<string[]> context,
+            global::System.Threading.CancellationToken ct)
+        {
+            var temp = await global::TestNamespace.TestClass.GetDictionaryGroupsByIdAsync(keys).ConfigureAwait(false);
+            CopyResults(keys, results.Span, temp);
+        }
+
+        private void CopyResults(
+            global::System.Collections.Generic.IReadOnlyList<int> keys,
+            global::System.Span<GreenDonut.Result<string[]?>> results,
+            global::System.Collections.Generic.Dictionary<int, string[]> resultMap)
+        {
+            for (var i = 0; i < keys.Count; i++)
+            {
+                var key = keys[i];
+                if (resultMap.TryGetValue(key, out var value))
+                {
+                    results[i] = global::GreenDonut.Result<string[]?>.Resolve(value);
+                }
+                else
+                {
+                    results[i] = global::GreenDonut.Result<string[]?>.Resolve(default(string[]));
+                }
+            }
+        }
+    }
 }
 
 
