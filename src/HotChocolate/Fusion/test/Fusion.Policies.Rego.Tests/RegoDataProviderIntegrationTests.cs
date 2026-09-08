@@ -43,17 +43,26 @@ public sealed class RegoDataProviderIntegrationTests
     public async Task Startup_Should_PublishPolicies_When_ProviderLoadCompletesAfterFarContentArrives()
     {
         // arrange
+        var gate = new TaskCompletionSource<RegoDataSnapshot>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
         var provider = new InMemoryRegoDataProvider("""{"feature":{"enabled":true}}""");
+        provider.Handler = _ => new ValueTask<RegoDataSnapshot>(gate.Task);
         var aggregator = CreateAggregator(provider);
         await using var policyProvider = new RegoPolicyProvider(new TestDiagnosticEvents(), aggregator);
         var observer = new CapturingObserver();
         using var subscription = policyProvider.Subscribe(observer);
-
-        // act
         policyProvider.OnNext(Snapshot(FeatureGatedPolicy));
+        Assert.Null(observer.Current("p1.allow"));
+
+        // act: the provider's initial load completes after the FAR content already arrived.
+        gate.SetResult(new RegoDataSnapshot("""{"feature":{"enabled":true}}"""u8, "v1"));
+        await WaitUntilAsync(() => observer.Current("p1.allow") is not null);
 
         // assert
-        Assert.NotNull(observer.Current("p1.allow"));
+        var policy = observer.Current("p1.allow")!;
+        var context = new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+        await policy.EvaluateAsync(context, TestContext.Current.CancellationToken);
+        Assert.Empty(context.DeniedIndices);
     }
 
     [Fact]
@@ -141,6 +150,23 @@ public sealed class RegoDataProviderIntegrationTests
         // assert
         Assert.NotEmpty(diagnostics.UpdateErrors);
         Assert.Same(beforeCollision, observer.Current("p1.allow"));
+    }
+
+    private static async Task WaitUntilAsync(Func<bool> condition)
+    {
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
+
+        while (DateTime.UtcNow < deadline)
+        {
+            if (condition())
+            {
+                return;
+            }
+
+            await Task.Delay(10);
+        }
+
+        throw new TimeoutException("The condition was not met in time.");
     }
 
     private static RegoDataAggregator CreateAggregator(IRegoDataProvider provider)
