@@ -374,8 +374,13 @@ public sealed class RegoPolicyProvider
                     // combination is byte-for-byte the same one already compiled and served (most
                     // commonly a colliding provider candidate that never promotes, so nothing
                     // about the served content actually changed), recompiling and republishing an
-                    // identical policy set would be pure waste. A pending candidate is never
-                    // skipped here: it is by definition new content that has not been served yet.
+                    // identical policy set would be pure waste. The provider promotions this
+                    // attempt staged are still committed here: the served set was compiled with
+                    // exactly these merged bytes, so it is safe (and necessary) to advance the
+                    // provider's last-good snapshot even though nothing is recompiled or republished.
+                    // A pending candidate is never skipped here: it is by definition new content
+                    // that has not been served yet.
+                    attempt!.Commit();
                     return;
                 }
 

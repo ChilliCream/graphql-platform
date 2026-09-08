@@ -120,7 +120,7 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
 
         List<ReadOnlyMemory<byte>> documents;
         List<(ProviderState State, RegoDataSnapshot Snapshot)> promotions;
-        List<ProviderState>? providersWithoutLastGood = null;
+        List<(ProviderState State, RegoDataSnapshot Snapshot)>? forcedCandidates = null;
 
         lock (_sync)
         {
@@ -145,13 +145,16 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
                 }
 
                 // The provider has responded at least once, but every attempt so far has
-                // collided and it has no last-good to fall back to: fail instead of waiting
-                // forever. The failure this produces below is the only diagnostic reported for
-                // this provider's collision (ComputePendingPromotions deliberately did not
-                // report it, to avoid reporting the same collision twice). Tracked so the
-                // failure below can be attributed to a provider instead of surfacing as a bare,
-                // unattributed merge exception.
-                (providersWithoutLastGood ??= []).Add(state);
+                // collided and it has no last-good to fall back to: its still-pending,
+                // still-unvalidated candidate is used as the merge fallback below instead of
+                // waiting forever. Tracked here as a forced candidate so that, on a clean merge, it
+                // is promoted alongside the other promotions below (the data actually served is
+                // then exactly the data that got committed, honoring invariant 4 of ruling 726
+                // instead of serving it silently); on a collision it attributes the failure below
+                // instead of surfacing as a bare, unattributed merge exception
+                // (ComputePendingPromotions deliberately did not report it, to avoid reporting the
+                // same collision twice).
+                (forcedCandidates ??= []).Add((state, state.PendingSnapshot));
                 documents.Add(state.PendingSnapshot.Data);
             }
         }
@@ -171,8 +174,8 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
             // only providers with an established last-good (a FAR change colliding with already
             // committed data) is not attributable to any single provider and stays a bare
             // RegoDataMergeException.
-            error = providersWithoutLastGood is { Count: > 0 }
-                ? new RegoDataProviderException(providersWithoutLastGood[0].Name, ex)
+            error = forcedCandidates is { Count: > 0 }
+                ? new RegoDataProviderException(forcedCandidates[0].State.Name, ex)
                 : ex;
             return RegoDataMergeStatus.Failed;
         }
@@ -184,6 +187,15 @@ internal sealed class RegoDataAggregator : IAsyncDisposable
                 + "{ThresholdInBytes} byte warning threshold.",
                 merged.Length,
                 SizeWarningThresholdBytes);
+        }
+
+        if (forcedCandidates is not null)
+        {
+            // The merge succeeded using each forced candidate's still-pending data as-is, so the
+            // data about to be served is exactly that candidate's data: promote it alongside the
+            // other promotions so Commit advances it to last-good too, instead of leaving it
+            // uncommitted and unreported while its data is served.
+            promotions.AddRange(forcedCandidates);
         }
 
         attempt = new RegoDataMergeAttempt(this, merged, promotions);

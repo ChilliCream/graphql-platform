@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -118,6 +119,46 @@ public sealed class RegoDataAggregatorTests
         Assert.Equal(RegoDataMergeStatus.Failed, status);
         var providerError = Assert.IsType<RegoDataProviderException>(error);
         Assert.Contains(providerError.ProviderName, new[] { "a", "b" });
+    }
+
+    [Fact]
+    public void TryBuildMergedData_Should_PromoteForcedCandidate_When_RejectedCandidateMergesCleanlyInFinalAttempt()
+    {
+        // arrange: two providers whose initial snapshots do not collide.
+        var providerX = new InMemoryRegoDataProvider("""{"a":1}""");
+        var providerY = new InMemoryRegoDataProvider("""{"k":1}""");
+        var aggregator = CreateAggregator(
+            [
+                Registration("x", providerX),
+                Registration("y", providerY)
+            ]);
+        aggregator.Start();
+        RegoDataMergeStatus firstStatus = default;
+        RegoDataAggregator.RegoDataMergeAttempt? firstAttempt = null;
+        Spin(() =>
+        {
+            firstStatus = aggregator.TryBuildMergedData(s_farData, out firstAttempt, out _);
+            return firstStatus != RegoDataMergeStatus.NotReady;
+        });
+
+        // act: X republishes data that collides with Y's still-pending candidate BEFORE the first
+        // attempt is committed, so committing it skips X as moved-on (X stays pending with no
+        // last-good) while Y's unchanged candidate commits normally. Y then republishes data that
+        // no longer collides with X's still-pending, still-rejected candidate.
+        providerX.Publish("""{"k":2}""", "v2");
+        firstAttempt!.Commit();
+        providerY.Publish("""{"m":1}""", "v2");
+
+        var status = aggregator.TryBuildMergedData(s_farData, out var attempt, out var error);
+
+        // assert: X's rejected, no-last-good candidate is used as the merge fallback and, since it
+        // merges cleanly this time, is promoted alongside Y instead of being served silently
+        // without ever becoming X's committed state (F2m).
+        Assert.Equal(RegoDataMergeStatus.Ready, status);
+        Assert.Null(error);
+        Assert.Contains("\"k\":2", System.Text.Encoding.UTF8.GetString(attempt!.MergedData), StringComparison.Ordinal);
+        attempt.Commit();
+        Assert.Equal("v2", GetProviderSnapshotVersion(aggregator, "x"));
     }
 
     [Fact]
@@ -320,6 +361,35 @@ public sealed class RegoDataAggregatorTests
         }
 
         throw new TimeoutException("The condition was not met in time.");
+    }
+
+    // Reflection is the only way to observe a provider's committed snapshot: RegoDataAggregator
+    // deliberately exposes nothing about ProviderState beyond what TryBuildMergedData's own return
+    // value already reveals.
+    private static string? GetProviderSnapshotVersion(RegoDataAggregator aggregator, string providerName)
+    {
+        var providersField = typeof(RegoDataAggregator)
+            .GetField("_providers", BindingFlags.NonPublic | BindingFlags.Instance)!;
+
+        foreach (var providerState in (Array)providersField.GetValue(aggregator)!)
+        {
+            var providerStateType = providerState!.GetType();
+            var name = (string)providerStateType
+                .GetProperty("Name", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(providerState)!;
+
+            if (!string.Equals(name, providerName, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var snapshot = (RegoDataSnapshot?)providerStateType
+                .GetProperty("Snapshot", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(providerState);
+            return snapshot?.Version;
+        }
+
+        throw new InvalidOperationException($"No provider named '{providerName}' was found.");
     }
 
     private static void Spin(Func<bool> condition)

@@ -697,6 +697,32 @@ public sealed class RegoDataProviderIntegrationTests
         Assert.Same(beforeCollision, observer.Current("p1.allow"));
     }
 
+    [Fact]
+    public async Task Merge_Should_CommitProviderSnapshotWithoutEmitting_When_ProviderRepublishesIdenticalDataUnderNewVersion()
+    {
+        // arrange
+        var provider = new InMemoryRegoDataProvider("""{"feature":{"enabled":true}}""");
+        var diagnostics = new TestDiagnosticEvents();
+        var aggregator = CreateAggregator(provider, diagnostics);
+        await using var policyProvider = new RegoPolicyProvider(diagnostics, aggregator);
+        var observer = new CapturingObserver();
+        using var subscription = policyProvider.Subscribe(observer);
+        policyProvider.OnNext(Snapshot(FeatureGatedPolicy));
+        var served = observer.Current("p1.allow")!;
+        var updatesBeforeRepublish = observer.Updates.Count;
+
+        // act: the provider republishes byte-identical data under a new version - the served
+        // (FAR, provider) combination never actually changes, so nothing is recompiled or
+        // republished, but the provider's own committed snapshot must still advance to "v2" (F1m).
+        provider.Publish("""{"feature":{"enabled":true}}""", "v2");
+
+        // assert: no recompile, no republish - the served set is the exact same instance - but the
+        // provider's last-good is now "v2", not left pending behind an unadvanced "v1".
+        Assert.Equal(updatesBeforeRepublish, observer.Updates.Count);
+        Assert.Same(served, observer.Current("p1.allow"));
+        Assert.Equal("v2", GetProviderSnapshotVersion(aggregator));
+    }
+
     // Reflection is the only way to observe a provider's committed snapshot: RegoDataAggregator
     // deliberately exposes nothing about ProviderState beyond what TryBuildMergedData's own
     // return value already reveals.
