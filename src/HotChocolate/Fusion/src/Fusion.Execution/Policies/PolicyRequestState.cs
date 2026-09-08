@@ -409,10 +409,25 @@ internal sealed class PolicyRequestState
                 // event delivering the resource.
                 if (state.EventContext is not { } eventContext
                     || state.EventResponseName is not { } responseName
-                    || state.EventResourceType is not { } type
-                    || !TryGetEventResourceEntity(eventContext, responseName, out var entity))
+                    || state.EventResourceType is not { } type)
                 {
                     return default;
+                }
+
+                if (!TryGetEventResourceEntity(eventContext, responseName, out var entity, out var hasMultiple))
+                {
+                    // A list-typed subscription root is excluded from this path at plan time
+                    // (GetConcreteEventStreamMessage/isEventStreamRootCoordinate), so more than
+                    // one resource for this event should never reach here; fail closed instead
+                    // of leaving the decision undecided (default) so no future path can deliver
+                    // an unevaluated item.
+                    return hasMultiple
+                        ? new PolicyDecision(
+                            true,
+                            $"Policy '{policy.Name}' cannot be evaluated because the event "
+                            + "produced more than one resource for a subscription root that "
+                            + "requires exactly one.")
+                        : default;
                 }
 
                 PolicyExecutionNode.EnsureRequirementsAreAvailable(policy.Name, resource, entity);
@@ -460,17 +475,21 @@ internal sealed class PolicyRequestState
     /// <summary>
     /// Rents the subscription root's own composite result element to use as the resource for a
     /// data-bearing subscription-root policy. Returns <c>false</c> when the current event has
-    /// not (yet) produced a non-null root result.
+    /// not (yet) produced a non-null root result; <paramref name="hasMultipleEntities"/> is
+    /// <c>true</c> only when the event produced more than one, which the caller must treat as a
+    /// fail-closed condition rather than an undecided one.
     /// </summary>
     private static bool TryGetEventResourceEntity(
         OperationPlanContext context,
         string responseName,
-        out CompositeResultElement entity)
+        out CompositeResultElement entity,
+        out bool hasMultipleEntities)
     {
         var elements = context.RentResultElements(SelectionPath.Root.AppendField(responseName), out var count);
 
         try
         {
+            hasMultipleEntities = count > 1;
             if (count != 1 || elements[0].IsNullOrInvalidated)
             {
                 entity = default;

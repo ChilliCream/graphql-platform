@@ -94,7 +94,7 @@ internal static class PolicyArtifactBinder
             incrementalPlans,
             policies,
             policySnapshot,
-            TryGetEventStreamRootInfo(allNodes));
+            TryGetEventStreamRootInfo(operation, allNodes));
         var expected = ReconstructArtifacts(candidates, policySnapshot);
         ValidateArtifactTables(expressions, slots, expected, allowUnboundOccurrences: true);
         var boundSlots = expected.Slots;
@@ -151,7 +151,7 @@ internal static class PolicyArtifactBinder
             incrementalPlans,
             policies,
             policySnapshot,
-            TryGetEventStreamRootInfo(allNodes));
+            TryGetEventStreamRootInfo(operation, allNodes));
         var expected = ReconstructArtifacts(candidates, policySnapshot);
         var candidateByReference = candidates.ToDictionary(candidate => candidate.Reference);
         var claimed = new HashSet<PolicyOccurrenceReference>();
@@ -2691,8 +2691,10 @@ internal static class PolicyArtifactBinder
         {
             // EventStream can only ever be the operation's own root node, and a GraphQL
             // subscription has exactly one root selection, so a length-one object coordinate at
-            // plan part 0 is unambiguously the subscription root's own payload type.
-            var isEventStreamRootCoordinate = eventStreamRootInfo is not null
+            // plan part 0 is unambiguously the subscription root's own payload type. A list-typed
+            // root is excluded: a single event then carries more than one resource, so it keeps
+            // the unnarrowed, pre-existing rejection just like an abstract payload type.
+            var isEventStreamRootCoordinate = eventStreamRootInfo is { IsList: false }
                 && kind is PolicyTargetKind.Object
                 && path.Length == 1;
 
@@ -2991,15 +2993,25 @@ internal static class PolicyArtifactBinder
 
     /// <summary>
     /// Identifies the EventStream execution node at the root of a compiled subscription plan,
-    /// if any, and the composed message projection it delivers.
+    /// if any, and the composed message projection it delivers, together with whether its own
+    /// root field's return type is a list (a single event then carries more than one resource,
+    /// so it is excluded from the per-event slot path just like an abstract payload type).
     /// </summary>
-    private static EventStreamRootInfo? TryGetEventStreamRootInfo(ImmutableArray<ExecutionNode> allNodes)
+    private static EventStreamRootInfo? TryGetEventStreamRootInfo(
+        Operation operation,
+        ImmutableArray<ExecutionNode> allNodes)
     {
         foreach (var node in allNodes)
         {
             if (node is EventStreamExecutionNode eventStream)
             {
-                return new EventStreamRootInfo(eventStream.EventStreamSource.Message);
+                var isList = operation.RootSelectionSet.Type is FusionComplexTypeDefinition subscriptionType
+                    && subscriptionType.Fields.TryGetField(
+                        eventStream.FieldName,
+                        allowInaccessibleFields: true,
+                        out var rootField)
+                    && rootField.Type.IsListType();
+                return new EventStreamRootInfo(eventStream.EventStreamSource.Message, isList);
             }
         }
 
@@ -3033,9 +3045,10 @@ internal static class PolicyArtifactBinder
 
     /// <summary>
     /// Gets whether every field a policy requirement selects is already selected by the
-    /// composed <c>@eventStream</c> message projection, recursing into inline fragments matched
-    /// by an exact type condition for type-conditioned paths. Shared by the planner's plan-time
-    /// derivability check and this binder's independent reconstruction of the same decision.
+    /// composed <c>@eventStream</c> message projection. Shared by the planner's plan-time
+    /// derivability check and this binder's independent reconstruction of the same decision; the
+    /// inline-fragment branch is forward-looking and currently unreachable, since a policy
+    /// requirement selection set cannot contain an inline fragment today.
     /// </summary>
     internal static bool IsRequirementCoveredByEventMessage(
         SelectionSetNode requirement,
@@ -3123,7 +3136,7 @@ internal static class PolicyArtifactBinder
             OnDenied = application.OnDenied
         };
 
-    private readonly record struct EventStreamRootInfo(SelectionSetNode Message);
+    private readonly record struct EventStreamRootInfo(SelectionSetNode Message, bool IsList);
 
     private static PolicyApplicationClass ClassifyApplication(
         PolicyApplication application,

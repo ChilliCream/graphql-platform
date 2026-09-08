@@ -729,8 +729,9 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Gets the composed <c>@eventStream</c> message projection for the subscription root work
-    /// item, or <c>null</c> when the subscription root field's return type is not a concrete
-    /// object type (an abstract payload type keeps the unnarrowed, pre-existing behavior).
+    /// item, or <c>null</c> when the subscription root field's return type is not a concrete,
+    /// non-list object type (an abstract payload type, or a list-typed root field where a single
+    /// event can carry more than one resource, keeps the unnarrowed, pre-existing behavior).
     /// </summary>
     private SelectionSetNode? GetConcreteEventStreamMessage(
         SelectionSet selectionSet,
@@ -754,6 +755,7 @@ public sealed partial class OperationPlanner
                 allowInaccessibleFields: true,
                 out var rootField)
                 && rootField.Type.NamedType() is FusionObjectTypeDefinition
+                && !rootField.Type.IsListType()
                 ? directive.Message
                 : null;
         }
