@@ -40,10 +40,12 @@ public sealed class RegoPolicyProvider
     private byte[]? _data;
 
     // The candidate a rebuild attempt is currently working towards. Set at the start of every
-    // rebuild attempt and cleared once that attempt commits, so a provider-driven retry (for
-    // example once every provider has finished its initial load) resumes with the same FAR
-    // content the attempt that is still pending was started with, rather than the last committed
-    // one.
+    // rebuild attempt and retained only while it is still waiting on a data provider's initial
+    // load, so a provider-driven retry (once every provider has finished loading) resumes with
+    // the same FAR content the attempt was started with, rather than the last committed one. A
+    // candidate that fails to merge or compile is cleared immediately: it never survives across a
+    // failed attempt, so the next provider update recompiles the last committed pair against the
+    // fresh data instead of re-reporting the same broken candidate.
     private Dictionary<string, PolicyContent>? _pendingContents;
     private byte[]? _pendingData;
 
@@ -232,6 +234,8 @@ public sealed class RegoPolicyProvider
 
                 case RegoDataMergeStatus.Failed:
                     _diagnosticEvents.PolicyUpdateError(mergeError!);
+                    _pendingContents = null;
+                    _pendingData = null;
                     return;
 
                 case RegoDataMergeStatus.Ready:
@@ -282,6 +286,8 @@ public sealed class RegoPolicyProvider
         catch (Exception ex)
         {
             ReportCompileFailure(policies, ex);
+            _pendingContents = null;
+            _pendingData = null;
             return;
         }
 

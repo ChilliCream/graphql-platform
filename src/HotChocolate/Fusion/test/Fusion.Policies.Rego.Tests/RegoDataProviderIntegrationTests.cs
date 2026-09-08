@@ -17,6 +17,14 @@ public sealed class RegoDataProviderIntegrationTests
         allow if { data.feature.enabled }
         """;
 
+    // The rule body is malformed, so the whole set fails to compile.
+    private const string BrokenPolicy =
+        """
+        package p1
+        import rego.v1
+        allow if {
+        """;
+
     [Fact]
     public async Task Startup_Should_StayUnavailable_When_ProviderHasNotCompletedInitialLoad()
     {
@@ -152,6 +160,43 @@ public sealed class RegoDataProviderIntegrationTests
         Assert.Same(beforeCollision, observer.Current("p1.allow"));
     }
 
+    [Fact]
+    public async Task Refresh_Should_RecompileLastGoodContent_When_ProviderUpdatesAfterBrokenFarCandidate()
+    {
+        // arrange
+        var provider = new InMemoryRegoDataProvider("""{"feature":{"enabled":false}}""");
+        var aggregator = CreateAggregator(provider);
+        var diagnostics = new TestDiagnosticEvents();
+        await using var policyProvider = new RegoPolicyProvider(diagnostics, aggregator);
+        var observer = new CapturingObserver();
+        using var subscription = policyProvider.Subscribe(observer);
+        policyProvider.OnNext(Snapshot(FeatureGatedPolicy));
+        var lastGood = observer.Current("p1.allow")!;
+
+        // act: a FAR update with the same policy name but a syntactically broken body arrives.
+        policyProvider.OnNext(Snapshot(BrokenPolicy, digest: "d2"));
+        var errorsAfterBrokenCandidate =
+            diagnostics.UpdateErrors.Count + diagnostics.CompilationErrors.Count;
+
+        // assert: the broken candidate is rejected, the last-good policy stays published.
+        Assert.Same(lastGood, observer.Current("p1.allow"));
+        Assert.True(errorsAfterBrokenCandidate > 0);
+
+        // act: the provider then republishes fresh data; the last-good code must be recompiled
+        // against it rather than the discarded broken candidate.
+        provider.Publish("""{"feature":{"enabled":true}}""", "v2");
+
+        // assert
+        var updated = observer.Current("p1.allow")!;
+        Assert.NotSame(lastGood, updated);
+        var context = new RegoPolicyTestEntities.TestPolicyContext(entities: new CompositeResultElement[1]);
+        await updated.EvaluateAsync(context, TestContext.Current.CancellationToken);
+        Assert.Empty(context.DeniedIndices);
+        Assert.Equal(
+            errorsAfterBrokenCandidate,
+            diagnostics.UpdateErrors.Count + diagnostics.CompilationErrors.Count);
+    }
+
     private static async Task WaitUntilAsync(Func<bool> condition)
     {
         var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(5);
@@ -180,7 +225,7 @@ public sealed class RegoDataProviderIntegrationTests
         return aggregator;
     }
 
-    private static PolicyContentSnapshot Snapshot(string source, string farData = "{}")
+    private static PolicyContentSnapshot Snapshot(string source, string farData = "{}", string digest = "d1")
         => new(
             "rego",
             new Version(1, 0, 0),
@@ -190,7 +235,7 @@ public sealed class RegoDataProviderIntegrationTests
                     PolicyContentType.Rego,
                     Encoding.UTF8.GetBytes(source),
                     PolicyRequirements.Empty,
-                    "d1"u8.ToArray())),
+                    Encoding.UTF8.GetBytes(digest))),
             Encoding.UTF8.GetBytes(farData),
             "far-digest"u8.ToArray(),
             dataOwner: null);
