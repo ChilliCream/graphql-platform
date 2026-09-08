@@ -9,6 +9,13 @@ namespace HotChocolate.CostAnalysis;
 public sealed class CostPlan
 {
     /// <summary>
+    /// Initializes a new instance of <see cref="CostPlan"/>.
+    /// </summary>
+    internal CostPlan()
+    {
+    }
+
+    /// <summary>
     /// Gets the analyses this plan evaluates.
     /// </summary>
     public CostAnalyses Analyses => throw ThrowHelper.NotImplemented();

@@ -50,5 +50,17 @@ namespace HotChocolate.CostAnalysis.Properties {
                 return ResourceManager.GetString("ThrowHelper_NotImplemented", resourceCulture);
             }
         }
+
+        internal static string ThrowHelper_InvalidCostWeight {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidCostWeight", resourceCulture);
+            }
+        }
+
+        internal static string ThrowHelper_InvalidListSizeArgument {
+            get {
+                return ResourceManager.GetString("ThrowHelper_InvalidListSizeArgument", resourceCulture);
+            }
+        }
     }
 }
