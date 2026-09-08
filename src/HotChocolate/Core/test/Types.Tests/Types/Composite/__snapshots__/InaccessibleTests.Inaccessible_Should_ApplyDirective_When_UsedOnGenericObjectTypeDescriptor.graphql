@@ -15,15 +15,15 @@ The @inaccessible directive is used to prevent specific type system members
 from being accessible through the client-facing composite schema,
 even if they are accessible in the underlying source schemas.
 
-
 This directive is useful for restricting access to type system members that
 are either irrelevant to the client-facing composite schema or sensitive in nature,
 such as internal identifiers or fields intended only for backend use.
 
-
 directive @inaccessible on FIELD_DEFINITION
   | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION
   | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+
+https://graphql.github.io/composite-schemas-spec/draft/#sec--inaccessible
 """
 directive @inaccessible on
   | SCALAR

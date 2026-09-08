@@ -57,7 +57,6 @@ public static class EventStreamTests
             the value that carries the cursor of each emitted event, which a client can store
             and later pass back to resume the stream.
 
-
             directive @eventCursor on ARGUMENT_DEFINITION | FIELD_DEFINITION
             """
             directive @eventCursor on FIELD_DEFINITION | ARGUMENT_DEFINITION
@@ -67,7 +66,6 @@ public static class EventStreamTests
             event stream behind the distributed GraphQL executor. The directive carries the
             payload selection set as well as the topics and broker that the executor uses to
             resolve the stream.
-
 
             directive @eventStream(message: FieldSelectionSet!, topics: [String!], broker: String) on FIELD_DEFINITION
             """

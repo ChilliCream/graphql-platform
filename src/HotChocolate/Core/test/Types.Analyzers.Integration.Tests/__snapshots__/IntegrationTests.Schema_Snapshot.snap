@@ -506,15 +506,13 @@ acts as a stand-in for an interface defined in another source schema. The stand-
 same name as the interface and allows a source schema to contribute fields to that interface
 without defining any of its implementing types.
 
-
-
-
+https://graphql.github.io/composite-schemas-spec/draft/#sec--interfaceObject
 
 type Media @interfaceObject @key(fields: "id") {
   id: ID!
   reviews: [Review!]!
 }
-            
+
 directive @interfaceObject on OBJECT
 """
 directive @interfaceObject on OBJECT
@@ -527,15 +525,13 @@ schema-merging process. This allows a source schema to define lookup fields for
 resolving entities that should not be accessible through the client-facing
 composite schema.
 
-
-
-
+https://graphql.github.io/composite-schemas-spec/draft/#sec--internal
 
 type User @internal {
   id: ID!
   name: String!
 }
-            
+
 directive @internal on OBJECT | FIELD_DEFINITION
 """
 directive @internal on OBJECT | FIELD_DEFINITION
