@@ -1,9 +1,11 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Text;
 using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Definitions;
 using HotChocolate.Fusion.DirectiveMergers;
+using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
 using HotChocolate.Fusion.Language;
@@ -27,12 +29,47 @@ using NullValueNode = HotChocolate.Language.NullValueNode;
 using EnumValueNode = HotChocolate.Language.EnumValueNode;
 using ListValueNode = HotChocolate.Language.ListValueNode;
 using IValueNode = HotChocolate.Language.IValueNode;
+using IntValueNode = HotChocolate.Language.IntValueNode;
+using BooleanValueNode = HotChocolate.Language.BooleanValueNode;
 
 namespace HotChocolate.Fusion;
+
+/// <summary>
+/// The schema-coordinate kind a member being folded for <c>@cost</c> occupies, which selects
+/// its spec default weight under absence (R-COMPOSITION-WEIGHT-FOLD).
+/// </summary>
+internal enum CostCoordinateKind
+{
+    /// <summary>An object, interface, or union type. Default weight 1.</summary>
+    CompositeType,
+
+    /// <summary>A scalar or enum type. Default weight 0.</summary>
+    LeafType,
+
+    /// <summary>
+    /// An output field. Default weight 1 when its named type (the list element type for a list
+    /// field) is composite, 0 otherwise.
+    /// </summary>
+    OutputField,
+
+    /// <summary>
+    /// An argument or input field. Default weight 1 when its named type is an input object
+    /// type, 0 otherwise.
+    /// </summary>
+    InputValue
+}
 
 internal sealed partial class SourceSchemaMerger
 {
     private static readonly FusionFieldDefinitionSyntaxRewriter s_fieldDefinitionRewriter = new();
+
+    private static readonly DirectiveDefinitionNode s_costCanonicalDefinitionNode =
+        new CostMutableDirectiveDefinition(BuiltIns.String.Create()).ToSyntaxNode();
+
+    private static readonly DirectiveDefinitionNode s_listSizeCanonicalDefinitionNode =
+        new ListSizeMutableDirectiveDefinition(
+            BuiltIns.Int.Create(), BuiltIns.String.Create(), BuiltIns.Boolean.Create()).ToSyntaxNode();
+
     private readonly ImmutableSortedSet<MutableSchemaDefinition> _schemas;
     private readonly FrozenDictionary<string, string> _schemaConstantNames;
     private readonly SourceSchemaMergerOptions _options;
@@ -43,6 +80,8 @@ internal sealed partial class SourceSchemaMerger
     private readonly Dictionary<string, ValueSelectionToSelectionSetRewriter>
         _selectedValueToSelectionSetRewriters = [];
     private readonly Dictionary<string, MergeSelectionSetRewriter> _mergeSelectionSetRewriters = [];
+    private readonly Dictionary<MutableSchemaDefinition, bool> _costDefinitionCompatibility = [];
+    private readonly Dictionary<MutableSchemaDefinition, bool> _listSizeDefinitionCompatibility = [];
     private readonly FrozenDictionary<string, IDirectiveMerger> _directiveMergers;
     private readonly List<Action> _applyDirectiveActions = [];
 
@@ -74,14 +113,6 @@ internal sealed partial class SourceSchemaMerger
                 {
                     DirectiveNames.CacheControl,
                     new CacheControlDirectiveMerger(_options.CacheControlMergeBehavior)
-                },
-                {
-                    DirectiveNames.Cost,
-                    new CostDirectiveMerger(DirectiveMergeBehavior.Include)
-                },
-                {
-                    DirectiveNames.ListSize,
-                    new ListSizeDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
                 {
                     DirectiveNames.McpToolAnnotations,
@@ -367,15 +398,15 @@ internal sealed partial class SourceSchemaMerger
         }
 
         return argument.Type is NonNullType
+        {
+            NullableType: ListType
             {
-                NullableType: ListType
+                ElementType: NonNullType
                 {
-                    ElementType: NonNullType
-                    {
-                        NullableType: var idElementType
-                    }
+                    NullableType: var idElementType
                 }
             }
+        }
             && idElementType.NamedType() == idType
             && idElementType.Kind == TypeKind.Scalar;
     }
@@ -441,7 +472,8 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     argumentGroup.Select(g => new DirectivesProviderInfo(g.Argument, g.Schema)).ToImmutableArray();
-                _directiveMergers[DirectiveNames.Cost].MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
+                DeriveCostDirectives(
+                    mergedArgument, memberDefinitions, mergedSchema, CostCoordinateKind.InputValue, mergedArgument.Type);
                 _directiveMergers[DirectiveNames.RequiresOptIn]
                     .MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
@@ -488,7 +520,7 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
-                _directiveMergers[DirectiveNames.Cost].MergeDirectives(enumType, memberDefinitions, mergedSchema);
+                DeriveCostDirectives(enumType, memberDefinitions, mergedSchema, CostCoordinateKind.LeafType, null);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(enumType, memberDefinitions, mergedSchema);
 
                 AddFusionCostDirectives(enumType, memberDefinitions);
@@ -681,7 +713,8 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     inputFieldGroup.Select(g => new DirectivesProviderInfo(g.Field, g.Schema)).ToImmutableArray();
-                _directiveMergers[DirectiveNames.Cost].MergeDirectives(inputField, memberDefinitions, mergedSchema);
+                DeriveCostDirectives(
+                    inputField, memberDefinitions, mergedSchema, CostCoordinateKind.InputValue, inputField.Type);
                 _directiveMergers[DirectiveNames.RequiresOptIn]
                     .MergeDirectives(inputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(inputField, memberDefinitions, mergedSchema);
@@ -846,8 +879,8 @@ internal sealed partial class SourceSchemaMerger
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.CacheControl]
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
-                _directiveMergers[DirectiveNames.Cost]
-                    .MergeDirectives(objectType, memberDefinitions, mergedSchema);
+                DeriveCostDirectives(
+                    objectType, memberDefinitions, mergedSchema, CostCoordinateKind.CompositeType, null);
                 _directiveMergers[DirectiveNames.Tag]
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
 
@@ -978,10 +1011,9 @@ internal sealed partial class SourceSchemaMerger
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.CacheControl]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
-                _directiveMergers[DirectiveNames.Cost]
-                    .MergeDirectives(outputField, memberDefinitions, mergedSchema);
-                _directiveMergers[DirectiveNames.ListSize]
-                    .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+                DeriveCostDirectives(
+                    outputField, memberDefinitions, mergedSchema, CostCoordinateKind.OutputField, outputField.Type);
+                DeriveListSizeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.McpToolAnnotations]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.RequiresOptIn]
@@ -1042,8 +1074,7 @@ internal sealed partial class SourceSchemaMerger
             {
                 var memberDefinitions =
                     typeGroup.Select(g => new DirectivesProviderInfo(g.Type, g.Schema)).ToImmutableArray();
-                _directiveMergers[DirectiveNames.Cost]
-                    .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
+                DeriveCostDirectives(scalarType, memberDefinitions, mergedSchema, CostCoordinateKind.LeafType, null);
                 _directiveMergers[DirectiveNames.SerializeAs]
                     .MergeDirectives(scalarType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.SpecifiedBy]
@@ -1269,11 +1300,65 @@ internal sealed partial class SourceSchemaMerger
         };
     }
 
+    /// <summary>
+    /// Derives the public <c>@cost</c> directive for a merged member by folding the effective
+    /// weight of every serving source (its declared <c>@cost</c> weight, else the spec default
+    /// for <paramref name="kind"/>), and records each declaring, compatible source's own weight
+    /// as a <c>@fusion__cost</c> entry. The public directive is emitted only when at least one
+    /// serving source declares a compatible <c>@cost</c> usage (R-COMPOSITION-WEIGHT-FOLD,
+    /// R-DERIVATION-DIRECTION).
+    /// </summary>
+    private void DeriveCostDirectives(
+        IDirectivesProvider member,
+        ImmutableArray<DirectivesProviderInfo> memberGroup,
+        MutableSchemaDefinition mergedSchema,
+        CostCoordinateKind kind,
+        IType? coordinateType)
+    {
+        var defaultWeight = GetCoordinateDefaultWeight(kind, coordinateType);
+        var declaresCost = false;
+        var effectiveWeights = new double[memberGroup.Length];
+
+        for (var i = 0; i < memberGroup.Length; i++)
+        {
+            var (sourceMember, sourceSchema) = memberGroup[i];
+            var costDirective = sourceMember.Directives.FirstOrDefault(DirectiveNames.Cost);
+
+            if (costDirective is not null && IsCostDefinitionCompatible(sourceSchema))
+            {
+                declaresCost = true;
+                effectiveWeights[i] = CostDirective.From(costDirective).Weight;
+            }
+            else
+            {
+                effectiveWeights[i] = defaultWeight;
+            }
+        }
+
+        if (!declaresCost)
+        {
+            return;
+        }
+
+        var publicWeight = CostDirectiveFold.FoldWeights(effectiveWeights);
+
+        member.AddDirective(
+            new Directive(
+                GetOrAddCostDirectiveDefinition(mergedSchema),
+                new ArgumentAssignment(
+                    ArgumentNames.Weight, publicWeight.ToString(CultureInfo.InvariantCulture))));
+    }
+
+    /// <summary>
+    /// Records each declaring, compatible source's own <c>@cost</c> weight as a
+    /// <c>@fusion__cost</c> provenance entry. Called after every public directive on the member
+    /// has been added, so public directives keep preceding <c>fusion__</c> ones on every member.
+    /// </summary>
     private void AddFusionCostDirectives(
         IDirectivesProvider member,
         ImmutableArray<DirectivesProviderInfo> memberGroup)
     {
-        // Avoid adding @fusion__cost if @cost is not present (not merged).
+        // Avoid adding @fusion__cost if @cost was not derived (not merged).
         if (!member.Directives.ContainsName(DirectiveNames.Cost))
         {
             return;
@@ -1283,19 +1368,63 @@ internal sealed partial class SourceSchemaMerger
         {
             var costDirective = sourceMember.Directives.FirstOrDefault(DirectiveNames.Cost);
 
-            if (costDirective is null)
+            if (costDirective is null || !IsCostDefinitionCompatible(sourceSchema))
             {
                 continue;
             }
 
-            var schema = new EnumValueNode(_schemaConstantNames[sourceSchema.Name]);
-
             member.AddDirective(
                 new Directive(
                     _fusionDirectiveDefinitions[DirectiveNames.FusionCost],
-                    new ArgumentAssignment(ArgumentNames.Schema, schema),
+                    new ArgumentAssignment(
+                        ArgumentNames.Schema, new EnumValueNode(_schemaConstantNames[sourceSchema.Name])),
                     new ArgumentAssignment(ArgumentNames.Weight, costDirective.Arguments[ArgumentNames.Weight])));
         }
+    }
+
+    private static double GetCoordinateDefaultWeight(CostCoordinateKind kind, IType? coordinateType)
+    {
+        return kind switch
+        {
+            CostCoordinateKind.CompositeType => CostDirectiveFold.CompositeTypeDefaultWeight,
+            CostCoordinateKind.LeafType => CostDirectiveFold.LeafTypeDefaultWeight,
+            CostCoordinateKind.OutputField => CostDirectiveFold.GetOutputFieldDefaultWeight(coordinateType!),
+            CostCoordinateKind.InputValue => CostDirectiveFold.GetInputValueDefaultWeight(coordinateType!),
+            _ => throw new ArgumentOutOfRangeException(nameof(kind))
+        };
+    }
+
+    /// <summary>
+    /// Returns whether <paramref name="sourceSchema"/>'s own <c>@cost</c> directive definition
+    /// (if it declares one) is compatible with the canonical shape, so its usages can be trusted
+    /// to carry a real <c>weight</c> argument (R-COMPOSITION-COMPAT). A source that does not
+    /// declare its own definition (spec-only or undeclared usage, canonical definition injected
+    /// by the parser) is treated as compatible.
+    /// </summary>
+    private bool IsCostDefinitionCompatible(MutableSchemaDefinition sourceSchema)
+    {
+        if (_costDefinitionCompatibility.TryGetValue(sourceSchema, out var compatible))
+        {
+            return compatible;
+        }
+
+        compatible = !sourceSchema.DirectiveDefinitions.TryGetDirective(DirectiveNames.Cost, out var sourceDefinition)
+            || DirectiveDefinitionCompatibility.IsSourceCompatibleWithCanonical(
+                sourceDefinition.ToSyntaxNode(), s_costCanonicalDefinitionNode, allowArgumentSubset: true);
+
+        _costDefinitionCompatibility.Add(sourceSchema, compatible);
+        return compatible;
+    }
+
+    private MutableDirectiveDefinition GetOrAddCostDirectiveDefinition(MutableSchemaDefinition mergedSchema)
+    {
+        if (!mergedSchema.DirectiveDefinitions.TryGetDirective(DirectiveNames.Cost, out var definition))
+        {
+            definition = CostMutableDirectiveDefinition.Create(mergedSchema);
+            mergedSchema.DirectiveDefinitions.Add(definition);
+        }
+
+        return definition;
     }
 
     private void AddFusionEnumValueDirectives(
@@ -1638,11 +1767,124 @@ internal sealed partial class SourceSchemaMerger
         return builder.ToString();
     }
 
+    /// <summary>
+    /// Derives the public <c>@listSize</c> directive for a merged output field by folding every
+    /// declaring, compatible source's usage (hc-3-mmh.9 fold rules, R-REQUIRE-ONE-DEFAULT,
+    /// R-COMPOSITION-ARGS), and records each such source's own usage as a <c>@fusion__listSize</c>
+    /// entry. The public directive is emitted only when at least one serving source declares a
+    /// compatible <c>@listSize</c> usage.
+    /// </summary>
+    private void DeriveListSizeDirectives(
+        MutableOutputFieldDefinition member,
+        ImmutableArray<DirectivesProviderInfo> memberGroup,
+        MutableSchemaDefinition mergedSchema)
+    {
+        var declaresListSize = false;
+        var assumedSizes = new List<int?>();
+        var slicingArgumentsPerSource = new List<ImmutableArray<string>>();
+        var sizedFieldsPerSource = new List<ImmutableArray<string>>();
+        var requireOneSlicingArgumentPerSource = new List<bool?>();
+        var slicingArgumentDefaultValues = new List<int?>();
+
+        foreach (var (sourceMember, sourceSchema) in memberGroup)
+        {
+            var listSizeDirective = sourceMember.Directives.FirstOrDefault(DirectiveNames.ListSize);
+
+            if (listSizeDirective is null || !IsListSizeDefinitionCompatible(sourceSchema))
+            {
+                continue;
+            }
+
+            declaresListSize = true;
+
+            var parsed = ListSizeDirective.From(listSizeDirective);
+
+            assumedSizes.Add(parsed.AssumedSize);
+            slicingArgumentsPerSource.Add(parsed.SlicingArguments);
+            sizedFieldsPerSource.Add(parsed.SizedFields);
+            slicingArgumentDefaultValues.Add(parsed.SlicingArgumentDefaultValue);
+            requireOneSlicingArgumentPerSource.Add(
+                parsed.RequireOneSlicingArgument
+                    ?? GetSourceDeclaredRequireOneSlicingArgumentDefault(sourceSchema));
+        }
+
+        if (!declaresListSize)
+        {
+            return;
+        }
+
+        var argumentAssignments = new List<ArgumentAssignment>();
+
+        var assumedSize = ListSizeDirectiveFold.FoldAssumedSize(assumedSizes);
+
+        if (assumedSize is not null)
+        {
+            argumentAssignments.Add(
+                new ArgumentAssignment(ArgumentNames.AssumedSize, new IntValueNode(assumedSize.Value)));
+        }
+
+        // R-COMPOSITION-ARGS would drop a name declared by only one source and not otherwise
+        // present on the composite field, since a client could never supply it. The existing
+        // pinned union-fold fixtures (Merge_ListSizeDirectivesUnionSlicingArguments_MatchesSnapshot,
+        // Merge_ListSizeDirectivesUnionSizedFields_MatchesSnapshot) exercise fields with no
+        // matching arguments/sub-fields at all and require the full union preserved, so this
+        // fold keeps the plain union (matching the byte-identical requirement on those fixtures)
+        // and does not filter by composite existence; see NEEDS-PLANNER comment on the ticket.
+        var slicingArguments = ListSizeDirectiveFold.FoldNames(slicingArgumentsPerSource);
+
+        if (slicingArguments.Length != 0)
+        {
+            argumentAssignments.Add(
+                new ArgumentAssignment(
+                    ArgumentNames.SlicingArguments,
+                    new ListValueNode(slicingArguments.Select(a => new StringValueNode(a)).ToList())));
+        }
+
+        var sizedFields = ListSizeDirectiveFold.FoldNames(sizedFieldsPerSource);
+
+        if (sizedFields.Length != 0)
+        {
+            argumentAssignments.Add(
+                new ArgumentAssignment(
+                    ArgumentNames.SizedFields,
+                    new ListValueNode(sizedFields.Select(f => new StringValueNode(f)).ToList())));
+        }
+
+        var requireOneSlicingArgument =
+            ListSizeDirectiveFold.FoldRequireOneSlicingArgument(requireOneSlicingArgumentPerSource);
+
+        if (requireOneSlicingArgument is not null)
+        {
+            argumentAssignments.Add(
+                new ArgumentAssignment(
+                    ArgumentNames.RequireOneSlicingArgument,
+                    new BooleanValueNode(requireOneSlicingArgument.Value)));
+        }
+
+        var slicingArgumentDefaultValue =
+            ListSizeDirectiveFold.FoldSlicingArgumentDefaultValue(slicingArgumentDefaultValues);
+
+        if (slicingArgumentDefaultValue is not null)
+        {
+            argumentAssignments.Add(
+                new ArgumentAssignment(
+                    ArgumentNames.SlicingArgumentDefaultValue, new IntValueNode(slicingArgumentDefaultValue.Value)));
+        }
+
+        member.AddDirective(new Directive(GetOrAddListSizeDirectiveDefinition(mergedSchema), argumentAssignments));
+    }
+
+    /// <summary>
+    /// Records each declaring, compatible source's own <c>@listSize</c> usage as a
+    /// <c>@fusion__listSize</c> provenance entry. Called after every public directive on the
+    /// member has been added, so public directives keep preceding <c>fusion__</c> ones on every
+    /// member.
+    /// </summary>
     private void AddFusionListSizeDirectives(
         MutableOutputFieldDefinition member,
         ImmutableArray<DirectivesProviderInfo> memberGroup)
     {
-        // Avoid adding @fusion__listSize if @listSize is not present (not merged).
+        // Avoid adding @fusion__listSize if @listSize was not derived (not merged).
         if (!member.Directives.ContainsName(DirectiveNames.ListSize))
         {
             return;
@@ -1652,26 +1894,77 @@ internal sealed partial class SourceSchemaMerger
         {
             var listSizeDirective = sourceMember.Directives.FirstOrDefault(DirectiveNames.ListSize);
 
-            if (listSizeDirective is null)
+            if (listSizeDirective is null || !IsListSizeDefinitionCompatible(sourceSchema))
             {
                 continue;
             }
 
-            var argumentAssignments = new List<ArgumentAssignment>
+            var fusionArguments = new List<ArgumentAssignment>
             {
                 new(ArgumentNames.Schema, new EnumValueNode(_schemaConstantNames[sourceSchema.Name]))
             };
 
             foreach (var argumentAssignment in listSizeDirective.Arguments)
             {
-                argumentAssignments.Add(new ArgumentAssignment(argumentAssignment.Name, argumentAssignment.Value));
+                fusionArguments.Add(new ArgumentAssignment(argumentAssignment.Name, argumentAssignment.Value));
             }
 
             member.AddDirective(
-                new Directive(
-                    _fusionDirectiveDefinitions[DirectiveNames.FusionListSize],
-                    argumentAssignments));
+                new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionListSize], fusionArguments));
         }
+    }
+
+    /// <summary>
+    /// Reads the declared default of the <c>requireOneSlicingArgument</c> argument from
+    /// <paramref name="sourceSchema"/>'s own <c>@listSize</c> directive definition, so an omitted
+    /// usage contributes that source's runtime default instead of null (R-REQUIRE-ONE-DEFAULT).
+    /// Returns <see langword="null"/> when the source declares no definition, or its definition
+    /// declares no default, for that argument.
+    /// </summary>
+    private static bool? GetSourceDeclaredRequireOneSlicingArgumentDefault(MutableSchemaDefinition sourceSchema)
+    {
+        if (sourceSchema.DirectiveDefinitions.TryGetDirective(DirectiveNames.ListSize, out var definition)
+            && definition.Arguments.TryGetField(ArgumentNames.RequireOneSlicingArgument, out var argument)
+            && argument.DefaultValue is BooleanValueNode booleanValueNode)
+        {
+            return booleanValueNode.Value;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Returns whether <paramref name="sourceSchema"/>'s own <c>@listSize</c> directive
+    /// definition (if it declares one) is compatible with the canonical shape, allowing a
+    /// spec-only source definition that omits the ChilliCream <c>slicingArgumentDefaultValue</c>
+    /// extension argument (R-COMPOSITION-COMPAT). A source that does not declare its own
+    /// definition (canonical definition injected by the parser) is treated as compatible.
+    /// </summary>
+    private bool IsListSizeDefinitionCompatible(MutableSchemaDefinition sourceSchema)
+    {
+        if (_listSizeDefinitionCompatibility.TryGetValue(sourceSchema, out var compatible))
+        {
+            return compatible;
+        }
+
+        compatible =
+            !sourceSchema.DirectiveDefinitions.TryGetDirective(DirectiveNames.ListSize, out var sourceDefinition)
+            || DirectiveDefinitionCompatibility.IsSourceCompatibleWithCanonical(
+                sourceDefinition.ToSyntaxNode(), s_listSizeCanonicalDefinitionNode, allowArgumentSubset: true);
+
+        _listSizeDefinitionCompatibility.Add(sourceSchema, compatible);
+        return compatible;
+    }
+
+    private MutableDirectiveDefinition GetOrAddListSizeDirectiveDefinition(MutableSchemaDefinition mergedSchema)
+    {
+        if (!mergedSchema.DirectiveDefinitions.TryGetDirective(DirectiveNames.ListSize, out var definition))
+        {
+            definition = ListSizeMutableDirectiveDefinition.Create(mergedSchema);
+            mergedSchema.DirectiveDefinitions.Add(definition);
+        }
+
+        return definition;
     }
 
     private void AddFusionImplementsDirectives(
