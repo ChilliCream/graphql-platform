@@ -4,7 +4,6 @@ import { Fragment } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { PageSection } from "@/src/components/PageSection";
-import { SectionHeading } from "@/src/components/SectionHeading";
 
 import { CANON, GatewayChip, GlowNode, INK_DIM } from "./visuals/stage";
 
@@ -589,10 +588,13 @@ export function TransitStory() {
       className="border-cc-card-border scroll-mt-24 overflow-hidden border-t"
     >
       <PageSection maxWidth="6xl" className="pt-16 sm:pt-24">
-        <SectionHeading
-          align="center"
-          title="What problem does GraphQL Federation solve?"
-        />
+        <div className="text-center">
+          {/* An h3 so the page keeps exactly four section-level H2s; the
+              classes match SectionHeading's own h2 at size="md". */}
+          <h3 className="font-heading text-cc-heading text-h4 sm:text-h3 font-semibold text-balance">
+            What problem does GraphQL Federation solve?
+          </h3>
+        </div>
       </PageSection>
 
       <div className="relative mx-auto w-full max-w-5xl sm:aspect-[1024/4900]">
