@@ -89,6 +89,8 @@ internal static class CostSchemaSnapshotBuilder
         var listSizeMetadata = new Dictionary<FieldKey, ListSizeMetadata>();
         var argumentWeights = new Dictionary<ArgumentKey, double>();
         var inputFieldWeights = new Dictionary<FieldKey, double>();
+        var fieldArguments = new Dictionary<FieldKey, ImmutableArray<InputValueMetadata>>();
+        var inputObjectFields = new Dictionary<string, ImmutableArray<InputValueMetadata>>();
 
         foreach (var type in schema.Types)
         {
@@ -100,16 +102,22 @@ internal static class CostSchemaSnapshotBuilder
                         listSizeRequireOneDefault,
                         fieldWeights,
                         listSizeMetadata,
-                        argumentWeights);
+                        argumentWeights,
+                        fieldArguments);
                     break;
 
                 case IInputObjectTypeDefinition inputObjectType:
+                    var fields = ImmutableArray.CreateBuilder<InputValueMetadata>(inputObjectType.Fields.Count);
+
                     foreach (var field in inputObjectType.Fields)
                     {
                         inputFieldWeights.Add(
                             new FieldKey(inputObjectType.Name, field.Name),
                             ReadInputValueWeight(field));
+                        fields.Add(CreateInputValueMetadata(field));
                     }
+
+                    inputObjectFields.Add(inputObjectType.Name, fields.MoveToImmutable());
 
                     break;
             }
@@ -117,10 +125,12 @@ internal static class CostSchemaSnapshotBuilder
 
         // Pass 4: directive-definition arguments (query-directive pricing; R-DIRECTIVE-ARG-COST).
         var directiveArguments = new Dictionary<string, ImmutableArray<DirectiveArgumentDefinition>>();
+        var directiveArgumentMetadata = new Dictionary<string, ImmutableArray<InputValueMetadata>>();
 
         foreach (var directiveDefinition in schema.DirectiveDefinitions)
         {
             var builder = ImmutableArray.CreateBuilder<DirectiveArgumentDefinition>(directiveDefinition.Arguments.Count);
+            var metadataBuilder = ImmutableArray.CreateBuilder<InputValueMetadata>(directiveDefinition.Arguments.Count);
 
             foreach (var argument in directiveDefinition.Arguments)
             {
@@ -128,9 +138,11 @@ internal static class CostSchemaSnapshotBuilder
                     argument.Name,
                     ReadInputValueWeight(argument),
                     argument.DefaultValue is not null));
+                metadataBuilder.Add(CreateInputValueMetadata(argument));
             }
 
             directiveArguments.Add(directiveDefinition.Name, builder.MoveToImmutable());
+            directiveArgumentMetadata.Add(directiveDefinition.Name, metadataBuilder.MoveToImmutable());
         }
 
         return new CostSchemaSnapshot(
@@ -143,7 +155,10 @@ internal static class CostSchemaSnapshotBuilder
             listSizeMetadata.ToFrozenDictionary(),
             argumentWeights.ToFrozenDictionary(),
             inputFieldWeights.ToFrozenDictionary(),
-            directiveArguments.ToFrozenDictionary());
+            fieldArguments.ToFrozenDictionary(),
+            inputObjectFields.ToFrozenDictionary(),
+            directiveArguments.ToFrozenDictionary(),
+            directiveArgumentMetadata.ToFrozenDictionary());
     }
 
     private static FrozenDictionary<string, int> IndexObjectTypes(
@@ -171,7 +186,8 @@ internal static class CostSchemaSnapshotBuilder
         bool listSizeRequireOneDefault,
         Dictionary<FieldKey, double> fieldWeights,
         Dictionary<FieldKey, ListSizeMetadata> listSizeMetadata,
-        Dictionary<ArgumentKey, double> argumentWeights)
+        Dictionary<ArgumentKey, double> argumentWeights,
+        Dictionary<FieldKey, ImmutableArray<InputValueMetadata>> fieldArguments)
     {
         foreach (var field in type.Fields)
         {
@@ -185,14 +201,22 @@ internal static class CostSchemaSnapshotBuilder
                 listSizeMetadata.Add(key, listSize);
             }
 
+            var arguments = ImmutableArray.CreateBuilder<InputValueMetadata>(field.Arguments.Count);
+
             foreach (var argument in field.Arguments)
             {
                 argumentWeights.Add(
                     new ArgumentKey(type.Name, field.Name, argument.Name),
                     ReadInputValueWeight(argument));
+                arguments.Add(CreateInputValueMetadata(argument));
             }
+
+            fieldArguments.Add(key, arguments.MoveToImmutable());
         }
     }
+
+    private static InputValueMetadata CreateInputValueMetadata(IInputValueDefinition value)
+        => new(value.Name, ReadInputValueWeight(value), value.Type.NamedType().Name, value.DefaultValue);
 
     /// <summary>
     /// Reads a named type's own weight: an explicit <c>@cost</c> usage wins, otherwise the

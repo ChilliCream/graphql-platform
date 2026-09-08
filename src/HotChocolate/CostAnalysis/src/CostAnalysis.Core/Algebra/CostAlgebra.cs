@@ -13,12 +13,13 @@ namespace HotChocolate.CostAnalysis;
 /// Resolves <c>argumentsCost</c> as the sum of a present argument's own
 /// weight, paid once per call, and <c>directiveArgumentsCost</c> as the sum
 /// of an applied directive's own definition arguments that are supplied or
-/// carry a schema default; neither recurses into an input object's own
-/// fields.
+/// carry a schema default. Input object fields are priced from their coerced
+/// values.
 /// </remarks>
 public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
 {
     private readonly CostSchemaSnapshot _snapshot;
+    private readonly ICostVariableValues? _variableValues;
 
     /// <summary>
     /// Initializes a new instance of <see cref="CostAlgebra"/>.
@@ -28,9 +29,15 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     /// against.
     /// </param>
     public CostAlgebra(CostSchemaSnapshot snapshot)
+        : this(snapshot, null)
+    {
+    }
+
+    internal CostAlgebra(CostSchemaSnapshot snapshot, ICostVariableValues? variableValues)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         _snapshot = snapshot;
+        _variableValues = variableValues;
     }
 
     /// <inheritdoc />
@@ -91,7 +98,7 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
             metadata,
             inheritedSizes,
             slicingArguments,
-            variableValues: null,
+            _variableValues,
             _snapshot.Options.DefaultListSize);
     }
 
@@ -106,17 +113,13 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     {
         var cost = 0.0;
 
-        foreach (var argumentDefinition in field.Arguments)
+        foreach (var argument in _snapshot.GetFieldArguments(typeName, field.Name))
         {
-            var effective = SlicingArgumentValues.FindArgumentValue(arguments, argumentDefinition.Name)
-                ?? argumentDefinition.DefaultValue;
-
-            if (effective is null)
-            {
-                continue;
-            }
-
-            cost += _snapshot.GetArgumentWeight(typeName, field.Name, argumentDefinition.Name);
+            cost += InputCost.Compute(
+                _snapshot,
+                argument,
+                SlicingArgumentValues.FindArgumentValue(arguments, argument.Name),
+                _variableValues);
         }
 
         return cost;
@@ -134,19 +137,18 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
 
         foreach (var directive in directives)
         {
-            if (!_snapshot.TryGetDirectiveArguments(directive.Name.Value, out var definitionArguments))
+            if (!_snapshot.TryGetDirectiveArgumentMetadata(directive.Name.Value, out var definitionArguments))
             {
                 continue;
             }
 
-            foreach (var definitionArgument in definitionArguments)
+            foreach (var argument in definitionArguments)
             {
-                var supplied = SlicingArgumentValues.FindArgumentValue(directive.Arguments, definitionArgument.Name) is not null;
-
-                if (supplied || definitionArgument.HasDefaultValue)
-                {
-                    cost += definitionArgument.Weight;
-                }
+                cost += InputCost.Compute(
+                    _snapshot,
+                    argument,
+                    SlicingArgumentValues.FindArgumentValue(directive.Arguments, argument.Name),
+                    _variableValues);
             }
         }
 
