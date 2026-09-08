@@ -27,4 +27,27 @@ public static class InterfaceObjectDescriptorExtensions
         ArgumentNullException.ThrowIfNull(descriptor);
         return descriptor.Directive(Composite.InterfaceObject.Instance);
     }
+
+    /// <summary>
+    /// <para>
+    /// Declares the object type as a stand-in for an interface defined in another source schema
+    /// by applying the @interfaceObject directive to it.
+    /// </para>
+    /// <para>
+    /// <see href="https://graphql.github.io/composite-schemas-spec/draft/#sec--interfaceObject"/>
+    /// </para>
+    /// </summary>
+    /// <param name="descriptor">The object type descriptor.</param>
+    /// <returns>
+    /// The object type descriptor with the <see cref="Composite.InterfaceObject"/> directive applied.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// The <paramref name="descriptor"/> is <c>null</c>.
+    /// </exception>
+    public static IObjectTypeDescriptor<T> InterfaceObject<T>(this IObjectTypeDescriptor<T> descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+        ((IObjectTypeDescriptor)descriptor).InterfaceObject();
+        return descriptor;
+    }
 }
