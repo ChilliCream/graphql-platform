@@ -15,6 +15,7 @@ internal sealed class UnpublishClientCommand : Command
         Options.Add(Opt<ClientTagsToUnpublishOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ClientIdOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -43,10 +44,16 @@ internal sealed class UnpublishClientCommand : Command
         var tags = parseResult.GetRequiredValue(Opt<ClientTagsToUnpublishOption>.Instance).ToArray();
         var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
         var clientId = parseResult.GetRequiredValue(Opt<ClientIdOption>.Instance);
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
 
         await using var activity = console.StartActivity(
             $"Unpublishing client '{clientId.EscapeMarkup()}' from stage '{stage.EscapeMarkup()}'",
             "Failed to unpublish the client.");
+
+        if (force)
+        {
+            activity.Update(Messages.ForceUnpublishEnabled, ActivityUpdateKind.Warning);
+        }
 
         foreach (var tag in tags)
         {
@@ -58,6 +65,7 @@ internal sealed class UnpublishClientCommand : Command
                 clientId,
                 stage,
                 tag,
+                force,
                 cancellationToken);
 
             if (result.Errors?.Count > 0)
@@ -73,6 +81,12 @@ internal sealed class UnpublishClientCommand : Command
                         IClientVersionNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IUnauthorizedOperation err => err.Message,
                         IClientNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                        IClientVersionProtectedError err =>
+                            Messages.ClientVersionProtected(err.Tag, err.ProtectedBy),
+                        IClientRecentTrafficProtectionNotEvaluableError err =>
+                            Messages.ClientRecentTrafficProtectionNotEvaluable(
+                                err.Tag,
+                                err.ClientTrafficRequiredWithin),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };
