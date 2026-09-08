@@ -162,7 +162,7 @@ public sealed partial class EventStreamPolicyGatewayTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subscribe_Should_ShapeDeniedEventAsFieldError_When_PayloadPolicyDeniesBySecret_AndOnDeniedIsError()
+    public async Task Subscribe_Should_ShapeDeniedEventAsFieldError_When_OnDeniedIsError()
     {
         // arrange
         var topic = CreateTopic();
@@ -197,11 +197,8 @@ public sealed partial class EventStreamPolicyGatewayTests : FusionTestBase
             cts.Token);
 
         // assert
-        // ERROR shapes the denied event exactly like a non-root field policy denial (see
-        // PolicySlotGatewayTests.ExecuteAsync_Should_MatchNodeDenial_When_SlotDenialUsesNullOrError):
-        // an error at the denied field's own path with the field nulled. The stream is not
-        // terminated, unlike a root/root-field policy denial: one upstream broker subscription
-        // serves both events.
+        // ERROR shapes the denied event like a non-root field policy denial: an error at the
+        // denied field's own path with the field nulled, and the stream stays open.
         Assert.Equal(1, publisher.GetSubscriberCount(topic));
         string.Join("\n---\n", (await events).Select(NormalizeReasonId)).MatchInlineSnapshot(
             """
@@ -235,7 +232,7 @@ public sealed partial class EventStreamPolicyGatewayTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Subscribe_Should_YieldSettledNullResult_When_PayloadPolicyDeniesBySecret_AndOnDeniedIsAbort()
+    public async Task Subscribe_Should_SettleNullResult_When_OnDeniedIsAbort()
     {
         // arrange
         var topic = CreateTopic();
@@ -270,13 +267,8 @@ public sealed partial class EventStreamPolicyGatewayTests : FusionTestBase
             cts.Token);
 
         // assert
-        // ABORT on the per-event resource policy is not a root (IsRoot) denial in this design
-        // (repo-ctf.11 comment 760/761), so it does not go through the subscription-root
-        // short-circuit that ends the stream; it goes through the same policy-denial masking
-        // path a nested ABORT uses in an ordinary request (FetchResultStore.ApplyPolicyDenial),
-        // which settles the whole event's data as null with a path-less error, matching one
-        // final settled result for the denied event rather than stream termination. One
-        // upstream broker subscription serves both events.
+        // ABORT settles the whole event's data as null with a path-less error rather than
+        // ending the stream, and the stream stays open for the next event.
         Assert.Equal(1, publisher.GetSubscriberCount(topic));
         string.Join("\n---\n", (await events).Select(NormalizeReasonId)).MatchInlineSnapshot(
             """
@@ -300,6 +292,169 @@ public sealed partial class EventStreamPolicyGatewayTests : FusionTestBase
                 }
               ],
               "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_DeliverEvent_When_ThirdEventFollowsAbortDeniedEvent()
+    {
+        // arrange
+        var topic = CreateTopic();
+        var publisher = new InMemoryEventStreamBrokerHub();
+        var services = CreateServices(topic, publisher, onDenied: "ABORT");
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var events = CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              bookChanged {
+                id
+                title
+              }
+            }
+            """,
+            count: 3,
+            cts.Token);
+
+        await WaitForSubscribersAsync(publisher, topic, count: 1, cts.Token);
+
+        // act
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("""{"id":"1","title":"public book","secret":"public"}"""u8),
+            cts.Token);
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("""{"id":"2","title":"classified book","secret":"classified"}"""u8),
+            cts.Token);
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("""{"id":"3","title":"public again","secret":"public"}"""u8),
+            cts.Token);
+
+        // assert
+        // The per-event reset must clear the stale denial state the ABORT event left behind,
+        // or the third (allowed) event's own root read crashes reading a root nulled by the
+        // second event, and the stream stays open on one upstream subscription throughout.
+        Assert.Equal(1, publisher.GetSubscriberCount(topic));
+        string.Join("\n---\n", (await events).Select(NormalizeReasonId)).MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "bookChanged": {
+                  "id": "1",
+                  "title": "public book"
+                }
+              }
+            }
+            ---
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": null
+            }
+            ---
+            {
+              "data": {
+                "bookChanged": {
+                  "id": "3",
+                  "title": "public again"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Subscribe_Should_DeliverEvent_When_ThirdEventFollowsErrorDeniedEvent()
+    {
+        // arrange
+        var topic = CreateTopic();
+        var publisher = new InMemoryEventStreamBrokerHub();
+        var services = CreateServices(topic, publisher, onDenied: "ERROR");
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var events = CollectEventsAsync(
+            executor,
+            """
+            subscription {
+              bookChanged {
+                id
+                title
+              }
+            }
+            """,
+            count: 3,
+            cts.Token);
+
+        await WaitForSubscribersAsync(publisher, topic, count: 1, cts.Token);
+
+        // act
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("""{"id":"1","title":"public book","secret":"public"}"""u8),
+            cts.Token);
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("""{"id":"2","title":"classified book","secret":"classified"}"""u8),
+            cts.Token);
+        await publisher.PublishAsync(
+            topic,
+            CreateMessage("""{"id":"3","title":"public again","secret":"public"}"""u8),
+            cts.Token);
+
+        // assert
+        // Same stale-state hazard as the ABORT case, on the ERROR path: the third (allowed)
+        // event must be delivered on its own merits, not silently denied by state the second
+        // event left behind, and one upstream subscription serves all three events.
+        Assert.Equal(1, publisher.GetSubscriberCount(topic));
+        string.Join("\n---\n", (await events).Select(NormalizeReasonId)).MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "bookChanged": {
+                  "id": "1",
+                  "title": "public book"
+                }
+              }
+            }
+            ---
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "path": [
+                    "bookChanged"
+                  ],
+                  "extensions": {
+                    "code": "UNAUTHORIZED_FIELD_OR_TYPE",
+                    "reasonId": "00000000-0000-0000-0000-000000000000"
+                  }
+                }
+              ],
+              "data": {
+                "bookChanged": null
+              }
+            }
+            ---
+            {
+              "data": {
+                "bookChanged": {
+                  "id": "3",
+                  "title": "public again"
+                }
+              }
             }
             """);
     }
