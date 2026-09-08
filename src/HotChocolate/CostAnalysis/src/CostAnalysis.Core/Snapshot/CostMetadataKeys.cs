@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
@@ -12,17 +14,27 @@ internal readonly record struct FieldKey(string TypeName, string FieldName);
 internal readonly record struct ArgumentKey(string TypeName, string FieldName, string ArgumentName);
 
 /// <summary>
-/// One directive definition argument's own weight and whether it declares a
-/// schema default, the shape the snapshot's directive-argument index stores
-/// per directive name.
+/// One argument or input field captured by the schema snapshot.
 /// </summary>
 /// <param name="Name">
-/// The argument's name.
+/// The input value's name.
 /// </param>
 /// <param name="Weight">
-/// The argument's own weight.
+/// The input value's own weight.
 /// </param>
-/// <param name="HasDefaultValue">
-/// Whether the argument declares a schema default value.
+/// <param name="TypeName">
+/// The named input type.
 /// </param>
+/// <param name="DefaultValue">
+/// The schema default, or <see langword="null"/> when none is declared.
+/// </param>
+internal readonly record struct InputValueMetadata(
+    string Name,
+    double Weight,
+    string TypeName,
+    IValueNode? DefaultValue);
+
+/// <summary>
+/// One directive definition argument's own weight and default presence.
+/// </summary>
 internal readonly record struct DirectiveArgumentDefinition(string Name, double Weight, bool HasDefaultValue);

@@ -18,7 +18,10 @@ public sealed class CostSchemaSnapshot
     private readonly FrozenDictionary<FieldKey, ListSizeMetadata> _listSizeMetadata;
     private readonly FrozenDictionary<ArgumentKey, double> _argumentWeights;
     private readonly FrozenDictionary<FieldKey, double> _inputFieldWeights;
+    private readonly FrozenDictionary<FieldKey, ImmutableArray<InputValueMetadata>> _fieldArguments;
+    private readonly FrozenDictionary<string, ImmutableArray<InputValueMetadata>> _inputObjectFields;
     private readonly FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> _directiveArguments;
+    private readonly FrozenDictionary<string, ImmutableArray<InputValueMetadata>> _directiveArgumentMetadata;
 
     internal CostSchemaSnapshot(
         CostEngineOptions options,
@@ -30,7 +33,10 @@ public sealed class CostSchemaSnapshot
         FrozenDictionary<FieldKey, ListSizeMetadata> listSizeMetadata,
         FrozenDictionary<ArgumentKey, double> argumentWeights,
         FrozenDictionary<FieldKey, double> inputFieldWeights,
-        FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> directiveArguments)
+        FrozenDictionary<FieldKey, ImmutableArray<InputValueMetadata>> fieldArguments,
+        FrozenDictionary<string, ImmutableArray<InputValueMetadata>> inputObjectFields,
+        FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> directiveArguments,
+        FrozenDictionary<string, ImmutableArray<InputValueMetadata>> directiveArgumentMetadata)
     {
         Options = options;
         _objectTypeIndex = objectTypeIndex;
@@ -41,7 +47,10 @@ public sealed class CostSchemaSnapshot
         _listSizeMetadata = listSizeMetadata;
         _argumentWeights = argumentWeights;
         _inputFieldWeights = inputFieldWeights;
+        _fieldArguments = fieldArguments;
+        _inputObjectFields = inputObjectFields;
         _directiveArguments = directiveArguments;
+        _directiveArgumentMetadata = directiveArgumentMetadata;
     }
 
     /// <summary>
@@ -149,10 +158,28 @@ public sealed class CostSchemaSnapshot
         => _inputFieldWeights[new FieldKey(inputTypeName, fieldName)];
 
     /// <summary>
+    /// Gets an output field's arguments in declaration order.
+    /// </summary>
+    internal ImmutableArray<InputValueMetadata> GetFieldArguments(string typeName, string fieldName)
+        => _fieldArguments[new FieldKey(typeName, fieldName)];
+
+    /// <summary>
+    /// Gets an input object's fields in declaration order.
+    /// </summary>
+    internal bool TryGetInputObjectFields(string typeName, out ImmutableArray<InputValueMetadata> fields)
+        => _inputObjectFields.TryGetValue(typeName, out fields);
+
+    /// <summary>
     /// Gets a directive definition's own arguments, in declaration order, or
     /// <see langword="false"/> when the directive is not defined in this
     /// schema.
     /// </summary>
     internal bool TryGetDirectiveArguments(string directiveName, out ImmutableArray<DirectiveArgumentDefinition> arguments)
         => _directiveArguments.TryGetValue(directiveName, out arguments);
+
+    /// <summary>
+    /// Gets a directive definition's arguments with their input metadata.
+    /// </summary>
+    internal bool TryGetDirectiveArgumentMetadata(string directiveName, out ImmutableArray<InputValueMetadata> arguments)
+        => _directiveArgumentMetadata.TryGetValue(directiveName, out arguments);
 }
