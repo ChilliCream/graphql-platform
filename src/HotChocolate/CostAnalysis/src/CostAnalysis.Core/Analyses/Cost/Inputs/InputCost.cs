@@ -63,6 +63,19 @@ internal static class InputCost
         IValueNode value,
         ICostVariableValues? variableValues)
     {
+        if (value is VariableNode variable)
+        {
+            if (variableValues is null)
+            {
+                return ComputeStaticShape(snapshot, typeName, []);
+            }
+
+            return variableValues.TryGetValue(variable.Name.Value, out var variableValue)
+                && variableValue is not null
+                    ? ComputeValue(snapshot, typeName, variableValue, variableValues)
+                    : 0.0;
+        }
+
         if (value is NullValueNode)
         {
             return 0.0;
