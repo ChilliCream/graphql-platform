@@ -105,6 +105,7 @@ public sealed class RegoPolicyGatewayTests : FusionTestBase
                     """u8.ToArray(),
                     PolicyRequirements.Empty,
                     "CanReadSecret.allow"u8.ToArray())),
+            ImmutableArray<PolicyLibraryModule>.Empty,
             "{}"u8.ToArray(),
             "{}"u8.ToArray(),
             dataOwner: null);

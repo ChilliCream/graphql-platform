@@ -4,6 +4,7 @@ using ChilliCream.Regorus;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Packaging;
 
 namespace HotChocolate.Fusion.Policies.Rego;
 
@@ -39,6 +40,11 @@ public sealed class RegoPolicyProvider
     // compile attempt with this exact pair has succeeded, so a candidate that failed to compile is
     // never mistaken for the current state.
     private Dictionary<string, PolicyContent> _contents = new(StringComparer.Ordinal);
+
+    // Shared library modules (bundle-wide libraries and package-scoped helper modules), compiled
+    // alongside _contents into every policy set but never scanned for decisions and never subject to
+    // the no-entrypoint '.allow' fallback below.
+    private Dictionary<string, PolicyLibraryModule> _libraries = new(StringComparer.Ordinal);
     private byte[]? _data;
     private byte[]? _lastMergedData;
 
@@ -52,6 +58,7 @@ public sealed class RegoPolicyProvider
     // resolve what is actually a broken policy, and an identical FAR re-send is retried rather than
     // silently suppressed.
     private Dictionary<string, PolicyContent>? _pendingContents;
+    private Dictionary<string, PolicyLibraryModule>? _pendingLibraries;
     private byte[]? _pendingData;
 
     // The currently published snapshot. Guarded by _publishSync.
@@ -140,16 +147,19 @@ public sealed class RegoPolicyProvider
         if (content is not { Language: RegoLanguage })
         {
             _contents = new Dictionary<string, PolicyContent>(StringComparer.Ordinal);
+            _libraries = new Dictionary<string, PolicyLibraryModule>(StringComparer.Ordinal);
             _data = null;
             _lastMergedData = null;
             _pendingContents = null;
+            _pendingLibraries = null;
             _pendingData = null;
             _currentHandle = null;
             Emit([]);
             return;
         }
 
-        var codeChanged = content.Policies.Length != _contents.Count;
+        var codeChanged = content.Policies.Length != _contents.Count
+            || content.Libraries.Length != _libraries.Count;
         var contents = new Dictionary<string, PolicyContent>(StringComparer.Ordinal);
 
         foreach (var policyContent in content.Policies)
@@ -164,6 +174,20 @@ public sealed class RegoPolicyProvider
             }
         }
 
+        var libraries = new Dictionary<string, PolicyLibraryModule>(StringComparer.Ordinal);
+
+        foreach (var library in content.Libraries)
+        {
+            libraries[library.Name] = library;
+
+            if (!codeChanged
+                && (!_libraries.TryGetValue(library.Name, out var existingLibrary)
+                    || !existingLibrary.Digest.Span.SequenceEqual(library.Digest.Span)))
+            {
+                codeChanged = true;
+            }
+        }
+
         var data = content.Data.ToArray();
         var dataChanged = _data is null
             || !_data.AsSpan().SequenceEqual(data);
@@ -173,7 +197,7 @@ public sealed class RegoPolicyProvider
             return;
         }
 
-        RebuildFarCandidate(contents, data);
+        RebuildFarCandidate(contents, libraries, data);
     }
 
     // Called when a registered data provider publishes a change. Two independent rebuild attempts
@@ -193,12 +217,16 @@ public sealed class RegoPolicyProvider
 
             if (_contents.Count > 0)
             {
-                TryMergeAndCommit(_contents, _data!, isPendingCandidate: false);
+                TryMergeAndCommit(_contents, _libraries, _data!, isPendingCandidate: false);
             }
 
             if (_pendingContents is not null)
             {
-                TryMergeAndCommit(_pendingContents, _pendingData!, isPendingCandidate: true);
+                TryMergeAndCommit(
+                    _pendingContents,
+                    _pendingLibraries ?? new Dictionary<string, PolicyLibraryModule>(StringComparer.Ordinal),
+                    _pendingData!,
+                    isPendingCandidate: true);
             }
         }
     }
@@ -206,17 +234,23 @@ public sealed class RegoPolicyProvider
     // Handles a new FAR candidate (a code and/or data change reported by the configuration
     // stream). Replaces whatever candidate was previously pending, exactly like a fresh FAR
     // publish always does regardless of what it replaces.
-    private void RebuildFarCandidate(Dictionary<string, PolicyContent> contents, byte[] data)
+    private void RebuildFarCandidate(
+        Dictionary<string, PolicyContent> contents,
+        Dictionary<string, PolicyLibraryModule> libraries,
+        byte[] data)
     {
         _pendingContents = contents;
+        _pendingLibraries = libraries;
         _pendingData = data;
 
         if (contents.Count == 0)
         {
             _contents = contents;
+            _libraries = libraries;
             _data = data;
             _lastMergedData = null;
             _pendingContents = null;
+            _pendingLibraries = null;
             _pendingData = null;
             _currentHandle = null;
             Emit([]);
@@ -225,7 +259,7 @@ public sealed class RegoPolicyProvider
 
         if (_dataAggregator is null)
         {
-            CompileAndCommitOrDrop(contents, data, data);
+            CompileAndCommitOrDrop(contents, libraries, data, data);
             return;
         }
 
@@ -237,34 +271,52 @@ public sealed class RegoPolicyProvider
         // resolve a compile error.
         var precheckData = _lastMergedData ?? data;
 
-        if (!TryCompile(contents, precheckData, out _, out var precheckPolicies, out _, out var precheckError))
+        if (!TryCompile(
+            contents,
+            libraries,
+            precheckData,
+            out _,
+            out var precheckPolicies,
+            out _,
+            out var precheckError))
         {
             ReportCompileFailure(precheckPolicies, precheckError!);
             _pendingContents = null;
+            _pendingLibraries = null;
             _pendingData = null;
             return;
         }
 
-        TryMergeAndCommit(contents, data, isPendingCandidate: true);
+        TryMergeAndCommit(contents, libraries, data, isPendingCandidate: true);
     }
 
     // The simple, no-data-aggregator path: a single compile attempt, committed on success and
     // dropped (with a diagnostic) on failure.
     private void CompileAndCommitOrDrop(
         Dictionary<string, PolicyContent> contents,
+        Dictionary<string, PolicyLibraryModule> libraries,
         byte[] data,
         byte[] compileData)
     {
-        if (!TryCompile(contents, compileData, out var set, out var policies, out var entryPoints, out var error))
+        if (!TryCompile(
+            contents,
+            libraries,
+            compileData,
+            out var set,
+            out var policies,
+            out var entryPoints,
+            out var error))
         {
             ReportCompileFailure(policies, error!);
             _pendingContents = null;
+            _pendingLibraries = null;
             _pendingData = null;
             return;
         }
 
-        CommitCompiledSet(contents, data, compileData, set!, policies, entryPoints);
+        CommitCompiledSet(contents, libraries, data, compileData, set!, policies, entryPoints);
         _pendingContents = null;
+        _pendingLibraries = null;
         _pendingData = null;
     }
 
@@ -278,6 +330,7 @@ public sealed class RegoPolicyProvider
     // candidate).
     private void TryMergeAndCommit(
         Dictionary<string, PolicyContent> contents,
+        Dictionary<string, PolicyLibraryModule> libraries,
         byte[] data,
         bool isPendingCandidate)
     {
@@ -299,6 +352,7 @@ public sealed class RegoPolicyProvider
             case RegoDataMergeStatus.Ready:
                 if (!TryCompile(
                     contents,
+                    libraries,
                     attempt!.MergedData,
                     out var set,
                     out var policies,
@@ -314,6 +368,7 @@ public sealed class RegoPolicyProvider
                     if (isPendingCandidate)
                     {
                         _pendingContents = null;
+                        _pendingLibraries = null;
                         _pendingData = null;
                     }
 
@@ -323,11 +378,12 @@ public sealed class RegoPolicyProvider
                 // Compile succeeded: only now does the aggregator commit the provider promotions
                 // this attempt staged, atomically with this policy set becoming the served one.
                 attempt.Commit();
-                CommitCompiledSet(contents, data, attempt.MergedData, set!, policies, entryPoints);
+                CommitCompiledSet(contents, libraries, data, attempt.MergedData, set!, policies, entryPoints);
 
                 if (isPendingCandidate)
                 {
                     _pendingContents = null;
+                    _pendingLibraries = null;
                     _pendingData = null;
                 }
 
@@ -337,6 +393,7 @@ public sealed class RegoPolicyProvider
 
     private static bool TryCompile(
         Dictionary<string, PolicyContent> contents,
+        Dictionary<string, PolicyLibraryModule> libraries,
         byte[] compileData,
         out CompiledPolicySet? set,
         out List<PolicyDefinition> policies,
@@ -344,7 +401,7 @@ public sealed class RegoPolicyProvider
         out Exception? error)
     {
         policies = new List<PolicyDefinition>();
-        var modules = new List<PolicyModule>(contents.Count);
+        var modules = new List<PolicyModule>(contents.Count + libraries.Count);
 
         foreach (var content in contents.Values)
         {
@@ -374,6 +431,15 @@ public sealed class RegoPolicyProvider
             }
         }
 
+        // Shared library modules are compiled alongside every decision but are never scanned for
+        // entrypoints: a library is never a decision and never falls back to a synthetic '.allow'.
+        foreach (var library in libraries.Values)
+        {
+            modules.Add(new PolicyModule(
+                library.Name,
+                NormalizeSource(Encoding.UTF8.GetString(library.Source.Span))));
+        }
+
         entryPoints = policies.Select(static p => $"data.{p.Name}").ToList();
 
         try
@@ -392,6 +458,7 @@ public sealed class RegoPolicyProvider
 
     private void CommitCompiledSet(
         Dictionary<string, PolicyContent> contents,
+        Dictionary<string, PolicyLibraryModule> libraries,
         byte[] data,
         byte[] mergedData,
         CompiledPolicySet set,
@@ -399,6 +466,7 @@ public sealed class RegoPolicyProvider
         List<string> entryPoints)
     {
         _contents = contents;
+        _libraries = libraries;
         _data = data;
         _lastMergedData = mergedData;
 
@@ -473,9 +541,11 @@ public sealed class RegoPolicyProvider
             _observers = [];
             _currentHandle = null;
             _contents = new Dictionary<string, PolicyContent>(StringComparer.Ordinal);
+            _libraries = new Dictionary<string, PolicyLibraryModule>(StringComparer.Ordinal);
             _data = null;
             _lastMergedData = null;
             _pendingContents = null;
+            _pendingLibraries = null;
             _pendingData = null;
         }
 

@@ -488,6 +488,7 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
             "rego",
             new Version(1, 0, 0),
             [policy],
+            [],
             default,
             default,
             dataOwner: null);

@@ -23,6 +23,10 @@ public sealed class PolicyContentSnapshot : IDisposable
     /// <param name="language">The policy language the content belongs to.</param>
     /// <param name="formatVersion">The policy format version the content belongs to.</param>
     /// <param name="policies">The policy sources with their content digests.</param>
+    /// <param name="libraries">
+    /// The shared library modules compiled into every policy set. A library module never becomes a
+    /// decision.
+    /// </param>
     /// <param name="data">The merged data document as UTF-8 encoded JSON.</param>
     /// <param name="dataDigest">The content digest of the merged data document.</param>
     /// <param name="dataOwner">The owner of the memory that backs the merged data document.</param>
@@ -30,6 +34,7 @@ public sealed class PolicyContentSnapshot : IDisposable
         string language,
         Version formatVersion,
         ImmutableArray<PolicyContent> policies,
+        ImmutableArray<PolicyLibraryModule> libraries,
         ReadOnlyMemory<byte> data,
         ReadOnlyMemory<byte> dataDigest,
         IDisposable? dataOwner)
@@ -40,6 +45,7 @@ public sealed class PolicyContentSnapshot : IDisposable
         Language = language;
         FormatVersion = formatVersion;
         Policies = policies;
+        Libraries = libraries;
         Data = data;
         DataDigest = dataDigest;
         _dataOwner = dataOwner;
@@ -59,6 +65,12 @@ public sealed class PolicyContentSnapshot : IDisposable
     /// Gets the policy sources with their content digests.
     /// </summary>
     public ImmutableArray<PolicyContent> Policies { get; }
+
+    /// <summary>
+    /// Gets the shared library modules compiled into every policy set. A library module never becomes
+    /// a decision.
+    /// </summary>
+    public ImmutableArray<PolicyLibraryModule> Libraries { get; }
 
     /// <summary>
     /// Gets the merged data document as UTF-8 encoded JSON.

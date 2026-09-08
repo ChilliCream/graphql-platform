@@ -12,8 +12,13 @@ internal static class FileNames
     private const string RegoDataDirectoryFormat = "policies/rego/{0}/data/";
     private const string RegoDataRootFormat = "policies/rego/{0}/data/data.json";
     private const string RegoDataMountFormat = "policies/rego/{0}/data/{1}/data.json";
+    private const string RegoBundleDirectoryFormat = "policies/rego/{0}/";
+    private const string RegoBundleManifestFormat = "policies/rego/{0}/manifest.json";
+    private const string RegoLibraryFormat = "policies/rego/{0}/lib/{1}.rego";
 
     public const string RegoPolicies = "policies/rego/";
+    public const string RegoBundleManifestFileName = "manifest.json";
+    public const string RegoBundleLibraryDirectoryName = "lib";
     public const string ArchiveMetadata = "archive-metadata.json";
     public const string CompositionSettings = "composition-settings.json";
     public const string SourceSchemas = "source-schemas/";
@@ -51,6 +56,18 @@ internal static class FileNames
         => mountPath.Length == 0
             ? string.Format(RegoDataRootFormat, version)
             : string.Format(RegoDataMountFormat, version, mountPath);
+
+    public static string GetRegoBundleDirectory(Version version)
+        => string.Format(RegoBundleDirectoryFormat, version);
+
+    public static string GetRegoBundleManifestPath(Version version)
+        => string.Format(RegoBundleManifestFormat, version);
+
+    public static string GetRegoLibraryPath(Version version, string libraryName)
+        => string.Format(RegoLibraryFormat, version, libraryName);
+
+    public static string GetRegoModulePath(Version version, string relativePath)
+        => string.Format(RegoBundleDirectoryFormat, version) + relativePath;
 
     public static FileKind GetFileKind(string fileName)
     {

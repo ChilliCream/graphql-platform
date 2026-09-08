@@ -607,6 +607,7 @@ public sealed class RegoDataProviderIntegrationTests
                     Encoding.UTF8.GetBytes(source),
                     PolicyRequirements.Empty,
                     Encoding.UTF8.GetBytes(digest))),
+            ImmutableArray<PolicyLibraryModule>.Empty,
             Encoding.UTF8.GetBytes(farData),
             "far-digest"u8.ToArray(),
             dataOwner: null);

@@ -101,10 +101,87 @@ public sealed class RegoPolicyIntegrationTests
     }
 
     [Fact]
-    public async Task ReadAsync_Should_ReturnNull_When_OnlyFormatExceedsRuntimeMax()
+    public async Task Policy_Should_UseSharedLibrary_When_ReadFromBundleFormat()
     {
         // arrange
-        // The archive carries only a policy format newer than this runtime supports, so nothing is read.
+        var ct = TestContext.Current.CancellationToken;
+        var bundleVersion = new Version(2, 0, 0);
+        var bundle = new RegoPolicyBundle
+        {
+            Packages =
+            [
+                new RegoPolicyBundlePackage(
+                    "cart",
+                    [
+                        new RegoPolicyBundleModule(
+                            "allow",
+                            Encoding.UTF8.GetBytes(
+                                "package cart\n"
+                                + "import rego.v1\n"
+                                + "import data.lib\n"
+                                + "# METADATA\n"
+                                + "# entrypoint: true\n"
+                                + "default allow := false\n"
+                                + "allow if lib.is_admin(data.role)\n"))
+                    ],
+                    Requirements: null)
+            ],
+            Libraries =
+            [
+                new RegoPolicyBundleModule(
+                    "rbac",
+                    Encoding.UTF8.GetBytes(
+                        "package lib\nimport rego.v1\nis_admin(role) if role == \"admin\"\n"))
+            ],
+            Data = Encoding.UTF8.GetBytes("""{"role":"admin"}""")
+        };
+
+        await using var stream = new MemoryStream();
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetRegoPolicyBundleAsync(bundle, bundleVersion, ct);
+            await archive.CommitAsync(ct);
+        }
+
+        stream.Position = 0;
+        PolicyContentSnapshot? snapshot;
+
+        using (var readArchive = FusionArchive.Open(stream, FusionArchiveMode.Read, leaveOpen: true))
+        {
+            snapshot = await PackagePolicyContentReader.ReadAsync(readArchive, bundleVersion, ct);
+        }
+
+        Assert.NotNull(snapshot);
+        Assert.Single(snapshot.Libraries);
+
+        await using var policyProvider = new RegoPolicyProvider(new NoopDiagnostics());
+        policyProvider.OnNext(snapshot);
+        using var registry = new PolicyCollection(policyProvider);
+        registry.Connect();
+
+        // act
+        // The decision only evaluates to "not denied" because lib.is_admin(data.role) resolves
+        // through the shared library module compiled alongside the package.
+        var policy = registry.Get("cart.allow");
+        using var entity = RegoPolicyTestEntities.CreateEntity("1", "code", "extra");
+        var context = new RegoPolicyTestEntities.TestPolicyContext(entities: new[] { entity.Data });
+        await policy.EvaluateAsync(context, ct);
+
+        // assert
+        Assert.DoesNotContain(0, context.DeniedIndices);
+        Assert.DoesNotContain(registry, p => p.Name.Contains("lib", StringComparison.Ordinal));
+
+        snapshot.Dispose();
+    }
+
+    [Fact]
+    public async Task ReadAsync_Should_Throw_When_OnlyFormatExceedsRuntimeMax()
+    {
+        // arrange
+        // The archive carries only a policy format newer than this runtime supports. A runtime built
+        // before this check returns null (silently serving the schema with no policies); this runtime
+        // instead fails closed and rejects the archive, since a newer format was intentionally packaged.
         var ct = TestContext.Current.CancellationToken;
         await using var stream = new MemoryStream();
         using (var archive = FusionArchive.Create(stream, leaveOpen: true))
@@ -113,7 +190,7 @@ public sealed class RegoPolicyIntegrationTests
                 PairName,
                 Encoding.UTF8.GetBytes(GrantAllRego),
                 Encoding.UTF8.GetBytes(Requirements),
-                new Version(2, 0, 0),
+                new Version(3, 0, 0),
                 ct);
             await archive.CommitAsync(ct);
         }
@@ -122,13 +199,13 @@ public sealed class RegoPolicyIntegrationTests
 
         // act
         using var readArchive = FusionArchive.Open(stream, FusionArchiveMode.Read, leaveOpen: true);
-        var snapshot = await PackagePolicyContentReader.ReadAsync(
+        var read = () => PackagePolicyContentReader.ReadAsync(
             readArchive,
             new Version(1, 0, 0),
             ct);
 
         // assert
-        Assert.Null(snapshot);
+        await Assert.ThrowsAsync<InvalidOperationException>(read);
     }
 
     [Fact]

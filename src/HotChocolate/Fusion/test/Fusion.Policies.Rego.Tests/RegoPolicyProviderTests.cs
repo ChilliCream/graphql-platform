@@ -7,6 +7,7 @@ using HotChocolate.Buffers;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Packaging;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 
@@ -652,6 +653,74 @@ public sealed class RegoPolicyProviderTests
         Assert.False(handle.IsAlive);
     }
 
+    [Fact]
+    public async Task Rebuild_Should_CompileSharedLibrary_When_TwoPoliciesReferenceIt()
+    {
+        // arrange
+        await using var provider = new RegoPolicyProvider(new CapturingDiagnostics());
+        var observer = new CapturingObserver();
+        using var subscription = provider.Subscribe(observer);
+
+        var library = Library(
+            "lib/rbac.rego",
+            "package lib\nimport rego.v1\nis_admin(role) if role == \"admin\"\n",
+            "lib-v1");
+        var p1 = Policy(
+            "p1",
+            "package p1\nimport rego.v1\nimport data.lib\ndefault allow := false\n"
+            + "allow if lib.is_admin(input.role)\n",
+            "p1-v1");
+        var p2 = Policy(
+            "p2",
+            "package p2\nimport rego.v1\ndefault allow := false\nallow if lib.is_admin(input.role)\n",
+            "p2-v1");
+
+        // act
+        provider.OnNext(ConfigWithLibraries([library], p1, p2).Policies);
+
+        // assert
+        // The library never becomes a decision: only the two ".allow" policies are published, and
+        // compilation only succeeds at all because the library was included alongside them.
+        var published = observer.Updates[^1];
+        Assert.Equal(2, published.Length);
+        Assert.NotNull(observer.Current("p1.allow"));
+        Assert.NotNull(observer.Current("p2.allow"));
+        Assert.DoesNotContain(published, p => p.Name.Contains("lib", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Rebuild_Should_Recompile_When_OnlyALibraryChanges()
+    {
+        // arrange
+        var diagnostics = new CapturingDiagnostics();
+        await using var config = new MutableFusionConfigurationProvider(
+            ConfigWithLibraries(
+                [Library("lib/rbac.rego", "package lib\nimport rego.v1\nis_admin(role) if role == \"admin\"\n", "lib-v1")],
+                Policy("p1", "package p1\nimport rego.v1\ndefault allow := false\nallow if lib.is_admin(input.role)\n", "p1-v1")));
+        await using var provider = new RegoPolicyProvider(diagnostics);
+        provider.OnNext(config.Configuration!.Policies);
+        var observer = new CapturingObserver();
+        using var subscription = provider.Subscribe(observer);
+
+        // act: the library's content changes (a stricter check), the policy source does not.
+        config.Publish(
+            ConfigWithLibraries(
+                [Library(
+                    "lib/rbac.rego",
+                    "package lib\nimport rego.v1\nis_admin(role) if role == \"superadmin\"\n",
+                    "lib-v2")],
+                Policy(
+                    "p1",
+                    "package p1\nimport rego.v1\ndefault allow := false\nallow if lib.is_admin(input.role)\n",
+                    "p1-v1")));
+        provider.OnNext(config.Configuration!.Policies);
+
+        // assert
+        // One replayed update from Subscribe plus one new emission for the recompiled library.
+        Assert.Equal(2, observer.Updates.Count);
+        Assert.Empty(diagnostics.Errors);
+    }
+
     private static PolicyContent Policy(string @base, string digest)
         => new(
             @base,
@@ -691,11 +760,32 @@ public sealed class RegoPolicyProviderTests
             "rego",
             new Version(1, 0, 0),
             [.. policies],
+            [],
             Encoding.UTF8.GetBytes(data),
             Encoding.UTF8.GetBytes(dataDigest),
             null);
         return new FusionConfiguration(schema, settings) { Policies = content };
     }
+
+    private static FusionConfiguration ConfigWithLibraries(
+        ImmutableArray<PolicyLibraryModule> libraries,
+        params PolicyContent[] policies)
+    {
+        var schema = Utf8GraphQLParser.Parse("type Query { x: Int }");
+        var settings = new JsonDocumentOwner(JsonDocument.Parse("{}"), EmptyMemoryOwner.Instance);
+        var content = new PolicyContentSnapshot(
+            "rego",
+            new Version(1, 0, 0),
+            [.. policies],
+            libraries,
+            Encoding.UTF8.GetBytes("{}"),
+            Encoding.UTF8.GetBytes("data-digest"),
+            null);
+        return new FusionConfiguration(schema, settings) { Policies = content };
+    }
+
+    private static PolicyLibraryModule Library(string name, string source, string digest)
+        => new(name, Encoding.UTF8.GetBytes(source), Encoding.UTF8.GetBytes(digest));
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     private static WeakReference CreateWeakHandleReference(RegoPolicyProvider provider)

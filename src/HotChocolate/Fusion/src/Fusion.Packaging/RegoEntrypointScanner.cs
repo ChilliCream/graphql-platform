@@ -1,6 +1,13 @@
-namespace HotChocolate.Fusion.Policies.Rego;
+namespace HotChocolate.Fusion.Packaging;
 
-internal static class RegoEntrypointScanner
+/// <summary>
+/// Scans a single Rego module for its declared entrypoint decisions: rules annotated
+/// <c># METADATA</c> / <c>entrypoint: true</c>. Shared by the archive packaging tools (which use it
+/// to validate a Rego policy bundle manifest against the modules it indexes) and the Rego policy
+/// provider (which uses it to derive the decisions a compiled module exposes), so decision discovery
+/// is defined in exactly one place.
+/// </summary>
+public static class RegoEntrypointScanner
 {
     public static List<string> Scan(string source)
     {

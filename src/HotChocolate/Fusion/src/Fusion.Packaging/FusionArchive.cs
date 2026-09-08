@@ -525,9 +525,42 @@ public sealed class FusionArchive : IDisposable
 
         return ReadRegoPolicyFileSets()
             .Select(t => t.Version)
+            .Concat(ReadRegoPolicyBundleVersions())
             .Distinct()
             .OrderDescending()
             .ToArray();
+    }
+
+    // A version directory is a manifest-indexed bundle, rather than a flat policy-pair format, when it
+    // contains a nested manifest.json. Detecting this by content rather than by a hardcoded version
+    // number keeps the flat-pair format free to keep using arbitrary version numbers of its own.
+    private HashSet<Version> ReadRegoPolicyBundleVersions()
+    {
+        var versions = new HashSet<Version>();
+
+        foreach (var path in _session.GetFiles())
+        {
+            if (path.EndsWith("/", StringComparison.Ordinal)
+                || !path.StartsWith(FileNames.RegoPolicies, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var relativePath = path.AsSpan(FileNames.RegoPolicies.Length);
+            var separator = relativePath.IndexOf('/');
+
+            if (separator <= 0 || !relativePath[(separator + 1)..].SequenceEqual(FileNames.RegoBundleManifestFileName))
+            {
+                continue;
+            }
+
+            if (TryParseRegoPolicyVersion(relativePath[..separator].ToString(), out var version))
+            {
+                versions.Add(version);
+            }
+        }
+
+        return versions;
     }
 
     /// <summary>
@@ -610,6 +643,668 @@ public sealed class FusionArchive : IDisposable
 
         return await CreateRegoPolicyConfigurationAsync(fileSet, cancellationToken);
     }
+
+    /// <summary>
+    /// Sets a Rego policy bundle (format version 2 and above) into the archive: a manifest-indexed set
+    /// of policy packages with optional shared library modules and a root data document. Replaces any
+    /// existing bundle content at the same format version.
+    /// </summary>
+    /// <param name="bundle">The bundle to write.</param>
+    /// <param name="version">The Rego policy bundle format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when bundle or version is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the bundle content is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task SetRegoPolicyBundleAsync(
+        RegoPolicyBundle bundle,
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        if (bundle.Packages.Length == 0)
+        {
+            throw ThrowHelper.RegoPolicyBundleMustHaveAtLeastOnePackage();
+        }
+
+        var reservedPaths = new HashSet<string>(StringComparer.Ordinal);
+        var packageNames = new HashSet<string>(StringComparer.Ordinal);
+        var manifestPolicies = ImmutableArray.CreateBuilder<RegoPolicyBundleManifestPolicy>();
+        var pendingWrites = new List<(string RelativePath, ReadOnlyMemory<byte> Content)>();
+
+        foreach (var package in bundle.Packages)
+        {
+            if (!IsRegoPackageSegment(package.Package))
+            {
+                throw ThrowHelper.RegoPolicyBundlePackageNameInvalid(package.Package);
+            }
+
+            if (!packageNames.Add(package.Package))
+            {
+                throw ThrowHelper.RegoPolicyBundlePackageDuplicate(package.Package);
+            }
+
+            if (package.Modules.Length == 0)
+            {
+                throw ThrowHelper.RegoPolicyBundlePackageMustHaveAtLeastOneModule(package.Package);
+            }
+
+            var moduleNames = new HashSet<string>(StringComparer.Ordinal);
+            var modulePaths = ImmutableArray.CreateBuilder<string>(package.Modules.Length);
+            var moduleSha256 = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
+            string? entrypointRelativePath = null;
+            List<string>? entrypointRules = null;
+
+            foreach (var module in package.Modules)
+            {
+                if (!IsValidRegoPolicyName(module.Name))
+                {
+                    throw ThrowHelper.RegoPolicyBundleModuleNameInvalid(package.Package, module.Name);
+                }
+
+                if (!moduleNames.Add(module.Name))
+                {
+                    throw ThrowHelper.RegoPolicyBundleModuleDuplicate(package.Package, module.Name);
+                }
+
+                if (!TryScanRegoPackageSegments(module.Source.Span, out var segments)
+                    || segments.Length != 1
+                    || !segments[0].Equals(package.Package, StringComparison.Ordinal))
+                {
+                    throw ThrowHelper.RegoPolicyBundleModulePackageMismatch(package.Package, module.Name);
+                }
+
+                var relativePath = $"{package.Package}/{module.Name}.rego";
+
+                if (!reservedPaths.Add(relativePath))
+                {
+                    throw ThrowHelper.RegoPolicyBundlePathCollision(relativePath);
+                }
+
+                modulePaths.Add(relativePath);
+                moduleSha256[relativePath] = ComputeRegoBundleSha256(module.Source.Span);
+                pendingWrites.Add((relativePath, module.Source));
+
+                var rules = RegoEntrypointScanner.Scan(Encoding.UTF8.GetString(module.Source.Span));
+
+                if (rules.Count > 0)
+                {
+                    if (entrypointRelativePath is not null)
+                    {
+                        throw ThrowHelper.RegoPolicyBundlePackageEntrypointCountInvalid(package.Package, 2);
+                    }
+
+                    entrypointRelativePath = relativePath;
+                    entrypointRules = rules;
+                }
+            }
+
+            if (entrypointRelativePath is null)
+            {
+                throw ThrowHelper.RegoPolicyBundlePackageEntrypointCountInvalid(package.Package, 0);
+            }
+
+            string? requirementsRelativePath = null;
+
+            if (package.Requirements is { } requirements)
+            {
+                if (!HasRegoPolicyRequirementsPrefix(requirements.Span))
+                {
+                    throw ThrowHelper.RegoPolicyRequirementsMustBeSelectionSetOrFragment();
+                }
+
+                requirementsRelativePath = $"{package.Package}.graphql";
+
+                if (!reservedPaths.Add(requirementsRelativePath))
+                {
+                    throw ThrowHelper.RegoPolicyBundlePathCollision(requirementsRelativePath);
+                }
+
+                moduleSha256[requirementsRelativePath] = ComputeRegoBundleSha256(requirements.Span);
+                pendingWrites.Add((requirementsRelativePath, requirements));
+            }
+
+            var sortedModulePaths = modulePaths.ToImmutable().Sort(StringComparer.Ordinal);
+            var sha256 = moduleSha256.ToImmutable();
+
+            foreach (var rule in entrypointRules!)
+            {
+                var name = $"{package.Package}.{rule}";
+
+                manifestPolicies.Add(new RegoPolicyBundleManifestPolicy
+                {
+                    Name = name,
+                    Package = package.Package,
+                    Entrypoint = $"data.{name}",
+                    Modules = sortedModulePaths,
+                    Requirements = requirementsRelativePath,
+                    Sha256 = sha256
+                });
+            }
+        }
+
+        var manifestLibraries = ImmutableArray.CreateBuilder<RegoPolicyBundleManifestFile>();
+        var libraryNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var library in bundle.Libraries)
+        {
+            if (!IsValidRegoPolicyName(library.Name))
+            {
+                throw ThrowHelper.RegoPolicyBundleLibraryNameInvalid(library.Name);
+            }
+
+            if (!libraryNames.Add(library.Name))
+            {
+                throw ThrowHelper.RegoPolicyBundleLibraryDuplicate(library.Name);
+            }
+
+            var relativePath = $"{FileNames.RegoBundleLibraryDirectoryName}/{library.Name}.rego";
+
+            if (!reservedPaths.Add(relativePath))
+            {
+                throw ThrowHelper.RegoPolicyBundlePathCollision(relativePath);
+            }
+
+            manifestLibraries.Add(new RegoPolicyBundleManifestFile
+            {
+                Path = relativePath,
+                Sha256 = ComputeRegoBundleSha256(library.Source.Span)
+            });
+            pendingWrites.Add((relativePath, library.Source));
+        }
+
+        RegoPolicyBundleManifestFile? manifestData = null;
+
+        if (bundle.Data is { } data)
+        {
+            using (ParseRegoDataObject(data))
+            {
+                // Validated to be a JSON object; the parsed document itself is not otherwise needed.
+            }
+
+            const string dataRelativePath = "data/data.json";
+            manifestData = new RegoPolicyBundleManifestFile
+            {
+                Path = dataRelativePath,
+                Sha256 = ComputeRegoBundleSha256(data.Span)
+            };
+            pendingWrites.Add((dataRelativePath, data));
+        }
+
+        var manifest = new RegoPolicyBundleManifest
+        {
+            FormatVersion = version.Major,
+            Policies = manifestPolicies.ToImmutable(),
+            Libraries = manifestLibraries.ToImmutable(),
+            Data = manifestData
+        };
+
+        // Remove any existing bundle content for this version first, so a re-pack never leaves behind
+        // a module or library the new manifest no longer references.
+        RemoveExistingRegoPolicyBundleFiles(version);
+
+        foreach (var (relativePath, content) in pendingWrites)
+        {
+            await using var stream = _session.OpenWrite(FileNames.GetRegoModulePath(version, relativePath));
+            await stream.WriteAsync(content, cancellationToken);
+        }
+
+        var manifestBuffer = new ArrayBufferWriter<byte>();
+        RegoPolicyBundleManifestSerializer.Format(manifest, manifestBuffer);
+
+        await using (var manifestStream = _session.OpenWrite(FileNames.GetRegoBundleManifestPath(version)))
+        {
+            await manifestStream.WriteAsync(manifestBuffer.WrittenMemory, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Reads and validates the Rego policy bundle (format version 2 and above) for one exact format
+    /// version: every path the manifest references is checked to exist, hashed, and cross checked
+    /// against its scanned package and entrypoint declarations; every file present on disk under the
+    /// bundle must be listed in the manifest.
+    /// </summary>
+    /// <param name="version">The Rego policy bundle format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The validated bundle content.</returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">
+    /// Thrown when the manifest is missing, malformed, or disagrees with the archive's actual content.
+    /// </exception>
+    public async Task<RegoPolicyBundleContent> GetRegoPolicyBundleAsync(
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var manifestPath = FileNames.GetRegoBundleManifestPath(version);
+
+        if (!await _session.ExistsAsync(manifestPath, FileKind.Manifest, cancellationToken).ConfigureAwait(false))
+        {
+            throw ThrowHelper.RegoPolicyBundleManifestMissing(version);
+        }
+
+        var manifest = await ReadRegoPolicyBundleManifestAsync(version, manifestPath, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (manifest.FormatVersion != version.Major)
+        {
+            throw ThrowHelper.RegoPolicyBundleManifestFormatVersionMismatch(version, manifest.FormatVersion);
+        }
+
+        var directory = FileNames.GetRegoBundleDirectory(version);
+        var dataDirectory = FileNames.GetRegoDataDirectory(version);
+        var manifestRelativePath = manifestPath[directory.Length..];
+        var onDisk = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var path in _session.GetFiles())
+        {
+            if (path.EndsWith("/", StringComparison.Ordinal)
+                || !path.StartsWith(directory, StringComparison.Ordinal)
+                || path.StartsWith(dataDirectory, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var relative = path[directory.Length..];
+
+            if (!relative.Equals(manifestRelativePath, StringComparison.Ordinal))
+            {
+                onDisk.Add(relative);
+            }
+        }
+
+        var referencedPaths = new HashSet<string>(StringComparer.Ordinal);
+        var seenPolicyNames = new HashSet<string>(StringComparer.Ordinal);
+        var groups = new Dictionary<string, List<RegoPolicyBundleManifestPolicy>>(StringComparer.Ordinal);
+
+        foreach (var policy in manifest.Policies)
+        {
+            if (!seenPolicyNames.Add(policy.Name))
+            {
+                throw ThrowHelper.RegoPolicyBundlePolicyNameDuplicate(policy.Name);
+            }
+
+            if (!policy.Name.StartsWith(policy.Package + ".", StringComparison.Ordinal)
+                || policy.Name.Length <= policy.Package.Length + 1
+                || !policy.Entrypoint.Equals($"data.{policy.Name}", StringComparison.Ordinal))
+            {
+                throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                    policy.Name,
+                    "the name, package, and entrypoint fields are not consistent.");
+            }
+
+            if (!groups.TryGetValue(policy.Package, out var group))
+            {
+                group = [];
+                groups.Add(policy.Package, group);
+            }
+
+            group.Add(policy);
+        }
+
+        var moduleCache = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+        var packages = ImmutableArray.CreateBuilder<RegoPolicyBundlePackageContent>(groups.Count);
+        var libraries = ImmutableArray.CreateBuilder<RegoLibraryContent>();
+
+        foreach (var (package, entries) in groups.OrderBy(t => t.Key, StringComparer.Ordinal))
+        {
+            var first = entries[0];
+
+            foreach (var entry in entries.Skip(1))
+            {
+                if (!entry.Modules.SequenceEqual(first.Modules, StringComparer.Ordinal)
+                    || entry.Requirements != first.Requirements
+                    || !SameEntries(entry.Sha256, first.Sha256))
+                {
+                    throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                        entry.Name,
+                        $"it shares package '{package}' with other decisions that reference different "
+                        + "modules, requirements, or hashes.");
+                }
+            }
+
+            byte[]? primarySource = null;
+            var expectedHashKeys = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (var modulePath in first.Modules)
+            {
+                ValidateRegoBundlePath(modulePath);
+
+                if (!referencedPaths.Add(modulePath))
+                {
+                    throw ThrowHelper.RegoPolicyBundlePathCollision(modulePath);
+                }
+
+                expectedHashKeys.Add(modulePath);
+
+                var source = await ReadAndVerifyRegoBundlePayloadAsync(
+                    version, modulePath, first.Sha256, moduleCache, cancellationToken).ConfigureAwait(false);
+
+                if (!TryScanRegoPackageSegments(source, out var segments)
+                    || segments.Length != 1
+                    || !segments[0].Equals(package, StringComparison.Ordinal))
+                {
+                    throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                        first.Name,
+                        $"the module '{modulePath}' does not declare package '{package}'.");
+                }
+
+                var rules = RegoEntrypointScanner.Scan(Encoding.UTF8.GetString(source));
+
+                if (rules.Count > 0)
+                {
+                    if (primarySource is not null)
+                    {
+                        throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                            first.Name,
+                            $"more than one module ('{modulePath}') declares entrypoint decisions.");
+                    }
+
+                    primarySource = source;
+
+                    var expectedRules = new HashSet<string>(
+                        entries.Select(e => e.Name[(package.Length + 1)..]),
+                        StringComparer.Ordinal);
+
+                    if (!expectedRules.SetEquals(rules))
+                    {
+                        throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                            first.Name,
+                            $"the module '{modulePath}' declares a different set of entrypoint decisions "
+                            + "than the manifest lists for this package.");
+                    }
+                }
+                else
+                {
+                    libraries.Add(new RegoLibraryContent(
+                        modulePath,
+                        source,
+                        Encoding.UTF8.GetBytes(first.Sha256[modulePath])));
+                }
+            }
+
+            if (primarySource is null)
+            {
+                throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                    first.Name,
+                    "none of its modules declare an entrypoint decision.");
+            }
+
+            byte[]? requirements = null;
+
+            if (first.Requirements is { } requirementsPath)
+            {
+                ValidateRegoBundlePath(requirementsPath);
+
+                if (!referencedPaths.Add(requirementsPath))
+                {
+                    throw ThrowHelper.RegoPolicyBundlePathCollision(requirementsPath);
+                }
+
+                expectedHashKeys.Add(requirementsPath);
+
+                requirements = await ReadAndVerifyRegoBundlePayloadAsync(
+                    version, requirementsPath, first.Sha256, moduleCache, cancellationToken).ConfigureAwait(false);
+
+                if (!HasRegoPolicyRequirementsPrefix(requirements))
+                {
+                    throw ThrowHelper.RegoPolicyRequirementsMustBeSelectionSetOrFragment();
+                }
+            }
+
+            if (first.Sha256.Count != expectedHashKeys.Count
+                || first.Sha256.Keys.Any(key => !expectedHashKeys.Contains(key)))
+            {
+                throw ThrowHelper.RegoPolicyBundleManifestInvalid(
+                    version,
+                    $"package '{package}' lists sha256 entries that do not exactly match its modules "
+                    + "and requirements.");
+            }
+
+            packages.Add(new RegoPolicyBundlePackageContent(
+                package,
+                primarySource,
+                requirements is null ? null : (ReadOnlyMemory<byte>?)requirements,
+                ComputeRegoBundlePackageDigest(first.Sha256)));
+        }
+
+        var declaredLibraryPaths = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var library in manifest.Libraries)
+        {
+            ValidateRegoBundlePath(library.Path);
+
+            if (!library.Path.StartsWith(
+                FileNames.RegoBundleLibraryDirectoryName + "/", StringComparison.Ordinal))
+            {
+                throw ThrowHelper.RegoPolicyBundleManifestInvalid(
+                    version,
+                    $"library path '{library.Path}' must be located under "
+                    + $"'{FileNames.RegoBundleLibraryDirectoryName}/'.");
+            }
+
+            if (!declaredLibraryPaths.Add(library.Path))
+            {
+                throw ThrowHelper.RegoPolicyBundleLibraryPathDuplicate(library.Path);
+            }
+
+            if (!referencedPaths.Add(library.Path))
+            {
+                throw ThrowHelper.RegoPolicyBundlePathCollision(library.Path);
+            }
+
+            var sha256 = ImmutableSortedDictionary.CreateRange(
+                StringComparer.Ordinal,
+                [new KeyValuePair<string, string>(library.Path, library.Sha256)]);
+            var source = await ReadAndVerifyRegoBundlePayloadAsync(
+                version, library.Path, sha256, moduleCache, cancellationToken).ConfigureAwait(false);
+
+            libraries.Add(new RegoLibraryContent(
+                library.Path,
+                source,
+                Encoding.UTF8.GetBytes(library.Sha256)));
+        }
+
+        var extra = onDisk.FirstOrDefault(path => !referencedPaths.Contains(path));
+
+        if (extra is not null)
+        {
+            throw ThrowHelper.RegoPolicyBundlePathUnlisted(extra);
+        }
+
+        ReadOnlyMemory<byte>? data = null;
+        byte[] dataDigest;
+
+        if (manifest.Data is { } dataFile)
+        {
+            const string dataRelativePath = "data/data.json";
+
+            if (!dataFile.Path.Equals(dataRelativePath, StringComparison.Ordinal))
+            {
+                throw ThrowHelper.RegoPolicyBundleManifestInvalid(
+                    version,
+                    $"the data mount must be located at '{dataRelativePath}'.");
+            }
+
+            var dataPath = FileNames.GetRegoDataPath(version, string.Empty);
+
+            if (!await _session.ExistsAsync(dataPath, FileKind.PolicyData, cancellationToken).ConfigureAwait(false))
+            {
+                throw ThrowHelper.RegoPolicyBundlePathMissing(dataFile.Path);
+            }
+
+            byte[] dataBytes;
+            await using (var stream = await _session.OpenReadAsync(
+                dataPath, FileKind.PolicyData, cancellationToken).ConfigureAwait(false))
+            {
+                await using var buffer = new MemoryStream();
+                await stream.CopyToAsync(buffer, cancellationToken).ConfigureAwait(false);
+                dataBytes = buffer.ToArray();
+            }
+
+            var actualHash = ComputeRegoBundleSha256(dataBytes);
+
+            if (!actualHash.Equals(dataFile.Sha256, StringComparison.Ordinal))
+            {
+                throw ThrowHelper.RegoPolicyBundleHashMismatch(dataFile.Path);
+            }
+
+            data = dataBytes;
+            dataDigest = Encoding.UTF8.GetBytes(dataFile.Sha256);
+        }
+        else
+        {
+            dataDigest = Encoding.UTF8.GetBytes(ComputeRegoBundleSha256("{}"u8));
+        }
+
+        return new RegoPolicyBundleContent
+        {
+            Packages = packages.ToImmutable(),
+            Libraries = libraries.ToImmutable(),
+            Data = data,
+            DataDigest = dataDigest
+        };
+
+        static bool SameEntries(
+            ImmutableSortedDictionary<string, string> left,
+            ImmutableSortedDictionary<string, string> right)
+        {
+            if (left.Count != right.Count)
+            {
+                return false;
+            }
+
+            foreach (var (key, value) in left)
+            {
+                if (!right.TryGetValue(key, out var otherValue)
+                    || !value.Equals(otherValue, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    private async Task<RegoPolicyBundleManifest> ReadRegoPolicyBundleManifestAsync(
+        Version version,
+        string manifestPath,
+        CancellationToken cancellationToken)
+    {
+        var buffer = TryRentBuffer();
+
+        try
+        {
+            await using (var stream = await _session.OpenReadAsync(
+                manifestPath, FileKind.Manifest, cancellationToken).ConfigureAwait(false))
+            {
+                await stream.CopyToAsync(buffer, cancellationToken).ConfigureAwait(false);
+            }
+
+            try
+            {
+                return RegoPolicyBundleManifestSerializer.Parse(buffer.WrittenMemory);
+            }
+            catch (JsonException ex)
+            {
+                throw ThrowHelper.RegoPolicyBundleManifestInvalid(version, ex.Message);
+            }
+        }
+        finally
+        {
+            TryReturnBuffer(buffer);
+        }
+    }
+
+    private async Task<byte[]> ReadAndVerifyRegoBundlePayloadAsync(
+        Version version,
+        string relativePath,
+        ImmutableSortedDictionary<string, string> sha256,
+        Dictionary<string, byte[]> cache,
+        CancellationToken cancellationToken)
+    {
+        if (cache.TryGetValue(relativePath, out var cached))
+        {
+            return cached;
+        }
+
+        if (!sha256.TryGetValue(relativePath, out var expectedHash))
+        {
+            throw ThrowHelper.RegoPolicyBundleManifestInvalid(
+                version,
+                $"'{relativePath}' has no recorded sha256 digest.");
+        }
+
+        var path = FileNames.GetRegoModulePath(version, relativePath);
+        var kind = FileNames.GetFileKind(path);
+
+        if (!await _session.ExistsAsync(path, kind, cancellationToken).ConfigureAwait(false))
+        {
+            throw ThrowHelper.RegoPolicyBundlePathMissing(relativePath);
+        }
+
+        byte[] content;
+        await using (var stream = await _session.OpenReadAsync(path, kind, cancellationToken).ConfigureAwait(false))
+        {
+            await using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer, cancellationToken).ConfigureAwait(false);
+            content = buffer.ToArray();
+        }
+
+        var actualHash = ComputeRegoBundleSha256(content);
+
+        if (!actualHash.Equals(expectedHash, StringComparison.Ordinal))
+        {
+            throw ThrowHelper.RegoPolicyBundleHashMismatch(relativePath);
+        }
+
+        cache[relativePath] = content;
+        return content;
+    }
+
+    private static void ValidateRegoBundlePath(string path)
+    {
+        if (string.IsNullOrEmpty(path) || path[0] == '/' || path.Contains('\\'))
+        {
+            throw ThrowHelper.RegoPolicyBundlePathInvalid(path);
+        }
+
+        foreach (var segment in path.Split('/'))
+        {
+            if (string.IsNullOrEmpty(segment) || segment is "." or "..")
+            {
+                throw ThrowHelper.RegoPolicyBundlePathInvalid(path);
+            }
+        }
+    }
+
+    private void RemoveExistingRegoPolicyBundleFiles(Version version)
+    {
+        var directory = FileNames.GetRegoBundleDirectory(version);
+
+        foreach (var path in _session.GetFiles().ToArray())
+        {
+            if (!path.EndsWith("/", StringComparison.Ordinal)
+                && path.StartsWith(directory, StringComparison.Ordinal))
+            {
+                _session.Delete(path);
+            }
+        }
+    }
+
+    private static string ComputeRegoBundleSha256(ReadOnlySpan<byte> content)
+        => "sha256:" + ToHexLower(SHA256.HashData(content));
+
+    private static byte[] ComputeRegoBundlePackageDigest(ImmutableSortedDictionary<string, string> sha256)
+        => Encoding.UTF8.GetBytes(ComputeArtifactDigest([.. sha256]));
 
     /// <summary>
     /// Sets a Rego data document mounted at the specified path within the data tree of a policy format version.
@@ -1560,6 +2255,7 @@ public sealed class FusionArchive : IDisposable
     private RegoPolicyFileSet[] ReadRegoPolicyFileSets()
     {
         var fileSets = new Dictionary<(Version Version, string Name), RegoPolicyFileSet>();
+        var bundleVersions = ReadRegoPolicyBundleVersions();
 
         foreach (var path in _session.GetFiles())
         {
@@ -1586,6 +2282,13 @@ public sealed class FusionArchive : IDisposable
             {
                 throw new InvalidDataException(
                     $"The Rego policy path '{path}' does not contain a canonical three-part version.");
+            }
+
+            if (bundleVersions.Contains(version))
+            {
+                // A manifest-indexed bundle format version is validated and read through
+                // GetRegoPolicyBundleAsync, not through the flat policy-pair scan.
+                continue;
             }
 
             var remainder = relativePath[(separator + 1)..];

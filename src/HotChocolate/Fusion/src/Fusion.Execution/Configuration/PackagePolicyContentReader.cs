@@ -31,11 +31,30 @@ internal static class PackagePolicyContentReader
 
         // GetSupportedRegoPolicyFormats returns the versions in descending order, so the first entry
         // that does not exceed the runtime's maximum supported version is the highest usable format.
-        var version = archive.GetSupportedRegoPolicyFormats().FirstOrDefault(v => v <= maxFormatVersion);
+        var allVersions = archive.GetSupportedRegoPolicyFormats().ToArray();
+
+        if (allVersions.Length == 0)
+        {
+            // The archive carries no Rego policies of any format. This is distinct from every format
+            // present exceeding what this runtime understands, which is rejected below.
+            return null;
+        }
+
+        var version = allVersions.FirstOrDefault(v => v <= maxFormatVersion);
 
         if (version is null)
         {
-            return null;
+            // Every Rego policy format in the archive is newer than this runtime understands. A
+            // runtime built before this check returns null here and silently serves the schema with
+            // no policies, which is unsafe for an archive that was intentionally packaged with a
+            // newer policy format; that legacy behavior cannot be retrofitted onto archives already
+            // deployed, so this runtime instead fails closed and rejects the archive outright.
+            throw ThrowHelper.UnsupportedRegoPolicyFormatVersion(allVersions[0], maxFormatVersion);
+        }
+
+        if (version >= WellKnownVersions.RegoPolicyBundleFormatVersion)
+        {
+            return await ReadBundleAsync(archive, version, cancellationToken).ConfigureAwait(false);
         }
 
         var manifest = await archive.GetManifestAsync(cancellationToken).ConfigureAwait(false);
@@ -105,9 +124,50 @@ internal static class PackagePolicyContentReader
             RegoLanguage,
             version,
             policies.ToImmutable(),
+            [],
             data,
             dataDigest,
             owner);
+    }
+
+    private static async Task<PolicyContentSnapshot> ReadBundleAsync(
+        FusionArchive archive,
+        Version version,
+        CancellationToken cancellationToken)
+    {
+        var bundle = await archive.GetRegoPolicyBundleAsync(version, cancellationToken).ConfigureAwait(false);
+
+        var policies = ImmutableArray.CreateBuilder<PolicyContent>(bundle.Packages.Length);
+
+        foreach (var package in bundle.Packages)
+        {
+            var requirements = package.Requirements is { } requirementsBytes
+                ? ParseRequirements(requirementsBytes.Span)
+                : PolicyRequirements.Empty;
+
+            policies.Add(new PolicyContent(
+                package.Package,
+                PolicyContentType.Rego,
+                package.Source,
+                requirements,
+                package.Digest));
+        }
+
+        var libraries = ImmutableArray.CreateBuilder<PolicyLibraryModule>(bundle.Libraries.Length);
+
+        foreach (var library in bundle.Libraries)
+        {
+            libraries.Add(new PolicyLibraryModule(library.Name, library.Source, library.Digest));
+        }
+
+        return new PolicyContentSnapshot(
+            RegoLanguage,
+            version,
+            policies.ToImmutable(),
+            libraries.ToImmutable(),
+            bundle.Data ?? "{}"u8.ToArray(),
+            bundle.DataDigest,
+            dataOwner: null);
     }
 
     private static PolicyRequirements ParseRequirements(ReadOnlySpan<byte> requirements)

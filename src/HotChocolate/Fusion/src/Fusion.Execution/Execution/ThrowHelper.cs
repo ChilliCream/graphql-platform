@@ -26,6 +26,15 @@ internal static class ThrowHelper
     public static InvalidOperationException PolicyRequirementsMustBeSingleFragmentDefinition()
         => new("Policy requirements must contain exactly one fragment definition.");
 
+    public static InvalidOperationException UnsupportedRegoPolicyFormatVersion(
+        Version highestFormatVersion,
+        Version maxSupportedFormatVersion)
+        => new(
+            $"The Fusion archive only contains Rego policies in format '{highestFormatVersion}', which "
+            + $"exceeds the highest format '{maxSupportedFormatVersion}' this runtime supports. The "
+            + "archive is rejected rather than served with no policies. A runtime built before this "
+            + "check instead returns no policies for such an archive, which does not apply here.");
+
     public static InvalidOperationException PolicyOperationPlanMissing()
         => new("There is no operation plan available for policy evaluation.");
 
