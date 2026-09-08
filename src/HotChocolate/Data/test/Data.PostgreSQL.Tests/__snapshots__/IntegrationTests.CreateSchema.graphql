@@ -168,7 +168,7 @@ type BrandProductsEdge @shareable {
 type CardReader {
   cardReaderUidLength: Int! @cost(weight: "10")
   id: Int!
-  cardReaderUid: [UnsignedByte!]!
+  cardReaderUid: [UnsignedByte!]! @cost(weight: "1")
 }
 
 """
@@ -254,7 +254,7 @@ type ProductConnection @shareable {
   pageInfo: ConnectionPageInfo!
   "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
-  endCursors(count: Int!): [String!]!
+  endCursors(count: Int!): [String!]! @cost(weight: "1")
 }
 
 "An edge in a connection."
