@@ -15,6 +15,15 @@ public class PackagePolicyContentReaderTests
         + "# entrypoint: true\n"
         + "default allow := false\n";
 
+    private const string CartActionSource =
+        "package cart\n"
+        + "import rego.v1\n"
+        + "# METADATA\n"
+        + "# entrypoint: true\n"
+        + "# custom:\n"
+        + "#   input: action\n"
+        + "default allow := false\n";
+
     [Fact]
     public async Task ReadAsync_Should_ReturnNull_When_ArchiveHasNoPolicies()
     {
@@ -140,6 +149,40 @@ public class PackagePolicyContentReaderTests
         Assert.Equal("cart", policy.Name);
         Assert.Empty(snapshot.Libraries);
         snapshot.Dispose();
+    }
+
+    [Fact]
+    public async Task ReadAsync_Should_Throw_When_FlatPairDeclaresActionInput()
+    {
+        // arrange: a v1/flat pair has no manifest, so it has no place to declare (and no reader to
+        // agree on) a 'custom.input' value; ruling 700 requires action policies to live only in the
+        // manifest-indexed bundle format, so a flat pair that declares one anyway must be rejected.
+        var ct = TestContext.Current.CancellationToken;
+        await using var stream = new MemoryStream();
+
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetRegoPolicyAsync(
+                "cart",
+                Encoding.UTF8.GetBytes(CartActionSource),
+                "fragment Requirements on Cart { id }"u8.ToArray(),
+                s_version1,
+                ct);
+            await archive.CommitAsync(ct);
+        }
+
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+
+        // act
+        var read = () => PackagePolicyContentReader.ReadAsync(readArchive, s_version1, ct);
+
+        // assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(read);
+        exception.Message.MatchInlineSnapshot(
+            """
+            The Rego policy pair 'cart' declares 'custom.input: action' on one of its entrypoints. Action policies require the manifest-indexed Rego policy bundle format (version 2 and above); a flat policy pair cannot carry an action policy.
+            """);
     }
 
     [Fact]

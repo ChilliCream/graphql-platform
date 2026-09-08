@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -32,7 +33,14 @@ internal static class PolicyActionCoercion
         var argumentDefinitions = selection.Field.Arguments;
         var fields = new List<ObjectFieldNode>(argumentDefinitions.Count);
 
-        foreach (var argumentDefinition in argumentDefinitions)
+        // Canonical order is the field's own argument-definition order (its stable Index), never
+        // the order the client happened to write the arguments in the query: two occurrences of the
+        // same guarded field with the same effective arguments in a different textual order must
+        // coerce to the same envelope. The composite schema's own argument collection already
+        // iterates in this order; the explicit sort makes that contract part of this method rather
+        // than an incidental property of how the collection happens to enumerate.
+        foreach (var argumentDefinition in argumentDefinitions
+            .OrderBy(argument => ((FusionInputFieldDefinition)argument).Index))
         {
             if (TryFindArgument(argumentNodes, argumentDefinition.Name, out var argumentNode))
             {
@@ -99,7 +107,11 @@ internal static class PolicyActionCoercion
 
             var fields = new List<ObjectFieldNode>(inputType.Fields.Count);
 
-            foreach (var fieldDefinition in inputType.Fields)
+            // Same canonical-order contract as the top-level arguments: the input type's own
+            // field-definition order, never anything derived from how the literal happened to be
+            // written in the query.
+            foreach (var fieldDefinition in inputType.Fields
+                .OrderBy(field => ((FusionInputFieldDefinition)field).Index))
             {
                 if (TryFindField(objectValue.Fields, fieldDefinition.Name, out var fieldNode))
                 {

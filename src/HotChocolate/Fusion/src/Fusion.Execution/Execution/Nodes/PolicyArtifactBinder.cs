@@ -2386,6 +2386,7 @@ internal static class PolicyArtifactBinder
             operation,
             planPart: 0,
             policySnapshot.RequestCacheability,
+            policySnapshot.IsAction,
             policySnapshot.Requirements,
             CreateRequirementFeedPaths(operation, policySnapshot.Requirements),
             activeDeliveryGroups: [],
@@ -2398,6 +2399,7 @@ internal static class PolicyArtifactBinder
                 incrementalPlans[i].Operation,
                 i + 1,
                 policySnapshot.RequestCacheability,
+                policySnapshot.IsAction,
                 policySnapshot.Requirements,
                 CreateRequirementFeedPaths(
                     incrementalPlans[i].Operation,
@@ -2618,10 +2620,18 @@ internal static class PolicyArtifactBinder
         return flags;
     }
 
+    private const string ConcreteBranchGateIneligibleReason =
+        "it is reachable only through a concrete-type inline fragment under an abstractly typed "
+        + "selection";
+
+    private const string RequirementFeedGateIneligibleReason =
+        "it also feeds another policy's data requirement";
+
     private static void AddOperation(
         Operation operation,
         int planPart,
         IReadOnlyDictionary<string, bool> requestCacheability,
+        IReadOnlyDictionary<string, bool> isAction,
         IReadOnlyDictionary<string, SelectionSetNode> requirements,
         IReadOnlySet<string> requirementFeedPaths,
         ImmutableArray<DeliveryGroup> activeDeliveryGroups,
@@ -2656,6 +2666,17 @@ internal static class PolicyArtifactBinder
                     PolicyApplications.IsDefaultOrEmpty: false
                 } objectType)
             {
+                var isRequirementFeedForObject = IsPolicyRequirementFeed(
+                    PolicyTargetKind.Object,
+                    path,
+                    requirementFeedPaths);
+                var objectGateIneligibleReason = isConcreteBranch
+                    ? ConcreteBranchGateIneligibleReason
+                    : isRequirementFeedForObject
+                        ? RequirementFeedGateIneligibleReason
+                        : null;
+                var objectGateEligible = objectGateIneligibleReason is null;
+
                 for (var occurrenceOrdinal = 0;
                     occurrenceOrdinal < objectMasks.Length;
                     occurrenceOrdinal++)
@@ -2673,17 +2694,10 @@ internal static class PolicyArtifactBinder
                         selectionSet.Id,
                         selectionId: -1,
                         occurrenceOrdinal,
-                        gateEligible: !isConcreteBranch
-                            && !IsPolicyRequirementFeed(
-                                PolicyTargetKind.Object,
-                                path,
-                                requirementFeedPaths),
+                        gateEligible: objectGateEligible,
                         requiresFetchGateWitness: HasSelectionInOwningPlanScope(selectionSet)
-                            && !isConcreteBranch
-                            && !IsPolicyRequirementFeed(
-                                PolicyTargetKind.Object,
-                                path,
-                                requirementFeedPaths));
+                            && objectGateEligible,
+                        gateIneligibleReason: objectGateIneligibleReason);
                 }
             }
 
@@ -2695,6 +2709,16 @@ internal static class PolicyArtifactBinder
                         PolicyApplications.IsDefaultOrEmpty: false
                     } field)
                 {
+                    var isRequirementFeedForField = IsPolicyRequirementFeed(
+                        PolicyTargetKind.Field,
+                        fieldPath,
+                        requirementFeedPaths);
+                    var fieldGateIneligibleReason = isConcreteBranch
+                        ? ConcreteBranchGateIneligibleReason
+                        : isRequirementFeedForField
+                            ? RequirementFeedGateIneligibleReason
+                            : null;
+                    var fieldGateEligible = fieldGateIneligibleReason is null;
                     var fieldMasks = GetMasks(selection);
                     for (var occurrenceOrdinal = 0;
                         occurrenceOrdinal < fieldMasks.Length;
@@ -2713,17 +2737,10 @@ internal static class PolicyArtifactBinder
                             selectionSet.Id,
                             selection.Id,
                             occurrenceOrdinal,
-                            gateEligible: !isConcreteBranch
-                                && !IsPolicyRequirementFeed(
-                                    PolicyTargetKind.Field,
-                                    fieldPath,
-                                    requirementFeedPaths),
+                            gateEligible: fieldGateEligible,
                             requiresFetchGateWitness: IsInOwningPlanScope(selection)
-                                && !isConcreteBranch
-                                && !IsPolicyRequirementFeed(
-                                    PolicyTargetKind.Field,
-                                    fieldPath,
-                                    requirementFeedPaths));
+                                && fieldGateEligible,
+                            gateIneligibleReason: fieldGateIneligibleReason);
                     }
                 }
 
@@ -2778,7 +2795,8 @@ internal static class PolicyArtifactBinder
             int selectionId,
             int occurrenceOrdinal,
             bool gateEligible,
-            bool requiresFetchGateWitness)
+            bool requiresFetchGateWitness,
+            string? gateIneligibleReason)
         {
             // EventStream can only ever be the operation's own root node, and a GraphQL
             // subscription has exactly one root selection, so a length-one object coordinate at
@@ -2794,6 +2812,23 @@ internal static class PolicyArtifactBinder
                 applicationOrdinal++)
             {
                 var application = applications[applicationOrdinal];
+
+                // An action policy's decision must gate its own fetch: fetching the guarded field
+                // and denying it afterward would violate fail-closed semantics. A coordinate reached
+                // only through a concrete-type fragment under an abstractly typed selection, or one
+                // that also feeds another policy's data requirement, cannot carry a fetch gate today
+                // (gateEligible is false above), so an action-policy application on such a coordinate
+                // is rejected at plan time instead of ever being fetched then denied.
+                if (gateIneligibleReason is not null
+                    && application.Groups.Any(group => group.Any(name =>
+                        isAction.TryGetValue(name, out var isActionPolicy) && isActionPolicy)))
+                {
+                    throw ThrowHelper.PolicyActionOccurrenceCannotBeGated(
+                        typeName,
+                        fieldName,
+                        gateIneligibleReason);
+                }
+
                 var applicationClass = ClassifyApplication(application, requestCacheability);
 
                 // A data-bearing application directly on the subscription root's own payload

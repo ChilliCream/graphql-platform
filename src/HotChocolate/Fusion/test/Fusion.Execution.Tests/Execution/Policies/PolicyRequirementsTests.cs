@@ -32,13 +32,26 @@ public sealed class PolicyRequirementsTests
         var table = string.Join(
             Environment.NewLine,
             Row("empty", PolicyRequirements.Empty),
-            Row("resource", new PolicyRequirements { Resource = selectionSet }));
+            Row("resource", new PolicyRequirements { Resource = selectionSet }),
+            Row(
+                "action",
+                new PolicyRequirements { Kind = PolicyEvaluationKind.ActionOccurrence }),
+            Row(
+                "resource+action",
+                new PolicyRequirements
+                {
+                    Resource = selectionSet,
+                    Kind = PolicyEvaluationKind.ActionOccurrence
+                }));
 
-        // assert
+        // assert: an action occurrence is never request-cacheable, even with no resource, because
+        // its decision depends on its own occurrence's coerced arguments.
         table.MatchInlineSnapshot(
             """
             empty: True
             resource: False
+            action: False
+            resource+action: False
             """);
     }
 

@@ -189,6 +189,146 @@ public sealed partial class PolicySlotGatewayTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_Should_KeepArgumentOrderStable_When_QueryOrdersArgumentsDifferently()
+    {
+        // arrange: ruling 700's canonical order is the field's own argument-definition order,
+        // never the order the client wrote the arguments in the query. This query writes "filter"
+        // before "id", the opposite of the textual order used by the definition-order test above;
+        // the envelope must still come out identical.
+        var client = new RecordingClient("""{"data":{"write":"changed"}}""");
+        var capture = new CapturingActionPolicy("CanWrite");
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { placeholder: String }
+                input FilterInput {
+                  flag: Boolean = true
+                  label: String
+                }
+                type Mutation {
+                  write(
+                    label: String
+                    id: Int!
+                    filter: FilterInput
+                  ): String @policy(names: "CanWrite", onDenied: NULL)
+                }
+                """),
+            capture,
+            client);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    "mutation($theId: Int!) { write(filter: { label: \"nested\" }, id: $theId) }")
+                .SetVariableValues(new Dictionary<string, object?> { ["theId"] = 7 })
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, client.ExecuteCount);
+        Assert.Equal("Mutation.write", capture.LastAction!.Name);
+        capture.LastAction.Arguments.Print(indented: false).MatchInlineSnapshot(
+            """
+            { filter: { flag: true, label: "nested" }, id: 7 }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_RouteEachNameByKind_When_ExpressionMixesActionAndRequestConstant()
+    {
+        // arrange: ruling 700 / F2 - one @policy expression mixing an ActionOccurrence-kind name
+        // with a RequestConstant-kind name must evaluate ONLY the action-kind name through the
+        // action path; the request-constant name keeps its own normal, cached evaluation (its
+        // context never sees an Action) regardless of appearing in the same expression. Query
+        // fields (not mutations) keep both aliases inside a single gate-evaluation pass, so a
+        // request-constant decision cached there is not disturbed by serial-mutation-root
+        // re-evaluation, which is unrelated to this concern.
+        var client = new RecordingClient("""{"data":{"a":"changed","b":"changed"}}""");
+        var actionPolicy = new CountingActionPolicy("CanReadAction");
+        var constPolicy = new CapturingConstPolicy("AlwaysAllow");
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query {
+                  read(value: Int!): String
+                    @policy(names: [["CanReadAction", "AlwaysAllow"]], onDenied: NULL)
+                }
+                """),
+            [actionPolicy, constPolicy],
+            client);
+
+        // act: two aliased occurrences so the action name is re-evaluated per occurrence while the
+        // request-constant name's decision is reused (cached) across both.
+        await using var result = await executor.ExecuteAsync(
+            "{ a: read(value: 1) b: read(value: 2) }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, client.ExecuteCount);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "a": "changed",
+                "b": "changed"
+              }
+            }
+            """);
+        Assert.Equal(2, actionPolicy.EvaluationCount);
+        Assert.Equal(1, constPolicy.EvaluationCount);
+        Assert.False(constPolicy.LastSawSelection);
+        Assert.False(constPolicy.LastSawAction);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_RejectPlan_When_ActionPolicyIsReachedThroughInlineFragment()
+    {
+        // arrange: F1 (ruling 700 / eva m-46l4gm) - a coordinate reached only through a
+        // concrete-type inline fragment under an abstractly typed selection cannot carry a fetch
+        // gate today, so an action policy on it must never be fetched then denied. The plan is
+        // rejected outright instead (fail closed), and the source is never invoked.
+        var client = new RecordingClient("""{"data":{"node":{"__typename":"Product","id":"1"}}}""");
+        var policy = new CountingActionPolicy("CanCancel");
+        var executor = await CreateExecutorAsync(
+            CreateSchema(
+                """
+                type Query { node: Node }
+                interface Node { id: ID! }
+                type Product implements Node {
+                  id: ID!
+                  cancel(reason: String): Boolean @policy(names: "CanCancel", onDenied: NULL)
+                }
+                type Book implements Node { id: ID! }
+                """),
+            policy,
+            client);
+
+        // act: the plan-time rejection is an InvalidOperationException raised while building the
+        // operation plan; the gateway's own exception handling turns it into a generic execution
+        // error rather than letting it escape ExecuteAsync, exactly like any other internal plan
+        // validation failure (ThrowHelper.InvalidOperationPlan) already does elsewhere.
+        await using var result = await executor.ExecuteAsync(
+            """{ node { id ... on Product { cancel(reason: "x") } } }""",
+            TestContext.Current.CancellationToken);
+
+        // assert: the plan is rejected and the source is never invoked, so a denied mutation/field
+        // is never fetched even when it cannot be gated.
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Unexpected Execution Error"
+                }
+              ]
+            }
+            """);
+        Assert.Equal(0, client.ExecuteCount);
+        Assert.Equal(0, policy.EvaluationCount);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_Should_DenyOnlyMatchingParent_When_SameFieldSharesResponseNameAcrossParents()
     {
         // arrange: u1.info and u2.info are distinct compiled occurrences that both materialize
@@ -485,6 +625,29 @@ public sealed partial class PolicySlotGatewayTests
         public ValueTask EvaluateAsync(IPolicyContext context, CancellationToken cancellationToken)
         {
             _actions.Add(context.Action!);
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class CapturingConstPolicy(string name) : IPolicy
+    {
+        private int _evaluationCount;
+
+        public string Name => name;
+
+        public PolicyRequirements Requirements { get; } = PolicyRequirements.Empty;
+
+        public int EvaluationCount => Volatile.Read(ref _evaluationCount);
+
+        public bool LastSawSelection { get; private set; }
+
+        public bool LastSawAction { get; private set; }
+
+        public ValueTask EvaluateAsync(IPolicyContext context, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _evaluationCount);
+            LastSawSelection = context.Selection is not null;
+            LastSawAction = context.Action is not null;
             return ValueTask.CompletedTask;
         }
     }

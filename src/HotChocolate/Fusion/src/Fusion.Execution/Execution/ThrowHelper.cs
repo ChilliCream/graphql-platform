@@ -46,6 +46,24 @@ internal static class ThrowHelper
             $"An action policy was applied to the object coordinate '{typeName}', which has no field "
             + "name or arguments to evaluate. Action policies are only valid on field occurrences.");
 
+    public static InvalidOperationException PolicyActionOccurrenceCannotBeGated(
+        string typeName,
+        string? fieldName,
+        string reason)
+        => new(
+            $"An action policy is applied to '{typeName}{(fieldName is null ? string.Empty : $".{fieldName}")}', "
+            + $"but {reason}, so its fetch cannot be gated. Fetching the guarded field and denying it "
+            + "afterward would violate fail-closed semantics for an action policy, so the operation "
+            + "plan is rejected instead.");
+
+    public static InvalidOperationException PolicyActionOccurrenceMissing(
+        string typeName,
+        string? fieldName)
+        => new(
+            $"An action policy for '{typeName}{(fieldName is null ? string.Empty : $".{fieldName}")}' has "
+            + "no compiled occurrence to evaluate against. An action policy must never be allowed by "
+            + "default when its occurrence cannot be resolved.");
+
     public static InvalidOperationException PolicyOperationPlanMissing()
         => new("There is no operation plan available for policy evaluation.");
 

@@ -317,6 +317,9 @@ internal sealed class PolicyRequestState
                             application.ExpressionOrdinal,
                             variables,
                             user,
+                            eventContext,
+                            eventResponseName,
+                            eventResourceType,
                             isEventReevaluation: eventContext is not null,
                             cancellationToken)
                             .ConfigureAwait(false)
@@ -609,6 +612,9 @@ internal sealed class PolicyRequestState
         int expressionOrdinal,
         IVariableValueCollection variables,
         ClaimsPrincipal user,
+        OperationPlanContext? eventContext,
+        string? eventResponseName,
+        ITypeDefinition? eventResourceType,
         bool isEventReevaluation,
         CancellationToken cancellationToken)
     {
@@ -625,6 +631,9 @@ internal sealed class PolicyRequestState
             coordinate,
             variables,
             user,
+            eventContext,
+            eventResponseName,
+            eventResourceType,
             cancellationToken)
             .ConfigureAwait(false);
 
@@ -637,11 +646,14 @@ internal sealed class PolicyRequestState
     }
 
     /// <summary>
-    /// Evaluates an action expression for one coordinate's own occurrence: the guarded field's
-    /// name and coerced arguments are reconstructed from the compiled operation and the request's
-    /// coerced variables, never read from a serialized plan value. Every named policy is evaluated
-    /// fresh; no decision is cached, so distinct occurrences (aliases, or the same occurrence across
-    /// a variable batch) never share a decision.
+    /// Evaluates an expression that mixes at least one <see cref="PolicyEvaluationKind.ActionOccurrence"/>
+    /// name with, potentially, other kinds for one coordinate's own occurrence. Only the
+    /// action-kind names are evaluated against that occurrence's guarded field name and coerced
+    /// arguments (reconstructed from the compiled operation and the request's coerced variables,
+    /// never read from a serialized plan value); every other name keeps its normal, cached
+    /// evaluation path (request-constant or resource-based), exactly as it would outside a mixed
+    /// expression. No action-kind decision is cached, so distinct occurrences (aliases, or the same
+    /// occurrence across a variable batch) never share a decision.
     /// </summary>
     private async ValueTask<PolicyDecision> EvaluateActionExpressionAsync(
         OperationPlan operationPlan,
@@ -649,12 +661,17 @@ internal sealed class PolicyRequestState
         PolicyConditionCoordinate coordinate,
         IVariableValueCollection variables,
         ClaimsPrincipal user,
+        OperationPlanContext? eventContext,
+        string? eventResponseName,
+        ITypeDefinition? eventResourceType,
         CancellationToken cancellationToken)
     {
         if (coordinate.Occurrences.IsDefaultOrEmpty)
         {
-            // No compiled occurrence is live for this coordinate in this plan part.
-            return default;
+            // An action policy must never be allowed by default: a coordinate with no compiled
+            // occurrence to evaluate against cannot produce a real decision, so it fails closed
+            // instead of silently allowing the guarded field.
+            throw ThrowHelper.PolicyActionOccurrenceMissing(coordinate.TypeName, coordinate.FieldName);
         }
 
         if (coordinate.FieldName is null)
@@ -662,12 +679,10 @@ internal sealed class PolicyRequestState
             throw ThrowHelper.PolicyActionOnNonFieldCoordinate(coordinate.TypeName);
         }
 
-        var selection = ResolveOccurrenceSelection(operationPlan, coordinate.Occurrences[0]);
-        var action = PolicyActionCoercion.BuildAction(
-            coordinate.TypeName,
-            coordinate.FieldName,
-            selection,
-            variables);
+        // The action is built lazily: an expression only reaches this method because at least one
+        // of its names is action-kind (IsActionExpression), but it is built at most once even when
+        // several action-kind names share it.
+        PolicyAction? action = null;
 
         string? reason = null;
 
@@ -677,12 +692,39 @@ internal sealed class PolicyRequestState
 
             foreach (var name in group)
             {
-                var decision = await EvaluateActionPolicyAsync(
-                    ResolvePolicy(name),
-                    user,
-                    action,
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                var policy = ResolvePolicy(name);
+                PolicyDecision decision;
+
+                if (policy.Requirements.Kind == PolicyEvaluationKind.ActionOccurrence)
+                {
+                    action ??= PolicyActionCoercion.BuildAction(
+                        coordinate.TypeName,
+                        coordinate.FieldName,
+                        ResolveOccurrenceSelection(operationPlan, coordinate.Occurrences[0]),
+                        variables);
+                    decision = await EvaluateActionPolicyAsync(
+                        policy,
+                        user,
+                        action,
+                        cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    // A request-constant or resource-based name mixed into the same expression as
+                    // an action-kind name keeps its own normal, cached evaluation path; it is never
+                    // routed through the per-occurrence action context.
+                    decision = await EvaluatePolicyOnceAsync(
+                        policy,
+                        user,
+                        cancellationToken,
+                        eventContext,
+                        eventResponseName,
+                        eventResourceType,
+                        isSlotEvaluation: true)
+                        .ConfigureAwait(false);
+                }
+
                 if (decision.IsDenied)
                 {
                     groupDenied = true;

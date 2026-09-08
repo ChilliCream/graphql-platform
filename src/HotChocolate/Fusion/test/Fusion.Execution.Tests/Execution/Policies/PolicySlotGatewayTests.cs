@@ -904,6 +904,20 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
         IPolicy policy,
         (string Name, RecordingClient Client)[] clients,
         bool enableDefer = false)
+        => await CreateExecutorAsync(schemas, [policy], clients, enableDefer);
+
+    private static async Task<IRequestExecutor> CreateExecutorAsync(
+        string schema,
+        IPolicy[] policies,
+        RecordingClient client,
+        bool enableDefer = false)
+        => await CreateExecutorAsync([schema], policies, [("a", client)], enableDefer);
+
+    private static async Task<IRequestExecutor> CreateExecutorAsync(
+        string[] schemas,
+        IPolicy[] policies,
+        (string Name, RecordingClient Client)[] clients,
+        bool enableDefer = false)
     {
         var services = new ServiceCollection();
         services.AddHttpClient();
@@ -911,7 +925,7 @@ public sealed partial class PolicySlotGatewayTests : FusionTestBase
         builder.ModifyOptions(o => o.EnableDefer = enableDefer);
         builder.AddInMemoryConfiguration(ComposeSchemaDocument(schemas));
         builder.ConfigureSchemaServices(
-            (_, schemaServices) => schemaServices.AddSingleton<IPolicyProvider>(new TestPolicyProvider(policy)));
+            (_, schemaServices) => schemaServices.AddSingleton<IPolicyProvider>(new TestPolicyProvider(policies)));
         builder.Services.AddSingleton<ISourceSchemaClientFactory>(new ClientFactory(clients));
         FusionSetupUtilities.Configure(
             builder,
