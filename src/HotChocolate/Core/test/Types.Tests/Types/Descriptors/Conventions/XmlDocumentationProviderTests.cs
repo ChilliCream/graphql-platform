@@ -583,6 +583,108 @@ public class XmlDocumentationProviderTests
         Assert.Null(description);
     }
 
+    [Fact]
+    public void GetDescription_Should_JoinWithBlankLine_When_SummaryHasTwoParaElements()
+    {
+        // arrange
+        var document = XDocument.Parse(
+            "<doc><members><member name=\"T:System.Drawing.Point\">"
+            + "<summary>"
+            + "<para>\n      First paragraph of text.\n    </para>"
+            + "<para>\n      Second paragraph continues here.\n    </para>"
+            + "</summary>"
+            + "</member></members></doc>",
+            LoadOptions.PreserveWhitespace);
+        var documentationProvider = new XmlDocumentationProvider(
+            new StubXmlDocumentationFileResolver(document),
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(typeof(Point));
+
+        // assert
+        Assert.Equal(
+            "First paragraph of text.\n\nSecond paragraph continues here.",
+            description);
+    }
+
+    [Fact]
+    public void GetDescription_Should_RenderHref_When_ParaWrapsOnlySeeElement()
+    {
+        // arrange
+        var document = XDocument.Parse(
+            "<doc><members><member name=\"T:System.Drawing.Point\">"
+            + "<summary>"
+            + "<para>\n      Intro paragraph.\n    </para>"
+            + "<para>\n      <see href=\"https://example.com/docs\"/>\n    </para>"
+            + "</summary>"
+            + "</member></members></doc>",
+            LoadOptions.PreserveWhitespace);
+        var documentationProvider = new XmlDocumentationProvider(
+            new StubXmlDocumentationFileResolver(document),
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(typeof(Point));
+
+        // assert
+        Assert.Equal(
+            "Intro paragraph.\n\nhttps://example.com/docs",
+            description);
+    }
+
+    [Fact]
+    public void GetDescription_Should_KeepEmptyLine_When_ParaIsFollowedByCodeWithEmptyLine()
+    {
+        // arrange
+        var document = XDocument.Parse(
+            "<doc><members><member name=\"T:System.Drawing.Point\">"
+            + "<summary>"
+            + "<para>\n      Example usage.\n    </para>"
+            + "<code>\n      first line\n\n      second line\n    </code>"
+            + "</summary>"
+            + "</member></members></doc>",
+            LoadOptions.PreserveWhitespace);
+        var documentationProvider = new XmlDocumentationProvider(
+            new StubXmlDocumentationFileResolver(document),
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(typeof(Point));
+
+        // assert
+        Assert.Equal(
+            "Example usage.\n\nfirst line\n\nsecond line",
+            description);
+    }
+
+    [Fact]
+    public void GetDescription_Should_TreatShorterIndentedLineAsEmpty_When_CodeHasShorterIndentedBlankLine()
+    {
+        // arrange
+        // The blank line below is indented with 4 spaces, one less than the 8-space
+        // indentation of the surrounding code lines, mirroring what the C# compiler emits
+        // for a blank line inside a <code> block.
+        var document = XDocument.Parse(
+            "<doc><members><member name=\"T:System.Drawing.Point\">"
+            + "<summary>"
+            + "<code>\n        line one\n    \n        line two\n    </code>"
+            + "</summary>"
+            + "</member></members></doc>",
+            LoadOptions.PreserveWhitespace);
+        var documentationProvider = new XmlDocumentationProvider(
+            new StubXmlDocumentationFileResolver(document),
+            new NoOpStringBuilderPool());
+
+        // act
+        var description = documentationProvider.GetDescription(typeof(Point));
+
+        // assert
+        Assert.Equal(
+            "line one\n\nline two",
+            description);
+    }
+
     private static XDocument CreatePointDocumentation(string description) =>
         XDocument.Parse(
             $"""

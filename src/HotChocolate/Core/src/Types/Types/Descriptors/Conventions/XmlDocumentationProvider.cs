@@ -17,6 +17,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     private const string Cref = "cref";
     private const string Href = "href";
     private const string Code = "code";
+    private const string Para = "para";
     private const string Paramref = "paramref";
     private const string Name = "name";
     private static readonly char[] CrefTrimChars = ['!', ':', ' '];
@@ -167,7 +168,167 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
             return;
         }
 
+        if (HasBlockContent(element))
+        {
+            AppendBlocks(element, description);
+            return;
+        }
+
+        AppendInline(element.Nodes(), description);
+    }
+
+    private static bool HasBlockContent(XElement element)
+    {
         foreach (var node in element.Nodes())
+        {
+            if (node is XElement childElement
+                && (childElement.Name == Para || childElement.Name == Code))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Renders a description that contains block-level elements (<para>, <code>).
+    // Each block is normalized independently and consecutive blocks are joined by a single
+    // blank line so that source indentation and stray whitespace never leak into the output.
+    private static void AppendBlocks(
+        XElement element,
+        StringBuilder description)
+    {
+        var appendedBlock = false;
+
+        foreach (var node in element.Nodes())
+        {
+            if (node is XElement paraElement && paraElement.Name == Para)
+            {
+                var paragraph = new StringBuilder();
+                AppendInline(paraElement.Nodes(), paragraph);
+                AppendCleanedBlock(description, CleanBlockText(paragraph.ToString()), ref appendedBlock);
+                continue;
+            }
+
+            if (node is XElement codeElement && codeElement.Name == Code)
+            {
+                AppendCleanedBlock(description, CleanBlockText(codeElement.Value), ref appendedBlock);
+                continue;
+            }
+
+            if (node is XText text)
+            {
+                if (string.IsNullOrWhiteSpace(text.Value))
+                {
+                    continue;
+                }
+
+                AppendCleanedBlock(description, text.Value.Trim(), ref appendedBlock);
+                continue;
+            }
+
+            // Any other inline element mixed directly between blocks (e.g. a bare <see>).
+            AppendBlockSeparator(description, ref appendedBlock);
+            AppendInline([node], description);
+        }
+    }
+
+    private static void AppendCleanedBlock(
+        StringBuilder description,
+        string cleanedBlock,
+        ref bool appendedBlock)
+    {
+        if (cleanedBlock.Length == 0)
+        {
+            return;
+        }
+
+        AppendBlockSeparator(description, ref appendedBlock);
+        description.Append(cleanedBlock);
+    }
+
+    private static void AppendBlockSeparator(
+        StringBuilder description,
+        ref bool appendedBlock)
+    {
+        if (appendedBlock)
+        {
+            description.Append("\n\n");
+        }
+
+        appendedBlock = true;
+    }
+
+    // Strips the leading/trailing blank lines and the common indentation of a single block's
+    // raw text, while keeping relative indentation of nested lines intact. A line that is
+    // whitespace-only (regardless of how much indentation it carries) becomes an empty line
+    // instead of leaking a shorter or longer run of trailing whitespace into the description.
+    private static string CleanBlockText(string rawText)
+    {
+        if (string.IsNullOrWhiteSpace(rawText))
+        {
+            return string.Empty;
+        }
+
+        var lines = rawText.Replace("\r\n", "\n").Split('\n');
+
+        var start = 0;
+        var end = lines.Length - 1;
+
+        while (start <= end && string.IsNullOrWhiteSpace(lines[start]))
+        {
+            start++;
+        }
+
+        while (end >= start && string.IsNullOrWhiteSpace(lines[end]))
+        {
+            end--;
+        }
+
+        if (start > end)
+        {
+            return string.Empty;
+        }
+
+        var indent = CountLeadingWhiteSpace(lines[start]);
+        var builder = new StringBuilder();
+
+        for (var i = start; i <= end; i++)
+        {
+            if (i > start)
+            {
+                builder.Append('\n');
+            }
+
+            var line = lines[i];
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                continue;
+            }
+
+            var stripCount = Math.Min(indent, CountLeadingWhiteSpace(line));
+            builder.Append(line, stripCount, line.Length - stripCount);
+        }
+
+        return builder.ToString();
+    }
+
+    private static int CountLeadingWhiteSpace(string line)
+    {
+        var count = 0;
+        while (count < line.Length && (line[count] == ' ' || line[count] == '\t'))
+        {
+            count++;
+        }
+
+        return count;
+    }
+
+    private static void AppendInline(
+        IEnumerable<XNode> nodes,
+        StringBuilder description)
+    {
+        foreach (var node in nodes)
         {
             if (node is not XElement currentElement)
             {
