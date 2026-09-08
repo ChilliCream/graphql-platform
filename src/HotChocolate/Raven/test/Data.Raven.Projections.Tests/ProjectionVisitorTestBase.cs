@@ -61,6 +61,10 @@ public class ProjectionVisitorTestBase : IAsyncLifetime
             .AddSingleton(documentStore)
             .AddGraphQLServer();
 
+        // No @listSize on this schema, so pin the assumed list size ahead of
+        // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+        builder.ModifyCostOptions(o => o.DefaultListSize = 1);
+
         if (objectType is not null)
         {
             builder.AddType(objectType);

@@ -16,7 +16,8 @@ internal static class CostSchemaSnapshotBuilder
 {
     public static CostSchemaSnapshot Build(ISchemaDefinition schema, CostEngineOptions options)
     {
-        var objectTypeIndex = IndexObjectTypes(schema, out var objectTypeCount);
+        var objectTypeIndex = IndexObjectTypes(schema, out var objectTypesByIndex);
+        var objectTypeCount = objectTypesByIndex.Length;
         var typeWeights = new Dictionary<string, double>();
         var possibleTypes = new Dictionary<string, PossibleTypeSet>();
 
@@ -130,6 +131,7 @@ internal static class CostSchemaSnapshotBuilder
         return new CostSchemaSnapshot(
             options,
             objectTypeIndex,
+            objectTypesByIndex,
             possibleTypes.ToFrozenDictionary(),
             typeWeights.ToFrozenDictionary(),
             fieldWeights.ToFrozenDictionary(),
@@ -141,19 +143,21 @@ internal static class CostSchemaSnapshotBuilder
 
     private static FrozenDictionary<string, int> IndexObjectTypes(
         ISchemaDefinition schema,
-        out int objectTypeCount)
+        out IComplexTypeDefinition[] objectTypesByIndex)
     {
         var index = new Dictionary<string, int>();
+        var byIndex = new List<IComplexTypeDefinition>();
 
         foreach (var type in schema.Types)
         {
             if (type is IObjectTypeDefinition objectType)
             {
                 index.Add(objectType.Name, index.Count);
+                byIndex.Add(objectType);
             }
         }
 
-        objectTypeCount = index.Count;
+        objectTypesByIndex = [.. byIndex];
         return index.ToFrozenDictionary();
     }
 

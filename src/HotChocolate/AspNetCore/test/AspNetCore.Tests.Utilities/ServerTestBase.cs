@@ -70,8 +70,12 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                             o.EnableDefer = true;
                             o.EnableStream = true;
                         })
+                    // The StarWars types carry no @listSize, so pin the assumed list size
+                    // ahead of cost enforcement going live (R-DEFAULT-LIST-SIZE).
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddGraphQLServer("StarWars")
                     .AddStarWarsTypes()
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddGraphQLServer("evict")
                     .AddQueryType(d => d.Name("Query"))
                     .AddTypeExtension<QueryExtension>()
@@ -154,7 +158,10 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     {
                         o.EnableDefer = true;
                         o.EnableStream = true;
-                    }),
+                    })
+                // The StarWars types carry no @listSize, so pin the assumed list size
+                // ahead of cost enforcement going live (R-DEFAULT-LIST-SIZE).
+                .ModifyCostOptions(o => o.DefaultListSize = 1),
             app => app
                 .UseWebSockets()
                 .UseRouting()

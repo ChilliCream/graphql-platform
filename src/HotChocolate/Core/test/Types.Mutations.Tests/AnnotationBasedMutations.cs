@@ -447,6 +447,9 @@ public partial class AnnotationBasedMutations
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddCostAnalyzer()
+                // No @listSize on this schema, so pin the assumed list size ahead of
+                // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddMutationType<SimpleMutationPayloadOverrideWithError>()
                 .AddMutationConventions(true)
                 .ModifyOptions(o => o.StrictValidation = false)

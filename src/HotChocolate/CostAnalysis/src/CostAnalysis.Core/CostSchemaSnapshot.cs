@@ -1,4 +1,5 @@
 using System.Collections.Frozen;
+using HotChocolate.Types;
 
 namespace HotChocolate.CostAnalysis;
 
@@ -9,6 +10,7 @@ namespace HotChocolate.CostAnalysis;
 public sealed class CostSchemaSnapshot
 {
     private readonly FrozenDictionary<string, int> _objectTypeIndex;
+    private readonly IComplexTypeDefinition[] _objectTypesByIndex;
     private readonly FrozenDictionary<string, PossibleTypeSet> _possibleTypes;
     private readonly FrozenDictionary<string, double> _typeWeights;
     private readonly FrozenDictionary<FieldKey, double> _fieldWeights;
@@ -20,6 +22,7 @@ public sealed class CostSchemaSnapshot
     internal CostSchemaSnapshot(
         CostEngineOptions options,
         FrozenDictionary<string, int> objectTypeIndex,
+        IComplexTypeDefinition[] objectTypesByIndex,
         FrozenDictionary<string, PossibleTypeSet> possibleTypes,
         FrozenDictionary<string, double> typeWeights,
         FrozenDictionary<FieldKey, double> fieldWeights,
@@ -30,6 +33,7 @@ public sealed class CostSchemaSnapshot
     {
         Options = options;
         _objectTypeIndex = objectTypeIndex;
+        _objectTypesByIndex = objectTypesByIndex;
         _possibleTypes = possibleTypes;
         _typeWeights = typeWeights;
         _fieldWeights = fieldWeights;
@@ -66,6 +70,12 @@ public sealed class CostSchemaSnapshot
     }
 
     /// <summary>
+    /// Gets the number of object types in the schema's dense object-type
+    /// index, the width every <see cref="PossibleTypeSet"/> is built over.
+    /// </summary>
+    internal int ObjectTypeCount => _objectTypesByIndex.Length;
+
+    /// <summary>
     /// Gets the object type's dense index, used to address its bit in a
     /// <see cref="PossibleTypeSet"/>.
     /// </summary>
@@ -76,6 +86,31 @@ public sealed class CostSchemaSnapshot
     /// as a bitset over the snapshot's dense object-type index.
     /// </summary>
     internal PossibleTypeSet GetPossibleTypeSet(string typeName) => _possibleTypes[typeName];
+
+    /// <summary>
+    /// Gets the name of the one object type a single-member
+    /// <see cref="PossibleTypeSet"/> contains.
+    /// </summary>
+    internal string GetSingletonObjectTypeName(PossibleTypeSet singleton)
+    {
+        var enumerator = singleton.GetEnumerator();
+        enumerator.MoveNext();
+        return _objectTypesByIndex[enumerator.Current].Name;
+    }
+
+    /// <summary>
+    /// Gets the object type definition at the snapshot's dense
+    /// <paramref name="objectTypeIndex"/>.
+    /// </summary>
+    internal IComplexTypeDefinition GetObjectTypeDefinition(int objectTypeIndex)
+        => _objectTypesByIndex[objectTypeIndex];
+
+    /// <summary>
+    /// Gets the field definition <paramref name="fieldName"/> resolves to on
+    /// the object type at the snapshot's dense <paramref name="objectTypeIndex"/>.
+    /// </summary>
+    internal IOutputFieldDefinition GetFieldDefinition(int objectTypeIndex, string fieldName)
+        => _objectTypesByIndex[objectTypeIndex].Fields[fieldName];
 
     /// <summary>
     /// Gets a named type's own weight (<c>returnTypeWeight</c>): an object,

@@ -14,14 +14,15 @@ public sealed class SchemaIntegrationTests
             """
             type Query {
                 compositeField(
-                    inputArg: Input @cost(weight: "1")      # ARGUMENT_DEFINITION (input type)
-                    listArg: [Scalar] @cost(weight: "1")    # ARGUMENT_DEFINITION (list type)
-                    scalarArg: Scalar @cost(weight: "0")    # ARGUMENT_DEFINITION (scalar type)
-                ): CompositeType @cost(weight: "1")         # FIELD_DEFINITION (composite type)
+                    inputArg: Input @cost(weight: "1")             # ARGUMENT_DEFINITION (input type)
+                    listArg: [Scalar] @cost(weight: "0")           # ARGUMENT_DEFINITION (list of leaf type)
+                    scalarArg: Scalar @cost(weight: "0")           # ARGUMENT_DEFINITION (scalar type)
+                ): CompositeType @cost(weight: "1")                # FIELD_DEFINITION (composite type)
             }
 
-            type CompositeType @cost(weight: "1") {         # OBJECT
-                listField: [ElementType] @cost(weight: "1") # FIELD_DEFINITION (list type)
+            type CompositeType @cost(weight: "1") {                # OBJECT
+                listField: [ElementType] @cost(weight: "1")        # FIELD_DEFINITION (list of composite type)
+                listOfScalarsField: [Scalar] @cost(weight: "1")    # FIELD_DEFINITION (list of leaf type)
             }
 
             type ElementType {
@@ -30,7 +31,7 @@ public sealed class SchemaIntegrationTests
 
             input Input {
                 inputField: Input @cost(weight: "1")        # INPUT_FIELD_DEFINITION (input type)
-                listField: [Scalar] @cost(weight: "1")      # INPUT_FIELD_DEFINITION (list type)
+                listField: [Scalar] @cost(weight: "0")      # INPUT_FIELD_DEFINITION (list of leaf type)
                 scalarField: Scalar @cost(weight: "0")      # INPUT_FIELD_DEFINITION (scalar type)
             }
 
@@ -54,14 +55,15 @@ public sealed class SchemaIntegrationTests
             """
             type Query {
                 compositeField(
-                    inputArg: Input @cost(weight: "0")      # ARGUMENT_DEFINITION (input type)
-                    listArg: [Scalar] @cost(weight: "0")    # ARGUMENT_DEFINITION (list type)
-                    scalarArg: Scalar @cost(weight: "1")    # ARGUMENT_DEFINITION (scalar type)
-                ): CompositeType @cost(weight: "0")         # FIELD_DEFINITION (composite type)
+                    inputArg: Input @cost(weight: "0")             # ARGUMENT_DEFINITION (input type)
+                    listArg: [Scalar] @cost(weight: "1")           # ARGUMENT_DEFINITION (list of leaf type)
+                    scalarArg: Scalar @cost(weight: "1")           # ARGUMENT_DEFINITION (scalar type)
+                ): CompositeType @cost(weight: "0")                # FIELD_DEFINITION (composite type)
             }
 
-            type CompositeType @cost(weight: "0") {         # OBJECT
-                listField: [ElementType] @cost(weight: "0") # FIELD_DEFINITION (list type)
+            type CompositeType @cost(weight: "0") {                # OBJECT
+                listField: [ElementType] @cost(weight: "0")        # FIELD_DEFINITION (list of composite type)
+                listOfScalarsField: [Scalar] @cost(weight: "2")    # FIELD_DEFINITION (list of leaf type)
             }
 
             type ElementType {
@@ -70,7 +72,7 @@ public sealed class SchemaIntegrationTests
 
             input Input {
                 inputField: Input @cost(weight: "0")        # INPUT_FIELD_DEFINITION (input type)
-                listField: [Scalar] @cost(weight: "0")      # INPUT_FIELD_DEFINITION (list type)
+                listField: [Scalar] @cost(weight: "1")      # INPUT_FIELD_DEFINITION (list of leaf type)
                 scalarField: Scalar @cost(weight: "1")      # INPUT_FIELD_DEFINITION (scalar type)
             }
 
