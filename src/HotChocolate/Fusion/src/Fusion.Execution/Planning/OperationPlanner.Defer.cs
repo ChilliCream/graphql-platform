@@ -543,7 +543,14 @@ public sealed partial class OperationPlanner
 
         foreach (var (downstreamStepId, downstreamStep) in downstreamByStepId)
         {
-            foreach (var (_, requirement) in downstreamStep.Requirements)
+            // Requirements is an ImmutableDictionary keyed by string; its enumeration
+            // order is not guaranteed and varies with the process-local string hash
+            // seed. Ordering by key here keeps the order in which independent
+            // requirements are escalated to the parent scope deterministic, so the
+            // step ids assigned to the resulting cross-subgraph providers stay stable
+            // across processes.
+            foreach (var (_, requirement) in downstreamStep.Requirements.OrderBy(
+                t => t.Key, StringComparer.Ordinal))
             {
                 // A requirement must sit at or above the defer's own anchor: at the
                 // anchor itself (the common case), or at an ancestor of it (a nested
@@ -661,7 +668,11 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            foreach (var (_, requirement) in downstreamStep.Requirements)
+            // See the ordering note above: Requirements enumeration order is not
+            // guaranteed, so it is sorted by key to keep requirement routing
+            // deterministic across processes.
+            foreach (var (_, requirement) in downstreamStep.Requirements.OrderBy(
+                t => t.Key, StringComparer.Ordinal))
             {
                 if (!requirement.Path.Equals(descriptor.Path))
                 {

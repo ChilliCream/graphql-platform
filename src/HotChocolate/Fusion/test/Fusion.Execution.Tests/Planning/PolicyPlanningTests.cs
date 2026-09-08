@@ -1781,6 +1781,36 @@ public sealed class PolicyPlanningTests : FusionTestBase
     }
 
     [Fact]
+    public void CreatePlan_Should_NumberSiblingProvidersDeterministically_When_SingleLevelRequirementsOverlap()
+    {
+        // arrange
+        // repo-ctf.18: description/details.code (schema b) and code (schema d) are
+        // independent sibling providers for the same deferred fragment. Escalating
+        // their requirements to the parent scope walked an ImmutableDictionary of
+        // requirements whose enumeration order is not guaranteed and previously
+        // varied with the process-local string hash seed, swapping which of b or d
+        // received the lower step id between processes (repo-ctf.16/repo-ctf.18
+        // witness). Requirements are now ordered by key before routing, so the
+        // schema whose requirement key sorts first (details, resolved by schema b)
+        // is always escalated first and always receives the lower step id.
+        var (_, plan) = CreateSingleLevelPolicyWithOverlappingRequirementPlan();
+
+        // act
+        var policyFeedProvider = plan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(node => node.SchemaName == "b");
+        var nonPolicyFeedProvider = plan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(node => node.SchemaName == "d");
+
+        // assert
+        Assert.True(
+            policyFeedProvider.Id < nonPolicyFeedProvider.Id,
+            $"Expected schema 'b' (id={policyFeedProvider.Id}) to be numbered before "
+            + $"schema 'd' (id={nonPolicyFeedProvider.Id}) deterministically.");
+    }
+
+    [Fact]
     public void CreatePlan_Should_UsePolicyParentDependencyClosure_When_SingleLevelRequirementsOverlap()
     {
         // arrange
