@@ -40,7 +40,8 @@ internal static class ListSizeResolver
     /// </param>
     /// <param name="inheritedSizes">
     /// The sizes inherited from every possible parent object type whose
-    /// <c>sizedFields</c> names this field, empty when none do.
+    /// <c>sizedFields</c> names this field, produced per parent by
+    /// <see cref="TryResolveSizedFieldSize"/>, empty when none do.
     /// </param>
     /// <param name="slicingArguments">
     /// This field call's slicing arguments, keyed by the argument name as
@@ -123,11 +124,82 @@ internal static class ListSizeResolver
         return defaultListSize;
     }
 
+    /// <summary>
+    /// Resolves the size a field's own <c>@listSize(sizedFields:)</c>
+    /// propagates to its named child fields.
+    /// </summary>
+    /// <param name="metadata">
+    /// The field's own <c>@listSize</c> metadata, or <see langword="null"/>
+    /// when the field carries no usage. Returns <see langword="false"/> when
+    /// <see langword="null"/> or when <see cref="ListSizeMetadata.SizedFields"/>
+    /// is empty.
+    /// </param>
+    /// <param name="slicingArguments">
+    /// This field call's slicing arguments, keyed by the argument name as
+    /// declared in <see cref="ListSizeMetadata.SlicingArguments"/>. An
+    /// argument name absent from this dictionary is treated as carrying no
+    /// supplied value and no schema default.
+    /// </param>
+    /// <param name="variableValues">
+    /// Resolves a slicing argument's coerced variable value, or
+    /// <see langword="null"/> for the static bound, where a variable-bound
+    /// slicing argument reads <see cref="ListSizeMetadata.AssumedSize"/> and
+    /// is treated as absent when it has none.
+    /// </param>
+    /// <param name="size">
+    /// The resolved size, clamped to 0 when negative. Undefined when this
+    /// method returns <see langword="false"/>.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> when a size was resolved from a present
+    /// slicing argument, <see cref="ListSizeMetadata.SlicingArgumentDefaultValue"/>
+    /// or <see cref="ListSizeMetadata.AssumedSize"/>; otherwise
+    /// <see langword="false"/>.
+    /// </returns>
+    public static bool TryResolveSizedFieldSize(
+        ListSizeMetadata? metadata,
+        IReadOnlyDictionary<string, SlicingArgumentValue> slicingArguments,
+        ICostVariableValues? variableValues,
+        out double size)
+    {
+        if (metadata is null || metadata.SizedFields.Length == 0)
+        {
+            size = 0.0;
+            return false;
+        }
+
+        if (TryResolveSlicingArgumentValue(
+                metadata.SlicingArguments,
+                slicingArguments,
+                variableValues,
+                metadata.AssumedSize,
+                out var slicingValue))
+        {
+            size = Clamp0(slicingValue);
+            return true;
+        }
+
+        if (metadata.SlicingArgumentDefaultValue is { } slicingArgumentDefaultValue)
+        {
+            size = Clamp0(slicingArgumentDefaultValue);
+            return true;
+        }
+
+        if (metadata.AssumedSize is { } assumedSize)
+        {
+            size = assumedSize;
+            return true;
+        }
+
+        size = 0.0;
+        return false;
+    }
+
     private static bool TryResolveSlicingArgumentValue(
         ImmutableArray<string> slicingArgumentNames,
         IReadOnlyDictionary<string, SlicingArgumentValue> slicingArguments,
         ICostVariableValues? variableValues,
-        double staticFallback,
+        double? staticFallback,
         out double value)
     {
         var found = false;
@@ -160,12 +232,14 @@ internal static class ListSizeResolver
     /// not numeric and so suppresses that fallback (R-NULL-VARIABLE). A
     /// variable-bound slicing argument reads <paramref name="staticFallback"/>
     /// on the static path, where <paramref name="variableValues"/> is
-    /// <see langword="null"/>, instead of the schema default.
+    /// <see langword="null"/>, instead of the schema default, and is treated
+    /// as absent when <paramref name="staticFallback"/> is
+    /// <see langword="null"/>.
     /// </summary>
     private static bool TryResolveArgumentValue(
         SlicingArgumentValue argument,
         ICostVariableValues? variableValues,
-        double staticFallback,
+        double? staticFallback,
         out double value)
     {
         var effective = argument.SuppliedValue;
@@ -178,7 +252,13 @@ internal static class ListSizeResolver
         {
             if (variableValues is null)
             {
-                value = staticFallback;
+                if (staticFallback is not { } fallback)
+                {
+                    value = 0.0;
+                    return false;
+                }
+
+                value = fallback;
                 return true;
             }
 

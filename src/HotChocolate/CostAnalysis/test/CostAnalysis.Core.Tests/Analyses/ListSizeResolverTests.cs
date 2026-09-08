@@ -567,6 +567,111 @@ public class ListSizeResolverTests
         Assert.Equal(25.0, n);
     }
 
+    // -- TryResolveSizedFieldSize: the propagation half of rank 1 -------------------------------
+
+    [Fact]
+    public void TryResolveSizedFieldSize_Should_ResolveCoercedVariableSlicingArgument_When_ParentSlicesAChildList()
+    {
+        // arrange
+        var metadata = CreateMetadata(slicingArguments: ["first"], sizedFields: ["edges"]);
+        var slicingArguments = new Dictionary<string, SlicingArgumentValue>
+        {
+            ["first"] = new SlicingArgumentValue(new VariableNode("first"), SchemaDefaultValue: null)
+        };
+        var variableValues = new FakeCostVariableValues(new Dictionary<string, IValueNode?> { ["first"] = new IntValueNode(3) });
+
+        // act
+        var resolved = ListSizeResolver.TryResolveSizedFieldSize(metadata, slicingArguments, variableValues, out var size);
+
+        // assert
+        Assert.True(resolved);
+        Assert.Equal(3.0, size);
+    }
+
+    [Fact]
+    public void TryResolveSizedFieldSize_Should_ResolveLiteralSlicingArgument_When_RedirectingSizeFromTheAnnotatedList()
+    {
+        // arrange
+        var metadata = CreateMetadata(slicingArguments: ["first"], sizedFields: ["page"]);
+        var slicingArguments = new Dictionary<string, SlicingArgumentValue>
+        {
+            ["first"] = new SlicingArgumentValue(new IntValueNode(3), SchemaDefaultValue: null)
+        };
+
+        // act
+        var resolved = ListSizeResolver.TryResolveSizedFieldSize(metadata, slicingArguments, variableValues: null, out var size);
+
+        // assert
+        Assert.True(resolved);
+        Assert.Equal(3.0, size);
+    }
+
+    [Fact]
+    public void TryResolveSizedFieldSize_Should_ReturnFalse_When_NoSlicingArgumentAndNoAssumedSize()
+    {
+        // arrange
+        var metadata = CreateMetadata(slicingArguments: ["first"], sizedFields: ["items"]);
+
+        // act
+        var resolved = ListSizeResolver.TryResolveSizedFieldSize(metadata, NoSlicingArguments, variableValues: null, out var size);
+
+        // assert
+        Assert.False(resolved);
+    }
+
+    [Fact]
+    public void TryResolveSizedFieldSize_Should_UseAssumedSize_When_SlicingArgumentIsExplicitNull()
+    {
+        // arrange
+        var metadata = CreateMetadata(slicingArguments: ["first"], assumedSize: 50.0, sizedFields: ["items"]);
+        var slicingArguments = new Dictionary<string, SlicingArgumentValue>
+        {
+            ["first"] = new SlicingArgumentValue(NullValueNode.Default, new IntValueNode(4))
+        };
+
+        // act
+        var resolved = ListSizeResolver.TryResolveSizedFieldSize(metadata, slicingArguments, variableValues: null, out var size);
+
+        // assert
+        Assert.True(resolved);
+        Assert.Equal(50.0, size);
+    }
+
+    [Fact]
+    public void TryResolveSizedFieldSize_Should_ClampToZero_When_SlicingValueIsNegative()
+    {
+        // arrange
+        var metadata = CreateMetadata(slicingArguments: ["first"], sizedFields: ["items"]);
+        var slicingArguments = new Dictionary<string, SlicingArgumentValue>
+        {
+            ["first"] = new SlicingArgumentValue(new IntValueNode(-2), SchemaDefaultValue: null)
+        };
+
+        // act
+        var resolved = ListSizeResolver.TryResolveSizedFieldSize(metadata, slicingArguments, variableValues: null, out var size);
+
+        // assert
+        Assert.True(resolved);
+        Assert.Equal(0.0, size);
+    }
+
+    [Fact]
+    public void TryResolveSizedFieldSize_Should_ReturnFalse_When_SlicingArgumentIsVariableBound_And_StaticPathHasNoAssumedSize()
+    {
+        // arrange
+        var metadata = CreateMetadata(slicingArguments: ["first"], sizedFields: ["items"]);
+        var slicingArguments = new Dictionary<string, SlicingArgumentValue>
+        {
+            ["first"] = new SlicingArgumentValue(new VariableNode("n"), SchemaDefaultValue: null)
+        };
+
+        // act
+        var resolved = ListSizeResolver.TryResolveSizedFieldSize(metadata, slicingArguments, variableValues: null, out var size);
+
+        // assert
+        Assert.False(resolved);
+    }
+
     private static ListSizeMetadata CreateMetadata(
         ImmutableArray<string> slicingArguments = default,
         double? slicingArgumentDefaultValue = null,
