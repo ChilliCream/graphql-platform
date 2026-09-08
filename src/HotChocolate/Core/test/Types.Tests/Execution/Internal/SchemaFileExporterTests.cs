@@ -18,7 +18,6 @@ public class SchemaFileExporterTests : IDisposable
             .AddGraphQL()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"));
         var executor = await GetExecutorAsync(services);
-        Directory.CreateDirectory(_directory);
 
         // act
         var result = await SchemaFileExporter.Export(
@@ -64,7 +63,6 @@ public class SchemaFileExporterTests : IDisposable
             .AddGraphQL()
             .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"));
         var executor = await GetExecutorAsync(services);
-        Directory.CreateDirectory(_directory);
 
         // act
         var result = await SchemaFileExporter.Export(
@@ -96,6 +94,28 @@ public class SchemaFileExporterTests : IDisposable
               }
             }
             """ + "\n");
+    }
+
+    [Fact]
+    public async Task Export_Should_CreateDirectory_When_DirectoryDoesNotExist()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services
+            .AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"));
+        var executor = await GetExecutorAsync(services);
+
+        // act
+        var result = await SchemaFileExporter.Export(
+            System.IO.Path.Combine(_directory, "nested", "schema.graphqls"),
+            executor,
+            rewriteToSemanticNonNull: false,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(File.Exists(result.SchemaFileName));
+        Assert.True(File.Exists(result.SettingsFileName));
     }
 
     public void Dispose()
