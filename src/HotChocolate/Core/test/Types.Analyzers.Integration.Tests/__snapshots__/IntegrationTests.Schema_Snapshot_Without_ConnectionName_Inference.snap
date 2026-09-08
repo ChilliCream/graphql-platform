@@ -4,10 +4,6 @@ schema {
   subscription: Subscription
 }
 
-"""
-Contributes the covering lookup for Programme to the shared Query type through
-a by-name object type extension, kept separate from the generator-owned Query root partials.
-"""
 type Query {
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node

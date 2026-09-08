@@ -16,7 +16,9 @@ public static class InterfaceObjectDescriptorExtensions
     /// </para>
     /// </summary>
     /// <param name="descriptor">The object type descriptor.</param>
-    /// <returns>The object type descriptor with the <see cref="Composite.InterfaceObject"/> directive applied.</returns>
+    /// <returns>
+    /// The object type descriptor with the <see cref="Composite.InterfaceObject"/> directive applied.
+    /// </returns>
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="descriptor"/> is <c>null</c>.
     /// </exception>

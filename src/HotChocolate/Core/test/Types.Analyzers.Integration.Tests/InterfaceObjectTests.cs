@@ -28,7 +28,8 @@ public class InterfaceObjectTests
     }
 
     [Fact]
-    public async Task NonGeneric_Attribute_StandIn_Registered_Through_Generated_Module_Is_Printed_With_InterfaceObject_Directive()
+    public async Task
+        NonGeneric_Attribute_StandIn_Registered_Through_Generated_Module_Is_Printed_With_InterfaceObject_Directive()
     {
         // arrange
         var schema = await new ServiceCollection()

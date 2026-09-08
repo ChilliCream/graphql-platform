@@ -228,7 +228,8 @@ public class ObjectTypeInspector : ISyntaxInspector
                     if (fullName.StartsWith(InterfaceObjectAttribute, Ordinal)
                         && attributeContainingTypeSymbol.TypeArguments.Length == 1
                         && attributeContainingTypeSymbol.TypeArguments[0] is INamedTypeSymbol iot
-                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType) is INamedTypeSymbol iots)
+                        && ModelExtensions.GetDeclaredSymbol(context.SemanticModel, possibleType)
+                            is INamedTypeSymbol iots)
                     {
                         resolverTypeSyntax = possibleType;
                         resolverTypeSymbol = iots;

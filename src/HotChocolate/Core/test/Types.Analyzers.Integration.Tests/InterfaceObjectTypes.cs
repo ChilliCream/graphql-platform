@@ -35,10 +35,8 @@ public sealed class Programme2
     public required string Id { get; set; }
 }
 
-/// <summary>
-/// Contributes the covering lookup for <see cref="Programme"/> to the shared Query type through
-/// a by-name object type extension, kept separate from the generator-owned Query root partials.
-/// </summary>
+// Contributes the covering lookup for Programme to the shared Query type through a
+// by-name object type extension, kept separate from the generator-owned Query root partials.
 [ExtendObjectType(OperationTypeNames.Query)]
 public sealed class ProgrammeLookupType
 {
