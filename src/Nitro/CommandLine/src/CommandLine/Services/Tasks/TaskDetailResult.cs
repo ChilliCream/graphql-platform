@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
+
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
@@ -30,4 +32,5 @@ internal sealed record TaskDetailResult
     public required IReadOnlyList<TaskDependencyDetail> Dependencies { get; init; }
     public required IReadOnlyList<TaskDependentDetail> Dependents { get; init; }
     public required IReadOnlyList<TaskComment> Comments { get; init; }
+    public required IReadOnlyList<TakeoverReferenceResult> Takeovers { get; init; }
 }

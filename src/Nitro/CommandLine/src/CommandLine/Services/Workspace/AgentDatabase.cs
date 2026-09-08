@@ -20,7 +20,7 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 11;
+    public const int CurrentVersion = 12;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
@@ -57,7 +57,9 @@ internal sealed class AgentDatabase
     /// one-session/one-actor invariant starts from a consistent state. The
     /// v10-to-v11 upgrade adds the memory tables and carries any markdown
     /// memory store found beside the workspace into them; see
-    /// <see cref="MemoryMarkdownImport"/>. The
+    /// <see cref="MemoryMarkdownImport"/>. The v11-to-v12 upgrade adds the
+    /// takeover audit ledger tables without changing existing workspace
+    /// state. The
     /// v9-to-v10 upgrade drops the <c>pid</c> and <c>proc_start</c> columns
     /// (and <c>agent_sessions</c>' <c>process_scope</c> and
     /// <c>proc_start_legacy</c>) from all three tables that carried them:
@@ -67,7 +69,7 @@ internal sealed class AgentDatabase
     /// constraint also triggers on a surviving <c>pid</c> column and copies
     /// every row across without it.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -105,14 +107,26 @@ internal sealed class AgentDatabase
             AgentWorkspace.GetDatabasePath(workspaceDirectory),
             cancellationToken);
 
-        // Validated before anything else touches the file, including the
-        // constraint rebuild below: a database newer than this CLI
-        // understands must be rejected untouched, not partially rewritten
-        // by a rebuild built against this CLI's own idea of the table's
-        // shape.
-        var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
+        long version;
 
-        ValidateVersionForInitialize(version);
+        try
+        {
+            // Validated before anything else touches the file, including the
+            // constraint rebuild below: a database newer than this CLI
+            // understands must be rejected untouched, not partially rewritten
+            // by a rebuild built against this CLI's own idea of the table's
+            // shape.
+            version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
+
+            ValidateVersionForInitialize(version);
+
+            await ConfigureAcceptedConnectionAsync(connection, cancellationToken);
+        }
+        catch
+        {
+            await connection.DisposeAsync();
+            throw;
+        }
 
         // Must run before the main transaction below starts, and manages its
         // own: PRAGMA foreign_keys can only be toggled when there is no
@@ -158,6 +172,11 @@ internal sealed class AgentDatabase
         // CREATE TABLE IF NOT EXISTS shape covers a fresh database and every
         // upgradable version alike.
         await connection.ExecuteAsync(MemoryStoreSchema.Create, transaction: transaction);
+
+        // v12: the takeover audit ledger has no foreign keys to mutable
+        // agent, mail, or task state, so adding both tables is safe for a
+        // fresh database and every upgradable version.
+        await connection.ExecuteAsync(TakeoverLedgerSchema.Create, transaction: transaction);
 
         // Runs against every version, not just v10: the markdown store is
         // detected by its own presence on disk, and the import skips ids the
@@ -605,11 +624,21 @@ internal sealed class AgentDatabase
             AgentWorkspace.GetDatabasePath(workspaceDirectory),
             cancellationToken);
 
-        var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
+        try
+        {
+            var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
 
-        ValidateVersionForConnect(version);
+            ValidateVersionForConnect(version);
 
-        return connection;
+            await ConfigureAcceptedConnectionAsync(connection, cancellationToken);
+
+            return connection;
+        }
+        catch
+        {
+            await connection.DisposeAsync();
+            throw;
+        }
     }
 
     /// <summary>
@@ -677,9 +706,14 @@ internal sealed class AgentDatabase
         var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
 
         await connection.OpenAsync(cancellationToken);
-        await connection.ExecuteAsync(
-            "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
-
         return connection;
     }
+
+    private static Task ConfigureAcceptedConnectionAsync(
+        SqliteConnection connection,
+        CancellationToken cancellationToken)
+        => connection.ExecuteAsync(
+            new CommandDefinition(
+                "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;",
+                cancellationToken: cancellationToken));
 }

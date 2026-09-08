@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Extensions.Time.Testing;
+using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
@@ -61,10 +62,13 @@ public sealed class CodexHookHandlerTests : IDisposable
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
 
-    private CodexHookHandler CreateHandler() => new(
+    private CodexHookHandler CreateHandler() => CreateHandler(_agentRegistry);
+
+    private CodexHookHandler CreateHandler(IAgentRegistry agentRegistry) => new(
         _fileSystem,
         _timeProvider,
         _sessions,
+        agentRegistry,
         _ledger,
         _mail,
         _environmentVariables,
@@ -108,6 +112,98 @@ public sealed class CodexHookHandlerTests : IDisposable
         Assert.Equal(first.AdditionalContext, outcome.AdditionalContext);
         Assert.Contains($"Your Nitro actor name is \"{row.AgentName}\".", outcome.AdditionalContext);
         Assert.Equal(AgentSessionBindingKind.Explicit, row.BindingKind);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_UseDurableAgentRole_When_SessionRoleIsEmpty()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await _sessions.RegisterAsync(
+            CurrentGeneration(), actor: null, actorGiven: false, role: "researcher", roleGiven: true,
+            cancellationToken: cancellationToken);
+        await _sessions.SetRoleAsync(CurrentGeneration(), string.Empty, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            Your Nitro role is "researcher".
+            """);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_UseSessionRole_When_DurableAgentRoleAlsoExists()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await _sessions.RegisterAsync(
+            CurrentGeneration(), actor: null, actorGiven: false, role: "researcher", roleGiven: true,
+            cancellationToken: cancellationToken);
+        await _sessions.SetRoleAsync(CurrentGeneration(), "planner", cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            Your Nitro role is "planner".
+            """);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_OmitRole_When_SessionRoleIsEmptyAndAgentIsMissing()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var agentRegistry = new Mock<IAgentRegistry>(MockBehavior.Strict);
+        agentRegistry
+            .Setup(registry => registry.GetAsync(It.IsAny<string>(), cancellationToken))
+            .ReturnsAsync((AgentRecord?)null);
+        var handler = CreateHandler(agentRegistry.Object);
+
+        // act
+        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
+
+        // assert
+        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            """);
+    }
+
+    [Fact]
+    public async Task HandleSessionStartAsync_Should_PreserveActorContext_When_DurableRoleLookupFails()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var agentRegistry = new Mock<IAgentRegistry>(MockBehavior.Strict);
+        agentRegistry
+            .Setup(registry => registry.GetAsync(It.IsAny<string>(), cancellationToken))
+            .ThrowsAsync(new InvalidOperationException("lookup failed"));
+        var handler = CreateHandler(agentRegistry.Object);
+
+        // act
+        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
+
+        // assert
+        outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
+            """
+            Your Nitro actor name is "<actor>". Pass this name to the `--actor` option to act under this actor explicitly.
+            """);
     }
 
     [Fact]
@@ -186,6 +282,7 @@ public sealed class CodexHookHandlerTests : IDisposable
             _fileSystem,
             _timeProvider,
             _sessions,
+            _agentRegistry,
             _ledger,
             _mail,
             _environmentVariables,
@@ -249,14 +346,37 @@ public sealed class CodexHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
 
         var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        Assert.NotNull(outcome.AdditionalContext);
-        Assert.Contains("1 unread nitro message.", outcome.AdditionalContext);
-        Assert.Contains("nitro agent mail inbox --actor", outcome.AdditionalContext);
-        Assert.DoesNotContain("Your Nitro actor name", outcome.AdditionalContext);
+        outcome.AdditionalContext!
+            .Replace(actor, "<actor>")
+            .Replace(message.Id, "<message-id>")
+            .MatchInlineSnapshot(
+                """
+                You have 1 unread nitro message; 1 shown below as `nitro agent mail read --thread --output json` prints them. Reply with `nitro agent mail reply --message <id> --actor <actor> --body "..."` or ack with `nitro agent mail ack --message <id> --actor <actor>`; anything not shown is in `nitro agent mail inbox --unread --actor <actor>`.
+                {
+                  "items": [
+                    {
+                      "id": "<message-id>",
+                      "threadId": "<message-id>",
+                      "inReplyTo": null,
+                      "from": "bob",
+                      "to": [
+                        "<actor>"
+                      ],
+                      "cc": [],
+                      "subject": "status",
+                      "body": "please check",
+                      "createdAt": "2026-01-10T12:00:00+00:00",
+                      "read": false,
+                      "archived": false,
+                      "takeovers": []
+                    }
+                  ]
+                }
+                """);
     }
 
     [Fact]
@@ -347,19 +467,49 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleNotifyAsync_Should_QueueTheDigest_When_UnreadMailExistsForTheClaimedActor()
+    public async Task HandleNotifyAsync_Should_QueueTheDigestJson_When_UnreadMailExistsForTheClaimedActor()
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
-        await SendMailAsync("bob", actor, cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
 
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
 
         Assert.True(outcome.Queued);
         var call = Assert.Single(_queueClient.Calls);
         Assert.Equal(SessionId, call.ThreadId);
-        Assert.Contains("nitro agent mail inbox --actor", call.Message);
+        Assert.Contains("1 shown below as `nitro agent mail read --thread --output json` prints them.", call.Message);
+        Assert.Contains(message.Id, call.Message);
+        Assert.Contains("\"items\"", call.Message);
+    }
+
+    [Fact]
+    public async Task HandleNotifyAsync_Should_QueueTheInboxPointer_When_MailWasSeenOnThePingChannel()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        var generation = CurrentGeneration();
+        await _ledger.ReserveAsync(
+            generation.Harness,
+            generation.SessionId,
+            [message.Id],
+            AgentSessionChannel.Ping,
+            _timeProvider.GetUtcNow(),
+            cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.True(outcome.Queued);
+        var call = Assert.Single(_queueClient.Calls);
+        Assert.Equal(
+            $"You have 1 unread nitro message. Run `nitro agent mail inbox --actor {actor}`.",
+            call.Message);
     }
 
     [Fact]

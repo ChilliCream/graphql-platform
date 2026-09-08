@@ -30,6 +30,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     private readonly AgentRegistry _agentRegistry;
     private readonly AgentSessionRegistry _sessions;
     private readonly MailStore _mail;
+    private readonly SessionDeliveryLedger _ledger;
     private readonly PingLeaseStore _leases;
     private readonly FakeCodexQueueClient _queueClient;
     private readonly FakeClaudePeerClient _claudePeerClient;
@@ -52,6 +53,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName));
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
+        _ledger = new SessionDeliveryLedger(_fileSystem, _database);
         _leases = new PingLeaseStore(_fileSystem, _database);
         _queueClient = new FakeCodexQueueClient();
         _claudePeerClient = new FakeClaudePeerClient();
@@ -79,14 +81,10 @@ public sealed class PingSessionExecutorTests : IDisposable
             Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var call = Assert.Single(_queueClient.Calls);
-        Assert.Equal(ThreadId, call.ThreadId);
-        Assert.Contains("1 unread nitro message.", call.Message);
-        Assert.Contains("nitro agent mail inbox --actor", call.Message);
-        Assert.DoesNotContain(message.Id, call.Message);
+        Assert.Equal((ThreadId, message.Id, "check"), Digest(call.ThreadId, call.Message));
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
-        Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
+        Assert.Equal((AgentPingResult.Ok, AgentPingResult.Ok), (outcome.Result, row!.LastPingResult));
     }
 
     [Fact]
@@ -181,14 +179,10 @@ public sealed class PingSessionExecutorTests : IDisposable
             Harness, SessionId, Actor, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
         // assert
-        Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var call = Assert.Single(_claudePeerClient.Calls);
-                Assert.Equal(SessionId, call.SessionId);
-        Assert.Contains("1 unread nitro message.", call.Message);
-        Assert.Contains("nitro agent mail inbox --actor", call.Message);
-        Assert.DoesNotContain(message.Id, call.Message);
+        Assert.Equal((SessionId, message.Id, "check"), Digest(call.SessionId, call.Message));
         var row = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
-        Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
+        Assert.Equal((AgentPingResult.Ok, AgentPingResult.Ok), (outcome.Result, row!.LastPingResult));
     }
 
     [Fact]
@@ -371,6 +365,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
         var executor = new PingSessionExecutor(
             _mail,
+            _ledger,
             new NeverCompletingCodexQueueClient(),
             _claudePeerClient,
             _sessions,
@@ -416,7 +411,15 @@ public sealed class PingSessionExecutorTests : IDisposable
     }
 
     private PingSessionExecutor CreateExecutor()
-        => new(_mail, _queueClient, _claudePeerClient, _sessions, _leases, _timeProvider);
+        => new(_mail, _ledger, _queueClient, _claudePeerClient, _sessions, _leases, _timeProvider);
+
+    private static (string Endpoint, string Id, string Body) Digest(string endpoint, string digest)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(digest[(digest.IndexOf('\n') + 1)..]);
+        var item = document.RootElement.GetProperty("items")[0];
+
+        return (endpoint, item.GetProperty("id").GetString()!, item.GetProperty("body").GetString()!);
+    }
 
     /// <summary>
     /// A deadline generous enough that a test's own real-time transport work

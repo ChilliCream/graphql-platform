@@ -25,7 +25,7 @@ public sealed class ListAgentCommandTests : AgentCommandTestBase
               nitro agent list [options]
 
             Options:
-              --role <role>    The actor role, normalized lowercase
+              --role <role>    The actor role, normalized lowercase. Known roles: orchestrator, planner, implementer, reviewer, researcher; any other value is accepted.
               --output <json>  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help   Show help and usage information
 

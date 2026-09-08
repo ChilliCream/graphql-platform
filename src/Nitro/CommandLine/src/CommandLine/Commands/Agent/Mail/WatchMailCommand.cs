@@ -109,7 +109,7 @@ internal sealed class WatchMailCommand : Command
                 {
                     resultHolder.SetResult(
                         new ListResult<MailMessageDetailResult>(
-                            arrived.Select(m => MailMessageDetailResult.Create(m, actor)).ToArray()));
+                            arrived.Select(m => MailMessageDetailResult.Create(m, actor, [])).ToArray()));
 
                     return ExitCodes.Success;
                 }

@@ -194,6 +194,45 @@ internal interface ITaskStore
     }
 
     /// <summary>
+    /// Reassigns active tasks from one assignee to another and adds the given
+    /// comment to each reassigned task. Implementations should apply the
+    /// reassignment atomically.
+    /// </summary>
+    async Task<IReadOnlyList<string>> ReassignAsync(
+        string from,
+        string to,
+        string actor,
+        string comment,
+        CancellationToken cancellationToken)
+    {
+        if (from == to)
+        {
+            throw new ExitException("The source and target assignees must differ.");
+        }
+
+        var tasks = await QueryTasksAsync(
+            new TaskFilter { Assignee = from, IncludeAll = true, IncludeArchived = true },
+            cancellationToken);
+        var ids = tasks
+            .Where(task => task.Status is not (
+                TaskStates.Closed or TaskStates.Tombstone or TaskStates.Archived))
+            .Select(task => task.Id)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        foreach (var id in ids)
+        {
+            await UpdateTaskAsync(
+                id,
+                new TaskUpdate { Actor = actor, Assignee = to, AssigneeGiven = true },
+                cancellationToken);
+            await AddCommentAsync(id, comment, actor, cancellationToken);
+        }
+
+        return ids;
+    }
+
+    /// <summary>
     /// Closes every given task and records a closed event for each. All
     /// tasks are validated before any is written: either every task closes
     /// or none does. Throws <see cref="ExitException"/> when any task does

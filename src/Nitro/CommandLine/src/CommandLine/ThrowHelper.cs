@@ -23,4 +23,7 @@ internal static class ThrowHelper
 
     public static ExitException MutationReturnedNoData()
         => Exit("The GraphQL mutation completed without errors, but the server did not return the expected data.");
+
+    public static ArgumentOutOfRangeException NegativeLimit(int limit)
+        => new(nameof(limit), limit, "Limit must be zero or greater.");
 }

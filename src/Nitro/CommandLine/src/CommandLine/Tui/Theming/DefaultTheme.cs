@@ -51,6 +51,7 @@ internal static class DefaultTheme
         ["agents.list.role.planner"] = new Style(Color.Gold1),
         ["agents.list.role.implementer"] = new Style(Color.Green),
         ["agents.list.role.reviewer"] = new Style(Color.Orange1),
+        ["agents.list.role.researcher"] = new Style(Color.Blue),
         ["agents.list.age"] = new Style(Color.Grey58, decoration: Decoration.Dim),
         ["agents.list.implicit"] = new Style(decoration: Decoration.Dim),
         ["agents.list.presence"] = new Style(Color.Grey70),

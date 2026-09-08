@@ -535,6 +535,61 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ReassignAsync_MovesActiveTasksAndRecordsCommentsAndEvents()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using var connection = await SeedAsync(cancellationToken);
+        var originalUpdatedAt = _timeProvider.GetUtcNow();
+        await InsertTaskAsync(
+            connection, "acme-2", status: TaskStates.Open, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-1", status: TaskStates.InProgress, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-3", status: TaskStates.Closed, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-4", status: TaskStates.Archived, priority: 2, assignee: "from");
+        await InsertTaskAsync(
+            connection, "acme-5", status: TaskStates.Open, priority: 2, assignee: "unrelated");
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+
+        // act
+        var reassigned = await _store.ReassignAsync(
+            "from", "to", "actor", "Reassigned by handoff.", cancellationToken);
+        var audit = await GetReassignmentAuditAsync(
+            connection,
+            ["acme-1", "acme-2", "acme-3", "acme-4", "acme-5"],
+            originalUpdatedAt,
+            cancellationToken);
+        var repeated = await _store.ReassignAsync(
+            "from", "to", "actor", "Reassigned by handoff.", cancellationToken);
+
+        // assert
+        Assert.Equal(["acme-1", "acme-2"], reassigned);
+        Assert.Equal(
+            [
+                "acme-1|to|True|Reassigned by handoff.|assignee_changed:actor,commented:actor",
+                "acme-2|to|True|Reassigned by handoff.|assignee_changed:actor,commented:actor",
+                "acme-3|from|False||",
+                "acme-4|from|False||",
+                "acme-5|unrelated|False||"
+            ],
+            audit);
+        Assert.Empty(repeated);
+    }
+
+    [Fact]
+    public async Task ReassignAsync_SourceAndTargetAreEqual_Throws()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.ReassignAsync("same", "same", "actor", "Comment.", cancellationToken));
+    }
+
+    [Fact]
     public async Task CloseTaskAsync_AllOrNothing_ThrowsWhenAnyIsAlreadyClosed()
     {
         // arrange
@@ -1106,6 +1161,49 @@ public sealed class TaskStoreTests : IAsyncDisposable
         return types;
     }
 
+    private async Task<List<string>> GetReassignmentAuditAsync(
+        SqliteConnection connection,
+        IReadOnlyList<string> ids,
+        DateTimeOffset originalUpdatedAt,
+        CancellationToken cancellationToken)
+    {
+        var audit = new List<string>(ids.Count);
+
+        foreach (var id in ids)
+        {
+            var task = await _store.GetTaskAsync(id, cancellationToken)
+                ?? throw new InvalidOperationException($"Task '{id}' was not found.");
+            var comments = await _store.GetCommentsAsync(id, cancellationToken);
+            var events = await QueryEventActorsAsync(connection, id, cancellationToken);
+            audit.Add(
+                $"{task.Id}|{task.Assignee}|{task.UpdatedAt > originalUpdatedAt}|"
+                + $"{string.Join(",", comments.Select(comment => comment.Text))}|"
+                + string.Join(",", events));
+        }
+
+        return audit;
+    }
+
+    private static async Task<List<string>> QueryEventActorsAsync(
+        SqliteConnection connection,
+        string taskId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SELECT event_type, actor FROM events WHERE task_id = @taskId ORDER BY id";
+        command.Parameters.AddWithValue("@taskId", taskId);
+
+        var events = new List<string>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            events.Add($"{reader.GetString(0)}:{reader.GetString(1)}");
+        }
+
+        return events;
+    }
+
     private async Task<SqliteConnection> SeedAsync(CancellationToken cancellationToken)
     {
         var workspaceDirectory = AgentWorkspace.GetDirectory(_workingDirectory);
@@ -1121,19 +1219,22 @@ public sealed class TaskStoreTests : IAsyncDisposable
         int priority,
         string title = "Task",
         string type = TaskTypes.Task,
-        DateTimeOffset? closedAt = null)
+        DateTimeOffset? closedAt = null,
+        string? assignee = null)
     {
         var now = _timeProvider.GetUtcNow();
 
         return ExecuteAsync(
             connection,
             """
-            INSERT INTO tasks (id, title, status, priority, task_type, created_at, updated_at, closed_at)
-            VALUES (@id, @title, @status, @priority, @type, @now, @now, @closedAt)
+            INSERT INTO tasks (
+                id, title, status, priority, task_type, assignee, created_at, updated_at, closed_at)
+            VALUES (@id, @title, @status, @priority, @type, @assignee, @now, @now, @closedAt)
             """,
             ("@id", id), ("@title", title), ("@status", status),
             ("@priority", priority), ("@type", type), ("@now", now),
-            ("@closedAt", closedAt.HasValue ? (object)closedAt.Value : DBNull.Value));
+            ("@closedAt", closedAt.HasValue ? (object)closedAt.Value : DBNull.Value),
+            ("@assignee", assignee is null ? DBNull.Value : (object)assignee));
     }
 
     private Task InsertLabelAsync(SqliteConnection connection, string taskId, string label)
