@@ -39,8 +39,6 @@ CORPUS="$TEMP_DIR/corpus.json"
     cd "$ORACLE_DIR/.oracle/benchmarks"
     cargo build --release --locked
     target/release/graphql-static-analysis-benchmark dump "$CORPUS"
-    target/release/graphql-static-analysis-benchmark cost-endpoints \
-        > "$TEMP_DIR/oracle-cost-endpoints.csv"
 )
 
 CORPUS_BYTES="$(wc -c < "$CORPUS")"
@@ -58,7 +56,6 @@ dotnet build "$PROJECT_DIR/HotChocolate.CostAnalysis.Core.Benchmarks.csproj" \
     -maxcpucount:1
 
 mkdir -p "$RESULTS_DIR"
-cp "$TEMP_DIR/oracle-cost-endpoints.csv" "$RESULTS_DIR/oracle-cost-endpoints.csv"
 python3 "$SCRIPT_DIR/campaign.py" \
     --corpus "$CORPUS" \
     --rust-binary "$ORACLE_DIR/.oracle/benchmarks/target/release/graphql-static-analysis-benchmark" \
@@ -67,3 +64,10 @@ python3 "$SCRIPT_DIR/campaign.py" \
     --selection "$SELECTION" \
     --replicates "$REPLICATES" \
     --git-root "$REPO_ROOT"
+
+(
+    cd "$ORACLE_DIR/.oracle/benchmarks"
+    target/release/graphql-static-analysis-benchmark cost-endpoints \
+        > "$TEMP_DIR/oracle-cost-endpoints.csv"
+)
+cp "$TEMP_DIR/oracle-cost-endpoints.csv" "$RESULTS_DIR/oracle-cost-endpoints.csv"

@@ -140,6 +140,19 @@ def main() -> None:
     if arguments.replicates <= 0:
         parser.error("--replicates must be positive")
 
+    worktree_status = command_output(
+        "git",
+        "-C",
+        str(arguments.git_root),
+        "status",
+        "--porcelain",
+    )
+    if worktree_status:
+        raise RuntimeError(
+            "head-to-head measurements require a clean tracked worktree:\n"
+            f"{worktree_status}"
+        )
+
     corpus = json.loads(arguments.corpus.read_text())
     if corpus["sourceCommit"] != "fec57fd7a980b5399637fa464a9bdce0781d91dd":
         raise RuntimeError("benchmark corpus came from an unexpected oracle revision")
