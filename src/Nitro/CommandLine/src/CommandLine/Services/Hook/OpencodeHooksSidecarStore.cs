@@ -1,21 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
-
-internal interface IOpencodeHooksSidecarStore
-{
-    Task<(OpencodeHooksSidecarFile File, string Hash)> ReadWithHashAsync(CancellationToken cancellationToken);
-
-    Task<bool> WriteIfUnchangedAsync(
-        OpencodeHooksSidecarFile file,
-        string hashAtRead,
-        CancellationToken cancellationToken);
-}
 
 internal sealed class OpencodeHooksSidecarStore(
     IFileSystem fileSystem,
@@ -83,20 +72,3 @@ internal sealed class OpencodeHooksSidecarStore(
 
     private string ResolvePath() => Path.Combine(globalConfigDirectoryProvider.GetDirectory(), FileName);
 }
-
-internal sealed record OpencodeHooksSidecarFile(
-    [property: JsonPropertyName("version")] int Version,
-    [property: JsonPropertyName("files")] Dictionary<string, OpencodeHooksSidecarEntry> Files)
-{
-    public const int CurrentVersion = 1;
-
-    public static OpencodeHooksSidecarFile Empty => new(CurrentVersion, []);
-}
-
-internal sealed record OpencodeHooksSidecarEntry(
-    [property: JsonPropertyName("launchCommand")] string LaunchCommand,
-    [property: JsonPropertyName("contentHash")] string ContentHash,
-    [property: JsonPropertyName("installedAt")] DateTimeOffset InstalledAt);
-
-[JsonSerializable(typeof(OpencodeHooksSidecarFile))]
-internal sealed partial class OpencodeHooksSidecarJsonContext : JsonSerializerContext;
