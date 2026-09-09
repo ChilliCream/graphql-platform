@@ -40,6 +40,24 @@ public class CostReportingTests : FusionTestBase
         }
         """;
 
+    private const string SubscriptionSchema =
+        """
+        directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+        directive @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+
+        type Query {
+          noop: String
+        }
+
+        type Subscription {
+          items(n: Int!): [Item] @listSize(slicingArguments: ["n"])
+        }
+
+        type Item {
+          value: Int @cost(weight: "5")
+        }
+        """;
+
     private const string AcceptedBatchSchema =
         """
         directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
@@ -340,6 +358,118 @@ public class CostReportingTests : FusionTestBase
                 }
                 """
             ]);
+        DisposeResults(results);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_PreserveSubscriptionError_When_ModeIsReport()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", SubscriptionSchema);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+        var batch = new VariableBatchRequest(
+            """
+            subscription Items($n: Int!) {
+              items(n: $n) {
+                value
+              }
+            }
+            """,
+            variables:
+            [
+                new Dictionary<string, object?> { ["n"] = 1 },
+                new Dictionary<string, object?> { ["n"] = 3 }
+            ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(batch, s_endpoint)
+            {
+                OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ReportCost)
+            },
+            TestContext.Current.CancellationToken);
+        var results = await ReadResultsAsync(response);
+
+        // assert
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "Variable batching is not supported for subscriptions."
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 6,
+                      "typeCost": 2
+                    }
+                  }
+                }
+                """
+            ]);
+        Assert.Empty(gateway.Interactions);
+        DisposeResults(results);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_PreserveDeferError_When_ModeIsReport()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", Schema);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+        var batch = new VariableBatchRequest(
+            """
+            query Items($n: Int!) {
+              items(n: $n) {
+                ... @defer {
+                  value
+                }
+              }
+            }
+            """,
+            variables:
+            [
+                new Dictionary<string, object?> { ["n"] = 1 },
+                new Dictionary<string, object?> { ["n"] = 3 }
+            ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(batch, s_endpoint)
+            {
+                OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ReportCost)
+            },
+            TestContext.Current.CancellationToken);
+        var results = await ReadResultsAsync(response);
+
+        // assert
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "Variable batching is not supported with @defer."
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 6,
+                      "typeCost": 2
+                    }
+                  }
+                }
+                """
+            ]);
+        Assert.Empty(gateway.Interactions);
         DisposeResults(results);
     }
 

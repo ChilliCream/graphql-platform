@@ -43,9 +43,9 @@ internal static class CostResultHelper
 
         return result switch
         {
-            OperationResult operationResult when estimates.Length == 1
+            OperationResult operationResult
                 => AddCost(operationResult, estimates[0]),
-            ResponseStream responseStream when estimates.Length == 1
+            ResponseStream responseStream
                 => AddCost(responseStream, estimates[0]),
             OperationResultBatch batch
                 => AddCost(batch, estimates),
