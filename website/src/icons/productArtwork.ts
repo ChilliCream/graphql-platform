@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { ComponentType, CSSProperties } from "react";
 
 import { STRAWBERRY_SHAKE_ARTWORK } from "@/src/icons/StrawberryShake";
 
@@ -13,6 +13,14 @@ export interface ProductArtworkSize {
   readonly width: number;
   readonly height: number;
 }
+
+/**
+ * A product icon component, sized by the caller through {@link
+ * productArtworkStyle} instead of a `className`.
+ */
+export type ProductArtworkComponent = ComponentType<{
+  readonly style?: CSSProperties;
+}>;
 
 /**
  * Height of the tallest drink on the sheet (Strawberry Shake). It defines the

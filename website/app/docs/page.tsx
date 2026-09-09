@@ -1,15 +1,15 @@
-import type { ComponentType, CSSProperties } from "react";
 import { PRODUCTS } from "@/src/data/products";
 import { LinkCard } from "@/src/components/LinkCard";
 import { PageStructuredData } from "@/src/components/PageStructuredData";
+import { ProductArtworkIcon } from "@/src/components/ProductArtworkIcon";
 import { Typography } from "@/src/design-system/Typography";
 import { Fusion, FUSION_ARTWORK } from "@/src/icons/Fusion";
 import { HotChocolate, HOT_CHOCOLATE_ARTWORK } from "@/src/icons/HotChocolate";
 import { Mocha, MOCHA_ARTWORK } from "@/src/icons/Mocha";
 import { Nitro, NITRO_ARTWORK } from "@/src/icons/Nitro";
-import {
-  type ProductArtworkSize,
-  productArtworkStyle,
+import type {
+  ProductArtworkComponent,
+  ProductArtworkSize,
 } from "@/src/icons/productArtwork";
 import { Skills, SKILLS_ARTWORK } from "@/src/icons/Skills";
 import {
@@ -34,12 +34,12 @@ export const metadata = pageMetadata(PAGE);
  */
 const PRODUCT_ICON_SHEET_REM = 2;
 
-interface ProductArtwork {
-  readonly Icon: ComponentType<{ style?: CSSProperties }>;
+interface ProductIcon {
+  readonly Icon: ProductArtworkComponent;
   readonly artwork: ProductArtworkSize;
 }
 
-const PRODUCT_ICONS: Record<string, ProductArtwork> = {
+const PRODUCT_ICONS: Record<string, ProductIcon> = {
   hotchocolate: { Icon: HotChocolate, artwork: HOT_CHOCOLATE_ARTWORK },
   fusion: { Icon: Fusion, artwork: FUSION_ARTWORK },
   strawberryshake: {
@@ -50,21 +50,6 @@ const PRODUCT_ICONS: Record<string, ProductArtwork> = {
   mocha: { Icon: Mocha, artwork: MOCHA_ARTWORK },
   skills: { Icon: Skills, artwork: SKILLS_ARTWORK },
 };
-
-/**
- * Renders one product drink at its intrinsic aspect ratio, bottom-aligned in a
- * box of the artwork sheet's height so the bases of all six line up.
- */
-function ProductIcon({ Icon, artwork }: ProductArtwork) {
-  return (
-    <span
-      className="flex items-end"
-      style={{ height: `${PRODUCT_ICON_SHEET_REM}rem` }}
-    >
-      <Icon style={productArtworkStyle(artwork, PRODUCT_ICON_SHEET_REM)} />
-    </span>
-  );
-}
 
 export default function DocsIndex() {
   const productList = createItemListNode(
@@ -101,7 +86,14 @@ export default function DocsIndex() {
                 href={`/docs/${product.slug}`}
                 title={product.title}
                 description={product.description}
-                icon={icon ? <ProductIcon {...icon} /> : undefined}
+                icon={
+                  icon ? (
+                    <ProductArtworkIcon
+                      {...icon}
+                      slotHeightRem={PRODUCT_ICON_SHEET_REM}
+                    />
+                  ) : undefined
+                }
               />
             );
           })}
