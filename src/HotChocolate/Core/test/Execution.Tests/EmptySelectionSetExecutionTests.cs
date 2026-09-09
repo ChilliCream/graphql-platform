@@ -82,6 +82,7 @@ public sealed class EmptySelectionSetExecutionTests
                 d => d.Field("onDroid")
                     .Type<StringType>()
                     .Resolve(_ => new ValueTask<object?>("R2-D2")))
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableEmptySelectionSets = enableEmptySelectionSets)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
