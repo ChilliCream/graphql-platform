@@ -77,9 +77,7 @@ public class CostEnforcementTests : FusionTestBase
                 {
                     await next(context);
 
-                    if (HotChocolate.Execution.FusionRequestContextExtensions.TryGetCostAnalysisResult(
-                        context,
-                        out var result))
+                    if (context.TryGetCostAnalysisResult(out var result))
                     {
                         analysisResults.Enqueue(result);
                     }

@@ -1,0 +1,44 @@
+title: Fixture_Should_ReportExpectedCost_When_Validated
+request:
+  document: |
+    {
+      result {
+        ... on A {
+          a
+        }
+        ... on B {
+          b
+        }
+      }
+    }
+response:
+  body: |
+    {}
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        result: Result
+      }
+
+      type A {
+        a: Int @cost(weight: "10")
+      }
+
+      type B {
+        b: Int @cost(weight: "20")
+      }
+
+      union Result = A | B
+
+      directive @cost(weight: String!) on
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | ENUM
+        | INPUT_FIELD_DEFINITION

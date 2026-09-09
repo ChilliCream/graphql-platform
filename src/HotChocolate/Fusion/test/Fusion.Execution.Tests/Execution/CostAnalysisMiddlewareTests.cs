@@ -146,8 +146,38 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        var error = Assert.Single(result.ExpectOperationResult().Errors);
-        Assert.Equal(ErrorCodes.Execution.CostExceeded, error.Code);
+        var batch = result.ExpectOperationResultBatch();
+        batch.Results.MatchInlineSnapshots(
+            [
+                """
+                {
+                "errors": [
+                  {
+                    "message": "The maximum allowed type cost was exceeded.",
+                    "extensions": {
+                      "code": "HC0047",
+                      "typeCost": 2,
+                      "maxTypeCost": 10
+                    }
+                  }
+                ]
+                }
+                """,
+                """
+                {
+                "errors": [
+                  {
+                    "message": "The maximum allowed type cost was exceeded.",
+                    "extensions": {
+                      "code": "HC0047",
+                      "typeCost": 1001,
+                      "maxTypeCost": 10
+                    }
+                  }
+                ]
+                }
+                """
+            ]);
         Assert.Equal(2, observation.Result!.Estimates.Length);
         Assert.False(observation.Result.IsStaticBound);
         Assert.Equal(0, observation.DownstreamCalls);
@@ -281,9 +311,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     {
         await next(context);
 
-        if (HotChocolate.Execution.FusionRequestContextExtensions.TryGetCostAnalysisResult(
-            context,
-            out var result))
+        if (context.TryGetCostAnalysisResult(out var result))
         {
             observation.Result = result;
         }

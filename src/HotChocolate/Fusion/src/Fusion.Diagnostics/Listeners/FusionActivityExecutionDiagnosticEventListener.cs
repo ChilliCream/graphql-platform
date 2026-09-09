@@ -136,6 +136,33 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         enricher.EnrichValidationErrors(context, errors, activity);
     }
 
+    public override IDisposable AnalyzeOperationCost(RequestContext context)
+    {
+        if (options.SkipAnalyzeComplexity)
+        {
+            return EmptyScope;
+        }
+
+        var span = AnalyzeOperationComplexitySpan.Start(Source, context, enricher);
+
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        context.Features.Set(span);
+
+        return span;
+    }
+
+    public override void OperationCost(RequestContext context, double fieldCost, double typeCost)
+    {
+        if (context.Features.TryGet<AnalyzeOperationComplexitySpan>(out var span))
+        {
+            span.SetCost(fieldCost, typeCost);
+        }
+    }
+
     public override IDisposable PlanOperation(RequestContext context, string operationPlanId)
     {
         if (options.SkipPlanOperation)

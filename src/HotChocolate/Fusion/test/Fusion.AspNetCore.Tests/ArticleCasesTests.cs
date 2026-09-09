@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
@@ -17,13 +18,25 @@ public class ArticleCasesTests : FusionTestBase
 
     public static TheoryData<string> FixturePaths => ArticleCaseFixture.DiscoverPaths();
 
-    [Theory(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Theory]
     [MemberData(nameof(FixturePaths))]
     public async Task Fixture_Should_ReportExpectedCost_When_Validated(string path)
     {
         // arrange
         var fixture = ArticleCaseFixture.Load(path);
-        using var server = CreateSourceSchema("A", fixture.Sdl);
+        using var server = CreateSourceSchema(
+            "A",
+            builder =>
+            {
+                builder
+                    .AddDocumentFromString(fixture.Sdl)
+                    .AddResolverMocking();
+
+                if (fixture.Id.StartsWith("c5-", StringComparison.Ordinal))
+                {
+                    builder.AddType(new AnyType("Text"));
+                }
+            });
 
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
