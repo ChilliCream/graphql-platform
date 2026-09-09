@@ -128,7 +128,8 @@ public class CostEnforcementTests : FusionTestBase
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
 
         // act
-        using var response = await gateway.CreateClient().SendAsync(
+        using var client = gateway.CreateClient();
+        using var response = await client.SendAsync(
             request,
             TestContext.Current.CancellationToken);
 
