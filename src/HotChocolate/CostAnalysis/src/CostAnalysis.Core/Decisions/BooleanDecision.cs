@@ -42,7 +42,7 @@ internal abstract class BooleanDecision<T>
             LeafDecision<T> leaf => leaf.Value,
             SplitDecision<T> split => (values(split.Variable) ? split.WhenTrue : split.WhenFalse).Resolve(values),
             JoinDecision<T> joined => joined.JoinOperation(joined.Left.Resolve(values), joined.Right.Resolve(values)),
-            _ => throw new NotSupportedException()
+            _ => throw ThrowHelper.UnexpectedDecision()
         };
 
     /// <summary>
@@ -56,7 +56,7 @@ internal abstract class BooleanDecision<T>
             LeafDecision<T> leaf => leaf.Value,
             SplitDecision<T> split => join(split.WhenFalse.FoldWithJoin(join), split.WhenTrue.FoldWithJoin(join)),
             JoinDecision<T> joined => join(joined.Left.FoldWithJoin(join), joined.Right.FoldWithJoin(join)),
-            _ => throw new NotSupportedException()
+            _ => throw ThrowHelper.UnexpectedDecision()
         };
 
     /// <summary>
@@ -134,7 +134,7 @@ internal abstract class BooleanDecision<T>
                 Restrict(joined.Left, variable, value),
                 Restrict(joined.Right, variable, value),
                 joined.JoinOperation),
-            _ => throw new NotSupportedException()
+            _ => throw ThrowHelper.UnexpectedDecision()
         };
 
     private static bool TryCollapseResolved(BooleanDecision<T> node, out T value)
