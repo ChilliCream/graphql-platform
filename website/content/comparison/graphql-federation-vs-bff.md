@@ -1,0 +1,57 @@
+---
+title: "GraphQL Federation vs BFF (backend for frontend)"
+description: "A backend for frontend hand-aggregates services for one client. GraphQL Federation composes one schema for all of them. When each is the better buy."
+date: "2026-09-08"
+tags: ["graphql-federation", "comparison", "bff"]
+author: Rafael Staib
+authorUrl: https://github.com/rstaib
+authorImageUrl: https://avatars0.githubusercontent.com/u/4325318?s=100&v=4
+---
+
+Both approaches exist because clients rarely want data in the shape the services hold it. A backend for frontend solves that once per client, in a service that team writes; GraphQL Federation solves it once for every client, in a schema the teams that own the data publish.
+
+The question is not which is better in the abstract. It is how many clients need the same data assembled, and who you want doing the assembling.
+
+# What a backend for frontend is
+
+A backend for frontend is a service one client team builds and owns. Its only job is to call the services that team needs, join what comes back, and shape it for that client's screens: one response per screen, in the shape the screen wants, over one round trip. Nothing else calls it, so it can be exactly as opinionated as its client is.
+
+That focus is the point, and it is why the pattern works. A backend for frontend is the right answer when one client's needs are unusual enough that no other client would want the same aggregation, and it is easiest to justify when a single team owns both the client and the backend. The two ship together, the contract between them never has to be negotiated with anyone, and the work the screens need that no schema should do — holding a session, calling a payment provider, driving a multi-step flow — lives in a place that belongs to that team alone.
+
+# What it costs once there are more clients
+
+The bill arrives with the second and third client. Each one gets a backend of its own to build, secure, monitor, and keep on a supported runtime, and each of those backends re-implements the same joins over the same services. When a service changes a field, every backend for frontend that reads it changes too — and the client teams, not the team that owns the data, do that work.
+
+Because the aggregation logic is duplicated rather than shared, it also drifts. Two clients that ought to compute a total, resolve a permission, or page a list the same way end up doing it slightly differently, and the difference surfaces as a bug report against the data rather than against the client that got it wrong.
+
+# How GraphQL Federation changes the picture
+
+GraphQL Federation moves the assembly behind one API instead of repeating it per client. Each team publishes a source schema for the service it owns; composition merges those source schemas into one composite schema before deploy, and fails the build when two teams describe the same field in incompatible ways; the gateway's distributed executor plans each incoming query across the subgraphs it needs, fetches from each of them, and assembles one response.
+
+Per-client shaping does not disappear. It moves into the query: a mobile screen and a web screen ask the same composite schema for different fields, so the thing that used to justify a backend per client is now a selection set rather than a service. The joins each backend for frontend used to hand-write are described once, in the schemas themselves — a type with a key (`@key`) declared in one subgraph is referenced from another, and the gateway resolves it through a lookup (`@lookup`).
+
+Nothing about this asks a client team to change stacks. Any GraphQL server, in any language, can be a subgraph, so the teams that own the data keep the servers they already run and add the keys and lookups that let their types be referenced from elsewhere.
+
+# Using both
+
+The two are not exclusive, and the hybrid is common. A backend for frontend can sit in front of the gateway: it keeps everything it does that a schema should not do — the session, the call out to a payment provider, the legacy endpoint — and gets its data from one composite schema instead of from six services. The joins leave the backend for frontend; the client-specific work stays.
+
+A backend for frontend can also become a subgraph. When it has grown data or behavior that other clients want, it publishes a source schema like any other service and its types join the composite schema, which is usually the shortest way out of a client backend that quietly turned into a second product backend. Teams arrive here from the other direction too: build a backend for frontend for the first client, and add the gateway when the second and third client ask for the same data.
+
+In practice: [running a gateway over your source schemas](/docs/fusion).
+
+# When to pick which
+
+## Pick GraphQL Federation when
+
+- Several clients need the same data assembled, and every backend for frontend would re-implement the same joins over the same services.
+- The teams that own the data should own how it is exposed, instead of client teams tracking every upstream change.
+- Clients differ in what they need but not in where it comes from: one composite schema, and each client asks for its own fields.
+- A new client should not mean one more backend to build, secure, monitor, and keep on a supported runtime.
+
+## Pick a backend for frontend when
+
+- One or two clients have needs no other client shares, so the aggregation would never be reused anyway.
+- One team owns the client and its backend, ships them together, and gains nothing from negotiating a shared contract.
+- The screens need work that does not belong in a schema: session handling, third-party calls, a multi-step flow with its own state.
+- A gateway to run and a composition pipeline to own is a price the team is not ready to pay yet.
