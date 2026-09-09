@@ -91,21 +91,21 @@ builder
     });
 ```
 
-| Property                           | Type                    | Default    | Description                                                                        |
-| ---------------------------------- | ----------------------- | ---------- | ---------------------------------------------------------------------------------- |
-| `MaxFieldCost`                     | `double`                | `1_000`    | Maximum allowed field cost.                                                        |
-| `MaxTypeCost`                      | `double`                | `1_000`    | Maximum allowed type cost.                                                         |
-| `EnforceCostLimits`                | `bool`                  | `true`     | Rejects operations that exceed a configured limit.                                 |
-| `SkipAnalyzer`                     | `bool`                  | `false`    | Bypasses cost analysis and reporting.                                              |
-| `ApplyCostDefaults`                | `bool`                  | `true`     | Applies Hot Chocolate cost metadata to the schema.                                 |
-| `ApplySlicingArgumentDefaultValue` | `bool`                  | `true`     | Writes the paging default size for argument-less evaluated requests.               |
-| `DefaultResolverCost`              | `double?`               | `10.0`     | Weight for fields without a pure resolver. `null` disables the default.            |
-| `DefaultListSize`                  | `double`                | `Infinity` | Size for lists without applicable `@listSize` metadata.                            |
-| `CostPlanCacheSize`                | `int`                   | `256`      | Maximum compiled cost plans cached per schema.                                     |
-| `MaxResponseSize`                  | `double?`               | `null`     | Maximum response-object-field count. `null` disables the check.                    |
-| `CaseBudget`                       | `int?`                  | `null`     | Exact cases evaluated per operation. `null` uses the engine default.               |
-| `Filtering`                        | `FilterCostOptions`     | See below  | Default weights for filtering arguments and operations.                            |
-| `Sorting`                          | `SortCostOptions`       | See below  | Default weights for sorting arguments and operations.                              |
+| Property                           | Type                | Default    | Description                                                             |
+| ---------------------------------- | ------------------- | ---------- | ----------------------------------------------------------------------- |
+| `MaxFieldCost`                     | `double`            | `1_000`    | Maximum allowed field cost.                                             |
+| `MaxTypeCost`                      | `double`            | `1_000`    | Maximum allowed type cost.                                              |
+| `EnforceCostLimits`                | `bool`              | `true`     | Rejects operations that exceed a configured limit.                      |
+| `SkipAnalyzer`                     | `bool`              | `false`    | Bypasses cost analysis and reporting.                                   |
+| `ApplyCostDefaults`                | `bool`              | `true`     | Applies Hot Chocolate cost metadata to the schema.                      |
+| `ApplySlicingArgumentDefaultValue` | `bool`              | `true`     | Writes the paging default size for argument-less evaluated requests.    |
+| `DefaultResolverCost`              | `double?`           | `10.0`     | Weight for fields without a pure resolver. `null` disables the default. |
+| `DefaultListSize`                  | `double`            | `Infinity` | Size for lists without applicable `@listSize` metadata.                 |
+| `CostPlanCacheSize`                | `int`               | `256`      | Maximum compiled cost plans cached per schema.                          |
+| `MaxResponseSize`                  | `double?`           | `null`     | Maximum response-object-field count. `null` disables the check.         |
+| `CaseBudget`                       | `int?`              | `null`     | Exact cases evaluated per operation. `null` uses the engine default.    |
+| `Filtering`                        | `FilterCostOptions` | See below  | Default weights for filtering arguments and operations.                 |
+| `Sorting`                          | `SortCostOptions`   | See below  | Default weights for sorting arguments and operations.                   |
 
 See [Cost Analysis](../security/cost-analysis.md#options-reference) for filtering and sorting defaults and the reporting contract.
 

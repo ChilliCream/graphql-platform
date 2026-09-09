@@ -272,19 +272,19 @@ In `report` mode, a rejected response also contains `extensions.operationCost` w
 
 ## Cost Options
 
-| Option                             | Default    | Contract                                                                        |
-| ---------------------------------- | ---------- | ------------------------------------------------------------------------------- |
-| `MaxFieldCost`                     | `1_000`    | Maximum allowed field cost.                                                     |
-| `MaxTypeCost`                      | `1_000`    | Maximum allowed type cost.                                                      |
-| `EnforceCostLimits`                | `true`     | Reject operations that exceed a configured limit.                               |
-| `SkipAnalyzer`                     | `false`    | Bypass cost analysis and reporting.                                             |
-| `ApplyCostDefaults`                | `true`     | Apply Hot Chocolate cost metadata to the schema.                                |
-| `ApplySlicingArgumentDefaultValue` | `true`     | Apply the paging default to argument-less evaluated requests.                   |
-| `DefaultResolverCost`              | `10.0`     | Weight applied to fields without a pure resolver. `null` disables the default.  |
-| `DefaultListSize`                  | `Infinity` | Size used for list fields without applicable `@listSize` metadata.              |
-| `CostPlanCacheSize`                | `256`      | Maximum compiled cost plans cached per schema.                                  |
-| `MaxResponseSize`                  | `null`     | Maximum response-object-field count. `null` disables the check and metric.      |
-| `CaseBudget`                       | `null`     | Exact cases evaluated per operation. `null` uses the engine default.            |
+| Option                             | Default    | Contract                                                                       |
+| ---------------------------------- | ---------- | ------------------------------------------------------------------------------ |
+| `MaxFieldCost`                     | `1_000`    | Maximum allowed field cost.                                                    |
+| `MaxTypeCost`                      | `1_000`    | Maximum allowed type cost.                                                     |
+| `EnforceCostLimits`                | `true`     | Reject operations that exceed a configured limit.                              |
+| `SkipAnalyzer`                     | `false`    | Bypass cost analysis and reporting.                                            |
+| `ApplyCostDefaults`                | `true`     | Apply Hot Chocolate cost metadata to the schema.                               |
+| `ApplySlicingArgumentDefaultValue` | `true`     | Apply the paging default to argument-less evaluated requests.                  |
+| `DefaultResolverCost`              | `10.0`     | Weight applied to fields without a pure resolver. `null` disables the default. |
+| `DefaultListSize`                  | `Infinity` | Size used for list fields without applicable `@listSize` metadata.             |
+| `CostPlanCacheSize`                | `256`      | Maximum compiled cost plans cached per schema.                                 |
+| `MaxResponseSize`                  | `null`     | Maximum response-object-field count. `null` disables the check and metric.     |
+| `CaseBudget`                       | `null`     | Exact cases evaluated per operation. `null` uses the engine default.           |
 
 ```csharp
 builder
