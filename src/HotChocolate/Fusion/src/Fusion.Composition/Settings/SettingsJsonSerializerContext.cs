@@ -16,7 +16,7 @@ namespace HotChocolate.Fusion;
     Converters =
     [
         typeof(JsonStringEnumConverter<DirectiveMergeBehavior>),
-        typeof(JsonStringEnumConverter<NodeResolution>),
+        typeof(NodeResolutionJsonConverter),
         typeof(JsonStringEnumConverter<ShareableFieldRuntimeTypeRouting>)
     ],
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]

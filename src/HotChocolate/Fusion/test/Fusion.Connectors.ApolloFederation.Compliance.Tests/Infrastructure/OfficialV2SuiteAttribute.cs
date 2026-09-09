@@ -5,7 +5,7 @@ public sealed class OfficialV2SuiteAttribute(string id) : Attribute
 {
     public string Id { get; } = id;
 
-    public NodeResolution NodeResolution { get; set; } = NodeResolution.Gateway;
+    public NodeResolution NodeResolution { get; set; } = NodeResolution.Router;
 
     public bool AllowNonResolvableInterfaceObjects { get; set; }
 

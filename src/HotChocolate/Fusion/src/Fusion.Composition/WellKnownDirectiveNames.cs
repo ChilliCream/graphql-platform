@@ -13,7 +13,7 @@ internal static class WellKnownDirectiveNames
     public const string FusionEnumValue = "fusion__enumValue";
     public const string FusionExecution = "fusion__execution";
     public const string FusionField = "fusion__field";
-    public const string FusionGatewayField = "fusion__gateway_field";
+    public const string FusionRouterField = "fusion__gateway_field";
     public const string FusionImplements = "fusion__implements";
     public const string FusionInaccessible = "fusion__inaccessible";
     public const string FusionInputField = "fusion__inputField";

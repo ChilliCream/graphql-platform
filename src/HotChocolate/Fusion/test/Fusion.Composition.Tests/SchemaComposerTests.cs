@@ -51,7 +51,7 @@ public sealed class SchemaComposerTests
     }
 
     [Theory]
-    [InlineData(NodeResolution.Gateway)]
+    [InlineData(NodeResolution.Router)]
     [InlineData(NodeResolution.SourceSchema)]
     public void Compose_Should_EmitNodeResolution(NodeResolution nodeResolution)
     {
@@ -82,7 +82,7 @@ public sealed class SchemaComposerTests
             directive => directive.Name.Value == "fusion__execution");
 
         executionApplication.ToString().MatchInlineSnapshot(
-            nodeResolution is NodeResolution.Gateway
+            nodeResolution is NodeResolution.Router
                 ? """
                 @fusion__execution(
                   nodeResolution: GATEWAY

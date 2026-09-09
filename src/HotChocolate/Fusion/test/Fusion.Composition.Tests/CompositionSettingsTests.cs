@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Fusion.Options;
 
 namespace HotChocolate.Fusion;
 
@@ -116,7 +117,58 @@ public sealed class CompositionSettingsTests
     }
 
     [Fact]
-    public void LegacySettings_Should_DefaultNodeResolutionToGateway()
+    public void NodeResolution_Should_SerializeRouterAsGateway_When_Serialized()
+    {
+        var settings = new CompositionSettings
+        {
+            Merger = { NodeResolution = NodeResolution.Router }
+        };
+
+        using var document = JsonSerializer.SerializeToDocument(
+            settings,
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+        var roundTripped = document.Deserialize(
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+
+        Assert.Equal(
+            "Gateway",
+            document.RootElement
+                .GetProperty("merger")
+                .GetProperty("nodeResolution")
+                .GetString());
+        Assert.Equal(NodeResolution.Router, roundTripped!.Merger.NodeResolution);
+        Assert.Equal(NodeResolution.Router, roundTripped.Merger.ToOptions().NodeResolution);
+    }
+
+    [Theory]
+    [InlineData("Gateway")]
+    [InlineData("Router")]
+    public void NodeResolution_Should_DeserializeRouterAliases_When_ReadingSettings(string value)
+    {
+        var json = $$"""
+            {
+              "merger": {
+                "nodeResolution": "{{value}}"
+              }
+            }
+            """;
+
+        var settings = JsonSerializer.Deserialize(
+            json,
+            SettingsJsonSerializerContext.Default.CompositionSettings);
+
+        Assert.Equal(NodeResolution.Router, settings!.Merger.NodeResolution);
+        Assert.Equal(NodeResolution.Router, settings.Merger.ToOptions().NodeResolution);
+    }
+
+    [Fact]
+    public void SourceSchemaMergerOptions_Should_DefaultNodeResolutionToRouter()
+    {
+        Assert.Equal(NodeResolution.Router, new SourceSchemaMergerOptions().NodeResolution);
+    }
+
+    [Fact]
+    public void LegacySettings_Should_DefaultNodeResolutionToRouter()
     {
         const string json =
             """
@@ -132,7 +184,7 @@ public sealed class CompositionSettingsTests
             SettingsJsonSerializerContext.Default.CompositionSettings);
 
         Assert.Null(settings!.Merger.NodeResolution);
-        Assert.Equal(NodeResolution.Gateway, settings.Merger.ToOptions().NodeResolution);
+        Assert.Equal(NodeResolution.Router, settings.Merger.ToOptions().NodeResolution);
         Assert.Null(settings.ApolloFederationCompatibility.ShareableFieldRuntimeTypeRouting);
         Assert.Equal(
             ShareableFieldRuntimeTypeRouting.SourceLocal,

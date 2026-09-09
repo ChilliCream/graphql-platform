@@ -29,14 +29,14 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     /// An empty or white-space value is treated as <c>null</c>.
     /// </param>
     /// <param name="isInaccessible">A value indicating whether the field is marked as inaccessible.</param>
-    /// <param name="isGatewayField">A value indicating whether the field is implemented by the gateway rather than resolved from a source schema.</param>
+    /// <param name="isRouterField">A value indicating whether the field is implemented by the router rather than resolved from a source schema.</param>
     /// <param name="arguments">The collection of arguments for this field.</param>
     public FusionOutputFieldDefinition(
         string name,
         string? description,
         string? deprecationReason,
         bool isInaccessible,
-        bool isGatewayField,
+        bool isRouterField,
         FusionInputFieldDefinitionCollection arguments)
     {
         name.EnsureGraphQLName();
@@ -59,9 +59,9 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
             flags |= FieldDefinitionFlags.Inaccessible;
         }
 
-        if (isGatewayField)
+        if (isRouterField)
         {
-            flags |= FieldDefinitionFlags.GatewayField;
+            flags |= FieldDefinitionFlags.RouterField;
         }
 
         _flags = flags;
@@ -130,10 +130,10 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
     public bool IsInaccessible => (_flags & FieldDefinitionFlags.Inaccessible) == FieldDefinitionFlags.Inaccessible;
 
     /// <summary>
-    /// Gets a value indicating whether this field is implemented by the gateway rather than
+    /// Gets a value indicating whether this field is implemented by the router rather than
     /// resolved from a source schema.
     /// </summary>
-    public bool IsGatewayField => (_flags & FieldDefinitionFlags.GatewayField) == FieldDefinitionFlags.GatewayField;
+    public bool IsRouterField => (_flags & FieldDefinitionFlags.RouterField) == FieldDefinitionFlags.RouterField;
 
     /// <summary>
     /// Gets the directives applied to this field.
@@ -272,6 +272,6 @@ public sealed class FusionOutputFieldDefinition : IOutputFieldDefinition, IInacc
         None = 0,
         Introspection = 1,
         Inaccessible = 2,
-        GatewayField = 4
+        RouterField = 4
     }
 }

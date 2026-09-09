@@ -2,7 +2,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types.Directives;
 
-internal static class GatewayFieldDirectiveParser
+internal static class RouterFieldDirectiveParser
 {
     public static bool Parse(IReadOnlyList<DirectiveNode> directiveNodes)
     {
@@ -13,7 +13,7 @@ internal static class GatewayFieldDirectiveParser
 
         for (var i = 0; i < directiveNodes.Count; i++)
         {
-            if (directiveNodes[i].Name.Value.Equals(FusionBuiltIns.GatewayField))
+            if (directiveNodes[i].Name.Value.Equals(FusionBuiltIns.RouterField))
             {
                 return true;
             }

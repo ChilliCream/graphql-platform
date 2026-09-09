@@ -22,7 +22,7 @@ internal static class FusionBuiltIns
     public const string EnumValue = "fusion__enumValue";
     public const string Execution = "fusion__execution";
     public const string Inaccessible = "fusion__inaccessible";
-    public const string GatewayField = "fusion__gateway_field";
+    public const string RouterField = "fusion__gateway_field";
     public const string SchemaMetadata = "fusion__schema_metadata";
     public const string EventStream = "fusion__eventStream";
     public const string Tag = "fusion__tag";

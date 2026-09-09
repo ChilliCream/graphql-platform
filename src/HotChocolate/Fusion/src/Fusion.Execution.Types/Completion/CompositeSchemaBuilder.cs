@@ -355,7 +355,7 @@ internal static class CompositeSchemaBuilder
                 null,
                 deprecationReason: null,
                 isInaccessible: false,
-                isGatewayField: false,
+                isRouterField: false,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
             sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
@@ -363,7 +363,7 @@ internal static class CompositeSchemaBuilder
                 null,
                 deprecationReason: null,
                 isInaccessible: false,
-                isGatewayField: false,
+                isRouterField: false,
                 arguments: new FusionInputFieldDefinitionCollection(
                 [
                     new FusionInputFieldDefinition(
@@ -380,7 +380,7 @@ internal static class CompositeSchemaBuilder
                 null,
                 deprecationReason: null,
                 isInaccessible: false,
-                isGatewayField: false,
+                isRouterField: false,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
             if (enableSemanticIntrospection)
@@ -390,7 +390,7 @@ internal static class CompositeSchemaBuilder
                     null,
                     deprecationReason: null,
                     isInaccessible: false,
-                    isGatewayField: false,
+                    isRouterField: false,
                     arguments: new FusionInputFieldDefinitionCollection(
                     [
                         new FusionInputFieldDefinition(
@@ -428,7 +428,7 @@ internal static class CompositeSchemaBuilder
                     null,
                     deprecationReason: null,
                     isInaccessible: false,
-                    isGatewayField: false,
+                    isRouterField: false,
                     arguments: new FusionInputFieldDefinitionCollection(
                     [
                         new FusionInputFieldDefinition(
@@ -446,14 +446,14 @@ internal static class CompositeSchemaBuilder
                 var field = fields[i];
                 var deprecationReason = DeprecatedDirectiveParser.ParseReason(field.Directives);
                 var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
-                var isGatewayField = GatewayFieldDirectiveParser.Parse(field.Directives);
+                var isRouterField = RouterFieldDirectiveParser.Parse(field.Directives);
 
                 sourceFields[fieldIndex + i] = new FusionOutputFieldDefinition(
                     field.Name.Value,
                     field.Description?.Value,
                     deprecationReason,
                     isInaccessible: isInaccessible,
-                    isGatewayField: isGatewayField,
+                    isRouterField: isRouterField,
                     CreateOutputFieldArguments(field.Arguments));
             }
         }
@@ -464,14 +464,14 @@ internal static class CompositeSchemaBuilder
                 var field = fields[i];
                 var deprecationReason = DeprecatedDirectiveParser.ParseReason(field.Directives);
                 var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
-                var isGatewayField = GatewayFieldDirectiveParser.Parse(field.Directives);
+                var isRouterField = RouterFieldDirectiveParser.Parse(field.Directives);
 
                 sourceFields[i] = new FusionOutputFieldDefinition(
                     field.Name.Value,
                     field.Description?.Value,
                     deprecationReason,
                     isInaccessible: isInaccessible,
-                    isGatewayField: isGatewayField,
+                    isRouterField: isRouterField,
                     CreateOutputFieldArguments(field.Arguments));
             }
         }
@@ -685,7 +685,7 @@ internal static class CompositeSchemaBuilder
         if (executionDirectives.Length == 0)
         {
             return new ExecutionSettings(
-                NodeResolution.Gateway,
+                NodeResolution.Router,
                 ShareableFieldRuntimeTypeRouting.SourceLocal);
         }
 
@@ -711,12 +711,12 @@ internal static class CompositeSchemaBuilder
 
         if (nodeResolutionArgument is null)
         {
-            return NodeResolution.Gateway;
+            return NodeResolution.Router;
         }
 
         return nodeResolutionArgument.Value switch
         {
-            EnumValueNode { Value: "GATEWAY" } => NodeResolution.Gateway,
+            EnumValueNode { Value: "GATEWAY" } => NodeResolution.Router,
             EnumValueNode { Value: "SOURCE_SCHEMA" } => NodeResolution.SourceSchema,
             _ => throw new InvalidOperationException(
                 "The fusion__execution nodeResolution argument must be GATEWAY or SOURCE_SCHEMA.")

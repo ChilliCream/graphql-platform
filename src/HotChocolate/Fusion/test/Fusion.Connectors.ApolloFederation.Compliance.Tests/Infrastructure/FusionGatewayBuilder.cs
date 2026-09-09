@@ -42,7 +42,7 @@ internal static class FusionGatewayBuilder
         => ComposeAsync(
             capture: null,
             sourceSchemaSettings: null,
-            NodeResolution.Gateway,
+            NodeResolution.Router,
             allowNonResolvableInterfaceObjects: false,
             ShareableFieldRuntimeTypeRouting.SourceLocal,
             subgraphs);
@@ -56,7 +56,7 @@ internal static class FusionGatewayBuilder
         return ComposeAsync(
             capture: null,
             sourceSchemaSettings: null,
-            NodeResolution.Gateway,
+            NodeResolution.Router,
             compatibility.AllowNonResolvableInterfaceObjects,
             compatibility.ShareableFieldRuntimeTypeRouting,
             subgraphs);
@@ -95,7 +95,7 @@ internal static class FusionGatewayBuilder
         => ComposeAsync(
             capture,
             sourceSchemaSettings: null,
-            NodeResolution.Gateway,
+            NodeResolution.Router,
             allowNonResolvableInterfaceObjects: false,
             ShareableFieldRuntimeTypeRouting.SourceLocal,
             subgraphs);
@@ -122,7 +122,7 @@ internal static class FusionGatewayBuilder
         => ComposeAsync(
             capture,
             sourceSchemaSettings,
-            NodeResolution.Gateway,
+            NodeResolution.Router,
             allowNonResolvableInterfaceObjects: false,
             ShareableFieldRuntimeTypeRouting.SourceLocal,
             subgraphs);
@@ -176,7 +176,7 @@ internal static class FusionGatewayBuilder
             AuditFixture.GetOfficialV1SourceSchemas<TSuite>(),
             capture,
             sourceSchemaSettings: null,
-            NodeResolution.Gateway,
+            NodeResolution.Router,
             allowNonResolvableInterfaceObjects: false,
             ShareableFieldRuntimeTypeRouting.SourceLocal,
             subgraphs);
@@ -260,7 +260,7 @@ internal static class FusionGatewayBuilder
             var schemaDocument = ComposeSchema(
                 sourceSchemaTexts,
                 officialSourceSchemas,
-                nodeResolution != NodeResolution.Gateway,
+                nodeResolution != NodeResolution.Router,
                 nodeResolution,
                 allowNonResolvableInterfaceObjects,
                 shareableFieldRuntimeTypeRouting);

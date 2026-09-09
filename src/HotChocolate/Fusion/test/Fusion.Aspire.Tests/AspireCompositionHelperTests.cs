@@ -12,7 +12,7 @@ public sealed class AspireCompositionHelperTests
 
     [Theory]
     [InlineData(null)]
-    [InlineData(NodeResolution.Gateway)]
+    [InlineData(NodeResolution.Router)]
     [InlineData(NodeResolution.SourceSchema)]
     public void CreateCompositionSettings_Should_MapNodeResolution(
         NodeResolution? nodeResolution)

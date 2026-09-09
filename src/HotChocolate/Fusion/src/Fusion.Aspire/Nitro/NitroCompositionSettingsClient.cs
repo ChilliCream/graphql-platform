@@ -177,7 +177,7 @@ internal sealed class NitroCompositionSettingsClient(GraphQLHttpClient client)
         return value switch
         {
             null => null,
-            "GATEWAY" => NodeResolution.Gateway,
+            "GATEWAY" => NodeResolution.Router,
             "SOURCE_SCHEMA" => NodeResolution.SourceSchema,
             _ => throw new InvalidDataException(
                 $"Nitro returned an invalid value for '{propertyName}'.")
