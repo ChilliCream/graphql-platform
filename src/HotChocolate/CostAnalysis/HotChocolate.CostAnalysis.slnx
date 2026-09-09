@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/CostAnalysis.Core.Benchmarks/HotChocolate.CostAnalysis.Core.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/CostAnalysis.Core/HotChocolate.CostAnalysis.Core.csproj" />
     <Project Path="src/CostAnalysis/HotChocolate.CostAnalysis.csproj" />
