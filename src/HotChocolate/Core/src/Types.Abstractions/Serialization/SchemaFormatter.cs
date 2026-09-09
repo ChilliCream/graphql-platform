@@ -86,12 +86,13 @@ public static class SchemaFormatter
             var hasQuery = schema.TryGetOperationType(OperationType.Query, out var queryType);
             var hasMutation = schema.TryGetOperationType(OperationType.Mutation, out var mutationType);
             var hasSubscription = schema.TryGetOperationType(OperationType.Subscription, out var subscriptionType);
+            var printQuery = hasQuery && HasNonIntrospectionField(queryType!);
 
-            if (hasQuery || hasMutation || hasSubscription || !string.IsNullOrEmpty(schema.Description))
+            if (printQuery || hasMutation || hasSubscription)
             {
                 var operationTypes = new List<OperationTypeDefinitionNode>();
 
-                if (hasQuery)
+                if (printQuery)
                 {
                     operationTypes.Add(
                         new OperationTypeDefinitionNode(
@@ -170,6 +171,12 @@ public static class SchemaFormatter
 
                 if (definition is ITypeDefinition namedTypeDefinition)
                 {
+                    if (namedTypeDefinition is IObjectTypeDefinition objectType
+                        && IsIntrospectionOnlyQueryType(schema, objectType))
+                    {
+                        continue;
+                    }
+
                     if (!context.PrintSpecScalars
                         && namedTypeDefinition is IScalarTypeDefinition scalarType
                         && SpecScalarNames.IsSpecScalar(scalarType.Name))
@@ -195,7 +202,7 @@ public static class SchemaFormatter
             context.Schema.TryGetOperationType(OperationType.Mutation, out var mutationType);
             context.Schema.TryGetOperationType(OperationType.Subscription, out var subscriptionType);
 
-            if (queryType is not null)
+            if (queryType is not null && HasNonIntrospectionField(queryType))
             {
                 VisitType(queryType, context);
                 definitionNodes.Add((IDefinitionNode)context.Result!);
@@ -282,6 +289,16 @@ public static class SchemaFormatter
 
             context.Result = definitionNodes;
         }
+
+        private static bool IsIntrospectionOnlyQueryType(
+            ISchemaDefinition schema,
+            IObjectTypeDefinition type)
+            => schema.TryGetOperationType(OperationType.Query, out var queryType)
+                && ReferenceEquals(queryType, type)
+                && !HasNonIntrospectionField(type);
+
+        private static bool HasNonIntrospectionField(IObjectTypeDefinition type)
+            => type.Fields.Any(static field => !field.IsIntrospectionField);
 
         public override void VisitDirectiveDefinitions(
             IReadOnlyDirectiveDefinitionCollection directiveTypes,

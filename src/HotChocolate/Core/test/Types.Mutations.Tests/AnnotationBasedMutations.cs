@@ -1,5 +1,6 @@
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Tests;
 using HotChocolate.Types.Descriptors;
@@ -455,6 +456,9 @@ public partial class AnnotationBasedMutations
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
+        _ = schema.Services.GetRequiredService<CostSchemaSnapshot>();
+
+        Assert.Equal("Query", schema.QueryType.Name);
         schema.MatchSnapshot();
     }
 
