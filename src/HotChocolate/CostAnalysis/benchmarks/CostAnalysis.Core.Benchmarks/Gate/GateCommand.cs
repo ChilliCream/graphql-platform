@@ -129,13 +129,13 @@ internal static partial class GateCommand
             path,
             fallbackVariableCount);
 
-        CheckMaximum(
+        CheckStrictMaximum(
             $"adversarial exact-boundary p50 ({exactVariableCount} variables, {configuration.CaseBudget} splits)",
             exactMilliseconds,
             configuration.AdversarialMs,
             "ms",
             failures);
-        CheckMaximum(
+        CheckStrictMaximum(
             $"adversarial fallback p50 ({fallbackVariableCount} variables, {configuration.CaseBudget} splits)",
             fallbackMilliseconds,
             configuration.AdversarialMs,
@@ -259,6 +259,32 @@ internal static partial class GateCommand
             CultureInfo.InvariantCulture,
             $"{name}: {actual:F3} {unit} <= {maximum:F3} {unit}");
         if (actual <= maximum)
+        {
+            Console.WriteLine($"PASS {message}");
+        }
+        else
+        {
+            failures.Add(message);
+        }
+    }
+
+    private static void CheckStrictMaximum(
+        string name,
+        double actual,
+        double maximum,
+        string unit,
+        List<string> failures)
+    {
+        if (!double.IsFinite(actual) || actual <= 0)
+        {
+            failures.Add($"{name}: value must be greater than zero");
+            return;
+        }
+
+        var message = string.Create(
+            CultureInfo.InvariantCulture,
+            $"{name}: {actual:F3} {unit} < {maximum:F3} {unit}");
+        if (actual < maximum)
         {
             Console.WriteLine($"PASS {message}");
         }

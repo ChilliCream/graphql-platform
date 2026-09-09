@@ -7,7 +7,7 @@ The nightly gate reads `gates.json`, the BenchmarkDotNet micro reports, and the 
 | Typical cached-operation evaluate p50 | 1 us |
 | Typical cached-operation allocation | 0 B |
 | Cold compile and evaluate relative to Rust on the same endpoint and host | 2.0x |
-| Correlated-Boolean fallback p50 | 1 ms |
+| Correlated-Boolean exact-boundary and fallback p50 | < 1 ms |
 
 ## CaseBudget calibration
 
