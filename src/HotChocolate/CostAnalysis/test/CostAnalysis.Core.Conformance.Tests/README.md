@@ -22,6 +22,13 @@ the six also carry a named-fragment respelling of the same case, and C5
 also carries an already-merged control operation). Attribution for these
 fixtures is in `NOTICE.md`.
 
+`__resources__/rust-unit/` holds 32 ExactCase fixtures ported from the
+MIT-licensed `graphql-static-analysis-rs` estimator unit tests. The family
+covers default and signed weights, abstract output weights, list sizing,
+field collection, input coercion and costs, directive argument costs, and
+operation and schema defaults. Its README records the pinned source and
+the eight tests excluded from the JSON fixture form.
+
 `ConformanceTests` has one theory per fixture family. Each theory parses a
 mutable schema, coerces fixture variables through Fusion's production
 coercion helper, compiles a `CostPlan`, and compares `typeCost` and
@@ -34,10 +41,16 @@ The article family can be run on its own:
 dotnet test --project src/HotChocolate/CostAnalysis/test/CostAnalysis.Core.Conformance.Tests/HotChocolate.CostAnalysis.Core.Conformance.Tests.csproj --framework net11.0 --filter-method "*Article_Fixture_Should_MatchOracle*"
 ```
 
+The Rust unit-test family can be run on its own:
+
+```bash
+dotnet test --project src/HotChocolate/CostAnalysis/test/CostAnalysis.Core.Conformance.Tests/HotChocolate.CostAnalysis.Core.Conformance.Tests.csproj --framework net11.0 --filter-method "*RustUnit_Fixture_Should_MatchOracle*"
+```
+
 ## Regenerating the corpus
 
-The nine article fixtures here are hand-written from the article's own
-listings; there is nothing to regenerate for them. A later task vendors the
-~35 MIT-licensed `graphql-static-analysis-rs` unit-test fixtures and the
-1,980-case ExactCase cost corpus dumped from the same crate; when that
-lands, this section documents the dump command and its MIT attribution.
+The nine article fixtures are hand-written from the article's own listings.
+The 32 Rust unit fixtures are direct JSON ports of the pinned estimator
+tests and carry source-line provenance in each file. A later task vendors
+the 1,980-case ExactCase cost corpus dumped from the same crate and records
+its dump command here.
