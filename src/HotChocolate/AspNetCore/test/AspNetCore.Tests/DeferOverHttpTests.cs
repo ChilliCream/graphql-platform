@@ -11,6 +11,27 @@ namespace HotChocolate.AspNetCore;
 
 public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
+    [Fact]
+    public async Task Stream_NoStreamableAcceptHeader()
+    {
+        // arrange
+        using var server = CreateDeferServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/graphql");
+        request.Content = JsonContent.Create(new { query = "{ stream @stream }" });
+        request.Headers.Add("Accept", "application/graphql-response+json");
+
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("*/*")]
@@ -1412,6 +1433,12 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
 
         public ICharacter GetHero()
             => new Droid { Name = "R2-D2" };
+
+        public async IAsyncEnumerable<string> GetStream()
+        {
+            yield return "R2-D2";
+            await Task.CompletedTask;
+        }
     }
 
     [InterfaceType("Character")]

@@ -1,0 +1,34 @@
+"errors": [
+  {
+    "message": "The specified directive `stream` is not supported by the current schema.",
+    "locations": [
+      {
+        "line": 3,
+        "column": 15
+      }
+    ],
+    "path": [
+      "__schema",
+      "types"
+    ],
+    "extensions": {
+      "specifiedBy": "https://spec.graphql.org/September2025/#sec-Directives-Are-Defined"
+    }
+  },
+  {
+    "message": "The specified directive `stream` is not supported by the current schema.",
+    "locations": [
+      {
+        "line": 6,
+        "column": 15
+      }
+    ],
+    "path": [
+      "__schema",
+      "types"
+    ],
+    "extensions": {
+      "specifiedBy": "https://spec.graphql.org/September2025/#sec-Directives-Are-Defined"
+    }
+  }
+]

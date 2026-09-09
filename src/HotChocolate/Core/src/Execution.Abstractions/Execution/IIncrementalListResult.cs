@@ -8,5 +8,5 @@ public interface IIncrementalListResult : IIncrementalResult
     /// <summary>
     /// Gets the additional list items to append to the streamed list field.
     /// </summary>
-    IReadOnlyList<object?> Items { get; }
+    IReadOnlyList<OperationResultData> Items { get; }
 }

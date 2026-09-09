@@ -141,6 +141,57 @@ public sealed class DeferredResultFormatterTests
     }
 
     [Fact]
+    public async Task Legacy_Formats_Formatted_StreamItems_Alongside_DeferEntries()
+    {
+        // arrange
+        var initial = CreateInitialResult(
+            ParseDocument("{ product { name } }"),
+            new Dictionary<string, object?>(),
+            hasNext: true,
+            new PendingResult(1, Path.Root.Append("product"), "defer"),
+            new PendingResult(2, Path.Root.Append("products").Append(0).Append("reviews"), "stream"),
+            new PendingResult(3, Path.Root.Append("products").Append(1).Append("reviews"), "nullable"));
+        var streamError = ErrorBuilder.New().SetMessage("stream error").Build();
+        var incremental = CreateIncrementalEnvelope(
+            initial.Document!,
+            new IncrementalObjectResult(
+                1,
+                data: CreateData(new Dictionary<string, object?> { ["name"] = "Abc" })),
+            hasNext: false);
+        incremental.Incremental =
+        [
+            incremental.Incremental[0],
+            new IncrementalListResult(
+                2,
+                new OperationResultData(
+                    new object(),
+                    isValueNull: false,
+                    new FormattedJsonFormatter(isNull: false),
+                    memoryHolder: null),
+                ImmutableList.Create(streamError)),
+            new IncrementalListResult(
+                3,
+                new OperationResultData(
+                    new object(),
+                    isValueNull: true,
+                    new FormattedJsonFormatter(isNull: true),
+                    memoryHolder: null))
+        ];
+
+        // act
+        var lines = await FormatLegacyJsonLinesAsync(initial, incremental);
+
+        // assert
+        lines.MatchInlineSnapshots(
+        [
+            """{"data":{},"hasNext":true}""",
+            """
+            {"incremental":[{"data":{"name":"Abc"},"path":["product"],"label":"defer"},{"errors":[{"message":"stream error"}],"items":[{"name":"formatted"}],"path":["products",0,"reviews"],"label":"stream"},{"items":[null],"path":["products",1,"reviews"],"label":"nullable"}],"hasNext":false}
+            """
+        ]);
+    }
+
+    [Fact]
     public async Task Legacy_Merges_Parent_And_Defer_Overlap()
     {
         var document = ParseDocument(
@@ -766,5 +817,22 @@ public sealed class DeferredResultFormatterTests
 
         public void WriteDataTo(JsonWriter jsonWriter)
             => JsonValueFormatter.WriteValue(jsonWriter, value, s_options);
+    }
+
+    private sealed class FormattedJsonFormatter(bool isNull) : IRawJsonFormatter
+    {
+        public void WriteDataTo(JsonWriter jsonWriter)
+        {
+            if (isNull)
+            {
+                jsonWriter.WriteNullValue();
+                return;
+            }
+
+            jsonWriter.WriteStartObject();
+            jsonWriter.WritePropertyName("name");
+            jsonWriter.WriteStringValue("formatted");
+            jsonWriter.WriteEndObject();
+        }
     }
 }

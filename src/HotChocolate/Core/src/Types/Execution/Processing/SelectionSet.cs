@@ -25,7 +25,8 @@ public sealed class SelectionSet : ISelectionSet
         IObjectTypeDefinition type,
         Selection[] selections,
         bool isConditional,
-        bool hasDeferredSelections = false)
+        bool hasDeferredSelections = false,
+        bool hasStreamSelections = false)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -37,6 +38,11 @@ public sealed class SelectionSet : ISelectionSet
         if (hasDeferredSelections)
         {
             _flags |= Flags.HasDeferredSelections;
+        }
+
+        if (hasStreamSelections)
+        {
+            _flags |= Flags.HasStreamSelections;
         }
 
         _selections = selections;
@@ -60,7 +66,8 @@ public sealed class SelectionSet : ISelectionSet
     public bool IsConditional => (_flags & Flags.Conditional) == Flags.Conditional;
 
     /// <inheritdoc />
-    public bool HasIncrementalParts => (_flags & Flags.HasDeferredSelections) == Flags.HasDeferredSelections;
+    public bool HasIncrementalParts
+        => (_flags & (Flags.HasDeferredSelections | Flags.HasStreamSelections)) != Flags.None;
 
     /// <summary>
     /// Gets the type context of this selection set.
@@ -269,7 +276,8 @@ public sealed class SelectionSet : ISelectionSet
         None = 0,
         Conditional = 1,
         Sealed = 2,
-        HasDeferredSelections = 4
+        HasDeferredSelections = 4,
+        HasStreamSelections = 8
     }
 
     public override string ToString()

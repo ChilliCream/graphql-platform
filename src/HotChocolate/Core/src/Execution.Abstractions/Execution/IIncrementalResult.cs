@@ -17,4 +17,9 @@ public interface IIncrementalResult
     /// Only includes errors that did not bubble above the incremental result's path.
     /// </summary>
     ImmutableList<IError> Errors { get; }
+
+    /// <summary>
+    /// Gets additional information associated with this incremental result, or <c>null</c> when none is present.
+    /// </summary>
+    IReadOnlyDictionary<string, object?>? Extensions { get; }
 }

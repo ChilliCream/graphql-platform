@@ -272,7 +272,7 @@ public static class JsonValueFormatter
 
             for (var i = 0; i < pending.Count; i++)
             {
-                WriteIncrementalPendingItem(writer, pending[i]);
+                WriteIncrementalPendingItem(writer, pending[i], options);
             }
 
             writer.WriteEndArray();
@@ -313,7 +313,10 @@ public static class JsonValueFormatter
         }
     }
 
-    private static void WriteIncrementalPendingItem(JsonWriter writer, PendingResult item)
+    private static void WriteIncrementalPendingItem(
+        JsonWriter writer,
+        PendingResult item,
+        JsonSerializerOptions options)
     {
         writer.WriteStartObject();
 
@@ -328,6 +331,8 @@ public static class JsonValueFormatter
             writer.WritePropertyName(Label);
             writer.WriteStringValue(item.Label);
         }
+
+        WriteExtensions(writer, item.Extensions, options);
 
         writer.WriteEndObject();
     }
@@ -347,6 +352,8 @@ public static class JsonValueFormatter
             WriteErrors(writer, item.Errors, options);
         }
 
+        WriteExtensions(writer, item.Extensions, options);
+
         if (item is IncrementalObjectResult objectResult)
         {
             if (objectResult.SubPath is not null)
@@ -357,21 +364,21 @@ public static class JsonValueFormatter
 
             writer.WritePropertyName(Data);
 
-            if (objectResult.Data.HasValue)
-            {
-                objectResult.Data.Value.Formatter.WriteDataTo(writer);
-            }
-            else
-            {
-                writer.WriteNullValue();
-            }
+            (objectResult.Data ?? throw ThrowHelper.JsonValueFormatter_IncrementalObjectResultDataRequired())
+                .Formatter
+                .WriteDataTo(writer);
         }
-        else if (item is IIncrementalListResult)
+        else if (item is IIncrementalListResult listResult)
         {
             writer.WritePropertyName(Items);
 
-            // TODO: Write actual data
             writer.WriteStartArray();
+
+            for (var i = 0; i < listResult.Items.Count; i++)
+            {
+                listResult.Items[i].Formatter.WriteDataTo(writer);
+            }
+
             writer.WriteEndArray();
         }
         else
@@ -396,6 +403,8 @@ public static class JsonValueFormatter
         {
             WriteErrors(writer, item.Errors, options);
         }
+
+        WriteExtensions(writer, item.Extensions, options);
 
         writer.WriteEndObject();
     }
