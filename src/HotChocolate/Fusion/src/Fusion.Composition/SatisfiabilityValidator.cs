@@ -31,7 +31,7 @@ internal sealed partial class SatisfiabilityValidator
         MutableSchemaDefinition schema,
         ICompositionLog log,
         SatisfiabilityOptions? options = null,
-        NodeResolution nodeResolution = NodeResolution.Gateway,
+        NodeResolution nodeResolution = NodeResolution.Router,
         ApolloFederationCompatibilityOptions? apolloFederationCompatibility = null,
         IReadOnlySet<string>? apolloFederationSchemaNames = null)
     {
@@ -101,11 +101,11 @@ internal sealed partial class SatisfiabilityValidator
                 continue;
             }
 
-            // Fields implemented by the gateway are marked with @fusion__gateway_field and are
+            // Fields implemented by the router are marked with @fusion__gateway_field and are
             // not resolved from a single source schema, so ordinary source-schema satisfiability
             // does not apply. When such a field returns the Node interface, its resolvability is
             // validated against the per-type node lookups instead.
-            if (field.HasFusionGatewayFieldDirective())
+            if (field.HasFusionRouterFieldDirective())
             {
                 if (field.Type.NamedType() is IInterfaceTypeDefinition { Name: WellKnownTypeNames.Node } nodeType)
                 {

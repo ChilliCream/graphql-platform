@@ -6,15 +6,15 @@ using static HotChocolate.Fusion.WellKnownDirectiveNames;
 namespace HotChocolate.Fusion.Definitions;
 
 /// <summary>
-/// The <c>@fusion__gateway_field</c> directive marks a field that is implemented by the gateway
+/// The <c>@fusion__gateway_field</c> directive marks a field that is implemented by the router
 /// itself rather than resolved from an underlying source schema, such as the global object
 /// identification <c>node</c> field.
 /// </summary>
-internal sealed class FusionGatewayFieldMutableDirectiveDefinition : MutableDirectiveDefinition
+internal sealed class FusionRouterFieldMutableDirectiveDefinition : MutableDirectiveDefinition
 {
-    public FusionGatewayFieldMutableDirectiveDefinition() : base(FusionGatewayField)
+    public FusionRouterFieldMutableDirectiveDefinition() : base(FusionRouterField)
     {
-        Description = FusionGatewayFieldMutableDirectiveDefinition_Description;
+        Description = FusionRouterFieldMutableDirectiveDefinition_Description;
 
         Locations = DirectiveLocation.FieldDefinition;
     }

@@ -13,7 +13,7 @@ internal sealed class NodeResolutionOption : Option<NodeResolution?>
         AcceptOnlyFromAmong("gateway", "source-schema");
         CustomParser = result => result.Tokens.Single().Value switch
         {
-            "gateway" => NodeResolution.Gateway,
+            "gateway" => NodeResolution.Router,
             "source-schema" => NodeResolution.SourceSchema,
             _ => null
         };

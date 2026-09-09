@@ -6,23 +6,23 @@ namespace HotChocolate.Fusion.Execution.Types;
 public sealed class FusionSchemaDefinitionNodeResolutionTests
 {
     [Fact]
-    public void Create_Should_DefaultToGateway_When_ExecutionDirectiveIsAbsent()
+    public void Create_Should_DefaultToRouter_When_ExecutionDirectiveIsAbsent()
     {
         var schema = CreateSchema();
 
-        Assert.Equal(NodeResolution.Gateway, schema.NodeResolution);
+        Assert.Equal(NodeResolution.Router, schema.NodeResolution);
     }
 
     [Fact]
-    public void Create_Should_DefaultToGateway_When_ArgumentIsOmitted()
+    public void Create_Should_DefaultToRouter_When_ArgumentIsOmitted()
     {
         var schema = CreateSchema("@fusion__execution");
 
-        Assert.Equal(NodeResolution.Gateway, schema.NodeResolution);
+        Assert.Equal(NodeResolution.Router, schema.NodeResolution);
     }
 
     [Theory]
-    [InlineData("GATEWAY", NodeResolution.Gateway)]
+    [InlineData("GATEWAY", NodeResolution.Router)]
     [InlineData("SOURCE_SCHEMA", NodeResolution.SourceSchema)]
     public void Create_Should_ParseNodeResolution_When_ArgumentIsExplicit(
         string value,

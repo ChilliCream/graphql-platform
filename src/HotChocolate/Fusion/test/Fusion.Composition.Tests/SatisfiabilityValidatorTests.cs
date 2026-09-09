@@ -3077,7 +3077,7 @@ public sealed class SatisfiabilityValidatorTests
     }
 
     [Fact]
-    public void GatewayNodeResolution_Should_ErrorForUncoveredCompositePossibleType()
+    public void RouterNodeResolution_Should_ErrorForUncoveredCompositePossibleType()
     {
         var schema = CreateDistributedNodeSchema();
         var log = new CompositionLog();

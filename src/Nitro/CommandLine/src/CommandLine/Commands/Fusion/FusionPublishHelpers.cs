@@ -709,7 +709,7 @@ internal static class FusionPublishHelpers
         => nodeResolution switch
         {
             null => null,
-            CompositionNodeResolution.Gateway => NodeResolution.Gateway,
+            CompositionNodeResolution.Gateway => NodeResolution.Router,
             CompositionNodeResolution.SourceSchema => NodeResolution.SourceSchema,
             _ => throw new ArgumentOutOfRangeException(nameof(nodeResolution), nodeResolution, null)
         };

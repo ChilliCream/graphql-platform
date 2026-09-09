@@ -108,7 +108,7 @@ internal sealed class FusionSettingsSetCommand : Command
             case FusionSettingsNameArgument.NodeResolution:
                 compositionSettings.Merger.NodeResolution = settingValue switch
                 {
-                    "gateway" => NodeResolution.Gateway,
+                    "gateway" => NodeResolution.Router,
                     "source-schema" => NodeResolution.SourceSchema,
                     _ => throw new ExitException(
                         $"Expected one of the following values for setting '{settingName}': "

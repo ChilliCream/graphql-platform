@@ -328,7 +328,7 @@ internal sealed partial class SourceSchemaMerger
                 canonicalNodeField.Arguments.Add(
                     new MutableInputFieldDefinition(ArgumentNames.Id, new NonNullType(idType)));
                 canonicalNodeField.Directives.Add(
-                    new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionGatewayField]));
+                    new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionRouterField]));
 
                 queryType.Fields.Add(canonicalNodeField);
             }
@@ -1949,8 +1949,8 @@ internal sealed partial class SourceSchemaMerger
                     booleanType)
             },
             {
-                DirectiveNames.FusionGatewayField,
-                new FusionGatewayFieldMutableDirectiveDefinition()
+                DirectiveNames.FusionRouterField,
+                new FusionRouterFieldMutableDirectiveDefinition()
             },
             {
                 DirectiveNames.FusionImplements,
@@ -2036,7 +2036,7 @@ internal sealed partial class SourceSchemaMerger
                     new EnumValueNode(
                         _options.NodeResolution switch
                         {
-                            NodeResolution.Gateway => "GATEWAY",
+                            NodeResolution.Router => "GATEWAY",
                             NodeResolution.SourceSchema => "SOURCE_SCHEMA",
                             _ => throw new InvalidOperationException(
                                 $"The node resolution mode '{_options.NodeResolution}' is invalid.")
