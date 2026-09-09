@@ -268,7 +268,7 @@ export function WhatIsSection() {
             <p className="text-cc-ink-dim text-sm">
               <Link
                 className={LINK_CLASS}
-                href="/platform/graphql-federation/vs-apollo-federation"
+                href="/comparison/graphql-federation-vs-apollo-federation"
               >
                 The full comparison: the vocabulary table, the design difference
                 and how one gateway composes both
