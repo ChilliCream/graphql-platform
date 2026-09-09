@@ -656,7 +656,7 @@ internal sealed class NitroSeedCoordinator
         await archive.SetArchiveMetadataAsync(
             new ArchiveMetadata
             {
-                SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
+                SupportedRouterFormats = [WellKnownVersions.LatestRouterFormatVersion],
                 SourceSchemas = []
             },
             cancellationToken);
@@ -664,16 +664,16 @@ internal sealed class NitroSeedCoordinator
             archive,
             settings ?? new CompositionSettings(),
             cancellationToken);
-        using var gatewaySettings = JsonDocument.Parse(
+        using var routerSettings = JsonDocument.Parse(
             """
             {
               "sourceSchemas": {}
             }
             """);
-        await archive.SetGatewayConfigurationAsync(
+        await archive.SetRouterConfigurationAsync(
             "type Query { _empty: String }" + Environment.NewLine,
-            gatewaySettings,
-            WellKnownVersions.LatestGatewayFormatVersion,
+            routerSettings,
+            WellKnownVersions.LatestRouterFormatVersion,
             cancellationToken);
         await archive.CommitAsync(cancellationToken);
 
@@ -730,8 +730,8 @@ internal sealed class NitroSeedCoordinator
         try
         {
             using var archive = FusionArchive.Open(archivePath);
-            using var configuration = await archive.TryGetGatewayConfigurationAsync(
-                WellKnownVersions.LatestGatewayFormatVersion,
+            using var configuration = await archive.TryGetRouterConfigurationAsync(
+                WellKnownVersions.LatestRouterFormatVersion,
                 cancellationToken);
 
             if (configuration is not null)

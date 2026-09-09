@@ -209,8 +209,8 @@ internal sealed class FusionValidateCommand : Command
 
     private static async Task<Stream> LoadSchemaFile(FusionArchive archive, CancellationToken ct)
     {
-        var latestVersion = await archive.GetLatestSupportedGatewayFormatAsync(ct);
-        var configuration = await archive.TryGetGatewayConfigurationAsync(latestVersion, ct);
+        var latestVersion = await archive.GetLatestSupportedRouterFormatAsync(ct);
+        var configuration = await archive.TryGetRouterConfigurationAsync(latestVersion, ct);
 
         if (configuration is null)
         {

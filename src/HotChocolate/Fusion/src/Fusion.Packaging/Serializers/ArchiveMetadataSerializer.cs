@@ -15,7 +15,7 @@ internal static class ArchiveMetadataSerializer
         jsonWriter.WriteString("formatVersion", archiveMetadata.FormatVersion.ToString());
 
         jsonWriter.WriteStartArray("supportedGatewayFormats");
-        foreach (var format in archiveMetadata.SupportedGatewayFormats)
+        foreach (var format in archiveMetadata.SupportedRouterFormats)
         {
             jsonWriter.WriteStringValue(format.ToString());
         }
@@ -62,7 +62,7 @@ internal static class ArchiveMetadataSerializer
             throw new JsonException("The archive metadata must contain a sourceSchemas property.");
         }
 
-        var supportedGatewayFormats = ImmutableArray.CreateBuilder<Version>();
+        var supportedRouterFormats = ImmutableArray.CreateBuilder<Version>();
         foreach (var format in supportedGatewayFormatsProp.EnumerateArray())
         {
             if (format.ValueKind is not JsonValueKind.String)
@@ -70,7 +70,7 @@ internal static class ArchiveMetadataSerializer
                 throw new JsonException("The supportedGatewayFormats property must contain only strings.");
             }
 
-            supportedGatewayFormats.Add(new Version(format.GetString()!));
+            supportedRouterFormats.Add(new Version(format.GetString()!));
         }
 
         var sourceSchemas = ImmutableArray.CreateBuilder<string>();
@@ -87,7 +87,7 @@ internal static class ArchiveMetadataSerializer
         return new ArchiveMetadata
         {
             FormatVersion = new Version(formatVersionProp.GetString()!),
-            SupportedGatewayFormats = supportedGatewayFormats.ToImmutable(),
+            SupportedRouterFormats = supportedRouterFormats.ToImmutable(),
             SourceSchemas = sourceSchemas.ToImmutable()
         };
     }

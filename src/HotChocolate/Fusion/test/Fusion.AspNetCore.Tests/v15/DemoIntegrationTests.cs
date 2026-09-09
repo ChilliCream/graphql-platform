@@ -1159,25 +1159,25 @@ public partial class DemoIntegrationTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    public sealed class HotReloadConfiguration : IObservable<GatewayConfiguration>
+    public sealed class HotReloadConfiguration : IObservable<RouterConfiguration>
     {
-        private GatewayConfiguration _configuration;
+        private RouterConfiguration _configuration;
         private Session? _session;
 
-        public HotReloadConfiguration(GatewayConfiguration configuration)
+        public HotReloadConfiguration(RouterConfiguration configuration)
         {
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
         }
 
-        public void SetConfiguration(GatewayConfiguration configuration)
+        public void SetConfiguration(RouterConfiguration configuration)
         {
             _configuration = configuration ??
                 throw new ArgumentNullException(nameof(configuration));
             _session?.Update();
         }
 
-        public IDisposable Subscribe(IObserver<GatewayConfiguration> observer)
+        public IDisposable Subscribe(IObserver<RouterConfiguration> observer)
         {
             var session = _session = new Session(this, observer);
             session.Update();
@@ -1187,9 +1187,9 @@ public partial class DemoIntegrationTests : FusionTestBase
         private sealed class Session : IDisposable
         {
             private readonly HotReloadConfiguration _owner;
-            private readonly IObserver<GatewayConfiguration> _observer;
+            private readonly IObserver<RouterConfiguration> _observer;
 
-            public Session(HotReloadConfiguration owner, IObserver<GatewayConfiguration> observer)
+            public Session(HotReloadConfiguration owner, IObserver<RouterConfiguration> observer)
             {
                 _owner = owner;
                 _observer = observer;

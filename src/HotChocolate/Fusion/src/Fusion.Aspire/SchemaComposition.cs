@@ -1655,8 +1655,8 @@ internal class SchemaComposition(
         CancellationToken cancellationToken)
     {
         using var archive = FusionArchive.Open(archivePath);
-        using var configuration = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        using var configuration = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             cancellationToken);
 
         if (configuration is null)
@@ -1726,8 +1726,8 @@ internal class SchemaComposition(
         CancellationToken cancellationToken)
     {
         using var archive = FusionArchive.Open(archivePath);
-        using var configuration = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        using var configuration = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             cancellationToken);
 
         if (configuration is null

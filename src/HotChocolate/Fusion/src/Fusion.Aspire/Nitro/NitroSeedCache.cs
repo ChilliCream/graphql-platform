@@ -249,7 +249,7 @@ internal sealed class NitroSeedCache
         => IOPath.Combine(_cacheDirectory, key.Hash + MetadataExtension);
 
     private static string CurrentFusionVersion
-        => WellKnownVersions.LatestGatewayFormatVersion.ToString();
+        => WellKnownVersions.LatestRouterFormatVersion.ToString();
 
     private void Discard(NitroSeedKey key, ILogger logger, string reason)
     {

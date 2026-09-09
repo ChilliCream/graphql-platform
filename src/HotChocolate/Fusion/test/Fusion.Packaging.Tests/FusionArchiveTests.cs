@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -39,7 +40,7 @@ public class FusionArchiveTests : IDisposable
         var metadata = new ArchiveMetadata
         {
             FormatVersion = new Version("1.0.0"),
-            SupportedGatewayFormats = [new Version("2.0.0"), new Version("2.1.0")],
+            SupportedRouterFormats = [new Version("2.0.0"), new Version("2.1.0")],
             SourceSchemas = ["user-service", "product-service"]
         };
 
@@ -51,7 +52,7 @@ public class FusionArchiveTests : IDisposable
         var retrieved = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.NotNull(retrieved);
         Assert.Equal(metadata.FormatVersion, retrieved.FormatVersion);
-        Assert.Equal(metadata.SupportedGatewayFormats, retrieved.SupportedGatewayFormats);
+        Assert.Equal(metadata.SupportedRouterFormats, retrieved.SupportedRouterFormats);
         Assert.Equal(metadata.SourceSchemas, retrieved.SourceSchemas);
     }
 
@@ -80,25 +81,25 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task GetLatestSupportedGatewayFormat_WithValidMetadata_ReturnsHighestVersion()
+    public async Task GetLatestSupportedRouterFormat_WithValidMetadata_ReturnsHighestVersion()
     {
         // Arrange
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("1.0.0"), new Version("2.1.0"), new Version("2.0.0")],
+            SupportedRouterFormats = [new Version("1.0.0"), new Version("2.1.0"), new Version("2.0.0")],
             SourceSchemas = ["test-service"]
         };
 
         // Act & Assert
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
-        var latest = await archive.GetLatestSupportedGatewayFormatAsync(TestContext.Current.CancellationToken);
+        var latest = await archive.GetLatestSupportedRouterFormatAsync(TestContext.Current.CancellationToken);
         Assert.Equal(new Version("2.1.0"), latest);
     }
 
     [Fact]
-    public async Task GetLatestSupportedGatewayFormat_WithoutMetadata_ThrowsInvalidOperationException()
+    public async Task GetLatestSupportedRouterFormat_WithoutMetadata_ThrowsInvalidOperationException()
     {
         // Arrange
         await using var stream = CreateStream();
@@ -106,7 +107,7 @@ public class FusionArchiveTests : IDisposable
         // Act & Assert
         using var archive = FusionArchive.Create(stream);
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.GetLatestSupportedGatewayFormatAsync(TestContext.Current.CancellationToken));
+            () => archive.GetLatestSupportedRouterFormatAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -141,7 +142,7 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task SetGatewaySchema_WithStringContent_StoresCorrectly()
+    public async Task SetRouterSchema_WithStringContent_StoresCorrectly()
     {
         // Arrange
         await using var stream = CreateStream();
@@ -153,10 +154,10 @@ public class FusionArchiveTests : IDisposable
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         var metadata = CreateTestMetadata();
         await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
-        await archive.SetGatewayConfigurationAsync(schema, settings, version, TestContext.Current.CancellationToken);
+        await archive.SetRouterConfigurationAsync(schema, settings, version, TestContext.Current.CancellationToken);
 
         // Can read immediately within the same session
-        var result = await archive.TryGetGatewayConfigurationAsync(version, TestContext.Current.CancellationToken);
+        var result = await archive.TryGetRouterConfigurationAsync(version, TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal(version, result.Version);
@@ -172,7 +173,7 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task SetGatewaySchema_WithByteContent_StoresCorrectly()
+    public async Task SetRouterSchema_WithByteContent_StoresCorrectly()
     {
         // Arrange
         await using var stream = CreateStream();
@@ -184,10 +185,10 @@ public class FusionArchiveTests : IDisposable
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         var metadata = CreateTestMetadata();
         await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
-        await archive.SetGatewayConfigurationAsync(schema, settings, version, TestContext.Current.CancellationToken);
+        await archive.SetRouterConfigurationAsync(schema, settings, version, TestContext.Current.CancellationToken);
 
         // Can read immediately within the same session
-        var result = await archive.TryGetGatewayConfigurationAsync(version, TestContext.Current.CancellationToken);
+        var result = await archive.TryGetRouterConfigurationAsync(version, TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal(version, result.Version);
@@ -203,7 +204,7 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task SetGatewaySchema_WithoutMetadata_ThrowsInvalidOperationException()
+    public async Task SetRouterSchema_WithoutMetadata_ThrowsInvalidOperationException()
     {
         // Arrange
         await using var stream = CreateStream();
@@ -211,7 +212,7 @@ public class FusionArchiveTests : IDisposable
         // Act & Assert
         using var archive = FusionArchive.Create(stream);
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.SetGatewayConfigurationAsync(
+            () => archive.SetRouterConfigurationAsync(
                 "schema",
                 CreateSettingsJson(),
                 new Version("1.0.0"),
@@ -219,7 +220,7 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task SetGatewaySchema_WithUnsupportedVersion_ThrowsInvalidOperationException()
+    public async Task SetRouterSchema_WithUnsupportedVersion_ThrowsInvalidOperationException()
     {
         // Arrange
         await using var stream = CreateStream();
@@ -230,7 +231,7 @@ public class FusionArchiveTests : IDisposable
         await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            archive.SetGatewayConfigurationAsync(
+            archive.SetRouterConfigurationAsync(
                 "schema",
                 CreateSettingsJson(),
                 new Version("3.0.0"),
@@ -238,37 +239,37 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task TryGetGatewaySchema_WithCompatibleVersion_ReturnsCorrectVersion()
+    public async Task TryGetRouterSchema_WithCompatibleVersion_ReturnsCorrectVersion()
     {
         // Arrange
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("1.0.0"), new Version("2.0.0"), new Version("2.1.0")],
+            SupportedRouterFormats = [new Version("1.0.0"), new Version("2.0.0"), new Version("2.1.0")],
             SourceSchemas = ["test-service"]
         };
 
         // Act & Assert
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
-        await archive.SetGatewayConfigurationAsync(
+        await archive.SetRouterConfigurationAsync(
             "schema v1.0",
             CreateSettingsJson(),
             new Version("1.0.0"),
             TestContext.Current.CancellationToken);
-        await archive.SetGatewayConfigurationAsync(
+        await archive.SetRouterConfigurationAsync(
             "schema v2.0",
             CreateSettingsJson(),
             new Version("2.0.0"),
             TestContext.Current.CancellationToken);
-        await archive.SetGatewayConfigurationAsync(
+        await archive.SetRouterConfigurationAsync(
             "schema v2.1",
             CreateSettingsJson(),
             new Version("2.1.0"),
             TestContext.Current.CancellationToken);
 
         // Request max version 2.0.0, should get 2.0.0
-        var result = await archive.TryGetGatewayConfigurationAsync(
+        var result = await archive.TryGetRouterConfigurationAsync(
             new Version("2.0.0"),
             TestContext.Current.CancellationToken);
 
@@ -286,13 +287,13 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task TryGetGatewaySchema_WithIncompatibleVersion_ReturnsFalse()
+    public async Task TryGetRouterSchema_WithIncompatibleVersion_ReturnsFalse()
     {
         // Arrange
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("2.0.0")],
+            SupportedRouterFormats = [new Version("2.0.0")],
             SourceSchemas = ["test-service"]
         };
 
@@ -300,7 +301,7 @@ public class FusionArchiveTests : IDisposable
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
 
-        var result = await archive.TryGetGatewayConfigurationAsync(
+        var result = await archive.TryGetRouterConfigurationAsync(
             new Version("1.0.0"),
             TestContext.Current.CancellationToken);
 
@@ -473,7 +474,7 @@ public class FusionArchiveTests : IDisposable
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("2.0.0")],
+            SupportedRouterFormats = [new Version("2.0.0")],
             SourceSchemas = ["declared-schema"]
         };
 
@@ -511,7 +512,7 @@ public class FusionArchiveTests : IDisposable
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("2.0.0")],
+            SupportedRouterFormats = [new Version("2.0.0")],
             SourceSchemas = ["schema-a", "schema-b"]
         };
 
@@ -581,7 +582,7 @@ public class FusionArchiveTests : IDisposable
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         var metadata = CreateTestMetadata();
         await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
-        await archive.SetGatewayConfigurationAsync(
+        await archive.SetRouterConfigurationAsync(
             "schema",
             CreateSettingsJson(),
             new Version("2.0.0"),
@@ -634,7 +635,7 @@ public class FusionArchiveTests : IDisposable
         {
             var metadata = CreateTestMetadata();
             await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
-            await archive.SetGatewayConfigurationAsync(
+            await archive.SetRouterConfigurationAsync(
                 "schema",
                 CreateSettingsJson(),
                 new Version("2.0.0"),
@@ -720,7 +721,7 @@ public class FusionArchiveTests : IDisposable
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("2.0.0")],
+            SupportedRouterFormats = [new Version("2.0.0")],
             SourceSchemas = ["test-service"]
         };
         const string schema = "type Query { hello: String }";
@@ -729,7 +730,7 @@ public class FusionArchiveTests : IDisposable
         using (var archive = FusionArchive.Create(stream, leaveOpen: true))
         {
             await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
-            await archive.SetGatewayConfigurationAsync(
+            await archive.SetRouterConfigurationAsync(
                 schema,
                 CreateSettingsJson(),
                 new Version("2.0.0"),
@@ -744,10 +745,10 @@ public class FusionArchiveTests : IDisposable
             var retrievedMetadata = await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
             Assert.NotNull(retrievedMetadata);
             Assert.Equal(
-                metadata.SupportedGatewayFormats.ToArray(),
-                retrievedMetadata.SupportedGatewayFormats.ToArray());
+                metadata.SupportedRouterFormats.ToArray(),
+                retrievedMetadata.SupportedRouterFormats.ToArray());
 
-            var result = await readArchive.TryGetGatewayConfigurationAsync(
+            var result = await readArchive.TryGetRouterConfigurationAsync(
                 new Version("2.0.0"),
                 TestContext.Current.CancellationToken);
             Assert.NotNull(result);
@@ -768,7 +769,7 @@ public class FusionArchiveTests : IDisposable
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("2.0.0")],
+            SupportedRouterFormats = [new Version("2.0.0")],
             SourceSchemas = ["test-service"]
         };
 
@@ -776,7 +777,7 @@ public class FusionArchiveTests : IDisposable
         using (var archive = FusionArchive.Create(stream, leaveOpen: true))
         {
             await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
-            await archive.SetGatewayConfigurationAsync(
+            await archive.SetRouterConfigurationAsync(
                 "original schema",
                 CreateSettingsJson(),
                 new Version("2.0.0"),
@@ -788,7 +789,7 @@ public class FusionArchiveTests : IDisposable
         stream.Position = 0;
         using (var updateArchive = FusionArchive.Open(stream, FusionArchiveMode.Update, leaveOpen: true))
         {
-            await updateArchive.SetGatewayConfigurationAsync(
+            await updateArchive.SetRouterConfigurationAsync(
                 "modified schema",
                 CreateSettingsJson(),
                 new Version("2.0.0"),
@@ -800,7 +801,7 @@ public class FusionArchiveTests : IDisposable
         stream.Position = 0;
         using (var readArchive = FusionArchive.Open(stream, leaveOpen: true))
         {
-            var result = await readArchive.TryGetGatewayConfigurationAsync(
+            var result = await readArchive.TryGetRouterConfigurationAsync(
                 new Version("2.0.0"),
                 TestContext.Current.CancellationToken);
             Assert.NotNull(result);
@@ -826,19 +827,19 @@ public class FusionArchiveTests : IDisposable
         await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
 
         // Set schema twice within the same session
-        await archive.SetGatewayConfigurationAsync(
+        await archive.SetRouterConfigurationAsync(
             "first schema",
             CreateSettingsJson(),
             new Version("2.0.0"),
             TestContext.Current.CancellationToken);
-        await archive.SetGatewayConfigurationAsync(
+        await archive.SetRouterConfigurationAsync(
             "second schema",
             CreateSettingsJson(),
             new Version("2.0.0"),
             TestContext.Current.CancellationToken);
 
         // Should get the last value
-        var result = await archive.TryGetGatewayConfigurationAsync(
+        var result = await archive.TryGetRouterConfigurationAsync(
             new Version("2.0.0"),
             TestContext.Current.CancellationToken);
 
@@ -859,7 +860,7 @@ public class FusionArchiveTests : IDisposable
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("2.0.0")],
+            SupportedRouterFormats = [new Version("2.0.0")],
             SourceSchemas = ["zebra-service", "alpha-service", "beta-service"]
         };
 
@@ -871,20 +872,20 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task GetSupportedGatewayFormats_WithMetadata_ReturnsDescendingOrder()
+    public async Task GetSupportedRouterFormats_WithMetadata_ReturnsDescendingOrder()
     {
         // Arrange
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("1.0.0"), new Version("2.1.0"), new Version("2.0.0")],
+            SupportedRouterFormats = [new Version("1.0.0"), new Version("2.1.0"), new Version("2.0.0")],
             SourceSchemas = ["test-service"]
         };
 
         // Act & Assert
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
-        var versions = await archive.GetSupportedGatewayFormatsAsync(TestContext.Current.CancellationToken);
+        var versions = await archive.GetSupportedRouterFormatsAsync(TestContext.Current.CancellationToken);
         Assert.Equal([new Version("2.1.0"), new Version("2.0.0"), new Version("1.0.0")], versions);
     }
 
@@ -899,7 +900,7 @@ public class FusionArchiveTests : IDisposable
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("2.0.0")],
+            SupportedRouterFormats = [new Version("2.0.0")],
             SourceSchemas = [schemaName]
         };
 
@@ -924,7 +925,7 @@ public class FusionArchiveTests : IDisposable
         await using var stream = CreateStream();
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("2.0.0")],
+            SupportedRouterFormats = [new Version("2.0.0")],
             SourceSchemas = [schemaName]
         };
 
@@ -941,14 +942,14 @@ public class FusionArchiveTests : IDisposable
     }
 
     [Fact]
-    public async Task GetSupportedGatewayFormats_WithoutMetadata_ReturnsEmpty()
+    public async Task GetSupportedRouterFormats_WithoutMetadata_ReturnsEmpty()
     {
         // Arrange
         await using var stream = CreateStream();
 
         // Act & Assert
         using var archive = FusionArchive.Create(stream);
-        var formats = await archive.GetSupportedGatewayFormatsAsync(TestContext.Current.CancellationToken);
+        var formats = await archive.GetSupportedRouterFormatsAsync(TestContext.Current.CancellationToken);
         Assert.Empty(formats);
     }
 
@@ -1016,6 +1017,47 @@ public class FusionArchiveTests : IDisposable
         Assert.Null(result);
     }
 
+    [Fact]
+    public async Task SetRouterConfiguration_Should_PersistGatewayEntryNames_When_Committed()
+    {
+        // Arrange
+        await using var stream = CreateStream();
+        var version = new Version("2.0.0");
+        const string schema = "type Query { hello: String }";
+
+        // Act
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
+            await archive.SetRouterConfigurationAsync(
+                schema,
+                CreateSettingsJson(),
+                version,
+                TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
+        }
+
+        // Assert: the persisted layout keeps the legacy gateway entry names.
+        stream.Position = 0;
+        await using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+        var entryNames = zip.Entries.Select(e => e.FullName).Order().ToArray();
+        Assert.Contains("archive-metadata.json", entryNames);
+        Assert.Contains("gateway/2.0.0/gateway.graphqls", entryNames);
+        Assert.Contains("gateway/2.0.0/gateway-settings.json", entryNames);
+
+        var metadataEntry = zip.GetEntry("archive-metadata.json");
+        Assert.NotNull(metadataEntry);
+        await using var metadataStream = metadataEntry.Open();
+        using var reader = new StreamReader(metadataStream, Encoding.UTF8);
+        var metadataJson = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
+
+        Assert.Contains("\"supportedGatewayFormats\"", metadataJson);
+
+        using var document = JsonDocument.Parse(metadataJson);
+        Assert.True(document.RootElement.TryGetProperty("supportedGatewayFormats", out _));
+        Assert.False(document.RootElement.TryGetProperty("supportedRouterFormats", out _));
+    }
+
     private Stream CreateStream()
     {
         var stream = new MemoryStream();
@@ -1027,7 +1069,7 @@ public class FusionArchiveTests : IDisposable
     {
         return new ArchiveMetadata
         {
-            SupportedGatewayFormats = [new Version("2.0.0"), new Version("2.1.0")],
+            SupportedRouterFormats = [new Version("2.0.0"), new Version("2.1.0")],
             SourceSchemas = ["user-service", "product-service"]
         };
     }

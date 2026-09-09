@@ -52,8 +52,8 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
 
     protected static async Task<string> GetFusionSchemaAsync(FusionArchive archive)
     {
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion);
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion);
         Assert.NotNull(config);
         await using var schemaStream = await config.OpenReadSchemaAsync();
         using var reader = new StreamReader(schemaStream);
@@ -289,14 +289,14 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
     protected void SetupLegacyFusionConfigurationDownload()
     {
         SetupFusionConfigurationDownload(
-            WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
+            WellKnownVersions.LegacyRouterFormatVersion.ToString(),
             ArchiveFormats.Fgp);
     }
 
     protected void SetupMissingLegacyFusionConfigurationDownload()
     {
         SetupMissingFusionConfigurationDownload(
-            WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
+            WellKnownVersions.LegacyRouterFormatVersion.ToString(),
             ArchiveFormats.Fgp);
     }
 
@@ -306,7 +306,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
             .Setup(x => x.DownloadLatestFusionArchiveAsync(
                 ApiId,
                 Stage,
-                WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                WellKnownVersions.LatestRouterFormatVersion.ToString(),
                 ArchiveFormats.Far,
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));

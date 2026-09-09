@@ -88,7 +88,7 @@ internal sealed class NitroFusionConfigurationDownloader
             connection.ApiUrl,
             apiId,
             stage,
-            WellKnownVersions.LatestGatewayFormatVersion);
+            WellKnownVersions.LatestRouterFormatVersion);
 
         var attempts = _retryPolicy.GetAttempts(hasCachedSeed);
         var result = default(NitroDownloadResult);

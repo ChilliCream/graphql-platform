@@ -300,16 +300,16 @@ public sealed class CompositionHelperTests
             await readArchive.TryGetSourceSchemaConfigurationAsync(
                 "Products",
                 TestContext.Current.CancellationToken));
-        using var gatewayConfiguration = Assert.IsType<GatewayConfiguration>(
-            await readArchive.TryGetGatewayConfigurationAsync(
-                WellKnownVersions.LatestGatewayFormatVersion,
+        using var routerConfiguration = Assert.IsType<RouterConfiguration>(
+            await readArchive.TryGetRouterConfigurationAsync(
+                WellKnownVersions.LatestRouterFormatVersion,
                 TestContext.Current.CancellationToken));
 
         // assert
         var snapshot = new
         {
             ArchivedSourceSettings = sourceConfiguration.Settings.RootElement,
-            RuntimeGatewaySettings = gatewayConfiguration.Settings.RootElement
+            RuntimeGatewaySettings = routerConfiguration.Settings.RootElement
         };
 
         JsonSerializer.Serialize(
@@ -410,16 +410,16 @@ public sealed class CompositionHelperTests
             await readArchive.TryGetSourceSchemaConfigurationAsync(
                 "Products",
                 TestContext.Current.CancellationToken));
-        using var gatewayConfiguration = Assert.IsType<GatewayConfiguration>(
-            await readArchive.TryGetGatewayConfigurationAsync(
-                WellKnownVersions.LatestGatewayFormatVersion,
+        using var routerConfiguration = Assert.IsType<RouterConfiguration>(
+            await readArchive.TryGetRouterConfigurationAsync(
+                WellKnownVersions.LatestRouterFormatVersion,
                 TestContext.Current.CancellationToken));
 
         // assert
         var snapshot = new
         {
             ArchivedSourceSettings = sourceConfiguration.Settings.RootElement,
-            RuntimeGatewaySettings = gatewayConfiguration.Settings.RootElement
+            RuntimeGatewaySettings = routerConfiguration.Settings.RootElement
         };
 
         JsonSerializer.Serialize(

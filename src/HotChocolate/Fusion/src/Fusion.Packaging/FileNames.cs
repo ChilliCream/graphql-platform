@@ -2,8 +2,8 @@ namespace HotChocolate.Fusion.Packaging;
 
 internal static class FileNames
 {
-    private const string GatewaySchemaFormat = "gateway/{0}/gateway.graphqls";
-    private const string GatewaySettingsFormat = "gateway/{0}/gateway-settings.json";
+    private const string RouterSchemaFormat = "gateway/{0}/gateway.graphqls";
+    private const string RouterSettingsFormat = "gateway/{0}/gateway-settings.json";
     private const string SourceSchemaFormat = "source-schemas/{0}/schema.graphqls";
     private const string SourceSchemaExtensionsFormat = "source-schemas/{0}/schema-extensions.graphqls";
     private const string SourceSchemaSettingsFormat = "source-schemas/{0}/schema-settings.json";
@@ -14,11 +14,11 @@ internal static class FileNames
     public const string Signature = ".signature/signature.p7s";
     public const string LegacyArchive = "legacy-v1-archive.fgp";
 
-    public static string GetGatewaySchemaPath(Version version)
-        => string.Format(GatewaySchemaFormat, version);
+    public static string GetRouterSchemaPath(Version version)
+        => string.Format(RouterSchemaFormat, version);
 
-    public static string GetGatewaySettingsPath(Version version)
-        => string.Format(GatewaySettingsFormat, version);
+    public static string GetRouterSettingsPath(Version version)
+        => string.Format(RouterSettingsFormat, version);
 
     public static string GetSourceSchemaPath(string schemaName)
         => string.Format(SourceSchemaFormat, schemaName);
