@@ -74,6 +74,42 @@ Validates the merged schema as a whole. The rules here treat the composed schema
 
 Performs reachability analysis. Starting from the root types, the pipeline walks every reachable field in the merged schema and confirms it can be resolved by at least one subgraph given the available `@lookup` and `@key` paths. If a field is reachable from a query but no subgraph can produce it, satisfiability reports `UNSATISFIABLE_QUERY_PATH`. This is normally an error. When source-schema node resolution has a usable dispatcher but does not cover a composite `Node` type, Fusion reports a warning because the source resolver can return `null` or an error at runtime.
 
+# Cost Metadata Derivation
+
+Fusion composition records each compatible source usage as an internal `@fusion__cost` or `@fusion__listSize` provenance entry, folds the source values, and projects the result as a public directive. A public `@cost` or `@listSize` directive is emitted only when at least one source has a compatible usage. The internal entries identify the source schema and preserve its declared values. An unannotated source contributes the coordinate default to the public `@cost` fold without adding an internal provenance entry.
+
+A usage without a local directive definition receives the canonical definition during composition. A locally declared definition can use a compatible subset of the canonical arguments.
+
+For `@cost`, the public weight is the maximum effective weight across every serving source. A declared weight is effective as written. An unannotated source contributes the default for the coordinate:
+
+| Coordinate                                            | Default weight |
+| ----------------------------------------------------- | -------------- |
+| Object, interface, or union type                      | `1`            |
+| Scalar or enum type                                   | `0`            |
+| Output field returning an object, interface, or union | `1`            |
+| Output field returning a scalar or enum               | `0`            |
+| Argument or input field with an input-object value    | `1`            |
+| Argument or input field with a scalar, enum, or ID    | `0`            |
+
+For example, a composite-typed coordinate with weight `-7` in one source and no declared weight in another source derives the public weight `1`.
+
+The public `@listSize` directive applies these folds:
+
+| Argument                             | Fold                                                                   |
+| ------------------------------------ | ---------------------------------------------------------------------- |
+| `assumedSize`                        | Maximum over sources that declare it.                                  |
+| `slicingArguments` and `sizedFields` | Deterministic union in first-seen order.                               |
+| `requireOneSlicingArgument`          | Apply each source definition's default when omitted, then true if any. |
+| `slicingArgumentDefaultValue`        | Maximum over sources that declare it.                                  |
+
+The name unions are preserved as declared. A name that does not match an argument or child field in the composite schema contributes no runtime value, and list-size selection continues through its remaining fallbacks.
+
+The `slicingArgumentDefaultValue` argument is optional. A source can use a spec-only `@listSize` definition that omits this ChilliCream extension, and it composes without a warning. If every source omits the value, the public directive omits it too.
+
+Composition reports a normal `INVALID_GRAPHQL` error for invalid locally declared definitions. Applying an argument-less local `@cost` definition reports `The @cost directive must have a 'weight' argument of type String.`, the source schema name, and the usage coordinate.
+
+See [Cost Analysis](./cost-analysis.md) for gateway enforcement, reporting, and options.
+
 # Common Scenarios
 
 A few rules account for most composition failures. Knowing the shape of the error helps you spot the cause quickly.

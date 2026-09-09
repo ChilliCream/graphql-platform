@@ -181,6 +181,7 @@ builder
 
 # Next Steps
 
+- **"I need to limit operation cost."** [Cost Analysis](./cost-analysis.md) covers field-cost, type-cost, and response-size limits before operation planning.
 - **"I need to secure my gateway."** [Authentication and Authorization](./authentication-and-authorization.md) covers JWT validation, header propagation, and subgraph-level authorization.
 - **"I need to tune transport performance."** [Performance Tuning](./performance-tuning.md) covers HTTP/2, request deduplication, and concurrency limiting.
 - **"I need CDN and HTTP response caching behavior."** [Cache Control](./cache-control.md) covers `@cacheControl`, composition merge behavior, and gateway response headers.
