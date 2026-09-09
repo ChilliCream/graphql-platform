@@ -14,8 +14,8 @@ internal static class ErrorHelper
     {
         var extensions = ImmutableSortedDictionary.CreateBuilder<string, object?>();
         extensions.Add("code", ErrorCodes.Execution.CostExceeded);
-        extensions.Add("fieldCost", costMetrics.FieldCost);
-        extensions.Add("maxFieldCost", maxFieldCost);
+        extensions.Add("fieldCost", ResultHelper.FormatValue(costMetrics.FieldCost));
+        extensions.Add("maxFieldCost", ResultHelper.FormatValue(maxFieldCost));
 
         return ResultHelper.CreateError(
             new Error
@@ -33,8 +33,8 @@ internal static class ErrorHelper
     {
         var extensions = ImmutableSortedDictionary.CreateBuilder<string, object?>();
         extensions.Add("code", ErrorCodes.Execution.CostExceeded);
-        extensions.Add("typeCost", costMetrics.TypeCost);
-        extensions.Add("maxTypeCost", maxTypeCost);
+        extensions.Add("typeCost", ResultHelper.FormatValue(costMetrics.TypeCost));
+        extensions.Add("maxTypeCost", ResultHelper.FormatValue(maxTypeCost));
 
         return ResultHelper.CreateError(
             new Error
@@ -53,8 +53,8 @@ internal static class ErrorHelper
     {
         var extensions = ImmutableSortedDictionary.CreateBuilder<string, object?>();
         extensions.Add("code", ErrorCodes.Execution.CostExceeded);
-        extensions.Add("maxResponseSize", maxResponseSize);
-        extensions.Add("maxAllowedResponseSize", maxAllowedResponseSize);
+        extensions.Add("maxResponseSize", ResultHelper.FormatValue(maxResponseSize));
+        extensions.Add("maxAllowedResponseSize", ResultHelper.FormatValue(maxAllowedResponseSize));
 
         return ResultHelper.CreateError(
             new Error
@@ -64,6 +64,14 @@ internal static class ErrorHelper
             },
             reportMetrics ? costMetrics : null);
     }
+
+    public static IExecutionResult StateInvalidForCostAnalysis()
+        => ResultHelper.CreateError(
+            ErrorBuilder.New()
+                .SetMessage(CostAnalysisResources.ErrorHelper_StateInvalidForCostAnalysis)
+                .SetCode(ErrorCodes.Execution.CostStateInvalid)
+                .Build(),
+            null);
 
     public static IError ExactlyOneSlicingArgMustBeDefined(
         FieldNode fieldNode,

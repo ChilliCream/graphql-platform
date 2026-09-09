@@ -5,10 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// <see cref="CostOptions.MaxResponseSize"/> rides the same cost middleware and the same
-/// HC0047 error shape as field/type cost, via the tupled algebra (hc-3-mmh.10 item 4).
-/// A paged list of 500 objects with one scalar field each has a maximum response size of
-/// 501: 1 for the list field itself, plus 1 per object (its scalar field contributes 0).
+/// Verifies response-size enforcement and reporting through
+/// <see cref="CostOptions.MaxResponseSize"/>.
 /// </summary>
 public sealed class ResponseSizeTests
 {
@@ -25,7 +23,7 @@ public sealed class ResponseSizeTests
 
     private const string Operation = "{ items(limit: 500) { value } }";
 
-    [Fact(Skip = "enabled by hc-reporting")]
+    [Fact]
     public async Task ResponseSize_Should_RejectWithHC0047_When_ResponseSizeExceedsMaxResponseSize()
     {
         // arrange
@@ -46,7 +44,7 @@ public sealed class ResponseSizeTests
         Assert.Equal(100d, Convert.ToDouble(extensions["maxAllowedResponseSize"]));
     }
 
-    [Fact(Skip = "enabled by hc-reporting")]
+    [Fact]
     public async Task ResponseSize_Should_ReportMaxResponseSize_When_ModeIsReportAndWithinLimit()
     {
         // arrange
@@ -65,7 +63,7 @@ public sealed class ResponseSizeTests
         Assert.Equal(501d, Convert.ToDouble(operationCost["maxResponseSize"]));
     }
 
-    [Fact(Skip = "enabled by hc-reporting")]
+    [Fact]
     public async Task ResponseSize_Should_OmitMaxResponseSizeKey_When_MaxResponseSizeIsNull()
     {
         // arrange
@@ -80,12 +78,14 @@ public sealed class ResponseSizeTests
             .Extensions["operationCost"]!;
 
         // assert
-        Assert.False(operationCost.ContainsKey("maxResponseSize"));
+        Assert.Equal(["fieldCost", "typeCost"], operationCost.Keys);
     }
 
     private static IRequestExecutorBuilder CreateRequestExecutorBuilder()
         => new ServiceCollection()
             .AddGraphQLServer()
             .AddDocumentFromString(Schema)
+            .AddResolver("Query", "items", _ => Array.Empty<object>())
+            .AddResolver("Item", "value", _ => 0)
             .ModifyCostOptions(o => o.DefaultResolverCost = null);
 }

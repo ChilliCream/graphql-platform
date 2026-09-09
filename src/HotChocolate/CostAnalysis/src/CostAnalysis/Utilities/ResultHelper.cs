@@ -49,35 +49,81 @@ internal static class ResultHelper
     {
         switch (result)
         {
-            case OperationResult r:
-                return AddCostMetrics(r, costMetrics);
+            case OperationResult operationResult:
+                return AddCostMetrics(operationResult, costMetrics);
 
-            case ResponseStream r:
-                return AddCostMetrics(r, costMetrics);
+            case ResponseStream responseStream:
+                return AddCostMetrics(responseStream, costMetrics);
 
-            case OperationResultBatch r:
-                ImmutableOrderedDictionary<string, object?>? costMetricsMap = null;
-                foreach (var current in r.Results)
+            case OperationResultBatch batch:
+                foreach (var current in batch.Results)
                 {
                     switch (current)
                     {
                         case OperationResult operationResult:
-                            costMetricsMap ??= CreateCostMetricsMap(costMetrics);
-                            operationResult.Extensions = AddCostMetrics(operationResult.Extensions, costMetricsMap);
+                            AddCostMetrics(operationResult, costMetrics);
                             break;
 
                         case ResponseStream responseStream:
-                            return AddCostMetrics(responseStream, costMetrics);
+                            AddCostMetrics(responseStream, costMetrics);
+                            break;
 
                         default:
-                            throw new NotSupportedException();
+                            return ErrorHelper.StateInvalidForCostAnalysis();
+                    }
+                }
+
+                return batch;
+
+            default:
+                return ErrorHelper.StateInvalidForCostAnalysis();
+        }
+    }
+
+    public static IExecutionResult AddCostMetrics(
+        this IExecutionResult? result,
+        ImmutableArray<CostMetrics> costMetrics)
+    {
+        if (costMetrics.IsDefaultOrEmpty)
+        {
+            return ErrorHelper.StateInvalidForCostAnalysis();
+        }
+
+        switch (result)
+        {
+            case OperationResult r:
+                return AddCostMetrics(r, costMetrics[0]);
+
+            case ResponseStream r:
+                return AddCostMetrics(r, costMetrics[0]);
+
+            case OperationResultBatch r:
+                if (r.Results.Count != costMetrics.Length)
+                {
+                    return ErrorHelper.StateInvalidForCostAnalysis();
+                }
+
+                for (var i = 0; i < r.Results.Count; i++)
+                {
+                    switch (r.Results[i])
+                    {
+                        case OperationResult operationResult:
+                            AddCostMetrics(operationResult, costMetrics[i]);
+                            break;
+
+                        case ResponseStream responseStream:
+                            AddCostMetrics(responseStream, costMetrics[i]);
+                            break;
+
+                        default:
+                            return ErrorHelper.StateInvalidForCostAnalysis();
                     }
                 }
 
                 return r;
 
             default:
-                throw new NotSupportedException();
+                return ErrorHelper.StateInvalidForCostAnalysis();
         }
     }
 
@@ -148,15 +194,17 @@ internal static class ResultHelper
         CostMetrics costMetrics)
     {
         var builder = ImmutableOrderedDictionary.CreateBuilder<string, object?>();
-        builder.Add("fieldCost", costMetrics.FieldCost);
-        builder.Add("typeCost", costMetrics.TypeCost);
+        builder.Add("fieldCost", FormatValue(costMetrics.FieldCost));
+        builder.Add("typeCost", FormatValue(costMetrics.TypeCost));
+
+        if (costMetrics.MaxResponseSize is { } maxResponseSize)
+        {
+            builder.Add("maxResponseSize", FormatValue(maxResponseSize));
+        }
+
         return builder.ToImmutable();
     }
 
-    public static OperationResult StateInvalidForCostAnalysis()
-        => OperationResult.FromError(
-            ErrorBuilder.New()
-                .SetMessage("The query request contains no document or no document id.")
-                .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
-                .Build());
+    internal static object FormatValue(double value)
+        => double.IsPositiveInfinity(value) ? "Infinity" : value;
 }

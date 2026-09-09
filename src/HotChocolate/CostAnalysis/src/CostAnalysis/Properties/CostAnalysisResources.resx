@@ -30,4 +30,7 @@
   <data name="ErrorHelper_MaxResponseSizeReached" xml:space="preserve">
     <value>The maximum allowed response size was exceeded.</value>
   </data>
+  <data name="ErrorHelper_StateInvalidForCostAnalysis" xml:space="preserve">
+    <value>The query request contains no document or no document id.</value>
+  </data>
 </root>
