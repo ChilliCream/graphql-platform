@@ -23,9 +23,12 @@ public sealed class CostSchemaSnapshot
     private readonly FrozenDictionary<string, ImmutableArray<InputValueMetadata>> _inputObjectFields;
     private readonly FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> _directiveArguments;
     private readonly FrozenDictionary<string, ImmutableArray<InputValueMetadata>> _directiveArgumentMetadata;
+    private readonly double _defaultListSize;
+    private readonly int _caseBudget;
 
     internal CostSchemaSnapshot(
-        CostEngineOptions options,
+        double defaultListSize,
+        int caseBudget,
         string queryTypeName,
         string? mutationTypeName,
         string? subscriptionTypeName,
@@ -42,7 +45,8 @@ public sealed class CostSchemaSnapshot
         FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> directiveArguments,
         FrozenDictionary<string, ImmutableArray<InputValueMetadata>> directiveArgumentMetadata)
     {
-        Options = options;
+        _defaultListSize = defaultListSize;
+        _caseBudget = caseBudget;
         QueryTypeName = queryTypeName;
         MutationTypeName = mutationTypeName;
         SubscriptionTypeName = subscriptionTypeName;
@@ -61,9 +65,18 @@ public sealed class CostSchemaSnapshot
     }
 
     /// <summary>
-    /// Gets the options this snapshot was built with.
+    /// Gets a detached copy of the options this snapshot was built with.
     /// </summary>
-    public CostEngineOptions Options { get; }
+    public CostEngineOptions Options
+        => new()
+        {
+            DefaultListSize = _defaultListSize,
+            CaseBudget = _caseBudget
+        };
+
+    internal double DefaultListSize => _defaultListSize;
+
+    internal int CaseBudget => _caseBudget;
 
     internal string QueryTypeName { get; }
 

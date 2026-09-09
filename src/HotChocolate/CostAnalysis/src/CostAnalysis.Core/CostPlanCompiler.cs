@@ -53,7 +53,7 @@ public static class CostPlanCompiler
             document,
             operation,
             rootTypeName);
-        var budget = new CaseBudget(snapshot.Options.CaseBudget);
+        var budget = new CaseBudget(snapshot.CaseBudget);
         var algebra = new PlanAlgebra(snapshot, analyses);
         var decision = ExactCasesTraversal.Evaluate(snapshot, fragments, tree, algebra, budget);
         var root = CompileDecision(decision, analyses);
@@ -71,6 +71,10 @@ public static class CostPlanCompiler
                 split.Variable,
                 CompileDecision(split.WhenFalse, analyses),
                 CompileDecision(split.WhenTrue, analyses),
+                analyses),
+            JoinDecision<PlanNode> joined => PlanNode.Join(
+                CompileDecision(joined.Left, analyses),
+                CompileDecision(joined.Right, analyses),
                 analyses),
             _ => throw ThrowHelper.UnexpectedDecision()
         };

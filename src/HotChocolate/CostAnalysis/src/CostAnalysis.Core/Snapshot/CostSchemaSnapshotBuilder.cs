@@ -17,11 +17,8 @@ internal static class CostSchemaSnapshotBuilder
 {
     public static CostSchemaSnapshot Build(ISchemaDefinition schema, CostEngineOptions options)
     {
-        var snapshotOptions = new CostEngineOptions
-        {
-            DefaultListSize = options.DefaultListSize,
-            CaseBudget = options.CaseBudget
-        };
+        var defaultListSize = options.DefaultListSize;
+        var caseBudget = options.CaseBudget;
         var objectTypeIndex = IndexObjectTypes(schema, out var objectTypesByIndex);
         var objectTypeCount = objectTypesByIndex.Length;
         var typeWeights = new Dictionary<string, double>();
@@ -152,7 +149,8 @@ internal static class CostSchemaSnapshotBuilder
         }
 
         return new CostSchemaSnapshot(
-            snapshotOptions,
+            defaultListSize,
+            caseBudget,
             schema.QueryType.Name,
             schema.MutationType?.Name,
             schema.SubscriptionType?.Name,

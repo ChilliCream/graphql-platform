@@ -28,9 +28,20 @@ internal static class CaseBudgetFallback
         PossibleTypeSet region,
         int representative,
         BooleanAssignment assignment,
+        ExactCasesTraversal.TraversalCache cache,
         SizedFieldContext? parentSizeContext)
         => BooleanDecision<TSummary>.Leaf(
-            EvaluateCaseEnvelope(snapshot, fragments, tree, algebra, budget, region, representative, assignment, parentSizeContext));
+            EvaluateCaseEnvelope(
+                snapshot,
+                fragments,
+                tree,
+                algebra,
+                budget,
+                region,
+                representative,
+                assignment,
+                cache,
+                parentSizeContext));
 
     /// <summary>
     /// Evaluates one region's boundary in envelope mode: every Boolean edge
@@ -46,12 +57,23 @@ internal static class CaseBudgetFallback
         PossibleTypeSet region,
         int representative,
         BooleanAssignment assignment,
+        ExactCasesTraversal.TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
         var visited = new List<int>();
         var visitedSet = new HashSet<int>();
         CollectReachableWildcard(tree, representative, assignment, tree.RootNodeId, visited, visitedSet);
-        return CollectAndWeighEnvelope(snapshot, fragments, algebra, budget, region, assignment, tree, visited, parentSizeContext);
+        return CollectAndWeighEnvelope(
+            snapshot,
+            fragments,
+            algebra,
+            budget,
+            region,
+            assignment,
+            tree,
+            visited,
+            cache,
+            parentSizeContext);
     }
 
     /// <summary>
@@ -65,6 +87,7 @@ internal static class CaseBudgetFallback
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
         BooleanAssignment assignment,
+        ExactCasesTraversal.TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
         var regions = TypeRegionPartitioner.Partition(snapshot, tree.Root.Condition.PossibleTypes, ExactCasesTraversal.CollectTypeConditions(tree));
@@ -79,7 +102,17 @@ internal static class CaseBudgetFallback
             }
 
             var representative = ExactCasesTraversal.FirstIndex(region);
-            var value = EvaluateCaseEnvelope(snapshot, fragments, tree, algebra, budget, region, representative, assignment, parentSizeContext);
+            var value = EvaluateCaseEnvelope(
+                snapshot,
+                fragments,
+                tree,
+                algebra,
+                budget,
+                region,
+                representative,
+                assignment,
+                cache,
+                parentSizeContext);
             combined = hasCombined ? algebra.Join(combined!, value) : value;
             hasCombined = true;
         }
@@ -96,6 +129,7 @@ internal static class CaseBudgetFallback
         BooleanAssignment assignment,
         ConditionTree tree,
         List<int> visited,
+        ExactCasesTraversal.TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
         TSummary? combined = default;
@@ -104,7 +138,7 @@ internal static class CaseBudgetFallback
         foreach (var (responseName, fields) in FieldGroupMerger.Merge(tree, visited))
         {
             var fieldName = fields[0].Name.Value;
-            var members = TraversalMembers.Build(snapshot, region, fieldName);
+            var members = cache.GetMembers(region, fieldName);
 
             if (members.Length == 0)
             {
@@ -122,7 +156,17 @@ internal static class CaseBudgetFallback
                     var childSizeContext = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
                     var childValue = childSelections.Count == 0
                         ? algebra.Empty
-                        : EvaluateChildEnvelope(snapshot, fragments, algebra, budget, assignment, member, childSelections, childSizeContext);
+                        : EvaluateChildEnvelope(
+                            snapshot,
+                            fragments,
+                            algebra,
+                            budget,
+                            assignment,
+                            member,
+                            fields,
+                            childSelections,
+                            cache,
+                            childSizeContext);
                     var group = new CollectedFieldGroup(
                         responseName,
                         field,
@@ -155,13 +199,22 @@ internal static class CaseBudgetFallback
         CaseBudget budget,
         BooleanAssignment assignment,
         CollectedFieldGroupMember member,
+        IReadOnlyList<FieldNode> fields,
         IReadOnlyList<ISelectionNode> childSelections,
+        ExactCasesTraversal.TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
         var returnTypeName = member.Field.Type.NamedType().Name;
-        var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
-        var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
-        return EvaluateBoundaryEnvelope(snapshot, fragments, childTree, algebra, budget, assignment, parentSizeContext);
+        var childTree = cache.GetChildBoundary(returnTypeName, fields, childSelections);
+        return EvaluateBoundaryEnvelope(
+            snapshot,
+            fragments,
+            childTree,
+            algebra,
+            budget,
+            assignment,
+            cache,
+            parentSizeContext);
     }
 
     /// <summary>

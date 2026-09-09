@@ -99,7 +99,7 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
             inheritedSizes,
             slicingArguments,
             _variableValues,
-            _snapshot.Options.DefaultListSize);
+            _snapshot.DefaultListSize);
     }
 
     /// <summary>

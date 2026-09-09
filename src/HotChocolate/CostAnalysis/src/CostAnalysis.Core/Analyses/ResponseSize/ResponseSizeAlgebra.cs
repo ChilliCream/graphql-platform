@@ -70,6 +70,6 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
             inheritedSizes,
             slicingArguments,
             variableValues: null,
-            _snapshot.Options.DefaultListSize);
+            _snapshot.DefaultListSize);
     }
 }

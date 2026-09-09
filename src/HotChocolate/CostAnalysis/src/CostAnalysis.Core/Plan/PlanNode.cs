@@ -196,7 +196,7 @@ internal sealed class FieldPlanNode : PlanNode
             inheritedSizes,
             _slicingArguments,
             variableValues,
-            _snapshot.Options.DefaultListSize);
+            _snapshot.DefaultListSize);
 
         var cost = PlanArithmetic.Empty(_analyses);
 

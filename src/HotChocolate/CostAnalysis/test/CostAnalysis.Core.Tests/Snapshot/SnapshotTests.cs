@@ -762,7 +762,7 @@ public class SnapshotTests
     // -- Options -----------------------------------------------------------------------------
 
     [Fact]
-    public void Options_Should_Copy_Values_When_SnapshotIsCreated()
+    public void Options_Should_ReturnDetachedValueCopies_When_SnapshotIsCreated()
     {
         // arrange
         var schema = SchemaParser.Parse("type Query { field: String }");
@@ -772,9 +772,13 @@ public class SnapshotTests
         var snapshot = CostSchemaSnapshot.Create(schema, options);
         options.DefaultListSize = 99.0;
         options.CaseBudget = 3;
+        var returned = snapshot.Options;
+        returned.DefaultListSize = 101.0;
+        returned.CaseBudget = 1;
 
         // assert
         Assert.Equal(42.0, snapshot.Options.DefaultListSize);
         Assert.Equal(17, snapshot.Options.CaseBudget);
+        Assert.NotSame(returned, snapshot.Options);
     }
 }

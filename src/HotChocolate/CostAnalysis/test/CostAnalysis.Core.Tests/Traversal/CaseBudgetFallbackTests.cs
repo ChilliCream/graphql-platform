@@ -33,6 +33,83 @@ public class CaseBudgetFallbackTests
         Assert.True(budgetedAllFalse.TypeCost >= unbudgetedAllFalse.TypeCost && budgetedAllFalse.FieldCost >= unbudgetedAllFalse.FieldCost);
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    public void Evaluate_Should_MatchEveryAssignment_When_IndependentCaseSetFitsBudget(
+        int variableCount)
+    {
+        // arrange
+        var (sdl, operation) = GenerateOperation(variableCount);
+        var decision = TraversalTestHelpers.EvaluateOperation(
+            sdl,
+            operation,
+            caseBudget: 4096);
+
+        // act
+        var estimates = new List<(double TypeCost, double FieldCost)>();
+        var expected = new List<(double TypeCost, double FieldCost)>();
+
+        for (var mask = 0; mask < 1 << variableCount; mask++)
+        {
+            estimates.Add(decision.Resolve(name => (mask & (1 << int.Parse(name.AsSpan(1), CultureInfo.InvariantCulture))) != 0));
+            var fieldCost = 0.0;
+
+            for (var variable = 0; variable < variableCount; variable++)
+            {
+                if ((mask & (1 << variable)) != 0)
+                {
+                    fieldCost += variable + 1;
+                }
+            }
+
+            expected.Add((1.0, fieldCost));
+        }
+
+        // assert
+        Assert.Equal(expected, estimates);
+    }
+
+    [Theory]
+    [InlineData(13)]
+    [InlineData(20)]
+    public void Evaluate_Should_EnterFallbackBeforeGrowingIndependentDecisionBeyondBudget(
+        int variableCount)
+    {
+        // arrange
+        var (sdl, operation) = GenerateOperation(variableCount);
+
+        // act
+        var decision = TraversalTestHelpers.EvaluateOperation(
+            sdl,
+            operation,
+            caseBudget: 4096);
+
+        // assert
+        Assert.IsType<LeafDecision<(double TypeCost, double FieldCost)>>(decision);
+    }
+
+    [Fact]
+    public void Evaluate_Should_KeepCanonicalK13TypeRegionsFactored_When_DefaultBudgetBinds()
+    {
+        // arrange
+        var (sdl, operation) = GenerateCorrelatedTypeRegionOperation(13);
+
+        // act
+        var decision = TraversalTestHelpers.EvaluateOperation(
+            sdl,
+            operation,
+            caseBudget: 4096);
+
+        // assert
+        Assert.IsType<JoinDecision<(double TypeCost, double FieldCost)>>(decision);
+        Assert.Equal((2.0, 92.0), decision.Resolve(_ => true));
+        Assert.Equal((2.0, 92.0), decision.Resolve(_ => false));
+    }
+
     [Fact]
     public void Evaluate_Should_Bound_The_Decision_Size_By_The_Budget_When_Variables_Live_In_Sibling_Boundaries()
     {
@@ -122,12 +199,15 @@ public class CaseBudgetFallbackTests
     /// fields on Query, each gated by its own <c>@include</c> variable.
     /// </summary>
     private static (string Sdl, string Operation) GenerateOperation()
+        => GenerateOperation(VariableCount);
+
+    private static (string Sdl, string Operation) GenerateOperation(int variableCount)
     {
         var sdl = new StringBuilder("type Query {");
         var variableDeclarations = new StringBuilder();
         var selections = new StringBuilder();
 
-        for (var i = 0; i < VariableCount; i++)
+        for (var i = 0; i < variableCount; i++)
         {
             var weight = (i + 1).ToString(CultureInfo.InvariantCulture);
             sdl.Append(" f").Append(i).Append(": Int @cost(weight: \"").Append(weight).Append("\")");
@@ -144,6 +224,42 @@ public class CaseBudgetFallbackTests
         sdl.Append(" }");
 
         var operation = new StringBuilder("query(").Append(variableDeclarations).Append(") {").Append(selections).Append(" }");
+        return (sdl.ToString(), operation.ToString());
+    }
+
+    private static (string Sdl, string Operation) GenerateCorrelatedTypeRegionOperation(
+        int variableCount)
+    {
+        var sdl = new StringBuilder("union Result = Left | Right type Left {");
+        var rightFields = new StringBuilder();
+        var variableDeclarations = new StringBuilder();
+        var leftSelections = new StringBuilder();
+        var rightSelections = new StringBuilder();
+
+        for (var i = 0; i < variableCount; i++)
+        {
+            var weight = (i + 1).ToString(CultureInfo.InvariantCulture);
+            sdl.Append(" f").Append(i).Append(": Int @cost(weight: \"").Append(weight).Append("\")");
+            rightFields.Append(" f").Append(i).Append(": Int @cost(weight: \"").Append(weight).Append("\")");
+
+            if (i > 0)
+            {
+                variableDeclarations.Append(',');
+            }
+
+            variableDeclarations.Append("$v").Append(i).Append(":Boolean!");
+            leftSelections.Append(" l").Append(i).Append(":f").Append(i).Append(" @include(if:$v").Append(i).Append(')');
+            rightSelections.Append(" r").Append(i).Append(":f").Append(i).Append(" @skip(if:$v").Append(i).Append(')');
+        }
+
+        sdl.Append(" } type Right {").Append(rightFields).Append(" } type Query { result: Result }");
+        var operation = new StringBuilder("query(")
+            .Append(variableDeclarations)
+            .Append(") { result { ... on Left {")
+            .Append(leftSelections)
+            .Append(" } ... on Right {")
+            .Append(rightSelections)
+            .Append(" } } }");
         return (sdl.ToString(), operation.ToString());
     }
 }

@@ -82,7 +82,7 @@ internal static class InheritedListSizes
         var slicingArguments = SlicingArgumentValues.Build(metadata, member.Field, arguments);
 
         return metadata.SizedFields.Length > 0
-            ? new SizedFieldContext(metadata, slicingArguments, snapshot.Options.DefaultListSize)
+            ? new SizedFieldContext(metadata, slicingArguments, snapshot.DefaultListSize)
             : null;
     }
 

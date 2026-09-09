@@ -150,26 +150,54 @@ public sealed class CostPlanTests
     }
 
     [Fact]
-    public void Evaluate_Should_BeThreadSafe_When_PlanIsShared()
+    public void Evaluate_Should_ReturnExactResults_When_PlanAndSnapshotAreSharedAndOptionsAreMutated()
     {
         // arrange
-        var plan = Compile(
+        var schema = SchemaParser.Parse(
             Directives
             + """
-              type Item { value: Int @cost(weight: "2") }
-              type Query { items(limit: Int!): [Item] @listSize(slicingArguments: ["limit"]) }
-              """,
-            "query($n: Int!) { items(limit: $n) { value } }");
+              type Item { value: Int }
+              type Query { items(limit: Int): [Item] @listSize(slicingArguments: ["limit"]) }
+              """);
+        var options = new CostEngineOptions { DefaultListSize = 2.0 };
+        var snapshot = CostSchemaSnapshot.Create(schema, options);
+        var document = Utf8GraphQLParser.Parse("query($n: Int) { items(limit: $n) { value } }");
+        var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var plan = CostPlanCompiler.Compile(
+            snapshot,
+            document,
+            operation,
+            CostAnalyses.Cost | CostAnalyses.ResponseSize);
         var estimates = new CostEstimate[64];
+        var expected = new CostEstimate[64];
+        options.DefaultListSize = 100.0;
+        options.CaseBudget = 0;
+        var returned = snapshot.Options;
+        returned.DefaultListSize = 200.0;
+        returned.CaseBudget = 0;
 
         // act
         Parallel.For(
             0,
             estimates.Length,
-            index => estimates[index] = plan.Evaluate(Variables(("n", new IntValueNode(index % 8)))));
+            index =>
+            {
+                if ((index & 1) == 0)
+                {
+                    var size = index % 8;
+                    estimates[index] = plan.Evaluate(Variables(("n", new IntValueNode(size))));
+                    expected[index] = new CostEstimate(1.0, size + 1.0, size + 1.0);
+                }
+                else
+                {
+                    estimates[index] = plan.Evaluate(Variables());
+                    expected[index] = new CostEstimate(1.0, 3.0, 3.0);
+                }
+            });
 
         // assert
-        Assert.All(estimates, estimate => Assert.True(estimate.TypeCost >= 1.0));
+        Assert.Equal(expected, estimates);
+        Assert.Equal(new CostEstimate(1.0, 3.0, 3.0), plan.EvaluateStaticBound());
     }
 
     private static CostPlan Compile(
