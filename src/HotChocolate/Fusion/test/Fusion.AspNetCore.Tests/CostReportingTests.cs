@@ -262,7 +262,7 @@ public class CostReportingTests : FusionTestBase
             OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, mode)
         };
 
-    private static Task<HttpResponseMessage> SendRawAsync(Gateway gateway, string accept)
+    private static async Task<HttpResponseMessage> SendRawAsync(Gateway gateway, string accept)
     {
         const string requestBody =
             """
@@ -271,12 +271,13 @@ public class CostReportingTests : FusionTestBase
             }
             """;
 
-        var request = new HttpRequestMessage(HttpMethod.Post, s_endpoint)
+        using var client = gateway.CreateClient();
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_endpoint)
         {
             Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
         };
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
 
-        return gateway.CreateClient().SendAsync(request);
+        return await client.SendAsync(request, TestContext.Current.CancellationToken);
     }
 }

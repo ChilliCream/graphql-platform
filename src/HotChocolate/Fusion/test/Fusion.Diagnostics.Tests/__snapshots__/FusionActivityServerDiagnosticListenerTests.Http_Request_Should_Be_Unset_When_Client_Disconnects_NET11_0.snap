@@ -108,12 +108,7 @@
                   "Value": "md5:f2e6099a9e9d8a7f69c688a88962f100"
                 }
               ],
-              "event": [
-                {
-                  "Name": "AddedOperationPlanToCache",
-                  "Tags": []
-                }
-              ],
+              "event": [],
               "activities": [
                 {
                   "OperationName": "GraphQL Document Validation",

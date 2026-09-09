@@ -126,4 +126,13 @@
   <data name="DocumentRewriter_FragmentDoesNotExist" xml:space="preserve">
     <value>A fragment with the name '{0}' does not exist.</value>
   </data>
+  <data name="ErrorHelper_MaxFieldCostReached" xml:space="preserve">
+    <value>The maximum allowed field cost was exceeded.</value>
+  </data>
+  <data name="ErrorHelper_MaxTypeCostReached" xml:space="preserve">
+    <value>The maximum allowed type cost was exceeded.</value>
+  </data>
+  <data name="ErrorHelper_MaxResponseSizeReached" xml:space="preserve">
+    <value>The maximum allowed response size was exceeded.</value>
+  </data>
 </root>

@@ -18,7 +18,7 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
         "query test($input: String!) { field(input: $input) }";
 
     [Fact]
-    public async Task Warmup_Request_Skips_Coercion_And_Does_Not_Throw_For_Missing_Required_Variable()
+    public async Task InvokeAsync_Should_SkipCoercion_When_RequestIsWarmup()
     {
         // arrange
         var executor = await CreateExecutorAsync();
@@ -36,7 +36,7 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Cost_Validation_Request_Without_Variables_Skips_Coercion()
+    public async Task InvokeAsync_Should_SkipCoercion_When_CostValidationHasNoVariablesAndAnalyzerIsEnabled()
     {
         // arrange
         IReadOnlyList<IVariableValueCollection>? capturedVariableValues = null;
@@ -45,8 +45,6 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
             builder => builder.UseRequest(
                 (_, _) => context =>
                 {
-                    // capture the variable values right after the coercion middleware ran, then
-                    // short-circuit before planning reaches out to a (non-existent) source schema.
                     capturedVariableValues = context.VariableValues;
                     context.Result =
                         new OperationResult(ImmutableOrderedDictionary<string, object?>.Empty.Add("probe", true));
@@ -55,8 +53,6 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
                 before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
                 allowMultiple: true));
 
-        // a required variable is declared but no value is supplied, which would normally
-        // make coercion throw; here it must be skipped because the request only validates cost.
         var request = OperationRequestBuilder.New()
             .SetDocument(OperationText)
             .AddGlobalState(ExecutionContextData.ValidateCost, true)
@@ -71,7 +67,44 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Regular_Request_Missing_Required_Variable_Still_Throws()
+    public async Task InvokeAsync_Should_CoerceVariables_When_CostValidationHasNoVariablesAndAnalyzerIsSkipped()
+    {
+        // arrange
+        var executor = await CreateExecutorAsync(
+            builder => builder.ModifyCostOptions(options => options.SkipAnalyzer = true));
+        var request = OperationRequestBuilder.New()
+            .SetDocument(OperationText)
+            .AddGlobalState(ExecutionContextData.ValidateCost, true)
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorCodes.Execution.NonNullViolation, error.Code);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_CoerceVariables_When_CostValidationHasNoAnalyzer()
+    {
+        // arrange
+        var executor = await CreateExecutorAsync(includeCostAnalysis: false);
+        var request = OperationRequestBuilder.New()
+            .SetDocument(OperationText)
+            .AddGlobalState(ExecutionContextData.ValidateCost, true)
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorCodes.Execution.NonNullViolation, error.Code);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_ReturnNonNullViolation_When_RequiredVariableIsMissing()
     {
         // arrange
         var executor = await CreateExecutorAsync();
@@ -84,16 +117,32 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
         var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        var operationResult = result.ExpectOperationResult();
-        Assert.NotEmpty(operationResult.Errors ?? []);
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorCodes.Execution.NonNullViolation, error.Code);
     }
 
     private async Task<IRequestExecutor> CreateExecutorAsync(
-        Func<IFusionGatewayBuilder, IFusionGatewayBuilder>? configure = null)
+        Func<IFusionGatewayBuilder, IFusionGatewayBuilder>? configure = null,
+        bool includeCostAnalysis = true)
     {
-        IFusionGatewayBuilder builder = new ServiceCollection()
-            .AddGraphQLGateway()
-            .UseDefaultPipeline();
+        var services = new ServiceCollection();
+        var builder = services.AddGraphQLGateway();
+
+        if (includeCostAnalysis)
+        {
+            builder.UseDefaultPipeline();
+        }
+        else
+        {
+            FusionSetupUtilities.ClearPipeline(builder);
+            builder
+                .UseExceptions()
+                .UseDocumentCache()
+                .UseDocumentParser()
+                .UseDocumentValidation()
+                .UseDocumentNormalization()
+                .UseOperationVariableCoercion();
+        }
 
         if (configure is not null)
         {

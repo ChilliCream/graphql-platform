@@ -11,7 +11,7 @@ internal sealed class OperationPlanCacheMiddleware
 {
     private readonly Cache<OperationPlan> _cache;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly ConcurrentDictionary<string, Lazy<TaskCompletionSource<OperationPlan>>> _inFlightPlans =
+    private readonly ConcurrentDictionary<string, Lazy<TaskCompletionSource<OperationPlan?>>> _inFlightPlans =
         new(StringComparer.Ordinal);
 
     private OperationPlanCacheMiddleware(Cache<OperationPlan> cache, IFusionExecutionDiagnosticEvents diagnosticEvents)
@@ -35,48 +35,37 @@ internal sealed class OperationPlanCacheMiddleware
             : $"{documentInfo.Hash.Value}.{context.Request.OperationName ?? "Default"}";
         context.SetOperationId(operationId);
 
-        var isSingleFlightLeader = false;
-        Lazy<TaskCompletionSource<OperationPlan>>? inFlightPlan = null;
+        Lazy<TaskCompletionSource<OperationPlan?>>? inFlightPlan = null;
 
-        if (_cache.TryGet(operationId, out var plan))
+        while (true)
         {
-            context.SetOperationPlan(plan);
-            _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
-        }
-        else if (_inFlightPlans.TryGetValue(operationId, out inFlightPlan))
-        {
-            // Another request is already planning this operation.
-            // Await the leader's result to avoid redundant planning work.
-            var coalescedPlan = await inFlightPlan.Value.Task
+            if (_cache.TryGet(operationId, out var plan))
+            {
+                context.SetOperationPlan(plan);
+                _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
+                break;
+            }
+
+            var candidate = new Lazy<TaskCompletionSource<OperationPlan?>>(
+                static () => new TaskCompletionSource<OperationPlan?>(
+                    TaskCreationOptions.RunContinuationsAsynchronously));
+            var current = _inFlightPlans.GetOrAdd(operationId, candidate);
+
+            if (ReferenceEquals(current, candidate))
+            {
+                inFlightPlan = candidate;
+                context.Features.Set(candidate.Value);
+                break;
+            }
+
+            var coalescedPlan = await current.Value.Task
                 .WaitAsync(context.RequestAborted)
                 .ConfigureAwait(false);
-            context.SetOperationPlan(coalescedPlan);
-        }
-        else
-        {
-            // No plan is cached and no planning is in progress.
-            // Use a Lazy<TCS> so that under burst conditions only one TCS is materialized
-            // even if multiple requests race through GetOrAdd concurrently.
-            inFlightPlan = new Lazy<TaskCompletionSource<OperationPlan>>(
-                static () => new TaskCompletionSource<OperationPlan>(
-                    TaskCreationOptions.RunContinuationsAsynchronously));
-            var cachedInFlightPlan = _inFlightPlans.GetOrAdd(operationId, inFlightPlan);
 
-            if (ReferenceEquals(cachedInFlightPlan, inFlightPlan))
+            if (coalescedPlan is not null)
             {
-                // We won the race! This request is the single-flight leader
-                // responsible for planning and signaling all followers.
-                isSingleFlightLeader = true;
-                context.Features.Set(inFlightPlan.Value);
-            }
-            else
-            {
-                // We lost the race! Another request claimed leadership between
-                // TryGetValue and GetOrAdd. So we simply await the leader's result.
-                var coalescedPlan = await cachedInFlightPlan.Value.Task
-                    .WaitAsync(context.RequestAborted)
-                    .ConfigureAwait(false);
                 context.SetOperationPlan(coalescedPlan);
+                break;
             }
         }
 
@@ -86,47 +75,63 @@ internal sealed class OperationPlanCacheMiddleware
         }
         catch (Exception ex)
         {
-            // Propagate the exception to all waiting followers.
-            if (isSingleFlightLeader && inFlightPlan is not null)
+            if (inFlightPlan is not null)
             {
-                inFlightPlan.Value.TrySetException(ex);
+                RemoveInFlightPlan(operationId, inFlightPlan);
+
+                if (ex is OperationCanceledException cancellationException)
+                {
+                    inFlightPlan.Value.TrySetCanceled(cancellationException.CancellationToken);
+                }
+                else
+                {
+                    inFlightPlan.Value.TrySetException(ex);
+                }
             }
 
             throw;
         }
-        finally
+
+        if (inFlightPlan is not null)
         {
-            if (isSingleFlightLeader)
+            try
             {
-                // Guard against a faulty diagnostic event handler preventing cleanup.
-                // Without this, a throw from the cache or diagnostics would leak the
-                // in-flight entry, causing _inFlightPlans to grow indefinitely.
-                try
+                if (context.GetOperationPlan() is { } operationPlan)
                 {
-                    if (context.GetOperationPlan() is { } operationPlan)
-                    {
-                        // Cache the plan before removing the in-flight entry so that
-                        // there is no window where the plan is in neither structure.
-                        _cache.TryAdd(operationId, operationPlan);
-                        _diagnosticEvents.AddedOperationPlanToCache(context, operationId);
-                        inFlightPlan?.Value.TrySetResult(operationPlan);
-                    }
-                    else if (inFlightPlan?.Value.Task.IsCompleted == false)
-                    {
-                        // The pipeline completed without producing a plan and without
-                        // throwing. Signal followers so they do not hang indefinitely.
-                        inFlightPlan.Value.TrySetException(
-                            new InvalidOperationException(
-                                "The operation plan task completed without a result."));
-                    }
+                    _cache.TryAdd(operationId, operationPlan);
+                    _diagnosticEvents.AddedOperationPlanToCache(context, operationId);
+                    RemoveInFlightPlan(operationId, inFlightPlan);
+                    inFlightPlan.Value.TrySetResult(operationPlan);
                 }
-                finally
+                else
                 {
-                    _inFlightPlans.TryRemove(operationId, out _);
+                    RemoveInFlightPlan(operationId, inFlightPlan);
+                    inFlightPlan.Value.TrySetResult(null);
                 }
+            }
+            catch (Exception ex)
+            {
+                RemoveInFlightPlan(operationId, inFlightPlan);
+
+                if (ex is OperationCanceledException cancellationException)
+                {
+                    inFlightPlan.Value.TrySetCanceled(cancellationException.CancellationToken);
+                }
+                else
+                {
+                    inFlightPlan.Value.TrySetException(ex);
+                }
+
+                throw;
             }
         }
     }
+
+    private void RemoveInFlightPlan(
+        string operationId,
+        Lazy<TaskCompletionSource<OperationPlan?>> inFlightPlan)
+        => ((ICollection<KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan?>>>>)_inFlightPlans)
+            .Remove(new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan?>>>(operationId, inFlightPlan));
 
     public static RequestMiddlewareConfiguration Create()
         => new RequestMiddlewareConfiguration(

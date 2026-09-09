@@ -261,7 +261,7 @@ public class DefaultSecurityTests : FusionTestBase
         Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
     }
 
-    [Theory(Skip = "enabled by fusion-cost-middleware")]
+    [Theory]
     [InlineData("Development")]
     [InlineData("Production")]
     public async Task DefaultSecurity_CostIsEnforced(string environment)
@@ -287,7 +287,7 @@ public class DefaultSecurityTests : FusionTestBase
         response.MatchSnapshot(postFix: environment);
     }
 
-    [Fact(Skip = "enabled by fusion-cost-middleware")]
+    [Fact]
     public async Task DefaultSecurity_Disabled_CostIsNotEnforced()
     {
         // arrange

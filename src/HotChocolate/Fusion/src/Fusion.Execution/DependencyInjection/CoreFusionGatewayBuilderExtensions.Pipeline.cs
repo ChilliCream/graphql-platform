@@ -71,6 +71,14 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder.UseRequest(FusionMiddleware.OperationPlanCache);
     }
 
+    public static IFusionGatewayBuilder UseCostAnalysis(
+        this IFusionGatewayBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.UseRequest(FusionMiddleware.CostAnalysis);
+    }
+
     public static IFusionGatewayBuilder UseOperationPlan(
         this IFusionGatewayBuilder builder)
     {
@@ -193,6 +201,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseDocumentNormalization()
             .UseOperationVariableCoercion()
             .UseOperationPlanCache()
+            .UseCostAnalysis()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
             .UseConcurrencyGate()
@@ -219,6 +228,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseDocumentNormalization()
             .UseOperationVariableCoercion()
             .UseOperationPlanCache()
+            .UseCostAnalysis()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
             .UseConcurrencyGate()
@@ -245,6 +255,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             .UseDocumentNormalization()
             .UseOperationVariableCoercion()
             .UseOperationPlanCache()
+            .UseCostAnalysis()
             .UseOperationPlan()
             .UseSkipWarmupExecution()
             .UseConcurrencyGate()

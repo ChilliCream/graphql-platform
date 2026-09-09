@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using HotChocolate.Caching.Memory;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
@@ -10,6 +11,28 @@ namespace HotChocolate.Fusion.Execution;
 
 public sealed class OperationPlanSingleFlightTests : FusionTestBase
 {
+    private const string VariableCostSchema =
+        """
+        directive @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+
+        type Query {
+          items(n: Int!): [Item] @listSize(slicingArguments: ["n"])
+        }
+
+        type Item {
+          value: String
+        }
+        """;
+
+    private const string VariableCostOperation =
+        """
+        query Items($n: Int!) {
+          items(n: $n) {
+            value
+          }
+        }
+        """;
+
     [Fact]
     public async Task Concurrent_Same_Operation_Should_Be_Coalesced_To_One_Planning_Run()
     {
@@ -197,6 +220,98 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
     }
 
     [Fact]
+    public async Task RejectedLeader_Should_TransferLeadershipAndCacheAcceptedPlan_When_FollowersAreAffordable()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var listener = new PlanningCountDiagnosticListener();
+        var operationIds = new ConcurrentBag<string>();
+        var acceptedPlans = new ConcurrentBag<OperationPlan>();
+        var arrivals = new RequestArrivalObserver(expectedRequests: 3);
+        var leaderGate = new SingleFlightLeaderGate();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .ModifyCostOptions(options =>
+            {
+                options.DefaultListSize = 1;
+                options.MaxFieldCost = double.PositiveInfinity;
+                options.MaxTypeCost = 10;
+            })
+            .AddDiagnosticEventListener(_ => listener)
+            .UseRequest(
+                (_, next) => CreateRequestArrivalMiddleware(next, arrivals),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSingleFlightLeaderBlockMiddleware(next, leaderGate),
+                before: WellKnownRequestMiddleware.CostAnalyzerMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(acceptedPlans),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(ComposeSchemaDocument(VariableCostSchema))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: cts.Token);
+        using var costlyRequest = CreateVariableCostRequest(1000);
+        using var affordableRequest1 = CreateVariableCostRequest(1);
+        using var affordableRequest2 = CreateVariableCostRequest(2);
+
+        // act
+        var leaderTask = executor.ExecuteAsync(costlyRequest, cts.Token);
+        await leaderGate.WaitForEntryAsync(cts.Token);
+
+        var followerTask1 = executor.ExecuteAsync(affordableRequest1, cts.Token);
+        var followerTask2 = executor.ExecuteAsync(affordableRequest2, cts.Token);
+        await arrivals.WaitForAllAsync(cts.Token);
+        var followersCompletedBeforeRelease = followerTask1.IsCompleted || followerTask2.IsCompleted;
+        var generationsBeforeRelease = leaderGate.EntryCount;
+
+        leaderGate.Release();
+        var leaderResult = await leaderTask;
+        var followerResults = await Task.WhenAll(followerTask1, followerTask2);
+
+        // assert
+        var operationId = operationIds.Distinct().Single();
+        var plans = acceptedPlans.ToArray();
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        var cacheHit = operationPlanCache.TryGet(operationId, out var cachedPlan);
+        $"""
+        Leader error: {leaderResult.ExpectOperationResult().Errors.Single().Code}
+        Follower error counts: {string.Join(", ", followerResults.Select(t => t.ExpectOperationResult().Errors.Count))}
+        Followers completed before release: {followersCompletedBeforeRelease}
+        Generations before release: {generationsBeforeRelease}
+        Generations total: {leaderGate.EntryCount}
+        Planning runs: {listener.PlanStartCount(operationId)}
+        Accepted plan observations: {plans.Length}
+        Accepted plans are identical: {ReferenceEquals(plans[0], plans[1])}
+        Cache entries: {operationPlanCache.Count}
+        Cache hit: {cacheHit}
+        Cached plan is accepted plan: {ReferenceEquals(cachedPlan, plans[0])}
+        """.MatchInlineSnapshot(
+            """
+            Leader error: HC0047
+            Follower error counts: 0, 0
+            Followers completed before release: False
+            Generations before release: 1
+            Generations total: 2
+            Planning runs: 1
+            Accepted plan observations: 2
+            Accepted plans are identical: True
+            Cache entries: 1
+            Cache hit: True
+            Cached plan is accepted plan: True
+            """);
+    }
+
+    [Fact]
     public async Task Follower_Cancellation_Should_Not_Cancel_Leader_Planning()
     {
         // arrange
@@ -286,12 +401,21 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             await next(context);
         };
 
+    private static RequestDelegate CreateRequestArrivalMiddleware(
+        RequestDelegate next,
+        RequestArrivalObserver observer)
+        => async context =>
+        {
+            observer.Signal();
+            await next(context);
+        };
+
     private static RequestDelegate CreateSingleFlightLeaderDelayMiddleware(
         RequestDelegate next,
         TimeSpan delay)
         => async context =>
         {
-            if (context.Features.Get<TaskCompletionSource<OperationPlan>>() is not null)
+            if (context.Features.Get<TaskCompletionSource<OperationPlan?>>() is not null)
             {
                 await Task.Delay(delay, context.RequestAborted);
             }
@@ -304,7 +428,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         SingleFlightLeaderGate gate)
         => async context =>
         {
-            if (context.Features.Get<TaskCompletionSource<OperationPlan>>() is not null)
+            if (context.Features.Get<TaskCompletionSource<OperationPlan?>>() is not null)
             {
                 gate.SignalEntry();
                 await gate.WaitForReleaseAsync(context.RequestAborted);
@@ -338,14 +462,26 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             await execution;
         };
 
-    private static RequestDelegate CreatePlanCaptureMiddleware()
+    private static RequestDelegate CreatePlanCaptureMiddleware(
+        ConcurrentBag<OperationPlan>? plans = null)
         => context =>
         {
+            if (context.GetOperationPlan() is { } plan)
+            {
+                plans?.Add(plan);
+            }
+
             context.Result =
                 new OperationResult(
                     ImmutableOrderedDictionary<string, object?>.Empty.Add("operationPlan", context.GetOperationPlan()));
             return ValueTask.CompletedTask;
         };
+
+    private static IOperationRequest CreateVariableCostRequest(int n)
+        => OperationRequestBuilder.New()
+            .SetDocument(VariableCostOperation)
+            .SetVariableValues(new Dictionary<string, object?> { ["n"] = n })
+            .Build();
 
     private sealed class RequestGate(int expectedRequests)
     {
@@ -391,9 +527,15 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly TaskCompletionSource _release =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _entryCount;
+
+        public int EntryCount => Volatile.Read(ref _entryCount);
 
         public void SignalEntry()
-            => _entered.TrySetResult();
+        {
+            Interlocked.Increment(ref _entryCount);
+            _entered.TrySetResult();
+        }
 
         public void Release()
             => _release.TrySetResult();
@@ -403,6 +545,24 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
 
         public ValueTask WaitForReleaseAsync(CancellationToken cancellationToken)
             => new(_release.Task.WaitAsync(cancellationToken));
+    }
+
+    private sealed class RequestArrivalObserver(int expectedRequests)
+    {
+        private readonly TaskCompletionSource _allArrived =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _arrived;
+
+        public void Signal()
+        {
+            if (Interlocked.Increment(ref _arrived) == expectedRequests)
+            {
+                _allArrived.TrySetResult();
+            }
+        }
+
+        public ValueTask WaitForAllAsync(CancellationToken cancellationToken)
+            => new(_allArrived.Task.WaitAsync(cancellationToken));
     }
 
     private sealed class SecondRequestObserver
