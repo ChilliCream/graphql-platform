@@ -1,14 +1,21 @@
-import type { ComponentType } from "react";
+import type { ComponentType, CSSProperties } from "react";
 import { PRODUCTS } from "@/src/data/products";
 import { LinkCard } from "@/src/components/LinkCard";
 import { PageStructuredData } from "@/src/components/PageStructuredData";
 import { Typography } from "@/src/design-system/Typography";
-import { Fusion } from "@/src/icons/Fusion";
-import { HotChocolate } from "@/src/icons/HotChocolate";
-import { Mocha } from "@/src/icons/Mocha";
-import { Nitro } from "@/src/icons/Nitro";
-import { Skills } from "@/src/icons/Skills";
-import { StrawberryShake } from "@/src/icons/StrawberryShake";
+import { Fusion, FUSION_ARTWORK } from "@/src/icons/Fusion";
+import { HotChocolate, HOT_CHOCOLATE_ARTWORK } from "@/src/icons/HotChocolate";
+import { Mocha, MOCHA_ARTWORK } from "@/src/icons/Mocha";
+import { Nitro, NITRO_ARTWORK } from "@/src/icons/Nitro";
+import {
+  type ProductArtworkSize,
+  productArtworkStyle,
+} from "@/src/icons/productArtwork";
+import { Skills, SKILLS_ARTWORK } from "@/src/icons/Skills";
+import {
+  StrawberryShake,
+  STRAWBERRY_SHAKE_ARTWORK,
+} from "@/src/icons/StrawberryShake";
 import { pageMetadata } from "@/src/helpers/pageMetadata";
 import { createItemListNode, schemaRef } from "@/src/helpers/structuredData";
 
@@ -20,16 +27,44 @@ const PAGE = {
 
 export const metadata = pageMetadata(PAGE);
 
-type ProductIcon = ComponentType<{ className?: string }>;
+/**
+ * Height in rem the tallest product drink (the Strawberry Shake) occupies in a
+ * card's icon tile. One scale factor sizes the whole set from it, so the cups,
+ * the can and the Skills logo come out proportionally smaller.
+ */
+const PRODUCT_ICON_SHEET_REM = 2;
 
-const PRODUCT_ICONS: Record<string, ProductIcon> = {
-  hotchocolate: HotChocolate,
-  fusion: Fusion,
-  strawberryshake: StrawberryShake,
-  nitro: Nitro,
-  mocha: Mocha,
-  skills: Skills,
+interface ProductArtwork {
+  readonly Icon: ComponentType<{ style?: CSSProperties }>;
+  readonly artwork: ProductArtworkSize;
+}
+
+const PRODUCT_ICONS: Record<string, ProductArtwork> = {
+  hotchocolate: { Icon: HotChocolate, artwork: HOT_CHOCOLATE_ARTWORK },
+  fusion: { Icon: Fusion, artwork: FUSION_ARTWORK },
+  strawberryshake: {
+    Icon: StrawberryShake,
+    artwork: STRAWBERRY_SHAKE_ARTWORK,
+  },
+  nitro: { Icon: Nitro, artwork: NITRO_ARTWORK },
+  mocha: { Icon: Mocha, artwork: MOCHA_ARTWORK },
+  skills: { Icon: Skills, artwork: SKILLS_ARTWORK },
 };
+
+/**
+ * Renders one product drink at its intrinsic aspect ratio, bottom-aligned in a
+ * box of the artwork sheet's height so the bases of all six line up.
+ */
+function ProductIcon({ Icon, artwork }: ProductArtwork) {
+  return (
+    <span
+      className="flex items-end"
+      style={{ height: `${PRODUCT_ICON_SHEET_REM}rem` }}
+    >
+      <Icon style={productArtworkStyle(artwork, PRODUCT_ICON_SHEET_REM)} />
+    </span>
+  );
+}
 
 export default function DocsIndex() {
   const productList = createItemListNode(
@@ -58,7 +93,7 @@ export default function DocsIndex() {
 
         <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {PRODUCTS.map((product) => {
-            const Icon = PRODUCT_ICONS[product.slug];
+            const icon = PRODUCT_ICONS[product.slug];
             return (
               <LinkCard
                 key={product.slug}
@@ -66,7 +101,7 @@ export default function DocsIndex() {
                 href={`/docs/${product.slug}`}
                 title={product.title}
                 description={product.description}
-                icon={Icon ? <Icon className="h-8 w-8" /> : undefined}
+                icon={icon ? <ProductIcon {...icon} /> : undefined}
               />
             );
           })}
