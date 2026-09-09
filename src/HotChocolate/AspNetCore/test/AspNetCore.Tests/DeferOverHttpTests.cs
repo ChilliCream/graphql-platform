@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Types;
@@ -1387,6 +1386,9 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                // This test schema relies on the former implicit list-size fallback
+                // (R-DEFAULT-LIST-SIZE).
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddQueryType<Query>()
                 .AddType<Droid>()
                 .AddDefaultBatchDispatcher()

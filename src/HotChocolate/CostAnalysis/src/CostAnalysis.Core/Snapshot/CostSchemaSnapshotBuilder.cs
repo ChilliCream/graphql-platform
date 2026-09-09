@@ -148,12 +148,16 @@ internal static class CostSchemaSnapshotBuilder
             directiveArgumentMetadata.Add(directiveDefinition.Name, metadataBuilder.MoveToImmutable());
         }
 
+        schema.TryGetOperationType(OperationType.Query, out var queryType);
+        schema.TryGetOperationType(OperationType.Mutation, out var mutationType);
+        schema.TryGetOperationType(OperationType.Subscription, out var subscriptionType);
+
         return new CostSchemaSnapshot(
             defaultListSize,
             caseBudget,
-            schema.QueryType.Name,
-            schema.MutationType?.Name,
-            schema.SubscriptionType?.Name,
+            queryType?.Name,
+            mutationType?.Name,
+            subscriptionType?.Name,
             objectTypeIndex,
             objectTypesByIndex,
             possibleTypes.ToFrozenDictionary(),
