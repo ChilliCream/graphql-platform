@@ -82,7 +82,7 @@ An unannotated list falls through to `DefaultListSize`. With the default `Infini
 
 ## Requiring a Slicing Argument
 
-The `@listSize` definition defaults `requireOneSlicingArgument` to `true`. A schema-first directive usage that omits the argument requires exactly one configured slicing argument. Violations return error code `HC0082` with the message `Exactly one slicing argument must be defined.`
+The `@listSize` definition defaults `requireOneSlicingArgument` to `true`. A schema-first directive usage that omits the argument requires exactly one non-null literal slicing argument. Explicit nulls do not count. Static validation is skipped when every non-null slicing argument is variable-bound because presence is not yet known. Otherwise, zero or multiple non-null slicing arguments return error code `HC0082` with the message `Exactly one slicing argument must be defined.`
 
 Hot Chocolate paging writes `requireOneSlicingArgument: false` by default. Set `RequirePagingBoundaries` to require a boundary:
 
