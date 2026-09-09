@@ -6,11 +6,11 @@ import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 import { FEDERATION_FAQ_ITEMS } from "./faq";
 import { HowItWorksSection } from "./sections/HowItWorksSection";
+import { ProblemSection } from "./sections/ProblemSection";
 import { GRADIENT, Section } from "./sections/shared";
 import { WhatIsSection } from "./sections/WhatIsSection";
 import { WhyFusionSection } from "./sections/WhyFusionSection";
 import { WhySection } from "./sections/WhySection";
-import { TransitStory } from "./TransitStory";
 
 const HERO_SERVICES: readonly {
   readonly name: string;
@@ -178,7 +178,7 @@ export function ExplainerPage() {
         </p>
       </section>
 
-      <TransitStory />
+      <ProblemSection />
 
       <WhatIsSection />
       <WhySection />

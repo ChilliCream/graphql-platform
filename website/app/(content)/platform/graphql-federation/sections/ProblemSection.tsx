@@ -1,6 +1,6 @@
-import { Section } from "./sections/shared";
+import { Section } from "./shared";
 
-export function TransitStory() {
+export function ProblemSection() {
   return (
     <Section id="problem">
       <div className="max-w-2xl">
