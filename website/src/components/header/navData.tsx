@@ -5,6 +5,7 @@ import { LinkedInIcon } from "@/src/icons/LinkedIn";
 import {
   BuildingIcon,
   CloudIcon,
+  ColumnsCompareIcon,
   HandshakeAngleIcon,
   NetworkIcon,
   NewspaperIcon,
@@ -21,6 +22,7 @@ import type { ComponentType, SVGProps } from "react";
 
 export const TOOLS = {
   blog: "/blog",
+  comparison: "/comparison",
   github: GITHUB_REPO_URL,
   linkedIn: "https://www.linkedin.com/company/chillicream",
   nitro: "https://nitro.chillicream.com",
@@ -175,6 +177,11 @@ export const NAV_ITEMS: NavItem[] = [
         title: "Additional Resources",
         links: [
           { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
+          {
+            href: TOOLS.comparison,
+            label: "Comparison",
+            icon: ColumnsCompareIcon,
+          },
           { href: TOOLS.github, label: "GitHub", icon: GitHubIcon },
           { href: TOOLS.slack, label: "Slack / Community", icon: SlackIcon },
           { href: TOOLS.youtube, label: "YouTube Channel", icon: YouTubeIcon },
