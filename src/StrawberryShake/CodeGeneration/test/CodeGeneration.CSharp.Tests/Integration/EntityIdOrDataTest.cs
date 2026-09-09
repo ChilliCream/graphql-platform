@@ -18,6 +18,7 @@ public class EntityIdOrDataTest : ServerTestBase
         var serviceCollection = new ServiceCollection();
         serviceCollection
             .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddType<IBar>()
             .AddType<Baz>()
