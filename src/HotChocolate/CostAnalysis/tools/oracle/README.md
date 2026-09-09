@@ -6,21 +6,23 @@ from the MIT-licensed
 [`graphql-static-analysis-rs`](https://github.com/duckki/graphql-static-analysis-rs)
 crate, the differential oracle for this cost engine.
 
-## Prerequisite
+## Prerequisites
 
-Rust is **not** installed on this machine or in CI by default. Regenerating
-the corpus needs rustup with stable Rust >= 1.90 (the pinned commit's
-`rust-version`) and a C++ compiler, because the crate's `fuzz` package links
-`libfuzzer-sys` 0.4 unconditionally even for a plain `cargo build`/`cargo run`.
-Install with:
+Corpus regeneration and live differential runs require rustup with stable
+Rust >= 1.90 (the pinned commit's `rust-version`) and a C++ compiler. The
+crate's `fuzz` package links `libfuzzer-sys` 0.4 unconditionally, including
+for a plain `cargo build` or `cargo run`. Install Rust with:
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
 . "$HOME/.cargo/env" && rustup toolchain install stable
 ```
 
-Nothing here installs Rust for you; `clone-oracle.sh` checks for `cargo` and
-prints this same install line if it is missing.
+The scripts install nothing. `clone-oracle.sh` and `run-nightly.sh` print the
+install line when `cargo` is missing, and `run-nightly.sh` also rejects Rust
+versions below 1.90 and missing C++ compilers. Pull-request CI does not run
+Rust. The scheduled workflow provisions stable Rust and uses the compiler on
+`ubuntu-latest`.
 
 ## Files
 
@@ -33,8 +35,48 @@ prints this same install line if it is missing.
   `pub fn schema()` and `pub fn variables_json(variable_case: u8)` accessors
   and registers `dump_corpus` as a `[[example]]` in `fuzz/Cargo.toml`.
 - `dump_corpus.rs`: the dump program itself (see below).
+- `oracle.rs`: a Rust example that coerces generated variables, builds a
+  `CostModel`, and evaluates each case with `ExactCase` and its declared
+  default list size.
+- `Fuzz/`: the deterministic .NET generator and comparison command. It emits
+  real `AddCostAnalyzer` interceptor schemas and synthetic annotated schemas.
+- `run-nightly.sh`: generates cases, runs the live oracle, compares raw f64
+  bits, and writes a standalone fixture for the first disagreement.
 - `LICENSE-graphql-static-analysis-rs.md`: the crate's MIT license text and
   attribution for the vendored commit.
+
+## Running the live oracle
+
+```bash
+bash src/HotChocolate/CostAnalysis/tools/oracle/run-nightly.sh \
+    --seed 1 --cases 200
+```
+
+Every case stores its seed and uses the same finite `DefaultListSize` on both
+engines. Generated operations are query-only and reject introspection
+meta-fields, `@defer`, and `@stream` before emission. Variables are valid for
+the generated operation and are coerced by `apollo_compiler` before the Rust
+estimator runs.
+
+Real schemas are printed from servers configured with `AddCostAnalyzer`,
+cursor and offset paging, filtering, sorting, and list-of-scalar fields. The
+printed SDL therefore carries explicit resolver, filter, sort, paging, and
+list-of-scalar annotations. Synthetic schemas cover signed weights,
+`@listSize`, input defaults, interfaces, unions, and directive argument
+weights. Operations cover named fragments, Boolean directives, aliases, and
+duplicate response names.
+
+`slicingArgumentDefaultValue` is a ChilliCream extension. When a generated
+operation supplies none of a field's slicing arguments, the generator adds
+the declared default literal to the oracle copy of that operation only. It
+does not rewrite the schema, and it adds nothing when any slicing argument is
+already supplied.
+
+Comparison uses the hexadecimal IEEE-754 bit patterns for `typeCost` and
+`fieldCost`. A mismatch exits nonzero and writes one isolated
+`source: "fuzz-found"` fixture under the conformance resources. Vendor it
+before merging the engine fix so pull-request CI retains the regression case
+without Rust.
 
 ## Regenerating the corpus
 
@@ -95,6 +137,14 @@ from the emitted `sdl`; no dumped operation uses `@tag` (the crate only
 applies it inside a named-fragment traversal variant this dump does not use).
 
 ## Rust-free validation
+
+The generator can build and emit cases without cloning or running the oracle:
+
+```bash
+dotnet run --project src/HotChocolate/CostAnalysis/tools/oracle/Fuzz \
+    --framework net11.0 -- --seed 1 --cases 20 \
+    --emit-only /tmp/fuzz-cases.json
+```
 
 Reviewers without Rust installed can still validate the committed artifact
 shape:
