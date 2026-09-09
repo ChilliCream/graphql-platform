@@ -22,9 +22,11 @@ interface ProductArtworkIconProps {
 }
 
 /**
- * Renders one product icon at its intrinsic aspect ratio, bottom-aligned in a
- * box of the artwork sheet's height, so the bases of a set line up. The box
- * shrinks to the icon's width and is centred by its container.
+ * Renders one product icon at its intrinsic aspect ratio, centred in a box of
+ * the artwork sheet's height. A set rendered with one `slotHeightRem` keeps its
+ * relative sizes, but the bases do not line up: every icon sits in the middle of
+ * its own slot. The box shrinks to the icon's width and is centred by its
+ * container.
  */
 export function ProductArtworkIcon({
   Icon,
@@ -32,7 +34,10 @@ export function ProductArtworkIcon({
   slotHeightRem,
 }: ProductArtworkIconProps) {
   return (
-    <span className="flex items-end" style={{ height: `${slotHeightRem}rem` }}>
+    <span
+      className="flex items-center justify-center"
+      style={{ height: `${slotHeightRem}rem` }}
+    >
       <Icon style={productArtworkStyle(artwork, slotHeightRem)} />
     </span>
   );
