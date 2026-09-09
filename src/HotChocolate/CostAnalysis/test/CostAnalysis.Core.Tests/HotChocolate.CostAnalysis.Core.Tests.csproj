@@ -13,6 +13,7 @@
     <ProjectReference Include="..\..\src\CostAnalysis.Core\HotChocolate.CostAnalysis.Core.csproj" />
     <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
     <ProjectReference Include="..\..\..\Fusion\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+    <ProjectReference Include="..\..\..\Fusion\src\Fusion.Execution.Types\HotChocolate.Fusion.Execution.Types.csproj" />
   </ItemGroup>
 
 </Project>
