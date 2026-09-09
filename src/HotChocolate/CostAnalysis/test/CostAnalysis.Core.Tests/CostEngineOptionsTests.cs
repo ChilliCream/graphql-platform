@@ -13,15 +13,12 @@ public class CostEngineOptionsTests
     }
 
     [Fact]
-    public void CaseBudget_Should_Default_To_ProvisionalValue_When_Constructed()
+    public void CaseBudget_Should_Default_To_MeasuredValue()
     {
         // act
         var options = new CostEngineOptions();
 
         // assert
-        // 4096 is provisional, the single copy of this number in code,
-        // replaced by the core-fix-case-budget-default chore once
-        // benchmarks measure a real value.
-        Assert.Equal(4096, options.CaseBudget);
+        Assert.Equal(510, options.CaseBudget);
     }
 }
