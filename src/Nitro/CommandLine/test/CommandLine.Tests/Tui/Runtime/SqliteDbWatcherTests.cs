@@ -14,7 +14,30 @@ public sealed class SqliteDbWatcherTests : IDisposable
     /// </summary>
     private static readonly TimeSpan BurstDebounce = TimeSpan.FromMilliseconds(500);
 
-    private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
+    /// <summary>
+    /// The wait used by <see cref="SettleAsync"/> before draining. It is decoupled from
+    /// <see cref="Debounce"/> (rather than a multiple of it, as it used to be) because a
+    /// starved thread pool or delayed file system event delivery under a loaded machine
+    /// can stretch the time between the arrange step's own database file write and the
+    /// notification it produces past a short multiple of the production debounce; a wider,
+    /// fixed wait here gives that notification more room to land and be drained before the
+    /// act step runs, without the settle step itself depending on how tight a given test's
+    /// own debounce is.
+    /// </summary>
+    private static readonly TimeSpan SettleDelay = TimeSpan.FromMilliseconds(500);
+
+    /// <summary>
+    /// How long a test waits for a single expected event. Widened from the 5 seconds this
+    /// used to be so that a real, once-observed flake (RunAsync_Should_PublishDataChangedEvent
+    /// _When_WalGrowsAndStaysGrown_LikeACheckpointBlockedByAConcurrentReader failing with this
+    /// exact timeout, no wrong-type event) has more room to be a delayed file system
+    /// notification arriving late under a loaded machine rather than one that never arrives at
+    /// all: the watcher itself establishes its baseline and enables the underlying watch
+    /// synchronously before RunAsync returns, so no assertion in this file races that
+    /// start-up; the tail latency being guarded against here is squarely in file system event
+    /// delivery, which only a wider budget, not a smarter test-side wait, can absorb.
+    /// </summary>
+    private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(15);
 
     /// <summary>
     /// Lets the watcher settle after start-up and drains whatever it published
@@ -26,7 +49,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
     /// </summary>
     private static async Task SettleAsync(Channel<TuiEvent> channel, CancellationToken cancellationToken)
     {
-        await Task.Delay(Debounce * 4, cancellationToken);
+        await Task.Delay(SettleDelay, cancellationToken);
 
         while (channel.Reader.TryRead(out _))
         {
