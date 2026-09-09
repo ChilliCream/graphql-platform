@@ -255,6 +255,7 @@ internal sealed class SchemaComposer
     /// </summary>
     internal static ImmutableArray<object> SourceSchemaRules { get; } =
     [
+        new CostDirectiveDefinitionRule(),
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
         new ExternalOverrideCollisionRule(),

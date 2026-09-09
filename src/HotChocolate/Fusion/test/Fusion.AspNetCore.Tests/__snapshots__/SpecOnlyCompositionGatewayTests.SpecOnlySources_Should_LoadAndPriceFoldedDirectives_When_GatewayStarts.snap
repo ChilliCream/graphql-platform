@@ -1,0 +1,49 @@
+directive @cost(weight: String!) on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM
+  | INPUT_FIELD_DEFINITION
+
+directive @listSize(
+  assumedSize: Int
+  slicingArguments: [String!]
+  slicingArgumentDefaultValue: Int
+  sizedFields: [String!]
+  requireOneSlicingArgument: Boolean
+) on FIELD_DEFINITION
+
+type Query
+  @cost(weight: "3")
+  @fusion__cost(schema: A, weight: "1")
+  @fusion__cost(schema: B, weight: "3")
+  @fusion__type(schema: A)
+  @fusion__type(schema: B) {
+  items: [Item]
+    @cost(weight: "11")
+    @listSize(
+      assumedSize: 2
+      slicingArguments: ["missing"]
+      requireOneSlicingArgument: true
+    )
+    @fusion__cost(schema: A, weight: "2")
+    @fusion__cost(schema: B, weight: "11")
+    @fusion__field(schema: A)
+    @fusion__field(schema: B)
+    @fusion__listSize(schema: A, assumedSize: 2, slicingArguments: ["missing"])
+}
+
+type Item
+  @cost(weight: "13")
+  @fusion__cost(schema: A, weight: "5")
+  @fusion__cost(schema: B, weight: "13")
+  @fusion__type(schema: A)
+  @fusion__type(schema: B) {
+  value: String
+    @cost(weight: "17")
+    @fusion__cost(schema: A, weight: "7")
+    @fusion__cost(schema: B, weight: "17")
+    @fusion__field(schema: A)
+    @fusion__field(schema: B)
+}

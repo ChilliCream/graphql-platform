@@ -1315,8 +1315,24 @@ internal sealed partial class SourceSchemaMerger
         CostCoordinateKind kind,
         IType? coordinateType)
     {
-        var defaultWeight = GetCoordinateDefaultWeight(kind, coordinateType);
         var declaresCost = false;
+
+        foreach (var (sourceMember, sourceSchema) in memberGroup)
+        {
+            if (sourceMember.Directives.ContainsName(DirectiveNames.Cost)
+                && IsCostDefinitionCompatible(sourceSchema))
+            {
+                declaresCost = true;
+                break;
+            }
+        }
+
+        if (!declaresCost)
+        {
+            return;
+        }
+
+        var defaultWeight = GetCoordinateDefaultWeight(kind, coordinateType);
         var effectiveWeights = new double[memberGroup.Length];
 
         for (var i = 0; i < memberGroup.Length; i++)
@@ -1326,18 +1342,12 @@ internal sealed partial class SourceSchemaMerger
 
             if (costDirective is not null && IsCostDefinitionCompatible(sourceSchema))
             {
-                declaresCost = true;
                 effectiveWeights[i] = CostDirective.From(costDirective).Weight;
             }
             else
             {
                 effectiveWeights[i] = defaultWeight;
             }
-        }
-
-        if (!declaresCost)
-        {
-            return;
         }
 
         var publicWeight = CostDirectiveFold.FoldWeights(effectiveWeights);

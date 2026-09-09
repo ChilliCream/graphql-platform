@@ -126,17 +126,25 @@ public partial class DemoIntegrationTests
         using var result = await client.SendAsync(httpRequest, TestContext.Current.CancellationToken);
 
         // assert
+        var fieldCost = 0d;
+        var typeCost = 0d;
         await AssertAndMatchSnapshotAsync(
             gateway,
             request,
             result,
-            results => Assert.Single(results).Extensions.GetProperty("operationCost").MatchInlineSnapshot(
-                """
-                {
-                  "fieldCost": 171,
-                  "typeCost": 271
-                }
-                """));
+            results =>
+            {
+                var operationCost = Assert.Single(results).Extensions.GetProperty("operationCost");
+                fieldCost = operationCost.GetProperty("fieldCost").GetDouble();
+                typeCost = operationCost.GetProperty("typeCost").GetDouble();
+            });
+        new { fieldCost, typeCost }.MatchInlineSnapshot(
+            """
+            {
+              "fieldCost": 171.0,
+              "typeCost": 271.0
+            }
+            """);
     }
 
     [Fact]

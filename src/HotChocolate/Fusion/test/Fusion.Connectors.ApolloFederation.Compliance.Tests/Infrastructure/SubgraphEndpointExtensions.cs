@@ -1,5 +1,9 @@
 using HotChocolate.AspNetCore;
+using HotChocolate.CostAnalysis;
+using HotChocolate.Execution.Configuration;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Fusion;
 
@@ -22,6 +26,13 @@ internal static class SubgraphEndpointExtensions
     public static void MapSubgraph(this WebApplication app, bool enableBatching = false)
     {
         ArgumentNullException.ThrowIfNull(app);
+
+        var setup = app.Services
+            .GetRequiredService<IOptionsMonitor<RequestExecutorSetup>>()
+            .Get(ISchemaDefinition.DefaultName);
+        setup.OnConfigureSchemaServicesHooks.Add(
+            static (_, services) => services.AddSingleton<Action<CostOptions>>(
+                static options => options.DefaultListSize = 1));
 
         var endpoint = app.MapGraphQL();
 

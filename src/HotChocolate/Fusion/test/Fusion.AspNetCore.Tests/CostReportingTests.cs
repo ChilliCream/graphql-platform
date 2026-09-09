@@ -655,6 +655,100 @@ public class CostReportingTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Request_Should_RejectAtInfinityAndPassAtOne_When_ListIsUnannotated()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", Schema);
+        using var infiniteGateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(o =>
+            {
+                o.DefaultListSize = double.PositiveInfinity;
+                o.MaxFieldCost = double.PositiveInfinity;
+            }));
+        using var finiteGateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.DefaultListSize = 1));
+        var request = new OperationRequest("{ unannotatedItems { value } }");
+
+        // act
+        using var infiniteClient = GraphQLHttpClient.Create(infiniteGateway.CreateClient());
+        using var infiniteResponse = await infiniteClient.SendAsync(
+            WithCostHeader(request, ReportCost),
+            TestContext.Current.CancellationToken);
+        var infiniteResults = await ReadResultsAsync(infiniteResponse);
+
+        using var finiteClient = GraphQLHttpClient.Create(finiteGateway.CreateClient());
+        using var finiteResponse = await finiteClient.SendAsync(
+            WithCostHeader(request, ReportCost),
+            TestContext.Current.CancellationToken);
+        var finiteResults = await ReadResultsAsync(finiteResponse);
+
+        // assert
+        var infiniteResult = Assert.Single(infiniteResults);
+        var finiteResult = Assert.Single(finiteResults);
+        var infiniteError = Assert.Single(infiniteResult.Errors.EnumerateArray());
+        var infiniteErrorExtensions = infiniteError.GetProperty("extensions");
+        var infiniteCost = infiniteResult.Extensions.GetProperty("operationCost");
+        var finiteCost = finiteResult.Extensions.GetProperty("operationCost");
+        new
+        {
+            Infinite = new
+            {
+                Message = infiniteError.GetProperty("message").GetString(),
+                Code = infiniteErrorExtensions.GetProperty("code").GetString(),
+                TypeCost = infiniteErrorExtensions.GetProperty("typeCost").GetString(),
+                MaxTypeCost = infiniteErrorExtensions.GetProperty("maxTypeCost").GetDouble(),
+                OperationCost = new
+                {
+                    Field = infiniteCost.GetProperty("fieldCost").GetString(),
+                    Type = infiniteCost.GetProperty("typeCost").GetString()
+                }
+            },
+            Finite = new
+            {
+                Values = finiteResult.Data
+                    .GetProperty("unannotatedItems")
+                    .EnumerateArray()
+                    .Select(item => item.GetProperty("value").GetInt32())
+                    .ToArray(),
+                OperationCost = new
+                {
+                    Field = finiteCost.GetProperty("fieldCost").GetDouble(),
+                    Type = finiteCost.GetProperty("typeCost").GetDouble()
+                }
+            }
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Infinite": {
+                "Message": "The maximum allowed type cost was exceeded.",
+                "Code": "HC0047",
+                "TypeCost": "Infinity",
+                "MaxTypeCost": 1000.0,
+                "OperationCost": {
+                  "Field": "Infinity",
+                  "Type": "Infinity"
+                }
+              },
+              "Finite": {
+                "Values": [
+                  123,
+                  123,
+                  123
+                ],
+                "OperationCost": {
+                  "Field": 6.0,
+                  "Type": 2.0
+                }
+              }
+            }
+            """);
+        DisposeResults(infiniteResults);
+        DisposeResults(finiteResults);
+    }
+
+    [Fact]
     public async Task ResponseStream_Should_AttachOperationCostToFirstResult_When_Reported()
     {
         // arrange
