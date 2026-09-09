@@ -8,7 +8,7 @@ interface BrowserIconProps {
 export function BrowserIcon({ className, style }: BrowserIconProps) {
   return (
     <svg
-      viewBox="153 6028 94 94"
+      viewBox="168 6051 64 48"
       fill="none"
       aria-hidden="true"
       className={className}
