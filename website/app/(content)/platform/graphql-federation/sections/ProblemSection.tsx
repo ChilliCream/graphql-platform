@@ -11,24 +11,25 @@ export function ProblemSection() {
         </h3>
         <div className="text-cc-ink mt-5 space-y-4 text-base">
           <p>
-            A product page shows a name, a price, a delivery estimate, and who
-            is signed in. Inside the company those fields live in different
-            services, each owned by a team that ships on its own schedule. The
-            page does not care about the split: it wants one API.
+            Most GraphQL APIs start as one server with one schema, and that
+            holds up until the API grows. More teams change the same schema,
+            every deploy carries everyone&apos;s changes, and one mistake takes
+            the whole API down. Each change waits on coordination, so shipping
+            slows down.
           </p>
           <p>
-            The usual answers give up one side. Let every app call every service
-            and assemble the answers itself, and every app repeats that work and
-            breaks whenever a service changes. Put one API and one team in front
-            of everything, and every change from every team waits in that
-            team&apos;s queue.
+            GraphQL Federation splits that API into subgraphs, one per team or
+            domain; a GraphQL schema in front of an existing service makes that
+            service a subgraph too. Each team owns its subgraph&apos;s schema,
+            code, and release schedule. Composition checks the source schemas
+            against each other and combines them into one composite schema
+            before anything deploys, so a conflict fails the build instead of
+            production.
           </p>
           <p>
-            GraphQL Federation keeps both. Each team publishes a source schema
-            for its subgraph. Composition combines those source schemas into one
-            composite schema before anything deploys, so a conflict fails the
-            build instead of the gateway. A gateway serves that schema, and
-            clients send one query while teams keep shipping alone.
+            Clients see none of the split. They send one query to one endpoint,
+            served by a gateway whose distributed executor fetches from the
+            subgraphs and returns one response.
           </p>
         </div>
       </div>
