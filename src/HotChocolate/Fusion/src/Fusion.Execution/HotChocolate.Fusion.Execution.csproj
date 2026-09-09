@@ -24,6 +24,7 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Diagnostics" />
     <InternalsVisibleTo Include="HotChocolate.CostAnalysis.Core.Conformance.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis.Core.Tests" />
   </ItemGroup>
 
   <ItemGroup>

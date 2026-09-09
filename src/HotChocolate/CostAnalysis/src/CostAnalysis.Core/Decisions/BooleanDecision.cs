@@ -24,20 +24,26 @@ internal abstract class BooleanDecision<T>
         => new SplitDecision<T>(variable, whenFalse, whenTrue);
 
     /// <summary>
+    /// Creates a factored join of mutually exclusive alternatives.
+    /// </summary>
+    public static BooleanDecision<T> Join(
+        BooleanDecision<T> left,
+        BooleanDecision<T> right,
+        Func<T, T, T> join)
+        => new JoinDecision<T>(left, right, join);
+
+    /// <summary>
     /// Resolves this decision against a complete Boolean assignment by
     /// walking one branch per split.
     /// </summary>
     public T Resolve(Func<string, bool> values)
-    {
-        var node = this;
-
-        while (node is SplitDecision<T> split)
+        => this switch
         {
-            node = values(split.Variable) ? split.WhenTrue : split.WhenFalse;
-        }
-
-        return ((LeafDecision<T>)node).Value;
-    }
+            LeafDecision<T> leaf => leaf.Value,
+            SplitDecision<T> split => (values(split.Variable) ? split.WhenTrue : split.WhenFalse).Resolve(values),
+            JoinDecision<T> joined => joined.JoinOperation(joined.Left.Resolve(values), joined.Right.Resolve(values)),
+            _ => throw new NotSupportedException()
+        };
 
     /// <summary>
     /// Folds every leaf into one value by applying <paramref name="join"/>
@@ -49,6 +55,7 @@ internal abstract class BooleanDecision<T>
         {
             LeafDecision<T> leaf => leaf.Value,
             SplitDecision<T> split => join(split.WhenFalse.FoldWithJoin(join), split.WhenTrue.FoldWithJoin(join)),
+            JoinDecision<T> joined => join(joined.Left.FoldWithJoin(join), joined.Right.FoldWithJoin(join)),
             _ => throw new NotSupportedException()
         };
 
@@ -62,9 +69,10 @@ internal abstract class BooleanDecision<T>
     /// </summary>
     public static BooleanDecision<T> ZipWith(BooleanDecision<T> left, BooleanDecision<T> right, Func<T, T, T> op, Func<T, T, T> join, CaseBudget budget)
     {
-        if (left is LeafDecision<T> leftLeaf && right is LeafDecision<T> rightLeaf)
+        if (TryCollapseResolved(left, out var leftValue)
+            && TryCollapseResolved(right, out var rightValue))
         {
-            return Leaf(op(leftLeaf.Value, rightLeaf.Value));
+            return Leaf(op(leftValue, rightValue));
         }
 
         if (!budget.TrySpend())
@@ -81,13 +89,31 @@ internal abstract class BooleanDecision<T>
 
     private static string PickPivot(BooleanDecision<T> left, BooleanDecision<T> right)
     {
-        if (left is SplitDecision<T> leftSplit
-            && (right is not SplitDecision<T> rightSplit || string.CompareOrdinal(leftSplit.Variable, rightSplit.Variable) <= 0))
-        {
-            return leftSplit.Variable;
-        }
+        string? pivot = null;
+        FindPivot(left, ref pivot);
+        FindPivot(right, ref pivot);
+        return pivot!;
+    }
 
-        return ((SplitDecision<T>)right).Variable;
+    private static void FindPivot(BooleanDecision<T> node, ref string? pivot)
+    {
+        switch (node)
+        {
+            case SplitDecision<T> split:
+                if (pivot is null || string.CompareOrdinal(split.Variable, pivot) < 0)
+                {
+                    pivot = split.Variable;
+                }
+
+                FindPivot(split.WhenFalse, ref pivot);
+                FindPivot(split.WhenTrue, ref pivot);
+                break;
+
+            case JoinDecision<T> joined:
+                FindPivot(joined.Left, ref pivot);
+                FindPivot(joined.Right, ref pivot);
+                break;
+        }
     }
 
     /// <summary>
@@ -104,8 +130,32 @@ internal abstract class BooleanDecision<T>
             LeafDecision<T> => node,
             SplitDecision<T> split when split.Variable == variable => value ? split.WhenTrue : split.WhenFalse,
             SplitDecision<T> split => Split(split.Variable, Restrict(split.WhenFalse, variable, value), Restrict(split.WhenTrue, variable, value)),
+            JoinDecision<T> joined => Join(
+                Restrict(joined.Left, variable, value),
+                Restrict(joined.Right, variable, value),
+                joined.JoinOperation),
             _ => throw new NotSupportedException()
         };
+
+    private static bool TryCollapseResolved(BooleanDecision<T> node, out T value)
+    {
+        switch (node)
+        {
+            case LeafDecision<T> leaf:
+                value = leaf.Value;
+                return true;
+
+            case JoinDecision<T> joined
+                when TryCollapseResolved(joined.Left, out var left)
+                    && TryCollapseResolved(joined.Right, out var right):
+                value = joined.JoinOperation(left, right);
+                return true;
+
+            default:
+                value = default!;
+                return false;
+        }
+    }
 }
 
 /// <summary>
@@ -140,4 +190,19 @@ internal sealed class SplitDecision<T>(string variable, BooleanDecision<T> whenF
     /// <see langword="true"/>.
     /// </summary>
     public BooleanDecision<T> WhenTrue { get; } = whenTrue;
+}
+
+/// <summary>
+/// A factored join of mutually exclusive decision alternatives.
+/// </summary>
+internal sealed class JoinDecision<T>(
+    BooleanDecision<T> left,
+    BooleanDecision<T> right,
+    Func<T, T, T> join) : BooleanDecision<T>
+{
+    public BooleanDecision<T> Left { get; } = left;
+
+    public BooleanDecision<T> Right { get; } = right;
+
+    public Func<T, T, T> JoinOperation { get; } = join;
 }

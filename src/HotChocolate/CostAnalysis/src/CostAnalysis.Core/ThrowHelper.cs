@@ -26,4 +26,13 @@ internal static class ThrowHelper
             argumentName,
             coordinate,
             value.ToString()));
+
+    public static InvalidOperationException OperationTypeNotDefined(OperationType operation)
+        => new($"The schema does not define a root type for '{operation}'.");
+
+    public static ArgumentOutOfRangeException InvalidAnalyses(CostAnalyses analyses)
+        => new(nameof(analyses), analyses, "At least one known cost analysis must be requested.");
+
+    public static InvalidOperationException UnexpectedDecision()
+        => new("The compiled Boolean decision has an unsupported node type.");
 }

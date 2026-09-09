@@ -12,7 +12,9 @@ internal static class FieldGroupMerger
     /// Merges the field groups of <paramref name="visited"/> nodes by
     /// response name, in first-occurrence order across the visited nodes.
     /// </summary>
-    public static List<(string ResponseName, List<FieldNode> Fields)> Merge(ConditionTree tree, List<int> visited)
+    public static List<(string ResponseName, List<FieldNode> Fields)> Merge(
+        ConditionTree tree,
+        IReadOnlyList<int> visited)
     {
         var order = new List<(string ResponseName, List<FieldNode> Fields)>();
         var indexByResponseName = new Dictionary<string, int>();
@@ -40,7 +42,7 @@ internal static class FieldGroupMerger
     /// <paramref name="fields"/> into one merged selection list, the shape
     /// of the spec's CollectSubfields.
     /// </summary>
-    public static IReadOnlyList<ISelectionNode> MergedSelections(List<FieldNode> fields)
+    public static IReadOnlyList<ISelectionNode> MergedSelections(IReadOnlyList<FieldNode> fields)
     {
         if (fields.Count == 1)
         {

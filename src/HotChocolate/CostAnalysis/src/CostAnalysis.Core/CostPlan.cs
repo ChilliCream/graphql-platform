@@ -8,23 +8,32 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 public sealed class CostPlan
 {
+    private readonly PlanNode _root;
+    private readonly CostEstimate _staticBound;
+    private readonly CostAnalyses _analyses;
+    private readonly bool _hitCaseBudget;
+
     /// <summary>
     /// Initializes a new instance of <see cref="CostPlan"/>.
     /// </summary>
-    internal CostPlan()
+    internal CostPlan(PlanNode root, CostAnalyses analyses, bool hitCaseBudget)
     {
+        _root = root;
+        _analyses = analyses;
+        _hitCaseBudget = hitCaseBudget;
+        _staticBound = root.Evaluate(variableValues: null);
     }
 
     /// <summary>
     /// Gets the analyses this plan evaluates.
     /// </summary>
-    public CostAnalyses Analyses => throw ThrowHelper.NotImplemented();
+    public CostAnalyses Analyses => _analyses;
 
     /// <summary>
     /// Gets a value indicating whether this plan's estimate depends on
     /// coerced variable values.
     /// </summary>
-    public bool DependsOnVariables => throw ThrowHelper.NotImplemented();
+    public bool DependsOnVariables => _root.DependsOnVariables;
 
     /// <summary>
     /// Gets a value indicating whether compilation exhausted the
@@ -32,7 +41,7 @@ public sealed class CostPlan
     /// is a sound but conservative fallback bound rather than the exact
     /// result.
     /// </summary>
-    public bool HitCaseBudget => throw ThrowHelper.NotImplemented();
+    public bool HitCaseBudget => _hitCaseBudget;
 
     /// <summary>
     /// Evaluates this plan against coerced variable values.
@@ -45,8 +54,8 @@ public sealed class CostPlan
     /// </returns>
     public CostEstimate Evaluate(ICostVariableValues variables)
     {
-        _ = variables;
-        throw ThrowHelper.NotImplemented();
+        ArgumentNullException.ThrowIfNull(variables);
+        return _root.Evaluate(variables);
     }
 
     /// <summary>
@@ -56,5 +65,5 @@ public sealed class CostPlan
     /// <returns>
     /// The static bound.
     /// </returns>
-    public CostEstimate EvaluateStaticBound() => throw ThrowHelper.NotImplemented();
+    public CostEstimate EvaluateStaticBound() => _staticBound;
 }

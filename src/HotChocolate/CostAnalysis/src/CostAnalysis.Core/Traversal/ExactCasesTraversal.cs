@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -44,7 +45,16 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget)
     {
-        var selection = EvaluateBoundary(snapshot, fragments, tree, algebra, budget, BooleanAssignment.Empty, parentSizeContext: null);
+        var cache = new TraversalCache(snapshot, fragments);
+        var selection = EvaluateBoundary(
+            snapshot,
+            fragments,
+            tree,
+            algebra,
+            budget,
+            BooleanAssignment.Empty,
+            cache,
+            parentSizeContext: null);
         var rootTypeName = snapshot.GetSingletonObjectTypeName(tree.Root.Condition.PossibleTypes);
         var rootTypeWeight = snapshot.GetTypeWeight(rootTypeName);
         return MapRoot(algebra, rootTypeWeight, selection);
@@ -64,11 +74,19 @@ internal static class ExactCasesTraversal
             return BooleanDecision<TSummary>.Leaf(algebra.Root(rootTypeWeight, leaf.Value));
         }
 
-        var split = (SplitDecision<TSummary>)selection;
-        return BooleanDecision<TSummary>.Split(
-            split.Variable,
-            MapRoot(algebra, rootTypeWeight, split.WhenFalse),
-            MapRoot(algebra, rootTypeWeight, split.WhenTrue));
+        if (selection is SplitDecision<TSummary> split)
+        {
+            return BooleanDecision<TSummary>.Split(
+                split.Variable,
+                MapRoot(algebra, rootTypeWeight, split.WhenFalse),
+                MapRoot(algebra, rootTypeWeight, split.WhenTrue));
+        }
+
+        var joined = (JoinDecision<TSummary>)selection;
+        return BooleanDecision<TSummary>.Join(
+            MapRoot(algebra, rootTypeWeight, joined.Left),
+            MapRoot(algebra, rootTypeWeight, joined.Right),
+            algebra.Join);
     }
 
     /// <summary>
@@ -83,6 +101,7 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         CaseBudget budget,
         BooleanAssignment assignment,
+        TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
         var regions = TypeRegionPartitioner.Partition(snapshot, tree.Root.Condition.PossibleTypes, CollectTypeConditions(tree));
@@ -96,10 +115,47 @@ internal static class ExactCasesTraversal
             }
 
             var representative = FirstIndex(region);
-            var regionResult = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment, parentSizeContext);
+
+            if (cache.TryCountIndependentLeafVariables(
+                    tree,
+                    representative,
+                    assignment,
+                    out var independentVariables)
+                && !budget.CanCompleteIndependentDecision(independentVariables))
+            {
+                var fallback = CaseBudgetFallback.Evaluate(
+                    snapshot,
+                    fragments,
+                    tree,
+                    algebra,
+                    budget,
+                    region,
+                    representative,
+                    assignment,
+                    cache,
+                    parentSizeContext);
+                combined = combined is null
+                    ? fallback
+                    : BooleanDecision<TSummary>.Join(combined, fallback, algebra.Join);
+                continue;
+            }
+
+            var cursor = CaseCursor.Create(tree);
+            var regionResult = EvaluateCase(
+                snapshot,
+                fragments,
+                tree,
+                algebra,
+                budget,
+                region,
+                representative,
+                assignment,
+                cursor,
+                cache,
+                parentSizeContext);
             combined = combined is null
                 ? regionResult
-                : BooleanDecision<TSummary>.ZipWith(combined, regionResult, algebra.Join, algebra.Join, budget);
+                : BooleanDecision<TSummary>.Join(combined, regionResult, algebra.Join);
         }
 
         return combined ?? BooleanDecision<TSummary>.Leaf(algebra.Empty);
@@ -120,19 +176,26 @@ internal static class ExactCasesTraversal
         PossibleTypeSet region,
         int representative,
         BooleanAssignment assignment,
+        CaseCursor cursor,
+        TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
-        var visited = new List<int>();
-        var visitedSet = new HashSet<int>();
-        var pending = new List<BooleanLiteral>();
-        CollectReachable(tree, representative, assignment, tree.RootNodeId, visited, visitedSet, pending);
+        cursor = cursor.Normalize(representative, assignment);
 
-        if (pending.Count == 0)
+        if (!cursor.TryPickCanonicalVariable(representative, assignment, cache, out var variable))
         {
-            return CollectAndWeigh(snapshot, fragments, tree, algebra, budget, region, assignment, visited, parentSizeContext);
+            return CollectAndWeigh(
+                snapshot,
+                fragments,
+                tree,
+                algebra,
+                budget,
+                region,
+                assignment,
+                cursor.MaterializeVisited(),
+                cache,
+                parentSizeContext);
         }
-
-        var variable = PickCanonicalVariable(pending);
 
         if (!budget.TrySpend())
         {
@@ -145,63 +208,35 @@ internal static class ExactCasesTraversal
                 region,
                 representative,
                 assignment,
+                cache,
                 parentSizeContext);
         }
 
-        var whenFalse = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, false), parentSizeContext);
-        var whenTrue = EvaluateCase(snapshot, fragments, tree, algebra, budget, region, representative, assignment.With(variable, true), parentSizeContext);
+        var whenFalse = EvaluateCase(
+            snapshot,
+            fragments,
+            tree,
+            algebra,
+            budget,
+            region,
+            representative,
+            assignment.With(variable, false),
+            cursor,
+            cache,
+            parentSizeContext);
+        var whenTrue = EvaluateCase(
+            snapshot,
+            fragments,
+            tree,
+            algebra,
+            budget,
+            region,
+            representative,
+            assignment.With(variable, true),
+            cursor,
+            cache,
+            parentSizeContext);
         return BooleanDecision<TSummary>.Split(variable, whenFalse, whenTrue);
-    }
-
-    /// <summary>
-    /// Walks the condition tree DAG from <paramref name="nodeId"/>, following
-    /// a type edge whose target still contains <paramref name="representative"/>
-    /// and a Boolean edge the current assignment resolves as active. An edge
-    /// whose variable is not yet assigned is recorded in
-    /// <paramref name="pending"/> instead of being followed.
-    /// </summary>
-    private static void CollectReachable(
-        ConditionTree tree,
-        int representative,
-        BooleanAssignment assignment,
-        int nodeId,
-        List<int> visited,
-        HashSet<int> visitedSet,
-        List<BooleanLiteral> pending)
-    {
-        if (!visitedSet.Add(nodeId))
-        {
-            return;
-        }
-
-        visited.Add(nodeId);
-
-        foreach (var branch in tree.Nodes[nodeId].Branches)
-        {
-            if (branch.Condition.TypeName is not null)
-            {
-                if (tree.Nodes[branch.TargetNodeId].Condition.PossibleTypes.Contains(representative))
-                {
-                    CollectReachable(tree, representative, assignment, branch.TargetNodeId, visited, visitedSet, pending);
-                }
-
-                continue;
-            }
-
-            var literal = branch.Condition.Literal!.Value;
-
-            if (assignment.TryGetValue(literal.VariableName, out var value))
-            {
-                if (value == literal.IsPositive)
-                {
-                    CollectReachable(tree, representative, assignment, branch.TargetNodeId, visited, visitedSet, pending);
-                }
-
-                continue;
-            }
-
-            pending.Add(literal);
-        }
     }
 
     /// <summary>
@@ -218,15 +253,31 @@ internal static class ExactCasesTraversal
         CaseBudget budget,
         PossibleTypeSet region,
         BooleanAssignment assignment,
-        List<int> visited,
+        IReadOnlyList<int> visited,
+        TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
+        if (cache.HasUniqueResponseNames(tree))
+        {
+            return CollectUniqueAndWeigh(
+                snapshot,
+                fragments,
+                tree,
+                algebra,
+                budget,
+                region,
+                assignment,
+                visited,
+                cache,
+                parentSizeContext);
+        }
+
         BooleanDecision<TSummary>? combined = null;
 
         foreach (var (responseName, fields) in FieldGroupMerger.Merge(tree, visited))
         {
             var fieldName = fields[0].Name.Value;
-            var members = TraversalMembers.Build(snapshot, region, fieldName);
+            var members = cache.GetMembers(region, fieldName);
 
             if (members.Length == 0)
             {
@@ -243,13 +294,23 @@ internal static class ExactCasesTraversal
                     var childSizeContext = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
                     var childDecision = childSelections.Count == 0
                         ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
-                        : EvaluateChild(snapshot, fragments, algebra, budget, assignment, member, childSelections, childSizeContext);
+                        : EvaluateChild(
+                            snapshot,
+                            fragments,
+                            algebra,
+                            budget,
+                            assignment,
+                            member,
+                            fields,
+                            childSelections,
+                            cache,
+                            childSizeContext);
                     var pairDecision = MapField(
                         algebra,
                         responseName,
                         field,
                         member,
-                        InheritedListSizes.InheritedSizeFor(parentSizeContext, fieldName),
+                        parentSizeContext,
                         childDecision);
 
                     groupDecision = groupDecision is null
@@ -266,6 +327,87 @@ internal static class ExactCasesTraversal
         return combined ?? BooleanDecision<TSummary>.Leaf(algebra.Empty);
     }
 
+    private static BooleanDecision<TSummary> CollectUniqueAndWeigh<TSummary>(
+        CostSchemaSnapshot snapshot,
+        IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
+        ConditionTree tree,
+        IAnalysisAlgebra<TSummary> algebra,
+        CaseBudget budget,
+        PossibleTypeSet region,
+        BooleanAssignment assignment,
+        IReadOnlyList<int> visited,
+        TraversalCache cache,
+        SizedFieldContext? parentSizeContext)
+    {
+        BooleanDecision<TSummary>? combined = null;
+
+        foreach (var nodeId in visited)
+        {
+            foreach (var group in tree.Nodes[nodeId].FieldGroups)
+            {
+                var fields = group.Fields;
+                var fieldName = fields[0].Name.Value;
+                var members = cache.GetMembers(region, fieldName);
+
+                if (members.Length == 0)
+                {
+                    continue;
+                }
+
+                var childSelections = group.MergedSelectionSet();
+                BooleanDecision<TSummary>? groupDecision = null;
+
+                foreach (var field in fields)
+                {
+                    foreach (var member in members)
+                    {
+                        var childSizeContext = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
+                        var childDecision = childSelections.Count == 0
+                            ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
+                            : EvaluateChild(
+                                snapshot,
+                                fragments,
+                                algebra,
+                                budget,
+                                assignment,
+                                member,
+                                fields,
+                                childSelections,
+                                cache,
+                                childSizeContext);
+                        var pairDecision = MapField(
+                            algebra,
+                            group.ResponseName,
+                            field,
+                            member,
+                            parentSizeContext,
+                            childDecision);
+
+                        groupDecision = groupDecision is null
+                            ? pairDecision
+                            : BooleanDecision<TSummary>.ZipWith(
+                                groupDecision,
+                                pairDecision,
+                                algebra.Join,
+                                algebra.Join,
+                                budget);
+                    }
+                }
+
+                combined = combined is null
+                    ? groupDecision!
+                    : BooleanDecision<TSummary>.ZipWith(
+                        combined,
+                        groupDecision!,
+                        algebra.Combine,
+                        algebra.Join,
+                        budget);
+            }
+        }
+
+        return combined ?? BooleanDecision<TSummary>.Leaf(algebra.Empty);
+    }
+
     /// <summary>
     /// Evaluates one child boundary for a field occurrence and parent-type
     /// pair using that pair's return type and list-size context.
@@ -277,13 +419,22 @@ internal static class ExactCasesTraversal
         CaseBudget budget,
         BooleanAssignment assignment,
         CollectedFieldGroupMember member,
+        IReadOnlyList<FieldNode> fields,
         IReadOnlyList<ISelectionNode> childSelections,
+        TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
         var returnTypeName = member.Field.Type.NamedType().Name;
-        var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
-        var childTree = ConditionTreeExtractor.ExtractBoundary(snapshot, fragments, childSelections, childRoot);
-        return EvaluateBoundary(snapshot, fragments, childTree, algebra, budget, assignment, parentSizeContext);
+        var childTree = cache.GetChildBoundary(returnTypeName, fields, childSelections);
+        return EvaluateBoundary(
+            snapshot,
+            fragments,
+            childTree,
+            algebra,
+            budget,
+            assignment,
+            cache,
+            parentSizeContext);
     }
 
     /// <summary>
@@ -295,20 +446,35 @@ internal static class ExactCasesTraversal
         string responseName,
         FieldNode field,
         CollectedFieldGroupMember member,
-        double? inheritedSize,
+        SizedFieldContext? inheritedSizeContext,
         BooleanDecision<TSummary> child)
     {
         if (child is LeafDecision<TSummary> leaf)
         {
-            return BooleanDecision<TSummary>.Leaf(
-                algebra.Field(new CollectedFieldGroup(responseName, field, member, inheritedSize), leaf.Value));
+            var group = new CollectedFieldGroup(
+                responseName,
+                field,
+                member,
+                InheritedListSizes.InheritedSizeFor(inheritedSizeContext, member.Field.Name));
+            var value = algebra is IInheritedSizePlanAlgebra<TSummary> planAlgebra
+                ? planAlgebra.Field(group, inheritedSizeContext, leaf.Value)
+                : algebra.Field(group, leaf.Value);
+            return BooleanDecision<TSummary>.Leaf(value);
         }
 
-        var split = (SplitDecision<TSummary>)child;
-        return BooleanDecision<TSummary>.Split(
-            split.Variable,
-            MapField(algebra, responseName, field, member, inheritedSize, split.WhenFalse),
-            MapField(algebra, responseName, field, member, inheritedSize, split.WhenTrue));
+        if (child is SplitDecision<TSummary> split)
+        {
+            return BooleanDecision<TSummary>.Split(
+                split.Variable,
+                MapField(algebra, responseName, field, member, inheritedSizeContext, split.WhenFalse),
+                MapField(algebra, responseName, field, member, inheritedSizeContext, split.WhenTrue));
+        }
+
+        var joined = (JoinDecision<TSummary>)child;
+        return BooleanDecision<TSummary>.Join(
+            MapField(algebra, responseName, field, member, inheritedSizeContext, joined.Left),
+            MapField(algebra, responseName, field, member, inheritedSizeContext, joined.Right),
+            algebra.Join);
     }
 
     /// <summary>
@@ -339,25 +505,527 @@ internal static class ExactCasesTraversal
             }
         }
 
+        result.Sort(CompareTypeSets);
         return result;
     }
 
-    /// <summary>
-    /// Picks the canonically first (ordinal) variable name among a set of
-    /// pending literals.
-    /// </summary>
-    internal static string PickCanonicalVariable(List<BooleanLiteral> pending)
+    private static int CompareTypeSets(PossibleTypeSet left, PossibleTypeSet right)
     {
-        var best = pending[0].VariableName;
+        var leftEnumerator = left.GetEnumerator();
+        var rightEnumerator = right.GetEnumerator();
 
-        for (var i = 1; i < pending.Count; i++)
+        while (true)
         {
-            if (string.CompareOrdinal(pending[i].VariableName, best) < 0)
+            var hasLeft = leftEnumerator.MoveNext();
+            var hasRight = rightEnumerator.MoveNext();
+
+            if (!hasLeft || !hasRight)
             {
-                best = pending[i].VariableName;
+                return hasLeft == hasRight ? 0 : hasLeft ? 1 : -1;
+            }
+
+            var comparison = leftEnumerator.Current.CompareTo(rightEnumerator.Current);
+
+            if (comparison != 0)
+            {
+                return comparison;
+            }
+        }
+    }
+
+    private readonly struct CaseCursor
+    {
+        private readonly ConditionTree _tree;
+        private readonly SelectedNode _selected;
+        private readonly PendingBranches _pending;
+        private readonly DeferredBranch? _deferred;
+
+        private CaseCursor(
+            ConditionTree tree,
+            SelectedNode selected,
+            PendingBranches pending,
+            DeferredBranch? deferred)
+        {
+            _tree = tree;
+            _selected = selected;
+            _pending = pending;
+            _deferred = deferred;
+        }
+
+        public static CaseCursor Create(ConditionTree tree)
+            => new(
+                tree,
+                new SelectedNode(tree.RootNodeId, previous: null),
+                PendingBranches.Prepend(tree.Root.Branches, default),
+                deferred: null);
+
+        public CaseCursor Normalize(
+            int representative,
+            BooleanAssignment assignment)
+        {
+            var selected = _selected;
+            var pending = _pending;
+            var deferred = _deferred;
+            DeferredBranch? unresolved = null;
+
+            while (!pending.IsEmpty || deferred is not null)
+            {
+                Branch branch;
+
+                if (!pending.IsEmpty)
+                {
+                    branch = pending.Current;
+                    pending = pending.Rest();
+                }
+                else
+                {
+                    branch = deferred!.Branch;
+                    deferred = deferred.Next;
+                }
+
+                if (selected.Contains(branch.TargetNodeId))
+                {
+                    continue;
+                }
+
+                if (branch.Condition.TypeName is not null)
+                {
+                    if (_tree.Nodes[branch.TargetNodeId].Condition.PossibleTypes.Contains(representative))
+                    {
+                        Select(branch.TargetNodeId, ref selected, ref pending);
+                    }
+
+                    continue;
+                }
+
+                var literal = branch.Condition.Literal!.Value;
+
+                if (assignment.TryGetValue(literal.VariableName, out var value))
+                {
+                    if (literal.IsPositive == value)
+                    {
+                        Select(branch.TargetNodeId, ref selected, ref pending);
+                    }
+
+                    continue;
+                }
+
+                unresolved = new DeferredBranch(branch, unresolved);
+            }
+
+            return new CaseCursor(_tree, selected, default, unresolved);
+        }
+
+        public bool TryPickCanonicalVariable(
+            int representative,
+            BooleanAssignment assignment,
+            TraversalCache cache,
+            out string variable)
+        {
+            string? best = null;
+            var scan = cache.BeginCanonicalScan(_tree);
+
+            for (var deferred = _deferred; deferred is not null; deferred = deferred.Next)
+            {
+                var literal = deferred.Branch.Condition.Literal!.Value;
+                PickEarlier(literal.VariableName, ref best);
+                ScanPotentiallyReachable(
+                    deferred.Branch.TargetNodeId,
+                    representative,
+                    assignment,
+                    scan,
+                    ref best);
+            }
+
+            variable = best!;
+            return best is not null;
+        }
+
+        private void ScanPotentiallyReachable(
+            int nodeId,
+            int representative,
+            BooleanAssignment assignment,
+            CanonicalScan scan,
+            ref string? best)
+        {
+            if (!scan.TryVisit(nodeId))
+            {
+                return;
+            }
+
+            foreach (var branch in _tree.Nodes[nodeId].Branches)
+            {
+                if (branch.Condition.TypeName is not null)
+                {
+                    if (_tree.Nodes[branch.TargetNodeId].Condition.PossibleTypes.Contains(representative))
+                    {
+                        ScanPotentiallyReachable(
+                            branch.TargetNodeId,
+                            representative,
+                            assignment,
+                            scan,
+                            ref best);
+                    }
+
+                    continue;
+                }
+
+                var literal = branch.Condition.Literal!.Value;
+
+                if (assignment.TryGetValue(literal.VariableName, out var value))
+                {
+                    if (literal.IsPositive == value)
+                    {
+                        ScanPotentiallyReachable(
+                            branch.TargetNodeId,
+                            representative,
+                            assignment,
+                            scan,
+                            ref best);
+                    }
+
+                    continue;
+                }
+
+                PickEarlier(literal.VariableName, ref best);
+                ScanPotentiallyReachable(
+                    branch.TargetNodeId,
+                    representative,
+                    assignment,
+                    scan,
+                    ref best);
             }
         }
 
-        return best;
+        private static void PickEarlier(string candidate, ref string? best)
+        {
+            if (best is null || string.CompareOrdinal(candidate, best) < 0)
+            {
+                best = candidate;
+            }
+        }
+
+        private void Select(
+            int nodeId,
+            ref SelectedNode selected,
+            ref PendingBranches pending)
+        {
+            selected = new SelectedNode(nodeId, selected);
+            pending = PendingBranches.Prepend(_tree.Nodes[nodeId].Branches, pending);
+        }
+
+        public int[] MaterializeVisited()
+        {
+            var count = 0;
+
+            for (var selected = _selected; selected is not null; selected = selected.Previous)
+            {
+                count++;
+            }
+
+            var result = new int[count];
+            var index = count;
+
+            for (var selected = _selected; selected is not null; selected = selected.Previous)
+            {
+                result[--index] = selected.NodeId;
+            }
+
+            return result;
+        }
+    }
+
+    private sealed class DeferredBranch(Branch branch, DeferredBranch? next)
+    {
+        public Branch Branch { get; } = branch;
+
+        public DeferredBranch? Next { get; } = next;
+    }
+
+    private sealed class SelectedNode(int nodeId, SelectedNode? previous)
+    {
+        public int NodeId { get; } = nodeId;
+
+        public SelectedNode? Previous { get; } = previous;
+
+        public bool Contains(int nodeId)
+        {
+            for (SelectedNode? selected = this; selected is not null; selected = selected.Previous)
+            {
+                if (selected.NodeId == nodeId)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    private readonly struct PendingBranches
+    {
+        private readonly IReadOnlyList<Branch>? _branches;
+        private readonly int _index;
+        private readonly PendingContinuation? _continuation;
+
+        private PendingBranches(
+            IReadOnlyList<Branch> branches,
+            int index,
+            PendingContinuation? continuation)
+        {
+            _branches = branches;
+            _index = index;
+            _continuation = continuation;
+        }
+
+        public bool IsEmpty => _branches is null;
+
+        public Branch Current => _branches![_index];
+
+        public static PendingBranches Prepend(
+            IReadOnlyList<Branch> branches,
+            PendingBranches rest)
+        {
+            if (branches.Count == 0)
+            {
+                return rest;
+            }
+
+            return new PendingBranches(
+                branches,
+                0,
+                rest.IsEmpty ? null : new PendingContinuation(rest));
+        }
+
+        public PendingBranches Rest()
+        {
+            if (_index + 1 < _branches!.Count)
+            {
+                return new PendingBranches(_branches, _index + 1, _continuation);
+            }
+
+            return _continuation?.Value ?? default;
+        }
+    }
+
+    private sealed class PendingContinuation(PendingBranches value)
+    {
+        public PendingBranches Value { get; } = value;
+    }
+
+    internal sealed class TraversalCache(
+        CostSchemaSnapshot snapshot,
+        IReadOnlyDictionary<string, FragmentDefinitionNode> fragments)
+    {
+        private readonly Dictionary<(PossibleTypeSet Region, string FieldName), CollectedFieldGroupMember[]> _members = [];
+        private readonly Dictionary<ChildBoundaryKey, ConditionTree> _childBoundaries = new(ChildBoundaryKeyComparer.Instance);
+        private readonly Dictionary<ConditionTree, bool> _uniqueResponseNames = [];
+        private readonly Dictionary<ConditionTree, CanonicalScanState> _canonicalScans = [];
+
+        public CanonicalScan BeginCanonicalScan(ConditionTree tree)
+        {
+            if (!_canonicalScans.TryGetValue(tree, out var state))
+            {
+                state = new CanonicalScanState(tree.Nodes.Count);
+                _canonicalScans.Add(tree, state);
+            }
+
+            return state.Begin();
+        }
+
+        public CollectedFieldGroupMember[] GetMembers(PossibleTypeSet region, string fieldName)
+        {
+            var key = (region, fieldName);
+
+            if (!_members.TryGetValue(key, out var members))
+            {
+                members = TraversalMembers.Build(snapshot, region, fieldName);
+                _members.Add(key, members);
+            }
+
+            return members;
+        }
+
+        public ConditionTree GetChildBoundary(
+            string returnTypeName,
+            IReadOnlyList<FieldNode> fields,
+            IReadOnlyList<ISelectionNode> childSelections)
+        {
+            var key = new ChildBoundaryKey(returnTypeName, fields);
+
+            if (!_childBoundaries.TryGetValue(key, out var tree))
+            {
+                var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
+                tree = ConditionTreeExtractor.ExtractBoundary(
+                    snapshot,
+                    fragments,
+                    childSelections,
+                    childRoot);
+                _childBoundaries.Add(key, tree);
+            }
+
+            return tree;
+        }
+
+        public bool HasUniqueResponseNames(ConditionTree tree)
+        {
+            if (_uniqueResponseNames.TryGetValue(tree, out var unique))
+            {
+                return unique;
+            }
+
+            var names = new HashSet<string>();
+            unique = true;
+
+            foreach (var node in tree.Nodes)
+            {
+                foreach (var group in node.FieldGroups)
+                {
+                    if (!names.Add(group.ResponseName))
+                    {
+                        unique = false;
+                        break;
+                    }
+                }
+
+                if (!unique)
+                {
+                    break;
+                }
+            }
+
+            _uniqueResponseNames.Add(tree, unique);
+            return unique;
+        }
+
+        public bool TryCountIndependentLeafVariables(
+            ConditionTree tree,
+            int representative,
+            BooleanAssignment assignment,
+            out int count)
+        {
+            if (!HasUniqueResponseNames(tree))
+            {
+                count = 0;
+                return false;
+            }
+
+            var variables = new HashSet<string>();
+            var visited = new HashSet<int>();
+            var independent = Visit(tree.RootNodeId);
+            count = variables.Count;
+            return independent && count > 0;
+
+            bool Visit(int nodeId)
+            {
+                if (!visited.Add(nodeId))
+                {
+                    return true;
+                }
+
+                foreach (var branch in tree.Nodes[nodeId].Branches)
+                {
+                    var body = tree.Nodes[branch.TargetNodeId];
+
+                    if (branch.Condition.TypeName is not null)
+                    {
+                        if (body.Condition.PossibleTypes.Contains(representative)
+                            && !Visit(branch.TargetNodeId))
+                        {
+                            return false;
+                        }
+
+                        continue;
+                    }
+
+                    var literal = branch.Condition.Literal!.Value;
+
+                    if (assignment.TryGetValue(literal.VariableName, out _))
+                    {
+                        continue;
+                    }
+
+                    if (body.Branches.Count != 0
+                        || body.FieldGroups.Count == 0
+                        || !variables.Add(literal.VariableName))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+    }
+
+    internal readonly struct CanonicalScan(int[] visited, int stamp)
+    {
+        public bool TryVisit(int nodeId)
+        {
+            if (visited[nodeId] == stamp)
+            {
+                return false;
+            }
+
+            visited[nodeId] = stamp;
+            return true;
+        }
+    }
+
+    private sealed class CanonicalScanState(int nodeCount)
+    {
+        private readonly int[] _visited = new int[nodeCount];
+        private int _stamp;
+
+        public CanonicalScan Begin()
+        {
+            if (_stamp == int.MaxValue)
+            {
+                Array.Clear(_visited);
+                _stamp = 0;
+            }
+
+            return new CanonicalScan(_visited, ++_stamp);
+        }
+    }
+
+    private readonly record struct ChildBoundaryKey(
+        string ReturnTypeName,
+        IReadOnlyList<FieldNode> Fields);
+
+    private sealed class ChildBoundaryKeyComparer : IEqualityComparer<ChildBoundaryKey>
+    {
+        public static readonly ChildBoundaryKeyComparer Instance = new();
+
+        public bool Equals(ChildBoundaryKey x, ChildBoundaryKey y)
+        {
+            if (x.ReturnTypeName != y.ReturnTypeName || x.Fields.Count != y.Fields.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < x.Fields.Count; i++)
+            {
+                if (!ReferenceEquals(x.Fields[i], y.Fields[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public int GetHashCode(ChildBoundaryKey key)
+        {
+            var hash = new HashCode();
+            hash.Add(key.ReturnTypeName, StringComparer.Ordinal);
+
+            foreach (var field in key.Fields)
+            {
+                hash.Add(RuntimeHelpers.GetHashCode(field));
+            }
+
+            return hash.ToHashCode();
+        }
     }
 }

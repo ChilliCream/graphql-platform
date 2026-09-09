@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.CostAnalysis;
 
@@ -16,6 +17,8 @@ internal static class CostSchemaSnapshotBuilder
 {
     public static CostSchemaSnapshot Build(ISchemaDefinition schema, CostEngineOptions options)
     {
+        var defaultListSize = options.DefaultListSize;
+        var caseBudget = options.CaseBudget;
         var objectTypeIndex = IndexObjectTypes(schema, out var objectTypesByIndex);
         var objectTypeCount = objectTypesByIndex.Length;
         var typeWeights = new Dictionary<string, double>();
@@ -146,7 +149,11 @@ internal static class CostSchemaSnapshotBuilder
         }
 
         return new CostSchemaSnapshot(
-            options,
+            defaultListSize,
+            caseBudget,
+            schema.QueryType.Name,
+            schema.MutationType?.Name,
+            schema.SubscriptionType?.Name,
             objectTypeIndex,
             objectTypesByIndex,
             possibleTypes.ToFrozenDictionary(),
@@ -314,7 +321,7 @@ internal static class CostSchemaSnapshotBuilder
             ReadStringList(directive, DirectiveNames.ListSize.Arguments.SlicingArguments, coordinate),
             ReadOptionalNumber(directive, DirectiveNames.ListSize.Arguments.SlicingArgumentDefaultValue, coordinate),
             ReadStringList(directive, DirectiveNames.ListSize.Arguments.SizedFields, coordinate),
-            ReadRequireOneSlicingArgument(directive, requireOneDefault));
+            ReadRequireOneSlicingArgument(directive, requireOneDefault, coordinate));
     }
 
     /// <summary>
@@ -337,34 +344,43 @@ internal static class CostSchemaSnapshotBuilder
         return true;
     }
 
-    private static bool ReadRequireOneSlicingArgument(IDirective directive, bool requireOneDefault)
+    private static bool ReadRequireOneSlicingArgument(
+        IDirective directive,
+        bool requireOneDefault,
+        SchemaCoordinate coordinate)
     {
-        if (directive.Arguments.TryGetValue(
-                DirectiveNames.ListSize.Arguments.RequireOneSlicingArgument,
-                out var value)
-            && value is BooleanValueNode booleanValue)
+        const string argumentName = DirectiveNames.ListSize.Arguments.RequireOneSlicingArgument;
+
+        if (!directive.Arguments.TryGetValue(argumentName, out var value))
+        {
+            return requireOneDefault;
+        }
+
+        if (value is BooleanValueNode booleanValue)
         {
             return booleanValue.Value;
         }
 
-        return requireOneDefault;
+        throw ThrowHelper.InvalidListSizeArgument(
+            coordinate,
+            argumentName,
+            value);
     }
 
     private static double? ReadAssumedSize(IDirective directive, SchemaCoordinate coordinate)
     {
-        if (!directive.Arguments.TryGetValue(
-                DirectiveNames.ListSize.Arguments.AssumedSize,
-                out var value)
-            || value is NullValueNode)
+        const string argumentName = DirectiveNames.ListSize.Arguments.AssumedSize;
+
+        if (!directive.Arguments.TryGetValue(argumentName, out var value))
         {
             return null;
         }
 
-        if (value is not IntValueNode intValue || intValue.ToDouble() < 0)
+        if (value is not IntValueNode intValue || intValue.ToDouble() < 0.0)
         {
             throw ThrowHelper.InvalidListSizeArgument(
                 coordinate,
-                DirectiveNames.ListSize.Arguments.AssumedSize,
+                argumentName,
                 value);
         }
 
@@ -398,6 +414,7 @@ internal static class CostSchemaSnapshotBuilder
 
         if (value is StringValueNode single)
         {
+            ValidateName(single.Value, coordinate, argumentName, value);
             return [single.Value];
         }
 
@@ -415,9 +432,22 @@ internal static class CostSchemaSnapshotBuilder
                 throw ThrowHelper.InvalidListSizeArgument(coordinate, argumentName, value);
             }
 
+            ValidateName(stringValue.Value, coordinate, argumentName, value);
             builder.Add(stringValue.Value);
         }
 
         return builder.MoveToImmutable();
+    }
+
+    private static void ValidateName(
+        string name,
+        SchemaCoordinate coordinate,
+        string argumentName,
+        IValueNode value)
+    {
+        if (!name.IsValidGraphQLName())
+        {
+            throw ThrowHelper.InvalidListSizeArgument(coordinate, argumentName, value);
+        }
     }
 }

@@ -5,11 +5,8 @@ using HotChocolate.Types.Mutable.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Verifies every vendored conformance fixture is well-formed before the
-/// engine exists to evaluate it: its schema and operation parse, its
-/// variables shape a JSON object or null, and its expected numbers are
-/// finite. The evaluate theory that checks the expected numbers against the
-/// compiled engine lands with core-plan-evaluate.
+/// Verifies every vendored conformance fixture has a parseable schema and
+/// operation, valid variables shape and finite expected numbers.
 /// </summary>
 public sealed class FixtureWellFormednessTests
 {
@@ -33,6 +30,17 @@ public sealed class FixtureWellFormednessTests
         Assert.NotNull(schema.QueryType);
         Assert.NotNull(operation);
         Assert.True(fixture.Variables is null || fixture.Variables.Value.ValueKind == JsonValueKind.Object);
-        Assert.True(double.IsFinite(fixture.Expected.TypeCost) && double.IsFinite(fixture.Expected.FieldCost));
+        Assert.True(double.IsFinite(fixture.Expected.TypeCost));
+        Assert.True(double.IsFinite(fixture.Expected.FieldCost));
+    }
+
+    [Fact]
+    public void DiscoverFixturePaths_Should_FindFixtures_When_ResourcesAreCopied()
+    {
+        // act
+        var count = FixtureLoader.FixtureCount;
+
+        // assert
+        Assert.True(count > 0, "No conformance fixtures were discovered next to the test assembly.");
     }
 }

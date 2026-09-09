@@ -1,4 +1,5 @@
 using HotChocolate.CostAnalysis;
+using HotChocolate.Language;
 using HotChocolate.Types.Mutable.Serialization;
 
 const string sourceText =
@@ -23,17 +24,17 @@ const string sourceText =
 
 var schema = SchemaParser.Parse(sourceText);
 var options = new CostEngineOptions();
+var snapshot = CostSchemaSnapshot.Create(schema, options);
+var document = Utf8GraphQLParser.Parse("{ result { ... on A { a } ... on B { b } } }");
+var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
+var plan = CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+var estimate = plan.EvaluateStaticBound();
 
-try
+if (estimate != new CostEstimate(21.0, 2.0, null))
 {
-    CostSchemaSnapshot.Create(schema, options);
-}
-catch (NotImplementedException)
-{
-    Console.WriteLine(
-        "Schema and options parsed and are AOT-safe. "
-        + "CostSchemaSnapshot.Create is a scaffold shell pending a follow-up task.");
+    Console.Error.WriteLine($"AOT smoke expected 2/21, got {estimate.TypeCost}/{estimate.FieldCost}.");
+    Environment.ExitCode = 1;
     return;
 }
 
-Console.WriteLine("Cost schema snapshot built.");
+Console.WriteLine("Cost plan compiled and evaluated to 2/21.");

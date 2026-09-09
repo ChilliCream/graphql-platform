@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text;
+using HotChocolate.Language;
+using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.CostAnalysis;
 
@@ -31,6 +33,83 @@ public class CaseBudgetFallbackTests
         Assert.IsType<LeafDecision<(double TypeCost, double FieldCost)>>(budgeted);
         Assert.True(budgetedAllTrue.TypeCost >= unbudgetedAllTrue.TypeCost && budgetedAllTrue.FieldCost >= unbudgetedAllTrue.FieldCost);
         Assert.True(budgetedAllFalse.TypeCost >= unbudgetedAllFalse.TypeCost && budgetedAllFalse.FieldCost >= unbudgetedAllFalse.FieldCost);
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    public void Evaluate_Should_MatchEveryAssignment_When_IndependentCaseSetFitsBudget(
+        int variableCount)
+    {
+        // arrange
+        var (sdl, operation) = GenerateOperation(variableCount);
+        var decision = TraversalTestHelpers.EvaluateOperation(
+            sdl,
+            operation,
+            caseBudget: 4096);
+
+        // act
+        var estimates = new List<(double TypeCost, double FieldCost)>();
+        var expected = new List<(double TypeCost, double FieldCost)>();
+
+        for (var mask = 0; mask < 1 << variableCount; mask++)
+        {
+            estimates.Add(decision.Resolve(name => (mask & (1 << int.Parse(name.AsSpan(1), CultureInfo.InvariantCulture))) != 0));
+            var fieldCost = 0.0;
+
+            for (var variable = 0; variable < variableCount; variable++)
+            {
+                if ((mask & (1 << variable)) != 0)
+                {
+                    fieldCost += variable + 1;
+                }
+            }
+
+            expected.Add((1.0, fieldCost));
+        }
+
+        // assert
+        Assert.Equal(expected, estimates);
+    }
+
+    [Theory]
+    [InlineData(13)]
+    [InlineData(20)]
+    public void Evaluate_Should_EnterFallbackBeforeGrowingIndependentDecisionBeyondBudget(
+        int variableCount)
+    {
+        // arrange
+        var (sdl, operation) = GenerateOperation(variableCount);
+
+        // act
+        var decision = TraversalTestHelpers.EvaluateOperation(
+            sdl,
+            operation,
+            caseBudget: 4096);
+
+        // assert
+        Assert.IsType<LeafDecision<(double TypeCost, double FieldCost)>>(decision);
+    }
+
+    [Fact]
+    public void Evaluate_Should_KeepCanonicalK13TypeRegionsFactored_When_DefaultBudgetBinds()
+    {
+        // arrange
+        var (sdl, operation) = GenerateCorrelatedTypeRegionOperation(13);
+
+        // act
+        var decision = TraversalTestHelpers.EvaluateOperation(
+            sdl,
+            operation,
+            caseBudget: 4096);
+
+        // assert
+        Assert.IsType<JoinDecision<(double TypeCost, double FieldCost)>>(decision);
+        Assert.Equal((2.0, 92.0), decision.Resolve(_ => true));
+        Assert.Equal((2.0, 92.0), decision.Resolve(_ => false));
     }
 
     [Fact]
@@ -77,6 +156,146 @@ public class CaseBudgetFallbackTests
         Assert.Equal(new CostEstimate(103.0, 103.0, null), decision.Resolve(_ => false));
     }
 
+    [Fact]
+    public void Compile_Should_UseCanonicalVariableOrder_When_MergedFieldOccurrencesAreReordered()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Obj {
+              expensive: Int @cost(weight: "10")
+              cheap: Int @cost(weight: "1")
+            }
+            type Query { obj: Obj }
+            """;
+        var first = CompilePlan(
+            sdl,
+            "query($a:Boolean!,$z:Boolean!){obj @include(if:$z){expensive} obj @include(if:$a){cheap}}");
+        var reordered = CompilePlan(
+            sdl,
+            "query($a:Boolean!,$z:Boolean!){obj @include(if:$a){cheap} obj @include(if:$z){expensive}}");
+        CostEstimate[] expected =
+        [
+            new(11.0, 2.0, null),
+            new(12.0, 2.0, null),
+            new(11.0, 2.0, null),
+            new(12.0, 2.0, null)
+        ];
+
+        // act
+        var firstMatrix = EvaluateMatrix(first, "a", "z");
+        var reorderedMatrix = EvaluateMatrix(reordered, "a", "z");
+
+        // assert
+        Assert.Equal([true, true], [first.HitCaseBudget, reordered.HitCaseBudget]);
+        Assert.Equal([new CostEstimate(12.0, 2.0, null), new CostEstimate(12.0, 2.0, null)], [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
+        Assert.Equal(expected, firstMatrix);
+        Assert.Equal(expected, reorderedMatrix);
+    }
+
+    [Fact]
+    public void Compile_Should_UseCanonicalVariableOrder_When_NestedOccurrencesAreReordered()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Obj {
+              expensive: Int @cost(weight: "10")
+              cheap: Int @cost(weight: "1")
+            }
+            type Outer { obj: Obj }
+            type Query { outer: Outer }
+            """;
+        var first = CompilePlan(
+            sdl,
+            "query($a:Boolean!,$z:Boolean!){outer{obj @include(if:$z){expensive} obj @include(if:$a){cheap}}}");
+        var reordered = CompilePlan(
+            sdl,
+            "query($a:Boolean!,$z:Boolean!){outer{obj @include(if:$a){cheap} obj @include(if:$z){expensive}}}");
+        CostEstimate[] expected =
+        [
+            new(12.0, 3.0, null),
+            new(13.0, 3.0, null),
+            new(12.0, 3.0, null),
+            new(13.0, 3.0, null)
+        ];
+
+        // act
+        var firstMatrix = EvaluateMatrix(first, "a", "z");
+        var reorderedMatrix = EvaluateMatrix(reordered, "a", "z");
+
+        // assert
+        Assert.Equal([true, true], [first.HitCaseBudget, reordered.HitCaseBudget]);
+        Assert.Equal([new CostEstimate(13.0, 3.0, null), new CostEstimate(13.0, 3.0, null)], [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
+        Assert.Equal(expected, firstMatrix);
+        Assert.Equal(expected, reorderedMatrix);
+    }
+
+    [Fact]
+    public void Compile_Should_SpendOnce_When_VariableRepeatsAcrossSiblingAndNestedBoundaries()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Obj { expensive: Int @cost(weight: "10") }
+            type Query {
+              sibling: Int @cost(weight: "2")
+              obj: Obj
+            }
+            """;
+        var first = CompilePlan(
+            sdl,
+            "query($a:Boolean!){sibling @include(if:$a) obj @include(if:$a){expensive @include(if:$a)}}");
+        var reordered = CompilePlan(
+            sdl,
+            "query($a:Boolean!){obj @include(if:$a){expensive @include(if:$a)} sibling @include(if:$a)}");
+        CostEstimate[] expected = [new(0.0, 1.0, null), new(13.0, 2.0, null)];
+
+        // act
+        var firstMatrix = EvaluateMatrix(first, "a");
+        var reorderedMatrix = EvaluateMatrix(reordered, "a");
+
+        // assert
+        Assert.Equal([false, false], [first.HitCaseBudget, reordered.HitCaseBudget]);
+        Assert.Equal([new CostEstimate(13.0, 2.0, null), new CostEstimate(13.0, 2.0, null)], [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
+        Assert.Equal(expected, firstMatrix);
+        Assert.Equal(expected, reorderedMatrix);
+    }
+
+    [Fact]
+    public void Compile_Should_UseCanonicalRegionOrder_When_FactoredRegionsAreReordered()
+    {
+        // arrange
+        const string sdl =
+            """
+            union Result = A | B
+            type A { obj: AObj }
+            type B { obj: BObj }
+            type AObj { expensive: Int @cost(weight: "10") cheap: Int @cost(weight: "1") }
+            type BObj { expensive: Int @cost(weight: "2") cheap: Int @cost(weight: "1") }
+            type Query { result: Result }
+            """;
+        const string firstOperation =
+            "query($a:Boolean!,$b:Boolean!,$y:Boolean!,$z:Boolean!){result{... on A{obj @include(if:$z){expensive} obj @include(if:$a){cheap}} ... on B{obj @include(if:$y){expensive} obj @include(if:$b){cheap}}}}";
+        const string reorderedOperation =
+            "query($a:Boolean!,$b:Boolean!,$y:Boolean!,$z:Boolean!){result{... on B{obj @include(if:$b){cheap} obj @include(if:$y){expensive}} ... on A{obj @include(if:$a){cheap} obj @include(if:$z){expensive}}}}";
+        var first = CompilePlan(sdl, firstOperation);
+        var reordered = CompilePlan(sdl, reorderedOperation);
+
+        // act
+        var firstMatrix = EvaluateMatrix(first, "a", "b", "y", "z");
+        var reorderedMatrix = EvaluateMatrix(reordered, "a", "b", "y", "z");
+        var firstDecision = TraversalTestHelpers.EvaluateOperation(sdl, firstOperation, caseBudget: 1);
+        var reorderedDecision = TraversalTestHelpers.EvaluateOperation(sdl, reorderedOperation, caseBudget: 1);
+
+        // assert
+        Assert.Equal([true, true], [first.HitCaseBudget, reordered.HitCaseBudget]);
+        Assert.Equal(first.EvaluateStaticBound(), reordered.EvaluateStaticBound());
+        Assert.Equal(firstMatrix, reorderedMatrix);
+        Assert.IsType<JoinDecision<(double TypeCost, double FieldCost)>>(firstDecision);
+        Assert.IsType<JoinDecision<(double TypeCost, double FieldCost)>>(reorderedDecision);
+    }
+
     /// <summary>
     /// Counts every node of a <see cref="BooleanDecision{T}"/>, splits and
     /// leaves alike.
@@ -85,6 +304,54 @@ public class CaseBudgetFallbackTests
         => decision is SplitDecision<T> split
             ? 1 + CountNodes(split.WhenFalse) + CountNodes(split.WhenTrue)
             : 1;
+
+    private static CostPlan CompilePlan(
+        string sdl,
+        string operationSource)
+    {
+        const string directives =
+            """
+            directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+            directive @listSize(assumedSize: Int, slicingArguments: [String!], slicingArgumentDefaultValue: Float, sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+            """;
+        var schema = SchemaParser.Parse(directives + "\n" + sdl);
+        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions { CaseBudget = 1 });
+        var document = Utf8GraphQLParser.Parse(operationSource);
+        var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
+        return CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+    }
+
+    private static CostEstimate[] EvaluateMatrix(
+        CostPlan plan,
+        params string[] variables)
+    {
+        var result = new CostEstimate[1 << variables.Length];
+
+        for (var mask = 0; mask < result.Length; mask++)
+        {
+            var values = new Dictionary<string, IValueNode>(variables.Length);
+
+            for (var index = 0; index < variables.Length; index++)
+            {
+                values.Add(
+                    variables[index],
+                    (mask & (1 << index)) == 0
+                        ? BooleanValueNode.False
+                        : BooleanValueNode.True);
+            }
+
+            result[mask] = plan.Evaluate(new TestVariableValues(values));
+        }
+
+        return result;
+    }
+
+    private sealed class TestVariableValues(
+        IReadOnlyDictionary<string, IValueNode> values) : ICostVariableValues
+    {
+        public bool TryGetValue(string name, out IValueNode? value)
+            => values.TryGetValue(name, out value);
+    }
 
     /// <summary>
     /// Generates a schema with <see cref="VariableCount"/> sibling object
@@ -122,12 +389,15 @@ public class CaseBudgetFallbackTests
     /// fields on Query, each gated by its own <c>@include</c> variable.
     /// </summary>
     private static (string Sdl, string Operation) GenerateOperation()
+        => GenerateOperation(VariableCount);
+
+    private static (string Sdl, string Operation) GenerateOperation(int variableCount)
     {
         var sdl = new StringBuilder("type Query {");
         var variableDeclarations = new StringBuilder();
         var selections = new StringBuilder();
 
-        for (var i = 0; i < VariableCount; i++)
+        for (var i = 0; i < variableCount; i++)
         {
             var weight = (i + 1).ToString(CultureInfo.InvariantCulture);
             sdl.Append(" f").Append(i).Append(": Int @cost(weight: \"").Append(weight).Append("\")");
@@ -144,6 +414,42 @@ public class CaseBudgetFallbackTests
         sdl.Append(" }");
 
         var operation = new StringBuilder("query(").Append(variableDeclarations).Append(") {").Append(selections).Append(" }");
+        return (sdl.ToString(), operation.ToString());
+    }
+
+    private static (string Sdl, string Operation) GenerateCorrelatedTypeRegionOperation(
+        int variableCount)
+    {
+        var sdl = new StringBuilder("union Result = Left | Right type Left {");
+        var rightFields = new StringBuilder();
+        var variableDeclarations = new StringBuilder();
+        var leftSelections = new StringBuilder();
+        var rightSelections = new StringBuilder();
+
+        for (var i = 0; i < variableCount; i++)
+        {
+            var weight = (i + 1).ToString(CultureInfo.InvariantCulture);
+            sdl.Append(" f").Append(i).Append(": Int @cost(weight: \"").Append(weight).Append("\")");
+            rightFields.Append(" f").Append(i).Append(": Int @cost(weight: \"").Append(weight).Append("\")");
+
+            if (i > 0)
+            {
+                variableDeclarations.Append(',');
+            }
+
+            variableDeclarations.Append("$v").Append(i).Append(":Boolean!");
+            leftSelections.Append(" l").Append(i).Append(":f").Append(i).Append(" @include(if:$v").Append(i).Append(')');
+            rightSelections.Append(" r").Append(i).Append(":f").Append(i).Append(" @skip(if:$v").Append(i).Append(')');
+        }
+
+        sdl.Append(" } type Right {").Append(rightFields).Append(" } type Query { result: Result }");
+        var operation = new StringBuilder("query(")
+            .Append(variableDeclarations)
+            .Append(") { result { ... on Left {")
+            .Append(leftSelections)
+            .Append(" } ... on Right {")
+            .Append(rightSelections)
+            .Append(" } } }");
         return (sdl.ToString(), operation.ToString());
     }
 }
