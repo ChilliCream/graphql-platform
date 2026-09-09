@@ -1,6 +1,5 @@
 using System.Text;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Configs;
 using HotChocolate.Language;
 
 namespace HotChocolate.CostAnalysis;
