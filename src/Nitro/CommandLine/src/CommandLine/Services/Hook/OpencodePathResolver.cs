@@ -2,11 +2,6 @@ using ChilliCream.Nitro.CommandLine.Services;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
-internal interface IOpencodePathResolver
-{
-    string Resolve(string scope);
-}
-
 internal sealed class OpencodePathResolver(
     IFileSystem fileSystem,
     IEnvironmentVariableProvider environmentVariables) : IOpencodePathResolver
