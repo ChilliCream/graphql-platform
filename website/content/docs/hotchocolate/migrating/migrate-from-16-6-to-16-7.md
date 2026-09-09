@@ -166,7 +166,7 @@ Generated paging annotations already write the setting explicitly. They write `f
 
 ## Cost estimates use coerced request values
 
-Cost plans are compiled once and evaluated for each request. Supplied slicing variables, Boolean `@include` and `@skip` conditions, and variable-supplied input objects now affect the estimate that is reported and enforced. Successful executed report batches attach each variable set's cost to its corresponding result. If enforcement finds an over-limit set, the first violation produces one request-level `OperationResult` and the request does not execute.
+Cost plans are compiled once and evaluated for each request. Supplied slicing variables, Boolean `@include` and `@skip` conditions, and variable-supplied input objects now affect the estimate that is reported and enforced. Supported variable batches in report or validate mode produce one result per variable set, with each result carrying that set's `operationCost`. When an executing variable batch enforces cost limits, only offending indices return `HC0047`; accepted query indices still execute and return their data.
 
 The following calculation rules also change:
 
@@ -220,6 +220,6 @@ When `MaxResponseSize` is enabled, `extensions.operationCost` includes `maxRespo
 
 Positive infinite values in `extensions.operationCost` and cost error extensions are serialized as the JSON string `"Infinity"`. A `GraphQL-Cost: report` rejection includes `operationCost` alongside the error.
 
-Cost rejections are request errors. They return HTTP 400 when the response media type is `application/graphql-response+json`; legacy `application/json` responses remain HTTP 200.
+Single-result cost rejections are request errors. They return HTTP 400 when the response media type is `application/graphql-response+json`; legacy `application/json` responses remain HTTP 200. A variable batch with rejected indices returns an `OperationResultBatch` and remains HTTP 200 for either media type.
 
 Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan`, all estimates for the request, and whether the result is a static bound. Cost analysis and reporting return `HC0048` when required operation or document state is missing, or when metrics cannot be attached to the execution-result state.
