@@ -12,7 +12,6 @@ import {
   HandshakeAngleIcon,
   NetworkIcon,
   NewspaperIcon,
-  RocketIcon,
   ServerIcon,
   SparklesIcon,
   WavePulseIcon,
@@ -47,6 +46,7 @@ export interface SubLink {
   label: string;
   description?: string;
   icon?: Icon;
+  iconAspect?: "natural";
 }
 
 export interface SubGroup {
@@ -111,13 +111,15 @@ export const NAV_ITEMS: NavItem[] = [
             href: "/products/nitro",
             label: "Nitro",
             description: "Observability, governance, and delivery.",
-            icon: RocketIcon,
+            icon: Nitro,
+            iconAspect: "natural",
           },
           {
             href: "/products/mocha",
             label: "Mocha",
             description: "Messaging for .NET.",
-            icon: RocketIcon,
+            icon: Mocha,
+            iconAspect: "natural",
           },
         ],
       },
@@ -167,16 +169,38 @@ export const NAV_ITEMS: NavItem[] = [
             href: "/docs/hotchocolate",
             label: "Hot Chocolate",
             icon: HotChocolate,
+            iconAspect: "natural",
           },
           {
             href: "/docs/strawberryshake",
             label: "Strawberry Shake",
             icon: StrawberryShake,
+            iconAspect: "natural",
           },
-          { href: "/docs/mocha", label: "Mocha", icon: Mocha },
-          { href: "/docs/fusion", label: "Fusion", icon: Fusion },
-          { href: "/docs/nitro", label: "Nitro", icon: Nitro },
-          { href: "/docs/skills", label: "Skills", icon: Skills },
+          {
+            href: "/docs/mocha",
+            label: "Mocha",
+            icon: Mocha,
+            iconAspect: "natural",
+          },
+          {
+            href: "/docs/fusion",
+            label: "Fusion",
+            icon: Fusion,
+            iconAspect: "natural",
+          },
+          {
+            href: "/docs/nitro",
+            label: "Nitro",
+            icon: Nitro,
+            iconAspect: "natural",
+          },
+          {
+            href: "/docs/skills",
+            label: "Skills",
+            icon: Skills,
+            iconAspect: "natural",
+          },
         ],
       },
       {

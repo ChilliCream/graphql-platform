@@ -213,6 +213,7 @@ function SubLinkRow({
     ? { target: "_blank" as const, rel: "noopener noreferrer" as const }
     : {};
   const Icon = link.icon;
+  const natural = link.iconAspect === "natural";
 
   return (
     <Link
@@ -223,8 +224,10 @@ function SubLinkRow({
       className="group/link text-cc-ink-dim hover:bg-cc-hover flex items-start gap-3 rounded-md px-2 py-2 no-underline transition-colors"
     >
       {Icon && (
-        <span className="text-cc-ink-dim group-hover/link:text-cc-ink mt-0.5 flex h-5 w-5 flex-none items-center justify-center transition-colors">
-          <Icon className="h-4 w-4 fill-current" />
+        <span
+          className={`text-cc-ink-dim group-hover/link:text-cc-ink mt-0.5 flex h-5 w-5 flex-none items-center transition-colors ${natural ? "justify-start" : "justify-center"}`}
+        >
+          <Icon className={natural ? "h-5 w-auto" : "h-4 w-4 fill-current"} />
         </span>
       )}
       <div>
