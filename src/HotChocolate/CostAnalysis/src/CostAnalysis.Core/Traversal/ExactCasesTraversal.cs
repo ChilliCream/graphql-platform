@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -257,7 +258,7 @@ internal static class ExactCasesTraversal
         TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
-        if (cache.HasUniqueResponseNames(tree))
+        if (tree.HasUniqueResponseNames)
         {
             return CollectUniqueAndWeigh(
                 snapshot,
@@ -272,11 +273,56 @@ internal static class ExactCasesTraversal
                 parentSizeContext);
         }
 
+        var scratchLength = FieldGroupAccumulator.GetRequiredScratchLength(tree);
+        int[]? rented = null;
+        Span<int> scratch = scratchLength <= FieldGroupAccumulator.MaxStackScratchLength
+            ? stackalloc int[scratchLength]
+            : (rented = ArrayPool<int>.Shared.Rent(scratchLength));
+
+        try
+        {
+            var accumulator = new FieldGroupAccumulator(tree, scratch);
+            accumulator.Build(visited);
+            return CollectMergedAndWeigh(
+                snapshot,
+                fragments,
+                algebra,
+                budget,
+                region,
+                assignment,
+                cache,
+                parentSizeContext,
+                ref accumulator);
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<int>.Shared.Return(rented);
+            }
+        }
+    }
+
+    private static BooleanDecision<TSummary> CollectMergedAndWeigh<TSummary>(
+        CostSchemaSnapshot snapshot,
+        IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
+        IAnalysisAlgebra<TSummary> algebra,
+        CaseBudget budget,
+        PossibleTypeSet region,
+        BooleanAssignment assignment,
+        TraversalCache cache,
+        SizedFieldContext? parentSizeContext,
+        ref FieldGroupAccumulator accumulator)
+    {
         BooleanDecision<TSummary>? combined = null;
 
-        foreach (var (responseName, fields) in FieldGroupMerger.Merge(tree, visited))
+        for (var responseIndex = 0; responseIndex < accumulator.Count; responseIndex++)
         {
-            var fieldName = fields[0].Name.Value;
+            var responseNameId = accumulator.GetResponseNameId(responseIndex);
+            var firstEntry = accumulator.GetFirstEntry(responseNameId);
+            var firstGroup = accumulator.GetGroup(firstEntry);
+            var responseName = firstGroup.ResponseName;
+            var fieldName = firstGroup.Fields[0].Name.Value;
             var members = cache.GetMembers(region, fieldName);
 
             if (members.Length == 0)
@@ -284,8 +330,65 @@ internal static class ExactCasesTraversal
                 continue;
             }
 
+            if (!accumulator.HasChildSelections(responseNameId))
+            {
+                var hasDirectLeafValue = false;
+                var directLeafValue = default(TSummary)!;
+
+                for (var entry = firstEntry;
+                    entry >= 0;
+                    entry = accumulator.GetNextEntry(entry))
+                {
+                    foreach (var field in accumulator.GetGroup(entry).Fields)
+                    {
+                        if (algebra is ILeafFieldBatchAlgebra<TSummary> batchAlgebra)
+                        {
+                            batchAlgebra.AccumulateField(
+                                responseName,
+                                field,
+                                members,
+                                parentSizeContext,
+                                algebra.Empty,
+                                ref hasDirectLeafValue,
+                                ref directLeafValue);
+                            continue;
+                        }
+
+                        foreach (var member in members)
+                        {
+                            _ = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
+                            var value = MapFieldValue(
+                                algebra,
+                                responseName,
+                                field,
+                                member,
+                                parentSizeContext,
+                                algebra.Empty);
+                            directLeafValue = hasDirectLeafValue
+                                ? algebra.Join(directLeafValue, value)
+                                : value;
+                            hasDirectLeafValue = true;
+                        }
+                    }
+                }
+
+                var leafDecision = BooleanDecision<TSummary>.Leaf(directLeafValue);
+                combined = combined is null
+                    ? leafDecision
+                    : BooleanDecision<TSummary>.ZipWith(
+                        combined,
+                        leafDecision,
+                        algebra.Combine,
+                        algebra.Join,
+                        budget);
+                continue;
+            }
+
+            var fields = accumulator.MaterializeFields(responseNameId);
             var childSelections = FieldGroupMerger.MergedSelections(fields);
             BooleanDecision<TSummary>? groupDecision = null;
+            var hasLeafValue = false;
+            var leafValue = default(TSummary)!;
 
             foreach (var field in fields)
             {
@@ -305,6 +408,21 @@ internal static class ExactCasesTraversal
                             childSelections,
                             cache,
                             childSizeContext);
+
+                    if (groupDecision is null && childDecision is LeafDecision<TSummary> leaf)
+                    {
+                        var value = MapFieldValue(
+                            algebra,
+                            responseName,
+                            field,
+                            member,
+                            parentSizeContext,
+                            leaf.Value);
+                        leafValue = hasLeafValue ? algebra.Join(leafValue, value) : value;
+                        hasLeafValue = true;
+                        continue;
+                    }
+
                     var pairDecision = MapField(
                         algebra,
                         responseName,
@@ -313,11 +431,18 @@ internal static class ExactCasesTraversal
                         parentSizeContext,
                         childDecision);
 
+                    if (groupDecision is null && hasLeafValue)
+                    {
+                        groupDecision = BooleanDecision<TSummary>.Leaf(leafValue);
+                    }
+
                     groupDecision = groupDecision is null
                         ? pairDecision
                         : BooleanDecision<TSummary>.ZipWith(groupDecision, pairDecision, algebra.Join, algebra.Join, budget);
                 }
             }
+
+            groupDecision ??= BooleanDecision<TSummary>.Leaf(leafValue);
 
             combined = combined is null
                 ? groupDecision!
@@ -356,6 +481,8 @@ internal static class ExactCasesTraversal
 
                 var childSelections = group.MergedSelectionSet();
                 BooleanDecision<TSummary>? groupDecision = null;
+                var hasLeafValue = false;
+                var leafValue = default(TSummary)!;
 
                 foreach (var field in fields)
                 {
@@ -375,6 +502,21 @@ internal static class ExactCasesTraversal
                                 childSelections,
                                 cache,
                                 childSizeContext);
+
+                        if (groupDecision is null && childDecision is LeafDecision<TSummary> leaf)
+                        {
+                            var value = MapFieldValue(
+                                algebra,
+                                group.ResponseName,
+                                field,
+                                member,
+                                parentSizeContext,
+                                leaf.Value);
+                            leafValue = hasLeafValue ? algebra.Join(leafValue, value) : value;
+                            hasLeafValue = true;
+                            continue;
+                        }
+
                         var pairDecision = MapField(
                             algebra,
                             group.ResponseName,
@@ -382,6 +524,11 @@ internal static class ExactCasesTraversal
                             member,
                             parentSizeContext,
                             childDecision);
+
+                        if (groupDecision is null && hasLeafValue)
+                        {
+                            groupDecision = BooleanDecision<TSummary>.Leaf(leafValue);
+                        }
 
                         groupDecision = groupDecision is null
                             ? pairDecision
@@ -393,6 +540,8 @@ internal static class ExactCasesTraversal
                                 budget);
                     }
                 }
+
+                groupDecision ??= BooleanDecision<TSummary>.Leaf(leafValue);
 
                 combined = combined is null
                     ? groupDecision!
@@ -451,15 +600,13 @@ internal static class ExactCasesTraversal
     {
         if (child is LeafDecision<TSummary> leaf)
         {
-            var group = new CollectedFieldGroup(
+            return BooleanDecision<TSummary>.Leaf(MapFieldValue(
+                algebra,
                 responseName,
                 field,
                 member,
-                InheritedListSizes.InheritedSizeFor(inheritedSizeContext, member.Field.Name));
-            var value = algebra is IInheritedSizePlanAlgebra<TSummary> planAlgebra
-                ? planAlgebra.Field(group, inheritedSizeContext, leaf.Value)
-                : algebra.Field(group, leaf.Value);
-            return BooleanDecision<TSummary>.Leaf(value);
+                inheritedSizeContext,
+                leaf.Value));
         }
 
         if (child is SplitDecision<TSummary> split)
@@ -475,6 +622,24 @@ internal static class ExactCasesTraversal
             MapField(algebra, responseName, field, member, inheritedSizeContext, joined.Left),
             MapField(algebra, responseName, field, member, inheritedSizeContext, joined.Right),
             algebra.Join);
+    }
+
+    private static TSummary MapFieldValue<TSummary>(
+        IAnalysisAlgebra<TSummary> algebra,
+        string responseName,
+        FieldNode field,
+        CollectedFieldGroupMember member,
+        SizedFieldContext? inheritedSizeContext,
+        TSummary child)
+    {
+        var group = new CollectedFieldGroup(
+            responseName,
+            field,
+            member,
+            InheritedListSizes.InheritedSizeFor(inheritedSizeContext, member.Field.Name));
+        return algebra is IInheritedSizePlanAlgebra<TSummary> planAlgebra
+            ? planAlgebra.Field(group, inheritedSizeContext, child)
+            : algebra.Field(group, child);
     }
 
     /// <summary>
@@ -819,7 +984,6 @@ internal static class ExactCasesTraversal
     {
         private readonly Dictionary<(PossibleTypeSet Region, string FieldName), CollectedFieldGroupMember[]> _members = [];
         private readonly Dictionary<ChildBoundaryKey, ConditionTree> _childBoundaries = new(ChildBoundaryKeyComparer.Instance);
-        private readonly Dictionary<ConditionTree, bool> _uniqueResponseNames = [];
         private readonly Dictionary<ConditionTree, CanonicalScanState> _canonicalScans = [];
 
         public CanonicalScan BeginCanonicalScan(ConditionTree tree)
@@ -867,44 +1031,13 @@ internal static class ExactCasesTraversal
             return tree;
         }
 
-        public bool HasUniqueResponseNames(ConditionTree tree)
-        {
-            if (_uniqueResponseNames.TryGetValue(tree, out var unique))
-            {
-                return unique;
-            }
-
-            var names = new HashSet<string>();
-            unique = true;
-
-            foreach (var node in tree.Nodes)
-            {
-                foreach (var group in node.FieldGroups)
-                {
-                    if (!names.Add(group.ResponseName))
-                    {
-                        unique = false;
-                        break;
-                    }
-                }
-
-                if (!unique)
-                {
-                    break;
-                }
-            }
-
-            _uniqueResponseNames.Add(tree, unique);
-            return unique;
-        }
-
         public bool TryCountIndependentLeafVariables(
             ConditionTree tree,
             int representative,
             BooleanAssignment assignment,
             out int count)
         {
-            if (!HasUniqueResponseNames(tree))
+            if (!tree.HasUniqueResponseNames)
             {
                 count = 0;
                 return false;

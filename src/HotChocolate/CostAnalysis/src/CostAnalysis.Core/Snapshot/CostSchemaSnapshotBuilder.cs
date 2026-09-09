@@ -93,6 +93,10 @@ internal static class CostSchemaSnapshotBuilder
         var argumentWeights = new Dictionary<ArgumentKey, double>();
         var inputFieldWeights = new Dictionary<FieldKey, double>();
         var fieldArguments = new Dictionary<FieldKey, ImmutableArray<InputValueMetadata>>();
+        var fieldSemanticIds = new Dictionary<IOutputFieldDefinition, int>(
+            ReferenceEqualityComparer.Instance);
+        var semanticFieldIds = new Dictionary<FieldSemanticIdentity, int>(
+            FieldSemanticIdentityComparer.Instance);
         var inputObjectFields = new Dictionary<string, ImmutableArray<InputValueMetadata>>();
 
         foreach (var type in schema.Types)
@@ -106,7 +110,10 @@ internal static class CostSchemaSnapshotBuilder
                         fieldWeights,
                         listSizeMetadata,
                         argumentWeights,
-                        fieldArguments);
+                        fieldArguments,
+                        fieldSemanticIds,
+                        semanticFieldIds,
+                        typeWeights);
                     break;
 
                 case IInputObjectTypeDefinition inputObjectType:
@@ -167,6 +174,7 @@ internal static class CostSchemaSnapshotBuilder
             argumentWeights.ToFrozenDictionary(),
             inputFieldWeights.ToFrozenDictionary(),
             fieldArguments.ToFrozenDictionary(),
+            fieldSemanticIds.ToFrozenDictionary(ReferenceEqualityComparer.Instance),
             inputObjectFields.ToFrozenDictionary(),
             directiveArguments.ToFrozenDictionary(),
             directiveArgumentMetadata.ToFrozenDictionary());
@@ -198,12 +206,16 @@ internal static class CostSchemaSnapshotBuilder
         Dictionary<FieldKey, double> fieldWeights,
         Dictionary<FieldKey, ListSizeMetadata> listSizeMetadata,
         Dictionary<ArgumentKey, double> argumentWeights,
-        Dictionary<FieldKey, ImmutableArray<InputValueMetadata>> fieldArguments)
+        Dictionary<FieldKey, ImmutableArray<InputValueMetadata>> fieldArguments,
+        Dictionary<IOutputFieldDefinition, int> fieldSemanticIds,
+        Dictionary<FieldSemanticIdentity, int> semanticFieldIds,
+        Dictionary<string, double> typeWeights)
     {
         foreach (var field in type.Fields)
         {
             var key = new FieldKey(type.Name, field.Name);
-            fieldWeights.Add(key, ReadFieldWeight(field));
+            var fieldWeight = ReadFieldWeight(field);
+            fieldWeights.Add(key, fieldWeight);
 
             var listSize = ReadListSizeMetadata(field, listSizeRequireOneDefault);
 
@@ -222,7 +234,23 @@ internal static class CostSchemaSnapshotBuilder
                 arguments.Add(CreateInputValueMetadata(argument));
             }
 
-            fieldArguments.Add(key, arguments.MoveToImmutable());
+            var argumentMetadata = arguments.MoveToImmutable();
+            fieldArguments.Add(key, argumentMetadata);
+
+            var identity = new FieldSemanticIdentity(
+                field.Type,
+                BitConverter.DoubleToInt64Bits(fieldWeight),
+                BitConverter.DoubleToInt64Bits(typeWeights[field.Type.NamedType().Name]),
+                listSize,
+                argumentMetadata);
+
+            if (!semanticFieldIds.TryGetValue(identity, out var semanticId))
+            {
+                semanticId = semanticFieldIds.Count;
+                semanticFieldIds.Add(identity, semanticId);
+            }
+
+            fieldSemanticIds.Add(field, semanticId);
         }
     }
 
