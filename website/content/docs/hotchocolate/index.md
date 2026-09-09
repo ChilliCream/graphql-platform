@@ -92,18 +92,18 @@ These two approaches complement each other. A common setup is to host both a pub
 
 # Key Terminology
 
-| Term                  | Definition                                                                                                                                                                                                                         |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Schema**            | The contract that describes what data clients can query. Hot Chocolate generates it from your C# code.                                                                                                                             |
-| **Query type**        | The root type for read operations. Clients enter the graph through fields on this type.                                                                                                                                            |
-| **Mutation type**     | The root type for write operations. Mutations execute serially and are expected to cause side effects.                                                                                                                             |
-| **Subscription type** | The root type for real-time operations. Clients subscribe to events and receive updates as they occur.                                                                                                                             |
-| **Resolver**          | A function that fetches data for a single field. In implementation-first, each public method on a `[QueryType]` class is a resolver for third-party or first-party APIs.                                                           |
-| **Batch resolver**    | A resolver that fetches data for multiple parent objects in a single call, improving performance by reducing the number of backend requests. Useful for solving the N+1 problem and optimizing data access patterns.               |
-| **DataLoader**        | A batching and caching layer that groups multiple individual data requests into a single batch call, eliminating the N+1 problem.                                                                                                  |
-| **Source generator**  | A Roslyn source generator that inspects your C# code at build time and generates the schema registration, resolver pipelines, and DataLoader infrastructure.                                                                       |
-| **Cost analysis**     | An analysis pass that evaluates operation cost before execution and rejects operations that exceed configured limits. Based on the [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html).          |
-| **Trusted documents** | Pre-registered operations that the server accepts by hash. Operations not in the store are rejected. Also known as persisted operations.                                                                                           |
+| Term                  | Definition                                                                                                                                                                                                                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Schema**            | The contract that describes what data clients can query. Hot Chocolate generates it from your C# code.                                                                                                                    |
+| **Query type**        | The root type for read operations. Clients enter the graph through fields on this type.                                                                                                                                   |
+| **Mutation type**     | The root type for write operations. Mutations execute serially and are expected to cause side effects.                                                                                                                    |
+| **Subscription type** | The root type for real-time operations. Clients subscribe to events and receive updates as they occur.                                                                                                                    |
+| **Resolver**          | A function that fetches data for a single field. In implementation-first, each public method on a `[QueryType]` class is a resolver for third-party or first-party APIs.                                                  |
+| **Batch resolver**    | A resolver that fetches data for multiple parent objects in a single call, improving performance by reducing the number of backend requests. Useful for solving the N+1 problem and optimizing data access patterns.      |
+| **DataLoader**        | A batching and caching layer that groups multiple individual data requests into a single batch call, eliminating the N+1 problem.                                                                                         |
+| **Source generator**  | A Roslyn source generator that inspects your C# code at build time and generates the schema registration, resolver pipelines, and DataLoader infrastructure.                                                              |
+| **Cost analysis**     | An analysis pass that evaluates operation cost before execution and rejects operations that exceed configured limits. Based on the [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html). |
+| **Trusted documents** | Pre-registered operations that the server accepts by hash. Operations not in the store are rejected. Also known as persisted operations.                                                                                  |
 
 # Scaling Beyond a Single Server
 
