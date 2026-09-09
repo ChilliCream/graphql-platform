@@ -1,7 +1,10 @@
 import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { BlogIcon } from "@/src/icons/Blog";
+import { Fusion } from "@/src/icons/Fusion";
 import { GitHubIcon } from "@/src/icons/GitHub";
+import { HotChocolate } from "@/src/icons/HotChocolate";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
+import { Mocha } from "@/src/icons/Mocha";
 import {
   BuildingIcon,
   CloudIcon,
@@ -14,8 +17,11 @@ import {
   SparklesIcon,
   WavePulseIcon,
 } from "@/src/icons/NavIcons";
+import { Nitro } from "@/src/icons/Nitro";
 import { RobotIcon } from "@/src/icons/RobotIcon";
+import { Skills } from "@/src/icons/Skills";
 import { SlackIcon } from "@/src/icons/Slack";
+import { StrawberryShake } from "@/src/icons/StrawberryShake";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
 import type { ComponentType, SVGProps } from "react";
@@ -160,17 +166,17 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/docs/hotchocolate",
             label: "Hot Chocolate",
-            icon: RocketIcon,
+            icon: HotChocolate,
           },
           {
             href: "/docs/strawberryshake",
             label: "Strawberry Shake",
-            icon: RocketIcon,
+            icon: StrawberryShake,
           },
-          { href: "/docs/mocha", label: "Mocha", icon: RocketIcon },
-          { href: "/docs/fusion", label: "Fusion", icon: RocketIcon },
-          { href: "/docs/nitro", label: "Nitro", icon: RocketIcon },
-          { href: "/docs/skills", label: "Skills", icon: RocketIcon },
+          { href: "/docs/mocha", label: "Mocha", icon: Mocha },
+          { href: "/docs/fusion", label: "Fusion", icon: Fusion },
+          { href: "/docs/nitro", label: "Nitro", icon: Nitro },
+          { href: "/docs/skills", label: "Skills", icon: Skills },
         ],
       },
       {
