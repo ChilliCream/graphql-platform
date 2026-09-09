@@ -1,4 +1,4 @@
-import type { BlogPostSummary } from "@/src/helpers/blogPosts";
+import type { ArticleSummary } from "@/src/helpers/contentCollection";
 import { authorPersonId } from "@/src/data/authors";
 import {
   ORGANIZATION_ID,
@@ -30,7 +30,7 @@ export function createBlogNode(
 export function createBlogItemListNode(
   path: string,
   name: string,
-  posts: readonly BlogPostSummary[],
+  posts: readonly ArticleSummary[],
   startPosition = 1,
 ): JsonLdNode {
   return {
