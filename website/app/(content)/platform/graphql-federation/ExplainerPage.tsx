@@ -5,8 +5,8 @@ import { FaqSection } from "@/src/components/FaqSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 import { FEDERATION_FAQ_ITEMS } from "./faq";
-import { GRADIENT, Section } from "./sections/shared";
 import { HowItWorksSection } from "./sections/HowItWorksSection";
+import { GRADIENT, Section } from "./sections/shared";
 import { WhatIsSection } from "./sections/WhatIsSection";
 import { WhyFusionSection } from "./sections/WhyFusionSection";
 import { WhySection } from "./sections/WhySection";
@@ -152,8 +152,10 @@ export function ExplainerPage() {
           </span>
         </h1>
         <p className="text-cc-ink mx-auto mt-7 max-w-2xl text-lg">
-          Learn what GraphQL Federation is and whether it makes sense for your
-          individual setup.
+          Learn what GraphQL Federation is and whether it fits your setup, or
+          jump straight into Fusion. It speaks both: GraphQL Federation, the
+          vendor neutral standard built in the open at the GraphQL Foundation,
+          and Apollo Federation, the one controlled by a single company.
         </p>
         <ButtonRow className="mt-7">
           <SolidButton href="/docs/fusion/getting-started">
