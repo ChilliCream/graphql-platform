@@ -15,6 +15,8 @@ public sealed class ConformanceTests
 
     public static TheoryData<string> FuzzFoundFixtures => FixtureLoader.Family("fuzz-found");
 
+    public static TheoryData<string> CorpusFixtures => FixtureLoader.RustCorpus();
+
     [Theory(SkipTestWithoutData = true)]
     [MemberData(nameof(ArticleFixtures))]
     public void Article_Fixture_Should_MatchOracle_When_Evaluated(string path)
@@ -29,6 +31,11 @@ public sealed class ConformanceTests
     [MemberData(nameof(FuzzFoundFixtures))]
     public void FuzzFound_Fixture_Should_MatchOracle_When_Evaluated(string path)
         => AssertFixture(Fixture.Load(path));
+
+    [Theory]
+    [MemberData(nameof(CorpusFixtures))]
+    public void Corpus_Should_MatchOracle_When_Evaluated(string displayName)
+        => AssertFixture(FixtureLoader.LoadRustCorpusFixture(displayName));
 
     private static void AssertFixture(Fixture fixture)
     {
