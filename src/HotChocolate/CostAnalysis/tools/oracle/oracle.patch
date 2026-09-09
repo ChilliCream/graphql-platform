@@ -55,3 +55,88 @@ index a35318c..d286238 100644
  pub(super) fn variable_values(variable_case: u8) -> Option<JsonMap> {
      match variable_case {
          0 => None,
+diff --git a/benchmarks/src/main.rs b/benchmarks/src/main.rs
+index d8e165d..c946fd1 100644
+--- a/benchmarks/src/main.rs
++++ b/benchmarks/src/main.rs
+@@ -1,3 +1,6 @@
++#[path = "../../../bench_dump.rs"]
++mod bench_dump;
++
+ use std::collections::BTreeMap;
+ use std::fs;
+ use std::hint::black_box;
+@@ -593,7 +596,10 @@ fn cost_calibration_iterations(scenario: &Scenario, estimator: &CostEstimator<'_>) -> u64 {
+     loop {
+         let (elapsed, _) = timed_cost(scenario, estimator, iterations);
+         if elapsed >= TARGET_SAMPLE || iterations >= MAX_CALIBRATION_ITERATIONS {
+-            return iterations;
++            let (confirmation, _) = timed_cost(scenario, estimator, iterations);
++            if confirmation >= TARGET_SAMPLE * 2 || iterations >= MAX_CALIBRATION_ITERATIONS {
++                return iterations;
++            }
+         }
+         iterations *= 2;
+     }
+@@ -618,16 +624,22 @@ fn benchmark_cost(
+     }
+     run_cost_iterations(scenario, &estimator, 2);
+-    let iterations = cost_calibration_iterations(scenario, &estimator);
+-    let mut samples = Vec::with_capacity(SAMPLE_COUNT);
+-    let mut checksum = 0_u64;
+-    for _ in 0..SAMPLE_COUNT {
+-        let (elapsed, value) = timed_cost(scenario, &estimator, iterations);
+-        samples.push(elapsed.as_nanos() as u64);
+-        checksum = checksum.wrapping_add(value);
+-    }
+-    let mut sorted_samples = samples.clone();
+-    sorted_samples.sort_unstable();
+-    let total_ns = sorted_samples[sorted_samples.len() / 2];
++    let mut iterations = cost_calibration_iterations(scenario, &estimator);
++    let (samples, checksum, total_ns) = loop {
++        let mut samples = Vec::with_capacity(SAMPLE_COUNT);
++        let mut checksum = 0_u64;
++        for _ in 0..SAMPLE_COUNT {
++            let (elapsed, value) = timed_cost(scenario, &estimator, iterations);
++            samples.push(elapsed.as_nanos() as u64);
++            checksum = checksum.wrapping_add(value);
++        }
++        let mut sorted_samples = samples.clone();
++        sorted_samples.sort_unstable();
++        let total_ns = sorted_samples[sorted_samples.len() / 2];
++        if total_ns >= TARGET_SAMPLE.as_nanos() as u64 || iterations >= MAX_CALIBRATION_ITERATIONS {
++            break (samples, checksum, total_ns);
++        }
++        iterations *= 2;
++    };
+     println!(
+         "{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}",
+         backend.name(),
+@@ -738,6 +750,27 @@ fn main() {
+         run_study(&args[2]);
+         return;
+     }
++    if args.get(1).map(String::as_str) == Some("dump") {
++        bench_dump::run(&args[2]);
++        return;
++    }
++    if args.get(1).map(String::as_str) == Some("cost-pathological-point") {
++        let variable_count = args[2].parse().unwrap();
++        let backend = Backend::parse(&args[3]);
++        println!(
++            "backend,object_types,abstract_types,incidences_per_object,query_spreads,type_cost,field_cost,iterations,median_total_ns,median_ns_per_op,sample_0_total_ns,sample_1_total_ns,sample_2_total_ns,sample_3_total_ns,sample_4_total_ns,checksum"
++        );
++        benchmark_cost(
++            &pathological_boolean_scenario(variable_count),
++            2,
++            1,
++            0,
++            2 * variable_count,
++            backend,
++            None,
++        );
++        return;
++    }
+     if args.get(1).map(String::as_str) == Some("profile") {
+         profile(
+             args[2].parse().unwrap(),
