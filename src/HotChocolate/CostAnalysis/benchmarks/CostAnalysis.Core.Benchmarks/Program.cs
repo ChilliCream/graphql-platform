@@ -13,8 +13,7 @@ if (HeadToHeadPointRunner.TryRun(args, out var headToHeadExitCode))
 
 if (args.Length > 0 && args[0].Equals("gate", StringComparison.OrdinalIgnoreCase))
 {
-    Console.Error.WriteLine("The gate verb is reserved for the benchmark gate task.");
-    Environment.ExitCode = 2;
+    Environment.ExitCode = GateCommand.Run();
     return;
 }
 
