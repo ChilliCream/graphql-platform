@@ -1,4 +1,3 @@
-using HotChocolate.Data;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
@@ -14,7 +13,7 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 public sealed class VariableAwareCostTests
 {
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Evaluate_Should_PriceSuppliedValue_When_FirstArgumentIsAVariable()
     {
         // arrange
@@ -32,11 +31,11 @@ public sealed class VariableAwareCostTests
         var (typeCost, fieldCost) = await ExecuteAndGetOperationCost(requestExecutor, request);
 
         // assert
-        Assert.Equal(11, typeCost);
-        Assert.Equal(5, fieldCost);
+        Assert.Equal(5, typeCost);
+        Assert.Equal(11, fieldCost);
     }
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Evaluate_Should_ClampToZero_When_FirstArgumentIsNegative()
     {
         // arrange
@@ -54,11 +53,11 @@ public sealed class VariableAwareCostTests
         var (typeCost, fieldCost) = await ExecuteAndGetOperationCost(requestExecutor, request);
 
         // assert
-        Assert.Equal(11, typeCost);
-        Assert.Equal(2, fieldCost);
+        Assert.Equal(2, typeCost);
+        Assert.Equal(11, fieldCost);
     }
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Evaluate_Should_StayZero_When_FirstArgumentIsZero()
     {
         // arrange
@@ -76,11 +75,11 @@ public sealed class VariableAwareCostTests
         var (typeCost, fieldCost) = await ExecuteAndGetOperationCost(requestExecutor, request);
 
         // assert
-        Assert.Equal(11, typeCost);
-        Assert.Equal(2, fieldCost);
+        Assert.Equal(2, typeCost);
+        Assert.Equal(11, fieldCost);
     }
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Evaluate_Should_PreferSuppliedValue_When_SlicingArgumentDefaultValueIsAlsoConfigured()
     {
         // arrange
@@ -101,11 +100,11 @@ public sealed class VariableAwareCostTests
         var (typeCost, fieldCost) = await ExecuteAndGetOperationCost(requestExecutor, request);
 
         // assert
-        Assert.Equal(11, typeCost);
-        Assert.Equal(7, fieldCost);
+        Assert.Equal(7, typeCost);
+        Assert.Equal(11, fieldCost);
     }
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Evaluate_Should_PriceSuppliedValue_When_LastArgumentIsAVariable()
     {
         // arrange
@@ -124,11 +123,11 @@ public sealed class VariableAwareCostTests
 
         // assert: backward pagination prices the same as forward pagination for the same
         // supplied multiplier.
-        Assert.Equal(11, typeCost);
-        Assert.Equal(5, fieldCost);
+        Assert.Equal(5, typeCost);
+        Assert.Equal(11, fieldCost);
     }
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Evaluate_Should_FallToSlicingArgumentDefaultValue_When_NoSlicingArgumentIsSupplied()
     {
         // arrange
@@ -148,11 +147,11 @@ public sealed class VariableAwareCostTests
         var (typeCost, fieldCost) = await ExecuteAndGetOperationCost(requestExecutor, request);
 
         // assert
-        Assert.Equal(11, typeCost);
-        Assert.Equal(12, fieldCost);
+        Assert.Equal(12, typeCost);
+        Assert.Equal(11, fieldCost);
     }
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Evaluate_Should_ChargeOneBranch_When_IncludeAndSkipAreComplementary()
     {
         // arrange
@@ -188,7 +187,7 @@ public sealed class VariableAwareCostTests
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Evaluate_Should_PriceInterfaceSelectedField_When_ObjectTypeCarriesListSizeAnnotation()
     {
         // arrange
@@ -237,6 +236,10 @@ public sealed class VariableAwareCostTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddDocumentFromString(sdl)
+                .AddResolver("Query", "library", _ => default(object))
+                .AddResolver("PublicLibrary", "books", _ => default(object))
+                .AddResolver("BookConnection", "nodes", _ => Array.Empty<object>())
+                .AddResolver("Book", "title", _ => "")
                 .ModifyCostOptions(o => o.DefaultResolverCost = null)
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
@@ -257,6 +260,47 @@ public sealed class VariableAwareCostTests
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task Evaluate_Should_ExposeEveryEstimateAndReject_When_LaterVariableSetExceedsLimit()
+    {
+        // arrange
+        CostAnalysisResult? analysisResult = null;
+        CostMetrics? firstMetrics = null;
+
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .ModifyCostOptions(o => o.MaxTypeCost = 10)
+            .UseRequest(
+                next => async context =>
+                {
+                    await next(context);
+                    context.TryGetCostAnalysisResult(out analysisResult);
+                    firstMetrics = context.GetCostMetrics();
+                },
+                key: "CaptureCostAnalysisResult",
+                before: WellKnownRequestMiddleware.CostAnalyzerMiddleware)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument("query($first: Int) { books(first: $first) { nodes { title } } }")
+            .SetVariableValues(
+                new List<IReadOnlyDictionary<string, object?>>
+                {
+                    new Dictionary<string, object?> { ["first"] = 1 },
+                    new Dictionary<string, object?> { ["first"] = 20 }
+                })
+            .Build();
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, analysisResult!.Estimates.Length);
+        Assert.Equal(3d, analysisResult.Estimates[0].TypeCost);
+        Assert.Equal(22d, analysisResult.Estimates[1].TypeCost);
+        Assert.Equal(3d, firstMetrics!.TypeCost);
+        Assert.Equal(ErrorCodes.Execution.CostExceeded, response.ExpectOperationResult().Errors[0].Code);
+    }
+
     private static async Task<(double TypeCost, double FieldCost)> ExecuteAndGetOperationCost(
         IRequestExecutor requestExecutor,
         IOperationRequest request)
@@ -272,6 +316,5 @@ public sealed class VariableAwareCostTests
             .AddQueryType<PagingTests.Query>()
             .AddFiltering()
             .AddSorting()
-            .ModifyPagingOptions(o => o.DefaultPageSize = 10)
-            .ModifyCostOptions(o => o.DefaultResolverCost = null);
+            .ModifyPagingOptions(o => o.DefaultPageSize = 10);
 }

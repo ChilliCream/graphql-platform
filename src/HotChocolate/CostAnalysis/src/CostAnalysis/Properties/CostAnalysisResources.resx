@@ -27,4 +27,7 @@
   <data name="ErrorHelper_MaxTypeCostReached" xml:space="preserve">
     <value>The maximum allowed type cost was exceeded.</value>
   </data>
+  <data name="ErrorHelper_MaxResponseSizeReached" xml:space="preserve">
+    <value>The maximum allowed response size was exceeded.</value>
+  </data>
 </root>

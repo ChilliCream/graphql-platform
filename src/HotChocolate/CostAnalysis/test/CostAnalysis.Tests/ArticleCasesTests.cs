@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
@@ -17,7 +18,7 @@ public sealed class ArticleCasesTests
 {
     public static TheoryData<string> ArticleFixturePaths => DiscoverArticleFixturePaths();
 
-    [Theory(Skip = "enabled by hc-costplan-middleware")]
+    [Theory]
     [MemberData(nameof(ArticleFixturePaths))]
     public async Task Fixture_Should_ReportExpectedOperationCost_When_Evaluated(string path)
     {
@@ -37,8 +38,8 @@ public sealed class ArticleCasesTests
                 variables.EnumerateObject().Select(p => new KeyValuePair<string, JsonElement>(p.Name, p.Value)));
         }
 
-        var requestExecutor =
-            await new ServiceCollection()
+        var requestExecutorBuilder =
+            new ServiceCollection()
                 .AddGraphQLServer()
                 .AddDocumentFromString(StripBuiltInDirectiveDeclarations(fixture.Sdl))
                 .ModifyCostOptions(o =>
@@ -46,7 +47,11 @@ public sealed class ArticleCasesTests
                     o.DefaultResolverCost = null;
                     o.ApplyCostDefaults = false;
                     o.DefaultListSize = fixture.DefaultListSize;
-                })
+                });
+
+        AddStubResolvers(requestExecutorBuilder, fixture.Id);
+        var requestExecutor =
+            await requestExecutorBuilder
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
@@ -74,6 +79,52 @@ public sealed class ArticleCasesTests
         }
 
         return data;
+    }
+
+    private static void AddStubResolvers(IRequestExecutorBuilder builder, string fixtureId)
+    {
+        if (fixtureId.StartsWith("c1-", StringComparison.Ordinal))
+        {
+            builder
+                .AddResolver("Query", "result", _ => default(object))
+                .AddResolver("A", "a", _ => 0)
+                .AddResolver("B", "b", _ => 0);
+        }
+        else if (fixtureId.StartsWith("c2-", StringComparison.Ordinal))
+        {
+            builder
+                .AddResolver("Query", "results", _ => Array.Empty<object>())
+                .AddResolver("A", "a", _ => 0)
+                .AddResolver("B", "b", _ => 0);
+        }
+        else if (fixtureId.StartsWith("c3-", StringComparison.Ordinal))
+        {
+            builder
+                .AddResolver("Query", "left", _ => default(object))
+                .AddResolver("Query", "right", _ => default(object))
+                .AddResolver("Side", "costly", _ => 0);
+        }
+        else if (fixtureId.StartsWith("c4-", StringComparison.Ordinal))
+        {
+            builder
+                .AddResolver("Query", "result", _ => default(object))
+                .AddResolver("A", "a", _ => 0);
+        }
+        else if (fixtureId.StartsWith("c5-", StringComparison.Ordinal))
+        {
+            builder
+                .AddResolver("Query", "book", _ => default(object))
+                .AddResolver("Book", "title", _ => "")
+                .AddResolver("Book", "author", _ => default(object))
+                .AddResolver("Author", "name", _ => "")
+                .AddType(new AnyType("Text"));
+        }
+        else if (fixtureId.StartsWith("c6-", StringComparison.Ordinal))
+        {
+            builder
+                .AddResolver("Query", "items", _ => Array.Empty<object>())
+                .AddResolver("Item", "value", _ => 0);
+        }
     }
 
     // The fixture SDL declares `directive @cost`/`directive @listSize` so the Core
