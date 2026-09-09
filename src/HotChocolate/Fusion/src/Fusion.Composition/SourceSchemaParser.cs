@@ -42,17 +42,9 @@ internal sealed class SourceSchemaParser(
         schema.AddBuiltInFusionTypes();
         schema.AddBuiltInFusionDirectives();
 
-        // A source schema may apply @cost/@listSize (the plain IBM cost spec shape, or the
-        // ChilliCream shape) without declaring its own directive definition, relying on them
-        // being ambient like @skip/@include. Unlike Fusion's own directives (@key, @external,
-        // ...), @cost/@listSize are not registered as built-ins above because most source
-        // schemas DO declare their own shape and an unconditional built-in would silently
-        // shadow it (SchemaParser.Parse ignores a redeclaration of an already-present name).
-        // So the canonical definition is injected here, per source schema, only when that
-        // source's combined text neither declares nor uses the directive - avoiding both the
-        // shadowing hazard and unconditionally adding an unused definition that would then show
-        // up in every composed schema's directive-definition compatibility check
-        // (R-COMPOSITION-COMPAT).
+        // A source schema may apply @cost/@listSize without declaring its own definition.
+        // Inject the canonical definition only when the combined source text uses the directive
+        // but does not declare it (R-COMPOSITION-COMPAT).
         var requiresInjectedDefinitions = GetRequiredDefinitionInjections(sourceSchemaText);
 
         if (requiresInjectedDefinitions.Contains(DirectiveNames.Cost))
