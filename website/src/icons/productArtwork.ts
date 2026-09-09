@@ -35,9 +35,9 @@ const round = (value: number) => Math.round(value * 1000) / 1000;
  * Sizes one product icon with the scale factor shared by the whole set: the
  * sheet's full height maps to `slotHeightRem`, so the shake fills the slot, the
  * cups and the Skills logo come out shorter, and the Nitro can comes out
- * narrower — the proportions of the start page hero. Bottom-align the results
- * and the bases line up; centre them horizontally and the narrow can shares one
- * centre line with the wider cups.
+ * narrower — the proportions of the start page hero. Centre the results in a box
+ * of the sheet's height (see {@link "@/src/components/ProductArtworkIcon"}) and
+ * every icon shares one centre point with the rest of the set.
  *
  * @param artwork display size in artwork-sheet units, from the icon's own
  * module.
