@@ -51,6 +51,9 @@ public class CostResultHelperTests
         var result = CostResultHelper.CreateResult([]);
 
         // assert
+        Assert.Equal(
+            new KeyValuePair<string, object?>(ExecutionContextData.ValidationErrors, true),
+            Assert.Single(result.ContextData));
         result.MatchInlineSnapshot(
             """
             {
