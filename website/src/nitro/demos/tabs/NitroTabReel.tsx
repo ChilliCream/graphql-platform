@@ -21,7 +21,7 @@ export const NITRO_TABS: TabReelTab[] = [
     label: "Observe",
     durationMs: TRACE_MS,
     icon: <IconTelemetry size={16} color="currentColor" />,
-    headline: "See everything your gateway is doing",
+    headline: "See everything your router is doing",
     subhead:
       "Monitoring overview to operation breakdown to distributions to the exact slow trace span.",
     Screen: TraceScreen,

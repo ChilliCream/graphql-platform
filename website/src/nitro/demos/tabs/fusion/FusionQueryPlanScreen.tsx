@@ -734,7 +734,7 @@ function DocTabs({ view }: { view: number }) {
       }}
     >
       <DocTab
-        name="EShops Gateway"
+        name="EShops Router"
         glyph={<IconApiGateway size={12} />}
         glyphColor={token.icObject}
       />
