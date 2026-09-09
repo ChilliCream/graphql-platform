@@ -11,6 +11,7 @@ namespace HotChocolate.CostAnalysis;
 public class LargeSchemaSnapshotBenchmark
 {
     private MutableSchemaDefinition _schema = null!;
+    private CostEngineOptions _options = null!;
 
     [Params(1_024, 10_240)]
     public int ObjectTypeCount { get; set; }
@@ -19,15 +20,16 @@ public class LargeSchemaSnapshotBenchmark
     public void GlobalSetup()
     {
         _schema = SchemaParser.Parse(CreateSchema(ObjectTypeCount));
+        _options = new CostEngineOptions();
     }
 
     [Benchmark]
     public CostSchemaSnapshot LargeSchemaSnapshotBuild()
-        => CostSchemaSnapshot.Create(_schema, new CostEngineOptions());
+        => CostSchemaSnapshot.Create(_schema, _options);
 
     private static string CreateSchema(int objectTypeCount)
     {
-        var schema = new StringBuilder("type Query { node: Node0 }");
+        var schema = new StringBuilder("schema { query: Node0 }");
 
         for (var index = 0; index < objectTypeCount; index++)
         {
