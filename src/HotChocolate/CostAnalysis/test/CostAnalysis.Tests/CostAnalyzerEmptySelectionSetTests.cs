@@ -1,9 +1,7 @@
-using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
-using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
@@ -11,8 +9,8 @@ namespace HotChocolate.CostAnalysis;
 public sealed class CostAnalyzerEmptySelectionSetTests
 {
     [Theory]
-    [InlineData("{ }", 0, 0)]
-    [InlineData("mutation { }", 0, 0)]
+    [InlineData("{ }", 0, 1)]
+    [InlineData("mutation { }", 0, 1)]
     [InlineData("{ hero { } }", 10, 2)]
     [InlineData("{ hero { ... on Droid { } } }", 10, 2)]
     public async Task Analyze_Should_CalculateCost_When_SelectionSetIsEmpty(
@@ -24,11 +22,10 @@ public sealed class CostAnalyzerEmptySelectionSetTests
         var document = Utf8GraphQLParser.Parse(operation);
         var requestExecutor = await CreateRequestExecutorBuilder()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-        var context = new DocumentValidatorContext();
-        context.Initialize(requestExecutor.Schema, default, document, 1, 5, 1_000, null);
+        var snapshot = requestExecutor.Schema.Services.GetRequiredService<CostSchemaSnapshot>();
 
         // act
-        var result = Analyze(document, context);
+        var result = Analyze(document, snapshot);
 
         // assert
         Assert.Equal(expectedFieldCost, result.FieldCost);
@@ -76,20 +73,11 @@ public sealed class CostAnalyzerEmptySelectionSetTests
             result.ToJson());
     }
 
-    private static CostMetrics Analyze(DocumentNode document, DocumentValidatorContext context)
+    private static CostEstimate Analyze(DocumentNode document, CostSchemaSnapshot snapshot)
     {
-        var analyzerType = typeof(CostMetrics).Assembly.GetType("HotChocolate.CostAnalysis.CostAnalyzer")!;
-        var analyzer = Activator.CreateInstance(
-            analyzerType,
-            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
-            null,
-            [new RequestCostOptions(1_000, 1_000, true, false, null)],
-            null)!;
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
-
-        return (CostMetrics)analyzerType
-            .GetMethod("Analyze", BindingFlags.Instance | BindingFlags.Public)!
-            .Invoke(analyzer, [operation, context])!;
+        var plan = CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+        return plan.EvaluateStaticBound();
     }
 
     private static IRequestExecutorBuilder CreateRequestExecutorBuilder()
