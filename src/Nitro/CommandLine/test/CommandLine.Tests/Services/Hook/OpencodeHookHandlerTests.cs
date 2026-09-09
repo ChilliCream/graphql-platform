@@ -333,6 +333,95 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task HandleChatMessageAsync_Should_ReleaseOnlyThisTurnsReservations_When_ClaimAnnouncementAsyncFails()
+    {
+        // arrange: two messages (a, b) are unread for this turn to reserve,
+        // while a third (c) is already reserved by another consumer on the
+        // same channel before this turn's digest build even runs.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        var a = await SendMailAsync("bob", actor, cancellationToken);
+        var b = await SendMailAsync("bob", actor, cancellationToken);
+        var c = await SendMailAsync("bob", actor, cancellationToken);
+        await _ledger.ReserveAsync(
+            CurrentGeneration(), [c.Id], AgentSessionChannel.Digest, _timeProvider.GetUtcNow(), cancellationToken);
+        var handler = CreateHandler(new ThrowingAnnouncementSessionRegistry(_sessions));
+
+        // act
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken));
+
+        // assert: a and b, this turn's own reservations, were released back
+        // to the ledger and can be reserved again.
+        var reReservedAb = await _ledger.ReserveAsync(
+            CurrentGeneration(),
+            [a.Id, b.Id],
+            AgentSessionChannel.Digest,
+            _timeProvider.GetUtcNow(),
+            cancellationToken);
+        Assert.Equal(2, reReservedAb.Count);
+
+        // assert: c, held by the other consumer, is untouched - still
+        // reserved, so it cannot be reserved again.
+        var reReservedC = await _ledger.ReserveAsync(
+            CurrentGeneration(), [c.Id], AgentSessionChannel.Digest, _timeProvider.GetUtcNow(), cancellationToken);
+        Assert.Empty(reReservedC);
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_StillReleaseTheDigestReservation_When_TheTurnsTokenIsAlreadyCancelled()
+    {
+        // arrange: the digest reservation commits successfully, then the
+        // registry write that follows it - ClaimAnnouncementAsync - fails at
+        // the exact moment this turn's own token moves to the cancelled
+        // state. A compensating release that reused that token would itself
+        // be cancelled and never run.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var handler = CreateHandler(new CancellingAnnouncementSessionRegistry(_sessions, cts));
+
+        // act
+        await Assert.ThrowsAnyAsync<Exception>(
+            () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cts.Token));
+
+        // assert: the reservation was released despite the turn's token
+        // being cancelled by the time the release ran, so a retry (on a
+        // fresh, uncancelled token) still delivers the same unread
+        // message's digest alongside the still-armed announcement.
+        var retry = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        Assert.Equal(2, retry.Parts.Count);
+        Assert.Contains("Your Nitro actor name is", retry.Parts[0]);
+        Assert.Contains("1 unread nitro message.", retry.Parts[1]);
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_PropagateTheOriginalException_When_TheCompensatingReleaseThrows()
+    {
+        // arrange: the digest reservation commits successfully, then
+        // ClaimAnnouncementAsync fails, then the compensating release
+        // itself throws a distinct exception. The original claim failure
+        // must still be what reaches the caller.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+        var handler = CreateHandler(
+            new ThrowingAnnouncementSessionRegistry(_sessions), new ReleaseThrowingDeliveryLedger(_ledger));
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken));
+
+        // assert: the propagated exception is the announcement-claim
+        // failure, not the release's NotSupportedException.
+        Assert.Equal("Simulated announcement-claim failure.", exception.Message);
+    }
+
+    [Fact]
     public async Task HandleChatMessageAsync_Should_AnnounceOnce_When_ThePreviousAppendWasReportedUndelivered()
     {
         // arrange: the first chat message shows the announcement and, per
@@ -513,6 +602,17 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         _timeProvider,
         sessionRegistry,
         _ledger,
+        _mail,
+        _environmentVariables,
+        new FixedInstanceIdProvider("host-1"),
+        new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
+
+    private OpencodeHookHandler CreateHandler(
+        IAgentSessionRegistry sessionRegistry, ISessionDeliveryLedger ledger) => new(
+        _fileSystem,
+        _timeProvider,
+        sessionRegistry,
+        ledger,
         _mail,
         _environmentVariables,
         new FixedInstanceIdProvider("host-1"),

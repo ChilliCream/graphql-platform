@@ -103,7 +103,25 @@ internal sealed class OpencodeHookHandler(
 
             if (row?.AgentName is { } releaseActor)
             {
-                await ReleaseUnreadDigestReservationsAsync(resolved.Generation, releaseActor, cancellationToken);
+                // Not a compensation for a caught exception (see the
+                // ClaimAnnouncementAsync catch below): this is the ordinary,
+                // non-exceptional path for a turn the shim reports as
+                // undelivered, with no prior-turn reservation list on hand
+                // to release exactly, so it re-queries what is still unread
+                // and keeps the turn's own token rather than swallowing a
+                // genuine failure here.
+                var stillUnread = await mailStore.QueryInboxAsync(
+                    new MailInboxFilter { Actor = releaseActor, UnreadOnly = true, Limit = MaxDigestMessages },
+                    cancellationToken);
+
+                if (stillUnread.Count > 0)
+                {
+                    await ledger.ReleaseAsync(
+                        resolved.Generation,
+                        stillUnread.Select(static message => message.Id).ToList(),
+                        AgentSessionChannel.Digest,
+                        cancellationToken);
+                }
             }
         }
 
@@ -143,10 +161,13 @@ internal sealed class OpencodeHookHandler(
         }
         catch
         {
-            if (digest is not null)
-            {
-                await ReleaseUnreadDigestReservationsAsync(resolved.Generation, row.AgentName, cancellationToken);
-            }
+            // Release exactly the ids this turn reserved (digest.ReservedIds),
+            // never a re-query of the whole unread inbox: an id another
+            // consumer holds must stay held, or that mail gets delivered
+            // twice. See ReleaseCompensatingReservationAsync for why the
+            // release itself uses neither cancellationToken nor a rethrow.
+            await ReleaseCompensatingReservationAsync(
+                resolved.Generation, digest.ReservedIds, AgentSessionChannel.Digest);
 
             throw;
         }
@@ -158,9 +179,9 @@ internal sealed class OpencodeHookHandler(
             parts.Add(AgentActorContext.Format(row.AgentName, row.Role));
         }
 
-        if (digest is not null)
+        if (digest.Text is not null)
         {
-            parts.Add(digest);
+            parts.Add(digest.Text);
         }
 
         return parts.Count == 0 ? OpencodeHookOutcome.Neutral : new OpencodeHookOutcome { Parts = parts };
@@ -211,7 +232,7 @@ internal sealed class OpencodeHookHandler(
         return OpencodeHookOutcome.Neutral;
     }
 
-    private async Task<string?> BuildDigestAsync(
+    private async Task<DigestBuildResult> BuildDigestAsync(
         AgentSessionGeneration generation,
         string actor,
         string channel,
@@ -223,14 +244,16 @@ internal sealed class OpencodeHookHandler(
 
         if (unread.Count == 0)
         {
-            return null;
+            return DigestBuildResult.Empty;
         }
 
         // The reserving INSERT itself is conditioned on the session row
         // still existing (see SessionDeliveryLedger.ReserveAsync), so a
         // session deleted concurrently reserves nothing here rather than
         // raising a foreign-key violation: an empty result reads exactly
-        // like every other already-reserved case below.
+        // like every other already-reserved case below. ReserveAsync also
+        // excludes any id another consumer already holds, so ReservedIds
+        // below is exactly this turn's own claim, never a superset of it.
         var reserved = await ledger.ReserveAsync(
             generation,
             unread.Select(static message => message.Id).ToList(),
@@ -240,12 +263,14 @@ internal sealed class OpencodeHookHandler(
 
         if (reserved.Count == 0)
         {
-            return null;
+            return DigestBuildResult.Empty;
         }
 
         try
         {
-            return MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
+            var text = MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
+
+            return new DigestBuildResult(text, reserved);
         }
         catch
         {
@@ -253,29 +278,41 @@ internal sealed class OpencodeHookHandler(
             // count that would have turned it into a delivered nudge never
             // did: release it rather than leave it spent for a digest this
             // response never returns, so the next chat message reserves and
-            // delivers the same messages again instead of losing them.
-            await ledger.ReleaseAsync(generation, reserved, channel, cancellationToken);
+            // delivers the same messages again instead of losing them. See
+            // ReleaseCompensatingReservationAsync for why the release
+            // itself uses neither cancellationToken nor a rethrow.
+            await ReleaseCompensatingReservationAsync(generation, reserved, channel);
             throw;
         }
     }
 
-    private async Task ReleaseUnreadDigestReservationsAsync(
-        AgentSessionGeneration generation, string actor, CancellationToken cancellationToken)
+    /// <summary>
+    /// Releases a reservation this turn made but can no longer use, as
+    /// compensation for an exception the caller is about to rethrow.
+    /// Compensation runs with <see cref="CancellationToken.None"/>, never
+    /// the token whose cancellation may be the very reason the caller is
+    /// compensating, so a cancelled turn still releases what it reserved.
+    /// A failure here is swallowed rather than rethrown, so it can never
+    /// replace the original exception the caller is propagating.
+    /// </summary>
+    private async Task ReleaseCompensatingReservationAsync(
+        AgentSessionGeneration generation, IReadOnlyList<string> messageIds, string channel)
     {
-        var unread = await mailStore.QueryInboxAsync(
-            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MaxDigestMessages },
-            cancellationToken);
-
-        if (unread.Count == 0)
+        try
         {
-            return;
+            await ledger.ReleaseAsync(generation, messageIds, channel, CancellationToken.None);
         }
+        catch
+        {
+            // Losing the compensation is bad; losing the diagnosis of why
+            // the primary operation failed, by letting this exception
+            // replace it, is worse.
+        }
+    }
 
-        await ledger.ReleaseAsync(
-            generation,
-            unread.Select(static message => message.Id).ToList(),
-            AgentSessionChannel.Digest,
-            cancellationToken);
+    private sealed record DigestBuildResult(string? Text, IReadOnlyList<string> ReservedIds)
+    {
+        public static readonly DigestBuildResult Empty = new(null, []);
     }
 
     private async Task<ResolvedGeneration?> ResolveAsync(
