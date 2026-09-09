@@ -11,6 +11,9 @@ function getContentGroup(pathname: string): string {
   if (pathname.startsWith("/blog")) {
     return "Blog";
   }
+  if (pathname.startsWith("/comparison")) {
+    return "Comparison";
+  }
   if (pathname.startsWith("/products")) {
     return "Products";
   }
