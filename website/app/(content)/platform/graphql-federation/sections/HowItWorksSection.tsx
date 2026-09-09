@@ -348,7 +348,7 @@ export function HowItWorksSection() {
               resolvers (
               <Link
                 className={LINK_CLASS}
-                href="/platform/graphql-federation/vs-apollo-federation"
+                href="/comparison/graphql-federation-vs-apollo-federation"
               >
                 the two designs side by side
               </Link>
