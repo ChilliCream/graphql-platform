@@ -34,7 +34,7 @@ public sealed class CostPlanCacheTests
         }
         """;
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Cache_Should_CompileOnFirstExecution_When_OperationIsNew()
     {
         // arrange
@@ -51,7 +51,7 @@ public sealed class CostPlanCacheTests
         Assert.Equal(1, cache.Count);
     }
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Cache_Should_EvaluateOnly_When_OperationIsAlreadyCompiled()
     {
         // arrange
@@ -71,7 +71,7 @@ public sealed class CostPlanCacheTests
         Assert.Equal(1, cache.Count);
     }
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Cache_Should_PopulateEntry_When_OperationIsRejected()
     {
         // arrange
@@ -90,7 +90,7 @@ public sealed class CostPlanCacheTests
         Assert.Equal(1, cache.Count);
     }
 
-    [Fact(Skip = "enabled by hc-costplan-middleware")]
+    [Fact]
     public async Task Cache_Should_PopulateEntry_When_RequestIsWarmup()
     {
         // arrange
@@ -107,9 +107,26 @@ public sealed class CostPlanCacheTests
         Assert.Equal(1, cache.Count);
     }
 
+    [Fact]
+    public async Task Cache_Should_UseConfiguredCapacity_When_ExecutorIsBuilt()
+    {
+        // arrange
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .ModifyCostOptions(o => o.CostPlanCacheSize = 42)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var cache = requestExecutor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
+
+        // assert
+        Assert.Equal(42, cache.Capacity);
+    }
+
     private static IRequestExecutorBuilder CreateRequestExecutorBuilder()
         => new ServiceCollection()
             .AddGraphQLServer()
             .AddDocumentFromString(Schema)
+            .AddResolver("Query", "examples", _ => Array.Empty<object>())
+            .AddResolver("Example", "exampleField", _ => false)
             .ModifyCostOptions(o => o.DefaultResolverCost = null);
 }

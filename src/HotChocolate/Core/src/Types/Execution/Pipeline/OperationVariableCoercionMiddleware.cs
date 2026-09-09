@@ -11,11 +11,13 @@ internal sealed class OperationVariableCoercionMiddleware
     private readonly RequestDelegate _next;
     private readonly VariableCoercionHelper _coercionHelper;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly ICostValidationVariableCoercionPolicy? _costValidationPolicy;
 
     private OperationVariableCoercionMiddleware(
         RequestDelegate next,
         VariableCoercionHelper coercionHelper,
-        IExecutionDiagnosticEvents diagnosticEvents)
+        IExecutionDiagnosticEvents diagnosticEvents,
+        ICostValidationVariableCoercionPolicy? costValidationPolicy)
     {
         ArgumentNullException.ThrowIfNull(next);
         ArgumentNullException.ThrowIfNull(coercionHelper);
@@ -24,13 +26,15 @@ internal sealed class OperationVariableCoercionMiddleware
         _next = next;
         _coercionHelper = coercionHelper;
         _diagnosticEvents = diagnosticEvents;
+        _costValidationPolicy = costValidationPolicy;
     }
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
         if (context.TryGetOperation(out var operation))
         {
-            if (!context.IsWarmupRequest() && !IsCostValidationWithoutVariables(context))
+            if (!context.IsWarmupRequest()
+                && !IsCostValidationWithoutVariables(context, _costValidationPolicy))
             {
                 CoerceVariables(
                     context,
@@ -47,13 +51,13 @@ internal sealed class OperationVariableCoercionMiddleware
         }
     }
 
-    // A GraphQL-Cost: validate request that supplies no variables is analyzed with the
-    // static-bound path, so variable coercion is skipped and the operation's variable
-    // definitions are evaluated instead of coerced values.
-    private static bool IsCostValidationWithoutVariables(RequestContext context)
+    private static bool IsCostValidationWithoutVariables(
+        RequestContext context,
+        ICostValidationVariableCoercionPolicy? costValidationPolicy)
         => context.Request is OperationRequest operationRequest
             && context.ContextData.ContainsKey(ExecutionContextData.ValidateCost)
-            && HasNoVariableValues(operationRequest.VariableValues);
+            && HasNoVariableValues(operationRequest.VariableValues)
+            && costValidationPolicy?.SkipVariableCoercion(context) is true;
 
     private static bool HasNoVariableValues(JsonDocumentOwner? variableValues)
     {
@@ -87,8 +91,18 @@ internal sealed class OperationVariableCoercionMiddleware
             {
                 var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-                var middleware = new OperationVariableCoercionMiddleware(next, coercionHelper, diagnosticEvents);
+                var costValidationPolicy = core.Features.Get<ICostValidationVariableCoercionPolicy>();
+                var middleware = new OperationVariableCoercionMiddleware(
+                    next,
+                    coercionHelper,
+                    diagnosticEvents,
+                    costValidationPolicy);
                 return context => middleware.InvokeAsync(context);
             },
             WellKnownRequestMiddleware.OperationVariableCoercionMiddleware);
+}
+
+internal interface ICostValidationVariableCoercionPolicy
+{
+    bool SkipVariableCoercion(RequestContext context);
 }

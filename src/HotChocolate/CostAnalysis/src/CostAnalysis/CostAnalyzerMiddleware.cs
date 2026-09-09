@@ -1,11 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
-using HotChocolate.CostAnalysis.Caching;
+using System.Collections.Immutable;
 using HotChocolate.CostAnalysis.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Pipeline;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -16,26 +13,17 @@ namespace HotChocolate.CostAnalysis;
 internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
     [SchemaService] RequestCostOptions options,
+    [SchemaService] CostSchemaSnapshot snapshot,
+    [SchemaService] CostPlanCache cache,
     ObjectPool<DocumentValidatorContext> contextPool,
-    [SchemaService] ICostMetricsCache cache,
     [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
+    : ICostValidationVariableCoercionPolicy
 {
+    public bool SkipVariableCoercion(RequestContext context)
+        => !(context.TryGetCostOptions() ?? options).SkipAnalyzer;
+
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (!context.TryGetOperationDocument(out var document, out var documentId)
-            || documentId.IsEmpty)
-        {
-            context.Result = ResultHelper.StateInvalidForCostAnalysis();
-            return;
-        }
-
-        // we check if the operation id is already set and if not, we create one.
-        if (!context.TryGetOperationId(out var operationId))
-        {
-            operationId = context.CreateCacheId();
-            context.SetOperationId(operationId);
-        }
-
         var requestOptions = context.TryGetCostOptions() ?? options;
         var mode = context.GetCostAnalyzerMode(requestOptions);
 
@@ -45,10 +33,67 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
-        if (!TryAnalyze(context, requestOptions, mode, document, documentId, operationId, out var costMetrics))
+        if (!context.TryGetOperation(out var operation)
+            || !context.TryGetOperationDocument(out var document, out var documentId)
+            || documentId.IsEmpty)
         {
-            // an error happened during the analysis and the error is already set.
+            context.Result = ResultHelper.StateInvalidForCostAnalysis();
             return;
+        }
+
+        CostMetrics costMetrics;
+
+        using (diagnosticEvents.AnalyzeOperationCost(context))
+        {
+            try
+            {
+                if (!cache.TryGetPlan(operation.Id, out var plan))
+                {
+                    var analyses = CostAnalyses.Cost;
+
+                    if (options.MaxResponseSize.HasValue)
+                    {
+                        analyses |= CostAnalyses.ResponseSize;
+                    }
+
+                    plan = CostPlanCompiler.Compile(
+                        snapshot,
+                        operation.Document,
+                        operation.Definition,
+                        analyses);
+                    cache.TryAddPlan(operation.Id, plan);
+                }
+
+                CostAnalyzerUtilities.ValidateRequireOneSlicingArgument(
+                    operation,
+                    document,
+                    documentId,
+                    context.Features,
+                    contextPool);
+
+                var isStaticBound = context.IsWarmupRequest() || context.VariableValues.Length == 0;
+                var estimates = Evaluate(context, plan, isStaticBound);
+                context.Features.Set(new CostAnalysisResult(plan, estimates, isStaticBound));
+
+                var first = estimates[0];
+                costMetrics = new CostMetrics
+                {
+                    FieldCost = first.FieldCost,
+                    TypeCost = first.TypeCost
+                };
+                context.SetCostMetrics(costMetrics);
+
+                if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce
+                    && !TryEnforce(context, requestOptions, mode, estimates))
+                {
+                    return;
+                }
+            }
+            catch (GraphQLException ex)
+            {
+                context.Result = ResultHelper.CreateError(ex.Errors, null);
+                return;
+            }
         }
 
         if ((mode & CostAnalyzerMode.Execute) == CostAnalyzerMode.Execute)
@@ -65,82 +110,78 @@ internal sealed class CostAnalyzerMiddleware(
         }
     }
 
-    private bool TryAnalyze(
+    private ImmutableArray<CostEstimate> Evaluate(
+        RequestContext context,
+        CostPlan plan,
+        bool isStaticBound)
+    {
+        if (isStaticBound)
+        {
+            var estimate = plan.EvaluateStaticBound();
+            diagnosticEvents.OperationCost(context, estimate.FieldCost, estimate.TypeCost);
+            return [estimate];
+        }
+
+        var builder = ImmutableArray.CreateBuilder<CostEstimate>(context.VariableValues.Length);
+
+        foreach (var variableValues in context.VariableValues)
+        {
+            var estimate = plan.Evaluate(new CostVariableValuesAdapter(variableValues));
+            builder.Add(estimate);
+            diagnosticEvents.OperationCost(context, estimate.FieldCost, estimate.TypeCost);
+        }
+
+        return builder.MoveToImmutable();
+    }
+
+    private static bool TryEnforce(
         RequestContext context,
         RequestCostOptions requestOptions,
         CostAnalyzerMode mode,
-        DocumentNode document,
-        OperationDocumentId documentId,
-        string operationId,
-        [NotNullWhen(true)] out CostMetrics? costMetrics)
+        ImmutableArray<CostEstimate> estimates)
     {
-        using var scope = diagnosticEvents.AnalyzeOperationCost(context);
-        DocumentValidatorContext? validatorContext = null;
+        var reportMetrics = (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report;
 
-        try
+        foreach (var estimate in estimates)
         {
-            if (!cache.TryGetCostMetrics(operationId, out costMetrics))
+            var costMetrics = new CostMetrics
             {
-                // The analyzer always walks the operation as originally parsed rather than the
-                // compiled operation's de-fragmentized definition, since the latter has its
-                // source locations stripped and would produce location-less errors.
-                var operationDefinition = document.GetOperation(context.Request.OperationName);
+                FieldCost = estimate.FieldCost,
+                TypeCost = estimate.TypeCost
+            };
 
-                validatorContext = contextPool.Get();
-                validatorContext.Initialize(
-                    context.Schema,
-                    documentId,
-                    document,
-                    maxAllowedErrors: 1,
-                    maxLocationsPerError: 5,
-                    maxAllowedFragmentVisits: 1_000,
-                    context.Features);
-
-                var analyzer = new CostAnalyzer(requestOptions);
-                costMetrics = analyzer.Analyze(operationDefinition, validatorContext);
-                cache.TryAddCostMetrics(operationId, costMetrics);
+            if (estimate.FieldCost > requestOptions.MaxFieldCost)
+            {
+                context.Result = ErrorHelper.MaxFieldCostReached(
+                    costMetrics,
+                    requestOptions.MaxFieldCost,
+                    reportMetrics);
+                return false;
             }
 
-            context.SetCostMetrics(costMetrics);
-            diagnosticEvents.OperationCost(context, costMetrics.FieldCost, costMetrics.TypeCost);
-
-            if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce)
+            if (estimate.TypeCost > requestOptions.MaxTypeCost)
             {
-                if (costMetrics.FieldCost > requestOptions.MaxFieldCost)
-                {
-                    context.Result = ErrorHelper.MaxFieldCostReached(
-                        costMetrics,
-                        requestOptions.MaxFieldCost,
-                        (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report);
-                    return false;
-                }
-
-                if (costMetrics.TypeCost > requestOptions.MaxTypeCost)
-                {
-                    context.Result = ErrorHelper.MaxTypeCostReached(
-                        costMetrics,
-                        requestOptions.MaxTypeCost,
-                        (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report);
-                    return false;
-                }
+                context.Result = ErrorHelper.MaxTypeCostReached(
+                    costMetrics,
+                    requestOptions.MaxTypeCost,
+                    reportMetrics);
+                return false;
             }
 
-            return true;
-        }
-        catch (GraphQLException ex)
-        {
-            context.Result = ResultHelper.CreateError(ex.Errors, null);
-            costMetrics = null;
-            return false;
-        }
-        finally
-        {
-            if (validatorContext is not null)
+            if (requestOptions.MaxResponseSize is { } maxResponseSize
+                && estimate.MaxResponseSize is { } responseSize
+                && responseSize > maxResponseSize)
             {
-                validatorContext.Clear();
-                contextPool.Return(validatorContext);
+                context.Result = ErrorHelper.MaxResponseSizeReached(
+                    costMetrics,
+                    responseSize,
+                    maxResponseSize,
+                    reportMetrics);
+                return false;
             }
         }
+
+        return true;
     }
 
     public static RequestMiddlewareConfiguration Create()
@@ -148,18 +189,20 @@ internal sealed class CostAnalyzerMiddleware(
         return new RequestMiddlewareConfiguration(
             (core, next) =>
             {
-                // this needs to be a schema service
                 var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
+                var snapshot = core.SchemaServices.GetRequiredService<CostSchemaSnapshot>();
+                var cache = core.SchemaServices.GetRequiredService<CostPlanCache>();
                 var contextPool = core.Services.GetRequiredService<ObjectPool<DocumentValidatorContext>>();
-                var cache = core.SchemaServices.GetRequiredService<ICostMetricsCache>();
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
 
                 var middleware = new CostAnalyzerMiddleware(
                     next,
                     options,
-                    contextPool,
+                    snapshot,
                     cache,
+                    contextPool,
                     diagnosticEvents);
+                core.Features.Set<ICostValidationVariableCoercionPolicy>(middleware);
 
                 return context => middleware.InvokeAsync(context);
             },

@@ -171,12 +171,6 @@ public record RequestCostOptions
     }
 
     /// <summary>
-    /// Gets the filter variable multiplier for the legacy cost analyzer.
-    /// Always <c>null</c> once callers can no longer set <see cref="FilterVariableMultiplier"/>.
-    /// </summary>
-    internal int? LegacyFilterVariableMultiplier => _filterVariableMultiplier;
-
-    /// <summary>
     /// Deconstructs the request options.
     /// </summary>
     /// <param name="maxFieldCost">

@@ -162,7 +162,7 @@ public sealed class SpecificationExampleTests
                 }
                 """,
                 "example @approx(tolerance: 0)",
-                5 // FIXME: Should be 4. See https://github.com/ChilliCream/graphql-platform/pull/7130.
+                4
             }
         };
 

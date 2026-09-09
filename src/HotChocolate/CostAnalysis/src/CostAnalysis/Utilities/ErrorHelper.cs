@@ -45,6 +45,26 @@ internal static class ErrorHelper
             reportMetrics ? costMetrics : null);
     }
 
+    public static IExecutionResult MaxResponseSizeReached(
+        CostMetrics costMetrics,
+        double maxResponseSize,
+        double maxAllowedResponseSize,
+        bool reportMetrics)
+    {
+        var extensions = ImmutableSortedDictionary.CreateBuilder<string, object?>();
+        extensions.Add("code", ErrorCodes.Execution.CostExceeded);
+        extensions.Add("maxResponseSize", maxResponseSize);
+        extensions.Add("maxAllowedResponseSize", maxAllowedResponseSize);
+
+        return ResultHelper.CreateError(
+            new Error
+            {
+                Message = CostAnalysisResources.ErrorHelper_MaxResponseSizeReached,
+                Extensions = extensions.ToImmutable()
+            },
+            reportMetrics ? costMetrics : null);
+    }
+
     public static IError ExactlyOneSlicingArgMustBeDefined(
         FieldNode fieldNode,
         IList<ISyntaxNode> path)
