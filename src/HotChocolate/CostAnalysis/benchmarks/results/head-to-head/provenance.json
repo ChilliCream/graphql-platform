@@ -1,0 +1,15 @@
+{
+  "createdAtUtc": "2026-09-09T10:12:17.737686+00:00",
+  "gitRev": "95d1842f9641f18e8723cac6dd7153bb8d76b7ea",
+  "oracleGitRev": "fec57fd7a980b5399637fa464a9bdce0781d91dd",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8",
+  "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+  "dotnet": "11.0.100-preview.6.26359.118",
+  "platform": "Linux-6.8.0-134-generic-x86_64-with-glibc2.39",
+  "machine": "x86_64",
+  "seed": 20260829,
+  "replicates": 10,
+  "selection": "all",
+  "generatedCorpusBytes": 16299915,
+  "methodology": "two warmups, >=100ms doubling calibration, >=200ms confirmation, five samples replaced after doubling when median is <100ms, median sample total"
+}
