@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -132,7 +131,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         result?.RootElement.MatchSnapshot();
     }
 
-    [Fact(Skip = "enabled by hc-e2e-tests")]
+    [Fact]
     public async Task Cost_Exceeded_Returns_BadRequest_For_GraphQLResponseJson_Accept_Header()
     {
         // arrange
@@ -159,16 +158,17 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         // act
         using var httpClient = server.CreateClient();
-        var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+        using var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
 
-        // assert: a request error over the latest transport is a 4xx (R-HTTP-STATUS).
+        // assert
+        // A request error over the latest transport is a 4xx (R-HTTP-STATUS).
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         Assert.NotNull(result);
         result!.RootElement.MatchSnapshot();
     }
 
-    [Fact(Skip = "enabled by hc-e2e-tests")]
+    [Fact]
     public async Task Cost_Exceeded_Returns_Ok_For_Legacy_Json_Accept_Header()
     {
         // arrange
@@ -195,9 +195,10 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         // act
         using var httpClient = server.CreateClient();
-        var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+        using var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
 
-        // assert: the same HC0047 body, but the legacy transport never uses a 4xx status
+        // assert
+        // The same HC0047 body uses a success status for the legacy transport
         // for a request error (R-HTTP-STATUS).
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
@@ -205,7 +206,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         result!.RootElement.MatchSnapshot();
     }
 
-    [Fact(Skip = "enabled by hc-e2e-tests")]
+    [Fact]
     public async Task Request_Validate_Cost_Header_Without_Variables_Returns_Ok_ExtensionsOnly()
     {
         // arrange
@@ -225,9 +226,10 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         // act
         using var httpClient = server.CreateClient();
-        var response = await httpClient.PostAsync(uri, content, TestContext.Current.CancellationToken);
+        using var response = await httpClient.PostAsync(uri, content, TestContext.Current.CancellationToken);
 
-        // assert: validate without variables never reaches coercion, so a required
+        // assert
+        // Validate without variables never reaches coercion, so a required
         // variable that was never supplied does not fail the request (R-VALIDATE-MODE).
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);

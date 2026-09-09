@@ -29,7 +29,7 @@ public sealed class CostSchemaSnapshot
     internal CostSchemaSnapshot(
         double defaultListSize,
         int caseBudget,
-        string queryTypeName,
+        string? queryTypeName,
         string? mutationTypeName,
         string? subscriptionTypeName,
         FrozenDictionary<string, int> objectTypeIndex,
@@ -78,7 +78,7 @@ public sealed class CostSchemaSnapshot
 
     internal int CaseBudget => _caseBudget;
 
-    internal string QueryTypeName { get; }
+    internal string? QueryTypeName { get; }
 
     internal string? MutationTypeName { get; }
 
@@ -87,7 +87,7 @@ public sealed class CostSchemaSnapshot
     internal string GetOperationTypeName(OperationType operation)
         => operation switch
         {
-            OperationType.Query => QueryTypeName,
+            OperationType.Query when QueryTypeName is { } name => name,
             OperationType.Mutation when MutationTypeName is { } name => name,
             OperationType.Subscription when SubscriptionTypeName is { } name => name,
             _ => throw ThrowHelper.OperationTypeNotDefined(operation)

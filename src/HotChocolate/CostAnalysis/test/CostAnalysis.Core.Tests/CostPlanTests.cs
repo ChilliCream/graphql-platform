@@ -76,6 +76,51 @@ public sealed class CostPlanTests
         Assert.Equal(new CostEstimate(fieldCost, typeCost, null), estimate);
     }
 
+    [Theory]
+    [InlineData("mutation", "Mutation")]
+    [InlineData("subscription", "Subscription")]
+    public void Evaluate_Should_PriceOperation_When_SchemaOmitsQueryRoot(
+        string operationType,
+        string rootTypeName)
+    {
+        // arrange
+        var plan = Compile(
+            Directives
+            + $$"""
+              schema { {{operationType}}: {{rootTypeName}} }
+              type {{rootTypeName}} @cost(weight: "3") {
+                value: String @cost(weight: "2")
+              }
+              """,
+            $"{operationType} {{ value }}");
+
+        // act
+        var estimate = plan.Evaluate(Variables());
+
+        // assert
+        Assert.Equal(new CostEstimate(2.0, 3.0, null), estimate);
+    }
+
+    [Fact]
+    public void Compile_Should_Throw_When_OperationRootIsNotDefined()
+    {
+        // arrange
+        const string operation = "query { value }";
+
+        // act
+        var error = Assert.Throws<InvalidOperationException>(() =>
+            Compile(
+                Directives
+                + """
+                  schema { mutation: Mutation }
+                  type Mutation { value: String }
+                  """,
+                operation));
+
+        // assert
+        Assert.Equal("The schema does not define a root type for 'Query'.", error.Message);
+    }
+
     [Fact]
     public void Evaluate_Should_ResolveInheritedSizedFieldVariable_When_PlanIsCached()
     {
