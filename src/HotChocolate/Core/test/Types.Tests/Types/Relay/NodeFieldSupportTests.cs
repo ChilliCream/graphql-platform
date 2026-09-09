@@ -75,6 +75,54 @@ public class NodeFieldSupportTests
     }
 
     [Fact]
+    public async Task Nodes_Should_Error_Only_Over_Limit_Field_When_Aliased_Sibling_Is_Under_Limit()
+    {
+        // arrange
+        // Aliased nodes fields share one batch invocation. The maxAllowedNodes check is per parent
+        // field, so an over-limit field errors alone while an under-limit sibling still resolves.
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification(o => o.MaxAllowedNodeBatchSize = 2)
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .ImplementsNode()
+                    .IdField(t => t.Id)
+                    .ResolveNodeWith<BarResolver>(t => t.GetBarAsync(null!)))
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                a: nodes(ids: ["QmFyOjE=", "QmFyOjI=", "QmFyOjM="]) { id }
+                b: nodes(ids: ["QmFyOjE="]) { id }
+            }
+            """);
+
+        // assert
+        // `a` exceeds the limit and errors; since `nodes` is `[Node]!`, nulling `a` propagates to
+        // the non-null root so `data` is null, but `b` would have resolved on its own.
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The maximum number of nodes that can be fetched at once is 2. This selection tried to fetch 3 nodes that exceeded the maximum allowed amount.",
+                  "path": [
+                    "a"
+                  ],
+                  "extensions": {
+                    "code": "HC0076"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Nodes_Get_Many()
     {
         // arrange

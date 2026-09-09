@@ -1,6 +1,9 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+#if !NET9_0_OR_GREATER
+using System.Runtime.ExceptionServices;
+#endif
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -30,39 +33,128 @@ internal static class NodeFieldResolvers
         var serializer = serializerAccessor.Serializer;
         var first = contexts[0];
         var schema = first.Schema;
-        var deserializedId = ResolveNodeId(first, serializer, Id);
-        var typeName = deserializedId.TypeName;
+        var typeConverter = first.Service<ITypeConverter>();
 
-        if (!schema.Types.TryGetType<ObjectType>(typeName, out var type)
-            || type.Features.Get<NodeTypeFeature>() is not { NodeResolver: { } nodeResolver })
+        // The engine composes the type name into the partition key, so a slice is homogeneous
+        // only up to a 64-bit hash collision. The dominant case is a single context, or all
+        // contexts resolving to the same type without a malformed id, so we scan once and, when
+        // the slice is homogeneous, dispatch the original contexts array without any grouping
+        // allocation. Only on a malformed id or a type mismatch do we fall back to grouping the
+        // contexts by their resolved type so a malformed id cannot poison its valid siblings.
+        ObjectType? homogeneousType = null;
+        NodeResolverInfo? homogeneousResolver = null;
+        Dictionary<string, NodeContextGroup>? groups = null;
+
+        for (var i = 0; i < contexts.Length; i++)
         {
+            var ctx = contexts[i];
+
+            if (!TryResolveNodeId(ctx, serializer, Id, out var deserializedId, out var parseError))
+            {
+                groups ??= BuildGroups(contexts, i, homogeneousType, homogeneousResolver);
+                ctx.ReportError(parseError);
+                ctx.Result = null;
+                continue;
+            }
+
+            var typeName = deserializedId.TypeName;
+
+            if (!schema.Types.TryGetType<ObjectType>(typeName, out var type)
+                || type.Features.Get<NodeTypeFeature>() is not { NodeResolver: { } nodeResolver })
+            {
+                groups ??= BuildGroups(contexts, i, homogeneousType, homogeneousResolver);
+                ctx.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, ctx.Path));
+                ctx.Result = null;
+                continue;
+            }
+
+            var nodeId = ctx.ArgumentLiteral<StringValueNode>(Id);
+            SetLocalContext(ctx, nodeId, deserializedId, type);
+            TryReplaceArguments(ctx, nodeResolver, Id, nodeId);
+
+            if (groups is null
+                && (homogeneousType is null || ReferenceEquals(homogeneousType, type)))
+            {
+                homogeneousType = type;
+                homogeneousResolver = nodeResolver;
+                continue;
+            }
+
+            // A second type appeared, so the slice is not homogeneous and we switch to grouping.
+            groups ??= BuildGroups(contexts, i, homogeneousType, homogeneousResolver);
+            AddToGroup(groups, typeName, type, nodeResolver, ctx);
+        }
+
+        if (groups is null)
+        {
+            if (homogeneousType is null)
+            {
+                return;
+            }
+
+            await DispatchAsync(contexts, homogeneousResolver!).ConfigureAwait(false);
+
             for (var i = 0; i < contexts.Length; i++)
             {
                 var ctx = contexts[i];
-                ctx.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, ctx.Path));
-                ctx.Result = null;
+                ctx.Result = CoerceResult(ctx.Result, homogeneousType, typeConverter);
             }
+
             return;
         }
 
-        var typeConverter = first.Service<ITypeConverter>();
-
-        for (var i = 0; i < contexts.Length; i++)
+        foreach (var group in groups.Values)
         {
-            var ctx = contexts[i];
-            var nodeId = ctx.ArgumentLiteral<StringValueNode>(Id);
-            var localId = i == 0 ? deserializedId : ResolveNodeId(ctx, serializer, Id);
-            SetLocalContext(ctx, nodeId, localId, type);
-            TryReplaceArguments(ctx, nodeResolver, Id, nodeId);
+            var slice = ImmutableArray.CreateBuilder<IMiddlewareContext>(group.Contexts.Count);
+            for (var i = 0; i < group.Contexts.Count; i++)
+            {
+                slice.Add(group.Contexts[i]);
+            }
+
+            await DispatchAsync(slice.MoveToImmutable(), group.Resolver).ConfigureAwait(false);
+
+            for (var i = 0; i < group.Contexts.Count; i++)
+            {
+                var ctx = group.Contexts[i];
+                ctx.Result = CoerceResult(ctx.Result, group.Type, typeConverter);
+            }
+        }
+    }
+
+    private static Dictionary<string, NodeContextGroup> BuildGroups(
+        ImmutableArray<IMiddlewareContext> contexts,
+        int count,
+        ObjectType? homogeneousType,
+        NodeResolverInfo? homogeneousResolver)
+    {
+        // The fast path resolved the ids of the first count contexts as a single homogeneous
+        // type. We seed the groups with those contexts so the grouping path can take over.
+        var groups = new Dictionary<string, NodeContextGroup>();
+
+        if (homogeneousType is not null)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                AddToGroup(groups, homogeneousType.Name, homogeneousType, homogeneousResolver!, contexts[i]);
+            }
         }
 
-        await DispatchAsync(contexts, nodeResolver).ConfigureAwait(false);
+        return groups;
+    }
 
-        for (var i = 0; i < contexts.Length; i++)
+    private static void AddToGroup(
+        Dictionary<string, NodeContextGroup> groups,
+        string typeName,
+        ObjectType type,
+        NodeResolverInfo nodeResolver,
+        IMiddlewareContext ctx)
+    {
+        if (!groups.TryGetValue(typeName, out var group))
         {
-            var ctx = contexts[i];
-            ctx.Result = CoerceResult(ctx.Result, type, typeConverter);
+            group = new NodeContextGroup(type, nodeResolver, []);
+            groups[typeName] = group;
         }
+        group.Contexts.Add(ctx);
     }
 
     /// <summary>
@@ -85,63 +177,117 @@ internal static class NodeFieldResolvers
         // Per parent context: parse all IDs, allocate the result array, build per-ID child contexts.
         var parents = new ParentEntry[contexts.Length];
         Dictionary<string, TypeGroup>? typeGroups = null;
+        List<StagedChild>? staged = null;
 
         for (var p = 0; p < contexts.Length; p++)
         {
             var parent = contexts[p];
-            int idCount;
-            ListValueNode? listIds = null;
-            StringValueNode? singleId = null;
 
-            if (parent.ArgumentKind(Ids) == ValueKind.List)
-            {
-                listIds = parent.ArgumentLiteral<ListValueNode>(Ids);
-                idCount = listIds.Items.Count;
-            }
-            else
-            {
-                singleId = parent.ArgumentLiteral<StringValueNode>(Ids);
-                idCount = 1;
-            }
+            // Sibling aliased nodes fields share a single batch context, so a malformed id or an
+            // incompatible id literal in one field must not poison its valid siblings. We read the
+            // argument, parse, and expand a parent's full id list inside the per-context try, and,
+            // mirroring the per-field semantics, error the whole field if any id is malformed while
+            // leaving the other parent contexts untouched.
+            object?[]? results = null;
 
-            if (idCount > maxAllowedNodes)
+            try
             {
-                parent.ReportError(
-                    ErrorHelper.FetchedToManyNodesAtOnce(parent.Path, maxAllowedNodes, idCount));
+                int idCount;
+                ListValueNode? listIds = null;
+                StringValueNode? singleId = null;
+
+                if (parent.ArgumentKind(Ids) == ValueKind.List)
+                {
+                    listIds = parent.ArgumentLiteral<ListValueNode>(Ids);
+                    idCount = listIds.Items.Count;
+                }
+                else
+                {
+                    singleId = parent.ArgumentLiteral<StringValueNode>(Ids);
+                    idCount = 1;
+                }
+
+                if (idCount > maxAllowedNodes)
+                {
+                    parent.ReportError(
+                        ErrorHelper.FetchedToManyNodesAtOnce(parent.Path, maxAllowedNodes, idCount));
+                    parents[p] = new ParentEntry(null);
+                    continue;
+                }
+
+                results = new object?[idCount];
+                staged?.Clear();
+
+                for (var i = 0; i < idCount; i++)
+                {
+                    StringValueNode nodeId;
+                    if (listIds is not null)
+                    {
+                        // An id literal that passed validation but is not a string (for example an
+                        // int inside the list) must surface the same literal-not-compatible error
+                        // as a top-level non-string id, not a masked cast exception.
+                        if (listIds.Items[i] is not StringValueNode stringItem)
+                        {
+                            throw Execution.ThrowHelper.ResolverContext_LiteralNotCompatible(
+                                parent.Selection.SyntaxNodes[0].Node,
+                                parent.Path,
+                                Ids,
+                                typeof(StringValueNode),
+                                listIds.Items[i].GetType());
+                        }
+
+                        nodeId = stringItem;
+                    }
+                    else
+                    {
+                        nodeId = singleId!;
+                    }
+
+                    var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(schema));
+                    var typeName = deserializedId.TypeName;
+
+                    if (!schema.Types.TryGetType<ObjectType>(typeName, out var type)
+                        || type.Features.Get<NodeTypeFeature>() is not { NodeResolver: { } nodeResolver })
+                    {
+                        parent.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, parent.Path));
+                        results[i] = null;
+                        continue;
+                    }
+
+                    var child = parent.Clone();
+                    SetLocalContext(child, nodeId, deserializedId, type);
+                    TryReplaceArguments(child, nodeResolver, Ids, nodeId);
+
+                    staged ??= [];
+                    staged.Add(new StagedChild(typeName, type, nodeResolver, child, i));
+                }
+            }
+            catch (Exception ex)
+            {
+                parent.ReportError(ex);
+                parent.Result = null;
                 parents[p] = new ParentEntry(null);
                 continue;
             }
 
-            var results = new object?[idCount];
             parents[p] = new ParentEntry(results);
 
-            for (var i = 0; i < idCount; i++)
+            if (staged is null)
             {
-                var nodeId = listIds is not null
-                    ? (StringValueNode)listIds.Items[i]
-                    : singleId!;
-                var deserializedId = serializer.Parse(nodeId.Value, Unsafe.As<Schema>(schema));
-                var typeName = deserializedId.TypeName;
+                continue;
+            }
 
-                if (!schema.Types.TryGetType<ObjectType>(typeName, out var type)
-                    || type.Features.Get<NodeTypeFeature>() is not { NodeResolver: { } nodeResolver })
-                {
-                    parent.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, parent.Path));
-                    results[i] = null;
-                    continue;
-                }
-
-                var child = parent.Clone();
-                SetLocalContext(child, nodeId, deserializedId, type);
-                TryReplaceArguments(child, nodeResolver, Ids, nodeId);
+            for (var s = 0; s < staged.Count; s++)
+            {
+                var entry = staged[s];
 
                 typeGroups ??= [];
-                if (!typeGroups.TryGetValue(typeName, out var group))
+                if (!typeGroups.TryGetValue(entry.TypeName, out var group))
                 {
-                    group = new TypeGroup(type, nodeResolver, []);
-                    typeGroups[typeName] = group;
+                    group = new TypeGroup(entry.Type, entry.Resolver, []);
+                    typeGroups[entry.TypeName] = group;
                 }
-                group.Entries.Add(new ChildEntry(child, p, i));
+                group.Entries.Add(new ChildEntry(entry.Context, p, entry.IdIndex));
             }
         }
 
@@ -183,7 +329,8 @@ internal static class NodeFieldResolvers
     {
         if (nodeResolver.BatchPipeline is { } batchPipeline)
         {
-            // Sub-partition by inner BatchPartitionKey, mirroring the engine's recursion for `node`.
+            // The nodes field has no engine-level partitioner, so when the node resolver exposes
+            // an inner partition key we sub-partition the per-type group here by that key.
             if (nodeResolver.BatchPartitionKey is { } innerPartitioner && group.Count > 1)
             {
                 Dictionary<ulong, List<ChildEntry>>? partitions = null;
@@ -271,10 +418,7 @@ internal static class NodeFieldResolvers
 #if NET9_0_OR_GREATER
             await Task.WhenAll(tasks.AsSpan(0, group.Count)).ConfigureAwait(false);
 #else
-            for (var i = 0; i < group.Count; i++)
-            {
-                await tasks[i].ConfigureAwait(false);
-            }
+            await ObserveAllAsync(tasks, group.Count).ConfigureAwait(false);
 #endif
         }
         finally
@@ -313,10 +457,7 @@ internal static class NodeFieldResolvers
 #if NET9_0_OR_GREATER
             await Task.WhenAll(tasks.AsSpan(0, contexts.Length)).ConfigureAwait(false);
 #else
-            for (var i = 0; i < contexts.Length; i++)
-            {
-                await tasks[i].ConfigureAwait(false);
-            }
+            await ObserveAllAsync(tasks, contexts.Length).ConfigureAwait(false);
 #endif
         }
         finally
@@ -325,18 +466,65 @@ internal static class NodeFieldResolvers
         }
     }
 
-    private static NodeId ResolveNodeId(
-        IMiddlewareContext context,
-        INodeIdSerializer serializer,
-        string argumentName)
+#if !NET9_0_OR_GREATER
+    private static async Task ObserveAllAsync(Task[] tasks, int count)
     {
-        if (context.LocalContextData.TryGetValue(IdValue, out var cached) && cached is NodeId nodeId)
+        // Every task must be awaited before we rethrow so that no still-running pipeline
+        // writes to a context that has already been returned to the pool.
+        ExceptionDispatchInfo? captured = null;
+
+        for (var i = 0; i < count; i++)
         {
-            return nodeId;
+            try
+            {
+                await tasks[i].ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                captured ??= ExceptionDispatchInfo.Capture(ex);
+            }
         }
 
-        var literal = context.ArgumentLiteral<StringValueNode>(argumentName);
-        return serializer.Parse(literal.Value, Unsafe.As<Schema>(context.Schema));
+        captured?.Throw();
+    }
+#endif
+
+    private static bool TryResolveNodeId(
+        IMiddlewareContext context,
+        INodeIdSerializer serializer,
+        string argumentName,
+        out NodeId deserializedId,
+        out Exception parseError)
+    {
+        // In a multi-context batch the engine partitioner already validated and cached the id of
+        // every surviving context, so this read returns the cached value and the try/catch below
+        // never runs. In a single-context batch the partitioner never runs (it is guarded on more
+        // than one context), so this try/catch is the path that parses the id and reports a
+        // per-context error for a malformed or incompatible id.
+        if (context.LocalContextData.TryGetValue(IdValue, out var cached) && cached is NodeId nodeId)
+        {
+            deserializedId = nodeId;
+            parseError = null!;
+            return true;
+        }
+
+        try
+        {
+            // The argument read is inside the try so that an id literal that passed validation
+            // but is not a string surfaces as a per-context error instead of throwing across the
+            // batch and poisoning sibling contexts.
+            var literal = context.ArgumentLiteral<StringValueNode>(argumentName);
+            deserializedId = serializer.Parse(literal.Value, Unsafe.As<Schema>(context.Schema));
+        }
+        catch (Exception ex)
+        {
+            deserializedId = default;
+            parseError = ex;
+            return false;
+        }
+
+        parseError = null!;
+        return true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -405,8 +593,20 @@ internal static class NodeFieldResolvers
         int ParentIndex,
         int IdIndex);
 
+    private readonly record struct StagedChild(
+        string TypeName,
+        ObjectType Type,
+        NodeResolverInfo Resolver,
+        IMiddlewareContext Context,
+        int IdIndex);
+
     private sealed record TypeGroup(
         ObjectType Type,
         NodeResolverInfo Resolver,
         List<ChildEntry> Entries);
+
+    private sealed record NodeContextGroup(
+        ObjectType Type,
+        NodeResolverInfo Resolver,
+        List<IMiddlewareContext> Contexts);
 }

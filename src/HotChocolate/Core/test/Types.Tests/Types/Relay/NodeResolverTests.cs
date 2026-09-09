@@ -34,6 +34,238 @@ public class NodeResolverTests
     }
 
     [Fact]
+    public async Task Node_Should_Error_Only_Offending_Field_When_Sibling_Id_Is_Malformed()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddType<EntityType>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                a: node(id: "garbage") { ... on Entity { name } }
+                b: node(id: "RW50aXR5OmZvbw==") { ... on Entity { name } }
+            }
+            """);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The node ID string has an invalid format.",
+                  "path": [
+                    "a"
+                  ],
+                  "extensions": {
+                    "originalValue": "garbage"
+                  }
+                }
+              ],
+              "data": {
+                "a": null,
+                "b": {
+                  "name": "foo"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Nodes_Should_Error_Only_Offending_Field_When_Sibling_Id_Is_Malformed()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddType<EntityType>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                a: nodes(ids: ["garbage"]) { ... on Entity { name } }
+                b: nodes(ids: ["RW50aXR5OmZvbw=="]) { ... on Entity { name } }
+            }
+            """);
+
+        // assert
+        // The malformed id in `a` produces exactly one error scoped to `a`. The valid sibling
+        // `b` is never bogusly errored. Since `nodes` is `[Node]!`, nulling `a` propagates to
+        // the non-null root and so `data` is null, matching the per-field behavior.
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The node ID string has an invalid format.",
+                  "path": [
+                    "a"
+                  ],
+                  "extensions": {
+                    "originalValue": "garbage"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Node_Should_Error_Only_Offending_Field_When_Sibling_Id_Literal_Is_Not_A_String()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddType<EntityType>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        // `id: 123` passes validation because IdType accepts int literals, but the resolver
+        // requires a string literal. The incompatible literal must error only `a`.
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                a: node(id: 123) { ... on Entity { name } }
+                b: node(id: "RW50aXR5OmZvbw==") { ... on Entity { name } }
+            }
+            """);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The argument literal representation is `HotChocolate.Language.IntValueNode` which is not compatible with the request literal type `HotChocolate.Language.StringValueNode`.",
+                  "path": [
+                    "a"
+                  ],
+                  "extensions": {
+                    "fieldName": "node",
+                    "argumentName": "id",
+                    "requestedType": "HotChocolate.Language.StringValueNode",
+                    "actualType": "HotChocolate.Language.IntValueNode"
+                  }
+                }
+              ],
+              "data": {
+                "a": null,
+                "b": {
+                  "name": "foo"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Nodes_Should_Error_Only_Offending_Field_When_Sibling_Id_Literal_Is_Not_A_String()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddType<EntityType>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        // `ids: 123` passes validation because IdType accepts int literals, but the resolver
+        // requires a string literal. The incompatible literal must error only `a`.
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                a: nodes(ids: 123) { ... on Entity { name } }
+                b: nodes(ids: ["RW50aXR5OmZvbw=="]) { ... on Entity { name } }
+            }
+            """);
+
+        // assert
+        // The incompatible literal in `a` produces exactly one error scoped to `a`. The valid
+        // sibling `b` is never bogusly errored. Since `nodes` is `[Node]!`, nulling `a`
+        // propagates to the non-null root and so `data` is null, matching the per-field behavior.
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The argument literal representation is `HotChocolate.Language.IntValueNode` which is not compatible with the request literal type `HotChocolate.Language.StringValueNode`.",
+                  "path": [
+                    "a"
+                  ],
+                  "extensions": {
+                    "fieldName": "nodes",
+                    "argumentName": "ids",
+                    "requestedType": "HotChocolate.Language.StringValueNode",
+                    "actualType": "HotChocolate.Language.IntValueNode"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Nodes_Should_Error_Whole_Field_When_Second_Id_Is_Malformed()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddType<EntityType>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        // The first id is valid and stages a child, the second id is malformed. The whole field
+        // errors and the staged child for the valid id is abandoned without cleanup failures.
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["RW50aXR5OmZvbw==", "garbage"]) { ... on Entity { name } }
+            }
+            """);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The node ID string has an invalid format.",
+                  "path": [
+                    "nodes"
+                  ],
+                  "extensions": {
+                    "originalValue": "garbage"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
     public async Task NodeResolver_ResolveNode_DynamicField()
     {
         // arrange
@@ -341,6 +573,354 @@ public class NodeResolverTests
     }
 
     [Fact]
+    public async Task Node_Should_Coalesce_Aliased_Fields_Into_One_Batch_Invocation_When_Same_Type()
+    {
+        // arrange
+        // Three aliased node fields target the batch node resolver (two distinct ids plus one
+        // duplicate). They share the same selection path and must coalesce into a single batch
+        // invocation that receives all three internal ids positionally.
+        var collector = new BatchNodeCollector();
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(collector)
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithCollectingBatchNodeResolver>()
+                .AddType<BatchEntity>()
+                .AddType<EntityType>()
+                .AddGlobalObjectIdentification()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                a: node(id: "QmF0Y2hFbnRpdHk6eA==") { ... on BatchEntity { id name } }
+                b: node(id: "QmF0Y2hFbnRpdHk6eQ==") { ... on BatchEntity { id name } }
+                dup: node(id: "QmF0Y2hFbnRpdHk6eA==") { ... on BatchEntity { id name } }
+            }
+            """);
+
+        // assert
+        Assert.Equal(1, collector.InvocationCount);
+        Assert.Equal(["x", "x", "y"], [.. collector.ReceivedIds.OrderBy(x => x)]);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "a": {
+                  "id": "QmF0Y2hFbnRpdHk6eA==",
+                  "name": "x"
+                },
+                "b": {
+                  "id": "QmF0Y2hFbnRpdHk6eQ==",
+                  "name": "y"
+                },
+                "dup": {
+                  "id": "QmF0Y2hFbnRpdHk6eA==",
+                  "name": "x"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Node_Should_Group_Per_Type_When_Aliased_Fields_Mix_Batch_And_Classic_Resolvers()
+    {
+        // arrange
+        // Two aliased node fields hit the batch node resolver, one hits the classic resolver.
+        // The batch type group coalesces into a single batch invocation while the classic type
+        // dispatches through its own pipeline.
+        var collector = new BatchNodeCollector();
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(collector)
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithCollectingBatchNodeResolver>()
+                .AddType<BatchEntity>()
+                .AddType<EntityType>()
+                .AddGlobalObjectIdentification()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                a: node(id: "QmF0Y2hFbnRpdHk6eA==") { ... on BatchEntity { id name } }
+                b: node(id: "QmF0Y2hFbnRpdHk6eQ==") { ... on BatchEntity { id name } }
+                c: node(id: "RW50aXR5OmZvbw==") { ... on Entity { id name } }
+            }
+            """);
+
+        // assert
+        Assert.Equal(1, collector.InvocationCount);
+        Assert.Equal(["x", "y"], [.. collector.ReceivedIds.OrderBy(x => x)]);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "a": {
+                  "id": "QmF0Y2hFbnRpdHk6eA==",
+                  "name": "x"
+                },
+                "b": {
+                  "id": "QmF0Y2hFbnRpdHk6eQ==",
+                  "name": "y"
+                },
+                "c": {
+                  "id": "RW50aXR5OmZvbw==",
+                  "name": "foo"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Nodes_Should_Dispatch_Through_Batch_Node_Resolver_When_Ids_Contain_Duplicates()
+    {
+        // arrange
+        // A single nodes field with two distinct ids plus a duplicate must reach the batch node
+        // resolver once with all three internal ids and map the results back positionally.
+        var collector = new BatchNodeCollector();
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(collector)
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithCollectingBatchNodeResolver>()
+                .AddType<BatchEntity>()
+                .AddGlobalObjectIdentification()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ==", "QmF0Y2hFbnRpdHk6eA=="]) {
+                    ... on BatchEntity { id name }
+                }
+            }
+            """);
+
+        // assert
+        Assert.Equal(1, collector.InvocationCount);
+        Assert.Equal(3, collector.ReceivedIds.Count);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "nodes": [
+                  {
+                    "id": "QmF0Y2hFbnRpdHk6eA==",
+                    "name": "x"
+                  },
+                  {
+                    "id": "QmF0Y2hFbnRpdHk6eQ==",
+                    "name": "y"
+                  },
+                  {
+                    "id": "QmF0Y2hFbnRpdHk6eA==",
+                    "name": "x"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Nodes_Should_Share_One_Batch_Invocation_When_Aliased_Fields_Use_Batch_Resolver()
+    {
+        // arrange
+        // Two aliased nodes fields each fetch one id of the batch type. They share a single
+        // ResolveNodesBatchAsync invocation and the batch node resolver is called once.
+        var collector = new BatchNodeCollector();
+        var executor =
+            await new ServiceCollection()
+                .AddSingleton(collector)
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithCollectingBatchNodeResolver>()
+                .AddType<BatchEntity>()
+                .AddGlobalObjectIdentification()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                a: nodes(ids: ["QmF0Y2hFbnRpdHk6eA=="]) { ... on BatchEntity { name } }
+                b: nodes(ids: ["QmF0Y2hFbnRpdHk6eQ=="]) { ... on BatchEntity { name } }
+            }
+            """);
+
+        // assert
+        Assert.Equal(1, collector.InvocationCount);
+        Assert.Equal(["x", "y"], [.. collector.ReceivedIds.OrderBy(x => x)]);
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "a": [
+                  {
+                    "name": "x"
+                  }
+                ],
+                "b": [
+                  {
+                    "name": "y"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Nodes_Should_Error_Whole_Field_When_List_Contains_Int_Literal()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddType<EntityType>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        // `123` inside the ids list passes validation (IdType accepts int literals) but the
+        // resolver requires string literals. The non-string element must surface the same
+        // literal-not-compatible error scoped to the nodes field, not a masked cast exception.
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["RW50aXR5OmZvbw==", 123]) { ... on Entity { name } }
+            }
+            """);
+
+        // assert
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The argument literal representation is `HotChocolate.Language.IntValueNode` which is not compatible with the request literal type `HotChocolate.Language.StringValueNode`.",
+                  "path": [
+                    "nodes"
+                  ],
+                  "extensions": {
+                    "fieldName": "nodes",
+                    "argumentName": "ids",
+                    "requestedType": "HotChocolate.Language.StringValueNode",
+                    "actualType": "HotChocolate.Language.IntValueNode"
+                  }
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Nodes_Should_Recover_On_Second_Query_After_Malformed_Id_Failure()
+    {
+        // arrange
+        // The first query fails on a malformed second id (abandoning the staged child for the
+        // valid first id). A second valid query on the same executor must still resolve, proving
+        // pooled-context cleanup did not corrupt state.
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddGlobalObjectIdentification()
+                .AddType<EntityType>()
+                .AddQueryType<Query>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        var failed = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["RW50aXR5OmZvbw==", "garbage"]) { ... on Entity { name } }
+            }
+            """);
+
+        var recovered = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["RW50aXR5OmZvbw=="]) { ... on Entity { name } }
+            }
+            """);
+
+        // assert
+        Assert.Single(failed.ExpectOperationResult().Errors!);
+        recovered.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "nodes": [
+                  {
+                    "name": "foo"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Node_Should_Round_Trip_Through_Batch_Resolver_With_Custom_Id_Serializer()
+    {
+        // arrange
+        // A custom value serializer encodes the batch type's int key. The batch node path must
+        // parse the global id once and re-encode the resolved entity's id with the same serializer.
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithCustomKeyBatchNodeResolver>()
+                .AddType<CustomKeyEntity>()
+                .AddGlobalObjectIdentification()
+                .AddNodeIdValueSerializer<CustomKeyNodeIdValueSerializer>()
+                .BuildRequestExecutorAsync();
+
+        // act
+        // "Q3VzdG9tS2V5RW50aXR5OmtleS00Mg==" decodes to "CustomKeyEntity:key-42".
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                a: node(id: "Q3VzdG9tS2V5RW50aXR5OmtleS00Mg==") { ... on CustomKeyEntity { id value } }
+                b: node(id: "garbage") { ... on CustomKeyEntity { id value } }
+            }
+            """);
+
+        // assert
+        // `a` round trips through the custom serializer; `b` errors alone, proving the parse-error
+        // cache path works with a non-default serializer.
+        result.ToJson().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The node ID string has an invalid format.",
+                  "path": [
+                    "b"
+                  ],
+                  "extensions": {
+                    "originalValue": "garbage"
+                  }
+                }
+              ],
+              "data": {
+                "a": {
+                  "id": "Q3VzdG9tS2V5RW50aXR5OmtleS00Mg==",
+                  "value": 42
+                },
+                "b": null
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task NodeResolver_And_AsSelector()
     {
         // arrange
@@ -401,6 +981,92 @@ public class NodeResolverTests
         }
 
         public required string Name { get; set; }
+    }
+
+    public sealed class BatchNodeCollector
+    {
+        private readonly List<string> _receivedIds = [];
+
+        public int InvocationCount { get; private set; }
+
+        public IReadOnlyList<string> ReceivedIds => _receivedIds;
+
+        public void Record(IEnumerable<string> ids)
+        {
+            InvocationCount++;
+            _receivedIds.AddRange(ids);
+        }
+    }
+
+    public class QueryWithCollectingBatchNodeResolver
+    {
+        [NodeResolver]
+        [BatchResolver]
+        public List<BatchEntity> GetBatchEntity(
+            List<string> id,
+            [Service] BatchNodeCollector collector)
+        {
+            collector.Record(id);
+
+            var result = new List<BatchEntity>();
+
+            foreach (var value in id)
+            {
+                result.Add(new BatchEntity { Name = value });
+            }
+
+            return result;
+        }
+
+        public Entity GetEntity(string name) => new() { Name = name };
+    }
+
+    public class QueryWithCustomKeyBatchNodeResolver
+    {
+        [NodeResolver]
+        [BatchResolver]
+        public List<CustomKeyEntity> GetCustomKeyEntity(List<CustomKey> id)
+            => id.Select(key => new CustomKeyEntity { Id = key }).ToList();
+    }
+
+    public class CustomKeyEntity
+    {
+        public required CustomKey Id { get; set; }
+
+        public int Value => Id.Number;
+    }
+
+    public readonly record struct CustomKey(int Number)
+    {
+        public override string ToString() => $"key-{Number}";
+
+        public static CustomKey Parse(string value)
+            => new(int.Parse(value["key-".Length..]));
+    }
+
+    public sealed class CustomKeyNodeIdValueSerializer : INodeIdValueSerializer
+    {
+        public bool IsSupported(Type type) => type == typeof(CustomKey);
+
+        public NodeIdFormatterResult Format(Span<byte> buffer, object value, out int written)
+        {
+            if (value is CustomKey key)
+            {
+                written = System.Text.Encoding.UTF8.GetBytes(key.ToString(), buffer);
+                return NodeIdFormatterResult.Success;
+            }
+
+            written = 0;
+            return NodeIdFormatterResult.InvalidValue;
+        }
+
+        public bool TryParse(
+            ReadOnlySpan<byte> buffer,
+            [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out object? value)
+        {
+            value = CustomKey.Parse(System.Text.Encoding.UTF8.GetString(buffer));
+            return true;
+        }
     }
 
     public class EntityType : ObjectType<Entity>

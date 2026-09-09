@@ -212,7 +212,8 @@ public static class PagingHelper
             written = WriteFlagsPartitionKey(buffer, written, flags);
 
             var hash = ComputePartitionKeyHash(buffer[..written]);
-            // 0 is the sentinel for the default partition.
+            // This method returns 0 to signal "no paging arguments", so a computed hash must
+            // never equal 0 or it would merge into that default partition.
             return hash == 0 ? 1 : hash;
         }
         finally

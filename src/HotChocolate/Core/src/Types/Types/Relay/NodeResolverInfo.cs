@@ -30,8 +30,12 @@ internal sealed class NodeResolverInfo(
     public BatchFieldDelegate? BatchPipeline { get; } = batchPipeline;
 
     /// <summary>
-    /// Gets the inner partition key the node-level batch pipeline must honor when
-    /// dispatching to this resolver, or <c>null</c> if the source field has no partitioner.
+    /// Gets the resolver that computes the inner partition key for this node resolver,
+    /// or <c>null</c> if the source field has no partitioner. The node field composes
+    /// this key into its engine partition key, while the nodes field uses it to
+    /// sub-partition the per-type groups it dispatches.
+    /// The resolver receives the node or nodes field's context, not the source field's
+    /// context, so it must only read state that is present there.
     /// </summary>
     public BatchPartitionKeyResolver? BatchPartitionKey { get; } = batchPartitionKey;
 

@@ -235,12 +235,72 @@ public sealed partial class ResultDocument : IDisposable
         {
             parent = _metaDb.GetParentCursor(parent);
 
-            // in this case the parent must be a reference, otherwise we would have
-            // found an inconsistency in the database.
-            Debug.Assert(_metaDb.GetElementTokenType(parent, resolveReferences: false) == ElementTokenType.Reference);
+            // in this case the parent is normally a reference. Null propagation can replace that
+            // reference slot with a null row when a nullable ancestor is set to null, which is a
+            // legitimate post-propagation state, so a null row is tolerated here as well.
+            Debug.Assert(
+                _metaDb.GetElementTokenType(parent, resolveReferences: false)
+                    is ElementTokenType.Reference or ElementTokenType.Null,
+                "The logical parent must be a reference or a null-replaced slot.");
         }
 
         return new ResultElement(this, parent);
+    }
+
+    /// <summary>
+    /// Determines whether the parent element of <paramref name="current"/> has been erased, which
+    /// is the case when it was set to null or invalidated during null propagation. The parent slot
+    /// can be a null-replaced row at this point, which is a legitimate post-propagation state, so
+    /// the navigation tolerates it instead of requiring a reference.
+    /// </summary>
+    internal bool IsParentNullOrInvalidated(Cursor current)
+    {
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
+
+        if (current == Cursor.Zero)
+        {
+            // The data object has no parent that could be erased.
+            return false;
+        }
+
+        var parent = _metaDb.GetParentCursor(current);
+
+        // a property name and its value represent the same element, so step over the property name.
+        if (_metaDb.GetElementTokenType(parent) is ElementTokenType.PropertyName)
+        {
+            parent = _metaDb.GetParentCursor(parent);
+        }
+
+        // when the parent row is an object or array we still need its logical parent, which is the
+        // value slot of the property or the array element that holds it.
+        if (parent != Cursor.Zero
+            && _metaDb.GetElementTokenType(parent) is ElementTokenType.StartObject or ElementTokenType.StartArray)
+        {
+            parent = _metaDb.GetParentCursor(parent);
+        }
+
+        // The invalidation flag lives on the resolved object, so a reference is resolved explicitly
+        // before the flag is read. A null-replaced slot also counts as erased.
+        var tokenType = _metaDb.GetElementTokenType(parent, resolveReferences: false);
+
+        if (tokenType is ElementTokenType.Reference)
+        {
+            parent = _metaDb.GetLocationCursor(parent);
+            tokenType = _metaDb.GetElementTokenType(parent);
+        }
+
+        if (tokenType is ElementTokenType.Null or ElementTokenType.None)
+        {
+            return true;
+        }
+
+        if (tokenType is ElementTokenType.StartObject)
+        {
+            var flags = _metaDb.GetFlags(parent);
+            return (flags & ElementFlags.IsInvalidated) == ElementFlags.IsInvalidated;
+        }
+
+        return false;
     }
 
     internal bool IsInvalidated(Cursor current)

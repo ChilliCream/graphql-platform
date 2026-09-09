@@ -214,6 +214,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         return context =>
         {
             serializer ??= serializerAccessor.Serializer;
+
             var deserializedId = ResolveOrParseNodeId(context, serializer);
             var typeName = deserializedId.TypeName;
 
@@ -228,13 +229,18 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         };
     }
 
-    private static NodeId ResolveOrParseNodeId(IMiddlewareContext context, INodeIdSerializer serializer)
+    private static NodeId ResolveOrParseNodeId(
+        IMiddlewareContext context,
+        INodeIdSerializer serializer)
     {
-        if (context.LocalContextData.TryGetValue(IdValue, out var cached) && cached is NodeId nodeId)
+        if (context.LocalContextData.TryGetValue(IdValue, out var cached) && cached is NodeId cachedId)
         {
-            return nodeId;
+            return cachedId;
         }
 
+        // A malformed id or a non-string id literal throws here, which the engine isolates to
+        // this context so it cannot poison its sibling contexts in the same batch. The argument
+        // read stays inside this path so an incompatible literal surfaces the same isolated error.
         var literal = context.ArgumentLiteral<StringValueNode>(Id);
         var deserializedId = serializer.Parse(literal.Value, Unsafe.As<Schema>(context.Schema));
         context.SetLocalState(IdValue, deserializedId);

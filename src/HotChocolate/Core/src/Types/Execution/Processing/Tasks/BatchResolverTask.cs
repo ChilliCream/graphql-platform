@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -21,6 +22,7 @@ internal sealed class BatchResolverTask : IResolverTask
     private readonly List<BatchEntry> _entries = [];
     private readonly List<IExecutionTask> _taskBuffer = [];
     private readonly List<Dictionary<string, ArgumentValue>> _rentedArgs = [];
+    private readonly HashSet<IMiddlewareContext> _excluded = [];
     private readonly ObjectPool<BatchResolverTask> _objectPool;
     private readonly ObjectPool<ResolverTask> _resolverTaskPool;
     private readonly ObjectPool<Dictionary<string, ArgumentValue>> _argumentMapPool;
@@ -254,6 +256,15 @@ internal sealed class BatchResolverTask : IResolverTask
                 for (var i = 0; i < contexts.Length; i++)
                 {
                     var context = Unsafe.As<MiddlewareContext>(contexts[i]);
+
+                    // Excluded contexts must not receive a batch-wide error. A swept context's
+                    // slot is erased so it gets no error, and a set-aside context already carries
+                    // its own error from the isolated partitioner failure.
+                    if (_excluded.Contains(context))
+                    {
+                        continue;
+                    }
+
                     if (!context.HasErrors)
                     {
                         context.ReportError(ex);
@@ -295,7 +306,7 @@ internal sealed class BatchResolverTask : IResolverTask
         }
         else
         {
-            await ExecuteSingleBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
+            await DispatchAsync(contexts, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -304,53 +315,261 @@ internal sealed class BatchResolverTask : IResolverTask
         BatchPartitionKeyResolver partitioner,
         CancellationToken cancellationToken)
     {
-        var firstKey = partitioner(contexts[0]);
-        Dictionary<ulong, ImmutableArray<IMiddlewareContext>.Builder>? partitions = null;
+        // A throwing partitioner must not poison its sibling contexts. The partitioner is invoked
+        // exactly once per context. A throw is isolated to that single context (eagerly completed
+        // and set aside) while the surviving contexts keep their computed key for grouping. Eager
+        // completion is safe here because no partition group has executed yet.
+        var keys = ArrayPool<ulong>.Shared.Rent(contexts.Length);
 
-        for (var i = 1; i < contexts.Length; i++)
+        try
         {
-            var key = partitioner(contexts[i]);
+            ImmutableArray<IMiddlewareContext>.Builder? survivors = null;
+            ulong firstKey = 0;
+            var firstSurvivorIndex = -1;
 
-            if (partitions is null)
+            for (var i = 0; i < contexts.Length; i++)
             {
-                if (key == firstKey)
+                var key = TryPartition(partitioner, contexts[i], cancellationToken, out var faulted);
+
+                if (faulted)
                 {
+                    // The faulted context is set aside, it never enters any partition or dispatch
+                    // but stays in the task lifecycle for the normal end-of-task cleanup.
+                    survivors ??= CollectSurvivors(contexts, i);
                     continue;
                 }
 
-                partitions = [];
-                var firstPartition = ImmutableArray.CreateBuilder<IMiddlewareContext>(i);
-
-                for (var j = 0; j < i; j++)
+                if (firstSurvivorIndex < 0)
                 {
-                    firstPartition.Add(contexts[j]);
+                    firstSurvivorIndex = i;
+                    firstKey = key;
                 }
 
-                partitions.Add(firstKey, firstPartition);
+                if (survivors is null)
+                {
+                    keys[i] = key;
+                }
+                else
+                {
+                    keys[survivors.Count] = key;
+                    survivors.Add(contexts[i]);
+                }
             }
 
-            ref var partition = ref CollectionsMarshal.GetValueRefOrAddDefault(
-                partitions,
-                key,
-                out var exists);
-
-            if (!exists)
+            if (firstSurvivorIndex < 0)
             {
-                partition = ImmutableArray.CreateBuilder<IMiddlewareContext>();
+                // Every context faulted in the partitioner, so there is nothing left to dispatch.
+                return;
             }
 
-            partition!.Add(contexts[i]);
+            var remaining = survivors?.ToImmutable() ?? contexts;
+
+            if (remaining.Length == 1)
+            {
+                await DispatchAsync(remaining, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            Dictionary<ulong, ImmutableArray<IMiddlewareContext>.Builder>? partitions = null;
+
+            for (var i = 1; i < remaining.Length; i++)
+            {
+                var key = keys[i];
+
+                if (partitions is null)
+                {
+                    if (key == firstKey)
+                    {
+                        continue;
+                    }
+
+                    partitions = [];
+                    var firstPartition = ImmutableArray.CreateBuilder<IMiddlewareContext>(i);
+
+                    for (var j = 0; j < i; j++)
+                    {
+                        firstPartition.Add(remaining[j]);
+                    }
+
+                    partitions.Add(firstKey, firstPartition);
+                }
+
+                ref var partition = ref CollectionsMarshal.GetValueRefOrAddDefault(
+                    partitions,
+                    key,
+                    out var exists);
+
+                if (!exists)
+                {
+                    partition = ImmutableArray.CreateBuilder<IMiddlewareContext>();
+                }
+
+                partition!.Add(remaining[i]);
+            }
+
+            if (partitions is null)
+            {
+                await DispatchAsync(remaining, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            foreach (var partition in partitions.Values)
+            {
+                await DispatchAsync(partition.ToImmutable(), cancellationToken).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            ArrayPool<ulong>.Shared.Return(keys);
+        }
+    }
+
+    private async ValueTask DispatchAsync(
+        ImmutableArray<IMiddlewareContext> contexts,
+        CancellationToken cancellationToken)
+    {
+        // The sweep sorts out contexts whose result slot was already erased by null propagation
+        // elsewhere in the operation, so executing them would be dead work.
+        var dispatch = SweepInvalidated(contexts);
+
+        if (!dispatch.IsDefaultOrEmpty)
+        {
+            await ExecuteSingleBatchPipelineAsync(dispatch, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>
+    /// Invokes the partitioner for a single context and isolates a throwing partitioner so it
+    /// cannot poison its sibling contexts in the same batch. On a throw the context's error is
+    /// reported, its result is nulled and it is completed eagerly so the standard null
+    /// propagation runs before any partition group is dispatched.
+    /// </summary>
+    private ulong TryPartition(
+        BatchPartitionKeyResolver partitioner,
+        IMiddlewareContext context,
+        CancellationToken cancellationToken,
+        out bool faulted)
+    {
+        try
+        {
+            faulted = false;
+            return partitioner(context);
+        }
+        catch (Exception ex)
+        {
+            faulted = true;
+
+            var middlewareContext = Unsafe.As<MiddlewareContext>(context);
+
+            // The faulted context is set aside, so it must be excluded from the final completion
+            // pass to avoid completing it twice.
+            _excluded.Add(context);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                // When cancellation is requested we skip reporting, nulling and eager completion
+                // entirely. The context is left in its current state for the end-of-task cleanup.
+                return 0;
+            }
+
+            if (!middlewareContext.HasErrors)
+            {
+                middlewareContext.ReportError(ex);
+                middlewareContext.Result = null;
+            }
+
+            CompleteValue(middlewareContext, success: true, cancellationToken);
+            return 0;
+        }
+    }
+
+    private static ImmutableArray<IMiddlewareContext>.Builder CollectSurvivors(
+        ImmutableArray<IMiddlewareContext> contexts,
+        int faultedIndex)
+    {
+        // The first faulted context switches the path from the original contexts array to an
+        // explicit survivor list seeded with every context before the fault. No fault occurred
+        // before this index so each survivor key already sits at its survivor index in the key
+        // buffer and needs no compaction.
+        var builder = ImmutableArray.CreateBuilder<IMiddlewareContext>(contexts.Length - 1);
+
+        for (var i = 0; i < faultedIndex; i++)
+        {
+            builder.Add(contexts[i]);
         }
 
-        if (partitions is null)
-        {
-            await ExecuteSingleBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
-            return;
-        }
+        return builder;
+    }
 
-        foreach (var partition in partitions.Values)
+    /// <summary>
+    /// Sorts out every context whose result slot was already erased by null propagation, either
+    /// by an eagerly completed partitioner failure in this batch or by a concurrent task
+    /// elsewhere in the operation. A sorted-out context needs no error and no result because its
+    /// slot is gone, but it stays in the task lifecycle for cleanup. The check is per context
+    /// against its own result document so it is always scoped to the matching request and
+    /// variable set even when the batch task merges across variable sets.
+    /// </summary>
+    private ImmutableArray<IMiddlewareContext> SweepInvalidated(
+        ImmutableArray<IMiddlewareContext> contexts)
+    {
+        // The verdict for each context is snapshotted in a single pass so that a concurrent
+        // invalidation between counting and building cannot under-fill the survivor list. A stale
+        // not-erased verdict only dispatches dead work, which matches the previous behavior, while
+        // a thrown exception from a mismatched count is avoided entirely.
+        var erased = ArrayPool<bool>.Shared.Rent(contexts.Length);
+
+        try
         {
-            await ExecuteSingleBatchPipelineAsync(partition.ToImmutable(), cancellationToken).ConfigureAwait(false);
+            var erasedCount = 0;
+
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                if (Unsafe.As<MiddlewareContext>(contexts[i]).ResultValue.IsParentNullOrInvalidated)
+                {
+                    erased[i] = true;
+                    erasedCount++;
+                }
+                else
+                {
+                    erased[i] = false;
+                }
+            }
+
+            if (erasedCount == 0)
+            {
+                return contexts;
+            }
+
+            // A swept context receives no completion, error or result because its slot is gone, so
+            // it must be excluded from the final completion pass.
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                if (erased[i])
+                {
+                    _excluded.Add(contexts[i]);
+                }
+            }
+
+            if (erasedCount == contexts.Length)
+            {
+                return [];
+            }
+
+            var builder = ImmutableArray.CreateBuilder<IMiddlewareContext>(contexts.Length - erasedCount);
+
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                if (!erased[i])
+                {
+                    builder.Add(contexts[i]);
+                }
+            }
+
+            return builder.MoveToImmutable();
+        }
+        finally
+        {
+            ArrayPool<bool>.Shared.Return(erased);
         }
     }
 
@@ -408,57 +627,75 @@ internal sealed class BatchResolverTask : IResolverTask
     {
         for (var i = 0; i < contexts.Length; i++)
         {
-            var context = Unsafe.As<MiddlewareContext>(contexts[i]);
-            var resultValue = context.ResultValue;
-            var result = context.Result;
+            var context = contexts[i];
 
-            try
+            // A context is excluded when it was either eagerly completed by an isolated
+            // partitioner failure or swept because its result slot was already erased. In both
+            // cases the final completion pass must leave it untouched so that an eagerly completed
+            // context is not completed twice and a swept context receives no spurious result.
+            if (_excluded.Contains(context))
             {
-                // we will only try to complete the resolver value if there are no known errors.
-                if (success)
-                {
-                    var completionContext =
-                        new ValueCompletionContext(
-                            _operationContext,
-                            context,
-                            _taskBuffer,
-                            context.BranchId);
-
-                    Complete(completionContext, context.Selection, resultValue, result);
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                _completionStatus = ExecutionTaskStatus.Faulted;
-                context.Result = null;
-                return;
-            }
-            catch (Exception ex)
-            {
-                context.Result = null;
-
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    context.ReportError(ex);
-                    resultValue.SetNullValue();
-                }
+                continue;
             }
 
-            if (resultValue is { IsNullable: false, IsNullOrInvalidated: true })
-            {
-                if (_operationContext.PropagateNullValues)
-                {
-                    PropagateNullValues(resultValue);
-                }
-                else
-                {
-                    resultValue.SetNullValue();
-                }
+            CompleteValue(Unsafe.As<MiddlewareContext>(context), success, cancellationToken);
+        }
+    }
 
-                _completionStatus = ExecutionTaskStatus.Faulted;
-                _operationContext.Result.AddNonNullViolation(context.Path);
-                _taskBuffer.Clear();
+    private void CompleteValue(
+        MiddlewareContext context,
+        bool success,
+        CancellationToken cancellationToken)
+    {
+        var resultValue = context.ResultValue;
+        var result = context.Result;
+
+        try
+        {
+            // we will only try to complete the resolver value if there are no known errors.
+            if (success)
+            {
+                var completionContext =
+                    new ValueCompletionContext(
+                        _operationContext,
+                        context,
+                        _taskBuffer,
+                        context.BranchId);
+
+                Complete(completionContext, context.Selection, resultValue, result);
             }
+        }
+        catch (OperationCanceledException)
+        {
+            _completionStatus = ExecutionTaskStatus.Faulted;
+            context.Result = null;
+            return;
+        }
+        catch (Exception ex)
+        {
+            context.Result = null;
+
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                context.ReportError(ex);
+                resultValue.SetNullValue();
+            }
+        }
+
+        if (resultValue is { IsNullable: false, IsNullOrInvalidated: true })
+        {
+            if (_operationContext.PropagateNullValues)
+            {
+                PropagateNullValues(resultValue);
+            }
+            else
+            {
+                resultValue.SetNullValue();
+            }
+
+            _completionStatus = ExecutionTaskStatus.Faulted;
+            _operationContext.Result.AddNonNullViolation(context.Path);
+            _taskBuffer.Clear();
         }
     }
 
@@ -524,6 +761,7 @@ internal sealed class BatchResolverTask : IResolverTask
         _resolverTasks.Clear();
         _entries.Clear();
         _taskBuffer.Clear();
+        _excluded.Clear();
 
         foreach (var args in _rentedArgs)
         {
