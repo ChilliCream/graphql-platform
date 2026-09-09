@@ -59,15 +59,73 @@ internal static class OpencodeHooksTemplate
               }
             }
 
-            function appendParts(output, response) {
-              const parts = response.parts ?? response.additionalContext ?? [];
+            function nextSyntheticPartId(existingParts) {
+              let maxId = null;
 
-              for (const part of parts) {
-                if (typeof part === "string") {
-                  output.parts.push({ type: "text", text: part });
-                } else if (part?.type === "text") {
-                  output.parts.push(part);
+              for (const part of existingParts ?? []) {
+                if (typeof part?.id === "string" && part.id.startsWith("prt_")) {
+                  if (maxId === null || part.id > maxId) {
+                    maxId = part.id;
+                  }
                 }
+              }
+
+              return maxId ?? `prt_${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`;
+            }
+
+            function syntheticTextOf(part) {
+              if (typeof part === "string") {
+                return part;
+              }
+
+              if (part?.type === "text" && typeof part.text === "string") {
+                return part.text;
+              }
+
+              return undefined;
+            }
+
+            // opencode's chat.message hook passes FULL Parts on output.parts, not
+            // TextPartInputs: a stored Part requires id, sessionID and messageID, and a
+            // part missing any of them kills the user's prompt with a 500 (see
+            // SessionHttpApi.prompt). sessionID/messageID must come from
+            // output.message, never from output.parts[0], which can be empty.
+            // Ordering everywhere is a plain string sort on id, so growing the
+            // lexicographic max sibling id by one "z" per appended part always sorts
+            // last. The whole function is wrapped in try/catch: missing context is an
+            // acceptable degradation, a rejected prompt is not.
+            function appendParts(output, response) {
+              try {
+                const sessionID = output.message?.sessionID;
+                const messageID = output.message?.id;
+
+                if (!sessionID || !messageID) {
+                  return;
+                }
+
+                const parts = response.parts ?? response.additionalContext ?? [];
+                let previousId = nextSyntheticPartId(output.parts);
+
+                for (const part of parts) {
+                  const text = syntheticTextOf(part);
+
+                  if (text === undefined) {
+                    continue;
+                  }
+
+                  previousId = `${previousId}z`;
+                  output.parts.push({
+                    id: previousId,
+                    sessionID,
+                    messageID,
+                    type: "text",
+                    text,
+                    synthetic: true,
+                  });
+                }
+              } catch {
+                // Missing or malformed context is an acceptable degradation; a
+                // rejected prompt is not.
               }
             }
 
