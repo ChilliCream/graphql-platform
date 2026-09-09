@@ -1,10 +1,10 @@
 import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { BlogIcon } from "@/src/icons/Blog";
-import { Fusion } from "@/src/icons/Fusion";
+import { FUSION_ARTWORK, Fusion } from "@/src/icons/Fusion";
 import { GitHubIcon } from "@/src/icons/GitHub";
-import { HotChocolate } from "@/src/icons/HotChocolate";
+import { HOT_CHOCOLATE_ARTWORK, HotChocolate } from "@/src/icons/HotChocolate";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
-import { Mocha } from "@/src/icons/Mocha";
+import { MOCHA_ARTWORK, Mocha } from "@/src/icons/Mocha";
 import {
   BuildingIcon,
   CloudIcon,
@@ -16,11 +16,15 @@ import {
   SparklesIcon,
   WavePulseIcon,
 } from "@/src/icons/NavIcons";
-import { Nitro } from "@/src/icons/Nitro";
+import { NITRO_ARTWORK, Nitro } from "@/src/icons/Nitro";
+import type { ProductArtworkSize } from "@/src/icons/productArtwork";
 import { RobotIcon } from "@/src/icons/RobotIcon";
-import { Skills } from "@/src/icons/Skills";
+import { SKILLS_ARTWORK, Skills } from "@/src/icons/Skills";
 import { SlackIcon } from "@/src/icons/Slack";
-import { StrawberryShake } from "@/src/icons/StrawberryShake";
+import {
+  STRAWBERRY_SHAKE_ARTWORK,
+  StrawberryShake,
+} from "@/src/icons/StrawberryShake";
 import { XIcon } from "@/src/icons/X";
 import { YouTubeIcon } from "@/src/icons/YouTube";
 import type { ComponentType, SVGProps } from "react";
@@ -46,7 +50,12 @@ export interface SubLink {
   label: string;
   description?: string;
   icon?: Icon;
-  iconAspect?: "natural";
+  /**
+   * Intrinsic size of the icon artwork in sheet units (e.g. `NITRO_ARTWORK`).
+   * Set it on product icons: the menu then sizes them all with one scale
+   * factor, bottom-aligned, instead of forcing them into a square box.
+   */
+  iconSize?: ProductArtworkSize;
 }
 
 export interface SubGroup {
@@ -112,14 +121,14 @@ export const NAV_ITEMS: NavItem[] = [
             label: "Nitro",
             description: "Observability, governance, and delivery.",
             icon: Nitro,
-            iconAspect: "natural",
+            iconSize: NITRO_ARTWORK,
           },
           {
             href: "/products/mocha",
             label: "Mocha",
             description: "Messaging for .NET.",
             icon: Mocha,
-            iconAspect: "natural",
+            iconSize: MOCHA_ARTWORK,
           },
         ],
       },
@@ -169,37 +178,37 @@ export const NAV_ITEMS: NavItem[] = [
             href: "/docs/hotchocolate",
             label: "Hot Chocolate",
             icon: HotChocolate,
-            iconAspect: "natural",
+            iconSize: HOT_CHOCOLATE_ARTWORK,
           },
           {
             href: "/docs/strawberryshake",
             label: "Strawberry Shake",
             icon: StrawberryShake,
-            iconAspect: "natural",
+            iconSize: STRAWBERRY_SHAKE_ARTWORK,
           },
           {
             href: "/docs/mocha",
             label: "Mocha",
             icon: Mocha,
-            iconAspect: "natural",
+            iconSize: MOCHA_ARTWORK,
           },
           {
             href: "/docs/fusion",
             label: "Fusion",
             icon: Fusion,
-            iconAspect: "natural",
+            iconSize: FUSION_ARTWORK,
           },
           {
             href: "/docs/nitro",
             label: "Nitro",
             icon: Nitro,
-            iconAspect: "natural",
+            iconSize: NITRO_ARTWORK,
           },
           {
             href: "/docs/skills",
             label: "Skills",
             icon: Skills,
-            iconAspect: "natural",
+            iconSize: SKILLS_ARTWORK,
           },
         ],
       },
