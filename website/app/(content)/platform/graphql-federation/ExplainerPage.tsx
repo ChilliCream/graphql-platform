@@ -25,9 +25,10 @@ export function ExplainerPage() {
         </h1>
         <p className="text-cc-ink mx-auto mt-7 max-w-2xl text-lg">
           Learn what GraphQL Federation is and whether it fits your setup, or
-          jump straight into Fusion. It speaks both: GraphQL Federation, the
-          vendor neutral standard built in the open at the GraphQL Foundation,
-          and Apollo Federation, the one controlled by a single company.
+          jump straight into Fusion. It speaks both standards, so you can start
+          where the ecosystem is today with Apollo Federation and move with it
+          as GraphQL Federation becomes the open standard at the GraphQL
+          Foundation.
         </p>
         <ButtonRow className="mt-7">
           <SolidButton href="/docs/fusion/getting-started">
