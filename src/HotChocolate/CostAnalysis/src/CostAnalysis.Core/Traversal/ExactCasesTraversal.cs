@@ -180,77 +180,63 @@ internal static class ExactCasesTraversal
         TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
-        while (cursor.TryPeek(out var branch, out var rest))
+        cursor = cursor.Normalize(representative, assignment);
+
+        if (!cursor.TryPickCanonicalVariable(representative, assignment, cache, out var variable))
         {
-            if (branch.Condition.TypeName is not null)
-            {
-                cursor = tree.Nodes[branch.TargetNodeId].Condition.PossibleTypes.Contains(representative)
-                    ? cursor.Select(branch.TargetNodeId, rest)
-                    : cursor.Skip(rest);
-                continue;
-            }
-
-            var literal = branch.Condition.Literal!.Value;
-
-            if (assignment.TryGetValue(literal.VariableName, out var value))
-            {
-                cursor = cursor.ResolveBoolean(branch.TargetNodeId, rest, literal, value);
-                continue;
-            }
-
-            if (!budget.TrySpend())
-            {
-                return CaseBudgetFallback.Evaluate(
-                    snapshot,
-                    fragments,
-                    tree,
-                    algebra,
-                    budget,
-                    region,
-                    representative,
-                    assignment,
-                    cache,
-                    parentSizeContext);
-            }
-
-            var whenFalse = EvaluateCase(
+            return CollectAndWeigh(
                 snapshot,
                 fragments,
                 tree,
                 algebra,
                 budget,
                 region,
-                representative,
-                assignment.With(literal.VariableName, false),
-                cursor.ResolveBoolean(branch.TargetNodeId, rest, literal, false),
+                assignment,
+                cursor.MaterializeVisited(),
                 cache,
                 parentSizeContext);
-            var whenTrue = EvaluateCase(
-                snapshot,
-                fragments,
-                tree,
-                algebra,
-                budget,
-                region,
-                representative,
-                assignment.With(literal.VariableName, true),
-                cursor.ResolveBoolean(branch.TargetNodeId, rest, literal, true),
-                cache,
-                parentSizeContext);
-            return BooleanDecision<TSummary>.Split(literal.VariableName, whenFalse, whenTrue);
         }
 
-        return CollectAndWeigh(
+        if (!budget.TrySpend())
+        {
+            return CaseBudgetFallback.Evaluate(
+                snapshot,
+                fragments,
+                tree,
+                algebra,
+                budget,
+                region,
+                representative,
+                assignment,
+                cache,
+                parentSizeContext);
+        }
+
+        var whenFalse = EvaluateCase(
             snapshot,
             fragments,
             tree,
             algebra,
             budget,
             region,
-            assignment,
-            cursor.MaterializeVisited(),
+            representative,
+            assignment.With(variable, false),
+            cursor,
             cache,
             parentSizeContext);
+        var whenTrue = EvaluateCase(
+            snapshot,
+            fragments,
+            tree,
+            algebra,
+            budget,
+            region,
+            representative,
+            assignment.With(variable, true),
+            cursor,
+            cache,
+            parentSizeContext);
+        return BooleanDecision<TSummary>.Split(variable, whenFalse, whenTrue);
     }
 
     /// <summary>
@@ -519,26 +505,32 @@ internal static class ExactCasesTraversal
             }
         }
 
+        result.Sort(CompareTypeSets);
         return result;
     }
 
-    /// <summary>
-    /// Picks the canonically first (ordinal) variable name among a set of
-    /// pending literals.
-    /// </summary>
-    internal static string PickCanonicalVariable(List<BooleanLiteral> pending)
+    private static int CompareTypeSets(PossibleTypeSet left, PossibleTypeSet right)
     {
-        var best = pending[0].VariableName;
+        var leftEnumerator = left.GetEnumerator();
+        var rightEnumerator = right.GetEnumerator();
 
-        for (var i = 1; i < pending.Count; i++)
+        while (true)
         {
-            if (string.CompareOrdinal(pending[i].VariableName, best) < 0)
+            var hasLeft = leftEnumerator.MoveNext();
+            var hasRight = rightEnumerator.MoveNext();
+
+            if (!hasLeft || !hasRight)
             {
-                best = pending[i].VariableName;
+                return hasLeft == hasRight ? 0 : hasLeft ? 1 : -1;
+            }
+
+            var comparison = leftEnumerator.Current.CompareTo(rightEnumerator.Current);
+
+            if (comparison != 0)
+            {
+                return comparison;
             }
         }
-
-        return best;
     }
 
     private readonly struct CaseCursor
@@ -546,58 +538,181 @@ internal static class ExactCasesTraversal
         private readonly ConditionTree _tree;
         private readonly SelectedNode _selected;
         private readonly PendingBranches _pending;
+        private readonly DeferredBranch? _deferred;
 
         private CaseCursor(
             ConditionTree tree,
             SelectedNode selected,
-            PendingBranches pending)
+            PendingBranches pending,
+            DeferredBranch? deferred)
         {
             _tree = tree;
             _selected = selected;
             _pending = pending;
+            _deferred = deferred;
         }
 
         public static CaseCursor Create(ConditionTree tree)
             => new(
                 tree,
                 new SelectedNode(tree.RootNodeId, previous: null),
-                PendingBranches.Prepend(tree.Root.Branches, default));
+                PendingBranches.Prepend(tree.Root.Branches, default),
+                deferred: null);
 
-        public bool TryPeek(out Branch branch, out PendingBranches rest)
+        public CaseCursor Normalize(
+            int representative,
+            BooleanAssignment assignment)
         {
-            if (_pending.IsEmpty)
+            var selected = _selected;
+            var pending = _pending;
+            var deferred = _deferred;
+            DeferredBranch? unresolved = null;
+
+            while (!pending.IsEmpty || deferred is not null)
             {
-                branch = default;
-                rest = default;
-                return false;
+                Branch branch;
+
+                if (!pending.IsEmpty)
+                {
+                    branch = pending.Current;
+                    pending = pending.Rest();
+                }
+                else
+                {
+                    branch = deferred!.Branch;
+                    deferred = deferred.Next;
+                }
+
+                if (selected.Contains(branch.TargetNodeId))
+                {
+                    continue;
+                }
+
+                if (branch.Condition.TypeName is not null)
+                {
+                    if (_tree.Nodes[branch.TargetNodeId].Condition.PossibleTypes.Contains(representative))
+                    {
+                        Select(branch.TargetNodeId, ref selected, ref pending);
+                    }
+
+                    continue;
+                }
+
+                var literal = branch.Condition.Literal!.Value;
+
+                if (assignment.TryGetValue(literal.VariableName, out var value))
+                {
+                    if (literal.IsPositive == value)
+                    {
+                        Select(branch.TargetNodeId, ref selected, ref pending);
+                    }
+
+                    continue;
+                }
+
+                unresolved = new DeferredBranch(branch, unresolved);
             }
 
-            branch = _pending.Current;
-            rest = _pending.Rest();
-            return true;
+            return new CaseCursor(_tree, selected, default, unresolved);
         }
 
-        public CaseCursor Skip(PendingBranches rest)
-            => new(_tree, _selected, rest);
-
-        public CaseCursor Select(int nodeId, PendingBranches rest)
+        public bool TryPickCanonicalVariable(
+            int representative,
+            BooleanAssignment assignment,
+            TraversalCache cache,
+            out string variable)
         {
-            if (_selected.Contains(nodeId))
+            string? best = null;
+            var scan = cache.BeginCanonicalScan(_tree);
+
+            for (var deferred = _deferred; deferred is not null; deferred = deferred.Next)
             {
-                return Skip(rest);
+                var literal = deferred.Branch.Condition.Literal!.Value;
+                PickEarlier(literal.VariableName, ref best);
+                ScanPotentiallyReachable(
+                    deferred.Branch.TargetNodeId,
+                    representative,
+                    assignment,
+                    scan,
+                    ref best);
             }
 
-            var selected = new SelectedNode(nodeId, _selected);
-            var pending = PendingBranches.Prepend(_tree.Nodes[nodeId].Branches, rest);
-            return new CaseCursor(_tree, selected, pending);
+            variable = best!;
+            return best is not null;
         }
 
-        public CaseCursor ResolveBoolean(
+        private void ScanPotentiallyReachable(
             int nodeId,
-            PendingBranches rest,
-            BooleanLiteral literal,
-            bool value)
-            => literal.IsPositive == value ? Select(nodeId, rest) : Skip(rest);
+            int representative,
+            BooleanAssignment assignment,
+            CanonicalScan scan,
+            ref string? best)
+        {
+            if (!scan.TryVisit(nodeId))
+            {
+                return;
+            }
+
+            foreach (var branch in _tree.Nodes[nodeId].Branches)
+            {
+                if (branch.Condition.TypeName is not null)
+                {
+                    if (_tree.Nodes[branch.TargetNodeId].Condition.PossibleTypes.Contains(representative))
+                    {
+                        ScanPotentiallyReachable(
+                            branch.TargetNodeId,
+                            representative,
+                            assignment,
+                            scan,
+                            ref best);
+                    }
+
+                    continue;
+                }
+
+                var literal = branch.Condition.Literal!.Value;
+
+                if (assignment.TryGetValue(literal.VariableName, out var value))
+                {
+                    if (literal.IsPositive == value)
+                    {
+                        ScanPotentiallyReachable(
+                            branch.TargetNodeId,
+                            representative,
+                            assignment,
+                            scan,
+                            ref best);
+                    }
+
+                    continue;
+                }
+
+                PickEarlier(literal.VariableName, ref best);
+                ScanPotentiallyReachable(
+                    branch.TargetNodeId,
+                    representative,
+                    assignment,
+                    scan,
+                    ref best);
+            }
+        }
+
+        private static void PickEarlier(string candidate, ref string? best)
+        {
+            if (best is null || string.CompareOrdinal(candidate, best) < 0)
+            {
+                best = candidate;
+            }
+        }
+
+        private void Select(
+            int nodeId,
+            ref SelectedNode selected,
+            ref PendingBranches pending)
+        {
+            selected = new SelectedNode(nodeId, selected);
+            pending = PendingBranches.Prepend(_tree.Nodes[nodeId].Branches, pending);
+        }
 
         public int[] MaterializeVisited()
         {
@@ -618,6 +733,13 @@ internal static class ExactCasesTraversal
 
             return result;
         }
+    }
+
+    private sealed class DeferredBranch(Branch branch, DeferredBranch? next)
+    {
+        public Branch Branch { get; } = branch;
+
+        public DeferredBranch? Next { get; } = next;
     }
 
     private sealed class SelectedNode(int nodeId, SelectedNode? previous)
@@ -698,6 +820,18 @@ internal static class ExactCasesTraversal
         private readonly Dictionary<(PossibleTypeSet Region, string FieldName), CollectedFieldGroupMember[]> _members = [];
         private readonly Dictionary<ChildBoundaryKey, ConditionTree> _childBoundaries = new(ChildBoundaryKeyComparer.Instance);
         private readonly Dictionary<ConditionTree, bool> _uniqueResponseNames = [];
+        private readonly Dictionary<ConditionTree, CanonicalScanState> _canonicalScans = [];
+
+        public CanonicalScan BeginCanonicalScan(ConditionTree tree)
+        {
+            if (!_canonicalScans.TryGetValue(tree, out var state))
+            {
+                state = new CanonicalScanState(tree.Nodes.Count);
+                _canonicalScans.Add(tree, state);
+            }
+
+            return state.Begin();
+        }
 
         public CollectedFieldGroupMember[] GetMembers(PossibleTypeSet region, string fieldName)
         {
@@ -821,6 +955,37 @@ internal static class ExactCasesTraversal
 
                 return true;
             }
+        }
+    }
+
+    internal readonly struct CanonicalScan(int[] visited, int stamp)
+    {
+        public bool TryVisit(int nodeId)
+        {
+            if (visited[nodeId] == stamp)
+            {
+                return false;
+            }
+
+            visited[nodeId] = stamp;
+            return true;
+        }
+    }
+
+    private sealed class CanonicalScanState(int nodeCount)
+    {
+        private readonly int[] _visited = new int[nodeCount];
+        private int _stamp;
+
+        public CanonicalScan Begin()
+        {
+            if (_stamp == int.MaxValue)
+            {
+                Array.Clear(_visited);
+                _stamp = 0;
+            }
+
+            return new CanonicalScan(_visited, ++_stamp);
         }
     }
 
