@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { type MouseEvent, type ReactNode, useState } from "react";
+import { ProductArtworkIcon } from "@/src/components/ProductArtworkIcon";
 import { formatDate } from "@/src/helpers/formatDate";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
-import { productArtworkStyle } from "@/src/icons/productArtwork";
 import {
   NAV_ITEMS,
   type NavItem,
@@ -246,14 +246,11 @@ function SubLinkRow({
       {Icon && (
         <span className="text-cc-ink-dim group-hover/link:text-cc-ink flex h-5 w-5 flex-none items-center justify-center transition-colors">
           {artwork ? (
-            <span
-              className="flex items-end"
-              style={{ height: `${PRODUCT_ICON_SHEET_REM}rem` }}
-            >
-              <Icon
-                style={productArtworkStyle(artwork, PRODUCT_ICON_SHEET_REM)}
-              />
-            </span>
+            <ProductArtworkIcon
+              Icon={Icon}
+              artwork={artwork}
+              slotHeightRem={PRODUCT_ICON_SHEET_REM}
+            />
           ) : (
             <Icon className="h-4 w-4 fill-current" />
           )}
