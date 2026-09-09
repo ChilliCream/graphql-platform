@@ -272,6 +272,19 @@ internal static class ErrorHelper
                 .Build();
         }
 
+        public IError NoSelectionOnFragment(SelectionSetNode node, IType typeCondition)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(
+                    Resources.ErrorHelper_NoSelectionOnFragment,
+                    typeCondition.NamedType().Name)
+                .AddLocation(node)
+                .SetPath(context.CreateErrorPath())
+                .SetExtension("type", typeCondition.NamedType().Name)
+                .SpecifiedBy("sec-Field-Selections")
+                .Build();
+        }
+
         public IError FieldIsRequiredButNull(ISyntaxNode node, string fieldName)
         {
             return ErrorBuilder.New()
