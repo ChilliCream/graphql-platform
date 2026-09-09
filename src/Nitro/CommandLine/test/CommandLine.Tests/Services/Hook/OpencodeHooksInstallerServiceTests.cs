@@ -271,6 +271,207 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
+    /// The second of two chat-message turns on the same session reports the
+    /// first turn's delivery outcome as <c>nitroDelivered: true</c> once
+    /// <c>appendParts</c> actually pushed a part onto <c>output.parts</c>.
+    /// </summary>
+    [Fact]
+    public async Task Build_Should_ReportDelivered_When_TheFirstAppendPushedAPart()
+    {
+        // arrange
+        var node = FindNode();
+
+        if (node is null)
+        {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD")))
+            {
+                Assert.Fail("node was not found on PATH; CI must provide node for the generated-JavaScript regression.");
+            }
+
+            Assert.Skip("node was not found on PATH.");
+        }
+
+        var ct = TestContext.Current.CancellationToken;
+        var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
+        var scriptPath = Path.Combine(_tempRoot.FullName, "shim-delivered.mjs");
+        await File.WriteAllTextAsync(
+            scriptPath,
+            template + BuildDeliveryFlagDriverScript(firstStdout: """{"parts":["injected"]}""", firstExitCode: 0),
+            ct);
+
+        // act
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+
+        // assert
+        Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
+        var result = JsonDocument.Parse(stdOut).RootElement;
+        Assert.True(result.GetProperty("hasNitroDelivered").GetBoolean());
+        Assert.True(result.GetProperty("nitroDelivered").GetBoolean());
+    }
+
+    /// <summary>
+    /// The second of two chat-message turns sends
+    /// <c>nitroDelivered: true</c> when the first turn's response carried no
+    /// parts to append: a turn with nothing to append is not a delivery
+    /// failure, so the shim records it the same as a successful append and
+    /// only clears the entry on <c>session.deleted</c>.
+    /// </summary>
+    [Fact]
+    public async Task Build_Should_ReportDelivered_When_TheFirstResponseHadNoPartsToAppend()
+    {
+        // arrange
+        var node = FindNode();
+
+        if (node is null)
+        {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD")))
+            {
+                Assert.Fail("node was not found on PATH; CI must provide node for the generated-JavaScript regression.");
+            }
+
+            Assert.Skip("node was not found on PATH.");
+        }
+
+        var ct = TestContext.Current.CancellationToken;
+        var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
+        var scriptPath = Path.Combine(_tempRoot.FullName, "shim-no-parts-to-append.mjs");
+        await File.WriteAllTextAsync(
+            scriptPath,
+            template + BuildDeliveryFlagDriverScript(firstStdout: "{}", firstExitCode: 0),
+            ct);
+
+        // act
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+
+        // assert
+        Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
+        var result = JsonDocument.Parse(stdOut).RootElement;
+        Assert.True(result.GetProperty("hasNitroDelivered").GetBoolean());
+        Assert.True(result.GetProperty("nitroDelivered").GetBoolean());
+    }
+
+    /// <summary>
+    /// The second of two chat-message turns reports
+    /// <c>nitroDelivered: false</c> when the first turn's round trip to the
+    /// hook process was lost entirely (here, a non-zero exit code), matching
+    /// <c>invoke</c> returning <c>undefined</c> on that path.
+    /// </summary>
+    [Fact]
+    public async Task Build_Should_ReportUndelivered_When_TheFirstInvokeFailed()
+    {
+        // arrange
+        var node = FindNode();
+
+        if (node is null)
+        {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD")))
+            {
+                Assert.Fail("node was not found on PATH; CI must provide node for the generated-JavaScript regression.");
+            }
+
+            Assert.Skip("node was not found on PATH.");
+        }
+
+        var ct = TestContext.Current.CancellationToken;
+        var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
+        var scriptPath = Path.Combine(_tempRoot.FullName, "shim-invoke-failed.mjs");
+        await File.WriteAllTextAsync(
+            scriptPath,
+            template + BuildDeliveryFlagDriverScript(firstStdout: "{}", firstExitCode: 1),
+            ct);
+
+        // act
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+
+        // assert
+        Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
+        var result = JsonDocument.Parse(stdOut).RootElement;
+        Assert.True(result.GetProperty("hasNitroDelivered").GetBoolean());
+        Assert.False(result.GetProperty("nitroDelivered").GetBoolean());
+    }
+
+    /// <summary>
+    /// The second of two chat-message turns reports
+    /// <c>nitroDelivered: false</c> when the first turn's response carried a
+    /// candidate part but nothing about it could be turned into a synthetic
+    /// text part (here, an object part with no recognized <c>type</c>), so
+    /// <c>pushed</c> stayed 0 despite <c>parts</c> being non-empty.
+    /// </summary>
+    [Fact]
+    public async Task Build_Should_ReportUndelivered_When_TheFirstResponseHadPartsButNoneCouldBeAppended()
+    {
+        // arrange
+        var node = FindNode();
+
+        if (node is null)
+        {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD")))
+            {
+                Assert.Fail("node was not found on PATH; CI must provide node for the generated-JavaScript regression.");
+            }
+
+            Assert.Skip("node was not found on PATH.");
+        }
+
+        var ct = TestContext.Current.CancellationToken;
+        var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
+        var scriptPath = Path.Combine(_tempRoot.FullName, "shim-nothing-appendable.mjs");
+        await File.WriteAllTextAsync(
+            scriptPath,
+            template + BuildDeliveryFlagDriverScript(firstStdout: """{"parts":[{"type":"image"}]}""", firstExitCode: 0),
+            ct);
+
+        // act
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+
+        // assert
+        Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
+        var result = JsonDocument.Parse(stdOut).RootElement;
+        Assert.True(result.GetProperty("hasNitroDelivered").GetBoolean());
+        Assert.False(result.GetProperty("nitroDelivered").GetBoolean());
+    }
+
+    /// <summary>
+    /// The second of two chat-message turns reports
+    /// <c>nitroDelivered: false</c> once <c>appendParts</c> threw on the
+    /// first turn (here, a non-iterable <c>parts</c> field), matching the
+    /// literal <c>false</c> <c>appendParts</c> returns from its catch.
+    /// </summary>
+    [Fact]
+    public async Task Build_Should_ReportUndelivered_When_TheFirstAppendThrew()
+    {
+        // arrange
+        var node = FindNode();
+
+        if (node is null)
+        {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD")))
+            {
+                Assert.Fail("node was not found on PATH; CI must provide node for the generated-JavaScript regression.");
+            }
+
+            Assert.Skip("node was not found on PATH.");
+        }
+
+        var ct = TestContext.Current.CancellationToken;
+        var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
+        var scriptPath = Path.Combine(_tempRoot.FullName, "shim-append-threw.mjs");
+        await File.WriteAllTextAsync(
+            scriptPath,
+            template + BuildDeliveryFlagDriverScript(firstStdout: """{"parts":5}""", firstExitCode: 0),
+            ct);
+
+        // act
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+
+        // assert
+        Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
+        var result = JsonDocument.Parse(stdOut).RootElement;
+        Assert.True(result.GetProperty("hasNitroDelivered").GetBoolean());
+        Assert.False(result.GetProperty("nitroDelivered").GetBoolean());
+    }
+
+    /// <summary>
     /// A driver appended to the generated shim module: stubs
     /// <c>Bun.spawn</c> so <c>chat.message</c> can run under plain Node,
     /// then feeds it an <c>input.parts</c> WITHOUT the pushed prefix and an
@@ -322,6 +523,64 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             .Replace("__STDOUT__", JsonSerializer.Serialize(stdout), StringComparison.Ordinal)
             .Replace("__EXIT_CODE__", exitCode.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace("__MESSAGE__", includeMessage ? """{ "sessionID": "ses_1", "id": "msg_1" }""" : "undefined", StringComparison.Ordinal);
+
+    /// <summary>
+    /// A driver appended to the generated shim module for two sequential
+    /// <c>chat.message</c> turns on the same session: the first turn's hook
+    /// response is <paramref name="firstStdout"/>/<paramref
+    /// name="firstExitCode"/> (controlling what <c>appendParts</c> does with
+    /// it), the second is an ordinary well-formed response. Captures every
+    /// turn's stdin payload so the SECOND payload's <c>nitroDelivered</c>
+    /// field can be read back against the FIRST turn's outcome.
+    /// </summary>
+    private static string BuildDeliveryFlagDriverScript(string firstStdout, int firstExitCode)
+        => """
+
+
+        globalThis.__capturedStdins = [];
+        let __callCount = 0;
+
+        globalThis.Bun = {
+          spawn() {
+            __callCount += 1;
+            const isFirstCall = __callCount === 1;
+            return {
+              stdin: {
+                write: (chunk) => { globalThis.__capturedStdins.push(chunk); },
+                end() {},
+              },
+              stdout: isFirstCall ? __FIRST_STDOUT__ : "{}",
+              exited: Promise.resolve(isFirstCall ? __FIRST_EXIT_CODE__ : 0),
+            };
+          },
+        };
+
+        const hooks = await nitroHooks({ serverUrl: "http://127.0.0.1:4096" });
+        const input = { sessionID: "ses_1" };
+        const firstOutput = {
+          message: { sessionID: "ses_1", id: "msg_1" },
+          parts: [{ id: "prt_1", type: "text", text: "first prompt" }],
+        };
+        const secondOutput = {
+          message: { sessionID: "ses_1", id: "msg_2" },
+          parts: [{ id: "prt_2", type: "text", text: "second prompt" }],
+        };
+
+        await hooks["chat.message"](input, firstOutput);
+        await hooks["chat.message"](input, secondOutput);
+
+        const secondStdin = JSON.parse(globalThis.__capturedStdins[1]);
+
+        console.log(JSON.stringify({
+          hasNitroDelivered: Object.hasOwn(secondStdin, "nitroDelivered"),
+          nitroDelivered: secondStdin.nitroDelivered ?? null,
+        }));
+        """
+            .Replace("__FIRST_STDOUT__", JsonSerializer.Serialize(firstStdout), StringComparison.Ordinal)
+            .Replace(
+                "__FIRST_EXIT_CODE__",
+                firstExitCode.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                StringComparison.Ordinal);
 
     private static async Task<(int ExitCode, string StdOut, string StdErr)> RunNodeAsync(
         string nodePath, string scriptPath, CancellationToken cancellationToken)

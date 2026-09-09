@@ -274,6 +274,186 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task HandleChatMessageAsync_Should_LeaveTheAnnouncementArmed_When_DigestReservationFails()
+    {
+        // arrange: the digest step runs BEFORE the announcement is claimed,
+        // so it is made to throw here, standing in for the mail-store or
+        // ledger failures OpencodeHookExecutor's fail-open catch turns into
+        // a neutral response with nothing delivered.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+        var handler = CreateHandler(new ThrowingDeliveryLedger());
+
+        // act: the digest step throws before the claim is even attempted,
+        // so nothing has committed yet and the marker stays exactly as
+        // armed as it was on entry - no compensation needed.
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken));
+
+        // assert: read directly off the registry row, not merely inferred
+        // from what the next message carries.
+        Assert.True(await _sessions.IsAnnouncementPendingAsync(CurrentGeneration(), cancellationToken));
+
+        // assert: the next message still announces, exactly once (the still
+        // unread mail rides along in the same digest the failed attempt
+        // never got to reserve).
+        var retry = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        Assert.Contains("Your Nitro actor name is", retry.Parts[0]);
+        var again = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        Assert.Equal(OpencodeHookOutcome.Neutral, again);
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_RestoreTheDigestReservation_When_ClaimAnnouncementAsyncFails()
+    {
+        // arrange: the digest reservation commits successfully (there is
+        // real unread mail), then the registry write that is supposed to
+        // follow it - ClaimAnnouncementAsync - throws. Without compensation
+        // the already-committed reservation stays spent for a response this
+        // turn never returns.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+        var handler = CreateHandler(new ThrowingAnnouncementSessionRegistry(_sessions));
+
+        // act
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken));
+
+        // assert: the reservation was released, so the retry still delivers
+        // the same unread message's digest alongside the still-armed
+        // announcement, instead of the mail having been silently burned.
+        var retry = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        Assert.Equal(2, retry.Parts.Count);
+        Assert.Contains("Your Nitro actor name is", retry.Parts[0]);
+        Assert.Contains("1 unread nitro message.", retry.Parts[1]);
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_AnnounceOnce_When_ThePreviousAppendWasReportedUndelivered()
+    {
+        // arrange: the first chat message shows the announcement and, per
+        // this handler's contract, claims the marker optimistically on
+        // emission - the shim has no way to confirm delivery until the next
+        // turn.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await StartAndGetActorAsync(cancellationToken);
+        await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var undeliveredPayload = Payload(SessionId);
+        undeliveredPayload.Delivered = false;
+
+        // act: the shim now reports that the first announcement never
+        // landed. This turn re-arms the marker and, being the very next
+        // call, immediately reclaims and re-shows it in this same response.
+        var undelivered = await _handler.HandleChatMessageAsync(undeliveredPayload, dryRun: true, cancellationToken);
+
+        // assert: the reporting turn announces exactly once.
+        Assert.Contains("Your Nitro actor name is", Assert.Single(undelivered.Parts));
+
+        // act: the message after that, once the retry is confirmed
+        // delivered.
+        var confirmedPayload = Payload(SessionId);
+        confirmedPayload.Delivered = true;
+        var again = await _handler.HandleChatMessageAsync(confirmedPayload, dryRun: true, cancellationToken);
+
+        // assert: the confirming message stays neutral rather than
+        // repeating it.
+        Assert.Equal(OpencodeHookOutcome.Neutral, again);
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_AnnounceOnce_When_UndeliveredArrivesOnANitroPushedPayload()
+    {
+        // arrange: the first chat message shows and claims the announcement.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await StartAndGetActorAsync(cancellationToken);
+        await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var pushedUndeliveredPayload = Payload(SessionId);
+        pushedUndeliveredPayload.NitroPushed = true;
+        pushedUndeliveredPayload.Delivered = false;
+
+        // act: a Nitro-pushed turn reports the earlier genuine turn's
+        // announcement never landed. The re-arm runs above the NitroPushed
+        // early return, so the marker survives this otherwise-neutral turn
+        // instead of being dropped with it.
+        var pushed = await _handler.HandleChatMessageAsync(pushedUndeliveredPayload, dryRun: true, cancellationToken);
+
+        // assert: the pushed turn itself stays neutral.
+        Assert.Equal(OpencodeHookOutcome.Neutral, pushed);
+
+        // act: the next genuine chat message.
+        var next = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert: it announces exactly once.
+        Assert.Contains("Your Nitro actor name is", Assert.Single(next.Parts));
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_NotAnnounceAgain_When_ADeliveredAnnouncementIsFollowedByANeutralTurn()
+    {
+        // arrange: the first chat message shows and claims the announcement.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        await StartAndGetActorAsync(cancellationToken);
+        await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var deliveredPayload = Payload(SessionId);
+        deliveredPayload.Delivered = true;
+
+        // act: the next turn confirms delivery but, like an ordinary steady
+        // -state turn with nothing new to say, carries nothing to append.
+        var neutral = await _handler.HandleChatMessageAsync(deliveredPayload, dryRun: true, cancellationToken);
+
+        // assert: that turn stays neutral rather than re-announcing.
+        Assert.Equal(OpencodeHookOutcome.Neutral, neutral);
+
+        // act: a further turn, still reporting delivery.
+        var stillDeliveredPayload = Payload(SessionId);
+        stillDeliveredPayload.Delivered = true;
+        var again = await _handler.HandleChatMessageAsync(stillDeliveredPayload, dryRun: true, cancellationToken);
+
+        // assert: it also stays neutral, and the registry row confirms the
+        // marker was never re-armed by the intervening neutral turn.
+        Assert.Equal(OpencodeHookOutcome.Neutral, again);
+        Assert.False(await _sessions.IsAnnouncementPendingAsync(CurrentGeneration(), cancellationToken));
+    }
+
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_ReleaseTheDigestReservation_When_ThePreviousAppendWasReportedUndelivered()
+    {
+        // arrange: the first chat message reserves and delivers the unread
+        // mail digest alongside the announcement.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        await SendMailAsync("bob", actor, cancellationToken);
+        var first = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var undeliveredPayload = Payload(SessionId);
+        undeliveredPayload.Delivered = false;
+
+        // act: the shim reports the response carrying that digest (and the
+        // announcement alongside it) never landed. Without releasing the
+        // still-committed reservation, this same call's own digest build
+        // would find the message already reserved and stay silent forever;
+        // releasing it first frees it to be reserved and delivered again in
+        // this very call, alongside the re-armed-then-reclaimed
+        // announcement.
+        var undelivered = await _handler.HandleChatMessageAsync(undeliveredPayload, dryRun: true, cancellationToken);
+
+        // assert: the still-unread message is reserved and delivered again,
+        // proving the earlier reservation was released rather than lost,
+        // and the announcement rides along since it never landed either.
+        Assert.Equal(2, first.Parts.Count);
+        Assert.Equal(2, undelivered.Parts.Count);
+        Assert.Contains("Your Nitro actor name is", undelivered.Parts[0]);
+        Assert.Contains("1 unread nitro message.", undelivered.Parts[1]);
+    }
+
+    [Fact]
     public async Task HandleChatMessageAsync_Should_AnnounceAgain_When_TheSessionIsCreatedAfterDeletion()
     {
         // arrange
@@ -323,6 +503,16 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         _timeProvider,
         _sessions,
         ledger,
+        _mail,
+        _environmentVariables,
+        new FixedInstanceIdProvider("host-1"),
+        new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
+
+    private OpencodeHookHandler CreateHandler(IAgentSessionRegistry sessionRegistry) => new(
+        _fileSystem,
+        _timeProvider,
+        sessionRegistry,
+        _ledger,
         _mail,
         _environmentVariables,
         new FixedInstanceIdProvider("host-1"),
@@ -393,6 +583,13 @@ internal sealed class SessionDeletingDeliveryLedger(
             deliveredAt,
             cancellationToken);
     }
+
+    public Task ReleaseAsync(
+        AgentSessionGeneration generation,
+        IReadOnlyList<string> messageIds,
+        string channel,
+        CancellationToken cancellationToken)
+        => inner.ReleaseAsync(generation, messageIds, channel, cancellationToken);
 }
 
 internal static class OpencodeHookFixtures

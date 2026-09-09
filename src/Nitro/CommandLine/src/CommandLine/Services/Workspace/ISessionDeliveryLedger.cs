@@ -40,4 +40,20 @@ internal interface ISessionDeliveryLedger
         string channel,
         DateTimeOffset deliveredAt,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Deletes each of <paramref name="messageIds"/>' reservations for
+    /// <paramref name="channel"/> on the session identified by <paramref
+    /// name="generation"/>, confined to its host exactly as the <see
+    /// cref="ReserveAsync(AgentSessionGeneration, IReadOnlyList{string}, string, DateTimeOffset, CancellationToken)"/>
+    /// overload reserves them: a session row recorded by a different host
+    /// releases nothing. Frees an already-reserved message so a later call
+    /// can reserve and deliver it again. An empty input is a no-op that
+    /// opens no connection.
+    /// </summary>
+    Task ReleaseAsync(
+        AgentSessionGeneration generation,
+        IReadOnlyList<string> messageIds,
+        string channel,
+        CancellationToken cancellationToken);
 }

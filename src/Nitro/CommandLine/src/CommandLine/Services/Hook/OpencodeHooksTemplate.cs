@@ -19,6 +19,18 @@ internal static class OpencodeHooksTemplate
             const timeoutMilliseconds = 10_000;
             const nitroPushedPrefix = "{{EscapeJavaScriptString(OpencodeHookProtocol.PushedPromptPrefix)}}";
             const activeSessions = new Map();
+            // sessionId -> whether the last chat-message response's parts
+            // actually landed on output.parts (true), the append threw or
+            // had nothing land (false), or there is nothing recorded yet
+            // because the session has had no chat.message turn (no entry,
+            // key absent). Reported back to the hook process on the NEXT
+            // chat-message payload as nitroDelivered - unconditionally, so
+            // an absent entry (this map wiped by a server restart) is never
+            // mistaken for a harmless one - so the durable
+            // announcement/digest claims on the other side of that process
+            // boundary can wait for confirmed delivery instead of clearing
+            // on the attempt.
+            const appendOutcomes = new Map();
 
             function sessionId(properties) {
               return properties.sessionID ?? properties.sessionId ?? properties.session?.id ?? properties.info?.id;
@@ -53,9 +65,9 @@ internal static class OpencodeHooksTemplate
                 ]);
                 const exitCode = await child.exited;
 
-                return exitCode === 0 && text ? JSON.parse(text) : {};
+                return exitCode === 0 && text ? JSON.parse(text) : undefined;
               } catch {
-                return {};
+                return undefined;
               }
             }
 
@@ -93,18 +105,26 @@ internal static class OpencodeHooksTemplate
             // Ordering everywhere is a plain string sort on id, so growing the
             // lexicographic max sibling id by one "z" per appended part always sorts
             // last. The whole function is wrapped in try/catch: missing context is an
-            // acceptable degradation, a rejected prompt is not.
+            // acceptable degradation, a rejected prompt is not. Returns the number of
+            // parts actually pushed, 0 only when there was no candidate part to push
+            // in the first place, or literally `false` whenever the response DID carry
+            // at least one candidate part but none of them made it onto output.parts
+            // (missing sessionID/messageID, or every candidate failing
+            // syntheticTextOf) - that distinction is what lets the caller report a
+            // response that had something to deliver but silently lost it, rather
+            // than one with nothing to deliver at all.
             function appendParts(output, response) {
               try {
+                const parts = response.parts ?? response.additionalContext ?? [];
                 const sessionID = output.message?.sessionID;
                 const messageID = output.message?.id;
 
                 if (!sessionID || !messageID) {
-                  return;
+                  return parts.length > 0 ? false : 0;
                 }
 
-                const parts = response.parts ?? response.additionalContext ?? [];
                 let previousId = nextSyntheticPartId(output.parts);
+                let pushed = 0;
 
                 for (const part of parts) {
                   const text = syntheticTextOf(part);
@@ -122,10 +142,14 @@ internal static class OpencodeHooksTemplate
                     text,
                     synthetic: true,
                   });
+                  pushed += 1;
                 }
+
+                return parts.length > 0 && pushed === 0 ? false : pushed;
               } catch {
                 // Missing or malformed context is an acceptable degradation; a
                 // rejected prompt is not.
+                return false;
               }
             }
 
@@ -167,6 +191,7 @@ internal static class OpencodeHooksTemplate
                     await invoke("session-created", body);
                   } else if (event.type === "session.deleted") {
                     activeSessions.delete(body.sessionId);
+                    appendOutcomes.delete(body.sessionId);
                     await invoke("session-deleted", body);
                   } else if (
                     event.type === "session.idle" ||
@@ -179,11 +204,51 @@ internal static class OpencodeHooksTemplate
                   // model on output.parts, not input.parts, so the pushed
                   // prefix must be read and stripped there.
                   const nitroPushed = stripNitroPushedPrefix(output.parts);
-                  const response = await invoke("chat-message", {
-                    ...payload({ sessionID: input.sessionID ?? input.sessionId }, serverUrl),
+                  const chatSessionId = input.sessionID ?? input.sessionId;
+                  const body = {
+                    ...payload({ sessionID: chatSessionId }, serverUrl),
                     nitroPushed,
-                  });
-                  appendParts(output, response);
+                  };
+                  // Always sent, never guarded on the map entry existing:
+                  // this session's genuine first chat-message turn (nothing
+                  // recorded yet) and the opencode server having restarted
+                  // since the last turn (this in-memory map wiped) both
+                  // leave no entry here, and are indistinguishable from this
+                  // side. Guessing at the harmless one is exactly what let a
+                  // burned announcement stay burned forever after a
+                  // restart. Collapsing the missing entry to false is a
+                  // no-op on a genuine first turn, since
+                  // announcement_pending is still armed on the other side
+                  // and re-arming it is idempotent; an OLDER shim (one
+                  // without this line at all) never sends the field in the
+                  // first place, which the handler tells apart from this by
+                  // the field being absent from the payload entirely.
+                  const previousDelivered = appendOutcomes.get(chatSessionId) ?? false;
+                  body.nitroDelivered = previousDelivered;
+
+                  const response = await invoke("chat-message", body);
+                  // response is undefined when the round trip to the hook
+                  // process was lost entirely (spawn failure, timeout,
+                  // non-zero exit, empty stdout): that is indistinguishable
+                  // from a genuine neutral response once appendParts is
+                  // reached, so it must be treated as undelivered up front
+                  // rather than passed through, or a claimed announcement
+                  // that never made it back to the shim would be recorded
+                  // as delivered and never retried.
+                  const pushed = response === undefined ? false : appendParts(output, response);
+
+                  if (pushed === false) {
+                    appendOutcomes.set(chatSessionId, false);
+                  } else if (pushed > 0) {
+                    appendOutcomes.set(chatSessionId, true);
+                  } else {
+                    // Nothing to deliver is not a delivery failure: record
+                    // true so an absent entry on the next turn means only
+                    // "genuine first turn" or "server restart", never "the
+                    // previous turn had nothing to say". session.deleted
+                    // above is the only place an entry is cleared.
+                    appendOutcomes.set(chatSessionId, true);
+                  }
                 },
                 dispose: async () => {
                   // Session deletion is the authoritative cleanup path. This is best effort only.

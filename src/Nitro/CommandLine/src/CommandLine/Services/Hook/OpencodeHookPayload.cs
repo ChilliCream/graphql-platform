@@ -38,6 +38,15 @@ internal sealed class OpencodeHookPayload
     [JsonPropertyName("nitroPushed")]
     public bool NitroPushed { get; set; }
 
+    /// <summary>
+    /// Whether the shim's PREVIOUS chat-message response actually reached
+    /// the model: true when it pushed at least one part, false when
+    /// appending threw, and null when the previous turn had no parts to
+    /// append or when this is the shim's first-ever report for the session.
+    /// </summary>
+    [JsonPropertyName("nitroDelivered")]
+    public bool? Delivered { get; set; }
+
     [JsonPropertyName("version")]
     public string? HarnessVersionAlias
     {

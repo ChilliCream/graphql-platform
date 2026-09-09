@@ -1225,6 +1225,9 @@ internal sealed class AgentSessionRegistry(
     public Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => ClaimSessionFlagAsync(generation, "announcement_pending", cancellationToken);
 
+    public Task<bool> IsAnnouncementPendingAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => PeekSessionFlagAsync(generation, "announcement_pending", cancellationToken);
+
     public Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
         => SetSessionFlagAsync(generation, "idle_push_armed", value: true, cancellationToken);
 
@@ -1282,6 +1285,31 @@ internal sealed class AgentSessionRegistry(
         var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
 
         return rowsAffected > 0;
+    }
+
+    /// <summary>
+    /// Reads a boolean <c>agent_sessions</c> column named literally by
+    /// <paramref name="column"/> for the row matching <paramref
+    /// name="generation"/> exactly, without changing it. False when no row
+    /// matches. <paramref name="column"/> is always one of this file's own
+    /// hard-coded column names, never caller input.
+    /// </summary>
+    private async Task<bool> PeekSessionFlagAsync(
+        AgentSessionGeneration generation, string column, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"SELECT {column} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId AND host = @host";
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+
+        return result is not null && (long)result != 0;
     }
 
     private async Task<string> ResolveHostAsync(CancellationToken cancellationToken)

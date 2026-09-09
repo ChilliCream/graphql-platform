@@ -3,14 +3,12 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Wraps a real <see cref="ISessionDeliveryLedger"/>, delegating every call
-/// while capturing the <c>messageIds</c> argument of the most recent
-/// <see cref="ReserveAsync"/> call.
+/// An <see cref="ISessionDeliveryLedger"/> whose every member throws, used
+/// to stand in for a mail-store or ledger failure without touching a real
+/// workspace database.
 /// </summary>
-internal sealed class ReserveCapturingSessionDeliveryLedger(ISessionDeliveryLedger inner) : ISessionDeliveryLedger
+internal sealed class ThrowingDeliveryLedger : ISessionDeliveryLedger
 {
-    public IReadOnlyList<string>? LastMessageIds { get; private set; }
-
     public Task<IReadOnlyList<string>> ReserveAsync(
         string harness,
         string sessionId,
@@ -18,10 +16,7 @@ internal sealed class ReserveCapturingSessionDeliveryLedger(ISessionDeliveryLedg
         string channel,
         DateTimeOffset deliveredAt,
         CancellationToken cancellationToken)
-    {
-        LastMessageIds = messageIds;
-        return inner.ReserveAsync(harness, sessionId, messageIds, channel, deliveredAt, cancellationToken);
-    }
+        => throw new InvalidOperationException("Simulated delivery-ledger failure.");
 
     public Task<IReadOnlyList<string>> ReserveAsync(
         AgentSessionGeneration generation,
@@ -29,15 +24,12 @@ internal sealed class ReserveCapturingSessionDeliveryLedger(ISessionDeliveryLedg
         string channel,
         DateTimeOffset deliveredAt,
         CancellationToken cancellationToken)
-    {
-        LastMessageIds = messageIds;
-        return inner.ReserveAsync(generation, messageIds, channel, deliveredAt, cancellationToken);
-    }
+        => throw new InvalidOperationException("Simulated delivery-ledger failure.");
 
     public Task ReleaseAsync(
         AgentSessionGeneration generation,
         IReadOnlyList<string> messageIds,
         string channel,
         CancellationToken cancellationToken)
-        => inner.ReleaseAsync(generation, messageIds, channel, cancellationToken);
+        => throw new InvalidOperationException("Simulated delivery-ledger failure.");
 }

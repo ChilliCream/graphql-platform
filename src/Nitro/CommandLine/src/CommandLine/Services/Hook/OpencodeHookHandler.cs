@@ -79,6 +79,34 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
+        var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
+
+        // The announcement claims on emission, not on the attempt: it clears
+        // the instant this turn actually shows it, but re-arms whenever the
+        // shim reports (payload.Delivered - see
+        // OpencodeHooksTemplate.appendParts/appendOutcomes) that the PREVIOUS
+        // turn's response never made it onto output.parts. false means
+        // exactly that: the marker is re-armed (idempotent if it was never
+        // cleared) and that turn's still-unread digest-channel reservations
+        // are released so the same mail is re-offered rather than lost. This
+        // can arrive on a Nitro-pushed payload too (the shim reports the
+        // outcome of the last genuine turn regardless of what pushed the
+        // next one), so it is handled here, above the NitroPushed early
+        // return below, rather than being dropped with it. true, or an
+        // absent field from a shim too old to report at all, needs no
+        // action: an absent field still degrades an older shim to the same
+        // at-most-once behaviour it has today, since nothing here re-arms on
+        // it and the marker stays wherever the last claim left it.
+        if (payload.Delivered == false)
+        {
+            await sessionRegistry.ArmAnnouncementAsync(resolved.Generation, cancellationToken);
+
+            if (row?.AgentName is { } releaseActor)
+            {
+                await ReleaseUnreadDigestReservationsAsync(resolved.Generation, releaseActor, cancellationToken);
+            }
+        }
+
         if (payload.NitroPushed)
         {
             // A marked, Nitro-pushed turn never rearms the idle-push gate
@@ -91,23 +119,44 @@ internal sealed class OpencodeHookHandler(
         await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
         await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
 
-        var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
-
         if (row is null || row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)
         {
             return OpencodeHookOutcome.Neutral;
         }
 
+        // Build the digest before claiming the announcement: BuildDigestAsync
+        // is the fallible half of this turn (mail-store or ledger failures
+        // that OpencodeHookExecutor's fail-open catch-all turns into a
+        // neutral response with nothing delivered), so a failure here never
+        // burns a claim for a response this turn never returns. The claim
+        // itself can still fail after the digest reservation already
+        // committed, so it is wrapped rather than left as the assumed last
+        // write: a failure here would otherwise burn the reservation for a
+        // response this turn also never returns.
+        var digest = await BuildDigestAsync(
+            resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
+        bool announce;
+
+        try
+        {
+            announce = await sessionRegistry.ClaimAnnouncementAsync(resolved.Generation, cancellationToken);
+        }
+        catch
+        {
+            if (digest is not null)
+            {
+                await ReleaseUnreadDigestReservationsAsync(resolved.Generation, row.AgentName, cancellationToken);
+            }
+
+            throw;
+        }
+
         var parts = new List<string>(2);
 
-        // Claims the durable, atomic first-prompt marker for this session.
-        if (await sessionRegistry.ClaimAnnouncementAsync(resolved.Generation, cancellationToken))
+        if (announce)
         {
             parts.Add(AgentActorContext.Format(row.AgentName, row.Role));
         }
-
-        var digest = await BuildDigestAsync(
-            resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
 
         if (digest is not null)
         {
@@ -189,9 +238,44 @@ internal sealed class OpencodeHookHandler(
             timeProvider.GetUtcNow(),
             cancellationToken);
 
-        return reserved.Count == 0
-            ? null
-            : MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
+        if (reserved.Count == 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            return MailNudgeText.Format(actor, await mailStore.CountUnreadAsync(actor, cancellationToken));
+        }
+        catch
+        {
+            // The reservation above already committed even though the
+            // count that would have turned it into a delivered nudge never
+            // did: release it rather than leave it spent for a digest this
+            // response never returns, so the next chat message reserves and
+            // delivers the same messages again instead of losing them.
+            await ledger.ReleaseAsync(generation, reserved, channel, cancellationToken);
+            throw;
+        }
+    }
+
+    private async Task ReleaseUnreadDigestReservationsAsync(
+        AgentSessionGeneration generation, string actor, CancellationToken cancellationToken)
+    {
+        var unread = await mailStore.QueryInboxAsync(
+            new MailInboxFilter { Actor = actor, UnreadOnly = true, Limit = MaxDigestMessages },
+            cancellationToken);
+
+        if (unread.Count == 0)
+        {
+            return;
+        }
+
+        await ledger.ReleaseAsync(
+            generation,
+            unread.Select(static message => message.Id).ToList(),
+            AgentSessionChannel.Digest,
+            cancellationToken);
     }
 
     private async Task<ResolvedGeneration?> ResolveAsync(
