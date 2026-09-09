@@ -167,14 +167,14 @@ export function ExplainerPage() {
         </ButtonRow>
         <HeroDiagram />
         <p className="font-heading text-cc-heading mx-auto mt-10 text-xl text-balance">
-          Federation merges the{" "}
+          One gateway, one{" "}
           <span
             className="bg-clip-text text-transparent"
             style={{ backgroundImage: GRADIENT }}
           >
-            schemas
+            schema
           </span>
-          , not the services.
+          . The services stay exactly where they are.
         </p>
       </section>
 
