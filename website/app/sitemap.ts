@@ -7,6 +7,13 @@ import {
 } from "@/src/helpers/blogPaths";
 import { POSTS_PER_PAGE } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
+import {
+  COMPARISON_COLLECTION,
+  COMPARISON_ROOT,
+  listComparisons,
+  listComparisonSummaries,
+} from "@/src/helpers/comparisonCollection";
+import { urlForEntry } from "@/src/helpers/contentCollection";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
@@ -46,6 +53,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(await docsPages()),
     ...blogArchivePages(),
     ...(await blogPosts()),
+    ...comparisonArchivePages(),
+    ...(await comparisonArticles()),
     ...authorPages(),
   ];
 
@@ -138,6 +147,38 @@ async function blogPosts(): Promise<MetadataRoute.Sitemap> {
           : undefined;
       return sitemapEntry(
         blogUrlForStem(parsed),
+        updated ?? (await getLastModifiedFromGit(file)),
+      );
+    }),
+  );
+}
+
+/** Every indexable, self-canonical comparison listing page. */
+function comparisonArchivePages(): MetadataRoute.Sitemap {
+  const articles = listComparisonSummaries();
+  const entries = [sitemapEntry("/comparison")];
+  const pageCount = Math.ceil(articles.length / POSTS_PER_PAGE);
+
+  for (let page = 2; page <= pageCount; page++) {
+    entries.push(sitemapEntry(`/comparison/${page}`));
+  }
+
+  return entries;
+}
+
+async function comparisonArticles(): Promise<MetadataRoute.Sitemap> {
+  return Promise.all(
+    listComparisons().map(async ({ stem, rel }) => {
+      const file = path.join(COMPARISON_ROOT, rel);
+      const fm = readFrontmatter(file) as Record<string, unknown>;
+      // Same rule as the blog: an explicit `updated` frontmatter field wins,
+      // otherwise the last git commit touching the article.
+      const updated =
+        typeof fm.updated === "string" && fm.updated.length > 0
+          ? validDate(fm.updated)
+          : undefined;
+      return sitemapEntry(
+        urlForEntry(COMPARISON_COLLECTION, stem),
         updated ?? (await getLastModifiedFromGit(file)),
       );
     }),
