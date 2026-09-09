@@ -569,6 +569,7 @@ public class CostReportingTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
+        JsonElement errorExtensions = default;
         await AssertAndMatchSnapshotAsync(
             gateway,
             request,
@@ -576,15 +577,7 @@ public class CostReportingTests : FusionTestBase
             results =>
             {
                 var result = Assert.Single(results);
-                var extensions = result.Errors[0].GetProperty("extensions");
-                extensions.MatchInlineSnapshot(
-                    """
-                    {
-                      "code": "HC0047",
-                      "maxResponseSize": 1001,
-                      "maxAllowedResponseSize": 100
-                    }
-                    """);
+                errorExtensions = result.Errors[0].GetProperty("extensions").Clone();
                 AssertOperationCost(
                     result,
                     """
@@ -595,6 +588,14 @@ public class CostReportingTests : FusionTestBase
                     }
                     """);
             });
+        errorExtensions.MatchInlineSnapshot(
+            """
+            {
+              "code": "HC0047",
+              "maxResponseSize": 1001,
+              "maxAllowedResponseSize": 100
+            }
+            """);
     }
 
     [Fact]
@@ -647,6 +648,7 @@ public class CostReportingTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
+        JsonElement errorExtensions = default;
         await AssertAndMatchSnapshotAsync(
             gateway,
             request,
@@ -654,14 +656,7 @@ public class CostReportingTests : FusionTestBase
             results =>
             {
                 var result = Assert.Single(results);
-                result.Errors[0].GetProperty("extensions").MatchInlineSnapshot(
-                    """
-                    {
-                      "code": "HC0047",
-                      "fieldCost": "Infinity",
-                      "maxFieldCost": 1000
-                    }
-                    """);
+                errorExtensions = result.Errors[0].GetProperty("extensions").Clone();
                 AssertOperationCost(
                     result,
                     """
@@ -671,6 +666,14 @@ public class CostReportingTests : FusionTestBase
                     }
                     """);
             });
+        errorExtensions.MatchInlineSnapshot(
+            """
+            {
+              "code": "HC0047",
+              "fieldCost": "Infinity",
+              "maxFieldCost": 1000
+            }
+            """);
     }
 
     [Fact]
