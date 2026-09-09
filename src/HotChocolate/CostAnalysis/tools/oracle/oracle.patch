@@ -11,7 +11,7 @@ index 40f1a0a..14d6ae8 100644
  
  [[bin]]
  name = "differential"
-@@ -34,3 +36,7 @@ path = "runners/differential.rs"
+@@ -34,3 +36,11 @@ path = "runners/differential.rs"
  [[example]]
  name = "generate_coverage_corpus"
  path = "runners/generate_coverage_corpus.rs"
@@ -19,6 +19,10 @@ index 40f1a0a..14d6ae8 100644
 +[[example]]
 +name = "dump_corpus"
 +path = "examples/dump_corpus.rs"
++
++[[example]]
++name = "oracle"
++path = "examples/oracle.rs"
 diff --git a/fuzz/src/tree_summary/mod.rs b/fuzz/src/tree_summary/mod.rs
 index 992e53d..2fdb336 100644
 --- a/fuzz/src/tree_summary/mod.rs
