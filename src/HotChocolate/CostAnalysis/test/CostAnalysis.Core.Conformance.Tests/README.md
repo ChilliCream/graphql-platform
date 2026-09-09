@@ -16,10 +16,14 @@ are coerced through the production coercion path before bit-exact comparison.
 
 ## Fixtures
 
-Every fixture is a JSON file under `__resources__` that matches
-`__resources__/fixture.schema.json`: a schema, an operation, optional
-variables, and the expected IBM `typeCost`/`fieldCost` pair. `__resources__/NOTICE.md`
-records the license and provenance of every vendored fixture.
+Standalone fixtures under `__resources__/article`, `__resources__/rust-unit`,
+and `__resources__/fuzz-found` match `__resources__/fixture.schema.json`: a
+schema, an operation, optional variables, and the expected IBM
+`typeCost`/`fieldCost` pair. `__resources__/rust-corpus/exact-case.json` is an
+array whose elements use the same fixture object shape.
+`__resources__/rust-corpus/manifest.json` is corpus metadata, not a fixture.
+`__resources__/NOTICE.md` records the license and provenance of every vendored
+fixture.
 
 The three populated fixture families are:
 
