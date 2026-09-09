@@ -13,9 +13,10 @@ public sealed class CostEngineOptions
     public double DefaultListSize { get; set; } = double.PositiveInfinity;
 
     /// <summary>
-    /// Gets or sets the maximum number of exact cases the ExactCases backend
-    /// evaluates while compiling one operation. When exhausted, the
-    /// remainder of the operation falls back to a conservative bound.
+    /// Gets or sets the maximum number of exact splits evaluated while
+    /// compiling one operation before the remainder falls back to a
+    /// conservative bound. The default is 510, the measured K8
+    /// full-operation boundary at revision <c>6c9945cc29</c>.
     /// </summary>
-    public int CaseBudget { get; set; } = 4096;
+    public int CaseBudget { get; set; } = 510;
 }

@@ -32,7 +32,7 @@ public sealed class OptionsTests
     }
 
     [Theory]
-    [InlineData(null, 4096)]
+    [InlineData(null, 510)]
     [InlineData(16, 16)]
     public async Task AddCostAnalyzer_Should_CreateImmutableSchemaSnapshot_When_CaseBudgetIsConfigured(
         int? caseBudget,
