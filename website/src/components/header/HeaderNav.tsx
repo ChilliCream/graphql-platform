@@ -237,7 +237,7 @@ function SubLinkRow({
     >
       {Icon && (
         <span
-          className={`text-cc-ink-dim group-hover/link:text-cc-ink mt-0.5 flex h-5 w-5 flex-none transition-colors ${artwork ? "items-end justify-start" : "items-center justify-center"}`}
+          className={`text-cc-ink-dim group-hover/link:text-cc-ink mt-0.5 flex h-5 w-5 flex-none transition-colors ${artwork ? "items-end justify-center" : "items-center justify-center"}`}
         >
           {artwork ? (
             <Icon

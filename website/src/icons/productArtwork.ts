@@ -3,8 +3,11 @@ import type { CSSProperties } from "react";
 import { STRAWBERRY_SHAKE_ARTWORK } from "@/src/icons/StrawberryShake";
 
 /**
- * Intrinsic size of a product icon in artwork-sheet units, as exported next to
- * the artwork itself (e.g. {@link "@/src/icons/Nitro"}'s `NITRO_ARTWORK`).
+ * Display size of a product icon in artwork-sheet units, as exported next to
+ * the artwork itself (e.g. {@link "@/src/icons/Nitro"}'s `NITRO_ARTWORK`). It
+ * is what the icon should occupy on the shared sheet, not necessarily its own
+ * viewBox: the Skills logo (viewBox 64x64) is listed at 70x70 so it reads with
+ * the same weight as the drinks cut from the sheet.
  */
 export interface ProductArtworkSize {
   readonly width: number;
