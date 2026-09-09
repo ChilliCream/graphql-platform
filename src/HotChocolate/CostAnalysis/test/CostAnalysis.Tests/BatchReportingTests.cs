@@ -1,3 +1,5 @@
+using HotChocolate.Collections.Immutable;
+using HotChocolate.CostAnalysis.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,13 +26,19 @@ public sealed class BatchReportingTests
 
     private const string Operation = "query($n: Int!) { items(limit: $n) { value } }";
 
-    [Fact(Skip = "enabled by hc-reporting")]
+    [Fact]
     public async Task Batch_Should_ReportPerItemOperationCost_When_ModeIsReport()
     {
         // arrange
         var snapshot = new Snapshot();
 
         var requestExecutor = await CreateRequestExecutorBuilder()
+            .ModifyCostOptions(
+                o =>
+                {
+                    o.MaxFieldCost = 4_000;
+                    o.MaxTypeCost = 2_000;
+                })
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request =
@@ -49,7 +57,7 @@ public sealed class BatchReportingTests
         var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
         var batch = response.ExpectOperationResultBatch();
 
-        // assert: two variable sets, each carrying its own operationCost.
+        // assert
         await snapshot
             .Add(batch.Results.Count, "ResultCount")
             .AddResult((OperationResult)batch.Results[0], "FirstSet")
@@ -57,7 +65,7 @@ public sealed class BatchReportingTests
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
-    [Fact(Skip = "enabled by hc-reporting")]
+    [Fact]
     public async Task Batch_Should_FailWholeRequest_When_OnlyOneSetExceedsMaxTypeCost()
     {
         // arrange
@@ -66,7 +74,12 @@ public sealed class BatchReportingTests
         // typeCost is 1 (root) + n * 1 (Item) per set: 2 for n=1, 1001 for n=1000. A limit
         // of 500 rejects the whole batch even though only the second set exceeds it.
         var requestExecutor = await CreateRequestExecutorBuilder()
-            .ModifyCostOptions(o => o.MaxTypeCost = 500)
+            .ModifyCostOptions(
+                o =>
+                {
+                    o.MaxFieldCost = 4_000;
+                    o.MaxTypeCost = 500;
+                })
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request =
@@ -92,9 +105,43 @@ public sealed class BatchReportingTests
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task ResponseStream_Should_ReportOperationCostOnFirstResult()
+    {
+        // arrange
+        var stream = new ResponseStream(CreateResults);
+        var metrics = new CostMetrics { FieldCost = 2, TypeCost = 3 };
+        var results = new List<string>();
+
+        // act
+        stream.AddCostMetrics(metrics);
+        await foreach (var result in stream.ReadResultsAsync())
+        {
+            results.Add(result.ToJson(withIndentations: false));
+        }
+
+        // assert
+        results.MatchInlineSnapshots(
+            [
+                """{"extensions":{"item":1,"operationCost":{"fieldCost":2,"typeCost":3}}}""",
+                """{"extensions":{"item":2}}"""
+            ]);
+    }
+
+    private static async IAsyncEnumerable<OperationResult> CreateResults()
+    {
+        await Task.Yield();
+        yield return new OperationResult(
+            ImmutableOrderedDictionary<string, object?>.Empty.Add("item", 1));
+        yield return new OperationResult(
+            ImmutableOrderedDictionary<string, object?>.Empty.Add("item", 2));
+    }
+
     private static IRequestExecutorBuilder CreateRequestExecutorBuilder()
         => new ServiceCollection()
             .AddGraphQLServer()
             .AddDocumentFromString(Schema)
+            .AddResolver("Query", "items", _ => Array.Empty<object>())
+            .AddResolver("Item", "value", _ => 0)
             .ModifyCostOptions(o => o.DefaultResolverCost = null);
 }

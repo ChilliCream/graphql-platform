@@ -37,11 +37,11 @@ internal sealed class CostAnalyzerMiddleware(
             || !context.TryGetOperationDocument(out var document, out var documentId)
             || documentId.IsEmpty)
         {
-            context.Result = ResultHelper.StateInvalidForCostAnalysis();
+            context.Result = ErrorHelper.StateInvalidForCostAnalysis();
             return;
         }
 
-        CostMetrics costMetrics;
+        ImmutableArray<CostMetrics> costMetrics;
 
         using (diagnosticEvents.AnalyzeOperationCost(context))
         {
@@ -75,16 +75,11 @@ internal sealed class CostAnalyzerMiddleware(
                 var estimates = Evaluate(context, plan, isStaticBound);
                 context.Features.Set(new CostAnalysisResult(plan, estimates, isStaticBound));
 
-                var first = estimates[0];
-                costMetrics = new CostMetrics
-                {
-                    FieldCost = first.FieldCost,
-                    TypeCost = first.TypeCost
-                };
-                context.SetCostMetrics(costMetrics);
+                costMetrics = CreateCostMetrics(estimates);
+                context.SetCostMetrics(costMetrics[0]);
 
                 if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce
-                    && !TryEnforce(context, requestOptions, mode, estimates))
+                    && !TryEnforce(context, requestOptions, mode, costMetrics))
                 {
                     return;
                 }
@@ -105,9 +100,28 @@ internal sealed class CostAnalyzerMiddleware(
         {
             context.Result =
                 context.Result is null
-                    ? costMetrics.CreateResult()
+                    ? costMetrics[0].CreateResult()
                     : context.Result.AddCostMetrics(costMetrics);
         }
+    }
+
+    private static ImmutableArray<CostMetrics> CreateCostMetrics(
+        ImmutableArray<CostEstimate> estimates)
+    {
+        var builder = ImmutableArray.CreateBuilder<CostMetrics>(estimates.Length);
+
+        foreach (var estimate in estimates)
+        {
+            builder.Add(
+                new CostMetrics
+                {
+                    FieldCost = estimate.FieldCost,
+                    TypeCost = estimate.TypeCost,
+                    MaxResponseSize = estimate.MaxResponseSize
+                });
+        }
+
+        return builder.MoveToImmutable();
     }
 
     private ImmutableArray<CostEstimate> Evaluate(
@@ -138,42 +152,36 @@ internal sealed class CostAnalyzerMiddleware(
         RequestContext context,
         RequestCostOptions requestOptions,
         CostAnalyzerMode mode,
-        ImmutableArray<CostEstimate> estimates)
+        ImmutableArray<CostMetrics> costMetrics)
     {
         var reportMetrics = (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report;
 
-        foreach (var estimate in estimates)
+        foreach (var current in costMetrics)
         {
-            var costMetrics = new CostMetrics
-            {
-                FieldCost = estimate.FieldCost,
-                TypeCost = estimate.TypeCost
-            };
-
-            if (estimate.FieldCost > requestOptions.MaxFieldCost)
+            if (current.FieldCost > requestOptions.MaxFieldCost)
             {
                 context.Result = ErrorHelper.MaxFieldCostReached(
-                    costMetrics,
+                    current,
                     requestOptions.MaxFieldCost,
                     reportMetrics);
                 return false;
             }
 
-            if (estimate.TypeCost > requestOptions.MaxTypeCost)
+            if (current.TypeCost > requestOptions.MaxTypeCost)
             {
                 context.Result = ErrorHelper.MaxTypeCostReached(
-                    costMetrics,
+                    current,
                     requestOptions.MaxTypeCost,
                     reportMetrics);
                 return false;
             }
 
             if (requestOptions.MaxResponseSize is { } maxResponseSize
-                && estimate.MaxResponseSize is { } responseSize
+                && current.MaxResponseSize is { } responseSize
                 && responseSize > maxResponseSize)
             {
                 context.Result = ErrorHelper.MaxResponseSizeReached(
-                    costMetrics,
+                    current,
                     responseSize,
                     maxResponseSize,
                     reportMetrics);
