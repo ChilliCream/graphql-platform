@@ -73,3 +73,16 @@ export function NetworkIcon(props: Props) {
     </svg>
   );
 }
+
+export function ColumnsCompareIcon(props: Props) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 512 512"
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M64 64 L448 64 A32 32 0 0 1 480 96 L480 416 A32 32 0 0 1 448 448 L64 448 A32 32 0 0 1 32 416 L32 96 A32 32 0 0 1 64 64 Z M72 104 L72 408 L236 408 L236 104 Z M276 104 L276 408 L440 408 L440 104 Z" />
+    </svg>
+  );
+}
