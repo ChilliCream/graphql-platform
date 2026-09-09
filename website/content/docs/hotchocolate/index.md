@@ -102,7 +102,7 @@ These two approaches complement each other. A common setup is to host both a pub
 | **Batch resolver**    | A resolver that fetches data for multiple parent objects in a single call, improving performance by reducing the number of backend requests. Useful for solving the N+1 problem and optimizing data access patterns.               |
 | **DataLoader**        | A batching and caching layer that groups multiple individual data requests into a single batch call, eliminating the N+1 problem.                                                                                                  |
 | **Source generator**  | A Roslyn source generator that inspects your C# code at build time and generates the schema registration, resolver pipelines, and DataLoader infrastructure.                                                                       |
-| **Cost analysis**     | A static analysis pass that calculates the cost of a query before execution and rejects queries that exceed configured limits. Based on the [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html). |
+| **Cost analysis**     | An analysis pass that evaluates operation cost before execution and rejects operations that exceed configured limits. Based on the [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html).          |
 | **Trusted documents** | Pre-registered operations that the server accepts by hash. Operations not in the store are rejected. Also known as persisted operations.                                                                                           |
 
 # Scaling Beyond a Single Server
