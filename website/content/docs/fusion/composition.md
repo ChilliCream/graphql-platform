@@ -84,7 +84,7 @@ For `@cost`, the public weight is the maximum effective weight across every serv
 
 | Coordinate                                            | Default weight |
 | ----------------------------------------------------- | -------------- |
-| Object, interface, or union type                      | `1`            |
+| Object type                                           | `1`            |
 | Scalar or enum type                                   | `0`            |
 | Output field returning an object, interface, or union | `1`            |
 | Output field returning a scalar or enum               | `0`            |
