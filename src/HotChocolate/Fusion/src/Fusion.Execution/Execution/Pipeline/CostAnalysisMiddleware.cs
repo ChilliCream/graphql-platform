@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-internal sealed class CostAnalysisMiddleware
+internal sealed class CostAnalysisMiddleware : ICostValidationVariableCoercionPolicy
 {
     private readonly CostSchemaSnapshot _snapshot;
     private readonly Cache<CostPlan> _cache;
@@ -22,6 +22,9 @@ internal sealed class CostAnalysisMiddleware
         _cache = cache;
         _options = options;
     }
+
+    public bool SkipVariableCoercion(RequestContext context)
+        => !_options.SkipAnalyzer;
 
     public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
@@ -146,6 +149,7 @@ internal sealed class CostAnalysisMiddleware
                 var cache = fc.SchemaServices.GetRequiredService<Cache<CostPlan>>();
                 var options = fc.SchemaServices.GetRequiredService<FusionRequestOptions>().Cost;
                 var middleware = new CostAnalysisMiddleware(snapshot, cache, options);
+                fc.Features.Set<ICostValidationVariableCoercionPolicy>(middleware);
                 return context => middleware.InvokeAsync(context, next);
             },
             WellKnownRequestMiddleware.CostAnalyzerMiddleware);

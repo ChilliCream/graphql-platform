@@ -7,11 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Fusion;
 
 /// <summary>
-/// Runs the six graphql-lean/IBM cost-precision article cases against a single-source Fusion
-/// gateway, reading the same fixtures as CostAnalysis.Core.Conformance.Tests and
-/// HotChocolate.CostAnalysis.Tests so the corpus has one source of truth. Every fixture composes
-/// to one SDL-only source schema; the gateway is asked to validate the fixture's operation and
-/// must report the fixture's expected typeCost/fieldCost.
+/// Runs the graphql-lean/IBM cost-precision article fixtures against a single-source Fusion gateway.
+/// Each request validates cost against the fixture's expected type and field values.
 /// </summary>
 public class ArticleCasesTests : FusionTestBase
 {
@@ -20,7 +17,7 @@ public class ArticleCasesTests : FusionTestBase
 
     public static TheoryData<string> FixturePaths => ArticleCaseFixture.DiscoverPaths();
 
-    [Theory(Skip = "enabled by fusion-cost-middleware")]
+    [Theory(Skip = "enabled by fusion-report-modes-diagnostics")]
     [MemberData(nameof(FixturePaths))]
     public async Task Fixture_Should_ReportExpectedCost_When_Validated(string path)
     {
@@ -61,10 +58,7 @@ public class ArticleCasesTests : FusionTestBase
     }
 
     /// <summary>
-    /// One article conformance fixture, deserialized from the JSON files linked from
-    /// CostAnalysis.Core.Conformance.Tests's <c>__resources__/article</c> directory. Mirrors the
-    /// shape of that project's internal Fixture record; kept local because a test project cannot
-    /// reference another test project's internal types.
+    /// Contains the serialized inputs and expected output for one article fixture.
     /// </summary>
     private sealed record ArticleCaseFixtureData(
         [property: JsonPropertyName("id")] string Id,
@@ -83,9 +77,7 @@ public class ArticleCasesTests : FusionTestBase
         [property: JsonPropertyName("fieldCost")] double FieldCost);
 
     /// <summary>
-    /// The article fixture resolved into the shapes this test needs to build a gateway request:
-    /// the raw JSON's <c>defaultListSize</c> ("Infinity" or a number) resolved to a
-    /// <see cref="double"/>, and its <c>variables</c> object resolved to a plain dictionary.
+    /// Provides request-ready values for one article fixture.
     /// </summary>
     private sealed class ArticleCaseFixture
     {
