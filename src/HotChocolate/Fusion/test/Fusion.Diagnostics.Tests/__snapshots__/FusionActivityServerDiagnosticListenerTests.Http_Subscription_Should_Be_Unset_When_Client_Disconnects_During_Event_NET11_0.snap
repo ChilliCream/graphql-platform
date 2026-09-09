@@ -365,6 +365,27 @@
                   ]
                 },
                 {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:3c88eb3d194ac70b6592eedd1d6c7694"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 2.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 3.0
+                    }
+                  ],
+                  "event": []
+                },
+                {
                   "OperationName": "GraphQL Subscription Event",
                   "DisplayName": "GraphQL Subscription Event",
                   "Kind": "Internal",

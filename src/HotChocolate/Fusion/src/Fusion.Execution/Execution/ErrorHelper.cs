@@ -2,6 +2,7 @@ using System.Net;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.CostAnalysis;
 using HotChocolate.Fusion.Properties;
 
 namespace HotChocolate.Fusion.Execution;
@@ -50,8 +51,8 @@ internal static class ErrorHelper
             FusionExecutionResources.ErrorHelper_MaxFieldCostReached,
             ImmutableOrderedDictionary<string, object?>.Empty
                 .Add("code", ErrorCodes.Execution.CostExceeded)
-                .Add("fieldCost", estimate.FieldCost)
-                .Add("maxFieldCost", maxFieldCost));
+                .Add("fieldCost", CostResultHelper.FormatValue(estimate.FieldCost))
+                .Add("maxFieldCost", CostResultHelper.FormatValue(maxFieldCost)));
 
     public static OperationResult MaxTypeCostReached(
         CostEstimate estimate,
@@ -60,8 +61,8 @@ internal static class ErrorHelper
             FusionExecutionResources.ErrorHelper_MaxTypeCostReached,
             ImmutableOrderedDictionary<string, object?>.Empty
                 .Add("code", ErrorCodes.Execution.CostExceeded)
-                .Add("typeCost", estimate.TypeCost)
-                .Add("maxTypeCost", maxTypeCost));
+                .Add("typeCost", CostResultHelper.FormatValue(estimate.TypeCost))
+                .Add("maxTypeCost", CostResultHelper.FormatValue(maxTypeCost)));
 
     public static OperationResult MaxResponseSizeReached(
         CostEstimate estimate,
@@ -70,8 +71,12 @@ internal static class ErrorHelper
             FusionExecutionResources.ErrorHelper_MaxResponseSizeReached,
             ImmutableOrderedDictionary<string, object?>.Empty
                 .Add("code", ErrorCodes.Execution.CostExceeded)
-                .Add("maxResponseSize", estimate.MaxResponseSize)
-                .Add("maxAllowedResponseSize", maxAllowedResponseSize));
+                .Add(
+                    "maxResponseSize",
+                    CostResultHelper.FormatValue(estimate.MaxResponseSize.GetValueOrDefault()))
+                .Add(
+                    "maxAllowedResponseSize",
+                    CostResultHelper.FormatValue(maxAllowedResponseSize)));
 
     private static OperationResult CostExceeded(
         string message,

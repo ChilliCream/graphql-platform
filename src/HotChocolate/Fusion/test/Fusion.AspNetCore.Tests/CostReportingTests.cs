@@ -1,6 +1,10 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
+using HotChocolate.AspNetCore;
+using HotChocolate.Collections.Immutable;
+using HotChocolate.CostAnalysis;
+using HotChocolate.Fusion.Execution.CostAnalysis;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,10 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Fusion;
 
 /// <summary>
-/// Verifies the <c>GraphQL-Cost</c> request header contract (hc-3-mmh.8/.10): report attaches
-/// the evaluated cost to every response, validate probes the static bound or the evaluated cost
-/// without executing, and the reported shape stays consistent whether a request is accepted,
-/// rejected, or batched.
+/// Verifies that GraphQL cost report and validate modes return per-result operation costs.
 /// </summary>
 public class CostReportingTests : FusionTestBase
 {
@@ -39,6 +40,38 @@ public class CostReportingTests : FusionTestBase
         }
         """;
 
+    private const string SubscriptionSchema =
+        """
+        directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+        directive @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+
+        type Query {
+          noop: String
+        }
+
+        type Subscription {
+          items(n: Int!): [Item] @listSize(slicingArguments: ["n"])
+        }
+
+        type Item {
+          value: Int @cost(weight: "5")
+        }
+        """;
+
+    private const string AcceptedBatchSchema =
+        """
+        directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+        directive @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+
+        type Query {
+          items(n: Int!): [Item] @listSize(slicingArguments: ["n"])
+        }
+
+        type Item {
+          value: Int @cost(weight: "5")
+        }
+        """;
+
     private const string ItemsQuery =
         """
         query Items($n: Int!) {
@@ -59,7 +92,7 @@ public class CostReportingTests : FusionTestBase
 
     private static readonly Uri s_endpoint = new("http://localhost:5000/graphql");
 
-    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Fact]
     public async Task Request_Should_AttachOperationCost_When_ReportHeaderIsSet()
     {
         // arrange
@@ -73,11 +106,22 @@ public class CostReportingTests : FusionTestBase
             WithCostHeader(request, ReportCost),
             TestContext.Current.CancellationToken);
 
-        // assert - extensions.operationCost { fieldCost, typeCost } is attached alongside data
-        await MatchSnapshotAsync(gateway, request, response);
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            response,
+            results => AssertOperationCost(
+                Assert.Single(results),
+                """
+                {
+                  "fieldCost": 16,
+                  "typeCost": 4
+                }
+                """));
     }
 
-    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Fact]
     public async Task Request_Should_ReportStaticBound_When_ValidatedWithoutVariables()
     {
         // arrange
@@ -91,11 +135,23 @@ public class CostReportingTests : FusionTestBase
             WithCostHeader(request, ValidateCost),
             TestContext.Current.CancellationToken);
 
-        // assert - HTTP 200, no data, operationCost carries the worst-case static bound
-        await MatchSnapshotAsync(gateway, request, response);
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.HttpResponseMessage.StatusCode);
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            response,
+            results => AssertOperationCost(
+                Assert.Single(results),
+                """
+                {
+                  "fieldCost": 6,
+                  "typeCost": 2
+                }
+                """));
     }
 
-    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Fact]
     public async Task Request_Should_ReportEvaluatedCost_When_ValidatedWithVariables()
     {
         // arrange
@@ -109,11 +165,22 @@ public class CostReportingTests : FusionTestBase
             WithCostHeader(request, ValidateCost),
             TestContext.Current.CancellationToken);
 
-        // assert - HTTP 200, no data, operationCost carries the evaluated cost for $n = 3
-        await MatchSnapshotAsync(gateway, request, response);
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            response,
+            results => AssertOperationCost(
+                Assert.Single(results),
+                """
+                {
+                  "fieldCost": 16,
+                  "typeCost": 4
+                }
+                """));
     }
 
-    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Fact]
     public async Task RejectedRequest_Should_CarryOperationCost_When_ReportHeaderIsSet()
     {
         // arrange
@@ -127,16 +194,33 @@ public class CostReportingTests : FusionTestBase
             WithCostHeader(request, ReportCost),
             TestContext.Current.CancellationToken);
 
-        // assert - the HC0047 error extensions and extensions.operationCost are both present
-        await MatchSnapshotAsync(gateway, request, response);
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            response,
+            results => AssertOperationCost(
+                Assert.Single(results),
+                """
+                {
+                  "fieldCost": 1,
+                  "typeCost": 2001
+                }
+                """));
     }
 
-    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Fact]
     public async Task VariableBatch_Should_FailWhole_When_AnyResultExceedsLimit()
     {
         // arrange
         using var server = CreateSourceSchema("A", Schema);
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b =>
+            {
+                b.ModifyServerOptions(o => o.Batching = AllowedBatching.All);
+                b.ModifyCostOptions(o => o.MaxFieldCost = double.PositiveInfinity);
+            });
         var batch = new VariableBatchRequest(
             ItemsQuery,
             variables:
@@ -154,28 +238,297 @@ public class CostReportingTests : FusionTestBase
             },
             TestContext.Current.CancellationToken);
 
-        // assert - every result carries HC0047 and its own operationCost; the n=1000 set fails the whole request
-        var errorKinds = new List<JsonValueKind>();
-        var hasCost = new List<bool>();
-        var hasNoData = new List<bool>();
+        // assert
+        var results = new List<OperationResult>();
         await foreach (var result in response.ReadAsResultStreamAsync()
             .WithCancellation(TestContext.Current.CancellationToken))
         {
-            using (result)
-            {
-                errorKinds.Add(result.Errors.ValueKind);
-                hasCost.Add(result.Extensions.TryGetProperty("operationCost", out _));
-                hasNoData.Add(result.Data.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null);
-            }
+            results.Add(result);
         }
 
-        Assert.Equal(2, errorKinds.Count);
-        Assert.All(errorKinds, k => Assert.NotEqual(JsonValueKind.Undefined, k));
-        Assert.All(hasNoData, Assert.True);
-        Assert.All(hasCost, Assert.True);
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The maximum allowed type cost was exceeded.",
+                      "extensions": {
+                        "code": "HC0047",
+                        "typeCost": 2,
+                        "maxTypeCost": 1000
+                      }
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 6,
+                      "typeCost": 2
+                    }
+                  }
+                }
+                """,
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The maximum allowed type cost was exceeded.",
+                      "extensions": {
+                        "code": "HC0047",
+                        "typeCost": 1001,
+                        "maxTypeCost": 1000
+                      }
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 5001,
+                      "typeCost": 1001
+                    }
+                  }
+                }
+                """
+            ]);
+
+        foreach (var result in results)
+        {
+            result.Dispose();
+        }
+
+        Assert.Empty(gateway.Interactions);
     }
 
-    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Fact]
+    public async Task VariableBatch_Should_ReportEachAcceptedSet_When_ModeIsReport()
+    {
+        // arrange
+        using var server = CreateSourceSchema(
+            "A",
+            b => b
+                .AddDocumentFromString(AcceptedBatchSchema)
+                .AddResolver(
+                    "Query",
+                    "items",
+                    context => Enumerable
+                        .Range(0, context.ArgumentValue<int>("n"))
+                        .Select(_ => new AcceptedItem(123)))
+                .AddResolver(
+                    "Item",
+                    "value",
+                    context => context.Parent<AcceptedItem>().Value));
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+        var batch = new VariableBatchRequest(
+            ItemsQuery,
+            variables:
+            [
+                new Dictionary<string, object?> { ["n"] = 1 },
+                new Dictionary<string, object?> { ["n"] = 3 }
+            ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(batch, s_endpoint)
+            {
+                OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ReportCost)
+            },
+            TestContext.Current.CancellationToken);
+        var results = await ReadResultsAsync(response);
+
+        // assert
+        Assert.Equal(
+            [1, 3],
+            results.Select(r => r.Data.GetProperty("items").GetArrayLength()));
+        results
+            .Select(r => (object?)r.Extensions.GetProperty("operationCost"))
+            .MatchInlineSnapshots(
+            [
+                """
+                {
+                  "fieldCost": 6,
+                  "typeCost": 2
+                }
+                """,
+                """
+                {
+                  "fieldCost": 16,
+                  "typeCost": 4
+                }
+                """
+            ]);
+        DisposeResults(results);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_PreserveSubscriptionError_When_ModeIsReport()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", SubscriptionSchema);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+        var batch = new VariableBatchRequest(
+            """
+            subscription Items($n: Int!) {
+              items(n: $n) {
+                value
+              }
+            }
+            """,
+            variables:
+            [
+                new Dictionary<string, object?> { ["n"] = 1 },
+                new Dictionary<string, object?> { ["n"] = 3 }
+            ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(batch, s_endpoint)
+            {
+                OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ReportCost)
+            },
+            TestContext.Current.CancellationToken);
+        var results = await ReadResultsAsync(response);
+
+        // assert
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "Variable batching is not supported for subscriptions."
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 6,
+                      "typeCost": 2
+                    }
+                  }
+                }
+                """
+            ]);
+        Assert.Empty(gateway.Interactions);
+        DisposeResults(results);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_PreserveDeferError_When_ModeIsReport()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", Schema);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+        var batch = new VariableBatchRequest(
+            """
+            query Items($n: Int!) {
+              items(n: $n) {
+                ... @defer {
+                  value
+                }
+              }
+            }
+            """,
+            variables:
+            [
+                new Dictionary<string, object?> { ["n"] = 1 },
+                new Dictionary<string, object?> { ["n"] = 3 }
+            ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(batch, s_endpoint)
+            {
+                OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ReportCost)
+            },
+            TestContext.Current.CancellationToken);
+        var results = await ReadResultsAsync(response);
+
+        // assert
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "Variable batching is not supported with @defer."
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 6,
+                      "typeCost": 2
+                    }
+                  }
+                }
+                """
+            ]);
+        Assert.Empty(gateway.Interactions);
+        DisposeResults(results);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_ReportWithoutExecuting_When_ModeIsValidate()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", Schema);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+        var batch = new VariableBatchRequest(
+            ItemsQuery,
+            variables:
+            [
+                new Dictionary<string, object?> { ["n"] = 1 },
+                new Dictionary<string, object?> { ["n"] = 1000 }
+            ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(batch, s_endpoint)
+            {
+                OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ValidateCost)
+            },
+            TestContext.Current.CancellationToken);
+        var results = await ReadResultsAsync(response);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.HttpResponseMessage.StatusCode);
+        Assert.Empty(gateway.Interactions);
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 6,
+                      "typeCost": 2
+                    }
+                  }
+                }
+                """,
+                """
+                {
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 5001,
+                      "typeCost": 1001
+                    }
+                  }
+                }
+                """
+            ]);
+        DisposeResults(results);
+    }
+
+    [Fact]
     public async Task Request_Should_BeRejected_When_MaxResponseSizeIsExceeded()
     {
         // arrange
@@ -192,22 +545,40 @@ public class CostReportingTests : FusionTestBase
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-        using var response = await client.PostAsync(request, s_endpoint, TestContext.Current.CancellationToken);
+        using var response = await client.SendAsync(
+            WithCostHeader(request, ReportCost),
+            TestContext.Current.CancellationToken);
 
-        // assert - HC0047 { maxResponseSize, maxAllowedResponseSize: 100 }
+        // assert
         await AssertAndMatchSnapshotAsync(
             gateway,
             request,
             response,
             results =>
             {
-                var extensions = Assert.Single(results).Errors[0].GetProperty("extensions");
-                Assert.True(extensions.TryGetProperty("maxResponseSize", out _));
-                Assert.Equal(100, extensions.GetProperty("maxAllowedResponseSize").GetDouble());
+                var result = Assert.Single(results);
+                var extensions = result.Errors[0].GetProperty("extensions");
+                extensions.MatchInlineSnapshot(
+                    """
+                    {
+                      "code": "HC0047",
+                      "maxResponseSize": 1001,
+                      "maxAllowedResponseSize": 100
+                    }
+                    """);
+                AssertOperationCost(
+                    result,
+                    """
+                    {
+                      "fieldCost": 5001,
+                      "typeCost": 1001,
+                      "maxResponseSize": 1001
+                    }
+                    """);
             });
     }
 
-    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Fact]
     public async Task UnannotatedList_Should_ReportInfiniteTypeCost_When_DefaultListSizeIsInfinite()
     {
         // arrange
@@ -224,11 +595,110 @@ public class CostReportingTests : FusionTestBase
             WithCostHeader(request, ValidateCost),
             TestContext.Current.CancellationToken);
 
-        // assert - operationCost.typeCost is emitted as the JSON string "Infinity"
-        await MatchSnapshotAsync(gateway, request, response);
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            response,
+            results => AssertOperationCost(
+                Assert.Single(results),
+                """
+                {
+                  "fieldCost": "Infinity",
+                  "typeCost": "Infinity"
+                }
+                """));
     }
 
-    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Fact]
+    public async Task RejectedInfiniteRequest_Should_ReportInfinityAsString()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", Schema);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(
+                o => o.DefaultListSize = double.PositiveInfinity));
+        var request = new OperationRequest("{ unannotatedItems { value } }");
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(
+            WithCostHeader(request, ReportCost),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            response,
+            results =>
+            {
+                var result = Assert.Single(results);
+                result.Errors[0].GetProperty("extensions").MatchInlineSnapshot(
+                    """
+                    {
+                      "code": "HC0047",
+                      "fieldCost": "Infinity",
+                      "maxFieldCost": 1000
+                    }
+                    """);
+                AssertOperationCost(
+                    result,
+                    """
+                    {
+                      "fieldCost": "Infinity",
+                      "typeCost": "Infinity"
+                    }
+                    """);
+            });
+    }
+
+    [Fact]
+    public async Task ResponseStream_Should_AttachOperationCostToFirstResult_When_Reported()
+    {
+        // arrange
+        var stream = new HotChocolate.Execution.ResponseStream(CreateStreamResults);
+        var results = new List<HotChocolate.Execution.OperationResult>();
+
+        // act
+        var reported = Assert.IsType<HotChocolate.Execution.ResponseStream>(
+            CostResultHelper.AddCost(stream, [new CostEstimate(2, 3, null)]));
+        await foreach (var result in reported.ReadResultsAsync())
+        {
+            results.Add(result);
+        }
+
+        // assert
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "extensions": {
+                    "item": 1,
+                    "operationCost": {
+                      "fieldCost": 2,
+                      "typeCost": 3
+                    }
+                  }
+                }
+                """,
+                """
+                {
+                  "extensions": {
+                    "item": 2
+                  }
+                }
+                """
+            ]);
+
+        foreach (var result in results)
+        {
+            await result.DisposeAsync();
+        }
+    }
+
+    [Fact]
     public async Task RejectedRequest_Should_ReturnHttp400_When_AcceptIsGraphQLResponseJson()
     {
         // arrange
@@ -242,7 +712,7 @@ public class CostReportingTests : FusionTestBase
         response.MatchSnapshot();
     }
 
-    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Fact]
     public async Task RejectedRequest_Should_ReturnHttp200_When_AcceptIsLegacyJson()
     {
         // arrange
@@ -252,9 +722,11 @@ public class CostReportingTests : FusionTestBase
         // act
         using var response = await SendRawAsync(gateway, "application/json");
 
-        // assert - same error body as the graphql-response+json variant, just a different status
+        // assert
         response.MatchSnapshot();
     }
+
+    private sealed record AcceptedItem(int Value);
 
     private static GraphQLHttpRequest WithCostHeader(OperationRequest request, string mode)
         => new(request, s_endpoint)
@@ -279,5 +751,38 @@ public class CostReportingTests : FusionTestBase
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
 
         return await client.SendAsync(request, TestContext.Current.CancellationToken);
+    }
+
+    private static async IAsyncEnumerable<HotChocolate.Execution.OperationResult> CreateStreamResults()
+    {
+        await Task.Yield();
+        yield return new HotChocolate.Execution.OperationResult(
+            ImmutableOrderedDictionary<string, object?>.Empty.Add("item", 1));
+        yield return new HotChocolate.Execution.OperationResult(
+            ImmutableOrderedDictionary<string, object?>.Empty.Add("item", 2));
+    }
+
+    private static void AssertOperationCost(OperationResult result, string snapshot)
+        => result.Extensions.GetProperty("operationCost").MatchInlineSnapshot(snapshot);
+
+    private static async Task<List<OperationResult>> ReadResultsAsync(GraphQLHttpResponse response)
+    {
+        var results = new List<OperationResult>();
+
+        await foreach (var result in response.ReadAsResultStreamAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            results.Add(result);
+        }
+
+        return results;
+    }
+
+    private static void DisposeResults(IEnumerable<OperationResult> results)
+    {
+        foreach (var result in results)
+        {
+            result.Dispose();
+        }
     }
 }

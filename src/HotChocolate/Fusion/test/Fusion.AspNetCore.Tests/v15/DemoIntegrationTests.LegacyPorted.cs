@@ -92,7 +92,7 @@ public partial class DemoIntegrationTests
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    [Fact(Skip = "enabled by fusion-report-modes-diagnostics")]
+    [Fact]
     public async Task Authors_And_Reviews_Query_GetUserReviews_Report_Cost()
     {
         // arrange
@@ -125,8 +125,18 @@ public partial class DemoIntegrationTests
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         using var result = await client.SendAsync(httpRequest, TestContext.Current.CancellationToken);
 
-        // assert - extensions.operationCost { fieldCost, typeCost } is attached alongside data
-        await MatchSnapshotAsync(gateway, request, result);
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results => Assert.Single(results).Extensions.GetProperty("operationCost").MatchInlineSnapshot(
+                """
+                {
+                  "fieldCost": 171,
+                  "typeCost": 271
+                }
+                """));
     }
 
     [Fact]
