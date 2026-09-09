@@ -24,7 +24,7 @@ const PRODUCTS = [
   },
   {
     label: "Fusion",
-    role: "Federation Gateway",
+    role: "Federation Router",
     href: "/docs/fusion",
     Icon: Fusion,
   },

@@ -322,7 +322,7 @@ function DocTabStrip() {
         borderBottom: `1px solid ${token.border}`,
       }}
     >
-      <DocTab name="EShops Gateway" />
+      <DocTab name="EShops Router" />
       <span
         style={{
           display: "flex",

@@ -61,20 +61,20 @@ interface Deployment {
 }
 const DEPLOYMENTS: Deployment[] = [
   {
-    title: "Gateway Configuration Deployment succeeded",
+    title: "Router Configuration Deployment succeeded",
     tag: "v2.4.0",
     target: "Reviews",
     when: "2 minutes ago",
     isNew: true,
   },
   {
-    title: "Gateway Configuration Deployment succeeded",
+    title: "Router Configuration Deployment succeeded",
     tag: "v2.3.1",
     target: "Orders",
     when: "3 hours ago",
   },
   {
-    title: "Gateway Configuration Deployment succeeded",
+    title: "Router Configuration Deployment succeeded",
     tag: "v2.3.0",
     target: "Products",
     when: "yesterday",
@@ -101,7 +101,7 @@ interface DetailRow {
   copy?: boolean;
 }
 const DETAILS: DetailRow[] = [
-  { label: "API ID", value: "eshops-gateway-7f3a9c", mono: true, copy: true },
+  { label: "API ID", value: "eshops-router-7f3a9c", mono: true, copy: true },
   { label: "Stage", value: "Production" },
   { label: "Version", value: "v2.4.0", mono: true },
   { label: "Last published on", value: "Jun 20, 2026, 10:18 AM" },
@@ -177,7 +177,7 @@ export function FusionOverviewScreen({
       height={H}
       fit="fill"
       chrome={false}
-      ariaLabel="Nitro Fusion — the EShops gateway overview: topology, details, subgraphs and the newly deployed Reviews v2.4.0"
+      ariaLabel="Nitro Fusion — the EShops router overview: topology, details, subgraphs and the newly deployed Reviews v2.4.0"
       overlay={
         showCursor ? (
           <Cursor
@@ -393,7 +393,7 @@ function TopologyTile() {
                 color: token.textStrong,
               }}
             >
-              Gateway
+              Router
             </span>
           </div>
         </div>

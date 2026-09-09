@@ -70,7 +70,7 @@ export function GatewayChrome({ activeView }: { activeView: GatewayView }) {
         >
           <IconApiGateway size={12} color={token.icObject} />
           <span style={{ fontSize: 12.5, whiteSpace: "nowrap" }}>
-            EShops Gateway
+            EShops Router
           </span>
           <span style={{ color: token.textSecondary, display: "flex" }}>
             <IconClose size={11} color="currentColor" />

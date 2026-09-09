@@ -35,7 +35,7 @@ const PLATFORM_SECTIONS = [
     href: "/docs/fusion",
     title: "Federation with Fusion",
     description:
-      "Compose independently owned GraphQL services into one gateway artifact before runtime.",
+      "Compose independently owned GraphQL services into one router artifact before runtime.",
   },
   {
     href: "/platform/analytics",

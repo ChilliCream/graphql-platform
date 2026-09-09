@@ -649,7 +649,7 @@ export function TraceScreen({ progress }: TraceScreenProps) {
       height={H}
       fit="fill"
       chrome={false}
-      ariaLabel="Nitro — reading the gateway monitoring overview (latency, throughput, clients, errors, insights), clicking a slow operation to transition to its operation screen, scrolling through its latency distribution into a distributed trace sample, drilling into the slow database span, and hovering a warning log event"
+      ariaLabel="Nitro — reading the router monitoring overview (latency, throughput, clients, errors, insights), clicking a slow operation to transition to its operation screen, scrolling through its latency distribution into a distributed trace sample, drilling into the slow database span, and hovering a warning log event"
       overlay={
         <Cursor
           x={cx}
@@ -789,7 +789,7 @@ function DocTabStrip() {
         <span
           style={{ fontSize: 12.5, color: token.textStrong, fontWeight: 600 }}
         >
-          EShops Gateway
+          EShops Router
         </span>
       </div>
     </div>

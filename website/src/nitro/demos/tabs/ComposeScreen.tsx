@@ -454,7 +454,7 @@ const LENS = {
   signature: "customer: Customer!",
   kindIcon: "object" as FieldKind,
   description:
-    "The customer that placed this order. Resolved from the Accounts subgraph and stitched into the federated Order via the gateway.",
+    "The customer that placed this order. Resolved from the Accounts subgraph and stitched into the federated Order via the router.",
   coordinate: "Order.customer",
   args: [{ name: "id", type: "ID" }],
   returnType: {

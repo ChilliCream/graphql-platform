@@ -229,7 +229,7 @@ export function FusionFlow() {
           <p className="text-cc-ink mx-auto mt-4 max-w-4xl px-4 text-sm text-pretty sm:mt-6 sm:text-xl">
             Each part publishes its contract. Fusion checks that the pieces fit,
             catches missing lookups and incompatible fields, and produces the
-            gateway artifact your runtime loads.
+            router artifact your runtime loads.
           </p>
         </div>
 
@@ -258,7 +258,7 @@ export function FusionFlow() {
           One API for every consumer.
         </h2>
         <p className="text-cc-ink mx-auto mt-6 max-w-4xl text-lg text-pretty sm:text-xl">
-          Apps, tools, and agents ask for what they need through one gateway.
+          Apps, tools, and agents ask for what they need through one router.
           Fusion plans the request across the backend and returns one response.
         </p>
         {/* Line below the copy, on into the protocol box. */}

@@ -55,7 +55,7 @@ const COMPARISON = [
     ],
   },
   {
-    title: "Gateway & server",
+    title: "Router & server",
     rows: [
       all("OAuth 2.0 & OpenID Connect"),
       all("Authorization policies & roles"),

@@ -41,7 +41,7 @@ interface Row {
 const ROWS: Row[] = [
   {
     id: "d0",
-    title: "Gateway Configuration Deployment succeeded",
+    title: "Router Configuration Deployment succeeded",
     tag: "v2.4.0",
     subgraph: "Reviews",
     approved: true,
@@ -59,7 +59,7 @@ const ROWS: Row[] = [
   },
   {
     id: "d2",
-    title: "Gateway Configuration Deployment succeeded",
+    title: "Router Configuration Deployment succeeded",
     tag: "v2.3.0",
     started: "3 hours ago",
     status: "success",
@@ -74,7 +74,7 @@ const ROWS: Row[] = [
   },
   {
     id: "d4",
-    title: "Gateway Configuration Deployment succeeded",
+    title: "Router Configuration Deployment succeeded",
     tag: "v2.2.1",
     started: "yesterday",
     status: "success",
@@ -158,7 +158,7 @@ export function FusionDeploymentsScreen({
       height={H}
       fit="fill"
       chrome={false}
-      ariaLabel="Nitro Fusion — a deployment's additive schema changes recompose the gateway, then starting a new query"
+      ariaLabel="Nitro Fusion — a deployment's additive schema changes recompose the router, then starting a new query"
       overlay={
         showCursor ? (
           <Cursor

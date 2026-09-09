@@ -560,7 +560,7 @@ export function DiagnoseScreen({ progress }: DiagnoseScreenProps) {
       height={H}
       fit="fill"
       chrome={false}
-      ariaLabel="Nitro - from the gateway monitoring overview, clicking a production error to open an error-tracking screen with its occurrences, where-it-occurs and server stack trace, then opening the logs view, drag-selecting the error burst on the log distribution chart, and drilling the failing log into a root-cause stack trace"
+      ariaLabel="Nitro - from the router monitoring overview, clicking a production error to open an error-tracking screen with its occurrences, where-it-occurs and server stack trace, then opening the logs view, drag-selecting the error burst on the log distribution chart, and drilling the failing log into a root-cause stack trace"
       overlay={
         <Cursor
           x={cx}

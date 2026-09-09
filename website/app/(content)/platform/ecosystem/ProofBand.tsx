@@ -53,7 +53,7 @@ interface ProofRowSpec {
 const PROOF_ROWS: readonly ProofRowSpec[] = [
   {
     tag: "ONE REPOSITORY",
-    body: "The core server, gateway, client, and libraries share one codebase, so the pieces stay in step.",
+    body: "The core server, router, client, and libraries share one codebase, so the pieces stay in step.",
   },
   {
     tag: "MIT LICENSE",
@@ -77,7 +77,7 @@ export function ProofBand({ commitActivity }: ProofBandProps) {
           <div className="min-w-0 lg:col-span-5">
             <SectionHeading
               title="Built in the open, in one repository."
-              description="The server, gateway, client, and core libraries are all developed in a single public GitHub repository."
+              description="The server, router, client, and core libraries are all developed in a single public GitHub repository."
             />
           </div>
           <div className="min-w-0 lg:col-span-7">
