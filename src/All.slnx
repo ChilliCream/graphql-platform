@@ -158,6 +158,9 @@
     <Project Path="HotChocolate/Core/test/Validation.Tests/HotChocolate.Validation.Tests.csproj" />
   </Folder>
   <Folder Name="/HotChocolate/CostAnalysis/" />
+  <Folder Name="/HotChocolate/CostAnalysis/benchmarks/">
+    <Project Path="HotChocolate/CostAnalysis/benchmarks/CostAnalysis.Core.Benchmarks/HotChocolate.CostAnalysis.Core.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/HotChocolate/CostAnalysis/src/">
     <Project Path="HotChocolate/CostAnalysis/src/CostAnalysis.Core/HotChocolate.CostAnalysis.Core.csproj" />
     <Project Path="HotChocolate/CostAnalysis/src/CostAnalysis/HotChocolate.CostAnalysis.csproj" />
