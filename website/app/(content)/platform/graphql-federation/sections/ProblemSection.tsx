@@ -11,25 +11,28 @@ export function ProblemSection() {
         </h3>
         <div className="text-cc-ink mt-5 space-y-4 text-base">
           <p>
-            Most GraphQL APIs start as one server with one schema, and that
-            holds up until the API grows. More teams change the same schema,
-            every deploy carries everyone&apos;s changes, and one mistake takes
-            the whole API down. Each change waits on coordination, so shipping
-            slows down.
+            Most GraphQL APIs start as one server with one schema. That works
+            well for a while.
           </p>
           <p>
-            GraphQL Federation splits that API into subgraphs, one per team or
-            domain; a GraphQL schema in front of an existing service makes that
-            service a subgraph too. Each team owns its subgraph&apos;s schema,
-            code, and release schedule. Composition checks the source schemas
-            against each other and combines them into one composite schema
-            before anything deploys, so a conflict fails the build instead of
-            production.
+            Then the API grows, and several teams end up working on different
+            parts of the same schema. Releasing becomes the hard part. Everyone
+            shares one release queue, so every change needs coordination and
+            every team waits on the same bottleneck.
           </p>
           <p>
-            Clients see none of the split. They send one query to one endpoint,
-            served by a gateway whose distributed executor fetches from the
-            subgraphs and returns one response.
+            GraphQL Federation breaks that one big schema into smaller ones.
+            Each service contributes a source schema, and a service that
+            contributes a source schema is called a subgraph. One per team, or
+            one per domain. Each team owns its subgraph: the source schema, the
+            code, the release schedule.
+          </p>
+          <p>
+            When a team ships a change, composition checks the source schemas
+            against each other and merges them into one composite schema, which
+            is what your gateway serves. If the change conflicts with another
+            subgraph, composition fails at build time and the change never
+            reaches production. Your API consumers never notice any of this.
           </p>
         </div>
       </div>
