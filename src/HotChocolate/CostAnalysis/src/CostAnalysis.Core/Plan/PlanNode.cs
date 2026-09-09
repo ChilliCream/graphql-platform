@@ -144,6 +144,62 @@ internal sealed class FieldPlanNode : PlanNode
     private readonly InputValueOperand[] _arguments;
     private readonly InputValueOperand[] _directiveArguments;
 
+    internal static bool RequiresVariableEvaluation(
+        CostSchemaSnapshot snapshot,
+        in CollectedFieldGroup group,
+        SizedFieldContext? inheritedSizeContext,
+        PlanNode child)
+    {
+        if (child.DependsOnVariables
+            || inheritedSizeContext is { DependsOnVariables: true }
+            || group.Field is not { } field)
+        {
+            return true;
+        }
+
+        var parentTypeName = group.Member.ParentType.Name;
+        var fieldName = group.Member.Field.Name;
+        var listSizeMetadata = snapshot.GetListSizeMetadata(parentTypeName, fieldName);
+
+        if (listSizeMetadata is { SlicingArguments.Length: > 0 })
+        {
+            foreach (var name in listSizeMetadata.SlicingArguments)
+            {
+                if (ContainsVariable(SlicingArgumentValues.FindArgumentValue(field.Arguments, name)))
+                {
+                    return true;
+                }
+            }
+        }
+
+        foreach (var definition in snapshot.GetFieldArguments(parentTypeName, fieldName))
+        {
+            if (ContainsVariable(SlicingArgumentValues.FindArgumentValue(field.Arguments, definition.Name)))
+            {
+                return true;
+            }
+        }
+
+        foreach (var directive in field.Directives)
+        {
+            if (!snapshot.TryGetDirectiveArgumentMetadata(directive.Name.Value, out var definitions))
+            {
+                continue;
+            }
+
+            foreach (var definition in definitions)
+            {
+                if (ContainsVariable(
+                    SlicingArgumentValues.FindArgumentValue(directive.Arguments, definition.Name)))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public FieldPlanNode(
         CostSchemaSnapshot snapshot,
         CostAnalyses analyses,
@@ -329,13 +385,37 @@ internal sealed class FieldPlanNode : PlanNode
     }
 
     private static bool ContainsVariable(IValueNode? value)
-        => value switch
+    {
+        switch (value)
         {
-            VariableNode => true,
-            ListValueNode list => list.Items.Any(ContainsVariable),
-            ObjectValueNode inputObject => inputObject.Fields.Any(field => ContainsVariable(field.Value)),
-            _ => false
-        };
+            case VariableNode:
+                return true;
+
+            case ListValueNode list:
+                foreach (var item in list.Items)
+                {
+                    if (ContainsVariable(item))
+                    {
+                        return true;
+                    }
+                }
+
+                break;
+
+            case ObjectValueNode inputObject:
+                foreach (var field in inputObject.Fields)
+                {
+                    if (ContainsVariable(field.Value))
+                    {
+                        return true;
+                    }
+                }
+
+                break;
+        }
+
+        return false;
+    }
 
     private readonly record struct InputValueOperand(InputValueMetadata Definition, IValueNode? Value);
 }

@@ -276,6 +276,67 @@ public class ExactCasesTests
     }
 
     [Fact]
+    public void Evaluate_Should_PreserveJoinOrder_When_AllPairOutputsAreLeaves()
+    {
+        // arrange
+        const string sdl =
+            """
+            interface Node { value: Int }
+            type A implements Node { value: Int }
+            type B implements Node { value: Int }
+            type C implements Node { value: Int }
+            type Query { node: Node }
+            """;
+        var joins = new List<string>();
+        var algebra = new TraceAlgebra(joins);
+
+        // act
+        _ = TraversalTestHelpers.EvaluateOperation(sdl, "{ node { value } }", algebra);
+
+        // assert
+        Assert.Equal(
+            [
+                "A.value(empty) + B.value(empty)",
+                "join(A.value(empty),B.value(empty)) + C.value(empty)"
+            ],
+            joins);
+    }
+
+    [Fact]
+    public void Evaluate_Should_PreserveJoinOrder_When_ResponseNameRepeatsAcrossConditions()
+    {
+        // arrange
+        const string sdl =
+            """
+            interface Node { value: Int }
+            type A implements Node { value: Int }
+            type B implements Node { value: Int }
+            type C implements Node { value: Int }
+            type Query { node: Node }
+            """;
+        const string operation =
+            "query($include: Boolean!) { node { value value @include(if: $include) } }";
+        var joins = new List<string>();
+        var algebra = new TraceAlgebra(joins);
+
+        // act
+        _ = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra);
+
+        // assert
+        Assert.Equal(
+            [
+                "A.value(empty) + B.value(empty)",
+                "join(A.value(empty),B.value(empty)) + C.value(empty)",
+                "A.value(empty) + B.value(empty)",
+                "join(A.value(empty),B.value(empty)) + C.value(empty)",
+                "join(join(A.value(empty),B.value(empty)),C.value(empty)) + A.value(empty)",
+                "join(join(join(A.value(empty),B.value(empty)),C.value(empty)),A.value(empty)) + B.value(empty)",
+                "join(join(join(join(A.value(empty),B.value(empty)),C.value(empty)),A.value(empty)),B.value(empty)) + C.value(empty)"
+            ],
+            joins);
+    }
+
+    [Fact]
     public void Evaluate_Should_ClampOpposingInfiniteArgumentAndDirectiveSums_When_WeightsAreFinite()
     {
         // arrange
@@ -320,5 +381,23 @@ public class ExactCasesTests
 
         // assert
         Assert.Equal(new CostEstimate(0.0, 1.0, null), decision.Resolve(_ => false));
+    }
+
+    private sealed class TraceAlgebra(List<string> joins) : IAnalysisAlgebra<string>
+    {
+        public string Empty => "empty";
+
+        public string Field(in CollectedFieldGroup group, string child)
+            => $"{group.Member.ParentType.Name}.{group.Member.Field.Name}({child})";
+
+        public string Combine(string left, string right) => $"combine({left},{right})";
+
+        public string Join(string left, string right)
+        {
+            joins.Add($"{left} + {right}");
+            return $"join({left},{right})";
+        }
+
+        public string Root(double rootTypeWeight, string selection) => $"root({selection})";
     }
 }

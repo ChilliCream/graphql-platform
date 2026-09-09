@@ -20,7 +20,17 @@ internal sealed class FieldGroup(string responseName)
     /// </summary>
     public IReadOnlyList<FieldNode> Fields => _fields;
 
+    internal int GroupId { get; private set; } = -1;
+
+    internal int ResponseNameId { get; private set; } = -1;
+
     internal void Add(FieldNode field) => _fields.Add(field);
+
+    internal void InitializeLayout(int groupId, int responseNameId)
+    {
+        GroupId = groupId;
+        ResponseNameId = responseNameId;
+    }
 
     /// <summary>
     /// Concatenates the selection sets of every field in this group into one

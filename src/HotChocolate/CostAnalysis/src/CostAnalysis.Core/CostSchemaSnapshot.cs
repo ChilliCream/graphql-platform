@@ -20,6 +20,7 @@ public sealed class CostSchemaSnapshot
     private readonly FrozenDictionary<ArgumentKey, double> _argumentWeights;
     private readonly FrozenDictionary<FieldKey, double> _inputFieldWeights;
     private readonly FrozenDictionary<FieldKey, ImmutableArray<InputValueMetadata>> _fieldArguments;
+    private readonly FrozenDictionary<IOutputFieldDefinition, int> _fieldSemanticIds;
     private readonly FrozenDictionary<string, ImmutableArray<InputValueMetadata>> _inputObjectFields;
     private readonly FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> _directiveArguments;
     private readonly FrozenDictionary<string, ImmutableArray<InputValueMetadata>> _directiveArgumentMetadata;
@@ -41,6 +42,7 @@ public sealed class CostSchemaSnapshot
         FrozenDictionary<ArgumentKey, double> argumentWeights,
         FrozenDictionary<FieldKey, double> inputFieldWeights,
         FrozenDictionary<FieldKey, ImmutableArray<InputValueMetadata>> fieldArguments,
+        FrozenDictionary<IOutputFieldDefinition, int> fieldSemanticIds,
         FrozenDictionary<string, ImmutableArray<InputValueMetadata>> inputObjectFields,
         FrozenDictionary<string, ImmutableArray<DirectiveArgumentDefinition>> directiveArguments,
         FrozenDictionary<string, ImmutableArray<InputValueMetadata>> directiveArgumentMetadata)
@@ -59,6 +61,7 @@ public sealed class CostSchemaSnapshot
         _argumentWeights = argumentWeights;
         _inputFieldWeights = inputFieldWeights;
         _fieldArguments = fieldArguments;
+        _fieldSemanticIds = fieldSemanticIds;
         _inputObjectFields = inputObjectFields;
         _directiveArguments = directiveArguments;
         _directiveArgumentMetadata = directiveArgumentMetadata;
@@ -197,6 +200,9 @@ public sealed class CostSchemaSnapshot
     /// </summary>
     internal ImmutableArray<InputValueMetadata> GetFieldArguments(string typeName, string fieldName)
         => _fieldArguments[new FieldKey(typeName, fieldName)];
+
+    internal int GetFieldSemanticId(IOutputFieldDefinition field)
+        => _fieldSemanticIds[field];
 
     /// <summary>
     /// Gets an input object's fields in declaration order.

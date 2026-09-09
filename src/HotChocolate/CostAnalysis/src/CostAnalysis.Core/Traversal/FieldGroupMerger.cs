@@ -8,6 +8,8 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 internal static class FieldGroupMerger
 {
+    private const int IndexThreshold = 8;
+
     /// <summary>
     /// Merges the field groups of <paramref name="visited"/> nodes by
     /// response name, in first-occurrence order across the visited nodes.
@@ -17,17 +19,27 @@ internal static class FieldGroupMerger
         IReadOnlyList<int> visited)
     {
         var order = new List<(string ResponseName, List<FieldNode> Fields)>();
-        var indexByResponseName = new Dictionary<string, int>();
+        Dictionary<string, int>? indexByResponseName = null;
 
         foreach (var nodeId in visited)
         {
             foreach (var group in tree.Nodes[nodeId].FieldGroups)
             {
-                if (!indexByResponseName.TryGetValue(group.ResponseName, out var index))
+                var index = FindGroup(order, indexByResponseName, group.ResponseName);
+
+                if (index < 0)
                 {
                     index = order.Count;
-                    indexByResponseName.Add(group.ResponseName, index);
                     order.Add((group.ResponseName, []));
+
+                    if (indexByResponseName is not null)
+                    {
+                        indexByResponseName.Add(group.ResponseName, index);
+                    }
+                    else if (order.Count > IndexThreshold)
+                    {
+                        indexByResponseName = BuildIndex(order);
+                    }
                 }
 
                 order[index].Fields.AddRange(group.Fields);
@@ -35,6 +47,40 @@ internal static class FieldGroupMerger
         }
 
         return order;
+    }
+
+    private static int FindGroup(
+        List<(string ResponseName, List<FieldNode> Fields)> groups,
+        Dictionary<string, int>? index,
+        string responseName)
+    {
+        if (index is not null)
+        {
+            return index.TryGetValue(responseName, out var groupIndex) ? groupIndex : -1;
+        }
+
+        for (var i = 0; i < groups.Count; i++)
+        {
+            if (groups[i].ResponseName == responseName)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static Dictionary<string, int> BuildIndex(
+        List<(string ResponseName, List<FieldNode> Fields)> groups)
+    {
+        var index = new Dictionary<string, int>(groups.Count, StringComparer.Ordinal);
+
+        for (var i = 0; i < groups.Count; i++)
+        {
+            index.Add(groups[i].ResponseName, i);
+        }
+
+        return index;
     }
 
     /// <summary>
