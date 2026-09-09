@@ -5,6 +5,7 @@ import { type MouseEvent, type ReactNode, useState } from "react";
 import { formatDate } from "@/src/helpers/formatDate";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
+import { productArtworkStyle } from "@/src/icons/productArtwork";
 import {
   NAV_ITEMS,
   type NavItem,
@@ -201,6 +202,17 @@ function SubGroupBlock({
   );
 }
 
+/**
+ * Height of the whole drink sheet in a menu row, i.e. the height of its tallest
+ * drink (Strawberry Shake). Every product icon is scaled from it by the same
+ * units-per-rem, so the shake stands taller than the cups and the cups wider
+ * than the Nitro can, exactly like the start page hero. 1.625rem puts the
+ * 59x84 cups at 1.25rem, the height of the square icons in the other groups;
+ * the shake reaches above its h-5 slot into the row's padding, and the slot is
+ * bottom-aligned so every base lines up.
+ */
+const PRODUCT_ICON_SHEET_REM = 1.625;
+
 function SubLinkRow({
   link,
   onNavigate,
@@ -213,7 +225,7 @@ function SubLinkRow({
     ? { target: "_blank" as const, rel: "noopener noreferrer" as const }
     : {};
   const Icon = link.icon;
-  const natural = link.iconAspect === "natural";
+  const artwork = link.iconSize;
 
   return (
     <Link
@@ -225,9 +237,15 @@ function SubLinkRow({
     >
       {Icon && (
         <span
-          className={`text-cc-ink-dim group-hover/link:text-cc-ink mt-0.5 flex h-5 w-5 flex-none items-center transition-colors ${natural ? "justify-start" : "justify-center"}`}
+          className={`text-cc-ink-dim group-hover/link:text-cc-ink mt-0.5 flex h-5 w-5 flex-none transition-colors ${artwork ? "items-end justify-start" : "items-center justify-center"}`}
         >
-          <Icon className={natural ? "h-5 w-auto" : "h-4 w-4 fill-current"} />
+          {artwork ? (
+            <Icon
+              style={productArtworkStyle(artwork, PRODUCT_ICON_SHEET_REM)}
+            />
+          ) : (
+            <Icon className="h-4 w-4 fill-current" />
+          )}
         </span>
       )}
       <div>
