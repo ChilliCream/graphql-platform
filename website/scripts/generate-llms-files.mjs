@@ -432,6 +432,7 @@ function scopeLinks(origin) {
     `- [Complete site context](${origin}/llms-full.txt): All substantive public site content in one large compatibility export.`,
     `- [Documentation context](${origin}/docs/llms-full.txt): All product documentation.`,
     `- [Blog context](${origin}/blog/llms-full.txt): All public ChilliCream blog posts.`,
+    `- [Comparison context](${origin}/comparison/llms-full.txt): All public ChilliCream comparison articles.`,
   ];
 }
 
