@@ -8,11 +8,13 @@ namespace HotChocolate.CostAnalysis;
 
 /// <summary>
 /// A <see cref="VariableBatchRequest"/> is one request: every coerced variable set is
-/// evaluated and reported on its own result, and any over-limit set fails the whole
-/// request (R-BATCH-REPORTING, R-HC-BATCH).
+/// evaluated and reported on its own result, and only an over-limit set is rejected
+/// (R-BATCH-REPORTING, R-HC-BATCH).
 /// </summary>
 public sealed class BatchReportingTests
 {
+    private int _executionCount;
+
     private const string Schema =
         """
         type Query {
@@ -58,6 +60,7 @@ public sealed class BatchReportingTests
         var batch = response.ExpectOperationResultBatch();
 
         // assert
+        Assert.Equal(2, _executionCount);
         await snapshot
             .Add(batch.Results.Count, "ResultCount")
             .AddResult((OperationResult)batch.Results[0], "FirstSet")
@@ -66,13 +69,57 @@ public sealed class BatchReportingTests
     }
 
     [Fact]
-    public async Task Batch_Should_FailWholeRequest_When_OnlyOneSetExceedsMaxTypeCost()
+    public async Task Batch_Should_ReportPerItemOperationCostWithoutExecution_When_ModeIsValidate()
     {
         // arrange
         var snapshot = new Snapshot();
 
-        // typeCost is 1 (root) + n * 1 (Item) per set: 2 for n=1, 1001 for n=1000. A limit
-        // of 500 rejects the whole batch even though only the second set exceeds it.
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .ModifyCostOptions(
+                o =>
+                {
+                    o.MaxFieldCost = 1;
+                    o.MaxTypeCost = 1;
+                })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(Operation)
+                .SetVariableValues(
+                    new List<IReadOnlyDictionary<string, object?>>
+                    {
+                        new Dictionary<string, object?> { ["n"] = 1 },
+                        new Dictionary<string, object?> { ["n"] = 1000 }
+                    })
+                .ValidateCost()
+                .Build();
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var batch = response.ExpectOperationResultBatch();
+
+        // assert
+        Assert.Equal(0, _executionCount);
+        await snapshot
+            .Add(batch.Results.Count, "ResultCount")
+            .AddResult((OperationResult)batch.Results[0], "FirstSet")
+            .AddResult((OperationResult)batch.Results[1], "SecondSet")
+            .Add(
+                batch.Results
+                    .Cast<OperationResult>()
+                    .Select(t => t.ContextData[ExecutionContextData.HttpStatusCode])
+                    .ToArray(),
+                "HttpStatusCodes")
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Batch_Should_RejectOnlyExpensiveItem_When_ModeIsReport()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
         var requestExecutor = await CreateRequestExecutorBuilder()
             .ModifyCostOptions(
                 o =>
@@ -88,20 +135,62 @@ public sealed class BatchReportingTests
                 .SetVariableValues(
                     new List<IReadOnlyDictionary<string, object?>>
                     {
-                        new Dictionary<string, object?> { ["n"] = 1 },
-                        new Dictionary<string, object?> { ["n"] = 1000 }
+                        new Dictionary<string, object?> { ["n"] = 1000 },
+                        new Dictionary<string, object?> { ["n"] = 1 }
                     })
                 .ReportCost()
                 .Build();
 
         // act
         var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
-        var result = response.ExpectOperationResult();
+        var batch = response.ExpectOperationResultBatch();
 
         // assert
-        Assert.Equal(ErrorCodes.Execution.CostExceeded, result.Errors[0].Code);
+        Assert.Equal(1, _executionCount);
         await snapshot
-            .Add(response, "Response")
+            .Add(batch.Results.Count, "ResultCount")
+            .AddResult((OperationResult)batch.Results[0], "ExpensiveSet")
+            .AddResult((OperationResult)batch.Results[1], "CheapSet")
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Batch_Should_RejectEveryExpensiveItemWithoutExecution_When_ModeIsReport()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .ModifyCostOptions(
+                o =>
+                {
+                    o.MaxFieldCost = 4_000;
+                    o.MaxTypeCost = 500;
+                })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(Operation)
+                .SetVariableValues(
+                    new List<IReadOnlyDictionary<string, object?>>
+                    {
+                        new Dictionary<string, object?> { ["n"] = 1000 },
+                        new Dictionary<string, object?> { ["n"] = 600 }
+                    })
+                .ReportCost()
+                .Build();
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var batch = response.ExpectOperationResultBatch();
+
+        // assert
+        Assert.Equal(0, _executionCount);
+        await snapshot
+            .Add(batch.Results.Count, "ResultCount")
+            .AddResult((OperationResult)batch.Results[0], "FirstSet")
+            .AddResult((OperationResult)batch.Results[1], "SecondSet")
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
@@ -137,11 +226,18 @@ public sealed class BatchReportingTests
             ImmutableOrderedDictionary<string, object?>.Empty.Add("item", 2));
     }
 
-    private static IRequestExecutorBuilder CreateRequestExecutorBuilder()
+    private IRequestExecutorBuilder CreateRequestExecutorBuilder()
         => new ServiceCollection()
             .AddGraphQLServer()
             .AddDocumentFromString(Schema)
-            .AddResolver("Query", "items", _ => Array.Empty<object>())
+            .AddResolver(
+                "Query",
+                "items",
+                _ =>
+                {
+                    Interlocked.Increment(ref _executionCount);
+                    return Array.Empty<object>();
+                })
             .AddResolver("Item", "value", _ => 0)
             .ModifyCostOptions(o => o.DefaultResolverCost = null);
 }

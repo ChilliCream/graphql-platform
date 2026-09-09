@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using HotChocolate.Execution.DependencyInjection;
 using HotChocolate.Execution.Instrumentation;
@@ -101,23 +102,60 @@ internal sealed class OperationExecutionMiddleware
         Operation operation)
     {
         var variableSets = context.VariableValues;
+        var prebuiltResults =
+            context.Features.Get<VariableBatchExecutionFeature>()?.Results ?? [];
+        var executionCount = variableSets.Length;
+
+        if (!prebuiltResults.IsDefaultOrEmpty)
+        {
+            if (prebuiltResults.Length != variableSets.Length)
+            {
+                context.Result = ErrorHelper.StateInvalidForOperationExecution();
+                return;
+            }
+
+            executionCount = 0;
+
+            foreach (var result in prebuiltResults)
+            {
+                if (result is null)
+                {
+                    executionCount++;
+                }
+            }
+        }
+
+        if (executionCount == 0)
+        {
+            context.Result = CreateResultBatch(prebuiltResults, [], 0);
+            return;
+        }
+
         var queryRoot = GetQueryRootValue(context);
         var rootValue = operation.Definition.Operation is OperationType.Mutation
             ? GetMutationRootValue(context)
             : queryRoot;
-        var operationContextBuffer = ArrayPool<OperationContextOwner>.Shared.Rent(variableSets.Length);
-        var resultBuffer = ArrayPool<IExecutionResult>.Shared.Rent(variableSets.Length);
+        var operationContextBuffer = ArrayPool<OperationContextOwner>.Shared.Rent(executionCount);
+        var resultBuffer = ArrayPool<IExecutionResult>.Shared.Rent(executionCount);
+        var executionIndex = 0;
 
         for (var variableIndex = 0; variableIndex < variableSets.Length; variableIndex++)
         {
+            if (!prebuiltResults.IsDefaultOrEmpty
+                && prebuiltResults[variableIndex] is not null)
+            {
+                continue;
+            }
+
             Initialize(
                 context,
                 batchDispatcher,
                 operation,
                 rootValue,
                 queryRoot,
-                operationContextBuffer.AsSpan(0, variableSets.Length),
+                operationContextBuffer.AsSpan(0, executionCount),
                 variableSets[variableIndex],
+                executionIndex++,
                 variableIndex,
                 _contextFactory);
         }
@@ -127,28 +165,28 @@ internal sealed class OperationExecutionMiddleware
             await _queryExecutor.ExecuteBatchAsync(
                 operationContextBuffer,
                 resultBuffer,
-                variableSets.Length);
+                executionCount);
 
             // Incremental batch items return response streams that are consumed after the request
             // pipeline has completed. We transfer ownership of each streamed item's operation
             // context into its stream so the context is only cleaned and returned to the pool once
             // the stream has been fully consumed, mirroring the single operation path.
-            TransferStreamedContextOwnership(operationContextBuffer, resultBuffer, variableSets.Length);
+            TransferStreamedContextOwnership(operationContextBuffer, resultBuffer, executionCount);
 
-            context.Result = new OperationResultBatch([.. resultBuffer.AsSpan(0, variableSets.Length)]);
+            context.Result = CreateResultBatch(prebuiltResults, resultBuffer, executionCount);
         }
         catch (OperationCanceledException)
         {
             // if an operation is canceled we will abandon the rented operation contexts
             // to ensure that that abandoned tasks do not leak into new operations.
-            AbandonContexts(ref operationContextBuffer, variableSets.Length);
+            AbandonContexts(ref operationContextBuffer, executionCount);
 
             // we rethrow so that another middleware can deal with the cancellation.
             throw;
         }
         finally
         {
-            ReleaseResources(ref operationContextBuffer, resultBuffer, variableSets.Length);
+            ReleaseResources(ref operationContextBuffer, resultBuffer, executionCount);
         }
 
         static void Initialize(
@@ -159,6 +197,7 @@ internal sealed class OperationExecutionMiddleware
             object? queryRoot,
             Span<OperationContextOwner> operationContexts,
             IVariableValueCollection variables,
+            int executionIndex,
             int variableIndex,
             IFactory<OperationContextOwner> operationContextFactory)
         {
@@ -175,7 +214,28 @@ internal sealed class OperationExecutionMiddleware
                 () => queryRoot,
                 variableIndex);
 
-            operationContexts[variableIndex] = operationContextOwner;
+            operationContexts[executionIndex] = operationContextOwner;
+        }
+
+        static OperationResultBatch CreateResultBatch(
+            ImmutableArray<IExecutionResult?> prebuiltResults,
+            IExecutionResult[] executedResults,
+            int executionCount)
+        {
+            if (prebuiltResults.IsDefaultOrEmpty)
+            {
+                return new OperationResultBatch([.. executedResults.AsSpan(0, executionCount)]);
+            }
+
+            var results = ImmutableList.CreateBuilder<IExecutionResult>();
+            var executionIndex = 0;
+
+            foreach (var prebuiltResult in prebuiltResults)
+            {
+                results.Add(prebuiltResult ?? executedResults[executionIndex++]);
+            }
+
+            return new OperationResultBatch(results.ToImmutable());
         }
 
         static void TransferStreamedContextOwnership(
@@ -376,4 +436,9 @@ internal sealed class OperationExecutionMiddleware
                 };
             },
             WellKnownRequestMiddleware.OperationExecutionMiddleware);
+}
+
+internal sealed class VariableBatchExecutionFeature(ImmutableArray<IExecutionResult?> results)
+{
+    public ImmutableArray<IExecutionResult?> Results { get; } = results;
 }

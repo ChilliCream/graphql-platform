@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.CostAnalysis.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
@@ -78,10 +79,24 @@ internal sealed class CostAnalyzerMiddleware(
                 costMetrics = CreateCostMetrics(estimates);
                 context.SetCostMetrics(costMetrics[0]);
 
-                if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce
-                    && !TryEnforce(context, requestOptions, mode, costMetrics))
+                if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce)
                 {
-                    return;
+                    if (costMetrics.Length == 1)
+                    {
+                        if (TryCreateEnforcementError(
+                            requestOptions,
+                            costMetrics[0],
+                            (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report,
+                            out var error))
+                        {
+                            context.Result = error;
+                            return;
+                        }
+                    }
+                    else if (CreateRejectedResults(requestOptions, costMetrics) is { } rejectedResults)
+                    {
+                        context.Features.Set(new VariableBatchExecutionFeature(rejectedResults));
+                    }
                 }
             }
             catch (GraphQLException ex)
@@ -100,7 +115,7 @@ internal sealed class CostAnalyzerMiddleware(
         {
             context.Result =
                 context.Result is null
-                    ? costMetrics[0].CreateResult()
+                    ? costMetrics.CreateResult()
                     : context.Result.AddCostMetrics(costMetrics);
         }
     }
@@ -148,48 +163,72 @@ internal sealed class CostAnalyzerMiddleware(
         return builder.MoveToImmutable();
     }
 
-    private static bool TryEnforce(
-        RequestContext context,
+    private static ImmutableArray<IExecutionResult?>? CreateRejectedResults(
         RequestCostOptions requestOptions,
-        CostAnalyzerMode mode,
         ImmutableArray<CostMetrics> costMetrics)
     {
-        var reportMetrics = (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report;
+        var builder = ImmutableArray.CreateBuilder<IExecutionResult?>(costMetrics.Length);
+        var hasRejectedResult = false;
 
-        foreach (var current in costMetrics)
+        for (var i = 0; i < costMetrics.Length; i++)
         {
-            if (current.FieldCost > requestOptions.MaxFieldCost)
+            if (TryCreateEnforcementError(
+                requestOptions,
+                costMetrics[i],
+                reportMetrics: false,
+                out var error))
             {
-                context.Result = ErrorHelper.MaxFieldCostReached(
-                    current,
-                    requestOptions.MaxFieldCost,
-                    reportMetrics);
-                return false;
+                builder.Add(error.SetVariableIndex(i));
+                hasRejectedResult = true;
             }
-
-            if (current.TypeCost > requestOptions.MaxTypeCost)
+            else
             {
-                context.Result = ErrorHelper.MaxTypeCostReached(
-                    current,
-                    requestOptions.MaxTypeCost,
-                    reportMetrics);
-                return false;
-            }
-
-            if (requestOptions.MaxResponseSize is { } maxResponseSize
-                && current.MaxResponseSize is { } responseSize
-                && responseSize > maxResponseSize)
-            {
-                context.Result = ErrorHelper.MaxResponseSizeReached(
-                    current,
-                    responseSize,
-                    maxResponseSize,
-                    reportMetrics);
-                return false;
+                builder.Add(null);
             }
         }
 
-        return true;
+        return hasRejectedResult ? builder.MoveToImmutable() : null;
+    }
+
+    private static bool TryCreateEnforcementError(
+        RequestCostOptions requestOptions,
+        CostMetrics costMetrics,
+        bool reportMetrics,
+        [NotNullWhen(true)]
+        out IExecutionResult? error)
+    {
+        if (costMetrics.FieldCost > requestOptions.MaxFieldCost)
+        {
+            error = ErrorHelper.MaxFieldCostReached(
+                costMetrics,
+                requestOptions.MaxFieldCost,
+                reportMetrics);
+            return true;
+        }
+
+        if (costMetrics.TypeCost > requestOptions.MaxTypeCost)
+        {
+            error = ErrorHelper.MaxTypeCostReached(
+                costMetrics,
+                requestOptions.MaxTypeCost,
+                reportMetrics);
+            return true;
+        }
+
+        if (requestOptions.MaxResponseSize is { } maxResponseSize
+            && costMetrics.MaxResponseSize is { } responseSize
+            && responseSize > maxResponseSize)
+        {
+            error = ErrorHelper.MaxResponseSizeReached(
+                costMetrics,
+                responseSize,
+                maxResponseSize,
+                reportMetrics);
+            return true;
+        }
+
+        error = null;
+        return false;
     }
 
     public static RequestMiddlewareConfiguration Create()
