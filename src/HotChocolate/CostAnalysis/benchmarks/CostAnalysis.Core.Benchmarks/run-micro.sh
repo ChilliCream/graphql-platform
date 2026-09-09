@@ -6,6 +6,16 @@ repository_root="$(cd -- "${script_dir}/../../../../.." && pwd)"
 project="${script_dir}/HotChocolate.CostAnalysis.Core.Benchmarks.csproj"
 artifacts="${repository_root}/BenchmarkDotNet.Artifacts/cost-analysis-micro"
 results="${script_dir}/../results/micro"
+reports=(
+  "HotChocolate.CostAnalysis.AdversarialCorrelatedBooleansBenchmark-report.csv"
+  "HotChocolate.CostAnalysis.CostPlanBenchmark-report.csv"
+  "HotChocolate.CostAnalysis.LargeSchemaSnapshotBenchmark-report.csv"
+)
+
+rm -rf "${artifacts}"
+for report in "${reports[@]}"; do
+  rm -f "${results}/${report}"
+done
 
 dotnet run -c Release --project "${project}" -- \
   --artifacts "${artifacts}" \
@@ -17,6 +27,11 @@ dotnet run -c Release --project "${project}" -- \
   '*RepeatedRejection*' \
   '*LargeSchemaSnapshotBuild*'
 
-find "${artifacts}/results" -maxdepth 1 -type f \
-  -name '*-report.csv' \
-  -exec cp {} "${results}" \;
+for report in "${reports[@]}"; do
+  source="${artifacts}/results/${report}"
+  if [ ! -s "${source}" ]; then
+    echo "Missing benchmark report: ${source}" >&2
+    exit 1
+  fi
+  cp "${source}" "${results}/${report}"
+done

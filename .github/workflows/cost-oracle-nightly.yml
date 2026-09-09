@@ -43,3 +43,65 @@ jobs:
           name: cost-oracle-fuzz-found
           path: src/HotChocolate/CostAnalysis/test/CostAnalysis.Core.Conformance.Tests/__resources__/fuzz-found
           if-no-files-found: ignore
+
+  performance-gates:
+    name: Performance gates
+    runs-on: ubuntu-latest
+    env:
+      MSBUILDDISABLENODEREUSE: 1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@9a946fdbd5fb07b82b2f5a4466058b876ab72bb2 # v5.3.0
+        with:
+          dotnet-version: 11.0.100-preview.6.26359.118
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+        with:
+          toolchain: stable
+
+      - name: Run same-host head-to-head endpoints
+        run: bash src/HotChocolate/CostAnalysis/benchmarks/CostAnalysis.Core.Benchmarks/head-to-head/run-head-to-head.sh --endpoints
+
+      - name: Stage head-to-head gate inputs
+        run: |
+          destination="${RUNNER_TEMP}/cost-performance-gate-inputs/head-to-head"
+          mkdir -p "${destination}"
+          cp \
+            src/HotChocolate/CostAnalysis/benchmarks/results/head-to-head/cost-endpoints.csv \
+            src/HotChocolate/CostAnalysis/benchmarks/results/head-to-head/oracle-cost-endpoints.csv \
+            src/HotChocolate/CostAnalysis/benchmarks/results/head-to-head/provenance.json \
+            "${destination}/"
+
+      - name: Run micro benchmarks
+        run: bash src/HotChocolate/CostAnalysis/benchmarks/CostAnalysis.Core.Benchmarks/run-micro.sh
+
+      - name: Stage micro gate inputs
+        run: |
+          destination="${RUNNER_TEMP}/cost-performance-gate-inputs/micro"
+          mkdir -p "${destination}"
+          cp \
+            src/HotChocolate/CostAnalysis/benchmarks/results/micro/HotChocolate.CostAnalysis.AdversarialCorrelatedBooleansBenchmark-report.csv \
+            src/HotChocolate/CostAnalysis/benchmarks/results/micro/HotChocolate.CostAnalysis.CostPlanBenchmark-report.csv \
+            src/HotChocolate/CostAnalysis/benchmarks/results/micro/HotChocolate.CostAnalysis.LargeSchemaSnapshotBenchmark-report.csv \
+            "${destination}/"
+          cp \
+            src/HotChocolate/CostAnalysis/benchmarks/results/gates.json \
+            "${RUNNER_TEMP}/cost-performance-gate-inputs/gates.json"
+
+      - name: Enforce frozen performance gates
+        run: dotnet run -c Release --project src/HotChocolate/CostAnalysis/benchmarks/CostAnalysis.Core.Benchmarks -- gate
+
+      - name: Upload current-run gate inputs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: cost-performance-gate-inputs
+          path: ${{ runner.temp }}/cost-performance-gate-inputs
+          if-no-files-found: ignore

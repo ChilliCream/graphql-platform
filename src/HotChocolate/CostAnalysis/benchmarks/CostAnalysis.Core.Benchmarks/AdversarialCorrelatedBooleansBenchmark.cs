@@ -13,20 +13,37 @@ public class AdversarialCorrelatedBooleansBenchmark
     private OperationDefinitionNode _operation = null!;
     private BenchmarkVariableValues _variables = null!;
 
-    [Params(4, 8, 12, 13, 20)]
+    [Params(4, 8, 9, 10, 11, 12, 13, 20)]
     public int VariableCount { get; set; }
 
     [GlobalSetup]
     public void GlobalSetup()
     {
         var schema = BenchmarkFixture.ParseSchema("adversarial-schema.graphql");
-        _snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var options = new CostEngineOptions();
+        _snapshot = CostSchemaSnapshot.Create(schema, options);
         (_document, _operation) =
             BenchmarkFixture.ParseOperationSource(CreateOperation(VariableCount));
         _variables = BenchmarkFixture.Variables(
             Enumerable.Range(0, VariableCount)
                 .Select(index => ($"branch{index}", (IValueNode)BooleanValueNode.True))
                 .ToArray());
+
+        var plan = CostPlanCompiler.Compile(
+            _snapshot,
+            _document,
+            _operation,
+            CostAnalyses.Cost);
+        var requiredSplits = 2 * ((1L << VariableCount) - 1);
+        var expectedToHitBudget = requiredSplits > options.CaseBudget;
+        if (plan.HitCaseBudget != expectedToHitBudget)
+        {
+            throw GateThrowHelper.UnexpectedBudgetResult(
+                VariableCount,
+                options.CaseBudget,
+                expectedToHitBudget,
+                plan.HitCaseBudget);
+        }
     }
 
     [Benchmark]
