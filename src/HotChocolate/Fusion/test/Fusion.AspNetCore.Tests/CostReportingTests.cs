@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.CostAnalysis;
@@ -210,16 +211,33 @@ public class CostReportingTests : FusionTestBase
     }
 
     [Fact]
-    public async Task VariableBatch_Should_FailWhole_When_AnyResultExceedsLimit()
+    public async Task VariableBatch_Should_ExecuteCheapIndicesAndRejectOnlyOffendingIndices()
     {
         // arrange
-        using var server = CreateSourceSchema("A", Schema);
+        using var server = CreateSourceSchema(
+            "A",
+            b => b
+                .AddDocumentFromString(AcceptedBatchSchema)
+                .AddResolver(
+                    "Query",
+                    "items",
+                    context => Enumerable
+                        .Range(0, context.ArgumentValue<int>("n"))
+                        .Select(_ => new AcceptedItem(123)))
+                .AddResolver(
+                    "Item",
+                    "value",
+                    context => context.Parent<AcceptedItem>().Value));
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
             configureGatewayBuilder: b =>
             {
                 b.ModifyServerOptions(o => o.Batching = AllowedBatching.All);
-                b.ModifyCostOptions(o => o.MaxFieldCost = double.PositiveInfinity);
+                b.ModifyCostOptions(o =>
+                {
+                    o.MaxFieldCost = double.PositiveInfinity;
+                    o.MaxTypeCost = 10;
+                });
             });
         var batch = new VariableBatchRequest(
             ItemsQuery,
@@ -232,10 +250,7 @@ public class CostReportingTests : FusionTestBase
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         using var response = await client.SendAsync(
-            new GraphQLHttpRequest(batch, s_endpoint)
-            {
-                OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ReportCost)
-            },
+            new GraphQLHttpRequest(batch, s_endpoint),
             TestContext.Current.CancellationToken);
 
         // assert
@@ -246,56 +261,60 @@ public class CostReportingTests : FusionTestBase
             results.Add(result);
         }
 
-        results.MatchInlineSnapshots(
-            [
-                """
-                {
-                  "errors": [
-                    {
-                      "message": "The maximum allowed type cost was exceeded.",
-                      "extensions": {
-                        "code": "HC0047",
-                        "typeCost": 2,
-                        "maxTypeCost": 1000
-                      }
-                    }
-                  ],
-                  "extensions": {
-                    "operationCost": {
-                      "fieldCost": 6,
-                      "typeCost": 2
-                    }
-                  }
-                }
-                """,
-                """
-                {
-                  "errors": [
-                    {
-                      "message": "The maximum allowed type cost was exceeded.",
-                      "extensions": {
-                        "code": "HC0047",
-                        "typeCost": 1001,
-                        "maxTypeCost": 1000
-                      }
-                    }
-                  ],
-                  "extensions": {
-                    "operationCost": {
-                      "fieldCost": 5001,
-                      "typeCost": 1001
-                    }
-                  }
-                }
-                """
-            ]);
-
-        foreach (var result in results)
+        var cheap = results[0];
+        var offending = results[1];
+        var offendingError = Assert.Single(offending.Errors.EnumerateArray());
+        var offendingErrorExtensions = offendingError.GetProperty("extensions");
+        var cheapCost = cheap.Extensions.GetProperty("operationCost");
+        var offendingCost = offending.Extensions.GetProperty("operationCost");
+        new
         {
-            result.Dispose();
-        }
+            Cheap = new
+            {
+                Values = cheap.Data
+                    .GetProperty("items")
+                    .EnumerateArray()
+                    .Select(item => item.GetProperty("value").GetInt32())
+                    .ToArray(),
+                ErrorKind = cheap.Errors.ValueKind,
+                FieldCost = cheapCost.GetProperty("fieldCost").GetDouble(),
+                TypeCost = cheapCost.GetProperty("typeCost").GetDouble()
+            },
+            Offending = new
+            {
+                DataKind = offending.Data.ValueKind,
+                Message = offendingError.GetProperty("message").GetString(),
+                Code = offendingErrorExtensions.GetProperty("code").GetString(),
+                TypeCost = offendingErrorExtensions.GetProperty("typeCost").GetDouble(),
+                MaxTypeCost = offendingErrorExtensions.GetProperty("maxTypeCost").GetDouble(),
+                ReportedFieldCost = offendingCost.GetProperty("fieldCost").GetDouble(),
+                ReportedTypeCost = offendingCost.GetProperty("typeCost").GetDouble()
+            }
+        }.MatchInlineSnapshot(
+            """
+            {
+              "Cheap": {
+                "Values": [
+                  123
+                ],
+                "ErrorKind": "Undefined",
+                "FieldCost": 6.0,
+                "TypeCost": 2.0
+              },
+              "Offending": {
+                "DataKind": "Undefined",
+                "Message": "The maximum allowed type cost was exceeded.",
+                "Code": "HC0047",
+                "TypeCost": 1001.0,
+                "MaxTypeCost": 10.0,
+                "ReportedFieldCost": 5001.0,
+                "ReportedTypeCost": 1001.0
+              }
+            }
+            """);
 
-        Assert.Empty(gateway.Interactions);
+        DisposeResults(results);
+        Assert.Single(gateway.Interactions["A"]);
     }
 
     [Fact]
@@ -752,12 +771,16 @@ public class CostReportingTests : FusionTestBase
     public async Task ResponseStream_Should_AttachOperationCostToFirstResult_When_Reported()
     {
         // arrange
+        var cleanupCalled = false;
         var stream = new HotChocolate.Execution.ResponseStream(CreateStreamResults);
+        stream.RegisterForCleanup(() => cleanupCalled = true);
         var results = new List<HotChocolate.Execution.OperationResult>();
 
         // act
         var reported = Assert.IsType<HotChocolate.Execution.ResponseStream>(
-            CostResultHelper.AddCost(stream, [new CostEstimate(2, 3, null)]));
+            CostResultHelper.AddCost(
+                stream,
+                [new CostEstimate(2, 3, null), new CostEstimate(20, 30, null)]));
         await foreach (var result in reported.ReadResultsAsync())
         {
             results.Add(result);
@@ -790,6 +813,9 @@ public class CostReportingTests : FusionTestBase
         {
             await result.DisposeAsync();
         }
+
+        await reported.DisposeAsync();
+        Assert.True(cleanupCalled);
     }
 
     [Fact]
@@ -856,8 +882,13 @@ public class CostReportingTests : FusionTestBase
             ImmutableOrderedDictionary<string, object?>.Empty.Add("item", 2));
     }
 
-    private static void AssertOperationCost(OperationResult result, string snapshot)
-        => result.Extensions.GetProperty("operationCost").MatchInlineSnapshot(snapshot);
+    private static void AssertOperationCost(OperationResult result, string expected)
+    {
+        using var document = JsonDocument.Parse(expected);
+        var actual = result.Extensions.GetProperty("operationCost");
+
+        Assert.True(JsonElement.DeepEquals(document.RootElement, actual));
+    }
 
     private static async Task<List<OperationResult>> ReadResultsAsync(GraphQLHttpResponse response)
     {

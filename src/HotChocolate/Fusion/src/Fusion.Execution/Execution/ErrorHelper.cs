@@ -42,6 +42,7 @@ internal static class ErrorHelper
         => OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage("The cost analysis requires a normalized operation document.")
+                .SetCode(ErrorCodes.Execution.CostStateInvalid)
                 .Build());
 
     public static OperationResult MaxFieldCostReached(

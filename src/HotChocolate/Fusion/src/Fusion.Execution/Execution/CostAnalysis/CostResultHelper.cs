@@ -55,15 +55,24 @@ internal static class CostResultHelper
 
     public static OperationResultBatch CreateErrorBatch(
         ImmutableArray<CostEstimate> estimates,
-        CostLimitKind limitKind,
-        double limit,
+        ImmutableArray<CostLimitViolation?> violations,
         bool report)
     {
+        if (estimates.IsDefaultOrEmpty || estimates.Length != violations.Length)
+        {
+            return new OperationResultBatch([ErrorHelper.StateInvalidForCostAnalysis()]);
+        }
+
         var results = ImmutableList.CreateBuilder<IExecutionResult>();
 
-        foreach (var estimate in estimates)
+        for (var i = 0; i < estimates.Length; i++)
         {
-            results.Add(CreateError(estimate, limitKind, limit, report));
+            if (violations[i] is not { } violation)
+            {
+                return new OperationResultBatch([ErrorHelper.StateInvalidForCostAnalysis()]);
+            }
+
+            results.Add(CreateError(estimates[i], violation.Kind, violation.Limit, report));
         }
 
         return new OperationResultBatch(results.ToImmutable());
