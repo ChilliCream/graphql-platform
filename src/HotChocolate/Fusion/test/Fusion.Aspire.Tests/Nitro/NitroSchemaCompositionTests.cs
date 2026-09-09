@@ -1304,11 +1304,11 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         using var products = await archive.TryGetSourceSchemaConfigurationAsync(
             "products",
             cancellationToken);
-        using var gatewayConfiguration = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        using var routerConfiguration = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             cancellationToken);
         var settings = JsonSerializer.Serialize(
-            gatewayConfiguration!.Settings.RootElement,
+            routerConfiguration!.Settings.RootElement,
             new JsonSerializerOptions { WriteIndented = true });
 
         return Normalize(

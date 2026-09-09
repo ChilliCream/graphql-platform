@@ -260,8 +260,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -291,8 +291,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -323,8 +323,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -355,8 +355,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -387,8 +387,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -419,8 +419,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -451,8 +451,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -649,8 +649,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -677,8 +677,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -727,8 +727,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Equal(0, result.ExitCode);
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -1268,15 +1268,15 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.True(File.Exists(archiveFileName));
 
         using var archive = FusionArchive.Open(archiveFileName);
-        var config = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        var config = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
     }
 
-    private static async Task<string> ReadSchemaAsync(GatewayConfiguration config)
+    private static async Task<string> ReadSchemaAsync(RouterConfiguration config)
     {
         await using var stream = await config.OpenReadSchemaAsync();
         using var reader = new StreamReader(stream);

@@ -13,7 +13,9 @@ namespace HotChocolate.Fusion.Packaging;
 
 /// <summary>
 /// Provides functionality for creating, reading, and modifying Fusion Archive (.far) files.
-/// A Fusion Archive is a ZIP-based container format that packages GraphQL Fusion gateway configurations.
+/// A Fusion Archive is a ZIP-based container format that packages GraphQL Fusion router configurations.
+/// The persisted router entries keep the legacy gateway names
+/// (gateway/{version}/gateway.graphqls and gateway/{version}/gateway-settings.json).
 /// </summary>
 public sealed class FusionArchive : IDisposable
 {
@@ -191,46 +193,48 @@ public sealed class FusionArchive : IDisposable
     }
 
     /// <summary>
-    /// Gets the latest (highest version) supported gateway format from the archive metadata.
+    /// Gets the latest (highest version) supported router format from the archive metadata.
+    /// The formats are persisted under the metadata name supportedGatewayFormats.
     /// </summary>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>The latest supported gateway format version.</returns>
+    /// <returns>The latest supported router format version.</returns>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when no supported gateway formats are found.</exception>
-    public async Task<Version> GetLatestSupportedGatewayFormatAsync(CancellationToken cancellationToken = default)
+    /// <exception cref="InvalidOperationException">Thrown when no supported router formats are found.</exception>
+    public async Task<Version> GetLatestSupportedRouterFormatAsync(CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         var metadata = _metadata ?? await GetArchiveMetadataAsync(cancellationToken);
 
-        if (metadata?.SupportedGatewayFormats == null || !metadata.SupportedGatewayFormats.Any())
+        if (metadata?.SupportedRouterFormats == null || !metadata.SupportedRouterFormats.Any())
         {
             throw new InvalidOperationException("No supported gateway formats found in archive metadata.");
         }
 
-        return metadata.SupportedGatewayFormats.Max() ??
+        return metadata.SupportedRouterFormats.Max() ??
             throw new InvalidOperationException("Invalid metadata format.");
     }
 
     /// <summary>
-    /// Gets all supported gateway format versions from the archive metadata, ordered by version descending.
+    /// Gets all supported router format versions from the archive metadata, ordered by version descending.
     /// Returns an empty collection if no formats are supported.
+    /// The formats are persisted under the metadata name supportedGatewayFormats.
     /// </summary>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>Collection of supported gateway format versions.</returns>
+    /// <returns>Collection of supported router format versions.</returns>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    public async Task<IEnumerable<Version>> GetSupportedGatewayFormatsAsync(
+    public async Task<IEnumerable<Version>> GetSupportedRouterFormatsAsync(
         CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         var metadata = _metadata ?? await GetArchiveMetadataAsync(cancellationToken);
 
-        if (metadata?.SupportedGatewayFormats == null || !metadata.SupportedGatewayFormats.Any())
+        if (metadata?.SupportedRouterFormats == null || !metadata.SupportedRouterFormats.Any())
         {
             return [];
         }
 
-        return metadata.SupportedGatewayFormats.OrderByDescending(v => v);
+        return metadata.SupportedRouterFormats.OrderByDescending(v => v);
     }
 
     /// <summary>
@@ -318,18 +322,20 @@ public sealed class FusionArchive : IDisposable
     }
 
     /// <summary>
-    /// Sets the gateway configuration for a specific format version using raw bytes.
+    /// Sets the router configuration for a specific format version using raw bytes.
     /// The version must be declared in the archive metadata before calling this method.
+    /// The configuration is persisted under the gateway entry names
+    /// (gateway/{version}/gateway.graphqls and gateway/{version}/gateway-settings.json).
     /// </summary>
-    /// <param name="schema">The gateway schema as a GraphQL schema string.</param>
-    /// <param name="settings">The gateway settings as a JSON document.</param>
-    /// <param name="version">The gateway format version.</param>
+    /// <param name="schema">The router schema as a GraphQL schema string.</param>
+    /// <param name="settings">The router settings as a JSON document.</param>
+    /// <param name="version">The router format version.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentException">Thrown when schema is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when version is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the archive is read-only, metadata is missing, or version is not declared.</exception>
-    public async Task SetGatewayConfigurationAsync(
+    public async Task SetRouterConfigurationAsync(
         string schema,
         JsonDocument settings,
         Version version,
@@ -341,23 +347,25 @@ public sealed class FusionArchive : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         EnsureMutable();
 
-        await SetGatewayConfigurationAsync(Encoding.UTF8.GetBytes(schema), settings, version, cancellationToken);
+        await SetRouterConfigurationAsync(Encoding.UTF8.GetBytes(schema), settings, version, cancellationToken);
     }
 
     /// <summary>
-    /// Sets the gateway configuration for a specific format version using raw bytes.
+    /// Sets the router configuration for a specific format version using raw bytes.
     /// The version must be declared in the archive metadata before calling this method.
+    /// The configuration is persisted under the gateway entry names
+    /// (gateway/{version}/gateway.graphqls and gateway/{version}/gateway-settings.json).
     /// </summary>
-    /// <param name="schema">The gateway schema as UTF-8 encoded bytes.</param>
-    /// <param name="settings">The gateway settings as a JSON document.</param>
-    /// <param name="version">The gateway format version.</param>
+    /// <param name="schema">The router schema as UTF-8 encoded bytes.</param>
+    /// <param name="settings">The router settings as a JSON document.</param>
+    /// <param name="version">The router format version.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentNullException">Thrown when version is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">
     /// Thrown when the archive is read-only, metadata is missing, or version is not declared.
     /// </exception>
-    public async Task SetGatewayConfigurationAsync(
+    public async Task SetRouterConfigurationAsync(
         ReadOnlyMemory<byte> schema,
         JsonDocument settings,
         Version version,
@@ -375,18 +383,18 @@ public sealed class FusionArchive : IDisposable
                 "You need to first define the archive metadata.");
         }
 
-        if (!metadata.SupportedGatewayFormats.Contains(version))
+        if (!metadata.SupportedRouterFormats.Contains(version))
         {
             throw new InvalidOperationException(
                 "You need to first declare the gateway schema version in the archive metadata.");
         }
 
-        await using (var stream = _session.OpenWrite(FileNames.GetGatewaySchemaPath(version)))
+        await using (var stream = _session.OpenWrite(FileNames.GetRouterSchemaPath(version)))
         {
             await stream.WriteAsync(schema, cancellationToken);
         }
 
-        await using (var stream = _session.OpenWrite(FileNames.GetGatewaySettingsPath(version)))
+        await using (var stream = _session.OpenWrite(FileNames.GetRouterSettingsPath(version)))
         {
             await using var jsonWriter = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
             settings.WriteTo(jsonWriter);
@@ -395,16 +403,18 @@ public sealed class FusionArchive : IDisposable
     }
 
     /// <summary>
-    /// Attempts to get a gateway schema with the highest version that is less
+    /// Attempts to get a router schema with the highest version that is less
     /// than or equal to the specified maximum version.
+    /// The configuration is read from the gateway entry names
+    /// (gateway/{version}/gateway.graphqls and gateway/{version}/gateway-settings.json).
     /// </summary>
     /// <param name="maxVersion">The maximum version to consider.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>A gateway configuration.</returns>
+    /// <returns>A router configuration.</returns>
     /// <exception cref="ArgumentNullException">Thrown when maxVersion or buffer is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when no supported gateway formats are found.</exception>
-    public async Task<GatewayConfiguration?> TryGetGatewayConfigurationAsync(
+    /// <exception cref="InvalidOperationException">Thrown when no supported router formats are found.</exception>
+    public async Task<RouterConfiguration?> TryGetRouterConfigurationAsync(
         Version maxVersion,
         CancellationToken cancellationToken = default)
     {
@@ -412,13 +422,13 @@ public sealed class FusionArchive : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         var metadata = await GetArchiveMetadataAsync(cancellationToken);
-        if (metadata?.SupportedGatewayFormats == null || !metadata.SupportedGatewayFormats.Any())
+        if (metadata?.SupportedRouterFormats == null || !metadata.SupportedRouterFormats.Any())
         {
             throw new InvalidOperationException("No supported gateway formats found in archive metadata.");
         }
 
         // we need to find the version that is less than or equal to the maxVersion
-        var version = metadata.SupportedGatewayFormats.OrderByDescending(v => v).FirstOrDefault(v => v <= maxVersion);
+        var version = metadata.SupportedRouterFormats.OrderByDescending(v => v).FirstOrDefault(v => v <= maxVersion);
         if (version == null)
         {
             return null;
@@ -426,17 +436,17 @@ public sealed class FusionArchive : IDisposable
 
         JsonDocument settings;
         await using (var stream = await _session.OpenReadAsync(
-            FileNames.GetGatewaySettingsPath(version),
+            FileNames.GetRouterSettingsPath(version),
             FileKind.Settings,
             cancellationToken))
         {
             settings = await JsonDocument.ParseAsync(stream, default, cancellationToken);
         }
 
-        return new GatewayConfiguration(OpenReadSchemaAsync, settings, version);
+        return new RouterConfiguration(OpenReadSchemaAsync, settings, version);
 
         Task<Stream> OpenReadSchemaAsync(CancellationToken ct)
-            => _session.OpenReadAsync(FileNames.GetGatewaySchemaPath(version), FileKind.Schema, ct);
+            => _session.OpenReadAsync(FileNames.GetRouterSchemaPath(version), FileKind.Schema, ct);
     }
 
     /// <summary>

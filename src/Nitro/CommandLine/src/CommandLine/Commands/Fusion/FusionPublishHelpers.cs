@@ -429,7 +429,7 @@ internal static class FusionPublishHelpers
                 existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
                     apiId,
                     stageName,
-                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                    WellKnownVersions.LatestRouterFormatVersion.ToString(),
                     ArchiveFormats.Far,
                     cancellationToken);
             }
@@ -462,7 +462,7 @@ internal static class FusionPublishHelpers
                     serverLegacyStream = await client.DownloadLatestFusionArchiveAsync(
                         apiId,
                         stageName,
-                        WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
+                        WellKnownVersions.LegacyRouterFormatVersion.ToString(),
                         ArchiveFormats.Fgp,
                         cancellationToken);
                 }

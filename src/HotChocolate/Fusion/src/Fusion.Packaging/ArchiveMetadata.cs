@@ -4,7 +4,8 @@ namespace HotChocolate.Fusion.Packaging;
 
 /// <summary>
 /// Contains metadata about a Fusion Archive, describing its format version,
-/// supported gateway formats, and included source schemas.
+/// supported router formats, and included source schemas.
+/// The persisted JSON name for the formats is supportedGatewayFormats.
 /// </summary>
 public record ArchiveMetadata
 {
@@ -15,11 +16,12 @@ public record ArchiveMetadata
     public Version FormatVersion { get; init; } = new("1.0.0");
 
     /// <summary>
-    /// Gets or sets the list of gateway format versions contained in this archive.
+    /// Gets or sets the list of router format versions contained in this archive.
     /// Multiple versions allow gradual migration and compatibility testing.
-    /// The gateway will select the highest compatible version at runtime.
+    /// The router will select the highest compatible version at runtime.
+    /// This is persisted under the JSON name supportedGatewayFormats.
     /// </summary>
-    public required ImmutableArray<Version> SupportedGatewayFormats { get; init; }
+    public required ImmutableArray<Version> SupportedRouterFormats { get; init; }
 
     /// <summary>
     /// Gets or sets the list of source schema names included in this archive.

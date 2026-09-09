@@ -10,7 +10,7 @@ internal sealed class OptionalFusionArchiveVersionOption : Option<Version>
     {
         Description = "The version of the archive to download";
         Required = false;
-        DefaultValueFactory = _ => WellKnownVersions.LatestGatewayFormatVersion;
+        DefaultValueFactory = _ => WellKnownVersions.LatestRouterFormatVersion;
         CustomParser = result =>
         {
             var versionStr = result.Tokens.Single().Value;

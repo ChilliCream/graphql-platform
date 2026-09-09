@@ -21,7 +21,7 @@ internal static class NitroTestArchive
             await archive.SetArchiveMetadataAsync(
                 new ArchiveMetadata
                 {
-                    SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
+                    SupportedRouterFormats = [WellKnownVersions.LatestRouterFormatVersion],
                     SourceSchemas = [..sourceSchemaNames]
                 },
                 cancellationToken);
@@ -47,7 +47,7 @@ internal static class NitroTestArchive
             await archive.SetArchiveMetadataAsync(
                 new ArchiveMetadata
                 {
-                    SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
+                    SupportedRouterFormats = [WellKnownVersions.LatestRouterFormatVersion],
                     SourceSchemas = [..sourceSchemas.Select(sourceSchema => sourceSchema.Name)]
                 },
                 cancellationToken);

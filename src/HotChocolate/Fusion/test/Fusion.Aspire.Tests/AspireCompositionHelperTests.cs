@@ -417,12 +417,12 @@ public sealed class AspireCompositionHelperTests
             // assert
             Assert.True(success);
             using var archive = FusionArchive.Open(archivePath);
-            using var gatewayConfiguration = await archive.TryGetGatewayConfigurationAsync(
-                WellKnownVersions.LatestGatewayFormatVersion,
+            using var routerConfiguration = await archive.TryGetRouterConfigurationAsync(
+                WellKnownVersions.LatestRouterFormatVersion,
                 TestContext.Current.CancellationToken);
-            Assert.NotNull(gatewayConfiguration);
+            Assert.NotNull(routerConfiguration);
             JsonSerializer.Serialize(
-                gatewayConfiguration.Settings.RootElement,
+                routerConfiguration.Settings.RootElement,
                 new JsonSerializerOptions { WriteIndented = true }).MatchInlineSnapshot(
                 """
                 {
@@ -704,7 +704,7 @@ public sealed class AspireCompositionHelperTests
                 await seedArchive.SetArchiveMetadataAsync(
                     new ArchiveMetadata
                     {
-                        SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
+                        SupportedRouterFormats = [WellKnownVersions.LatestRouterFormatVersion],
                         SourceSchemas = []
                     },
                     TestContext.Current.CancellationToken);
@@ -797,11 +797,11 @@ public sealed class AspireCompositionHelperTests
             // assert
             Assert.True(success);
             using var archive = FusionArchive.Open(archivePath);
-            using var gatewayConfiguration = await archive.TryGetGatewayConfigurationAsync(
-                WellKnownVersions.LatestGatewayFormatVersion,
+            using var routerConfiguration = await archive.TryGetRouterConfigurationAsync(
+                WellKnownVersions.LatestRouterFormatVersion,
                 TestContext.Current.CancellationToken);
-            Assert.NotNull(gatewayConfiguration);
-            var composedUrl = gatewayConfiguration.Settings.RootElement
+            Assert.NotNull(routerConfiguration);
+            var composedUrl = routerConfiguration.Settings.RootElement
                 .GetProperty("sourceSchemas")
                 .GetProperty("Products")
                 .GetProperty("transports")

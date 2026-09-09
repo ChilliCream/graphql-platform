@@ -3,14 +3,16 @@ using System.Text.Json;
 namespace HotChocolate.Fusion.Packaging;
 
 /// <summary>
-/// Represents a Hot Chocolate Fusion gateway configuration.
+/// Represents a Hot Chocolate Fusion router configuration.
+/// The persisted archive entries keep the legacy gateway names
+/// (gateway/{version}/gateway.graphqls and gateway/{version}/gateway-settings.json).
 /// </summary>
-public sealed class GatewayConfiguration : IDisposable
+public sealed class RouterConfiguration : IDisposable
 {
     private readonly Func<CancellationToken, Task<Stream>> _openReadSchema;
     private bool _disposed;
 
-    internal GatewayConfiguration(
+    internal RouterConfiguration(
         Func<CancellationToken, Task<Stream>> openReadSchema,
         JsonDocument settings,
         Version version)
@@ -24,7 +26,7 @@ public sealed class GatewayConfiguration : IDisposable
     }
 
     /// <summary>
-    /// Gets the version of the gateway configuration.
+    /// Gets the version of the router configuration.
     /// </summary>
     public Version Version { get; }
 
@@ -35,12 +37,12 @@ public sealed class GatewayConfiguration : IDisposable
         => _openReadSchema(cancellationToken);
 
     /// <summary>
-    /// Gets the settings of the gateway configuration.
+    /// Gets the settings of the router configuration.
     /// </summary>
     public JsonDocument Settings { get; }
 
     /// <summary>
-    /// Disposes the gateway configuration.
+    /// Disposes the router configuration.
     /// </summary>
     public void Dispose()
     {

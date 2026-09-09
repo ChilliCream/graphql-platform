@@ -59,7 +59,7 @@ public sealed class NitroApiUrlTests
             apiUrl!,
             "QXBpCmc1YzhkY2Uz",
             "dev",
-            WellKnownVersions.LatestGatewayFormatVersion);
+            WellKnownVersions.LatestRouterFormatVersion);
 
         // assert
         url.AbsoluteUri.MatchInlineSnapshot(
@@ -77,7 +77,7 @@ public sealed class NitroApiUrlTests
             apiUrl!,
             "api/with?special&chars",
             "stage with spaces",
-            WellKnownVersions.LatestGatewayFormatVersion);
+            WellKnownVersions.LatestRouterFormatVersion);
 
         // assert
         url.AbsoluteUri.MatchInlineSnapshot(

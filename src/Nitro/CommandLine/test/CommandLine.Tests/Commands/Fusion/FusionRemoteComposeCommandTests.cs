@@ -70,11 +70,11 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
         using var reader = new StreamReader(schemaStream);
         Assert.Equal(sourceSchema, await reader.ReadToEndAsync(
             TestContext.Current.CancellationToken));
-        using var gatewayConfiguration = await archive.TryGetGatewayConfigurationAsync(
-            WellKnownVersions.LatestGatewayFormatVersion,
+        using var routerConfiguration = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
             TestContext.Current.CancellationToken);
-        Assert.NotNull(gatewayConfiguration);
-        gatewayConfiguration.Settings.RootElement.ToString().MatchInlineSnapshot(
+        Assert.NotNull(routerConfiguration);
+        routerConfiguration.Settings.RootElement.ToString().MatchInlineSnapshot(
             """
             {
               "sourceSchemas": {

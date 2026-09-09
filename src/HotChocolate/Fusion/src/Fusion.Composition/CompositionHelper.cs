@@ -75,7 +75,7 @@ internal static class CompositionHelper
             if (allSourceSchemas.ContainsKey(schemaName))
             {
                 // We have a new configuration for the schema, so we'll take that
-                // instead of the one in the gateway package.
+                // instead of the one in the router package.
                 continue;
             }
 
@@ -188,7 +188,7 @@ internal static class CompositionHelper
 
         var metadata = new ArchiveMetadata
         {
-            SupportedGatewayFormats = [WellKnownVersions.LatestGatewayFormatVersion],
+            SupportedRouterFormats = [WellKnownVersions.LatestRouterFormatVersion],
             SourceSchemas = [.. allSourceSchemas.Keys]
         };
 
@@ -208,12 +208,12 @@ internal static class CompositionHelper
                 cancellationToken);
         }
 
-        using var gatewaySettings = JsonDocument.Parse(bufferWriter.WrittenMemory);
+        using var routerSettings = JsonDocument.Parse(bufferWriter.WrittenMemory);
 
-        await archive.SetGatewayConfigurationAsync(
+        await archive.SetRouterConfigurationAsync(
             result.Value + Environment.NewLine,
-            gatewaySettings,
-            WellKnownVersions.LatestGatewayFormatVersion,
+            routerSettings,
+            WellKnownVersions.LatestRouterFormatVersion,
             cancellationToken);
 
         await SaveCompositionSettingsAsync(archive, mergedCompositionSettings, cancellationToken);
