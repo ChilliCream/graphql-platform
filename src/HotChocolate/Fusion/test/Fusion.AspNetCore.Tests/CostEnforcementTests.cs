@@ -1,17 +1,20 @@
+using System.Collections.Concurrent;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
 using HotChocolate.Caching.Memory;
 using HotChocolate.CostAnalysis;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
 /// <summary>
-/// Verifies the pre-plan cost enforcement checkpoint (hc-3-mmh.8/.9): an over-cost request never
-/// reaches the operation planner, its compiled <see cref="CostPlan"/> is still cached so repeat
-/// rejection is evaluate-only, and enforcement can be turned off with default security.
+/// Verifies that cost enforcement runs before planning and caches rejected operations'
+/// <see cref="CostPlan"/> instances for evaluate-only retries.
 /// </summary>
 public class CostEnforcementTests : FusionTestBase
 {
@@ -38,13 +41,13 @@ public class CostEnforcementTests : FusionTestBase
         }
         """;
 
-    [Fact(Skip = "enabled by fusion-cost-middleware")]
+    [Fact]
     public async Task OverCostRequest_Should_BeRejected_BeforePlanning_When_TypeCostExceedsLimit()
     {
         // arrange
         using var server = CreateSourceSchema("A", OverCostSchema);
         using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
-        var request = new OperationRequest(OverCostQuery);
+        var request = new HotChocolate.Transport.OperationRequest(OverCostQuery);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -61,30 +64,79 @@ public class CostEnforcementTests : FusionTestBase
         Assert.Equal(1, costPlanCache.Count);
     }
 
-    [Fact(Skip = "enabled by fusion-cost-middleware")]
+    [Fact]
     public async Task OverCostRequest_Should_EvaluateOnly_When_RepeatedAfterRejection()
     {
         // arrange
+        var analysisResults = new ConcurrentQueue<CostAnalysisResult>();
         using var server = CreateSourceSchema("A", OverCostSchema);
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
-        var request = new OperationRequest(OverCostQuery);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: builder => builder.UseRequest(
+                (_, next) => async context =>
+                {
+                    await next(context);
+
+                    if (context.TryGetCostAnalysisResult(out var result))
+                    {
+                        analysisResults.Enqueue(result);
+                    }
+                },
+                before: WellKnownRequestMiddleware.CostAnalyzerMiddleware,
+                allowMultiple: true));
+        var request = new HotChocolate.Transport.OperationRequest(OverCostQuery);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var uri = new Uri("http://localhost:5000/graphql");
 
         using var firstResponse = await client.PostAsync(request, uri, TestContext.Current.CancellationToken);
         await firstResponse.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        var hasFirstResult = analysisResults.TryDequeue(out var firstResult);
 
         // act
         using var secondResponse = await client.PostAsync(request, uri, TestContext.Current.CancellationToken);
         await secondResponse.ReadAsResultAsync(TestContext.Current.CancellationToken);
+        var hasSecondResult = analysisResults.TryDequeue(out var secondResult);
 
-        // assert - the second rejection reused the cached CostPlan instead of recompiling it
+        // assert
         var (operationPlanCache, costPlanCache) = await GetCachesAsync(gateway);
+        Assert.True(hasFirstResult);
+        Assert.True(hasSecondResult);
+        Assert.Same(firstResult!.Plan, secondResult!.Plan);
         Assert.Equal(0, operationPlanCache.Count);
         Assert.Equal(1, costPlanCache.Count);
     }
 
-    [Fact(Skip = "enabled by fusion-cost-middleware")]
+    [Theory]
+    [InlineData("application/graphql-response+json", HttpStatusCode.BadRequest)]
+    [InlineData("application/json", HttpStatusCode.OK)]
+    public async Task OverCostRequest_Should_ReturnExpectedStatus_When_AcceptIsSpecified(
+        string accept,
+        HttpStatusCode expectedStatus)
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", OverCostSchema);
+        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"))
+        {
+            Content = new StringContent(
+                """{ "query": "query OverCost { expensive { value } }" }""",
+                Encoding.UTF8,
+                "application/json")
+        };
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(accept));
+
+        // act
+        using var response = await gateway.CreateClient().SendAsync(
+            request,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatus, response.StatusCode);
+    }
+
+    [Fact]
     public async Task OverCostRequest_Should_Execute_When_DefaultSecurityIsDisabled()
     {
         // arrange
@@ -92,7 +144,7 @@ public class CostEnforcementTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
             disableDefaultSecurity: true);
-        var request = new OperationRequest(OverCostQuery);
+        var request = new HotChocolate.Transport.OperationRequest(OverCostQuery);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());

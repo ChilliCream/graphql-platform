@@ -15,6 +15,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
@@ -80,6 +81,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
@@ -148,6 +150,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
@@ -406,6 +409,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
@@ -479,6 +483,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
@@ -552,6 +557,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
@@ -625,6 +631,7 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(

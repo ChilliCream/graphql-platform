@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HotChocolate.CostAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
@@ -94,6 +95,26 @@ public static class FusionRequestContextExtensions
 
         context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
         context.Features.Set<IOperation>(plan.Operation);
+    }
+
+    /// <summary>
+    /// Tries to get the cost analysis result from the request context.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <param name="result">
+    /// The cost analysis result, if one is available.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if a cost analysis result is available, otherwise <c>false</c>.
+    /// </returns>
+    public static bool TryGetCostAnalysisResult(
+        this RequestContext context,
+        [NotNullWhen(true)] out CostAnalysisResult? result)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return context.Features.TryGet(out result);
     }
 
     /// <summary>

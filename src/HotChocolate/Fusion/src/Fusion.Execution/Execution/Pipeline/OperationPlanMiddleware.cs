@@ -51,7 +51,7 @@ internal sealed class OperationPlanMiddleware
         var operationShortHash = operationHash[..8];
 
         using var scope = _diagnosticsEvents.PlanOperation(context, operationId);
-        var inFlightPlan = context.Features.Get<TaskCompletionSource<OperationPlan>>();
+        var inFlightPlan = context.Features.Get<TaskCompletionSource<OperationPlan?>>();
 
         try
         {

@@ -1,5 +1,6 @@
 using System.Net;
 using HotChocolate.Collections.Immutable;
+using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Properties;
 
@@ -35,6 +36,60 @@ internal static class ErrorHelper
             ErrorBuilder.New()
                 .SetMessage("The variable coercion requires a normalized operation document.")
                 .Build());
+
+    public static OperationResult StateInvalidForCostAnalysis()
+        => OperationResult.FromError(
+            ErrorBuilder.New()
+                .SetMessage("The cost analysis requires a normalized operation document.")
+                .Build());
+
+    public static OperationResult MaxFieldCostReached(
+        CostEstimate estimate,
+        double maxFieldCost)
+        => CostExceeded(
+            FusionExecutionResources.ErrorHelper_MaxFieldCostReached,
+            ImmutableOrderedDictionary<string, object?>.Empty
+                .Add("code", ErrorCodes.Execution.CostExceeded)
+                .Add("fieldCost", estimate.FieldCost)
+                .Add("maxFieldCost", maxFieldCost));
+
+    public static OperationResult MaxTypeCostReached(
+        CostEstimate estimate,
+        double maxTypeCost)
+        => CostExceeded(
+            FusionExecutionResources.ErrorHelper_MaxTypeCostReached,
+            ImmutableOrderedDictionary<string, object?>.Empty
+                .Add("code", ErrorCodes.Execution.CostExceeded)
+                .Add("typeCost", estimate.TypeCost)
+                .Add("maxTypeCost", maxTypeCost));
+
+    public static OperationResult MaxResponseSizeReached(
+        CostEstimate estimate,
+        double maxAllowedResponseSize)
+        => CostExceeded(
+            FusionExecutionResources.ErrorHelper_MaxResponseSizeReached,
+            ImmutableOrderedDictionary<string, object?>.Empty
+                .Add("code", ErrorCodes.Execution.CostExceeded)
+                .Add("maxResponseSize", estimate.MaxResponseSize)
+                .Add("maxAllowedResponseSize", maxAllowedResponseSize));
+
+    private static OperationResult CostExceeded(
+        string message,
+        ImmutableOrderedDictionary<string, object?> extensions)
+    {
+        var result = OperationResult.FromError(
+            new Error
+            {
+                Message = message,
+                Extensions = extensions
+            });
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.ValidationErrors,
+            true);
+
+        return result;
+    }
 
     public static IError InvalidNodeIdFormat(string originalValue)
         => ErrorBuilder.New()

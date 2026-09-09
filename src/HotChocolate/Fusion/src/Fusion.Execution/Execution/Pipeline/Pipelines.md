@@ -20,7 +20,8 @@ sequenceDiagram
     Document Normalization-->>Document Normalization: rewrite or reuse NormalizedBody
     Document Normalization->>Operation Variable Coercion: NormalizedBody
     Operation Variable Coercion->>Operation Plan Cache: IVariableValueCollection
-    Operation Plan Cache->>Operation Plan: OperationPlan?
+    Operation Plan Cache->>Cost Analysis: OperationPlan?
+    Cost Analysis->>Operation Plan: CostPlan and CostEstimate
     Operation Plan->>Skip Warmup Execution: OperationPlan
     Skip Warmup Execution->>Concurrency Gate: not Warmup?
     Concurrency Gate->>Operation Execution: slot acquired
@@ -28,7 +29,8 @@ sequenceDiagram
     Operation Execution-->>Concurrency Gate: IExecutionResult
     Concurrency Gate-->>Skip Warmup Execution: IExecutionResult
     Skip Warmup Execution-->>Operation Plan: IExecutionResult
-    Operation Plan-->>Operation Plan Cache: IExecutionResult
+    Operation Plan-->>Cost Analysis: IExecutionResult
+    Cost Analysis-->>Operation Plan Cache: IExecutionResult
     Operation Plan Cache-->>Operation Plan Cache: Cache Operation Plan
     Operation Plan Cache-->>Operation Variable Coercion: IExecutionResult
     Operation Variable Coercion-->>Document Normalization: IExecutionResult
@@ -57,7 +59,8 @@ sequenceDiagram
     Document Normalization-->>Document Normalization: rewrite or reuse NormalizedBody
     Document Normalization->>Operation Variable Coercion: NormalizedBody
     Operation Variable Coercion->>Operation Plan Cache: IVariableValueCollection
-    Operation Plan Cache->>Operation Plan: OperationPlan?
+    Operation Plan Cache->>Cost Analysis: OperationPlan?
+    Cost Analysis->>Operation Plan: CostPlan and CostEstimate
     Operation Plan->>Skip Warmup Execution: OperationPlan
     Skip Warmup Execution->>Concurrency Gate: not Warmup?
     Concurrency Gate->>Operation Execution: slot acquired
@@ -65,7 +68,8 @@ sequenceDiagram
     Operation Execution-->>Concurrency Gate: IExecutionResult
     Concurrency Gate-->>Skip Warmup Execution: IExecutionResult
     Skip Warmup Execution-->>Operation Plan: IExecutionResult
-    Operation Plan-->>Operation Plan Cache: IExecutionResult
+    Operation Plan-->>Cost Analysis: IExecutionResult
+    Cost Analysis-->>Operation Plan Cache: IExecutionResult
     Operation Plan Cache-->>Operation Plan Cache: Cache Operation Plan
     Operation Plan Cache-->>Operation Variable Coercion: IExecutionResult
     Operation Variable Coercion-->>Document Normalization: IExecutionResult
@@ -97,7 +101,8 @@ sequenceDiagram
     Document Normalization-->>Document Normalization: rewrite or reuse NormalizedBody
     Document Normalization->>Operation Variable Coercion: NormalizedBody
     Operation Variable Coercion->>Operation Plan Cache: IVariableValueCollection
-    Operation Plan Cache->>Operation Plan: OperationPlan?
+    Operation Plan Cache->>Cost Analysis: OperationPlan?
+    Cost Analysis->>Operation Plan: CostPlan and CostEstimate
     Operation Plan->>Skip Warmup Execution: OperationPlan
     Skip Warmup Execution->>Concurrency Gate: not Warmup?
     Concurrency Gate->>Operation Execution: slot acquired
@@ -105,7 +110,8 @@ sequenceDiagram
     Operation Execution-->>Concurrency Gate: IExecutionResult
     Concurrency Gate-->>Skip Warmup Execution: IExecutionResult
     Skip Warmup Execution-->>Operation Plan: IExecutionResult
-    Operation Plan-->>Operation Plan Cache: IExecutionResult
+    Operation Plan-->>Cost Analysis: IExecutionResult
+    Cost Analysis-->>Operation Plan Cache: IExecutionResult
     Operation Plan Cache-->>Operation Plan Cache: Cache Operation Plan
     Operation Plan Cache-->>Operation Variable Coercion: IExecutionResult
     Operation Variable Coercion-->>Document Normalization: IExecutionResult

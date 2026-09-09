@@ -11,7 +11,7 @@ internal sealed class OperationPlanCacheMiddleware
 {
     private readonly Cache<OperationPlan> _cache;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly ConcurrentDictionary<string, Lazy<TaskCompletionSource<OperationPlan>>> _inFlightPlans =
+    private readonly ConcurrentDictionary<string, Lazy<TaskCompletionSource<OperationPlan?>>> _inFlightPlans =
         new(StringComparer.Ordinal);
 
     private OperationPlanCacheMiddleware(Cache<OperationPlan> cache, IFusionExecutionDiagnosticEvents diagnosticEvents)
@@ -36,7 +36,7 @@ internal sealed class OperationPlanCacheMiddleware
         context.SetOperationId(operationId);
 
         var isSingleFlightLeader = false;
-        Lazy<TaskCompletionSource<OperationPlan>>? inFlightPlan = null;
+        Lazy<TaskCompletionSource<OperationPlan?>>? inFlightPlan = null;
 
         if (_cache.TryGet(operationId, out var plan))
         {
@@ -50,15 +50,19 @@ internal sealed class OperationPlanCacheMiddleware
             var coalescedPlan = await inFlightPlan.Value.Task
                 .WaitAsync(context.RequestAborted)
                 .ConfigureAwait(false);
-            context.SetOperationPlan(coalescedPlan);
+
+            if (coalescedPlan is not null)
+            {
+                context.SetOperationPlan(coalescedPlan);
+            }
         }
         else
         {
             // No plan is cached and no planning is in progress.
             // Use a Lazy<TCS> so that under burst conditions only one TCS is materialized
             // even if multiple requests race through GetOrAdd concurrently.
-            inFlightPlan = new Lazy<TaskCompletionSource<OperationPlan>>(
-                static () => new TaskCompletionSource<OperationPlan>(
+            inFlightPlan = new Lazy<TaskCompletionSource<OperationPlan?>>(
+                static () => new TaskCompletionSource<OperationPlan?>(
                     TaskCreationOptions.RunContinuationsAsynchronously));
             var cachedInFlightPlan = _inFlightPlans.GetOrAdd(operationId, inFlightPlan);
 
@@ -76,7 +80,11 @@ internal sealed class OperationPlanCacheMiddleware
                 var coalescedPlan = await cachedInFlightPlan.Value.Task
                     .WaitAsync(context.RequestAborted)
                     .ConfigureAwait(false);
-                context.SetOperationPlan(coalescedPlan);
+
+                if (coalescedPlan is not null)
+                {
+                    context.SetOperationPlan(coalescedPlan);
+                }
             }
         }
 
@@ -113,11 +121,8 @@ internal sealed class OperationPlanCacheMiddleware
                     }
                     else if (inFlightPlan?.Value.Task.IsCompleted == false)
                     {
-                        // The pipeline completed without producing a plan and without
-                        // throwing. Signal followers so they do not hang indefinitely.
-                        inFlightPlan.Value.TrySetException(
-                            new InvalidOperationException(
-                                "The operation plan task completed without a result."));
+                        // Followers rerun the cost stage against the plan cached by the leader.
+                        inFlightPlan.Value.TrySetResult(null);
                     }
                 }
                 finally

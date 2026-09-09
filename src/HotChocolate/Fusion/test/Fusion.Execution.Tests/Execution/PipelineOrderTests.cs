@@ -40,6 +40,7 @@ public class PipelineOrderTests
                     WellKnownRequestMiddleware.DocumentNormalizationMiddleware,
                     WellKnownRequestMiddleware.OperationVariableCoercionMiddleware,
                     WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                    WellKnownRequestMiddleware.CostAnalyzerMiddleware,
                     WellKnownRequestMiddleware.OperationPlanMiddleware,
                     WellKnownRequestMiddleware.SkipWarmupExecutionMiddleware,
                     WellKnownRequestMiddleware.ConcurrencyGateMiddleware,
@@ -61,6 +62,7 @@ public class PipelineOrderTests
                     WellKnownRequestMiddleware.DocumentNormalizationMiddleware,
                     WellKnownRequestMiddleware.OperationVariableCoercionMiddleware,
                     WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                    WellKnownRequestMiddleware.CostAnalyzerMiddleware,
                     WellKnownRequestMiddleware.OperationPlanMiddleware,
                     WellKnownRequestMiddleware.SkipWarmupExecutionMiddleware,
                     WellKnownRequestMiddleware.ConcurrencyGateMiddleware,
@@ -82,6 +84,7 @@ public class PipelineOrderTests
                     WellKnownRequestMiddleware.DocumentNormalizationMiddleware,
                     WellKnownRequestMiddleware.OperationVariableCoercionMiddleware,
                     WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                    WellKnownRequestMiddleware.CostAnalyzerMiddleware,
                     WellKnownRequestMiddleware.OperationPlanMiddleware,
                     WellKnownRequestMiddleware.SkipWarmupExecutionMiddleware,
                     WellKnownRequestMiddleware.ConcurrencyGateMiddleware,
@@ -91,8 +94,7 @@ public class PipelineOrderTests
         };
     }
 
-    // Resolves the middleware pipeline the way the request executor manager builds it: the
-    // directly-added configurations followed by every registered pipeline modifier.
+    // Resolves the middleware pipeline the way the request executor manager builds it.
     private static string?[] GetPipelineKeys(IFusionGatewayBuilder builder)
     {
         using var services = builder.Services.BuildServiceProvider();

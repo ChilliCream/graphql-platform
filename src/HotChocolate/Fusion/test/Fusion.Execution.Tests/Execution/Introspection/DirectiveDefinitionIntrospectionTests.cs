@@ -15,6 +15,7 @@ public sealed class DirectiveDefinitionIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
