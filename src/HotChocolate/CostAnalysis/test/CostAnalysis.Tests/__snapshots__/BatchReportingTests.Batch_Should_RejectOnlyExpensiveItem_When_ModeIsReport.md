@@ -1,7 +1,16 @@
-# Batch_Should_FailWholeRequest_When_OnlyOneSetExceedsMaxTypeCost
+# Batch_Should_RejectOnlyExpensiveItem_When_ModeIsReport
+
+## ResultCount
 
 ```json
+2
+```
+
+## ExpensiveSet Result:
+
+```text
 {
+  "variableIndex": 0,
   "errors": [
     {
       "message": "The maximum allowed type cost was exceeded.",
@@ -16,6 +25,23 @@
     "operationCost": {
       "fieldCost": 3001,
       "typeCost": 1001
+    }
+  }
+}
+```
+
+## CheapSet
+
+```text
+{
+  "variableIndex": 1,
+  "data": {
+    "items": []
+  },
+  "extensions": {
+    "operationCost": {
+      "fieldCost": 4,
+      "typeCost": 2
     }
   }
 }

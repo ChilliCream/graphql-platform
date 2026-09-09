@@ -43,6 +43,34 @@ internal static class ResultHelper
         return new OperationResult(extensions: extensions) { ContextData = s_ok };
     }
 
+    public static IExecutionResult CreateResult(this ImmutableArray<CostMetrics> costMetrics)
+    {
+        if (costMetrics.IsDefaultOrEmpty)
+        {
+            return ErrorHelper.StateInvalidForCostAnalysis();
+        }
+
+        if (costMetrics.Length == 1)
+        {
+            return costMetrics[0].CreateResult();
+        }
+
+        var results = ImmutableList.CreateBuilder<IExecutionResult>();
+
+        for (var i = 0; i < costMetrics.Length; i++)
+        {
+            var extensions = AddCostMetrics([], costMetrics[i]);
+            results.Add(
+                new OperationResult(extensions: extensions)
+                {
+                    ContextData = s_ok,
+                    VariableIndex = i
+                });
+        }
+
+        return new OperationResultBatch(results.ToImmutable());
+    }
+
     public static IExecutionResult AddCostMetrics(
         this IExecutionResult? result,
         CostMetrics costMetrics)
@@ -78,6 +106,36 @@ internal static class ResultHelper
             default:
                 return ErrorHelper.StateInvalidForCostAnalysis();
         }
+    }
+
+    public static IExecutionResult SetVariableIndex(
+        this IExecutionResult result,
+        int variableIndex)
+    {
+        if (result is not OperationResult operationResult
+            || operationResult.Data.HasValue)
+        {
+            return ErrorHelper.StateInvalidForCostAnalysis();
+        }
+
+        if (operationResult.Errors.Count > 0)
+        {
+            return new OperationResult(operationResult.Errors, operationResult.Extensions)
+            {
+                ContextData = operationResult.ContextData,
+                RequestIndex = operationResult.RequestIndex,
+                VariableIndex = variableIndex,
+                Document = operationResult.Document
+            };
+        }
+
+        return new OperationResult(operationResult.Extensions)
+        {
+            ContextData = operationResult.ContextData,
+            RequestIndex = operationResult.RequestIndex,
+            VariableIndex = variableIndex,
+            Document = operationResult.Document
+        };
     }
 
     public static IExecutionResult AddCostMetrics(
