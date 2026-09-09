@@ -22,12 +22,17 @@ the six also carry a named-fragment respelling of the same case, and C5
 also carries an already-merged control operation). Attribution for these
 fixtures is in `NOTICE.md`.
 
-At this stage of the cost engine effort, `FixtureWellFormednessTests` only
-checks that every fixture is well-formed: its schema and operation parse
-and its expected numbers are finite numbers. It intentionally runs before
-the engine exists. A later task (core-plan-evaluate) adds the evaluate
-theory that compiles and evaluates each fixture and asserts the result
-against its `expected` values.
+`ConformanceTests` has one theory per fixture family. Each theory parses a
+mutable schema, coerces fixture variables through Fusion's production
+coercion helper, compiles a `CostPlan`, and compares `typeCost` and
+`fieldCost` bit-exactly with the fixture. Families without fixtures are
+reported as skipped.
+
+The article family can be run on its own:
+
+```bash
+dotnet test --project src/HotChocolate/CostAnalysis/test/CostAnalysis.Core.Conformance.Tests/HotChocolate.CostAnalysis.Core.Conformance.Tests.csproj --framework net11.0 --filter-method "*Article_Fixture_Should_MatchOracle*"
+```
 
 ## Regenerating the corpus
 

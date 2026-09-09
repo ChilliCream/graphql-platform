@@ -31,7 +31,7 @@ public interface IAnalysisAlgebra<TSummary>
     /// Computes the summary contributed by one collected field group.
     /// </summary>
     /// <param name="group">
-    /// The collected field group.
+    /// One collected field occurrence and possible parent-type pair.
     /// </param>
     /// <param name="child">
     /// The combined summary of the group's own selection set.

@@ -1,19 +1,60 @@
-using System.Collections.Immutable;
 using HotChocolate.Language;
 
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// One parent member's resolved <c>@listSize(sizedFields:)</c> size and the
-/// child field names it applies to.
+/// One parent member's <c>@listSize(sizedFields:)</c> metadata and slicing
+/// arguments, resolved only when a compiled plan is evaluated.
 /// </summary>
-/// <param name="SizedFields">
-/// The parent's <c>sizedFields</c> argument's names.
+/// <param name="Metadata">
+/// The parent's list-size metadata.
 /// </param>
-/// <param name="Size">
-/// The size resolved for the parent's field call.
+/// <param name="SlicingArguments">
+/// The parent's slicing arguments.
 /// </param>
-internal readonly record struct SizedFieldContext(ImmutableArray<string> SizedFields, double Size);
+/// <param name="DefaultListSize">
+/// The snapshot's default list size.
+/// </param>
+internal readonly record struct SizedFieldContext(
+    ListSizeMetadata Metadata,
+    IReadOnlyDictionary<string, SlicingArgumentValue> SlicingArguments,
+    double DefaultListSize)
+{
+    public bool DependsOnVariables
+    {
+        get
+        {
+            foreach (var argument in SlicingArguments.Values)
+            {
+                if (argument.SuppliedValue is VariableNode)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    public bool TryResolve(
+        string fieldName,
+        ICostVariableValues? variableValues,
+        out double size)
+    {
+        if (!Metadata.SizedFields.Contains(fieldName, StringComparer.Ordinal))
+        {
+            size = 0.0;
+            return false;
+        }
+
+        return ListSizeResolver.TryResolveSizedFieldSize(
+            Metadata,
+            SlicingArguments,
+            variableValues,
+            DefaultListSize,
+            out size);
+    }
+}
 
 /// <summary>
 /// Resolves the <c>@listSize(sizedFields:)</c> context a field group hands
@@ -40,13 +81,8 @@ internal static class InheritedListSizes
 
         var slicingArguments = SlicingArgumentValues.Build(metadata, member.Field, arguments);
 
-        return ListSizeResolver.TryResolveSizedFieldSize(
-            metadata,
-            slicingArguments,
-            variableValues: null,
-            snapshot.Options.DefaultListSize,
-            out var size)
-            ? new SizedFieldContext(metadata.SizedFields, size)
+        return metadata.SizedFields.Length > 0
+            ? new SizedFieldContext(metadata, slicingArguments, snapshot.Options.DefaultListSize)
             : null;
     }
 
@@ -56,11 +92,12 @@ internal static class InheritedListSizes
     /// </summary>
     public static double? InheritedSizeFor(SizedFieldContext? context, string fieldName)
     {
-        if (context is not { } entry || !entry.SizedFields.Contains(fieldName, StringComparer.Ordinal))
+        if (context is not { } entry
+            || !entry.TryResolve(fieldName, variableValues: null, out var size))
         {
             return null;
         }
 
-        return entry.Size;
+        return size;
     }
 }

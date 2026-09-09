@@ -249,7 +249,7 @@ internal static class ExactCasesTraversal
                         responseName,
                         field,
                         member,
-                        InheritedListSizes.InheritedSizeFor(parentSizeContext, fieldName),
+                        parentSizeContext,
                         childDecision);
 
                     groupDecision = groupDecision is null
@@ -295,20 +295,27 @@ internal static class ExactCasesTraversal
         string responseName,
         FieldNode field,
         CollectedFieldGroupMember member,
-        double? inheritedSize,
+        SizedFieldContext? inheritedSizeContext,
         BooleanDecision<TSummary> child)
     {
         if (child is LeafDecision<TSummary> leaf)
         {
-            return BooleanDecision<TSummary>.Leaf(
-                algebra.Field(new CollectedFieldGroup(responseName, field, member, inheritedSize), leaf.Value));
+            var group = new CollectedFieldGroup(
+                responseName,
+                field,
+                member,
+                InheritedListSizes.InheritedSizeFor(inheritedSizeContext, member.Field.Name));
+            var value = algebra is IInheritedSizePlanAlgebra<TSummary> planAlgebra
+                ? planAlgebra.Field(group, inheritedSizeContext, leaf.Value)
+                : algebra.Field(group, leaf.Value);
+            return BooleanDecision<TSummary>.Leaf(value);
         }
 
         var split = (SplitDecision<TSummary>)child;
         return BooleanDecision<TSummary>.Split(
             split.Variable,
-            MapField(algebra, responseName, field, member, inheritedSize, split.WhenFalse),
-            MapField(algebra, responseName, field, member, inheritedSize, split.WhenTrue));
+            MapField(algebra, responseName, field, member, inheritedSizeContext, split.WhenFalse),
+            MapField(algebra, responseName, field, member, inheritedSizeContext, split.WhenTrue));
     }
 
     /// <summary>

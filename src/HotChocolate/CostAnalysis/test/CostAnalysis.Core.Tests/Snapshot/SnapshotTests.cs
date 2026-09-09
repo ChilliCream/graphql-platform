@@ -356,6 +356,34 @@ public class SnapshotTests
         Assert.Throws<InvalidOperationException>(Act);
     }
 
+    [Fact]
+    public void Create_Should_Throw_When_AssumedSize_Is_Null()
+    {
+        // arrange
+        const string sdl = "type Query { a: [Int] @listSize(assumedSize: null) }";
+
+        // act
+        void Act() => BuildSnapshot(sdl);
+
+        // assert
+        Assert.Throws<InvalidOperationException>(Act);
+    }
+
+    [Theory]
+    [InlineData("slicingArguments")]
+    [InlineData("sizedFields")]
+    public void Create_Should_Throw_When_ListSizeName_Is_Invalid(string argumentName)
+    {
+        // arrange
+        var sdl = $"type Query {{ a: [Int] @listSize({argumentName}: [\"not a name\"]) }}";
+
+        // act
+        void Act() => BuildSnapshot(sdl);
+
+        // assert
+        Assert.Throws<InvalidOperationException>(Act);
+    }
+
     // -- requireOneSlicingArgument (R-REQUIRE-ONE, R-REQUIRE-ONE-DEFAULT) -----------------------
 
     [Fact]
@@ -448,6 +476,21 @@ public class SnapshotTests
 
         // assert
         Assert.False(metadata!.RequireOneSlicingArgument);
+    }
+
+    [Theory]
+    [InlineData("null")]
+    [InlineData("1")]
+    public void Create_Should_Throw_When_RequireOneSlicingArgument_Is_NotBoolean(string value)
+    {
+        // arrange
+        var sdl = $"type Query {{ a: [Int] @listSize(requireOneSlicingArgument: {value}) }}";
+
+        // act
+        void Act() => BuildSnapshot(sdl);
+
+        // assert
+        Assert.Throws<InvalidOperationException>(Act);
     }
 
     // -- Abstract type weight: max over member object types (spec 7.2, hc-3-mmh.7 edge rule d) --
@@ -719,16 +762,19 @@ public class SnapshotTests
     // -- Options -----------------------------------------------------------------------------
 
     [Fact]
-    public void Options_Should_Return_The_Instance_Passed_To_Create()
+    public void Options_Should_Copy_Values_When_SnapshotIsCreated()
     {
         // arrange
         var schema = SchemaParser.Parse("type Query { field: String }");
-        var options = new CostEngineOptions { DefaultListSize = 42.0 };
+        var options = new CostEngineOptions { DefaultListSize = 42.0, CaseBudget = 17 };
 
         // act
         var snapshot = CostSchemaSnapshot.Create(schema, options);
+        options.DefaultListSize = 99.0;
+        options.CaseBudget = 3;
 
         // assert
-        Assert.Same(options, snapshot.Options);
+        Assert.Equal(42.0, snapshot.Options.DefaultListSize);
+        Assert.Equal(17, snapshot.Options.CaseBudget);
     }
 }

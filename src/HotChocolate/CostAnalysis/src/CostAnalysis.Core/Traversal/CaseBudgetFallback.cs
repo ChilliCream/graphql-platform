@@ -123,13 +123,14 @@ internal static class CaseBudgetFallback
                     var childValue = childSelections.Count == 0
                         ? algebra.Empty
                         : EvaluateChildEnvelope(snapshot, fragments, algebra, budget, assignment, member, childSelections, childSizeContext);
-                    var pairValue = algebra.Field(
-                        new CollectedFieldGroup(
-                            responseName,
-                            field,
-                            member,
-                            InheritedListSizes.InheritedSizeFor(parentSizeContext, fieldName)),
-                        childValue);
+                    var group = new CollectedFieldGroup(
+                        responseName,
+                        field,
+                        member,
+                        InheritedListSizes.InheritedSizeFor(parentSizeContext, fieldName));
+                    var pairValue = algebra is IInheritedSizePlanAlgebra<TSummary> planAlgebra
+                        ? planAlgebra.Field(group, parentSizeContext, childValue)
+                        : algebra.Field(group, childValue);
 
                     groupValue = hasGroupValue ? algebra.Join(groupValue!, pairValue) : pairValue;
                     hasGroupValue = true;

@@ -1,5 +1,6 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.CostAnalysis;
@@ -25,6 +26,9 @@ public sealed class CostSchemaSnapshot
 
     internal CostSchemaSnapshot(
         CostEngineOptions options,
+        string queryTypeName,
+        string? mutationTypeName,
+        string? subscriptionTypeName,
         FrozenDictionary<string, int> objectTypeIndex,
         IComplexTypeDefinition[] objectTypesByIndex,
         FrozenDictionary<string, PossibleTypeSet> possibleTypes,
@@ -39,6 +43,9 @@ public sealed class CostSchemaSnapshot
         FrozenDictionary<string, ImmutableArray<InputValueMetadata>> directiveArgumentMetadata)
     {
         Options = options;
+        QueryTypeName = queryTypeName;
+        MutationTypeName = mutationTypeName;
+        SubscriptionTypeName = subscriptionTypeName;
         _objectTypeIndex = objectTypeIndex;
         _objectTypesByIndex = objectTypesByIndex;
         _possibleTypes = possibleTypes;
@@ -57,6 +64,21 @@ public sealed class CostSchemaSnapshot
     /// Gets the options this snapshot was built with.
     /// </summary>
     public CostEngineOptions Options { get; }
+
+    internal string QueryTypeName { get; }
+
+    internal string? MutationTypeName { get; }
+
+    internal string? SubscriptionTypeName { get; }
+
+    internal string GetOperationTypeName(OperationType operation)
+        => operation switch
+        {
+            OperationType.Query => QueryTypeName,
+            OperationType.Mutation when MutationTypeName is { } name => name,
+            OperationType.Subscription when SubscriptionTypeName is { } name => name,
+            _ => throw ThrowHelper.OperationTypeNotDefined(operation)
+        };
 
     /// <summary>
     /// Builds a snapshot of <paramref name="schema"/>'s cost-relevant

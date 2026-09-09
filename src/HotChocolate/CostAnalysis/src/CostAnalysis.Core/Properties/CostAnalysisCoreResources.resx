@@ -62,7 +62,7 @@
     <value>This member of the cost engine's public contract is a scaffold shell. It compiles so HotChocolate, Fusion and the benchmarks can build against it, but its implementation lands in a follow-up task.</value>
   </data>
   <data name="ThrowHelper_InvalidCostWeight" xml:space="preserve">
-    <value>The @cost weight at '{0}' is not a finite number ({1}). Weights must parse as a finite double.</value>
+    <value>The @cost weight at '{0}' is invalid ({1}). A weight must be a String, Int, or Float literal that parses as a finite double.</value>
   </data>
   <data name="ThrowHelper_InvalidListSizeArgument" xml:space="preserve">
     <value>The @listSize argument '{0}' at '{1}' has an unexpected value ({2}).</value>
