@@ -131,7 +131,7 @@ Composition accepts compatible IBM-spec `@cost` and `@listSize` definitions that
 
 ## Cost estimates use coerced request values
 
-Cost plans are compiled once and evaluated for each request. Supplied slicing variables, Boolean `@include` and `@skip` conditions, and variable-supplied input objects now affect the estimate that is reported and enforced. An accepted variable batch reports each variable set's cost on its corresponding result in report or validate mode. If any set exceeds a limit, every batch index returns `HC0047` using the first violation's kind and limit, but each index carries its own numeric estimate and, in report mode, its own `operationCost`. The request does not execute.
+Cost plans are compiled once and evaluated for each request. Supplied slicing variables, Boolean `@include` and `@skip` conditions, and variable-supplied input objects now affect the estimate that is reported and enforced. Supported variable batches in report or validate mode produce one result per variable set, with each result carrying that set's `operationCost`. When an executing variable batch enforces cost limits, only offending indices return `HC0047`; accepted query indices still execute and return their data.
 
 Fusion uses the same cost rules as Hot Chocolate:
 
@@ -179,6 +179,6 @@ When `MaxResponseSize` is enabled, `extensions.operationCost` includes `maxRespo
 
 Positive infinite values in `extensions.operationCost` and cost error extensions are serialized as the JSON string `"Infinity"`. A `GraphQL-Cost: report` rejection includes `operationCost` alongside the error.
 
-Single-result cost rejections are request errors. They return HTTP 400 when the response media type is `application/graphql-response+json`; legacy `application/json` responses remain HTTP 200. A rejected Fusion variable batch returns an `OperationResultBatch` and remains HTTP 200 for either media type.
+Single-result cost rejections are request errors. They return HTTP 400 when the response media type is `application/graphql-response+json`; legacy `application/json` responses remain HTTP 200. A Fusion variable batch with rejected indices returns an `OperationResultBatch` and remains HTTP 200 for either media type.
 
-Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan`, all estimates for the request, and whether the result is a static bound.
+Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan`, all estimates for the request, and whether the result is a static bound. Cost analysis and reporting return `HC0048` when required operation or document state is missing, or when metrics cannot be attached to the execution-result state.
