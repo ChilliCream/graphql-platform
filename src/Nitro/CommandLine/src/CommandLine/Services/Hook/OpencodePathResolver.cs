@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Services;
-
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 internal sealed class OpencodePathResolver(
