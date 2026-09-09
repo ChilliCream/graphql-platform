@@ -281,7 +281,9 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     {
         await next(context);
 
-        if (context.TryGetCostAnalysisResult(out var result))
+        if (HotChocolate.Execution.FusionRequestContextExtensions.TryGetCostAnalysisResult(
+            context,
+            out var result))
         {
             observation.Result = result;
         }
