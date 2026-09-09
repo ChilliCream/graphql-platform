@@ -43,4 +43,30 @@ public class CostResultHelperTests
         await result.DisposeAsync();
         Assert.True(cleanupCalled);
     }
+
+    [Fact]
+    public async Task CreateResult_Should_ReturnCostStateInvalid_When_EstimatesAreEmpty()
+    {
+        // act
+        var result = CostResultHelper.CreateResult([]);
+
+        // assert
+        Assert.Equal(
+            new KeyValuePair<string, object?>(ExecutionContextData.ValidationErrors, true),
+            Assert.Single(result.ContextData));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The cost analysis requires a normalized operation document.",
+                  "extensions": {
+                    "code": "HC0048"
+                  }
+                }
+              ]
+            }
+            """);
+        await result.DisposeAsync();
+    }
 }

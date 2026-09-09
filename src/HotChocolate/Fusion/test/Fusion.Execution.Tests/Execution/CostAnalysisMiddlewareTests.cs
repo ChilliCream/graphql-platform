@@ -126,7 +126,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Request_Should_RejectWholeBatch_When_AnyVariableSetExceedsLimit()
+    public async Task Request_Should_RejectBeforePlanning_When_AllVariableSetsExceedLimit()
     {
         // arrange
         var observation = new CostObservation();
@@ -139,7 +139,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
             observation);
         var executor = await services.GetRequestExecutorAsync(
             cancellationToken: TestContext.Current.CancellationToken);
-        using var variables = JsonDocument.Parse("""[{ "n": 1 }, { "n": 1000 }]""");
+        using var variables = JsonDocument.Parse("""[{ "n": 11 }, { "n": 1000 }]""");
         using var request = VariableBatchRequest.FromSourceText(ItemsQuery, variables);
 
         // act
@@ -151,30 +151,42 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
             [
                 """
                 {
-                "errors": [
-                  {
-                    "message": "The maximum allowed type cost was exceeded.",
-                    "extensions": {
-                      "code": "HC0047",
-                      "typeCost": 2,
-                      "maxTypeCost": 10
+                  "errors": [
+                    {
+                      "message": "The maximum allowed type cost was exceeded.",
+                      "extensions": {
+                        "code": "HC0047",
+                        "typeCost": 12,
+                        "maxTypeCost": 10
+                      }
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 1,
+                      "typeCost": 12
                     }
                   }
-                ]
                 }
                 """,
                 """
                 {
-                "errors": [
-                  {
-                    "message": "The maximum allowed type cost was exceeded.",
-                    "extensions": {
-                      "code": "HC0047",
-                      "typeCost": 1001,
-                      "maxTypeCost": 10
+                  "errors": [
+                    {
+                      "message": "The maximum allowed type cost was exceeded.",
+                      "extensions": {
+                        "code": "HC0047",
+                        "typeCost": 1001,
+                        "maxTypeCost": 10
+                      }
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 1,
+                      "typeCost": 1001
                     }
                   }
-                ]
                 }
                 """
             ]);

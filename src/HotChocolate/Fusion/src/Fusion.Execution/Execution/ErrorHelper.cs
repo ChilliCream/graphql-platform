@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Net;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.CostAnalysis;
@@ -9,6 +10,11 @@ namespace HotChocolate.Fusion.Execution;
 
 internal static class ErrorHelper
 {
+    private static readonly ImmutableDictionary<string, object?> s_validationError
+        = ImmutableDictionary<string, object?>.Empty.Add(
+            ExecutionContextData.ValidationErrors,
+            true);
+
     public static OperationResult RequestTimeout(TimeSpan timeout)
     {
         var result = OperationResult.FromError(
@@ -39,9 +45,10 @@ internal static class ErrorHelper
                 .Build());
 
     public static OperationResult StateInvalidForCostAnalysis()
-        => OperationResult.FromError(
+        => RequestError(
             ErrorBuilder.New()
                 .SetMessage("The cost analysis requires a normalized operation document.")
+                .SetCode(ErrorCodes.Execution.CostStateInvalid)
                 .Build());
 
     public static OperationResult MaxFieldCostReached(
@@ -81,18 +88,17 @@ internal static class ErrorHelper
     private static OperationResult CostExceeded(
         string message,
         ImmutableOrderedDictionary<string, object?> extensions)
-    {
-        var result = OperationResult.FromError(
+        => RequestError(
             new Error
             {
                 Message = message,
                 Extensions = extensions
             });
 
-        result.ContextData = result.ContextData.Add(
-            ExecutionContextData.ValidationErrors,
-            true);
-
+    private static OperationResult RequestError(IError error)
+    {
+        var result = OperationResult.FromError(error);
+        result.ContextData = s_validationError;
         return result;
     }
 

@@ -46,9 +46,8 @@ internal sealed class CostAnalysisMiddleware : ICostValidationVariableCoercionPo
         }
 
         ImmutableArray<CostEstimate> estimates;
-        CostEstimate? rejectedEstimate = null;
-        CostLimitKind? rejectedLimitKind = null;
-        double rejectedLimit = 0;
+        CostLimitViolation? rejectedViolation = null;
+        CostBatchEnforcementResult? batchEnforcement = null;
 
         using (_diagnosticEvents.AnalyzeOperationCost(context))
         {
@@ -100,56 +99,54 @@ internal sealed class CostAnalysisMiddleware : ICostValidationVariableCoercionPo
 
             if ((mode & CostAnalysisMode.Enforce) == CostAnalysisMode.Enforce)
             {
-                foreach (var estimate in estimates)
+                if (estimates.Length == 1)
                 {
-                    if (estimate.FieldCost > _options.MaxFieldCost)
+                    rejectedViolation = GetViolation(estimates[0]);
+                }
+                else
+                {
+                    var violations = ImmutableArray.CreateBuilder<CostLimitViolation?>(estimates.Length);
+                    var violationCount = 0;
+
+                    foreach (var estimate in estimates)
                     {
-                        rejectedEstimate = estimate;
-                        rejectedLimitKind = CostLimitKind.FieldCost;
-                        rejectedLimit = _options.MaxFieldCost;
-                        break;
+                        var currentViolation = GetViolation(estimate);
+                        violations.Add(currentViolation);
+
+                        if (currentViolation.HasValue)
+                        {
+                            violationCount++;
+                        }
                     }
 
-                    if (estimate.TypeCost > _options.MaxTypeCost)
+                    if (violationCount > 0)
                     {
-                        rejectedEstimate = estimate;
-                        rejectedLimitKind = CostLimitKind.TypeCost;
-                        rejectedLimit = _options.MaxTypeCost;
-                        break;
+                        batchEnforcement = new CostBatchEnforcementResult(
+                            estimates,
+                            violations.MoveToImmutable());
+                        context.Features.Set(batchEnforcement);
                     }
 
-                    if (_options.MaxResponseSize is { } maxResponseSize
-                        && estimate.MaxResponseSize > maxResponseSize)
+                    if (violationCount == estimates.Length)
                     {
-                        rejectedEstimate = estimate;
-                        rejectedLimitKind = CostLimitKind.ResponseSize;
-                        rejectedLimit = maxResponseSize;
-                        break;
+                        context.Result = CostResultHelper.CreateErrorBatch(
+                            estimates,
+                            batchEnforcement!.Violations,
+                            report: true);
+                        return default;
                     }
                 }
             }
         }
 
-        if (rejectedLimitKind is { } limitKind)
+        if (rejectedViolation is { } violation)
         {
             var report = (mode & CostAnalysisMode.Report) == CostAnalysisMode.Report;
-
-            if (estimates.Length > 1)
-            {
-                context.Result = CostResultHelper.CreateErrorBatch(
-                    estimates,
-                    limitKind,
-                    rejectedLimit,
-                    report);
-            }
-            else
-            {
-                context.Result = CostResultHelper.CreateError(
-                    rejectedEstimate!.Value,
-                    limitKind,
-                    rejectedLimit,
-                    report);
-            }
+            context.Result = CostResultHelper.CreateError(
+                estimates[0],
+                violation.Kind,
+                violation.Limit,
+                report);
 
             return default;
         }
@@ -158,7 +155,8 @@ internal sealed class CostAnalysisMiddleware : ICostValidationVariableCoercionPo
         {
             var execution = next(context);
 
-            if ((mode & CostAnalysisMode.Report) == CostAnalysisMode.Report)
+            if ((mode & CostAnalysisMode.Report) == CostAnalysisMode.Report
+                || batchEnforcement is not null)
             {
                 return AwaitAndReportAsync(context, execution, estimates);
             }
@@ -174,6 +172,27 @@ internal sealed class CostAnalysisMiddleware : ICostValidationVariableCoercionPo
         }
 
         return default;
+    }
+
+    private CostLimitViolation? GetViolation(CostEstimate estimate)
+    {
+        if (estimate.FieldCost > _options.MaxFieldCost)
+        {
+            return new CostLimitViolation(CostLimitKind.FieldCost, _options.MaxFieldCost);
+        }
+
+        if (estimate.TypeCost > _options.MaxTypeCost)
+        {
+            return new CostLimitViolation(CostLimitKind.TypeCost, _options.MaxTypeCost);
+        }
+
+        if (_options.MaxResponseSize is { } maxResponseSize
+            && estimate.MaxResponseSize > maxResponseSize)
+        {
+            return new CostLimitViolation(CostLimitKind.ResponseSize, maxResponseSize);
+        }
+
+        return null;
     }
 
     private static async ValueTask AwaitAndReportAsync(
