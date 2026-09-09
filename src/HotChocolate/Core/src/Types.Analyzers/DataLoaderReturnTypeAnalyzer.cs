@@ -57,7 +57,7 @@ public sealed class DataLoaderReturnTypeAnalyzer : DiagnosticAnalyzer
                 Errors.DataLoaderReturnTypeInvalid,
                 methodDeclaration.ReturnType.GetLocation(),
                 contract.Kind is DataLoaderKind.Batch
-                    ? "Task/ValueTask of IReadOnlyDictionary<TKey, TValue> or IDictionary<TKey, TValue>"
+                    ? "Task/ValueTask of IReadOnlyDictionary<TKey, TValue>, IDictionary<TKey, TValue>, or Dictionary<TKey, TValue>"
                     : "Task/ValueTask of TValue"));
         }
     }

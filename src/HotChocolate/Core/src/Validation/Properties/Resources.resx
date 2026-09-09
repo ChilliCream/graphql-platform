@@ -143,6 +143,9 @@
   <data name="ErrorHelper_NoSelectionOnCompositeField" xml:space="preserve">
     <value>Field "{0}" of type "{1}" must have a selection of subfields. Did you mean "{0} {{ ... }}"?</value>
   </data>
+  <data name="ErrorHelper_NoSelectionOnFragment" xml:space="preserve">
+    <value>The fragment on type "{0}" has an empty selection set. Fragments without selections are disallowed.</value>
+  </data>
   <data name="ErrorHelper_NoSelectionOnRootType" xml:space="preserve">
     <value>Operation `{0}` has an empty selection set. Root types without selections are disallowed.</value>
   </data>
