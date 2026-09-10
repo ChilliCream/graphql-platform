@@ -121,7 +121,7 @@ export function CustomsGate() {
               />
             </g>
             {w.name === CONFLICT && (
-              <g className="hbr-c-stop">
+              <g className="hbr-c-stop" opacity="0">
                 <rect
                   x={16}
                   y={rowY(i)}
@@ -181,7 +181,7 @@ export function CustomsGate() {
           fill={DUSK.accent}
           opacity="0"
         />
-        <g className="hbr-c-stop">
+        <g className="hbr-c-stop" opacity="0">
           <rect
             x={334}
             y={236}
@@ -227,7 +227,7 @@ export function CustomsGate() {
             style={{ animationDelay: `${i * 0.9}s` }}
           />
         ))}
-        <g className="hbr-c-stop">
+        <g className="hbr-c-stop" opacity="0">
           <rect
             x={482}
             y={222}
