@@ -29,10 +29,10 @@ import {
 
 const CSS = `
 .ic-hero[data-run="false"] [class*="ic-h-"] { animation: none; }
-.ic-hero .ic-h-rise { animation: ic-h-rise 22s ease-out infinite; }
+.ic-hero .ic-h-rise { animation: ic-h-rise 22s ease-out backwards infinite; }
 .ic-hero .ic-h-day { animation: ic-h-day 22s ease-in-out infinite; }
-.ic-hero .ic-h-win { animation: ic-h-win 22s ease-in-out infinite; }
-.ic-hero .ic-h-drive { animation: ic-h-drive 22s ease-in-out infinite; }
+.ic-hero .ic-h-win { animation: ic-h-win 22s ease-in-out backwards infinite; }
+.ic-hero .ic-h-drive { animation: ic-h-drive 22s ease-in-out backwards infinite; }
 .ic-hero .ic-h-beacon { animation: ic-h-beacon 5s ease-in-out infinite; }
 @keyframes ic-h-rise {
   0% { transform: translateY(46px); opacity: 0; }
