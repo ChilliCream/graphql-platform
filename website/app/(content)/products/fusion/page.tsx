@@ -136,11 +136,6 @@ export default function FusionPage() {
       <AnyServerSection />
       <ClientSafetySection />
       <NitroCta />
-
-      <ButtonRow>
-        <SolidButton href={GETTING_STARTED_HREF}>Start with Fusion</SolidButton>
-        <OutlineButton href={CONTACT_HREF}>Contact an Expert</OutlineButton>
-      </ButtonRow>
     </>
   );
 }
