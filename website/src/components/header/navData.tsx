@@ -124,6 +124,13 @@ export const NAV_ITEMS: NavItem[] = [
             iconSize: NITRO_ARTWORK,
           },
           {
+            href: "/products/fusion",
+            label: "Fusion",
+            description: "The gateway for GraphQL Federation.",
+            icon: Fusion,
+            iconSize: FUSION_ARTWORK,
+          },
+          {
             href: "/products/mocha",
             label: "Mocha",
             description: "Messaging for .NET.",
