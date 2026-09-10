@@ -1,0 +1,72 @@
+{
+  "ticket": "repo-7i1.2",
+  "description": "Immutable representative pre-rename Fusion Archive fixture, used to prove the renamed FusionArchive read API still reads archives produced by the last pre-rename release.",
+  "producedWith": {
+    "package": "HotChocolate.Fusion.Packaging",
+    "version": "16.6.4",
+    "source": "https://www.nuget.org/packages/HotChocolate.Fusion.Packaging/16.6.4",
+    "apiSurface": "Pre-rename Gateway-named public API (GatewayConfiguration, SetGatewayConfigurationAsync, GetSupportedGatewayFormatsAsync, ArchiveMetadata.SupportedGatewayFormats)"
+  },
+  "producedBy": "src/HotChocolate/Fusion/test/Fusion.Packaging.Tests/tools/LegacyPackagingHarness (command: write)",
+  "regenerate": "dotnet run --project tools/LegacyPackagingHarness -- write <archivePath> <certPath>",
+  "files": {
+    "pre-rename-archive-16.6.4.far": {
+      "sha256": "10f652f5943fcf95c96fd05956de1e82b61c434a522796fe44e416d8d69c40ea",
+      "note": "Do not regenerate from the renamed (16.7) writer. If the harness or fixture scenario legitimately changes, regenerate with the pinned 16.6.4 harness and update this provenance file, never by re-signing or hand-editing the committed archive."
+    },
+    "pre-rename-archive-16.6.4.cer": {
+      "sha256": "cf5ec8074abfc6bbe7689bbc71e07cd75d1664f0cb3050a679d69be4c00631af",
+      "note": "Public-only signing certificate exported alongside the archive; used to verify the archive's embedded signature. Contains no private key."
+    }
+  },
+  "contents": {
+    "archiveMetadata": {
+      "formatVersion": "1.0.0",
+      "supportedGatewayFormats": ["1.0.0", "2.0.0", "2.1.0"],
+      "sourceSchemas": ["accounts", "catalog"],
+      "note": "2.1.0 and its gateway configuration were added in a second Update-mode pass against the already-committed archive, proving update mode round-trips."
+    },
+    "gatewayConfigurations": {
+      "1.0.0": { "schema": "type Query {\n  hello: String\n}\n", "settings": "{ \"maxOperationComplexity\": 100, \"nodeResolution\": \"GATEWAY\" }" },
+      "2.0.0": { "schema": "type Query {\n  hello: String @fusion__gateway_field(schema: SOURCE_SCHEMA)\n}\n", "settings": "{ \"maxOperationComplexity\": 250, \"nodeResolution\": \"GATEWAY\" }" },
+      "2.1.0": { "schema": "type Query {\n  hello: String @fusion__gateway_field(schema: SOURCE_SCHEMA)\n  world: String @fusion__gateway_field(schema: SOURCE_SCHEMA)\n}\n", "settings": "{ \"maxOperationComplexity\": 500, \"nodeResolution\": \"GATEWAY\" }" }
+    },
+    "sourceSchemaConfigurations": {
+      "accounts": {
+        "schema": "type Query {\n  account: String\n}\n",
+        "extensions": "extend type Query {\n  accountExtra: String\n}\n",
+        "settings": "{ \"schemaName\": \"accounts\" }"
+      },
+      "catalog": {
+        "schema": "type Query {\n  catalog: String\n}\n",
+        "extensions": null,
+        "settings": "{ \"schemaName\": \"catalog\" }"
+      }
+    },
+    "legacyArchiveFile": {
+      "utf8Content": "repo-7i1.2-legacy-v1-archive-fixture-payload",
+      "sha256": "319981fa1de14abd80b22ec5e53b58d88fcd1c60e29480425ec9e0bde682f304"
+    },
+    "signature": {
+      "signed": true,
+      "algorithm": "SHA256"
+    },
+    "entryNames": [
+      "archive-metadata.json",
+      "gateway/1.0.0/gateway.graphqls",
+      "gateway/1.0.0/gateway-settings.json",
+      "gateway/2.0.0/gateway.graphqls",
+      "gateway/2.0.0/gateway-settings.json",
+      "gateway/2.1.0/gateway.graphqls",
+      "gateway/2.1.0/gateway-settings.json",
+      "source-schemas/accounts/schema.graphqls",
+      "source-schemas/accounts/schema-extensions.graphqls",
+      "source-schemas/accounts/schema-settings.json",
+      "source-schemas/catalog/schema.graphqls",
+      "source-schemas/catalog/schema-settings.json",
+      "legacy-v1-archive.fgp",
+      ".signature/manifest.json",
+      ".signature/signature.p7s"
+    ]
+  }
+}
