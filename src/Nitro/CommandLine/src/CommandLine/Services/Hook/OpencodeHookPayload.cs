@@ -32,6 +32,18 @@ internal sealed class OpencodeHookPayload
         set => ServerPassword = value;
     }
 
+    /// <summary>
+    /// Whether the shim's own process.argv carried one of the flags
+    /// (<c>--port</c>, <c>--hostname</c>, <c>--mdns</c>) that make opencode
+    /// actually bind an HTTP server. Missing (an older shim that predates
+    /// this field) defaults to <c>false</c>, the safe reading: it demotes
+    /// an unproven <see cref="ServerUrl"/> to <c>endpoint_kind = 'none'</c>
+    /// rather than trusting a placeholder. See
+    /// <see cref="ChilliCream.Nitro.CommandLine.Services.Workspace.EndpointAddress.IsTrustedOpencodeServerUrl"/>.
+    /// </summary>
+    [JsonPropertyName("serverBound")]
+    public bool ServerBound { get; set; }
+
     [JsonPropertyName("harnessVersion")]
     public string? HarnessVersion { get; set; }
 

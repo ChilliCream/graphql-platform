@@ -79,6 +79,50 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         Assert.Equal("1.18.25", row.HarnessVersion);
     }
 
+    /// <summary>
+    /// Regression for hc-10-w61.1: a plain <c>opencode</c> TUI never binds
+    /// an HTTP server, so its plugin's <c>serverUrl</c> getter falls back
+    /// to a hardcoded <c>http://localhost:4096</c> placeholder that is
+    /// syntactically a perfectly valid URL. Registering it as a healthy
+    /// <c>opencode-server</c> endpoint is worse than a dead port: 4096 is
+    /// also opencode's own <c>opencode serve</c> default, so a push aimed
+    /// at this session could land in an unrelated process's session
+    /// instead. The shim now reports whether one of the flags that
+    /// actually make opencode bind (<c>--port</c> / <c>--hostname</c> /
+    /// <c>--mdns</c>) was present in its own argv; when it was not, the
+    /// endpoint is unproven and must be demoted to <c>endpoint_kind =
+    /// 'none'</c> with the idle-push gate left unarmed, so the dispatcher
+    /// records "no-endpoint" honestly instead of spending a push on it.
+    /// </summary>
+    [Fact]
+    public async Task HandleSessionCreatedAsync_Should_RejectThePlaceholderServerUrl_When_NoBindFlagWasPassed()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var payload = Payload(SessionId);
+        payload.ServerUrl = "http://localhost:4096/";
+        payload.ServerBound = false;
+
+        // act
+        await _handler.HandleSessionCreatedAsync(payload, dryRun: true, cancellationToken);
+
+        // assert: no endpoint is trusted enough to push into.
+        var row = await FindRowAsync(cancellationToken);
+        Assert.NotNull(row);
+        Assert.Equal(AgentSessionEndpointKind.None, row.EndpointKind);
+        Assert.Equal(string.Empty, row.EndpointAddr);
+        Assert.Null(row.EndpointSecret);
+
+        // assert: the idle-push gate never armed, so the dispatcher's sole
+        // claimant finds nothing to claim.
+        Assert.False(await _sessions.ClaimIdlePushAsync(CurrentGeneration(), cancellationToken));
+
+        // assert: the announcement still arms - it rides chat.message, not
+        // HTTP, so it is unaffected by endpoint trust.
+        Assert.True(await _sessions.IsAnnouncementPendingAsync(CurrentGeneration(), cancellationToken));
+    }
+
     [Fact]
     public async Task HandleChatMessageAsync_Should_AppendTheActorAnnouncementOnlyOnce()
     {
@@ -584,7 +628,8 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         Cwd = _workspaceRoot,
         ServerUrl = "http://127.0.0.1:4096",
         ServerPassword = "secret",
-        HarnessVersion = "1.18.25"
+        HarnessVersion = "1.18.25",
+        ServerBound = true
     };
 
     private OpencodeHookHandler CreateHandler(ISessionDeliveryLedger ledger) => new(

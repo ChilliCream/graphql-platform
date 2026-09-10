@@ -31,6 +31,18 @@ internal static class OpencodeHooksTemplate
             // boundary can wait for confirmed delivery instead of clearing
             // on the attempt.
             const appendOutcomes = new Map();
+            // A plain `opencode` TUI never binds an HTTP server: it reaches
+            // its own server inside a Worker over postMessage RPC, and
+            // serverUrl below then falls back to a hardcoded
+            // http://localhost:4096 placeholder nothing is listening on.
+            // opencode's own bind gate checks process.argv for exactly
+            // these flags before binding a server; mirrored here so the
+            // hook process can tell a proven endpoint from the placeholder
+            // instead of trusting liveness alone (see hc-10-w61.1). Read
+            // once: argv cannot change for the life of this process.
+            const serverBound = ["--port", "--hostname", "--mdns"].some(
+              (flag) => process.argv.some((arg) => arg === flag || arg.startsWith(flag + "="))
+            );
 
             function sessionId(properties) {
               return properties.sessionID ?? properties.sessionId ?? properties.session?.id ?? properties.info?.id;
@@ -40,6 +52,7 @@ internal static class OpencodeHooksTemplate
               const result = {
                 serverUrl: serverUrl.toString(),
                 sessionId: sessionId(properties),
+                serverBound,
               };
 
               if (process.env.OPENCODE_SERVER_PASSWORD) {

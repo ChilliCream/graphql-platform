@@ -37,13 +37,28 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
+        // A plain `opencode` TUI never binds an HTTP server - it reaches
+        // its own server inside a Worker over postMessage RPC - and its
+        // serverUrl then falls back to a hardcoded http://localhost:4096
+        // placeholder that looks like a healthy endpoint. Trusting it is
+        // worse than a dead port: 4096 is also opencode's own
+        // `opencode serve` default, so a push aimed at this session could
+        // land in an unrelated process's session instead. Only register it
+        // as endpoint_kind='opencode-server' when the shim proved, from its
+        // own process.argv, that this process actually bound a server (see
+        // EndpointAddress.IsTrustedOpencodeServerUrl and hc-10-w61.1).
+        var trusted = EndpointAddress.IsTrustedOpencodeServerUrl(payload.ServerUrl!, payload.ServerBound);
+        var (endpointKind, endpointAddr, endpointSecret) = trusted
+            ? (AgentSessionEndpointKind.OpencodeServer, payload.ServerUrl!, payload.ServerPassword)
+            : (AgentSessionEndpointKind.None, string.Empty, null);
+
         await sessionRegistry.StartAsync(
             resolved.Generation,
             resolved.Cwd,
             resolved.WorkspaceDirectory,
-            AgentSessionEndpointKind.OpencodeServer,
-            payload.ServerUrl!,
-            payload.ServerPassword,
+            endpointKind,
+            endpointAddr,
+            endpointSecret,
             envActor: null,
             cancellationToken);
 
@@ -53,11 +68,22 @@ internal sealed class OpencodeHookHandler(
                 resolved.Generation, payload.HarnessVersion, cancellationToken);
         }
 
-        // Arms the first-prompt announcement and the idle-push gate so a
-        // session that goes idle before its first chat message still pushes
-        // once, exactly as a session with prior chat activity would.
+        // Arms the first-prompt announcement so a session that goes idle
+        // before its first chat message still announces once, exactly as a
+        // session with prior chat activity would. This rides the
+        // chat.message hook's own response, never HTTP, so it works even
+        // when nothing is proven to be listening.
         await sessionRegistry.ArmAnnouncementAsync(resolved.Generation, cancellationToken);
-        await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
+
+        if (trusted)
+        {
+            // The idle-push gate spends real HTTP pushes, so it is only
+            // armed for an endpoint proven to belong to this process. An
+            // untrusted endpoint stays endpoint_kind='none', which the
+            // dispatcher already treats as "no-endpoint" before it would
+            // ever consult this gate (see ActorWakeDispatcher).
+            await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
+        }
 
         return OpencodeHookOutcome.Neutral;
     }
