@@ -10,6 +10,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol;
 using ModelContextProtocol.Client;
@@ -658,6 +659,31 @@ public abstract class IntegrationTestBase
                 JsonSerializerOptions)
             .ReplaceLineEndings("\n")
             .MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
+    public async Task ListTools_StatelessTransport_ReturnsTools()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        var server =
+            await CreateTestServerAsync(
+                storage,
+                configureMcpServer: b => b.WithHttpTransport(o => o.Stateless = true));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("get_books_with_title1", Assert.Single(tools).Name);
     }
 
     [Fact]
@@ -1368,6 +1394,33 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public async Task CallTool_StatelessTransport_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        var server =
+            await CreateTestServerAsync(
+                storage,
+                configureMcpServer: b => b.WithHttpTransport(o => o.Stateless = true));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.CallToolAsync(
+            "get_books_with_title1",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.StructuredContent.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
     public async Task ReadResource_Valid_ReturnsResource()
     {
         // arrange
@@ -1436,6 +1489,38 @@ public abstract class IntegrationTestBase
         Assert.EndsWith("Resource not found.", exception.Message);
         Assert.Equal(-32002, (int)exception.ErrorCode);
         Assert.Equal("ui://views/missing.html", exception.Data["uri"]);
+    }
+
+    [Fact]
+    public async Task ListTools_ServerOptionsMaterializedInScope_ReturnsTools()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // arrange: materialize the server options in a scope that is disposed again
+        using (var scope = executor.Schema.Services.CreateScope())
+        {
+            _ = scope.ServiceProvider
+                .GetRequiredService<IOptionsSnapshot<McpServerOptions>>().Value;
+        }
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("get_books_with_title1", Assert.Single(tools).Name);
     }
 
     [Fact]

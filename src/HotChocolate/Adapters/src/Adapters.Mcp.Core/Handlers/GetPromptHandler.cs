@@ -11,9 +11,11 @@ namespace HotChocolate.Adapters.Mcp.Handlers;
 
 internal static partial class GetPromptHandler
 {
-    public static GetPromptResult Handle(RequestContext<GetPromptRequestParams> context)
+    public static GetPromptResult Handle(
+        RequestContext<GetPromptRequestParams> context,
+        IServiceProvider schemaServices)
     {
-        var registry = context.Services!.GetRequiredService<McpFeatureRegistry>();
+        var registry = schemaServices.GetRequiredService<McpFeatureRegistry>();
 
         if (!registry.TryGetPrompt(context.Params!.Name, out var prompt))
         {

@@ -113,6 +113,22 @@ internal static class ServiceCollectionExtensions
         var mcpServers = new ConcurrentDictionary<string, McpServer>();
         services.AddSingleton(mcpServers);
 
+        var schemaServices = new McpSchemaServiceProvider();
+
+        // The factory of a singleton is always invoked with the root service provider.
+        services.AddSingleton(
+            sp =>
+            {
+                schemaServices.Bind(sp);
+
+                return schemaServices;
+            });
+
+        services
+            .AddOptions<McpServerOptions>()
+            .Configure<IServiceProvider>(
+                (_, provider) => provider.GetRequiredService<McpSchemaServiceProvider>());
+
         var mcpServerBuilder =
             services
                 .AddMcpServer(options =>
@@ -151,14 +167,18 @@ internal static class ServiceCollectionExtensions
 #pragma warning restore MCPEXP002
                 })
                 .WithListPromptsHandler(
-                    (context, _) => ValueTask.FromResult(ListPromptsHandler.Handle(context)))
+                    (_, _) => ValueTask.FromResult(ListPromptsHandler.Handle(schemaServices)))
                 .WithGetPromptHandler(
-                    (context, _) => ValueTask.FromResult(GetPromptHandler.Handle(context)))
+                    (context, _) =>
+                        ValueTask.FromResult(GetPromptHandler.Handle(context, schemaServices)))
                 .WithReadResourceHandler(
-                    (context, _) => ValueTask.FromResult(ReadResourceHandler.Handle(context)))
+                    (context, _) =>
+                        ValueTask.FromResult(ReadResourceHandler.Handle(context, schemaServices)))
                 .WithListToolsHandler(
-                    (context, _) => ValueTask.FromResult(ListToolsHandler.Handle(context)))
-                .WithCallToolHandler(CallToolHandler.HandleAsync);
+                    (_, _) => ValueTask.FromResult(ListToolsHandler.Handle(schemaServices)))
+                .WithCallToolHandler(
+                    (context, cancellationToken) =>
+                        CallToolHandler.HandleAsync(context, schemaServices, cancellationToken));
 
         foreach (var modifier in setup.ServerModifiers)
         {
