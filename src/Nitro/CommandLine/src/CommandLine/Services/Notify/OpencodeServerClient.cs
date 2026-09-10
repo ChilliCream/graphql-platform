@@ -35,7 +35,7 @@ internal sealed class OpencodeServerClient : IOpencodeServerClient
         string? secret,
         CancellationToken cancellationToken)
     {
-        if (!TryCreateUri(serverUrl, $"session/{Uri.EscapeDataString(sessionId)}/message", out var uri))
+        if (!TryCreateUri(serverUrl, $"session/{Uri.EscapeDataString(sessionId)}/prompt_async", out var uri))
         {
             return AgentPingResult.EndpointGone;
         }

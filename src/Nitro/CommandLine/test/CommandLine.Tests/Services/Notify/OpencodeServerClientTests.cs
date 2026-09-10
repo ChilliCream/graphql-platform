@@ -32,10 +32,26 @@ public sealed class OpencodeServerClientTests
         // assert
         Assert.Equal(AgentPingResult.Ok, result);
         Assert.Equal(HttpMethod.Post, capturedRequest!.Method);
-        Assert.Equal("/session/ses_123/message", capturedRequest.RequestUri!.AbsolutePath);
+        Assert.Equal("/session/ses_123/prompt_async", capturedRequest.RequestUri!.AbsolutePath);
         using var body = JsonDocument.Parse(capturedBody!);
         Assert.Equal("text", body.RootElement.GetProperty("parts")[0].GetProperty("type").GetString());
         Assert.Equal(text, body.RootElement.GetProperty("parts")[0].GetProperty("text").GetString());
+    }
+
+    [Fact]
+    public async Task PushMessageAsync_Should_ReturnOk_When_ServerRespondsWithNoContent()
+    {
+        // arrange: prompt_async forks the run server-side and returns 204
+        // with no body, unlike the synchronous message route it replaces.
+        var client = CreateClient((_, _) =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent)));
+
+        // act
+        var result = await client.PushMessageAsync(
+            "http://localhost:4096", "ses_123", "text", secret: null, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Ok, result);
     }
 
     [Fact]
