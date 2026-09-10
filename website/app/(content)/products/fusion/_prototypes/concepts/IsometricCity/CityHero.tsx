@@ -228,7 +228,7 @@ export function CityHero() {
           width="1200"
           height="700"
           fill="url(#ic-sky-day)"
-          opacity="0.9"
+          opacity="0.35"
         />
 
         <g transform="translate(560, 250)">
