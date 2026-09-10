@@ -18,20 +18,20 @@ const CSS = `
 .ed-hi .ed-hi-draw { stroke-dasharray: var(--len, 160); stroke-dashoffset: 0; }
 .ed-hi .ed-hi-in { opacity: 1; }
 .ed-hi .ed-hi-sweep { transform: scaleX(1); transform-box: fill-box; transform-origin: left center; }
-.ed-hi[data-run="true"] .ed-hi-draw { animation: ed-hi-draw 14s ease-in-out infinite; }
-.ed-hi[data-run="true"] .ed-hi-in { animation: ed-hi-in 14s ease-in-out infinite; }
-.ed-hi[data-run="true"] .ed-hi-sweep { animation: ed-hi-sweep 14s cubic-bezier(0.5, 0, 0.2, 1) infinite; }
+.ed-hi[data-run="true"] .ed-hi-draw { animation: ed-hi-draw 1.2s ease-out both; }
+.ed-hi[data-run="true"] .ed-hi-in { animation: ed-hi-in 0.7s ease-out both; }
+.ed-hi[data-run="true"] .ed-hi-sweep { animation: ed-hi-sweep 0.9s cubic-bezier(0.5, 0, 0.2, 1) both; }
 @keyframes ed-hi-draw {
-  0% { stroke-dashoffset: var(--len, 160); }
-  12%, 100% { stroke-dashoffset: 0; }
+  from { stroke-dashoffset: var(--len, 160); }
+  to { stroke-dashoffset: 0; }
 }
 @keyframes ed-hi-in {
-  0%, 6% { opacity: 0; }
-  16%, 100% { opacity: 1; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @keyframes ed-hi-sweep {
-  0%, 8% { transform: scaleX(0); }
-  22%, 100% { transform: scaleX(1); }
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 `;
 

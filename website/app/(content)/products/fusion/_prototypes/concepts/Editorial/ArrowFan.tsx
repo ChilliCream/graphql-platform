@@ -16,18 +16,18 @@ import { Folio, PaperGround, StickyNote, Wobble } from "./Sketch";
 const CSS = `
 .ed-fan .ed-fan-draw { stroke-dasharray: var(--len, 300); stroke-dashoffset: 0; }
 .ed-fan .ed-fan-in { opacity: 1; }
-.ed-fan[data-run="true"] .ed-fan-draw { animation: ed-fan-draw 13s ease-in-out infinite; }
-.ed-fan[data-run="true"] .ed-fan-in { animation: ed-fan-in 13s ease-in-out infinite; }
+.ed-fan[data-run="true"] .ed-fan-draw { animation: ed-fan-draw 1.2s ease-out both; }
+.ed-fan[data-run="true"] .ed-fan-in { animation: ed-fan-in 0.7s ease-out both; }
+.ed-fan[data-run="true"] .ed-fan-flow { animation: ed-fan-flow 6s linear infinite; }
 @keyframes ed-fan-draw {
-  0% { stroke-dashoffset: var(--len, 300); opacity: 0.9; }
-  14%, 74% { stroke-dashoffset: 0; opacity: 1; }
-  88%, 100% { stroke-dashoffset: 0; opacity: 0; }
+  from { stroke-dashoffset: var(--len, 300); }
+  to { stroke-dashoffset: 0; }
 }
 @keyframes ed-fan-in {
-  0%, 6% { opacity: 0; }
-  16%, 74% { opacity: 1; }
-  88%, 100% { opacity: 0; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
+@keyframes ed-fan-flow { to { stroke-dashoffset: -180; } }
 `;
 
 const HUB = { x: 296, y: 214, r: 58 };
@@ -214,6 +214,17 @@ export function ArrowFan() {
               strokeWidth={2.2}
               strokeLinecap="round"
               filter="url(#ed-fan-wob)"
+            />
+            <path
+              className="ed-fan-flow"
+              d={outPath(row)}
+              fill="none"
+              stroke={PAPER.blue}
+              strokeWidth={2.6}
+              strokeDasharray="3 26"
+              strokeLinecap="round"
+              opacity={0.65}
+              style={{ animationDelay: `${i * 0.6}s` }}
             />
             <g className="ed-fan-in" style={fadeStyle(1.6 + i * 0.35)}>
               <Head

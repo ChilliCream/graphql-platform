@@ -26,16 +26,16 @@ const CSS = `
 .ed-spec .ed-spec-draw { stroke-dasharray: var(--len, 200); stroke-dashoffset: 0; }
 .ed-spec .ed-spec-in { opacity: 1; }
 .ed-spec .ed-spec-move { transform: translate(0px, 0px); }
-.ed-spec[data-run="true"] .ed-spec-draw { animation: ed-spec-draw 14s ease-in-out infinite; }
-.ed-spec[data-run="true"] .ed-spec-in { animation: ed-spec-in 14s ease-in-out infinite; }
+.ed-spec[data-run="true"] .ed-spec-draw { animation: ed-spec-draw 1.2s ease-out both; }
+.ed-spec[data-run="true"] .ed-spec-in { animation: ed-spec-in 0.7s ease-out both; }
 .ed-spec[data-run="true"] .ed-spec-move { animation: ed-spec-move 14s cubic-bezier(0.7, 0, 0.3, 1) infinite; }
 @keyframes ed-spec-draw {
-  0% { stroke-dashoffset: var(--len, 200); }
-  16%, 100% { stroke-dashoffset: 0; }
+  from { stroke-dashoffset: var(--len, 200); }
+  to { stroke-dashoffset: 0; }
 }
 @keyframes ed-spec-in {
-  0%, 8% { opacity: 0; }
-  20%, 100% { opacity: 1; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @keyframes ed-spec-move {
   0%, 34% { transform: translate(0px, 0px); }
