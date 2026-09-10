@@ -10,6 +10,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// Provides extension methods for <see cref="IFusionGatewayBuilder"/>
 /// to add cache control support.
 /// </summary>
+// TODO [17]: Remove the legacy extension surface after the 16.x compatibility window.
+[Obsolete("Use FusionCachingRouterBuilderExtensions instead.")]
 public static class FusionCachingGatewayBuilderExtensions
 {
     /// <summary>
@@ -25,6 +27,7 @@ public static class FusionCachingGatewayBuilderExtensions
     /// <returns>
     /// The <see cref="IFusionGatewayBuilder"/> for chaining.
     /// </returns>
+    [Obsolete("Use UseQueryCache on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder UseQueryCache(
         this IFusionGatewayBuilder builder,
         string? after = null)
@@ -42,6 +45,7 @@ public static class FusionCachingGatewayBuilderExtensions
     /// <returns>
     /// The <see cref="IFusionGatewayBuilder"/> for chaining.
     /// </returns>
+    [Obsolete("Use AddCacheControl on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddCacheControl(
         this IFusionGatewayBuilder builder)
     {
@@ -70,6 +74,7 @@ public static class FusionCachingGatewayBuilderExtensions
     /// <returns>
     /// The <see cref="IFusionGatewayBuilder"/> for chaining.
     /// </returns>
+    [Obsolete("Use ModifyCacheControlOptions on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ModifyCacheControlOptions(
         this IFusionGatewayBuilder builder,
         Action<CacheControlOptions> modifyOptions)

@@ -23,6 +23,8 @@ public static class AzureEventHubsEventStreamBrokerServiceCollectionExtensions
     /// <returns>
     /// The same <see cref="IFusionGatewayBuilder"/> instance so additional calls can be chained.
     /// </returns>
+    // TODO [17]: Remove the legacy overload after the 16.x compatibility window.
+    [Obsolete("Use AddAzureEventHubsEventStreamBroker on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddAzureEventHubsEventStreamBroker(
         this IFusionGatewayBuilder builder,
         Action<AzureEventHubsEventStreamOptions>? configure = null)
@@ -43,8 +45,54 @@ public static class AzureEventHubsEventStreamBrokerServiceCollectionExtensions
     /// <returns>
     /// The same <see cref="IFusionGatewayBuilder"/> instance so additional calls can be chained.
     /// </returns>
+    // TODO [17]: Remove the legacy overload after the 16.x compatibility window.
+    [Obsolete("Use AddAzureEventHubsEventStreamBroker on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddAzureEventHubsEventStreamBroker(
         this IFusionGatewayBuilder builder,
+        string? name,
+        Action<AzureEventHubsEventStreamOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.Services.AddAzureEventHubsEventStreamBroker(name, configure);
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers Azure Event Hubs as the default Fusion event stream broker.
+    /// </summary>
+    /// <param name="builder">
+    /// The Fusion router builder.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the Azure Event Hubs connection.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IFusionRouterBuilder"/> instance so additional calls can be chained.
+    /// </returns>
+    public static IFusionRouterBuilder AddAzureEventHubsEventStreamBroker(
+        this IFusionRouterBuilder builder,
+        Action<AzureEventHubsEventStreamOptions>? configure = null)
+        => builder.AddAzureEventHubsEventStreamBroker(name: null, configure);
+
+    /// <summary>
+    /// Registers Azure Event Hubs as a named Fusion event stream broker.
+    /// </summary>
+    /// <param name="builder">
+    /// The Fusion router builder.
+    /// </param>
+    /// <param name="name">
+    /// The broker name used by the execution schema, or <c>null</c> to register the default broker.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the Azure Event Hubs connection.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IFusionRouterBuilder"/> instance so additional calls can be chained.
+    /// </returns>
+    public static IFusionRouterBuilder AddAzureEventHubsEventStreamBroker(
+        this IFusionRouterBuilder builder,
         string? name,
         Action<AzureEventHubsEventStreamOptions>? configure = null)
     {

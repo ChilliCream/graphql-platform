@@ -5,13 +5,17 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+// TODO [17]: Remove the legacy extension surface after the 16.x compatibility window.
+[Obsolete("Use DiagnosticsFusionRouterBuilderExtensions instead.")]
 public static class DiagnosticsFusionGatewayBuilderExtensions
 {
+    [Obsolete("Use AddInstrumentation on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddInstrumentation(
         this IFusionGatewayBuilder builder,
         Action<InstrumentationOptions>? options = null)
         => AddInstrumentation(builder, (_, opt) => options?.Invoke(opt));
 
+    [Obsolete("Use AddInstrumentation on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddInstrumentation(
         this IFusionGatewayBuilder builder,
         Action<IServiceProvider, InstrumentationOptions> options)
@@ -47,5 +51,5 @@ public static class DiagnosticsFusionGatewayBuilderExtensions
         return builder;
     }
 
-    private sealed class InternalActivityEnricher(InstrumentationOptions options) : FusionActivityEnricher(options);
+    internal sealed class InternalActivityEnricher(InstrumentationOptions options) : FusionActivityEnricher(options);
 }
