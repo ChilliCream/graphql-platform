@@ -27,6 +27,13 @@ public sealed class SqliteDbWatcherTests : IDisposable
     private static readonly TimeSpan s_testTimeout = TimeSpan.FromSeconds(15);
 
     /// <summary>
+    /// A debounce far wider than <see cref="s_testTimeout"/>, so an event-driven emit (which
+    /// always waits out the debounce timer first) cannot land inside the test's read window,
+    /// leaving only the synchronous post-enable reconciliation able to do so.
+    /// </summary>
+    private static readonly TimeSpan s_neverFiringDebounce = TimeSpan.FromSeconds(60);
+
+    /// <summary>
     /// Lets the watcher settle after start-up and drains whatever it published
     /// in the meantime. The arrange step writes the main database file before
     /// the watcher exists, and the file system can still deliver that write's
@@ -100,7 +107,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
         var walPath = databasePath + "-wal";
-        var watcher = new SqliteDbWatcher(databasePath, s_debounce)
+        var watcher = new SqliteDbWatcher(databasePath, s_neverFiringDebounce)
         {
             OnBaselineCaptured = () => File.WriteAllText(walPath, new string('w', 64))
         };
