@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Aspire;
 public sealed class SchemaCompositionTests
 {
     [Fact]
-    public void WithNitroComposition_Should_UseValidationAndOutput_WhenArgumentsAreProvided()
+    public void WithNitroComposition_Should_UseValidationAndOutput_When_ArgumentsAreProvided()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
@@ -36,7 +36,7 @@ public sealed class SchemaCompositionTests
     }
 
     [Fact]
-    public void WithNitroComposition_Should_UseDefaultOutput_WhenSettingsAreProvided()
+    public void WithNitroComposition_Should_UseDefaultOutput_When_SettingsAreProvided()
     {
         // arrange
         var builder = DistributedApplication.CreateBuilder();
@@ -59,7 +59,7 @@ public sealed class SchemaCompositionTests
         """.MatchInlineSnapshot(
             """
             Global object identification: True
-            Output: graph.far
+            Output: gateway.far
             """);
     }
 
@@ -148,9 +148,23 @@ public sealed class SchemaCompositionTests
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.False(result.Success);
-        Assert.Equal("Schema composition failed for 'gateway'.", result.Message);
-        Assert.Equal(1, gate.CurrentCount);
+        $"""
+        Success: {result.Success}
+        Canceled: {result.Canceled}
+        Message: {result.Message}
+        Gate count: {gate.CurrentCount}
+        Errors:
+        {DescribeErrors(harness)}
+        """.MatchInlineSnapshot(
+            """
+            Success: False
+            Canceled: False
+            Message: Schema composition failed for 'gateway'.
+            Gate count: 1
+            Errors:
+            Schema composition failed for gateway: The source schema for resource 'products' could not be loaded.
+            Schema recomposition for gateway failed. The router keeps the previous schema.
+            """);
     }
 
     [Fact]
@@ -785,7 +799,7 @@ public sealed class SchemaCompositionTests
                     throw new IOException("The file is in use.");
                 }
             },
-            "graph.far",
+            "gateway.far",
             maxAttempts: 5,
             retryDelay: TimeSpan.Zero,
             TestContext.Current.CancellationToken);
@@ -809,7 +823,7 @@ public sealed class SchemaCompositionTests
                     attempts++;
                     throw new IOException("The file is in use.");
                 },
-                "graph.far",
+                "gateway.far",
                 maxAttempts: 3,
                 retryDelay: TimeSpan.Zero,
                 TestContext.Current.CancellationToken));

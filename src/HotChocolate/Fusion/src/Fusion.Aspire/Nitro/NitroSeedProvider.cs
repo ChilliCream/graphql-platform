@@ -3,14 +3,14 @@ using Microsoft.Extensions.Logging;
 namespace HotChocolate.Fusion.Aspire.Nitro;
 
 /// <summary>
-/// Provides the fusion configuration that a gateway composes against.
+/// Provides the fusion configuration that a router composes against.
 /// </summary>
 /// <remarks>
 /// A fresh fusion configuration is downloaded and cached. When it cannot be fetched, for any
 /// reason including a missing or expired sign-in, a cached fusion configuration is used and the
-/// gateway is warned that the configuration is not fresh. Only when no cached fusion
+/// router is warned that the configuration is not fresh. Only when no cached fusion
 /// configuration exists does a download failure become
-/// <see cref="NitroSeedOutcome.Unavailable"/>, which fails the gateway. A missing configuration
+/// <see cref="NitroSeedOutcome.Unavailable"/>, which fails the router. A missing configuration
 /// becomes <see cref="NitroSeedOutcome.NotFound"/> so the caller can start with the stage's
 /// composition settings.
 /// </remarks>
@@ -59,7 +59,7 @@ internal sealed class NitroSeedProvider
     /// The name of the stage whose fusion configuration is used.
     /// </param>
     /// <param name="logger">
-    /// The logger of the gateway that composes against the fusion configuration. It receives the
+    /// The logger of the router that composes against the fusion configuration. It receives the
     /// warning when the configuration is not fresh.
     /// </param>
     /// <param name="cancellationToken">

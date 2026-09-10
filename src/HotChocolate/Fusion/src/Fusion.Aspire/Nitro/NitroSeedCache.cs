@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 
 /// <summary>
 /// The last known good fusion configuration per Nitro API, api and stage. The cache lets a
-/// gateway start while Nitro cannot be reached.
+/// router start while Nitro cannot be reached.
 /// </summary>
 /// <remarks>
 /// A download is promoted into the cache only after it validated as a fusion archive, and the
@@ -101,7 +101,7 @@ internal sealed class NitroSeedCache
             Discard(
                 key,
                 logger,
-                $"it was downloaded for the gateway format version {metadata.FusionVersion} "
+                $"it was downloaded for the router format version {metadata.FusionVersion} "
                 + $"instead of {CurrentFusionVersion}");
             return null;
         }

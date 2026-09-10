@@ -85,7 +85,7 @@ internal static class NitroApiUrl
     /// The name of the stage whose fusion configuration is downloaded.
     /// </param>
     /// <param name="fusionVersion">
-    /// The gateway format version that the downloaded archive must support.
+    /// The router format version that the downloaded archive must support.
     /// </param>
     public static Uri CreateFusionConfigurationDownloadUrl(
         Uri apiUrl,

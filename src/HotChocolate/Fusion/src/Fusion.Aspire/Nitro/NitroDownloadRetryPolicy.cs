@@ -3,7 +3,7 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 /// <summary>
 /// The retry budget for fusion configuration downloads. The budget depends on whether a cached
 /// fusion configuration exists: with a cache the download gives up quickly and falls back, and
-/// without a cache it waits much longer because giving up fails the gateway.
+/// without a cache it waits much longer because giving up fails the router.
 /// </summary>
 internal sealed class NitroDownloadRetryPolicy
 {

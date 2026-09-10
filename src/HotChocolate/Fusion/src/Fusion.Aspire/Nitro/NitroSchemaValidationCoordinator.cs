@@ -44,7 +44,7 @@ internal sealed class NitroSchemaValidationCoordinator
             _resourceLoggerService.GetLogger(resource).LogWarning(
                 exception,
                 "Nitro schema validation could not be scheduled for {ResourceName}. The installed "
-                + "gateway schema is unaffected.",
+                + "router schema is unaffected.",
                 resource.Name);
             return false;
         }

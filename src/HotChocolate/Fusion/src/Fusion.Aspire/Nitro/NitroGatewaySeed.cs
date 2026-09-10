@@ -1,7 +1,7 @@
 namespace HotChocolate.Fusion.Aspire.Nitro;
 
 /// <summary>
-/// The fusion configuration that a gateway composes against for the lifetime of one run. It is a
+/// The fusion configuration that a router composes against for the lifetime of one run. It is a
 /// private copy, so it stays stable while the cache it came from is replaced, and it is never
 /// written to.
 /// </summary>
@@ -23,7 +23,7 @@ namespace HotChocolate.Fusion.Aspire.Nitro;
 /// Whether the fusion configuration was downloaded for this run instead of taken from the cache.
 /// </param>
 /// <param name="SchemaHash">
-/// The SHA-256 hash of the gateway schema carried by the configuration.
+/// The SHA-256 hash of the router schema carried by the configuration.
 /// </param>
 internal sealed record NitroGatewaySeed(
     string ApiId,
@@ -34,13 +34,13 @@ internal sealed record NitroGatewaySeed(
     string SchemaHash);
 
 /// <summary>
-/// The outcome of acquiring the fusion configuration of a gateway.
+/// The outcome of acquiring the fusion configuration of a router.
 /// </summary>
 /// <param name="Seed">
 /// The fusion configuration, or <c>null</c> when it could not be acquired.
 /// </param>
 /// <param name="FailureMessage">
-/// The message that the gateway fails with, or <c>null</c> when the fusion configuration was
+/// The message that the router fails with, or <c>null</c> when the fusion configuration was
 /// acquired.
 /// </param>
 internal sealed record NitroSeedAcquisition(NitroGatewaySeed? Seed, string? FailureMessage)

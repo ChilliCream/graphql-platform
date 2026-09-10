@@ -146,10 +146,11 @@ public static class GraphQLResourceBuilderExtensions
     /// <param name="outputFileName">The output archive file name.</param>
     /// <returns>The resource builder for chaining</returns>
     [AspireExport]
+    // TODO [17]: Change the default archive file name to graph.far.
     public static IResourceBuilder<T> WithNitroComposition<T>(
         this IResourceBuilder<T> builder,
         bool disableValidation = false,
-        string outputFileName = "graph.far")
+        string outputFileName = "gateway.far")
         where T : IResourceWithEndpoints
         => builder.WithNitroComposition(
             new GraphQLCompositionSettings
@@ -188,10 +189,11 @@ public static class GraphQLResourceBuilderExtensions
     /// <param name="outputFileName">The output archive file name.</param>
     /// <returns>The resource builder for chaining.</returns>
     [AspireExportIgnore(Reason = "Composition settings are provided by Nitro.")]
+    // TODO [17]: Change the default archive file name to graph.far.
     public static IResourceBuilder<T> WithNitroComposition<T>(
         this IResourceBuilder<T> builder,
         GraphQLCompositionSettings settings,
-        string outputFileName = "graph.far")
+        string outputFileName = "gateway.far")
         where T : IResourceWithEndpoints
     {
         builder.WithAnnotation(
@@ -218,7 +220,7 @@ public static class GraphQLResourceBuilderExtensions
                         ?? Task.FromResult(CommandResults.Failure("Schema composition is not ready.")),
                 new CommandOptions
                 {
-                    Description = "Recompose and install the gateway schema.",
+                    Description = "Recompose and install the router schema.",
                     IconName = "ArrowSync",
                     UpdateState = context =>
                     {

@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using System.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Transport;
@@ -24,7 +23,7 @@ internal sealed class NitroStageUpdateClient(GraphQLHttpClient client)
         // Fusion configuration publishes change the composition base. Client publish, unpublish,
         // and delete events change the registered operations carried by the downloaded archive.
         // The operation deliberately filters out OpenAPI and MCP changes, which do not affect a
-        // Fusion gateway archive.
+        // Fusion router archive.
         var request = CreateRequest(
             connection,
             NitroOperationDocuments.WatchStageOperationName,
