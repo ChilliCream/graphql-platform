@@ -23,6 +23,8 @@ public static class NatsEventStreamBrokerServiceCollectionExtensions
     /// <returns>
     /// The same <see cref="IFusionGatewayBuilder"/> instance so additional calls can be chained.
     /// </returns>
+    // TODO [17]: Remove the legacy overload after the 16.x compatibility window.
+    [Obsolete("Use AddNatsEventStreamBroker on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddNatsEventStreamBroker(
         this IFusionGatewayBuilder builder,
         Action<NatsEventStreamOptions>? configure = null)
@@ -43,8 +45,54 @@ public static class NatsEventStreamBrokerServiceCollectionExtensions
     /// <returns>
     /// The same <see cref="IFusionGatewayBuilder"/> instance so additional calls can be chained.
     /// </returns>
+    // TODO [17]: Remove the legacy overload after the 16.x compatibility window.
+    [Obsolete("Use AddNatsEventStreamBroker on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddNatsEventStreamBroker(
         this IFusionGatewayBuilder builder,
+        string? name,
+        Action<NatsEventStreamOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.Services.AddNatsEventStreamBroker(name, configure);
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers NATS as the default Fusion event stream broker.
+    /// </summary>
+    /// <param name="builder">
+    /// The Fusion router builder.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the NATS connection and JetStream settings.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IFusionRouterBuilder"/> instance so additional calls can be chained.
+    /// </returns>
+    public static IFusionRouterBuilder AddNatsEventStreamBroker(
+        this IFusionRouterBuilder builder,
+        Action<NatsEventStreamOptions>? configure = null)
+        => builder.AddNatsEventStreamBroker(name: null, configure);
+
+    /// <summary>
+    /// Registers NATS as a named Fusion event stream broker.
+    /// </summary>
+    /// <param name="builder">
+    /// The Fusion router builder.
+    /// </param>
+    /// <param name="name">
+    /// The broker name used by the execution schema, or <c>null</c> to register the default broker.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the NATS connection and JetStream settings.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IFusionRouterBuilder"/> instance so additional calls can be chained.
+    /// </returns>
+    public static IFusionRouterBuilder AddNatsEventStreamBroker(
+        this IFusionRouterBuilder builder,
         string? name,
         Action<NatsEventStreamOptions>? configure = null)
     {

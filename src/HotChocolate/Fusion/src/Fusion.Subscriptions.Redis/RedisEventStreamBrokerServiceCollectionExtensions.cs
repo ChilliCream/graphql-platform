@@ -23,6 +23,8 @@ public static class RedisEventStreamBrokerServiceCollectionExtensions
     /// <returns>
     /// The same <see cref="IFusionGatewayBuilder"/> instance so additional calls can be chained.
     /// </returns>
+    // TODO [17]: Remove the legacy overload after the 16.x compatibility window.
+    [Obsolete("Use AddRedisEventStreamBroker on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddRedisEventStreamBroker(
         this IFusionGatewayBuilder builder,
         Action<RedisEventStreamOptions>? configure = null)
@@ -43,8 +45,54 @@ public static class RedisEventStreamBrokerServiceCollectionExtensions
     /// <returns>
     /// The same <see cref="IFusionGatewayBuilder"/> instance so additional calls can be chained.
     /// </returns>
+    // TODO [17]: Remove the legacy overload after the 16.x compatibility window.
+    [Obsolete("Use AddRedisEventStreamBroker on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddRedisEventStreamBroker(
         this IFusionGatewayBuilder builder,
+        string? name,
+        Action<RedisEventStreamOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.Services.AddRedisEventStreamBroker(name, configure);
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers Redis as the default Fusion event stream broker.
+    /// </summary>
+    /// <param name="builder">
+    /// The Fusion router builder.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the Redis connection.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IFusionRouterBuilder"/> instance so additional calls can be chained.
+    /// </returns>
+    public static IFusionRouterBuilder AddRedisEventStreamBroker(
+        this IFusionRouterBuilder builder,
+        Action<RedisEventStreamOptions>? configure = null)
+        => builder.AddRedisEventStreamBroker(name: null, configure);
+
+    /// <summary>
+    /// Registers Redis as a named Fusion event stream broker.
+    /// </summary>
+    /// <param name="builder">
+    /// The Fusion router builder.
+    /// </param>
+    /// <param name="name">
+    /// The broker name used by the execution schema, or <c>null</c> to register the default broker.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the Redis connection.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IFusionRouterBuilder"/> instance so additional calls can be chained.
+    /// </returns>
+    public static IFusionRouterBuilder AddRedisEventStreamBroker(
+        this IFusionRouterBuilder builder,
         string? name,
         Action<RedisEventStreamOptions>? configure = null)
     {

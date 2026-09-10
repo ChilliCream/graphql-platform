@@ -23,6 +23,8 @@ public static class AmazonSqsEventStreamBrokerServiceCollectionExtensions
     /// <returns>
     /// The same <see cref="IFusionGatewayBuilder"/> instance so additional calls can be chained.
     /// </returns>
+    // TODO [17]: Remove the legacy overload after the 16.x compatibility window.
+    [Obsolete("Use AddAmazonSqsEventStreamBroker on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddAmazonSqsEventStreamBroker(
         this IFusionGatewayBuilder builder,
         Action<AmazonSqsEventStreamOptions>? configure = null)
@@ -43,8 +45,54 @@ public static class AmazonSqsEventStreamBrokerServiceCollectionExtensions
     /// <returns>
     /// The same <see cref="IFusionGatewayBuilder"/> instance so additional calls can be chained.
     /// </returns>
+    // TODO [17]: Remove the legacy overload after the 16.x compatibility window.
+    [Obsolete("Use AddAmazonSqsEventStreamBroker on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddAmazonSqsEventStreamBroker(
         this IFusionGatewayBuilder builder,
+        string? name,
+        Action<AmazonSqsEventStreamOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        builder.Services.AddAmazonSqsEventStreamBroker(name, configure);
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers Amazon SQS as the default Fusion event stream broker.
+    /// </summary>
+    /// <param name="builder">
+    /// The Fusion router builder.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the Amazon SQS connection.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IFusionRouterBuilder"/> instance so additional calls can be chained.
+    /// </returns>
+    public static IFusionRouterBuilder AddAmazonSqsEventStreamBroker(
+        this IFusionRouterBuilder builder,
+        Action<AmazonSqsEventStreamOptions>? configure = null)
+        => builder.AddAmazonSqsEventStreamBroker(name: null, configure);
+
+    /// <summary>
+    /// Registers Amazon SQS as a named Fusion event stream broker.
+    /// </summary>
+    /// <param name="builder">
+    /// The Fusion router builder.
+    /// </param>
+    /// <param name="name">
+    /// The broker name used by the execution schema, or <c>null</c> to register the default broker.
+    /// </param>
+    /// <param name="configure">
+    /// An optional callback used to configure the Amazon SQS connection.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="IFusionRouterBuilder"/> instance so additional calls can be chained.
+    /// </returns>
+    public static IFusionRouterBuilder AddAmazonSqsEventStreamBroker(
+        this IFusionRouterBuilder builder,
         string? name,
         Action<AmazonSqsEventStreamOptions>? configure = null)
     {

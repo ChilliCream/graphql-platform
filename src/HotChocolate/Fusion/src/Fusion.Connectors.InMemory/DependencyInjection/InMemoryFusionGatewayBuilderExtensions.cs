@@ -12,6 +12,8 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Extension methods for registering the in-memory connector on <see cref="IFusionGatewayBuilder"/>.
 /// </summary>
+// TODO [17]: Remove the legacy extension surface after the 16.x compatibility window.
+[Obsolete("Use InMemoryFusionRouterBuilderExtensions instead.")]
 public static class InMemoryFusionGatewayBuilderExtensions
 {
     /// <summary>
@@ -20,6 +22,7 @@ public static class InMemoryFusionGatewayBuilderExtensions
     /// <param name="builder">The fusion gateway builder.</param>
     /// <param name="configure">A delegate that modifies the schema composer options.</param>
     /// <returns>The fusion gateway builder for chaining.</returns>
+    [Obsolete("Use ModifyInMemoryCompositionOptions on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ModifyInMemoryCompositionOptions(
         this IFusionGatewayBuilder builder,
         Action<SchemaComposerOptions> configure)
@@ -41,6 +44,7 @@ public static class InMemoryFusionGatewayBuilderExtensions
     /// identifies the source schema.
     /// </param>
     /// <returns>The fusion gateway builder for chaining.</returns>
+    [Obsolete("Use AddInMemorySchema on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddInMemorySchema(
         this IFusionGatewayBuilder builder,
         IRequestExecutorBuilder schemaBuilder)
@@ -57,6 +61,7 @@ public static class InMemoryFusionGatewayBuilderExtensions
     /// <param name="builder">The fusion gateway builder.</param>
     /// <param name="schemaName">The name of the source schema.</param>
     /// <returns>The fusion gateway builder for chaining.</returns>
+    [Obsolete("Use AddInMemorySchema on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddInMemorySchema(
         this IFusionGatewayBuilder builder,
         string schemaName)
