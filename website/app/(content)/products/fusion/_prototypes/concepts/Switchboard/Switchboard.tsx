@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import type { ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { PageSection } from "@/src/components/PageSection";
@@ -32,10 +32,10 @@ const [WHAT_IS, BOTH_SPECS, ANY_SERVER, CLIENT_SAFETY] = SECTIONS;
 
 /** Renders a paragraph, linking any of the section's link labels it contains. */
 function withLinks(text: string, links: readonly CopyLink[]): ReactNode {
-  let parts: ReactNode[] = [text];
+  let parts: (string | ReactElement)[] = [text];
 
   for (const link of links) {
-    parts = parts.flatMap((part) => {
+    parts = parts.flatMap((part): (string | ReactElement)[] => {
       if (typeof part !== "string") return [part];
       const at = part.indexOf(link.label);
       if (at < 0) return [part];

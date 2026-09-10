@@ -36,16 +36,21 @@ const TRAVEL = 460;
 
 const LANGS = ["JS/TS", "GO", "C#", "JAVA", "PYTHON", "RUBY"];
 
+/** The top card runs a pool without C#, so the rack never leads with it. */
+const TOP_LANGS = LANGS.filter((lang) => lang !== "C#");
+
 /**
  * The language on line `i` at cycle `c`, time `t`. Lines swap one per cycle in
- * rack order, so the rack is stateless: the same inputs always draw the same
- * frame.
+ * rack order and every swap steps one place down that line's pool, so the rack
+ * is stateless: the same inputs always draw the same frame.
  */
 function langOf(i: number, c: number, t: number): string {
+  const pool = i === 0 ? TOP_LANGS : LANGS;
   const rot = Math.floor(c / LINES.length);
   const turn = c % LINES.length;
   const swaps = i < turn ? 1 : i === turn && t > 900 ? 1 : 0;
-  return LANGS[(i + rot + swaps) % LANGS.length];
+  const steps = ((i - rot - swaps) % pool.length) + pool.length;
+  return pool[steps % pool.length];
 }
 
 const ROW_Y = [50, 96, 142, 188, 234];
