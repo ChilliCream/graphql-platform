@@ -19,7 +19,7 @@ import { CITY, LABEL, box, iso, poly, rightQuad, tile } from "./palette";
 const CSS = `
 .ic-route[data-run="false"] [class*="ic-r-"] { animation: none; }
 .ic-route .ic-r-draw { animation: ic-r-draw 11s ease-in-out infinite; }
-.ic-route .ic-r-stop { animation: ic-r-stop 11s ease-in-out infinite; }
+.ic-route .ic-r-stop { animation: ic-r-stop 11s ease-in-out backwards infinite; }
 .ic-route .ic-r-car { animation: ic-r-car 11s ease-in-out infinite; }
 .ic-route .ic-r-out { animation: ic-r-out 11s ease-in-out infinite; }
 @keyframes ic-r-draw {
