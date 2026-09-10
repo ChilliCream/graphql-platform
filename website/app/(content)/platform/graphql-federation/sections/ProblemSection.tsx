@@ -28,21 +28,12 @@ export function ProblemSection() {
             code, the release schedule.
           </p>
           <p>
-            Bringing a new service into your company graph stays simple. Put a
-            thin GraphQL layer in front of it and it is a subgraph. No shared
-            repository, no shared release train.
-          </p>
-          <p>
             When a team ships a change, composition checks the source schemas
             against each other and merges them into one composite schema, which
             is what your gateway serves. If the change conflicts with another
             subgraph, composition fails at build time and the change never
-            reaches production.
-          </p>
-          <p>
-            Your clients never notice any of this. They send one query to one
-            endpoint, and the gateway does the rest: it collects the data from
-            the subgraphs and returns a single response.
+            reaches production. Your consumers also known as clients never
+            notice any of this.
           </p>
         </div>
       </div>
