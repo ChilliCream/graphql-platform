@@ -65,7 +65,6 @@ export const SHEET_CSS = `
 .bp-sheet .bp-t-ok{fill:${BP.ok}}
 .bp-sheet .bp-t-query{fill:${BP.query}}
 .bp-sheet .bp-t-red{fill:${BP.redline}}
-.bp-sheet path,.bp-sheet line,.bp-sheet circle,.bp-sheet polyline,.bp-sheet polygon{vector-effect:non-scaling-stroke}
 `;
 
 interface SheetProps {
@@ -134,7 +133,10 @@ export function Sheet({
             >
               <span style={{ color: BP.inkDim }}>CHILLICREAM</span>
             </div>
-            <div className="min-w-0 flex-1 overflow-hidden px-[1em] py-[0.6em]">
+            <div
+              className="min-w-0 flex-1 overflow-hidden px-[1em] py-[0.6em]"
+              style={{ textOverflow: "ellipsis" }}
+            >
               {title.toUpperCase()}
             </div>
             <div

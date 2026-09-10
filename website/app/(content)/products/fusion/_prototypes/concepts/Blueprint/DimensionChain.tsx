@@ -58,7 +58,7 @@ export function DimensionChain() {
 
   return (
     <Sheet
-      title="Query resolution · dimension chain"
+      title="Query resolution"
       no="DWG-101"
       rev="A"
       run={active && !reduced}

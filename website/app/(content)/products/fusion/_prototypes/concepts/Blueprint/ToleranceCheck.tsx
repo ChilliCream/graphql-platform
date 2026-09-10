@@ -139,7 +139,7 @@ export function ToleranceCheck() {
 
   return (
     <Sheet
-      title="Composition · tolerance check"
+      title="Tolerance check"
       no="DWG-103"
       rev="D"
       run={active && !reduced}
@@ -190,7 +190,7 @@ export function ToleranceCheck() {
             stroke={BP.redline}
             strokeWidth={1}
           />
-          <text className="bp-t-red" x={374} y={112} fontSize={6.5}>
+          <text className="bp-t-red" x={380} y={112} fontSize={6.5}>
             ≠ Float!
           </text>
         </g>
