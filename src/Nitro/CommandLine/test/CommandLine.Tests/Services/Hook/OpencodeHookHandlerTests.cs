@@ -336,8 +336,8 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_ReleaseOnlyThisTurnsReservations_When_ClaimAnnouncementAsyncFails()
     {
         // arrange: two messages (a, b) are unread for this turn to reserve,
-        // while a third (c) is already reserved by another consumer on the
-        // same channel before this turn's digest build even runs.
+        // while a third (c) is still held by an earlier turn of the same
+        // session, reserved before this turn's digest build even runs.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
