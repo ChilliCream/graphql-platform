@@ -83,7 +83,9 @@ public abstract class AgentCommandTestBase : CommandTestBase
         string endpointKind = "none",
         string endpointAddr = "",
         string role = "",
-        string harnessVersion = "")
+        string harnessVersion = "",
+        string? lastPingResult = null,
+        string? lastPingDetail = null)
     {
         await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
         await connection.OpenAsync(TestContext.Current.CancellationToken);
@@ -105,11 +107,11 @@ public abstract class AgentCommandTestBase : CommandTestBase
             INSERT INTO agent_sessions (
                 harness, session_id, agent_name, binding_kind, host,
                 cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
-                role, harness_version
+                role, harness_version, last_ping_result, last_ping_detail
             ) VALUES (
                 $harness, $sessionId, $agentName, $bindingKind, $host,
                 '/work', '/work/.nitro/agents', $endpointKind, $endpointAddr, $now, $now,
-                $role, $harnessVersion
+                $role, $harnessVersion, $lastPingResult, $lastPingDetail
             );
             """;
         command.Parameters.AddWithValue("$harness", harness);
@@ -122,6 +124,8 @@ public abstract class AgentCommandTestBase : CommandTestBase
         command.Parameters.AddWithValue("$now", DateTimeOffset.UtcNow);
         command.Parameters.AddWithValue("$role", role);
         command.Parameters.AddWithValue("$harnessVersion", harnessVersion);
+        command.Parameters.AddWithValue("$lastPingResult", (object?)lastPingResult ?? DBNull.Value);
+        command.Parameters.AddWithValue("$lastPingDetail", (object?)lastPingDetail ?? DBNull.Value);
 
         await command.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
     }

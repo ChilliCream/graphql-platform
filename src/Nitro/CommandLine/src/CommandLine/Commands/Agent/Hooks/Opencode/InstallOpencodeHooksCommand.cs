@@ -35,11 +35,13 @@ internal sealed class InstallOpencodeHooksCommand : Command
 
         if (!console.IsHumanReadable)
         {
-            resultHolder.SetResult(new ObjectResult(new OpencodeHooksInstallResult(report.Path, report.Outcome.ToString())));
+            resultHolder.SetResult(new ObjectResult(new OpencodeHooksInstallResult(
+                report.Path, report.Outcome.ToString(), OpencodeEndpointGuidance.InstallNote)));
             return ExitCodes.Success;
         }
 
         console.OkLine($"Installed Nitro's Opencode plugin in '{report.Path.EscapeMarkup()}': {Describe(report.Outcome)}.");
+        console.WriteLine(OpencodeEndpointGuidance.InstallNote);
         return ExitCodes.Success;
     }
 
@@ -51,5 +53,5 @@ internal sealed class InstallOpencodeHooksCommand : Command
         _ => outcome.ToString()
     };
 
-    public sealed record OpencodeHooksInstallResult(string Path, string Outcome);
+    public sealed record OpencodeHooksInstallResult(string Path, string Outcome, string EndpointNote);
 }
