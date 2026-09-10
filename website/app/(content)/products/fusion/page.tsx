@@ -17,6 +17,7 @@ import {
   AnyServerSection,
   BothSpecificationsSection,
   ClientSafetySection,
+  NitroCta,
   WhatIsFusionSection,
 } from "./sections";
 
@@ -134,6 +135,7 @@ export default function FusionPage() {
       <BothSpecificationsSection />
       <AnyServerSection />
       <ClientSafetySection />
+      <NitroCta />
 
       <ButtonRow>
         <SolidButton href={GETTING_STARTED_HREF}>Start with Fusion</SolidButton>
