@@ -31,6 +31,7 @@
     <ProjectReference Include="..\..\src\Fusion.Diagnostics\HotChocolate.Fusion.Diagnostics.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Connectors.InMemory\HotChocolate.Fusion.Connectors.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
   </ItemGroup>
 
   <ItemGroup>
