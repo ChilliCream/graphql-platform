@@ -248,10 +248,7 @@ export function ZoningPermit() {
         </g>
 
         {/* The stamp that lands once the inspection is done */}
-        <g
-          transform="translate(236, 372)"
-          opacity={refused ? 1 : 0.25}
-        >
+        <g transform="translate(236, 372)" opacity={refused ? 1 : 0.25}>
           <polygon
             points={poly([
               [0, 0],
