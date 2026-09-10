@@ -1,8 +1,8 @@
+using System.Buffers;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using HotChocolate.Buffers;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
@@ -134,9 +134,7 @@ internal sealed class OpencodeServerClient : IOpencodeServerClient
     /// </summary>
     private static HttpContent CreateMessageContent(string text)
     {
-        byte[] bytes;
-
-        using var buffer = new PooledArrayWriter();
+        var buffer = new ArrayBufferWriter<byte>();
 
         using (var writer = new Utf8JsonWriter(buffer))
         {
@@ -151,7 +149,7 @@ internal sealed class OpencodeServerClient : IOpencodeServerClient
             writer.WriteEndObject();
         }
 
-        bytes = buffer.WrittenSpan.ToArray();
+        var bytes = buffer.WrittenSpan.ToArray();
         var content = new ByteArrayContent(bytes);
         content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         return content;

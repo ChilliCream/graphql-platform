@@ -39,6 +39,27 @@ public sealed class OpencodeServerClientTests
     }
 
     [Fact]
+    public async Task PushMessageAsync_Should_WriteCompactJsonBody_When_TextIsSent()
+    {
+        // arrange: the body is built with Utf8JsonWriter over an
+        // ArrayBufferWriter<byte>, not HotChocolate.Buffers, so this pins the
+        // exact wire format the opencode server expects.
+        string? capturedBody = null;
+        var client = CreateClient(async (request, _) =>
+        {
+            capturedBody = await request.Content!.ReadAsStringAsync();
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        });
+
+        // act
+        await client.PushMessageAsync(
+            "http://localhost:4096", "ses_123", "hello", secret: null, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("""{"parts":[{"type":"text","text":"hello"}]}""", capturedBody);
+    }
+
+    [Fact]
     public async Task PushMessageAsync_Should_ReturnOk_When_ServerRespondsWithNoContent()
     {
         // arrange: prompt_async forks the run server-side and returns 204
