@@ -5,7 +5,8 @@ builder.Services
 
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far");
+    // TODO [17]: Change the default archive filename to graph.far.
+    .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
 
