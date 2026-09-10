@@ -115,9 +115,19 @@ internal static class ServiceCollectionExtensions
 
         var schemaServices = new McpSchemaServiceProvider();
 
+        // The factory of a singleton is always invoked with the root service provider.
+        services.AddSingleton(
+            sp =>
+            {
+                schemaServices.Bind(sp);
+
+                return schemaServices;
+            });
+
         services
             .AddOptions<McpServerOptions>()
-            .Configure<IServiceProvider>((_, provider) => schemaServices.Bind(provider));
+            .Configure<IServiceProvider>(
+                (_, provider) => provider.GetRequiredService<McpSchemaServiceProvider>());
 
         var mcpServerBuilder =
             services

@@ -4,7 +4,7 @@ namespace HotChocolate.Adapters.Mcp;
 /// Provides the schema-scoped services that the MCP request handlers resolve from.
 /// </summary>
 /// <remarks>
-/// The provider is bound to the schema services when the MCP server options are built.
+/// The provider is bound to the schema services the first time it is resolved from them.
 /// </remarks>
 internal sealed class McpSchemaServiceProvider : IServiceProvider
 {
@@ -17,5 +17,13 @@ internal sealed class McpSchemaServiceProvider : IServiceProvider
         _schemaServices = schemaServices;
     }
 
-    public object? GetService(Type serviceType) => _schemaServices?.GetService(serviceType);
+    public object? GetService(Type serviceType)
+    {
+        if (_schemaServices is null)
+        {
+            throw new InvalidOperationException("The MCP schema services have not been bound.");
+        }
+
+        return _schemaServices.GetService(serviceType);
+    }
 }
