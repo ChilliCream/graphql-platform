@@ -18,20 +18,20 @@ const CSS = `
 .ed-pen .ed-pen-draw { stroke-dasharray: var(--len, 160); stroke-dashoffset: 0; }
 .ed-pen .ed-pen-in { opacity: 1; }
 .ed-pen .ed-pen-stamp { transform: rotate(-7deg); transform-box: fill-box; transform-origin: center; }
-.ed-pen[data-run="true"] .ed-pen-draw { animation: ed-pen-draw 13s ease-in-out infinite; }
-.ed-pen[data-run="true"] .ed-pen-in { animation: ed-pen-in 13s ease-in-out infinite; }
-.ed-pen[data-run="true"] .ed-pen-stamp { animation: ed-pen-stamp 13s cubic-bezier(0.3, 1.4, 0.5, 1) infinite; transform-box: fill-box; transform-origin: center; }
+.ed-pen[data-run="true"] .ed-pen-draw { animation: ed-pen-draw 1.3s ease-out both; }
+.ed-pen[data-run="true"] .ed-pen-in { animation: ed-pen-in 0.7s ease-out both; }
+.ed-pen[data-run="true"] .ed-pen-stamp { animation: ed-pen-stamp 0.7s cubic-bezier(0.3, 1.4, 0.5, 1) 6.8s both; }
 @keyframes ed-pen-draw {
-  0% { stroke-dashoffset: var(--len, 160); }
-  12%, 100% { stroke-dashoffset: 0; }
+  from { stroke-dashoffset: var(--len, 160); }
+  to { stroke-dashoffset: 0; }
 }
 @keyframes ed-pen-in {
-  0%, 4% { opacity: 0; }
-  14%, 100% { opacity: 1; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @keyframes ed-pen-stamp {
-  0%, 46% { opacity: 0; transform: scale(1.5) rotate(-14deg); }
-  54%, 100% { opacity: 1; transform: scale(1) rotate(-7deg); }
+  from { opacity: 0; transform: scale(1.5) rotate(-14deg); }
+  to { opacity: 1; transform: scale(1) rotate(-7deg); }
 }
 `;
 

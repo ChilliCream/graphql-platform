@@ -17,20 +17,20 @@ const CSS = `
 .ed-note .ed-note-draw { stroke-dasharray: var(--len, 140); stroke-dashoffset: 0; }
 .ed-note .ed-note-in { opacity: 1; }
 .ed-note .ed-note-sweep { transform: scaleX(1); transform-box: fill-box; transform-origin: left center; }
-.ed-note[data-run="true"] .ed-note-draw { animation: ed-note-draw 12s ease-in-out infinite; }
-.ed-note[data-run="true"] .ed-note-in { animation: ed-note-in 12s ease-in-out infinite; }
-.ed-note[data-run="true"] .ed-note-sweep { animation: ed-note-sweep 12s cubic-bezier(0.5, 0, 0.2, 1) infinite; }
+.ed-note[data-run="true"] .ed-note-draw { animation: ed-note-draw 1.1s ease-out both; }
+.ed-note[data-run="true"] .ed-note-in { animation: ed-note-in 0.7s ease-out both; }
+.ed-note[data-run="true"] .ed-note-sweep { animation: ed-note-sweep 0.9s cubic-bezier(0.5, 0, 0.2, 1) 0.4s both; }
 @keyframes ed-note-draw {
-  0% { stroke-dashoffset: var(--len, 140); }
-  16%, 100% { stroke-dashoffset: 0; }
+  from { stroke-dashoffset: var(--len, 140); }
+  to { stroke-dashoffset: 0; }
 }
 @keyframes ed-note-in {
-  0%, 8% { opacity: 0; }
-  20%, 100% { opacity: 1; }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @keyframes ed-note-sweep {
-  0%, 10% { transform: scaleX(0); }
-  26%, 100% { transform: scaleX(1); }
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 `;
 
