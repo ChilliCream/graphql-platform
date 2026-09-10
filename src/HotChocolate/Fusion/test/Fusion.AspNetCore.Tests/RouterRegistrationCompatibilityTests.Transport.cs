@@ -31,6 +31,7 @@ public partial class RouterRegistrationCompatibilityTests
         int surface,
         bool factory)
     {
+        // arrange
         using var session = new TestServerSession();
         using var server = CreateServer(session, router =>
         {
@@ -74,12 +75,10 @@ public partial class RouterRegistrationCompatibilityTests
             }, key: "CaptureSocketInterceptor");
         });
 
+        // act
         using var http = server.CreateClient();
         using var response = await http.PostAsJsonAsync(
             "/graphql", new { query = "{ __typename }" }, TestContext.Current.CancellationToken);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(factory ? "named" : "generic", Assert.Single(response.Headers.GetValues("interceptor")));
-        Assert.Equal("{\"data\":{\"__typename\":\"Query\"}}", await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
 
         var socketClient = server.CreateWebSocketClient();
         socketClient.ConfigureRequest = r => r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
@@ -103,7 +102,15 @@ public partial class RouterRegistrationCompatibilityTests
             }
         }
 
-        Assert.Equal(1, received);
+        // assert
+        var observed = new
+        {
+            StatusCode = (int)response.StatusCode,
+            InterceptorHeader = response.Headers.GetValues("interceptor").Single(),
+            Body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken),
+            ReceivedSocketMessages = received
+        };
+        observed.MatchMarkdownSnapshot(factory ? "FactoryFuncs" : "InterceptorTypes");
     }
 
     public static IEnumerable<object[]> FormatterShapes()
@@ -123,6 +130,7 @@ public partial class RouterRegistrationCompatibilityTests
         int surface,
         int overload)
     {
+        // arrange
         using var session = new TestServerSession();
         using var server = CreateServer(session, router =>
         {
@@ -161,22 +169,15 @@ public partial class RouterRegistrationCompatibilityTests
             }
         });
 
+        // act
         using var client = server.CreateClient();
         using var response = await client.PostAsJsonAsync(
             "/graphql", new { query = "{ __typename }" }, TestContext.Current.CancellationToken);
-        Assert.Equal(overload < 2 ? HttpStatusCode.OK : (HttpStatusCode)418, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var responseSummary = $"{(int)response.StatusCode}\n{body}";
+
         if (overload < 2)
         {
-            body.MatchInlineSnapshot(
-                """
-                {
-                  "data": {
-                    "__typename": "Query"
-                  }
-                }
-                """);
-
             using var source = CreateSourceSchema("A", "type Query { item: Item } type Item { name: String field: String }");
             using var gateway = await CreateCompositeSchemaAsync(
                 [("A", source)],
@@ -215,36 +216,81 @@ public partial class RouterRegistrationCompatibilityTests
             };
             request.Headers.Add("Accept", "multipart/mixed");
             using var incremental = await incrementalClient.SendAsync(request, TestContext.Current.CancellationToken);
-            Assert.Equal(HttpStatusCode.OK, incremental.StatusCode);
             var incrementalBody = await incremental.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-            incrementalBody.Replace("\r\n", "\n", StringComparison.Ordinal).MatchMarkdownSnapshot("Incremental");
+            var incrementalSummary =
+                $"{(int)incremental.StatusCode}\n{incrementalBody.Replace("\r\n", "\n", StringComparison.Ordinal)}";
+
+            // assert
+            responseSummary.MatchInlineSnapshot(
+                """
+                200
+                {
+                  "data": {
+                    "__typename": "Query"
+                  }
+                }
+                """);
+            incrementalSummary.MatchMarkdownSnapshot("Incremental");
         }
         else
         {
-            Assert.Equal("{\"data\":{\"__typename\":\"Query\"}}", body);
+            // assert
+            responseSummary.MatchInlineSnapshot(
+                """
+                418
+                {"data":{"__typename":"Query"}}
+                """);
         }
     }
 
     [Fact]
     public void Extensions_Should_PreserveArgumentExceptions_When_UsingLegacyOnlyAndRouterBuilders()
     {
+        // arrange
         var router = new ServiceCollection().AddGraphQLRouter();
-        Assert.Equal("builder", Assert.Throws<ArgumentNullException>(() =>
-            AspNetCoreFusionRouterBuilderExtensions.AddHttpRequestInterceptor<MarkingHttpInterceptor>(null!)).ParamName);
-        Assert.Equal("factory", Assert.Throws<ArgumentNullException>(() => router.AddHttpRequestInterceptor(null!)).ParamName);
-        Assert.Equal("factory", Assert.Throws<ArgumentNullException>(() => router.AddSocketSessionInterceptor<MarkingSocketInterceptor>(null!)).ParamName);
-        Assert.Equal("factory", Assert.Throws<ArgumentNullException>(() => router.AddHttpResponseFormatter<TeapotFormatter>(null!)).ParamName);
-        Assert.Equal("configure", Assert.Throws<ArgumentNullException>(() => router.ModifyServerOptions(null!)).ParamName);
-
 #pragma warning disable CS0618 // Null validation must also work without a router implementation.
         var legacy = new LegacyOnlyBuilder(router.Name, router.Services);
-        Assert.Equal("builder", Assert.Throws<ArgumentNullException>(() =>
-            AspNetCoreFusionGatewayBuilderExtensions.AddHttpRequestInterceptor<MarkingHttpInterceptor>(null!)).ParamName);
-        Assert.Equal("factory", Assert.Throws<ArgumentNullException>(() => legacy.AddHttpRequestInterceptor(null!)).ParamName);
-        Assert.Equal("factory", Assert.Throws<ArgumentNullException>(() => legacy.AddSocketSessionInterceptor<MarkingSocketInterceptor>(null!)).ParamName);
-        Assert.Equal("factory", Assert.Throws<ArgumentNullException>(() => legacy.AddHttpResponseFormatter<TeapotFormatter>(null!)).ParamName);
-        Assert.Equal("configure", Assert.Throws<ArgumentNullException>(() => legacy.ModifyServerOptions(null!)).ParamName);
 #pragma warning restore CS0618
+
+        // act
+        string[] entries =
+        [
+            Capture(
+                "AspNetCoreFusionRouterBuilderExtensions.AddHttpRequestInterceptor<T>(builder: null)",
+                () => AspNetCoreFusionRouterBuilderExtensions.AddHttpRequestInterceptor<MarkingHttpInterceptor>(null!)),
+            Capture(
+                "router.AddHttpRequestInterceptor(factory: null)",
+                () => router.AddHttpRequestInterceptor(null!)),
+            Capture(
+                "router.AddSocketSessionInterceptor<T>(factory: null)",
+                () => router.AddSocketSessionInterceptor<MarkingSocketInterceptor>(null!)),
+            Capture(
+                "router.AddHttpResponseFormatter<T>(factory: null)",
+                () => router.AddHttpResponseFormatter<TeapotFormatter>(null!)),
+            Capture(
+                "router.ModifyServerOptions(configure: null)",
+                () => router.ModifyServerOptions(null!)),
+#pragma warning disable CS0618 // Null validation must also work without a router implementation.
+            Capture(
+                "AspNetCoreFusionGatewayBuilderExtensions.AddHttpRequestInterceptor<T>(builder: null)",
+                () => AspNetCoreFusionGatewayBuilderExtensions.AddHttpRequestInterceptor<MarkingHttpInterceptor>(null!)),
+            Capture(
+                "legacy.AddHttpRequestInterceptor(factory: null)",
+                () => legacy.AddHttpRequestInterceptor(null!)),
+            Capture(
+                "legacy.AddSocketSessionInterceptor<T>(factory: null)",
+                () => legacy.AddSocketSessionInterceptor<MarkingSocketInterceptor>(null!)),
+            Capture(
+                "legacy.AddHttpResponseFormatter<T>(factory: null)",
+                () => legacy.AddHttpResponseFormatter<TeapotFormatter>(null!)),
+            Capture(
+                "legacy.ModifyServerOptions(configure: null)",
+                () => legacy.ModifyServerOptions(null!))
+#pragma warning restore CS0618
+        ];
+
+        // assert
+        entries.MatchMarkdownSnapshot();
     }
 
     private static TestServer CreateServer(TestServerSession session, Action<IFusionRouterBuilder> configure)

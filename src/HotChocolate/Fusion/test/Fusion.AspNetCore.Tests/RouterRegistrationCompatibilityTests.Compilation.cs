@@ -8,6 +8,7 @@ public partial class RouterRegistrationCompatibilityTests
     [Fact]
     public void Compile_Should_KeepAllRouterOverloadsWarningFree_When_ConsumerHasNoFriendAccess()
     {
+        // arrange
         var compilation = CreateCompilation(
             """
             using System;
@@ -73,9 +74,11 @@ public partial class RouterRegistrationCompatibilityTests
             """,
             warningsAsErrors: true);
 
+        // act
         using var assembly = new MemoryStream();
         var result = compilation.Emit(assembly, cancellationToken: TestContext.Current.CancellationToken);
 
+        // assert
         Assert.Equal([], result.Diagnostics.Where(d => d.Severity >= DiagnosticSeverity.Warning));
         Assert.True(result.Success);
     }
@@ -83,6 +86,7 @@ public partial class RouterRegistrationCompatibilityTests
     [Fact]
     public void Compile_Should_KeepLegacySignaturesWithGuidance_When_ConsumerUsesStaticCalls()
     {
+        // arrange
         var compilation = CreateCompilation(
             """
             using HotChocolate.Fusion.Configuration;
@@ -104,9 +108,11 @@ public partial class RouterRegistrationCompatibilityTests
             """,
             warningsAsErrors: false);
 
+        // act
         using var assembly = new MemoryStream();
         var result = compilation.Emit(assembly, cancellationToken: TestContext.Current.CancellationToken);
 
+        // assert
         Assert.True(result.Success);
         result.Diagnostics
             .Where(d => d.Severity >= DiagnosticSeverity.Warning)
@@ -118,6 +124,7 @@ public partial class RouterRegistrationCompatibilityTests
     [Fact]
     public void Extensions_Should_PreserveCompleteSignatures_When_AddingRouterOverloads()
     {
+        // arrange
         var compilation = CreateCompilation("", warningsAsErrors: false);
         var legacy = compilation.GetTypeByMetadataName(
             "Microsoft.Extensions.DependencyInjection.AspNetCoreFusionGatewayBuilderExtensions")!;
@@ -140,19 +147,28 @@ public partial class RouterRegistrationCompatibilityTests
         var methods = legacy.GetMembers().OfType<IMethodSymbol>().ToArray();
         var signatures = methods.Select(m => m.ToDisplayString(format)).Order().ToArray();
 
+        // act
+        // Each legacy signature is paired with its Obsolete message so the message text is
+        // verified as part of the snapshot instead of a separate per-method assertion.
+        var annotatedSignatures = methods
+            .Select(m =>
+            {
+                var obsolete = m.GetAttributes().Single(a => a.AttributeClass?.Name == "ObsoleteAttribute");
+                var message = (string?)obsolete.ConstructorArguments.Single().Value;
+                return (Signature: m.ToDisplayString(format), Message: message);
+            })
+            .OrderBy(entry => entry.Signature, StringComparer.Ordinal)
+            .Select(entry => $"{entry.Signature} [Obsolete: {entry.Message}]")
+            .ToArray();
+
+        // assert
         Assert.Equal(9, methods.Length);
         Assert.Equal(
             signatures.Select(s => s
                 .Replace("AspNetCoreFusionGatewayBuilderExtensions", "AspNetCoreFusionRouterBuilderExtensions", StringComparison.Ordinal)
                 .Replace("IFusionGatewayBuilder", "IFusionRouterBuilder", StringComparison.Ordinal)),
             router.GetMembers().OfType<IMethodSymbol>().Select(m => m.ToDisplayString(format)).Order());
-        Assert.All(methods, method =>
-        {
-            var obsolete = Assert.Single(method.GetAttributes(), a => a.AttributeClass?.Name == "ObsoleteAttribute");
-            Assert.Equal($"Use {method.Name} on IFusionRouterBuilder instead.", obsolete.ConstructorArguments[0].Value);
-            Assert.Single(obsolete.ConstructorArguments);
-        });
-        signatures.MatchMarkdownSnapshot();
+        annotatedSignatures.MatchMarkdownSnapshot();
     }
 
     private static CSharpCompilation CreateCompilation(string source, bool warningsAsErrors)

@@ -1,6 +1,7 @@
 # AddHttpResponseFormatter_Should_FormatActualResponses_When_UsingAnyOverloadOrBuilderSurface
 
 ```text
+200
 
 ---
 Content-Type: application/json; charset=utf-8

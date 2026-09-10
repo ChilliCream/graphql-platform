@@ -38,6 +38,7 @@ public partial class RouterRegistrationCompatibilityTests : FusionTestBase
         int shape,
         bool nonDefaults)
     {
+        // arrange
         var host = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
         {
             DisableDefaults = true,
@@ -46,9 +47,9 @@ public partial class RouterRegistrationCompatibilityTests : FusionTestBase
         var name = nonDefaults ? "named" : ISchemaDefinition.DefaultName;
         host.Services.AddHttpClient();
 
+        // act
 #pragma warning disable CS0618 // Exercise the exact legacy registration returns alongside the new entry points.
         var builder = Register(host, shape, nonDefaults);
-        Assert.Equal(name, builder.Name);
         Assert.Same(host.Services, builder.Services);
         builder.AddInMemoryConfiguration(s_schema);
 #pragma warning restore CS0618
@@ -58,11 +59,18 @@ public partial class RouterRegistrationCompatibilityTests : FusionTestBase
         var provider = services.GetRequiredService<IRequestExecutorProvider>();
         var executor = await provider.GetExecutorAsync(name, TestContext.Current.CancellationToken);
         var other = await provider.GetExecutorAsync("other", TestContext.Current.CancellationToken);
-        Assert.Equal(name, executor.Schema.Name);
-        Assert.Equal("other", other.Schema.Name);
 
         await using var result = await executor.ExecuteAsync(
             "{ __schema { queryType { name } } }", TestContext.Current.CancellationToken);
+        await using var otherResult = await other.ExecuteAsync(
+            "{ __schema { queryType { name } } }", TestContext.Current.CancellationToken);
+
+        // The same valid body is accepted with defaults and rejected with the explicit 512-byte limit.
+        var body = Encoding.UTF8.GetBytes("{\"query\":\"{ __typename }\"}" + new string(' ', 1024));
+        var parser = executor.Schema.Services.GetRequiredService<IHttpRequestParser>();
+        var otherParser = other.Schema.Services.GetRequiredService<IHttpRequestParser>();
+
+        // assert
         if (nonDefaults)
         {
             result.MatchInlineSnapshot(
@@ -83,25 +91,43 @@ public partial class RouterRegistrationCompatibilityTests : FusionTestBase
             AssertIntrospectionDisabled(result);
         }
 
-        await using var otherResult = await other.ExecuteAsync(
-            "{ __schema { queryType { name } } }", TestContext.Current.CancellationToken);
         AssertIntrospectionDisabled(otherResult);
 
-        // The same valid body is accepted with defaults and rejected with the explicit 512-byte limit.
-        var body = Encoding.UTF8.GetBytes("{\"query\":\"{ __typename }\"}" + new string(' ', 1024));
-        var parser = executor.Schema.Services.GetRequiredService<IHttpRequestParser>();
-        var otherParser = other.Schema.Services.GetRequiredService<IHttpRequestParser>();
+        var summary = new
+        {
+            BuilderName = builder.Name,
+            ExecutorSchemaName = executor.Schema.Name,
+            OtherSchemaName = other.Schema.Name,
+            LargeBodyParseResult = await DescribeParseResultAsync(parser, body),
+            OtherLargeBodyParseResult = await DescribeParseResultAsync(otherParser, body)
+        };
+
         if (nonDefaults)
         {
-            var error = await Assert.ThrowsAsync<GraphQLRequestException>(() => ParseAsync(parser, body));
-            Assert.Equal("Request size exceeds maximum allowed size.", error.Message);
+            summary.MatchInlineSnapshot(
+                """
+                {
+                  "BuilderName": "named",
+                  "ExecutorSchemaName": "named",
+                  "OtherSchemaName": "other",
+                  "LargeBodyParseResult": "Rejected: Request size exceeds maximum allowed size.",
+                  "OtherLargeBodyParseResult": "{\n  __typename\n}"
+                }
+                """);
         }
         else
         {
-            Assert.Equal("{\n  __typename\n}", Assert.Single(await ParseAsync(parser, body)).Document?.ToString());
+            summary.MatchInlineSnapshot(
+                """
+                {
+                  "BuilderName": "_Default",
+                  "ExecutorSchemaName": "_Default",
+                  "OtherSchemaName": "other",
+                  "LargeBodyParseResult": "{\n  __typename\n}",
+                  "OtherLargeBodyParseResult": "{\n  __typename\n}"
+                }
+                """);
         }
-
-        Assert.Equal("{\n  __typename\n}", Assert.Single(await ParseAsync(otherParser, body)).Document?.ToString());
     }
 
     [Theory]
@@ -110,9 +136,12 @@ public partial class RouterRegistrationCompatibilityTests : FusionTestBase
     public async Task Configure_Should_KeepIdentityOrderAndOneNamedPipeline_When_LegacyAndRouterBuildersMix(
         bool customLegacyBuilder)
     {
+        // arrange
         var services = new ServiceCollection();
         services.AddHttpClient();
         var router = services.AddGraphQLRouter("one").AddInMemoryConfiguration(s_schema);
+
+        // act
         Assert.Same(router, router.ModifyServerOptions(o => o.MaxConcurrentExecutions = 3));
         Assert.Same(router, router.ModifyOptions(o => o.OperationDocumentCacheSize = 64));
 
@@ -120,7 +149,7 @@ public partial class RouterRegistrationCompatibilityTests : FusionTestBase
         IFusionGatewayBuilder legacy = customLegacyBuilder
             ? new LegacyOnlyBuilder(router.Name, services)
             : router;
-        Assert.Equal(!customLegacyBuilder, legacy is IFusionRouterBuilder);
+        (legacy is IFusionRouterBuilder).MatchInlineSnapshot(customLegacyBuilder ? "false" : "true");
         Assert.Same(legacy, AspNetCoreFusionGatewayBuilderExtensions.ModifyServerOptions(
             legacy, o => o.MaxConcurrentExecutions *= 2));
         Assert.Same(legacy, legacy.ModifyOptions(o => o.OperationDocumentCacheSize *= 2));
@@ -139,6 +168,7 @@ public partial class RouterRegistrationCompatibilityTests : FusionTestBase
         var options = provider.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>();
         var setup = provider.GetRequiredService<IOptionsMonitor<FusionRouterSetup>>();
 
+        // assert
         new
         {
             executors.SchemaNames,
@@ -165,22 +195,36 @@ public partial class RouterRegistrationCompatibilityTests : FusionTestBase
     [Fact]
     public void Register_Should_PreserveArgumentExceptions_When_UsingLegacyAndRouterEntryPoints()
     {
+        // arrange
         var services = new ServiceCollection();
-        Assert.Equal("services", Assert.Throws<ArgumentNullException>(() =>
-            FusionServerServiceCollectionExtensions.AddGraphQLRouter(null!)).ParamName);
-        Assert.Equal("maxAllowedRequestSize", Assert.Throws<ArgumentOutOfRangeException>(() =>
-            services.AddGraphQLRouter(maxAllowedRequestSize: -1)).ParamName);
-        Assert.Throws<NullReferenceException>(() =>
-            FusionServerAspNetCoreHostingBuilderExtensions.AddGraphQLRouter(null!));
 
+        // act
+        string[] entries =
+        [
+            Capture(
+                "FusionServerServiceCollectionExtensions.AddGraphQLRouter(services: null)",
+                () => FusionServerServiceCollectionExtensions.AddGraphQLRouter(null!)),
+            Capture(
+                "services.AddGraphQLRouter(maxAllowedRequestSize: -1)",
+                () => services.AddGraphQLRouter(maxAllowedRequestSize: -1)),
+            Capture(
+                "FusionServerAspNetCoreHostingBuilderExtensions.AddGraphQLRouter(host: null)",
+                () => FusionServerAspNetCoreHostingBuilderExtensions.AddGraphQLRouter(null!)),
 #pragma warning disable CS0618 // The legacy registration must retain its original exception semantics.
-        Assert.Equal("services", Assert.Throws<ArgumentNullException>(() =>
-            FusionServerServiceCollectionExtensions.AddGraphQLGatewayServer(null!)).ParamName);
-        Assert.Equal("maxAllowedRequestSize", Assert.Throws<ArgumentOutOfRangeException>(() =>
-            services.AddGraphQLGatewayServer(maxAllowedRequestSize: -1)).ParamName);
-        Assert.Throws<NullReferenceException>(() =>
-            FusionServerAspNetCoreHostingBuilderExtensions.AddGraphQLGateway(null!));
+            Capture(
+                "FusionServerServiceCollectionExtensions.AddGraphQLGatewayServer(services: null)",
+                () => FusionServerServiceCollectionExtensions.AddGraphQLGatewayServer(null!)),
+            Capture(
+                "services.AddGraphQLGatewayServer(maxAllowedRequestSize: -1)",
+                () => services.AddGraphQLGatewayServer(maxAllowedRequestSize: -1)),
+            Capture(
+                "FusionServerAspNetCoreHostingBuilderExtensions.AddGraphQLGateway(host: null)",
+                () => FusionServerAspNetCoreHostingBuilderExtensions.AddGraphQLGateway(null!))
 #pragma warning restore CS0618
+        ];
+
+        // assert
+        entries.MatchMarkdownSnapshot();
     }
 
     private static void AssertIntrospectionDisabled(IExecutionResult result)
@@ -216,6 +260,42 @@ public partial class RouterRegistrationCompatibilityTests : FusionTestBase
         finally
         {
             await reader.CompleteAsync();
+        }
+    }
+
+    private static async Task<string> DescribeParseResultAsync(IHttpRequestParser parser, byte[] body)
+    {
+        try
+        {
+            var requests = await ParseAsync(parser, body);
+            return requests.Length == 1
+                ? requests[0].Document?.ToString() ?? "<null-document>"
+                : $"<{requests.Length}-requests>";
+        }
+        catch (GraphQLRequestException ex)
+        {
+            return $"Rejected: {ex.Message}";
+        }
+    }
+
+    /// <summary>
+    /// Invokes <paramref name="action"/> and projects the outcome as
+    /// "&lt;entryPoint&gt; -&gt; &lt;ExceptionType&gt;(&lt;ParamName&gt;)" for snapshotting,
+    /// so exception-shape assertions read as data rather than a chain of Assert calls.
+    /// </summary>
+    private static string Capture(string entryPoint, Action action)
+    {
+        try
+        {
+            action();
+            return $"{entryPoint} -> <no exception>";
+        }
+        catch (Exception ex)
+        {
+            var paramName = (ex as ArgumentException)?.ParamName;
+            return paramName is null
+                ? $"{entryPoint} -> {ex.GetType().Name}"
+                : $"{entryPoint} -> {ex.GetType().Name}({paramName})";
         }
     }
 

@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
-using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Fusion.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -10,7 +9,12 @@ namespace Microsoft.Extensions.DependencyInjection;
 [Obsolete("Use AspNetCoreFusionRouterBuilderExtensions instead.")]
 public static partial class AspNetCoreFusionGatewayBuilderExtensions
 {
-    /// <inheritdoc cref="AspNetCoreFusionRouterBuilderExtensions.AddHttpRequestInterceptor{T}(IFusionRouterBuilder)"/>
+    /// <summary>
+    /// Adds an interceptor for GraphQL over HTTP requests.
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <typeparam name="T">The <see cref="IHttpRequestInterceptor"/> implementation.</typeparam>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
     [Obsolete("Use AddHttpRequestInterceptor on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddHttpRequestInterceptor<T>(
         this IFusionGatewayBuilder builder)
@@ -20,7 +24,12 @@ public static partial class AspNetCoreFusionGatewayBuilderExtensions
         return builder;
     }
 
-    /// <inheritdoc cref="AspNetCoreFusionRouterBuilderExtensions.AddHttpRequestInterceptor(IFusionRouterBuilder, Func{IServiceProvider, IHttpRequestInterceptor})"/>
+    /// <summary>
+    /// Adds an interceptor for GraphQL over HTTP requests.
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <param name="factory">A factory that creates the interceptor instance.</param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
     [Obsolete("Use AddHttpRequestInterceptor on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddHttpRequestInterceptor(
         this IFusionGatewayBuilder builder,
@@ -30,7 +39,12 @@ public static partial class AspNetCoreFusionGatewayBuilderExtensions
         return builder;
     }
 
-    /// <inheritdoc cref="AspNetCoreFusionRouterBuilderExtensions.AddSocketSessionInterceptor{T}(IFusionRouterBuilder)"/>
+    /// <summary>
+    /// Adds an interceptor for GraphQL socket sessions.
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <typeparam name="T">The <see cref="ISocketSessionInterceptor"/> implementation.</typeparam>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
     [Obsolete("Use AddSocketSessionInterceptor on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddSocketSessionInterceptor<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
@@ -41,7 +55,13 @@ public static partial class AspNetCoreFusionGatewayBuilderExtensions
         return builder;
     }
 
-    /// <inheritdoc cref="AspNetCoreFusionRouterBuilderExtensions.AddSocketSessionInterceptor{T}(IFusionRouterBuilder, Func{IServiceProvider, T})"/>
+    /// <summary>
+    /// Adds an interceptor for GraphQL socket sessions.
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <param name="factory">A factory that creates the interceptor instance.</param>
+    /// <typeparam name="T">The <see cref="ISocketSessionInterceptor"/> implementation.</typeparam>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
     [Obsolete("Use AddSocketSessionInterceptor on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddSocketSessionInterceptor<T>(
         this IFusionGatewayBuilder builder,
@@ -52,7 +72,17 @@ public static partial class AspNetCoreFusionGatewayBuilderExtensions
         return builder;
     }
 
-    /// <inheritdoc cref="AspNetCoreFusionRouterBuilderExtensions.AddHttpResponseFormatter(IFusionRouterBuilder, bool, IncrementalDeliveryFormat)"/>
+    /// <summary>
+    /// Adds the <see cref="DefaultHttpResponseFormatter"/> with specific formatter options.
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <param name="indented">
+    /// Defines whether the underlying JSON writer should pretty print the JSON output.
+    /// </param>
+    /// <param name="incrementalDeliveryFormat">
+    /// The default incremental delivery format to use when the client does not specify one.
+    /// </param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
     [Obsolete("Use AddHttpResponseFormatter on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddHttpResponseFormatter(
         this IFusionGatewayBuilder builder,
@@ -63,7 +93,15 @@ public static partial class AspNetCoreFusionGatewayBuilderExtensions
         return builder;
     }
 
-    /// <inheritdoc cref="AspNetCoreFusionRouterBuilderExtensions.AddHttpResponseFormatter(IFusionRouterBuilder, HttpResponseFormatterOptions, IncrementalDeliveryFormat)"/>
+    /// <summary>
+    /// Adds the <see cref="DefaultHttpResponseFormatter"/> with specific formatter options.
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <param name="options">The HTTP response formatter options.</param>
+    /// <param name="incrementalDeliveryFormat">
+    /// The default incremental delivery format to use when the client does not specify one.
+    /// </param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
     [Obsolete("Use AddHttpResponseFormatter on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddHttpResponseFormatter(
         this IFusionGatewayBuilder builder,
@@ -74,7 +112,12 @@ public static partial class AspNetCoreFusionGatewayBuilderExtensions
         return builder;
     }
 
-    /// <inheritdoc cref="AspNetCoreFusionRouterBuilderExtensions.AddHttpResponseFormatter{T}(IFusionRouterBuilder)"/>
+    /// <summary>
+    /// Adds a custom HTTP response formatter.
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <typeparam name="T">The type of the custom <see cref="IHttpResponseFormatter"/>.</typeparam>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
     [Obsolete("Use AddHttpResponseFormatter on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddHttpResponseFormatter<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
@@ -85,7 +128,13 @@ public static partial class AspNetCoreFusionGatewayBuilderExtensions
         return builder;
     }
 
-    /// <inheritdoc cref="AspNetCoreFusionRouterBuilderExtensions.AddHttpResponseFormatter{T}(IFusionRouterBuilder, Func{IServiceProvider, T})"/>
+    /// <summary>
+    /// Adds a custom HTTP response formatter.
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <param name="factory">The service factory.</param>
+    /// <typeparam name="T">The type of the custom <see cref="IHttpResponseFormatter"/>.</typeparam>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
     [Obsolete("Use AddHttpResponseFormatter on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddHttpResponseFormatter<T>(
         this IFusionGatewayBuilder builder,
