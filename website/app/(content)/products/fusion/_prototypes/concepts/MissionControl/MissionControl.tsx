@@ -182,9 +182,9 @@ export function MissionControl() {
             <div>
               <p
                 className="mb-3 text-[10px] tracking-[0.28em]"
-                style={{ ...monoStyle, color: MC.amber }}
+                style={{ ...monoStyle, color: MC.dim }}
               >
-                FLIGHT RECORDER
+                {String(SECTIONS.length + 1).padStart(2, "0")}
               </p>
               <h2 className="text-cc-heading text-h4 font-heading mb-4">
                 {NITRO_BAND.title}
