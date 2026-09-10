@@ -27,10 +27,17 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     private readonly TimeSpan _debounce = debounce ?? s_defaultDebounce;
 
     /// <summary>
+    /// Invoked once, synchronously, right after the pre-enable file state is
+    /// captured and before the underlying watcher starts raising events.
+    /// </summary>
+    internal Action? OnBaselineCaptured { get; init; }
+
+    /// <summary>
     /// Watches the database file until <paramref name="cancellationToken"/> is
     /// cancelled. When the parent directory does not exist or the file system does
     /// not support watching it, this returns without writing anything, so the
-    /// caller degrades silently to manual refresh.
+    /// caller degrades silently to manual refresh. A write landing before the
+    /// watcher starts raising events is still reconciled once it does.
     /// </summary>
     public async Task RunAsync(ChannelWriter<TuiEvent> writer, CancellationToken cancellationToken)
     {
@@ -66,6 +73,8 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
         var lastWalSize = GetFileSize(walPath);
         var mainDatabaseChanged = false;
         var walChanged = false;
+
+        OnBaselineCaptured?.Invoke();
 
         void OnTick(object? _)
         {
@@ -121,6 +130,21 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
             catch (Exception ex) when (ex is IOException or PlatformNotSupportedException or UnauthorizedAccessException)
             {
                 return;
+            }
+
+            // A write landing between the pre-enable baseline above and the
+            // watcher actually raising events would otherwise fire no event
+            // while the baseline already contains its growth, losing it for
+            // good. Reading the -wal size again now and comparing it to that
+            // same pre-enable baseline closes the window. Whichever path
+            // notices first wins, and a duplicate DataChangedEvent is
+            // harmless since consumers treat it as "re-read", not as a delta.
+            var reconciledWalSize = GetFileSize(walPath);
+
+            if (reconciledWalSize > lastWalSize)
+            {
+                lastWalSize = reconciledWalSize;
+                writer.TryWrite(new TuiEvent.DataChangedEvent());
             }
 
             try

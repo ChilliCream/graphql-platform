@@ -90,6 +90,34 @@ public sealed class SqliteDbWatcherTests : IDisposable
     }
 
     [Fact]
+    public async Task RunAsync_Should_PublishDataChangedEvent_When_WalGrowsBeforeEventsAreEnabled()
+    {
+        // arrange: land the write exactly in the window between the pre-enable
+        // -wal baseline read and the watcher raising events, via a hook invoked
+        // synchronously at that point, since the window is otherwise too narrow
+        // for a test to hit deterministically.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllText(databasePath, "initial");
+        var walPath = databasePath + "-wal";
+        var watcher = new SqliteDbWatcher(databasePath, s_debounce)
+        {
+            OnBaselineCaptured = () => File.WriteAllText(walPath, new string('w', 64))
+        };
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        var received = await ReadOneAsync(channel.Reader, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.IsType<TuiEvent.DataChangedEvent>(received);
+    }
+
+    [Fact]
     public async Task RunAsync_Should_NotPublishDataChangedEvent_When_OnlyWalSiblingWritten()
     {
         // arrange: every store connection in this codebase opens without
