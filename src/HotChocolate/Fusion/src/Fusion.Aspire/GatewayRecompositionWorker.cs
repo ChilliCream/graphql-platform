@@ -4,8 +4,8 @@ using Microsoft.Extensions.Logging;
 namespace HotChocolate.Fusion.Aspire;
 
 /// <summary>
-/// Schedules schema recomposition runs for a single gateway. Triggers that arrive while a run
-/// is already pending are coalesced into that run, and two runs for the same gateway never
+/// Schedules schema recomposition runs for a single router. Triggers that arrive while a run
+/// is already pending are coalesced into that run, and two runs for the same router never
 /// overlap.
 /// </summary>
 internal sealed class GatewayRecompositionWorker
@@ -42,7 +42,7 @@ internal sealed class GatewayRecompositionWorker
     }
 
     /// <summary>
-    /// Requests a schema recomposition for the gateway. When a recomposition is already
+    /// Requests a schema recomposition for the router. When a recomposition is already
     /// pending, the request is absorbed by the pending run.
     /// </summary>
     public void TriggerRecomposition() => _triggers.Writer.TryWrite(true);

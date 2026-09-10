@@ -9,7 +9,7 @@ using IOPath = System.IO.Path;
 namespace HotChocolate.Fusion.Aspire.Nitro;
 
 /// <summary>
-/// Provides the fusion configuration that the gateways of a run compose against. Each gateway gets
+/// Provides the fusion configuration that the routers of a run compose against. Each router gets
 /// its own private copy of the configuration that Nitro serves for the configured stage, and that
 /// copy is the only base its compositions build on for the rest of the run.
 /// </summary>
@@ -30,7 +30,7 @@ internal sealed class NitroSeedCoordinator
     /// Initializes a new instance of <see cref="NitroSeedCoordinator"/>.
     /// </summary>
     /// <param name="stage">
-    /// The name of the stage whose fusion configuration the gateways compose against.
+    /// The name of the stage whose fusion configuration the routers compose against.
     /// </param>
     /// <param name="connectionResolver">
     /// The resolver for the connection to the Nitro API.
@@ -39,7 +39,7 @@ internal sealed class NitroSeedCoordinator
     /// The provider of the fusion configurations.
     /// </param>
     /// <param name="schemaValidator">
-    /// The client that validates composed gateway schemas against Nitro.
+    /// The client that validates composed router schemas against Nitro.
     /// </param>
     /// <param name="stageUpdateClient">
     /// The client that observes the current version of the Nitro stage.
@@ -82,7 +82,7 @@ internal sealed class NitroSeedCoordinator
     }
 
     /// <summary>
-    /// Gets the name of the stage whose fusion configuration the gateways compose against.
+    /// Gets the name of the stage whose fusion configuration the routers compose against.
     /// </summary>
     public string Stage { get; }
 
@@ -90,7 +90,7 @@ internal sealed class NitroSeedCoordinator
     /// Builds the Nitro access layer with its production configuration.
     /// </summary>
     /// <param name="stage">
-    /// The name of the stage whose fusion configuration the gateways compose against.
+    /// The name of the stage whose fusion configuration the routers compose against.
     /// </param>
     /// <param name="initialAutoUpdate">
     /// Whether newly observed configurations are applied automatically by default.
@@ -190,17 +190,17 @@ internal sealed class NitroSeedCoordinator
     }
 
     /// <summary>
-    /// Acquires the fusion configuration of a gateway and keeps it as the configuration of that
-    /// gateway for the rest of the run.
+    /// Acquires the fusion configuration of a router and keeps it as the configuration of that
+    /// router for the rest of the run.
     /// </summary>
     /// <param name="gatewayName">
-    /// The name of the gateway resource.
+    /// The name of the router resource.
     /// </param>
     /// <param name="apiId">
-    /// The id of the Nitro api that carries the fusion configuration of the gateway.
+    /// The id of the Nitro api that carries the fusion configuration of the router.
     /// </param>
     /// <param name="logger">
-    /// The logger of the gateway. It receives the resolved Nitro API URL, the credential source
+    /// The logger of the router. It receives the resolved Nitro API URL, the credential source
     /// and the warning when the configuration is not fresh.
     /// </param>
     /// <param name="cancellationToken">
@@ -317,14 +317,14 @@ internal sealed class NitroSeedCoordinator
     }
 
     /// <summary>
-    /// Gets the fusion configuration that was acquired for a gateway in this run.
+    /// Gets the fusion configuration that was acquired for a router in this run.
     /// </summary>
     /// <param name="gatewayName">
-    /// The name of the gateway resource.
+    /// The name of the router resource.
     /// </param>
     /// <returns>
-    /// The fusion configuration, or <c>null</c> when none was acquired for the gateway, which is
-    /// the case when the gateway failed to start.
+    /// The fusion configuration, or <c>null</c> when none was acquired for the router, which is
+    /// the case when the router failed to start.
     /// </returns>
     public NitroGatewaySeed? GetSeed(string gatewayName)
     {

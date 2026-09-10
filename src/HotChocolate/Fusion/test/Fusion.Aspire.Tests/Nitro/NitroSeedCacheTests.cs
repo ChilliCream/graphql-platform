@@ -294,10 +294,19 @@ public sealed class NitroSeedCacheTests : IDisposable
 
         // assert
         Assert.Null(entry);
-        Assert.EndsWith(
-            "was discarded because it was downloaded for the gateway format version 1.0.0 "
-            + "instead of 2.0.0.",
-            Assert.Single(logger.Entries).Message);
+        var log = Assert.Single(logger.Entries);
+        $"""
+        Level: {log.Level}
+        Message: {log.Message.Replace(cache.GetArchivePath(key), "<archive>", StringComparison.Ordinal)}
+        Archive exists: {File.Exists(cache.GetArchivePath(key))}
+        Metadata exists: {File.Exists(cache.GetMetadataPath(key))}
+        """.MatchInlineSnapshot(
+            """
+            Level: Warning
+            Message: The cached fusion configuration for the api api-1 and the stage dev at <archive> was discarded because it was downloaded for the router format version 1.0.0 instead of 2.0.0.
+            Archive exists: False
+            Metadata exists: False
+            """);
     }
 
     [Fact]

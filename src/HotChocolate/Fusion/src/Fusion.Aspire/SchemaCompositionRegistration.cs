@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Aspire;
 /// <summary>
 /// Registers the GraphQL schema composition with the distributed application. Every entry point
 /// that needs the composition goes through here, so a distributed application that adds both the
-/// orchestrator and Nitro still composes each gateway once.
+/// orchestrator and Nitro still composes each router once.
 /// </summary>
 internal static class SchemaCompositionRegistration
 {

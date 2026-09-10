@@ -27,7 +27,7 @@ internal sealed class NitroSeedMetadata
     public DateTimeOffset DownloadedAt { get; init; }
 
     /// <summary>
-    /// Gets the gateway format version the fusion configuration was downloaded for. An entry
+    /// Gets the router format version the fusion configuration was downloaded for. An entry
     /// that was downloaded for another format version is discarded.
     /// </summary>
     public string FusionVersion { get; init; } = string.Empty;

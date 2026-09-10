@@ -52,7 +52,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
 
         _productsProjectFile = IOPath.Combine(productsDirectory.FullName, "products.csproj");
         _gatewayProjectFile = IOPath.Combine(gatewayDirectory.FullName, "gateway.csproj");
-        _gatewayArchivePath = IOPath.Combine(gatewayDirectory.FullName, "graph.far");
+        _gatewayArchivePath = IOPath.Combine(gatewayDirectory.FullName, "gateway.far");
 
         await File.WriteAllTextAsync(_productsProjectFile, "<Project />");
         await File.WriteAllTextAsync(_gatewayProjectFile, "<Project />");
@@ -585,7 +585,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
         // assert
         DescribeEntries(harness, LogLevel.Warning).MatchInlineSnapshot(
             "Nitro is added for the stage production, but no composed schema selects a Nitro api. "
-            + "Call WithNitroApiId on the gateway that composes against the fusion configuration "
+            + "Call WithNitroApiId on the router that composes against the fusion configuration "
             + "of Nitro.");
     }
 
@@ -749,7 +749,7 @@ public sealed class NitroSchemaCompositionTests : IAsyncLifetime
             CreateCoordinator(validator),
             notifier: new NoopValidationNotifier(),
             waitForRunningState: true);
-        var (model, gateway) = await CreateModelAsync(harness, 
+        var (model, gateway) = await CreateModelAsync(harness,
             GatewayApiId,
             disableSchemaValidation: true);
         using var compositionGate = new SemaphoreSlim(1, 1);

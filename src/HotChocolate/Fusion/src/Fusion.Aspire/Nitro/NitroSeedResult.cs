@@ -1,7 +1,7 @@
 namespace HotChocolate.Fusion.Aspire.Nitro;
 
 /// <summary>
-/// Describes where the fusion configuration that a gateway composes against came from.
+/// Describes where the fusion configuration that a router composes against came from.
 /// </summary>
 internal enum NitroSeedOutcome
 {
@@ -27,7 +27,7 @@ internal enum NitroSeedOutcome
 }
 
 /// <summary>
-/// The fusion configuration that a gateway composes against.
+/// The fusion configuration that a router composes against.
 /// </summary>
 /// <param name="Outcome">
 /// Where the fusion configuration came from.
@@ -44,7 +44,7 @@ internal enum NitroSeedOutcome
 /// <param name="Message">
 /// The reason why a fresh fusion configuration could not be fetched. It is <c>null</c> when
 /// <paramref name="Outcome"/> is <see cref="NitroSeedOutcome.Downloaded"/>, and it is the message
-/// to fail the gateway with when <paramref name="Outcome"/> is
+/// to fail the router with when <paramref name="Outcome"/> is
 /// <see cref="NitroSeedOutcome.Unavailable"/>.
 /// </param>
 internal sealed record NitroSeedResult(

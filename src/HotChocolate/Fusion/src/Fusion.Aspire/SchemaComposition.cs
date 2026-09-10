@@ -66,8 +66,8 @@ internal class SchemaComposition(
                 return;
             }
 
-            // One gate per gateway serializes the startup composition with recompositions
-            // triggered by source schema restarts. Different gateways stay independent and
+            // One gate per router serializes the startup composition with recompositions
+            // triggered by source schema restarts. Different routers stay independent and
             // may compose concurrently.
             var compositionGates = compositionResources.ToDictionary(
                 gateway => gateway,
@@ -92,9 +92,9 @@ internal class SchemaComposition(
                         compositionGate,
                         commandCancellationToken));
 
-                // The orchestrator awaits this handler before it starts the gateway process,
-                // so the gateway only starts once its fusion archive is on disk. The handler
-                // runs again on every restart of the gateway, which composes a fresh schema.
+                // The orchestrator awaits this handler before it starts the router process,
+                // so the router only starts once its fusion archive is on disk. The handler
+                // runs again on every restart of the router, which composes a fresh schema.
                 eventing.Subscribe<BeforeResourceStartedEvent>(
                     gateway,
                     (_, startCancellationToken) => ComposeOnGatewayStartAsync(
@@ -106,7 +106,7 @@ internal class SchemaComposition(
 
             // Restart triggers only arrive after the initial ResourceReadyEvent of a source,
             // so the workers can start right away. The composition gates guarantee that a
-            // recomposition never overlaps the startup composition of the same gateway.
+            // recomposition never overlaps the startup composition of the same router.
             StartRecompositionWorkers(recompositionWorkers);
 
             logger.LogInformation("Watching source schema resources for restarts.");
@@ -172,7 +172,7 @@ internal class SchemaComposition(
 
     /// <summary>
     /// Reports the configurations that cannot take effect: an api id without Nitro, and Nitro
-    /// without a gateway that selects a fusion configuration.
+    /// without a router that selects a fusion configuration.
     /// </summary>
     internal void ReportNitroConfigurationDiagnostics(
         DistributedApplicationModel appModel,
@@ -207,7 +207,7 @@ internal class SchemaComposition(
 
         logger.LogWarning(
             "Nitro is added for the stage {Stage}, but no composed schema selects a Nitro api. "
-            + "Call WithNitroApiId on the gateway that composes against the fusion configuration "
+            + "Call WithNitroApiId on the router that composes against the fusion configuration "
             + "of Nitro.",
             coordinator.Stage);
     }
@@ -221,8 +221,8 @@ internal class SchemaComposition(
     }
 
     /// <summary>
-    /// Composes the schema for a gateway before the orchestrator starts the gateway process.
-    /// A failed composition marks the gateway as failed to start without stopping the rest
+    /// Composes the schema for a router before the orchestrator starts the router process.
+    /// A failed composition marks the router as failed to start without stopping the rest
     /// of the application.
     /// </summary>
     internal async Task ComposeOnGatewayStartAsync(
@@ -300,12 +300,12 @@ internal class SchemaComposition(
     }
 
     /// <summary>
-    /// Waits until the source schema resources of the gateway are ready and, for a gateway that
+    /// Waits until the source schema resources of the router are ready and, for a router that
     /// selects a Nitro api, acquires the fusion configuration it composes against. The wait and
     /// the download run at the same time, so their delays do not add up.
     /// </summary>
     /// <returns>
-    /// The fusion configuration the gateway composes against, or <c>null</c> when the gateway
+    /// The fusion configuration the router composes against, or <c>null</c> when the router
     /// composes the source schemas of the distributed application alone.
     /// </returns>
     private async Task<NitroGatewaySeed?> PrepareCompositionAsync(
@@ -343,7 +343,7 @@ internal class SchemaComposition(
         }
         catch
         {
-            // The gateway will not start, so its fusion configuration is not needed anymore.
+            // The router will not start, so its fusion configuration is not needed anymore.
             // The acquisition reports every failure as a result, so awaiting it here cannot
             // replace the failure of the wait.
             await seedCancellation.CancelAsync();
@@ -365,8 +365,8 @@ internal class SchemaComposition(
     }
 
     /// <summary>
-    /// Acquires the fusion configuration of a gateway. Every failure, including one that the file
-    /// system raises, is reported as a result so that it fails this gateway alone.
+    /// Acquires the fusion configuration of a router. Every failure, including one that the file
+    /// system raises, is reported as a result so that it fails this router alone.
     /// </summary>
     private async Task<NitroSeedAcquisition> AcquireSeedAsync(
         NitroSeedCoordinator coordinator,
@@ -400,7 +400,7 @@ internal class SchemaComposition(
     }
 
     /// <summary>
-    /// Waits until every endpoint-based source schema resource of the gateway is healthy.
+    /// Waits until every endpoint-based source schema resource of the router is healthy.
     /// File-based source schemas need no wait. A source that becomes unavailable fails the
     /// wait with an error that names the source.
     /// </summary>
@@ -510,8 +510,8 @@ internal class SchemaComposition(
     }
 
     /// <summary>
-    /// Runs a schema recomposition while holding the composition gate of the gateway so that
-    /// it never overlaps a startup composition for the same gateway.
+    /// Runs a schema recomposition while holding the composition gate of the router so that
+    /// it never overlaps a startup composition for the same router.
     /// </summary>
     internal async Task RunGuardedRecompositionAsync(
         IResourceWithEndpoints compositionResource,
@@ -614,7 +614,7 @@ internal class SchemaComposition(
     }
 
     /// <summary>
-    /// Maps every source schema resource to the gateways whose composed schema depends on it.
+    /// Maps every source schema resource to the routers whose composed schema depends on it.
     /// </summary>
     internal static Dictionary<IResourceWithEndpoints, List<IResourceWithEndpoints>> BuildSourceToGatewayMap(
         IReadOnlyList<IResourceWithEndpoints> compositionResources,
@@ -742,7 +742,7 @@ internal class SchemaComposition(
         else
         {
             logger.LogError(
-                "Schema recomposition for {ResourceName} failed. The gateway keeps the previous schema.",
+                "Schema recomposition for {ResourceName} failed. The router keeps the previous schema.",
                 compositionResource.Name);
             NotifyCompositionFailure(compositionResource);
         }
@@ -872,7 +872,7 @@ internal class SchemaComposition(
         {
             logger.LogWarning(
                 "Schema recomposition for {ResourceName} against the updated Nitro "
-                + "configuration failed. The gateway keeps the previous schema.",
+                + "configuration failed. The router keeps the previous schema.",
                 compositionResource.Name);
             NotifyCompositionFailure(compositionResource);
             return false;
@@ -919,7 +919,7 @@ internal class SchemaComposition(
         }
 
         // Composition problems are reported to the application host log and to the console
-        // log of the gateway resource so that failures are visible on the resource itself.
+        // log of the router resource so that failures are visible on the resource itself.
         var compositionLogger = CreateGatewayLogger(compositionResource);
 
         logger.LogInformation(
@@ -940,7 +940,7 @@ internal class SchemaComposition(
                     compositionResource.Name);
 
                 // A source schema that cannot be loaded fails the discovery with an
-                // exception, so reaching this point means the gateway genuinely
+                // exception, so reaching this point means the router genuinely
                 // references no resources with a source schema annotation. There is
                 // nothing to compose, so no archive is written and the composition
                 // succeeds with the warning above.
@@ -1019,7 +1019,7 @@ internal class SchemaComposition(
                     // Composing without this source would either drop it from the composed
                     // schema or silently carry its previous schema forward from the existing
                     // archive, so the composition must fail instead. On startup this marks
-                    // the gateway as failed to start, on a recomposition the gateway keeps
+                    // the router as failed to start, on a recomposition the router keeps
                     // the previous schema.
                     throw new InvalidOperationException(
                         $"The source schema for resource '{referencedResource.Name}' could not be loaded.");
@@ -1580,7 +1580,7 @@ internal class SchemaComposition(
 
         try
         {
-            // A gateway that composes against a fusion configuration from Nitro builds on that
+            // A router that composes against a fusion configuration from Nitro builds on that
             // configuration alone. What the previous composition wrote is never an input, so a
             // source schema that disappeared upstream also disappears from this composition.
             if (seed is null && File.Exists(archivePath))
@@ -1608,7 +1608,7 @@ internal class SchemaComposition(
                         cancellationToken);
                 }
 
-                // The gateway keeps read handles on the archive while it is running, which can
+                // The router keeps read handles on the archive while it is running, which can
                 // surface as a transient IOException when the archive is replaced.
                 await CopyArchiveWithRetryAsync(
                     () => File.Copy(tempArchivePath, archivePath, true),
@@ -1630,7 +1630,7 @@ internal class SchemaComposition(
                     {
                         compositionLogger.LogWarning(
                             exception,
-                            "The gateway schema for {ResourceName} could not be captured for "
+                            "The router schema for {ResourceName} could not be captured for "
                             + "observational Nitro validation. The installed archive is unaffected.",
                             gatewayName);
                     }
@@ -1662,7 +1662,7 @@ internal class SchemaComposition(
         if (configuration is null)
         {
             throw new InvalidOperationException(
-                "The composed archive does not contain a supported gateway schema.");
+                "The composed archive does not contain a supported router schema.");
         }
 
         await using var schema = await configuration.OpenReadSchemaAsync(cancellationToken);
@@ -1672,8 +1672,8 @@ internal class SchemaComposition(
     }
 
     /// <summary>
-    /// Reports which fusion configuration a gateway composed against, how old it is and which
-    /// source schemas it contributed, on the console of the gateway. A configuration that could
+    /// Reports which fusion configuration a router composed against, how old it is and which
+    /// source schemas it contributed, on the console of the router. A configuration that could
     /// not be refreshed is reported as a warning.
     /// </summary>
     private static async Task LogSeedVintageAsync(
@@ -1718,7 +1718,7 @@ internal class SchemaComposition(
 
     /// <summary>
     /// Describes the source schemas of a composed archive that the distributed application does
-    /// not run itself, together with the URL the gateway reaches them at.
+    /// not run itself, together with the URL the router reaches them at.
     /// </summary>
     private static async Task<string> DescribeExternalSourceSchemasAsync(
         string archivePath,

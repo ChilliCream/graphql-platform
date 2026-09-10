@@ -25,7 +25,7 @@ internal static class AspireCompositionHelper
     /// same name that the composition base carries.
     /// </param>
     /// <param name="settings">
-    /// The composition settings of the gateway.
+    /// The composition settings of the router.
     /// </param>
     /// <param name="environment">
     /// The environment that source schema settings resolve against. When it is <c>null</c>, the

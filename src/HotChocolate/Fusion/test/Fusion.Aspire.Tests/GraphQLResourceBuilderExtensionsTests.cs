@@ -1,11 +1,134 @@
+using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
+using HotChocolate.Fusion.Aspire.Nitro;
+using HotChocolate.Fusion.Packaging;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Aspire;
 
 public sealed class GraphQLResourceBuilderExtensionsTests
 {
+    [Theory]
+    [InlineData("validation", null, "gateway.far")]
+    [InlineData("validation", "gateway.far", "gateway.far")]
+    [InlineData("validation", "gateway.fgp", "gateway.fgp")]
+    [InlineData("validation", "graph.far", "graph.far")]
+    [InlineData("validation", "archives/custom.far", "archives/custom.far")]
+    [InlineData("settings", null, "gateway.far")]
+    [InlineData("settings", "gateway.far", "gateway.far")]
+    [InlineData("settings", "gateway.fgp", "gateway.fgp")]
+    [InlineData("settings", "graph.far", "graph.far")]
+    [InlineData("settings", "archives/custom.far", "archives/custom.far")]
+    [InlineData("legacy", null, "gateway.far")]
+    [InlineData("legacy", "gateway.fgp", "gateway.fgp")]
+    [InlineData("legacy", "archives/custom.far", "archives/custom.far")]
+    public async Task WithNitroComposition_Should_ComposeReadableArchive_When_OutputFileNameIsConfigured(
+        string overload,
+        string? outputFileName,
+        string expectedFileName)
+    {
+        // arrange
+        using var directory = new NitroTestDirectory();
+        var routerProjectFile = directory.WriteFile("router.csproj", "<Project />");
+        var productsDirectory = Directory.CreateDirectory(directory.GetPath("products-resource"));
+        var productsProjectFile = System.IO.Path.Combine(productsDirectory.FullName, "products.csproj");
+        await File.WriteAllTextAsync(
+            productsProjectFile, "<Project />", TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(
+            System.IO.Path.Combine(productsDirectory.FullName, "schema-settings.json"),
+            """{ "name": "products" }""",
+            TestContext.Current.CancellationToken);
+        Directory.CreateDirectory(directory.GetPath("archives"));
+        await using var productsServer = await SchemaEndpointServer.StartAsync(
+            "/graphql/schema.graphql",
+            "type Query { product: String }");
+
+        var builder = DistributedApplication.CreateBuilder();
+        var products = builder
+            .AddProject("products-resource", productsProjectFile)
+            .WithHttpEndpoint(name: "http")
+            .WithGraphQLHttpEndpoint();
+        var router = builder.AddProject("storefront", routerProjectFile);
+        var settings = new GraphQLCompositionSettings();
+        var configured = (overload, outputFileName) switch
+        {
+            ("validation", null) => router.WithNitroComposition(),
+            ("validation", _) => router.WithNitroComposition(outputFileName: outputFileName),
+            ("settings", null) => router.WithNitroComposition(settings),
+            ("settings", _) => router.WithNitroComposition(settings, outputFileName),
+#pragma warning disable CS0618 // Verify the retained composition alias.
+            ("legacy", null) => router.WithGraphQLSchemaComposition(settings),
+            ("legacy", _) => router.WithGraphQLSchemaComposition(settings, outputFileName),
+#pragma warning restore CS0618
+            _ => throw new ArgumentOutOfRangeException(nameof(overload))
+        };
+        configured.WithReference(products);
+        var model = new DistributedApplicationModel(builder.Resources);
+        var resource = Assert.Single(model.GetGraphQLCompositionResources());
+        var harness = CompositionHarness.Create(coordinator: null, waitForRunningState: true);
+        products.Resource.AllocateHttpEndpoint(productsServer.Port);
+        await harness.Notifications.PublishUpdateAsync(
+            products.Resource,
+            snapshot => snapshot with { State = KnownResourceStates.Running });
+        using var gate = new SemaphoreSlim(1, 1);
+
+        // act
+        await harness.Composition.ComposeOnGatewayStartAsync(
+            resource,
+            model,
+            gate,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Same(router, configured);
+        Assert.Equal(expectedFileName, resource.GetCompositionSettings()!.OutputFileName);
+        var archivePath = directory.GetPath(expectedFileName);
+        using var archive = FusionArchive.Open(archivePath);
+        using var configuration = await archive.TryGetRouterConfigurationAsync(
+            WellKnownVersions.LatestRouterFormatVersion,
+            TestContext.Current.CancellationToken);
+        Assert.NotNull(configuration);
+        await using var schemaStream = await configuration.OpenReadSchemaAsync(
+            TestContext.Current.CancellationToken);
+        using var reader = new StreamReader(schemaStream);
+        var schema = Utf8GraphQLParser.Parse(
+            await reader.ReadToEndAsync(TestContext.Current.CancellationToken));
+        await using var zip = ZipFile.OpenRead(archivePath);
+        // composition-settings.json is only written for the overloads that pass an explicit
+        // GraphQLCompositionSettings, its presence is not what this test verifies.
+        var entries = string.Join(
+            "\n",
+            zip.Entries
+                .Select(entry => entry.FullName)
+                .Where(name => name != "composition-settings.json")
+                .Order(StringComparer.Ordinal));
+        var query = schema.Definitions.OfType<ObjectTypeDefinitionNode>().Single(type => type.Name.Value == "Query");
+
+        $"""
+        Resource: {resource.Name}
+        Archive entries:
+        {entries}
+        Query:
+        {query}
+        """.MatchInlineSnapshot(
+            """
+            Resource: storefront
+            Archive entries:
+            archive-metadata.json
+            gateway/2.0.0/gateway-settings.json
+            gateway/2.0.0/gateway.graphqls
+            source-schemas/products/schema-settings.json
+            source-schemas/products/schema.graphqls
+            Query:
+            type Query @fusion__type(schema: PRODUCTS) {
+              product: String @fusion__field(schema: PRODUCTS)
+            }
+            """);
+    }
+
     [Fact]
     public void WithGraphQLHttpEndpoint_Should_UseDefaultPaths_When_PathsAreOmitted()
     {

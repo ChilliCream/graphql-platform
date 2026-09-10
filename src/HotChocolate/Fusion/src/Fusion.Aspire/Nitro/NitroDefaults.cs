@@ -89,7 +89,7 @@ internal static class NitroDefaults
         => IOPath.Combine(GetConfigDirectory(), CacheDirectoryName, FusionCacheDirectoryName);
 
     /// <summary>
-    /// Creates the path of the directory that holds the fusion configurations the gateways of a
+    /// Creates the path of the directory that holds the fusion configurations the routers of a
     /// run compose against. Every run gets its own directory, so two runs on the same machine
     /// never share a fusion configuration.
     /// </summary>
