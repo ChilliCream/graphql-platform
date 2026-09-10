@@ -37,7 +37,7 @@ public abstract partial class FusionTestBase : IDisposable
         (string SchemaName, TestServer Server)[] sourceSchemaServers,
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
-        Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
+        Action<IFusionRouterBuilder>? configureGatewayBuilder = null,
         [StringSyntax("json")] string? gatewaySettings = null,
         string? environmentName = "Development",
         bool disableDefaultSecurity = false)

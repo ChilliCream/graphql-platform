@@ -9,23 +9,15 @@ public static partial class AspNetCoreFusionGatewayBuilderExtensions
     /// Registers a callback to modify the <see cref="GraphQLServerOptions"/>
     /// (GET requests, multipart, schema requests, batching, tool options, etc.).
     /// </summary>
-    /// <param name="builder">
-    /// The <see cref="IFusionGatewayBuilder"/>.
-    /// </param>
-    /// <param name="configure">
-    /// A delegate that is used to modify the <see cref="GraphQLServerOptions"/>.
-    /// </param>
-    /// <returns>
-    /// Returns the <see cref="IFusionGatewayBuilder"/> so that configuration can be chained.
-    /// </returns>
+    /// <param name="builder">The gateway builder.</param>
+    /// <param name="configure">A delegate that is used to modify the <see cref="GraphQLServerOptions"/>.</param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
+    [Obsolete("Use ModifyServerOptions on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ModifyServerOptions(
         this IFusionGatewayBuilder builder,
         Action<GraphQLServerOptions> configure)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-        ArgumentNullException.ThrowIfNull(configure);
-
-        builder.Services.Configure(builder.Name, configure);
+        AspNetCoreFusionBuilderConfiguration.ModifyServerOptions(builder, configure);
         return builder;
     }
 }

@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="NATS.Client.Core" />
     <PackageReference Include="NATS.Client.JetStream" />
     <PackageReference Include="Testcontainers" />
