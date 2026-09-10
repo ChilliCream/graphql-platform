@@ -476,10 +476,12 @@ export async function generateLlmsFiles() {
   const docs = pagesUnder(pages, "/docs");
   const blog = pagesUnder(pages, "/blog");
   const comparison = pagesUnder(pages, "/comparison");
-  const products = pagesUnder(pages, "/products");
-  // Un-indexed prototype routes (compared backbone concepts for the
-  // federation page) never belong in the llms export, even if one ever
-  // slipped past the sitemap's own exclusion.
+  // Un-indexed prototype routes (compared concepts for the Fusion page and
+  // for the federation page) never belong in the llms export, even if one
+  // ever slipped past the sitemap's own exclusion.
+  const products = pagesUnder(pages, "/products").filter(
+    (page) => !/\/products\/fusion\/v\d+$/.test(new URL(page.url).pathname),
+  );
   const platform = pagesUnder(pages, "/platform").filter(
     (page) =>
       !/\/platform\/graphql-federation\/v\d+$/.test(new URL(page.url).pathname),
