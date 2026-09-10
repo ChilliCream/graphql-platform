@@ -101,7 +101,7 @@ type BillingStatementTransaction implements StatementTransaction {
   id: Int!
 }
 
-type Brand implements Node {
+type Brand implements Node @key(fields: "id") {
   products(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -129,14 +129,20 @@ type Brand implements Node {
 }
 
 type BrandConnection @shareable {
+  "A list of edges."
   edges: [BrandEdge!]!
+  "A flattened list of the nodes."
   nodes: [Brand!]!
+  "Information to aid in pagination."
   pageInfo: ConnectionPageInfo!
+  "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
 }
 
 type BrandEdge @shareable {
+  "The item at the end of the edge."
   node: Brand!
+  "A cursor for use in pagination."
   cursor: String!
 }
 
@@ -222,7 +228,7 @@ type PageInfo @shareable {
   backwardCursors: [PageCursor!]!
 }
 
-type Product implements Node {
+type Product implements Node @key(fields: "id") {
   id: ID!
   brand: Brand @cost(weight: "10")
   brandName: String
@@ -234,19 +240,28 @@ type Product implements Node {
   availableStock: Int!
   restockThreshold: Int!
   maxStockThreshold: Int!
+  "True if item is on reorder"
   onReorder: Boolean!
 }
 
+"A connection to a list of items."
 type ProductConnection @shareable {
+  "A list of edges."
   edges: [ProductEdge!]
+  "A flattened list of the nodes."
   nodes: [Product!]
+  "Information to aid in pagination."
   pageInfo: ConnectionPageInfo!
+  "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
   endCursors(count: Int!): [String!]!
 }
 
+"An edge in a connection."
 type ProductEdge @shareable {
+  "The item at the end of the edge."
   node: Product!
+  "A cursor for use in pagination."
   cursor: String!
 }
 
@@ -256,14 +271,20 @@ type ProductType {
 }
 
 type ProductTypeConnection @shareable {
+  "A list of edges."
   edges: [ProductTypeEdge!]!
+  "A flattened list of the nodes."
   nodes: [ProductType!]!
+  "Information to aid in pagination."
   pageInfo: ConnectionPageInfo!
+  "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
 }
 
 type ProductTypeEdge @shareable {
+  "The item at the end of the edge."
   node: ProductType!
+  "A cursor for use in pagination."
   cursor: String!
 }
 
@@ -369,6 +390,7 @@ input ProductFilterInput {
   availableStock: IntOperationFilterInput
   restockThreshold: IntOperationFilterInput
   maxStockThreshold: IntOperationFilterInput
+  "True if item is on reorder"
   onReorder: BooleanOperationFilterInput
 }
 
@@ -439,6 +461,8 @@ scalar Decimal
   @serializeAs(type: FLOAT)
   @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
 
+scalar FieldSelectionSet
+
 "The `UnsignedByte` scalar type represents an unsigned 8-bit integer."
 scalar UnsignedByte
   @serializeAs(type: INT)
@@ -478,6 +502,15 @@ type User @internal {
 directive @internal on OBJECT | FIELD_DEFINITION
 """
 directive @internal on OBJECT | FIELD_DEFINITION
+
+"""
+The @key directive is used to designate an entity's unique key,
+which identifies how to uniquely reference an instance of
+an entity across different source schemas.
+"""
+directive @key("The field selection set syntax." fields: FieldSelectionSet!) repeatable on
+  | OBJECT
+  | INTERFACE
 
 "The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
 directive @listSize(

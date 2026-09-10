@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Planning;
@@ -46,15 +47,4 @@ public sealed class OperationPlannerGuardrailException : Exception
     /// Gets the observed value at breach time.
     /// </summary>
     public long Observed { get; }
-}
-
-/// <summary>
-/// Identifies which planner guardrail was exceeded.
-/// </summary>
-public enum OperationPlannerGuardrailReason
-{
-    MaxPlanningTimeExceeded,
-    MaxExpandedNodesExceeded,
-    MaxQueueSizeExceeded,
-    MaxGeneratedOptionsPerWorkItemExceeded
 }

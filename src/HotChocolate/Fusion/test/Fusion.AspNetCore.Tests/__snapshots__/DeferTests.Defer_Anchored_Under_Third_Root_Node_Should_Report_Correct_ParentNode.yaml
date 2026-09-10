@@ -1,0 +1,401 @@
+title: Defer_Anchored_Under_Third_Root_Node_Should_Report_Correct_ParentNode
+request:
+  document: |
+    query t {
+      products {
+        id
+        name
+      }
+      users {
+        id
+        name
+      }
+      orders {
+        __typename
+        ... @defer {
+          id
+          total
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "orders": [
+          {
+            "__typename": "Order"
+          },
+          {
+            "__typename": "Order"
+          },
+          {
+            "__typename": "Order"
+          }
+        ],
+        "products": [
+          {
+            "id": "UHJvZHVjdDox",
+            "name": "Product: UHJvZHVjdDox"
+          },
+          {
+            "id": "UHJvZHVjdDoy",
+            "name": "Product: UHJvZHVjdDoy"
+          },
+          {
+            "id": "UHJvZHVjdDoz",
+            "name": "Product: UHJvZHVjdDoz"
+          }
+        ],
+        "users": [
+          {
+            "id": "VXNlcjox",
+            "name": "User: VXNlcjox"
+          },
+          {
+            "id": "VXNlcjoy",
+            "name": "User: VXNlcjoy"
+          },
+          {
+            "id": "VXNlcjoz",
+            "name": "User: VXNlcjoz"
+          }
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "orders"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "orders"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "id": "T3JkZXI6MQ==",
+          "total": 123.456
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "orders"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "id": "T3JkZXI6Mg==",
+          "total": 123.456
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "orders"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "id": "T3JkZXI6Mw==",
+          "total": 123.456
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "orders": [
+          {
+            "__typename": "Order",
+            "id": "T3JkZXI6MQ==",
+            "total": 123.456
+          },
+          {
+            "__typename": "Order",
+            "id": "T3JkZXI6Mg==",
+            "total": 123.456
+          },
+          {
+            "__typename": "Order",
+            "id": "T3JkZXI6Mw==",
+            "total": 123.456
+          }
+        ],
+        "products": [
+          {
+            "id": "UHJvZHVjdDox",
+            "name": "Product: UHJvZHVjdDox"
+          },
+          {
+            "id": "UHJvZHVjdDoy",
+            "name": "Product: UHJvZHVjdDoy"
+          },
+          {
+            "id": "UHJvZHVjdDoz",
+            "name": "Product: UHJvZHVjdDoz"
+          }
+        ],
+        "users": [
+          {
+            "id": "VXNlcjox",
+            "name": "User: VXNlcjox"
+          },
+          {
+            "id": "VXNlcjoy",
+            "name": "User: VXNlcjoy"
+          },
+          {
+            "id": "VXNlcjoz",
+            "name": "User: VXNlcjoz"
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product!]!
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query t_2e58f804_1 {
+              products {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": "UHJvZHVjdDox",
+                      "name": "Product: UHJvZHVjdDox"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoy",
+                      "name": "Product: UHJvZHVjdDoy"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoz",
+                      "name": "Product: UHJvZHVjdDoz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query t_2e58f804_2 {
+              users {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "VXNlcjox",
+                      "name": "User: VXNlcjox"
+                    },
+                    {
+                      "id": "VXNlcjoy",
+                      "name": "User: VXNlcjoy"
+                    },
+                    {
+                      "id": "VXNlcjoz",
+                      "name": "User: VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        orders: [Order!]!
+      }
+
+      type Order @key(fields: "id") {
+        id: ID!
+        total: Float!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query t_2e58f804_3 {
+              orders {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "orders": [
+                    {
+                      "__typename": "Order"
+                    },
+                    {
+                      "__typename": "Order"
+                    },
+                    {
+                      "__typename": "Order"
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query t_defer_1 {
+              orders {
+                id
+                total
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "orders": [
+                    {
+                      "id": "T3JkZXI6MQ==",
+                      "total": 123.456
+                    },
+                    {
+                      "id": "T3JkZXI6Mg==",
+                      "total": 123.456
+                    },
+                    {
+                      "id": "T3JkZXI6Mw==",
+                      "total": 123.456
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query t {
+          products {
+            id
+            name
+          }
+          users {
+            id
+            name
+          }
+          orders {
+            __typename
+          }
+        }
+      name: t
+      hash: 2e58f8041c8dd8fbcb46ec5d5e5b4350
+      searchSpace: 3
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query t_2e58f804_1 {
+          products {
+            id
+            name
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query t_2e58f804_2 {
+          users {
+            id
+            name
+          }
+        }
+    - id: 3
+      type: Operation
+      schema: C
+      operation: |
+        query t_2e58f804_3 {
+          orders {
+            __typename
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.orders
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 3
+      nodes:
+        - id: 1
+          type: Operation
+          schema: C
+          operation: |
+            query t_defer_1 {
+              orders {
+                id
+                total
+              }
+            }

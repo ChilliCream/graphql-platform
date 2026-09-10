@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.CostAnalysis.Tests</AssemblyName>
     <RootNamespace>HotChocolate.CostAnalysis</RootNamespace>
@@ -9,6 +11,7 @@
     <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\Core\src\Types.OffsetPagination\HotChocolate.Types.OffsetPagination.csproj" />
     <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
+    <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.InMemory\HotChocolate.PersistedOperations.InMemory.csproj" />
     <ProjectReference Include="..\..\src\CostAnalysis\HotChocolate.CostAnalysis.csproj" />
   </ItemGroup>
 

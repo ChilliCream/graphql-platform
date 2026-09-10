@@ -1,0 +1,55 @@
+operation:
+  - document: |
+      mutation {
+        createUser(name: "test") {
+          child {
+            name
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      mutation Op_123456789101112_1 {
+        createUser(name: "test") {
+          child {
+            name
+            id
+          }
+        }
+      }
+deliveryGroups:
+  - id: 0
+    path: $.createUser.child
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 1
+        type: Operation
+        schema: b
+        operation: |
+          query Op_defer_2($__fusion_1_id: ID!) {
+            childById(id: $__fusion_1_id) {
+              email
+            }
+          }
+        source: $.childById
+        target: $.createUser.child
+        requirements:
+          - name: __fusion_1_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1

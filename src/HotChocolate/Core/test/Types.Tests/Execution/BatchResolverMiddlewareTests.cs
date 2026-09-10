@@ -52,7 +52,7 @@ public class BatchResolverMiddlewareTests
                     field.Extend().Configuration.BatchPartitionKeyResolver =
                         _ => throw new GraphQLException("bad partition key");
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // a no-survivor batch must complete and not hang the work loop, so it is guarded.
@@ -64,8 +64,11 @@ public class BatchResolverMiddlewareTests
                     greeting
                 }
             }
-            """);
-        var result = await resultTask.WaitAsync(TimeSpan.FromSeconds(10));
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+        var result = await resultTask.WaitAsync(
+            TimeSpan.FromSeconds(10),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(0, invocationCount);
@@ -180,7 +183,7 @@ public class BatchResolverMiddlewareTests
                     d.Field(p => p.DisplayName);
                     d.Field(p => p.Score);
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -194,7 +197,8 @@ public class BatchResolverMiddlewareTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(2, Assert.Single(receivedCounts));
@@ -291,10 +295,13 @@ public class BatchResolverMiddlewareTests
                             third: greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await resultTask.WaitAsync(TimeSpan.FromSeconds(10));
+        var result = await resultTask.WaitAsync(
+            TimeSpan.FromSeconds(10),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(0, invocationCount);
@@ -368,7 +375,7 @@ public class BatchResolverMiddlewareTests
                         return 0UL;
                     };
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var resultTask = executor.ExecuteAsync(
@@ -379,8 +386,11 @@ public class BatchResolverMiddlewareTests
                     greeting
                 }
             }
-            """);
-        var result = await resultTask.WaitAsync(TimeSpan.FromSeconds(10));
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+        var result = await resultTask.WaitAsync(
+            TimeSpan.FromSeconds(10),
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(2, Assert.Single(receivedCounts));
@@ -471,7 +481,8 @@ public class BatchResolverMiddlewareTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -569,7 +580,8 @@ public class BatchResolverMiddlewareTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var batchInstanceId = Assert.Single(observed.Distinct());
@@ -656,7 +668,8 @@ public class BatchResolverMiddlewareTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -741,7 +754,8 @@ public class BatchResolverMiddlewareTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, executionCount);
@@ -807,7 +821,8 @@ public class BatchResolverMiddlewareTests
                             tags
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

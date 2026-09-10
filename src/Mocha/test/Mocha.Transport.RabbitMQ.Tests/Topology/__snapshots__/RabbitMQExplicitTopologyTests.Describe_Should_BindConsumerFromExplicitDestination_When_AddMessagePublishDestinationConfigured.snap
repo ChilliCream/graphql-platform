@@ -1,0 +1,39 @@
+{
+  "Schema": "rabbitmq",
+  "TransportType": "RabbitMQMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "exchange",
+      "Name": "custom-routing-exchange",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-spy",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-spy_error",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-spy_skipped",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/custom-routing-exchange",
+      "To": "rabbitmq://localhost:5672/q/mocha.transport.rabbit-m-q.tests.order-spy",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+title: Root_Fields_In_Fragment_With_Differing_Conditions_Are_Fetched
+request:
+  document: |
+    query testQuery($s: Boolean!, $x: Boolean!, $y: Boolean!) {
+      ... @skip(if: $s) {
+        a @include(if: $x)
+        b @include(if: $y)
+      }
+    }
+  variables: |
+    {
+      "s": false,
+      "x": true,
+      "y": false
+    }
+response:
+  body: |
+    {
+      "data": {
+        "a": "Query"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        a: String
+        b: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_4047cfa8_1($x: Boolean!, $y: Boolean!) {
+              a @include(if: $x)
+              b @include(if: $y)
+            }
+          variables: |
+            {
+              "x": true,
+              "y": false
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "a": "Query"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($s: Boolean!, $x: Boolean!, $y: Boolean!) {
+          ... @skip(if: $s) {
+            a @include(if: $x)
+            b @include(if: $y)
+          }
+        }
+      name: testQuery
+      hash: 4047cfa825578d3fddf286f54a7705e7
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_4047cfa8_1($x: Boolean!, $y: Boolean!) {
+          a @include(if: $x)
+          b @include(if: $y)
+        }
+      conditions:
+        - variable: $s
+          passingValue: false
+      forwardedVariables:
+        - x
+        - y

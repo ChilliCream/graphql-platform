@@ -33,7 +33,7 @@ public class KeyDirectiveTests : FederationTypesTestBase
                         .Type<StringType>()
                         .Resolve(_ => "bar");
                 })
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("TestType");
@@ -55,7 +55,7 @@ public class KeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation(FederationVersion.Federation10)
             .AddQueryType<Query<TestTypeClassDirective>>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("TestTypeClassDirective");
@@ -77,7 +77,7 @@ public class KeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation(FederationVersion.Federation10)
             .AddQueryType<Query<TestTypePropertyDirective>>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("TestTypePropertyDirective");
@@ -99,7 +99,7 @@ public class KeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation(FederationVersion.Federation10)
             .AddQueryType<Query<TestTypePropertyDirectives>>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("TestTypePropertyDirectives");

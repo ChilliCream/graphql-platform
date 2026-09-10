@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -80,7 +81,16 @@ internal sealed class OperationDefinitionBuilder
             selectionPathBuilder.AppendField(_lookup.FieldName);
 
             var lookupSelectionSet = selectionSet;
-            if (_typeToLookup != _lookup.FieldType
+            var isInterfaceObjectLookup =
+                _lookup.FieldType is FusionInterfaceTypeDefinition interfaceType
+                && interfaceType.Sources.TryGetMember(_lookup.SchemaName, out var interfaceSource)
+                && interfaceSource.IsInterfaceObject;
+
+            // The concrete target condition remains on the plan target path. It must not be sent
+            // to an @interfaceObject stand-in, which neither defines the concrete type nor owns its
+            // identity. The preceding concrete-aware lookup has already established that identity.
+            if (!isInterfaceObjectLookup
+                && _typeToLookup != _lookup.FieldType
                 && !selectionSet.Selections.All(s => s is InlineFragmentNode inlineFragment
                     && inlineFragment.TypeCondition?.Name.Value == _typeToLookup.Name))
             {

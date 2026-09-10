@@ -19,7 +19,7 @@ public class ServiceTypeTests
             .AddApolloFederation()
             .AddQueryType()
             .AddType<Address>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var entityType = schema.Types.GetType<ObjectType>(ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
@@ -86,7 +86,7 @@ public class ServiceTypeTests
             .AddGraphQL()
             .AddApolloFederation(FederationVersion.Federation22)
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var entityType = schema.Types.GetType<ObjectType>(ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;

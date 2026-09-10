@@ -27,7 +27,7 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -170,7 +170,7 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -228,7 +228,7 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -283,7 +283,7 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -311,6 +311,6 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
                 public string? Name { get; set; }
             }
             """],
-            enableAnalyzers: true).MatchMarkdownAsync();
+            enableAnalyzers: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

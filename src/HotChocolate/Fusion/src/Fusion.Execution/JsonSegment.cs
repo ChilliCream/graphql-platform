@@ -23,6 +23,10 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
 
     internal int Length => _length;
 
+    /// <summary>
+    /// Returns the bytes of this segment as a sequence over the memory that holds them. The
+    /// sequence reads that memory and is valid for as long as it lives.
+    /// </summary>
     public ReadOnlySequence<byte> AsSequence()
     {
         if (IsEmpty)
@@ -32,21 +36,21 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
 
         var start = _location;
         var length = _length;
-        var first = _memory.Read(ref start, ref length);
+        var first = _memory.ReadMemory(ref start, ref length);
 
         if (length == 0)
         {
             // Single chunk — common case, no allocation for segment chain.
-            return new ReadOnlySequence<byte>(first.ToArray());
+            return new ReadOnlySequence<byte>(first);
         }
 
         // Multi-chunk — build a ReadOnlySequence from linked segments.
-        var firstSegment = new MemorySegment(first.ToArray());
+        var firstSegment = new MemorySegment(first);
         var lastSegment = firstSegment;
 
         do
         {
-            lastSegment = lastSegment.Append(_memory.Read(ref start, ref length));
+            lastSegment = lastSegment.Append(_memory.ReadMemory(ref start, ref length));
         }
         while (length > 0);
 
@@ -116,9 +120,9 @@ public readonly struct JsonSegment : IEquatable<JsonSegment>
             Memory = memory;
         }
 
-        public MemorySegment Append(ReadOnlySpan<byte> data)
+        public MemorySegment Append(ReadOnlyMemory<byte> data)
         {
-            var next = new MemorySegment(data.ToArray())
+            var next = new MemorySegment(data)
             {
                 RunningIndex = RunningIndex + Memory.Length
             };

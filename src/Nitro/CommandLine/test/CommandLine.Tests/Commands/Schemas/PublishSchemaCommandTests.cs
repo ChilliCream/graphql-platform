@@ -29,8 +29,8 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
               --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
               --force                       Skip confirmation prompts for deletes and overwrites
               --wait-for-approval           Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>           The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
 
@@ -156,6 +156,54 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             """
             Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             └── ✕ Failed to publish a new schema version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        SetupPublishSchemaMutation(errors: CreatePublishSchemaApiNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "publish", "--tag", Tag, "--stage", Stage, "--api-id", ApiId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API 'api-1' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupPublishSchemaMutation(errors: CreatePublishSchemaStageNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "publish", "--tag", Tag, "--stage", Stage, "--api-id", ApiId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage 'dev' was not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task SchemaNotFound_ReturnsError()
+    {
+        SetupPublishSchemaMutation(errors: CreatePublishSchemaSchemaNotFoundError());
+        var result = await ExecuteCommandAsync(
+            "schema", "publish", "--tag", Tag, "--stage", Stage, "--api-id", ApiId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Schema not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -475,10 +523,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         IPublishSchemaVersion_PublishSchema_Errors,
         string> GetPublishSchemaErrors() => new()
     {
-        { CreatePublishSchemaUnauthorizedError(), "Unauthorized." },
-        { CreatePublishSchemaApiNotFoundError(), $"API '{ApiId}' was not found." },
-        { CreatePublishSchemaStageNotFoundError(), $"Stage '{Stage}' was not found." },
-        { CreatePublishSchemaSchemaNotFoundError(), "Schema not found." }
+        { CreatePublishSchemaUnauthorizedError(), "Unauthorized." }
     };
 
     #endregion

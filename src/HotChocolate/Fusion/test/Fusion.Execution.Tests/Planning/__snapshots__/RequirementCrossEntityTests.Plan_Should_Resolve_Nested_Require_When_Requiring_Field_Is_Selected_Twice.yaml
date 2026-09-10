@@ -1,0 +1,91 @@
+operation:
+  - document: |
+      {
+        item {
+          unitPrice
+          u2: unitPrice
+          id @fusion__requirement
+          product @fusion__requirement {
+            discountedPrice @fusion__requirement
+            id @fusion__requirement
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 3
+    expandedNodes: 14
+nodes:
+  - id: 2
+    type: Operation
+    schema: cart
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_price: Float!
+        $__fusion_2_id: ID!
+        $__fusion_4_price: Float!
+      ) {
+        cartItemById(id: $__fusion_2_id) {
+          u2: unitPrice(price: $__fusion_1_price)
+          unitPrice(price: $__fusion_4_price)
+        }
+      }
+    source: $.cartItemById
+    target: $.item
+    requirements:
+      - name: __fusion_1_price
+        selectionMap: >-
+          product.discountedPrice
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+      - name: __fusion_4_price
+        selectionMap: >-
+          product.discountedPrice
+    dependencies:
+      - id: 8
+      - id: 9
+  - id: 4
+    type: OperationBatch
+    schema: cart
+    operation: |
+      query Op_123456789101112_4 {
+        item {
+          product {
+            id
+          }
+        }
+      }
+    targets:
+      - $
+      - $
+    batchingGroupId: 8
+  - id: 5
+    type: Operation
+    schema: cart
+    operation: |
+      query Op_123456789101112_5 {
+        item {
+          id
+        }
+      }
+    batchingGroupId: 8
+  - id: 3
+    type: OperationBatch
+    schema: promotions
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        productById(id: $__fusion_3_id) {
+          discountedPrice
+        }
+      }
+    source: $.productById
+    targets:
+      - $.item.product
+      - $.item.product
+    batchingGroupId: 9
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 4

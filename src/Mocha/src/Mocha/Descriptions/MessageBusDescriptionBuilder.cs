@@ -1,3 +1,4 @@
+using Mocha.Middlewares;
 using Mocha.Sagas;
 
 namespace Mocha;
@@ -45,6 +46,7 @@ internal sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBus
     protected override VisitorAction Enter(IMessagingRuntime runtime, Context context)
     {
         context.Host = new HostDescription(
+            MochaUrn.Host(runtime.Host.EffectiveServiceName),
             runtime.Host.ServiceName,
             runtime.Host.AssemblyName,
             runtime.Host.InstanceId.ToString("D"));

@@ -3,12 +3,12 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnostics.dotMemory;
 using BenchmarkDotNet.Jobs;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using Microsoft.Extensions.ObjectPool;
 
-namespace Fusion.Execution.Benchmarks;
+namespace HotChocolate.Fusion.Execution.Benchmarks;
 
 [DotMemoryDiagnoser]
 [MemoryDiagnoser]
@@ -18,11 +18,11 @@ public class OperationCompilerBenchmark : FusionBenchmarkBase
 {
     private const string Id = "123456789101112";
 
-    private OperationCompiler _compiler = null!;
+    private OperationCompiler _compiler;
 
-    private OperationDefinitionNode _simpleQueryWithRequirements = null!;
-    private OperationDefinitionNode _complexQuery = null!;
-    private OperationDefinitionNode _conditionalRedundancyQuery = null!;
+    private OperationDefinitionNode _simpleQueryWithRequirements;
+    private OperationDefinitionNode _complexQuery;
+    private OperationDefinitionNode _conditionalRedundancyQuery;
 
     [GlobalSetup]
     public void GlobalSetup()
@@ -42,19 +42,19 @@ public class OperationCompilerBenchmark : FusionBenchmarkBase
     [Benchmark]
     public Operation Compile_Simple_Query_With_Requirements()
     {
-        return _compiler.Compile(Id, Id, _simpleQueryWithRequirements);
+        return _compiler.Compile(Id, Id, Id, _simpleQueryWithRequirements);
     }
 
     [Benchmark]
     public Operation Compile_Complex_Query()
     {
-        return _compiler.Compile(Id, Id, _complexQuery);
+        return _compiler.Compile(Id, Id, Id, _complexQuery);
     }
 
     [Benchmark]
     public Operation Compile_ConditionalRedundancy_Query()
     {
-        return _compiler.Compile(Id, Id, _conditionalRedundancyQuery);
+        return _compiler.Compile(Id, Id, Id, _conditionalRedundancyQuery);
     }
 
     private sealed class NoOpObjectPool<T> : ObjectPool<T> where T : class, new()

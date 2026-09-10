@@ -16,14 +16,16 @@ public sealed class SelectionSet : ISelectionSet
     private readonly Selection[] _selections;
     private readonly FrozenDictionary<string, Selection> _responseNameLookup;
     private readonly SelectionLookup _utf8ResponseNameLookup;
+    private ObjectTemplate _objectTemplate;
     private bool _isSealed;
 
     public SelectionSet(
         int id,
-        IObjectTypeDefinition type,
+        IComplexTypeDefinition type,
         Selection[] selections,
         bool isConditional,
-        bool hasIncrementalParts)
+        bool hasIncrementalParts,
+        Selection? declaringSelection)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -36,6 +38,7 @@ public sealed class SelectionSet : ISelectionSet
         Type = type;
         IsConditional = isConditional;
         HasIncrementalParts = hasIncrementalParts;
+        DeclaringSelection = declaringSelection;
         _selections = selections;
         _responseNameLookup = _selections.ToFrozenDictionary(t => t.ResponseName);
         _utf8ResponseNameLookup = SelectionLookup.Create(this);
@@ -54,7 +57,19 @@ public sealed class SelectionSet : ISelectionSet
     /// <summary>
     /// Gets the type that declares this selection set.
     /// </summary>
-    public IObjectTypeDefinition Type { get; }
+    /// <remarks>
+    /// This is an object type for a fully resolved (concrete) selection set. It can be an
+    /// interface type while an element produced by an <c>@interfaceObject</c> stand-in still
+    /// awaits identity recovery through its covering lookup.
+    /// </remarks>
+    public IComplexTypeDefinition Type { get; }
+
+    /// <summary>
+    /// Gets the field selection whose child selection set this is, or <c>null</c> for the
+    /// operation's root selection set. Used to recompute the concrete selection set when an
+    /// opaque interface-typed element recovers its identity through a covering lookup.
+    /// </summary>
+    public Selection? DeclaringSelection { get; }
 
     /// <summary>
     /// Gets the declaring operation.
@@ -72,6 +87,13 @@ public sealed class SelectionSet : ISelectionSet
     /// Gets a value indicating whether the selection set contains deferred selections.
     /// </summary>
     public bool HasIncrementalParts { get; }
+
+    /// <summary>
+    /// Gets the prepared result row block shared by every object instance of this selection
+    /// set. It is built when the selection set is sealed and reused across all requests of
+    /// the declaring operation.
+    /// </summary>
+    internal ObjectTemplate ObjectTemplate => _objectTemplate;
 
     IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
 
@@ -252,5 +274,7 @@ public sealed class SelectionSet : ISelectionSet
         {
             selection.Seal(this);
         }
+
+        _objectTemplate = ObjectTemplate.Create(this);
     }
 }

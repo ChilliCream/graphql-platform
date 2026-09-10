@@ -10,10 +10,9 @@ public sealed partial class ResultDocument
     internal readonly struct DbRow
     {
         public const int Size = 20;
-        public const int UnknownSize = -1;
 
-        // 27 bits for location + 2 bits OpRefType + 3 reserved bits
-        private readonly int _locationAndOpRefType;
+        // 29 bits for location (a cursor value for references) + 3 reserved bits
+        private readonly int _location;
 
         // 27 bits for size/length + sign bit for HasComplexChildren + 4 reserved bits
         private readonly int _sizeOrLengthUnion;
@@ -21,10 +20,10 @@ public sealed partial class ResultDocument
         // 27 bits NumberOfRows + 1 reserved bit + 4 bits TokenType
         private readonly int _tokenTypeAndNumberOfRows;
 
-        // 27 bits ParentRow + 5 reserved bits
+        // 29 bits parent cursor value + 3 reserved bits
         private readonly int _parentRow;
 
-        // 15 bits OperationReferenceId + 9 bits Flags + 8 reserved bits
+        // 15 bits OperationReferenceId + 9 bits Flags + 2 bits OpRefType + 6 reserved bits
         private readonly int _opRefIdAndFlags;
 
         public DbRow(
@@ -38,19 +37,19 @@ public sealed partial class ResultDocument
             ElementFlags flags = ElementFlags.None)
         {
             Debug.Assert((byte)tokenType < 16);
-            Debug.Assert(location is >= 0 and <= 0x07FFFFFF); // 27 bits
-            Debug.Assert(sizeOrLength is UnknownSize or >= 0 and <= 0x07FFFFFF); // 27 bits
-            Debug.Assert(parentRow is >= 0 and <= 0x07FFFFFF); // 27 bits
+            Debug.Assert(location is >= 0 and <= 0x1FFFFFFF); // 29 bits
+            Debug.Assert(sizeOrLength is >= 0 and <= 0x07FFFFFF); // 27 bits
+            Debug.Assert(parentRow is >= 0 and <= 0x1FFFFFFF); // 29 bits
             Debug.Assert(operationReferenceId is >= 0 and <= 0x7FFF); // 15 bits
             Debug.Assert(numberOfRows is >= 0 and <= 0x07FFFFFF); // 27 bits
             Debug.Assert((byte)operationReferenceType <= 3); // 2 bits
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
 
-            _locationAndOpRefType = location | ((int)operationReferenceType << 27);
+            _location = location;
             _sizeOrLengthUnion = sizeOrLength;
             _tokenTypeAndNumberOfRows = ((int)tokenType << 28) | (numberOfRows & 0x07FFFFFF);
             _parentRow = parentRow;
-            _opRefIdAndFlags = operationReferenceId | ((int)flags << 15);
+            _opRefIdAndFlags = operationReferenceId | ((int)flags << 15) | ((int)operationReferenceType << 24);
         }
 
         /// <summary>
@@ -68,15 +67,15 @@ public sealed partial class ResultDocument
         /// 2 bits = 4 possible values
         /// </remarks>
         public OperationReferenceType OperationReferenceType
-            => (OperationReferenceType)((_locationAndOpRefType >> 27) & 0x03);
+            => (OperationReferenceType)((_opRefIdAndFlags >> 24) & 0x03);
 
         /// <summary>
-        /// Byte offset in source data OR metaDb row index for references.
+        /// Byte offset in source data OR a cursor value for references.
         /// </summary>
         /// <remarks>
-        /// 27 bits = 134M limit
+        /// 29 bits = 536M limit
         /// </remarks>
-        public int Location => _locationAndOpRefType & 0x07FFFFFF;
+        public int Location => _location & 0x1FFFFFFF;
 
         /// <summary>
         /// Length of data in JSON payload, number of elements if array or number of properties in an object.
@@ -92,11 +91,6 @@ public sealed partial class ResultDocument
         public bool HasComplexChildren => _sizeOrLengthUnion < 0;
 
         /// <summary>
-        /// Specifies if a size for the item has ben set.
-        /// </summary>
-        public bool IsUnknownSize => _sizeOrLengthUnion == UnknownSize;
-
-        /// <summary>
         /// Number of metadb rows this element spans.
         /// </summary>
         /// <remarks>
@@ -105,12 +99,12 @@ public sealed partial class ResultDocument
         public int NumberOfRows => _tokenTypeAndNumberOfRows & 0x07FFFFFF;
 
         /// <summary>
-        /// Index of parent element in metadb for navigation and null propagation.
+        /// Cursor value of the parent element for navigation and null propagation.
         /// </summary>
         /// <remarks>
-        /// 27 bits = 134M rows
+        /// 29 bits = 536M rows
         /// </remarks>
-        public int ParentRow => _parentRow & 0x07FFFFFF;
+        public int Parent => _parentRow & 0x1FFFFFFF;
 
         /// <summary>
         /// Reference to GraphQL selection set or selection metadata.

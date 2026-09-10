@@ -16,7 +16,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         CheckReviewType(schema);
         CheckQueryType(schema);
@@ -52,7 +52,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             .AddApolloFederation()
             .AddType(reviewType)
             .AddQueryType(queryType)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         CheckReviewType(schema);
         CheckQueryType(schema);
@@ -74,7 +74,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
         }
 
         Assert.Fail("No policy directive found.");
-        return null!;
+        return null;
     }
 
     private static void CheckQueryType(Schema schema)
@@ -113,7 +113,7 @@ public class PolicyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         CheckQueryType(schema);

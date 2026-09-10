@@ -108,7 +108,8 @@ public class ModuleNameHelperTests
                     => default;
             }
             """
-        ], assemblyName: "My-Company.Services.Order-Processing").MatchMarkdownAsync();
+        ], assemblyName: "My-Company.Services.Order-Processing").MatchMarkdownAsync(
+            TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -129,6 +130,6 @@ public class ModuleNameHelperTests
                     => default;
             }
             """
-        ], assemblyName: null).MatchMarkdownAsync();
+        ], assemblyName: null).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

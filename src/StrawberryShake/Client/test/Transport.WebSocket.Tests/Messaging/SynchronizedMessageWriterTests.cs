@@ -52,7 +52,7 @@ public class SynchronizedMessageWriterTests
                         },
                         CancellationToken.None);
                 }
-            }));
+            }, TestContext.Current.CancellationToken));
         }
 
         await Task.WhenAll(tasks);

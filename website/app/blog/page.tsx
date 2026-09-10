@@ -1,20 +1,56 @@
-import React from "react";
+import { BlogIndexShell } from "@/src/components/BlogIndexShell";
+import { PageStructuredData } from "@/src/components/PageStructuredData";
+import { paginate } from "@/src/helpers/blogPaging";
+import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
+import {
+  BLOG_DESCRIPTION,
+  BLOG_ID,
+  createBlogItemListNode,
+  createBlogNode,
+} from "@/src/helpers/blogStructuredData";
+import { pageMetadata } from "@/src/helpers/pageMetadata";
+import { schemaRef } from "@/src/helpers/structuredData";
 
-import { getPaginatedPosts } from "@/lib/blog";
-import { BlogListPage } from "@/lib/blog-list-page";
-import { createMetadata } from "@/lib/metadata";
+const PAGE = {
+  title: "Blog",
+  description: BLOG_DESCRIPTION,
+  path: "/blog",
+} as const;
 
-export const metadata = createMetadata({ title: "Blog" });
+export const metadata = pageMetadata(PAGE);
 
-export default function BlogPage() {
-  const { posts, totalPages } = getPaginatedPosts(1);
+export default function BlogsIndex() {
+  const posts = listBlogPostSummaries();
+  const slice = paginate(posts, 1);
+  if (slice === null) {
+    return <BlogIndexShell title="Blog" posts={[]} />;
+  }
+
+  const postList = createBlogItemListNode(
+    PAGE.path,
+    "Latest ChilliCream blog posts",
+    slice.posts,
+  );
 
   return (
-    <BlogListPage
-      posts={posts}
-      currentPage={1}
-      totalPages={totalPages}
-      linkPrefix="/blog"
-    />
+    <>
+      <PageStructuredData
+        {...PAGE}
+        pageType="CollectionPage"
+        breadcrumbs={[{ name: "Home", path: "/" }, { name: "Blog" }]}
+        mainEntity={schemaRef(postList["@id"]!)}
+        about={schemaRef(BLOG_ID)}
+        additionalNodes={[createBlogNode(), postList]}
+      />
+      <BlogIndexShell
+        title="Blog"
+        posts={slice.posts}
+        pagination={{
+          currentPage: slice.currentPage,
+          totalPages: slice.totalPages,
+          hrefForPage: (p) => (p === 1 ? "/blog" : `/blog/${p}`),
+        }}
+      />
+    </>
   );
 }

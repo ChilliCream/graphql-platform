@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
+using StringValueNode = HotChocolate.Language.StringValueNode;
 
 namespace HotChocolate.Fusion.Validators;
 
@@ -101,6 +102,52 @@ public sealed class FieldSelectionMapValidatorTests
         string[] expected =
             ["The field 'mediaById' returns a union type and must have a type condition."];
         Assert.Equal(expected, errors);
+    }
+
+    [Fact]
+    public void InterfaceTypeCondition_WithPossibleTypeOverlap_IsValid()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    foo(input: RequirerInput @is(field: "{ foo: foo, bar: <Bar>.bar }")): Foo
+                }
+
+                interface Foo {
+                    foo: String
+                }
+
+                interface Bar {
+                    foo: String
+                    bar: String
+                }
+
+                type Baz implements Foo & Bar {
+                    foo: String
+                    bar: String
+                }
+
+                input RequirerInput {
+                    foo: String
+                    bar: String
+                }
+                """);
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, new CompositionLog());
+        var schema = sourceSchemaParser.Parse().Value;
+        var fieldSelectionMap = GetFieldSelectionMap(schema, "Query", "foo", "input", "is");
+        var selectedValue = new FieldSelectionMapParser(fieldSelectionMap).Parse();
+        var inputType = schema.QueryType!.Fields["foo"].Arguments["input"].Type;
+        var outputType = schema.Types["Foo"];
+
+        // act
+        var errors =
+            new FieldSelectionMapValidator(schema).Validate(selectedValue, inputType, outputType);
+
+        // assert
+        Assert.Empty(errors);
     }
 
     // If the "UserInput" type requires the "id" field, then an invalid selection would be missing
@@ -304,7 +351,9 @@ public sealed class FieldSelectionMapValidatorTests
             { "[ID]", "Query", "storeById.media[id]" },
             { "[ID]", "Query", "storeById.media[id] | storeById.media[id]" },
             { "[[ID]]", "Query", "nestedBookList[[id]]" },
-            { "[[BookIdAndTitleInput]]", "Query", "nestedBookList[[{ id, title }]]" }
+            { "[[BookIdAndTitleInput]]", "Query", "nestedBookList[[{ id, title }]]" },
+            // A constant argument with a valid enum value is accepted.
+            { "Float", "Book", "weight(unit: POUND)" }
         };
     }
 
@@ -416,6 +465,22 @@ public sealed class FieldSelectionMapValidatorTests
                 "Query",
                 "nestedBookList[[{ id }]]",
                 ["The selection on input type 'BookIdAndTitleInput' must include all required fields."]
+            },
+            // Unknown argument on a selected field.
+            {
+                "Float",
+                "Book",
+                "weight(scale: POUND)",
+                ["The argument 'scale' does not exist on field 'Book.weight'."]
+            },
+            // Incompatible argument value.
+            {
+                "Float",
+                "Book",
+                "weight(unit: 5)",
+                [
+                    "The value provided for argument 'unit' on field 'Book.weight' is not compatible with the type 'WeightUnit'."
+                ]
             }
         };
     }
@@ -448,6 +513,7 @@ public sealed class FieldSelectionMapValidatorTests
                 isbn: String!
                 author: Author!
                 nullableAuthor: Author # Added
+                weight(unit: WeightUnit = KILOGRAM): Float # Added
             }
 
             type Movie implements Media {
@@ -485,6 +551,9 @@ public sealed class FieldSelectionMapValidatorTests
             input IdInput {
                 id: ID!
             }
+
+            # Added
+            enum WeightUnit { KILOGRAM POUND }
             """);
 
     private static ReadOnlySpan<char> GetFieldSelectionMap(

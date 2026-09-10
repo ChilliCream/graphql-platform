@@ -16,7 +16,7 @@ public class Issue7919ProbeTests
                 .AddQueryType<Query>()
                 .AddType<MetadataType>()
                 .AddType<MetadataEntryType>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -32,7 +32,8 @@ public class Issue7919ProbeTests
                 key3: value(key: "key3")
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();

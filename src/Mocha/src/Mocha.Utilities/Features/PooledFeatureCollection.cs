@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
 
 namespace Mocha.Features;
 
@@ -10,10 +9,10 @@ namespace Mocha.Features;
 public sealed class PooledFeatureCollection : IFeatureCollection
 {
     private static readonly KeyComparer s_featureKeyComparer = new();
-    private readonly Dictionary<Type, object> _features = [];
-    private readonly List<KeyValuePair<Type, object>> _pooledFeatures = [];
+    private readonly Dictionary<Type, object> _activeFeatures = [];
+    private readonly Dictionary<Type, object> _cachedFeatures = [];
     private readonly object _state;
-    private IFeatureCollection? _defaults;
+    private IFeatureCollection? _inheritedFeatures;
     private volatile int _containerRevision;
 
     /// <summary>
@@ -33,17 +32,17 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     {
         get
         {
-            if (_features.Count > 0)
+            if (_activeFeatures.Count > 0)
             {
                 return false;
             }
 
-            return _defaults?.IsEmpty ?? true;
+            return _inheritedFeatures?.IsEmpty ?? true;
         }
     }
 
     /// <inheritdoc />
-    public int Revision => _containerRevision + (_defaults?.Revision ?? 0);
+    public int Revision => _containerRevision + (_inheritedFeatures?.Revision ?? 0);
 
     /// <inheritdoc />
     public object? this[Type key]
@@ -52,7 +51,7 @@ public sealed class PooledFeatureCollection : IFeatureCollection
         {
             ArgumentNullException.ThrowIfNull(key);
 
-            return _features.TryGetValue(key, out var result) ? result : _defaults?[key];
+            return _activeFeatures.TryGetValue(key, out var result) ? result : _inheritedFeatures?[key];
         }
         set
         {
@@ -60,7 +59,7 @@ public sealed class PooledFeatureCollection : IFeatureCollection
 
             if (value == null)
             {
-                if (_features.Remove(key))
+                if (_activeFeatures.Remove(key))
                 {
                     _containerRevision++;
                 }
@@ -72,7 +71,7 @@ public sealed class PooledFeatureCollection : IFeatureCollection
                 pooledFeature.Initialize(_state);
             }
 
-            _features[key] = value;
+            _activeFeatures[key] = value;
             _containerRevision++;
         }
     }
@@ -100,7 +99,7 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     /// <inheritdoc />
     public bool TryGet<TFeature>([NotNullWhen(true)] out TFeature? feature)
     {
-        if (_features.TryGetValue(typeof(TFeature), out var result))
+        if (_activeFeatures.TryGetValue(typeof(TFeature), out var result))
         {
             if (result is TFeature f)
             {
@@ -112,13 +111,34 @@ public sealed class PooledFeatureCollection : IFeatureCollection
             return false;
         }
 
-        if (_defaults is not null && _defaults.TryGet(out feature))
+        if (_inheritedFeatures is not null && _inheritedFeatures.TryGet(out feature))
         {
             return true;
         }
 
         feature = default;
         return false;
+    }
+
+    /// <inheritdoc />
+    public TFeature GetOrSet<TFeature, TState>(Func<TState, TFeature> factory, TState state)
+    {
+        if (TryGet(out TFeature? feature))
+        {
+            return feature;
+        }
+
+        var key = typeof(TFeature);
+        if (_cachedFeatures.TryGetValue(key, out var cached) && cached is TFeature)
+        {
+            _cachedFeatures.Remove(key);
+            this[key] = cached;
+            return (TFeature)cached;
+        }
+
+        feature = factory(state);
+        Set(feature);
+        return feature;
     }
 
     /// <inheritdoc />
@@ -131,19 +151,11 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     /// Initializes the feature collection with the specified defaults.
     /// </summary>
     /// <param name="defaults">
-    /// The defaults for the feature collection.
+    /// The inherited features, or <c>null</c> when the collection has no defaults.
     /// </param>
     public void Initialize(IFeatureCollection? defaults = null)
     {
-        _defaults = defaults;
-
-        foreach (var pooledFeature in _pooledFeatures)
-        {
-            _features.Add(pooledFeature.Key, pooledFeature.Value);
-            Unsafe.As<IPooledFeature>(pooledFeature.Value).Initialize(_state);
-        }
-
-        _pooledFeatures.Clear();
+        _inheritedFeatures = defaults;
     }
 
     /// <summary>
@@ -151,30 +163,32 @@ public sealed class PooledFeatureCollection : IFeatureCollection
     /// </summary>
     public void Reset()
     {
-        foreach (var item in _features)
+        _inheritedFeatures = null;
+        foreach (var item in _activeFeatures)
         {
             if (item.Value is IPooledFeature pooledFeature)
             {
-                _pooledFeatures.Add(item);
                 pooledFeature.Reset();
+
+                _cachedFeatures[item.Key] = item.Value;
             }
         }
 
-        _features.Clear();
+        _activeFeatures.Clear();
     }
 
     /// <inheritdoc />
     public IEnumerator<KeyValuePair<Type, object>> GetEnumerator()
     {
-        foreach (var pair in _features)
+        foreach (var pair in _activeFeatures)
         {
             yield return pair;
         }
 
-        if (_defaults != null)
+        if (_inheritedFeatures != null)
         {
             // Don't return features masked by the wrapper.
-            foreach (var pair in _defaults.Except(_features, s_featureKeyComparer))
+            foreach (var pair in _inheritedFeatures.Except(_activeFeatures, s_featureKeyComparer))
             {
                 yield return pair;
             }

@@ -106,35 +106,7 @@
       "description": "Long description"
     },
     "object": {
-      "type": "object",
-      "properties": {
-        "field1A": {
-          "type": "object",
-          "properties": {
-            "field1B": {
-              "type": "object",
-              "properties": {
-                "field1C": {
-                  "type": "string",
-                  "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
-                  "description": "field1C description"
-                }
-              },
-              "required": [
-                "field1C"
-              ],
-              "description": "field1B description"
-            }
-          },
-          "required": [
-            "field1B"
-          ],
-          "description": "field1A description"
-        }
-      },
-      "required": [
-        "field1A"
-      ],
+      "$ref": "#/$defs/Object1NonNullableInput",
       "description": "Object description"
     },
     "short": {
@@ -221,5 +193,44 @@
     "uri",
     "url",
     "uuid"
-  ]
+  ],
+  "$defs": {
+    "Object1NonNullableInput": {
+      "type": "object",
+      "properties": {
+        "field1A": {
+          "$ref": "#/$defs/Object2NonNullableInput",
+          "description": "field1A description"
+        }
+      },
+      "required": [
+        "field1A"
+      ]
+    },
+    "Object2NonNullableInput": {
+      "type": "object",
+      "properties": {
+        "field1B": {
+          "$ref": "#/$defs/Object3NonNullableInput",
+          "description": "field1B description"
+        }
+      },
+      "required": [
+        "field1B"
+      ]
+    },
+    "Object3NonNullableInput": {
+      "type": "object",
+      "properties": {
+        "field1C": {
+          "type": "string",
+          "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+          "description": "field1C description"
+        }
+      },
+      "required": [
+        "field1C"
+      ]
+    }
+  }
 }

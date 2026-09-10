@@ -45,18 +45,12 @@ public sealed partial class SourceResultDocument
                     break;
 
                 case JsonTokenType.String:
-                {
-                    var value = document.ReadRawValue(row, includeQuotes: true);
-                    writer.WriteStringValue(value, skipEscaping: true);
+                    document.WriteRawStringValueTo(writer, row.Location, row.SizeOrLength);
                     break;
-                }
 
                 case JsonTokenType.Number:
-                {
-                    var value = document.ReadRawValue(row, includeQuotes: false);
-                    writer.WriteNumberValue(value);
+                    document.WriteRawNumberValueTo(writer, row.Location, row.SizeOrLength);
                     break;
-                }
 
                 default:
                     throw new NotSupportedException();
@@ -78,7 +72,7 @@ public sealed partial class SourceResultDocument
                 Debug.Assert(nameRow.TokenType is JsonTokenType.PropertyName);
 
                 // property name
-                writer.WritePropertyName(document.ReadRawValue(nameRow, includeQuotes: false));
+                writer.WritePropertyNameUnescaped(document.ReadRawValue(nameRow, includeQuotes: false));
 
                 // property value
                 var valueCursor = current + 1;

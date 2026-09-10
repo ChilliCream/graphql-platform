@@ -1,0 +1,14 @@
+{
+  "ContentType": "application/graphql-response+json; charset=utf-8",
+  "StatusCode": "BadRequest",
+  "Data": null,
+  "Errors": [
+    {
+      "message": "The file mapped to '1' must be referenced by a null value at its variable location, but a non-null value was provided.",
+      "extensions": {
+        "code": "HC0115"
+      }
+    }
+  ],
+  "Extensions": null
+}

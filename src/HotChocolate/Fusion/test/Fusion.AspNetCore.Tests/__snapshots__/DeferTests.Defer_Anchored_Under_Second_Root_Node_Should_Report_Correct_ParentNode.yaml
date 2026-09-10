@@ -1,0 +1,310 @@
+title: Defer_Anchored_Under_Second_Root_Node_Should_Report_Correct_ParentNode
+request:
+  document: |
+    query t {
+      products {
+        id
+        name
+      }
+      users {
+        __typename
+        ... @defer {
+          id
+          name
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "products": [
+          {
+            "id": "UHJvZHVjdDox",
+            "name": "Product: UHJvZHVjdDox"
+          },
+          {
+            "id": "UHJvZHVjdDoy",
+            "name": "Product: UHJvZHVjdDoy"
+          },
+          {
+            "id": "UHJvZHVjdDoz",
+            "name": "Product: UHJvZHVjdDoz"
+          }
+        ],
+        "users": [
+          {
+            "__typename": "User"
+          },
+          {
+            "__typename": "User"
+          },
+          {
+            "__typename": "User"
+          }
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "id": "VXNlcjox",
+          "name": "User: VXNlcjox"
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "id": "VXNlcjoy",
+          "name": "User: VXNlcjoy"
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "id": "VXNlcjoz",
+          "name": "User: VXNlcjoz"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "products": [
+          {
+            "id": "UHJvZHVjdDox",
+            "name": "Product: UHJvZHVjdDox"
+          },
+          {
+            "id": "UHJvZHVjdDoy",
+            "name": "Product: UHJvZHVjdDoy"
+          },
+          {
+            "id": "UHJvZHVjdDoz",
+            "name": "Product: UHJvZHVjdDoz"
+          }
+        ],
+        "users": [
+          {
+            "__typename": "User",
+            "id": "VXNlcjox",
+            "name": "User: VXNlcjox"
+          },
+          {
+            "__typename": "User",
+            "id": "VXNlcjoy",
+            "name": "User: VXNlcjoy"
+          },
+          {
+            "__typename": "User",
+            "id": "VXNlcjoz",
+            "name": "User: VXNlcjoz"
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        products: [Product!]!
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query t_7bbab574_1 {
+              products {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "products": [
+                    {
+                      "id": "UHJvZHVjdDox",
+                      "name": "Product: UHJvZHVjdDox"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoy",
+                      "name": "Product: UHJvZHVjdDoy"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoz",
+                      "name": "Product: UHJvZHVjdDoz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query t_7bbab574_2 {
+              users {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "__typename": "User"
+                    },
+                    {
+                      "__typename": "User"
+                    },
+                    {
+                      "__typename": "User"
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query t_defer_1 {
+              users {
+                id
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "VXNlcjox",
+                      "name": "User: VXNlcjox"
+                    },
+                    {
+                      "id": "VXNlcjoy",
+                      "name": "User: VXNlcjoy"
+                    },
+                    {
+                      "id": "VXNlcjoz",
+                      "name": "User: VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query t {
+          products {
+            id
+            name
+          }
+          users {
+            __typename
+          }
+        }
+      name: t
+      hash: 7bbab574d28af35c2ad950d2ef0ea7e1
+      searchSpace: 2
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query t_7bbab574_1 {
+          products {
+            id
+            name
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query t_7bbab574_2 {
+          users {
+            __typename
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.users
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 2
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query t_defer_1 {
+              users {
+                id
+                name
+              }
+            }

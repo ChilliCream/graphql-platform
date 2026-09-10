@@ -335,7 +335,7 @@ public class FilterConventionTests
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
         //act
-        var schema = await builder.BuildSchemaAsync();
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -380,7 +380,7 @@ public class FilterConventionTests
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
         //act
-        var schema = await builder.BuildSchemaAsync();
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -405,7 +405,7 @@ public class FilterConventionTests
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
         //act
-        var schema = await builder.BuildSchemaAsync();
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -433,7 +433,7 @@ public class FilterConventionTests
                 x => x.Name("Query").Field("foos").UseFiltering().Resolve(new List<Foo>()));
 
         // act
-        var schema = await builder.BuildSchemaAsync();
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
         var stringOperations = schema.Types.GetType<InputObjectType>("StringOperationFilterInput");
 
         // assert

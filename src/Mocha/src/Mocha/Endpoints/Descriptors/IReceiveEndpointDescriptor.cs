@@ -38,6 +38,34 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> Consumer<TConsumer>() where TConsumer : class, IConsumer;
 
     /// <summary>
+    /// Binds all handlers for the specified message type to this receive endpoint.
+    /// </summary>
+    /// <typeparam name="TMessage">The message type to receive.</typeparam>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> Receives<TMessage>();
+
+    /// <summary>
+    /// Binds all handlers for the specified message type to this receive endpoint.
+    /// </summary>
+    /// <param name="messageType">The message type to receive.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> Receives(Type messageType);
+
+    /// <summary>
+    /// Sets this receive endpoint's bind mode to <see cref="MessagingBindMode.Implicit"/>, generating
+    /// convention binds for consumed message types that reach this endpoint.
+    /// </summary>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> BindImplicitly();
+
+    /// <summary>
+    /// Sets this receive endpoint's bind mode to <see cref="MessagingBindMode.Explicit"/>, suppressing
+    /// convention binds for consumed message types that reach this endpoint.
+    /// </summary>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> BindExplicitly();
+
+    /// <summary>
     /// Sets the kind of this receive endpoint (e.g., default, temporary).
     /// </summary>
     /// <param name="kind">The receive endpoint kind.</param>
@@ -52,18 +80,11 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> MaxConcurrency(int maxConcurrency);
 
     /// <summary>
-    /// Sets the address of the fault endpoint where failed messages are forwarded.
+    /// Marks this receive endpoint as temporary, signaling that its underlying infrastructure
+    /// is scoped to the lifetime of the consuming process rather than provisioned durably.
     /// </summary>
-    /// <param name="name">The fault endpoint address.</param>
     /// <returns>The descriptor instance for method chaining.</returns>
-    IReceiveEndpointDescriptor<TConfiguration> FaultEndpoint(string name);
-
-    /// <summary>
-    /// Sets the address of the endpoint where skipped (unroutable) messages are forwarded.
-    /// </summary>
-    /// <param name="name">The skipped endpoint address.</param>
-    /// <returns>The descriptor instance for method chaining.</returns>
-    IReceiveEndpointDescriptor<TConfiguration> SkippedEndpoint(string name);
+    IReceiveEndpointDescriptor<TConfiguration> Temporary();
 
     /// <summary>
     /// Adds a receive middleware to this endpoint's receive pipeline. Optionally positions it

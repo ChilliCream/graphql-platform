@@ -22,10 +22,12 @@ public class SourceObjectConversionTests
             .Services
             .BuildServiceProvider()
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync();
+            .GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ foo { qux } }");
+        var result = await executor.ExecuteAsync(
+            "{ foo { qux } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = Assert.IsType<OperationResult>(result);
@@ -52,7 +54,7 @@ public class SourceObjectConversionTests
                 .Build();
 
         var result =
-            await schema.MakeExecutable().ExecuteAsync(request);
+            await schema.MakeExecutable().ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

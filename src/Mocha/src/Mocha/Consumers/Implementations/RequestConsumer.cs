@@ -11,17 +11,10 @@ namespace Mocha;
 /// responses.
 /// </remarks>
 internal sealed class RequestConsumer<THandler, TRequest, TResponse> : Consumer
-    where THandler : IEventRequestHandler<TRequest, TResponse>
+    where THandler : class, IEventRequestHandler<TRequest, TResponse>
     where TRequest : IEventRequest<TResponse>
 {
-    private readonly Action<IConsumerDescriptor>? _configure;
-
-    public RequestConsumer(Action<IConsumerDescriptor> configure)
-    {
-        _configure = configure;
-    }
-
-    public RequestConsumer() { }
+    public RequestConsumer() : base(typeof(THandler)) { }
 
     protected override void Configure(IConsumerDescriptor descriptor)
     {
@@ -30,14 +23,6 @@ internal sealed class RequestConsumer<THandler, TRequest, TResponse> : Consumer
             .AddRoute(r =>
                 r.MessageType(typeof(TRequest)).ResponseType(typeof(TResponse)).Kind(InboundRouteKind.Request)
             );
-
-        _configure?.Invoke(descriptor);
-    }
-
-    protected override void OnAfterInitialize(IMessagingSetupContext context)
-    {
-        base.OnAfterInitialize(context);
-        SetIdentity(typeof(THandler));
     }
 
     protected override async ValueTask ConsumeAsync(IConsumeContext context)

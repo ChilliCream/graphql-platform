@@ -99,7 +99,10 @@ public readonly struct SelectionFeatureCollection : IFeatureCollection
     /// </summary>
     /// <typeparam name="TFeature">The type of the feature.</typeparam>
     /// <returns>The existing or newly created feature instance.</returns>
-    /// <remarks>This method is thread-safe.</remarks>
+    /// <remarks>
+    /// This method is thread-safe. Under contention more than one instance can be created,
+    /// but only one instance is stored and every caller observes that instance.
+    /// </remarks>
     public TFeature GetOrSetSafe<TFeature>() where TFeature : new()
         => GetOrSetSafe(static () => new TFeature());
 

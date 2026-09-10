@@ -36,6 +36,10 @@ internal sealed class QueryExecutor
         var scheduler = operationContext.Scheduler;
         var coordinator = operationContext.DeferExecutionCoordinator;
 
+        // capture the arena now: the request executor detaches it from the context once this
+        // method returns the stream, so the deferred closure below seals the captured arena.
+        var memory = operationContext.Memory;
+
         var execution = scheduler.ExecuteAsync();
         await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
         var initialResult = operationContext.BuildResult();
@@ -47,6 +51,8 @@ internal sealed class QueryExecutor
                 await execution.ConfigureAwait(false);
             }
 
+            // there are no deferred parts, so this behaves like a buffered result: seal now.
+            memory.Seal();
             return initialResult;
         }
 
@@ -56,12 +62,19 @@ internal sealed class QueryExecutor
         async IAsyncEnumerable<OperationResult> CreateStream()
         {
             var requestAborted = operationContext.RequestAborted;
+
             await foreach (var result in coordinator.ReadResultsAsync(requestAborted))
             {
                 yield return result;
             }
 
+            // The stream was read to completion, so every deferred branch has been delivered and
+            // the scheduler has fully settled: no resolver or batch task can write into the arena
+            // anymore, so we seal it to allow its memory to be returned on dispose.
+            // On cancellation or early disposal we never reach here and the arena is abandoned,
+            // because in-flight parallel work (including the batch dispatcher) may still write to it.
             await execution.ConfigureAwait(false);
+            memory.Seal();
         }
     }
 
@@ -77,7 +90,13 @@ internal sealed class QueryExecutor
 
         await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
-        return operationContext.BuildResult();
+        var result = operationContext.BuildResult();
+
+        // the result is complete and nothing else writes into the request memory,
+        // so we seal it to allow its pages to be returned to the pool on dispose.
+        operationContext.Memory.Seal();
+
+        return result;
     }
 
     public Task ExecuteBatchAsync(
@@ -114,6 +133,10 @@ internal sealed class QueryExecutor
         {
             results[i] = operationContexts[i].OperationContext.BuildResult();
         }
+
+        // all results in the batch share one request arena; every result has been built and
+        // nothing else writes into it, so we seal it once for the whole batch.
+        parentContext.Memory.Seal();
     }
 
     private async Task ExecuteBatchIncrementalAsync(
@@ -130,40 +153,46 @@ internal sealed class QueryExecutor
 
         var execution = parentContext.Scheduler.ExecuteAsync();
 
+        // capture the shared arena now: the request executor detaches it once we return the
+        // streams, so the completing closure below seals the captured arena.
+        var memory = parentContext.Memory;
+
         for (var i = 0; i < length; ++i)
         {
-            if (i == 0)
-            {
-                var branchId = parentContext.ExecutionBranchId;
-                await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
-                parentContext.DeferExecutionCoordinator.EnqueueResult(parentContext.BuildResult());
-                results[i] = new ResponseStream(CreateStreamAndComplete, ExecutionResultKind.DeferredResult);
-            }
-            else
-            {
-                var context = operationContexts[i].OperationContext;
-                var branchId = context.ExecutionBranchId;
-                await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
-                context.DeferExecutionCoordinator.EnqueueResult(context.BuildResult());
-                results[i] = new ResponseStream(CreateStream, ExecutionResultKind.DeferredResult);
-            }
+            var context = operationContexts[i].OperationContext;
+            var branchId = context.ExecutionBranchId;
+            await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
+            context.DeferExecutionCoordinator.EnqueueResult(context.BuildResult());
+
+            // The first item's stream drives completion of the shared execution: once it has
+            // delivered every payload it awaits the scheduler and seals the shared arena. Every
+            // item reads from its own coordinator and honors its own cancellation token, so a
+            // payload is never enqueued into one coordinator and read from another.
+            results[i] = i == 0
+                ? new ResponseStream(CreateStreamAndComplete, ExecutionResultKind.DeferredResult)
+                : CreateItemStream(context);
         }
+
+        static ResponseStream CreateItemStream(OperationContext context)
+            => new(
+                () => context.DeferExecutionCoordinator.ReadResultsAsync(context.RequestAborted),
+                ExecutionResultKind.DeferredResult);
 
         async IAsyncEnumerable<OperationResult> CreateStreamAndComplete()
         {
             var requestAborted = parentContext.RequestAborted;
+
             await foreach (var result in parentContext.DeferExecutionCoordinator.ReadResultsAsync(requestAborted))
             {
                 yield return result;
             }
 
+            // The batch streams were read to completion, so the scheduler has fully settled and
+            // nothing can write into the shared arena anymore, so we seal it for reuse.
+            // On cancellation or early disposal we never reach here and the arena is abandoned,
+            // because in-flight parallel work (including the batch dispatcher) may still write to it.
             await execution.ConfigureAwait(false);
-        }
-
-        IAsyncEnumerable<OperationResult> CreateStream()
-        {
-            var requestAborted = parentContext.RequestAborted;
-            return parentContext.DeferExecutionCoordinator.ReadResultsAsync(requestAborted);
+            memory.Seal();
         }
     }
 

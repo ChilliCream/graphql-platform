@@ -1,0 +1,71 @@
+title: Root_Fields_Of_Same_Source_Schema_With_Differing_Conditions_Are_Fetched
+request:
+  document: |
+    query testQuery($f: Boolean!) {
+      a @skip(if: $f)
+      b @include(if: $f)
+    }
+  variables: |
+    {
+      "f": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "b": "Query"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        a: String
+        b: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_fa4aa4b6_1($f: Boolean!) {
+              a @skip(if: $f)
+              b @include(if: $f)
+            }
+          variables: |
+            {
+              "f": true
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "b": "Query"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($f: Boolean!) {
+          a @skip(if: $f)
+          b @include(if: $f)
+        }
+      name: testQuery
+      hash: fa4aa4b6d801840073f6253112147541
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_fa4aa4b6_1($f: Boolean!) {
+          a @skip(if: $f)
+          b @include(if: $f)
+        }
+      forwardedVariables:
+        - f

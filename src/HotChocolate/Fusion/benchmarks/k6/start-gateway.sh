@@ -6,6 +6,10 @@ MODE="${1:-release}"
 GATEWAY_PORT=5220
 GATEWAY_CPUSET="${GATEWAY_CPUSET:-}"
 
+# Opt-in MemoryArena lifecycle ledger. Set FUSION_ARENA_TRACE before launch to drop a CSV ledger
+# next to the other benchmark results. Leave unset to disable tracing entirely (zero overhead).
+FUSION_ARENA_TRACE="${FUSION_ARENA_TRACE:-}"
+
 # Check for taskset availability
 HAS_TASKSET=false
 if command -v taskset &> /dev/null; then
@@ -70,6 +74,10 @@ case "$MODE" in
 
     echo "Starting gateway (AOT) on cores $GATEWAY_CPUSET (port $GATEWAY_PORT)..."
     export ASPNETCORE_ENVIRONMENT=Production
+    if [ -n "$FUSION_ARENA_TRACE" ]; then
+      export FUSION_ARENA_TRACE
+      echo "  Arena trace: $FUSION_ARENA_TRACE"
+    fi
     maybe_taskset "$GATEWAY_CPUSET" ./bin/publish-aot/eShop.Gateway > /dev/null 2>&1 &
     GATEWAY_PID=$!
     ;;
@@ -80,6 +88,10 @@ case "$MODE" in
 
     echo "Starting gateway (Release) on cores $GATEWAY_CPUSET (port $GATEWAY_PORT)..."
     export ASPNETCORE_ENVIRONMENT=Production
+    if [ -n "$FUSION_ARENA_TRACE" ]; then
+      export FUSION_ARENA_TRACE
+      echo "  Arena trace: $FUSION_ARENA_TRACE"
+    fi
     maybe_taskset "$GATEWAY_CPUSET" dotnet run -c Release --no-build --no-restore > /dev/null 2>&1 &
     GATEWAY_PID=$!
     ;;

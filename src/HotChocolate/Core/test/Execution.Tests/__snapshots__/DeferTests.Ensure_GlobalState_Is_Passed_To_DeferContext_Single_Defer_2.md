@@ -2,11 +2,29 @@
 
 ```text
 {
-  "data": {
-    "ensureState": {
-      "state": "state 123"
+  "data": {},
+  "pending": [
+    {
+      "id": "2",
+      "path": []
     }
-  }
+  ],
+  "incremental": [
+    {
+      "id": "2",
+      "data": {
+        "ensureState": {
+          "state": "state 123"
+        }
+      }
+    }
+  ],
+  "completed": [
+    {
+      "id": "2"
+    }
+  ],
+  "hasNext": false
 }
 
 ```

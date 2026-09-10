@@ -436,4 +436,22 @@ public class RequiredArgumentRuleTests
             """
         );
     }
+
+    [Fact]
+    public void Validate_Should_Report_When_ASpreadOmitsARequiredFragmentVariable()
+    {
+        ExpectErrors(
+            """
+            {
+                dog {
+                    ...withRequiredVariable
+                }
+            }
+
+            fragment withRequiredVariable($atOtherHomes: Boolean!) on Dog {
+                isHouseTrained(atOtherHomes: $atOtherHomes)
+            }
+            """,
+            FragmentArgumentParserOptions);
+    }
 }

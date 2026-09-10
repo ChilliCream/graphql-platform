@@ -21,6 +21,17 @@ public sealed class SourceSchemaMergerOptions
     public bool EnableGlobalObjectIdentification { get; set; }
 
     /// <summary>
+    /// Defines how enum values are merged when the same enum type is defined in multiple source
+    /// schemas.
+    /// </summary>
+    public EnumValuesMergeBehavior EnumValuesMergeBehavior { get; set; } = EnumValuesMergeBehavior.Auto;
+
+    /// <summary>
+    /// Defines how the gateway resolves the <c>Query.node</c> field.
+    /// </summary>
+    public NodeResolution NodeResolution { get; set; } = NodeResolution.Gateway;
+
+    /// <summary>
     /// Removes types and directives that are not referenced in the final merged schema.
     /// </summary>
     public bool RemoveUnreferencedDefinitions { get; set; } = true;

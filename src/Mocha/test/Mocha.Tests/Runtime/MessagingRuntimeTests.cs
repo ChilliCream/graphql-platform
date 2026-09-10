@@ -59,6 +59,42 @@ public class MessagingRuntimeTests
         Assert.IsType<DefaultMessageBus>(bus);
     }
 
+    [Fact]
+    public void Runtime_Should_CreateConsumersPerBuild_When_ServiceCollectionIsBuiltTwice()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        var builder = services.AddMessageBus();
+        builder.AddConsumer(static () => ConsumerFactory.Subscribe<TestEventHandler, TestEvent>());
+        builder.ConfigureMessageBus(b => b.AddTransport(new InMemoryMessagingTransport(_ => { })));
+
+        // act
+        var runtime1 = (MessagingRuntime)services.BuildServiceProvider().GetRequiredService<IMessagingRuntime>();
+        var runtime2 = (MessagingRuntime)services.BuildServiceProvider().GetRequiredService<IMessagingRuntime>();
+
+        // assert
+        var consumer1 = Assert.Single(runtime1.Consumers, c => c.Identity == typeof(TestEventHandler));
+        var consumer2 = Assert.Single(runtime2.Consumers, c => c.Identity == typeof(TestEventHandler));
+        Assert.NotSame(consumer1, consumer2);
+    }
+
+    [Fact]
+    public void AddMessage_Should_RegisterOnce_When_CalledTwiceForSameType()
+    {
+        // arrange & act
+        // A generator-emitted AddMessage plus a user-written one (or two modules sharing a type) register the
+        // same message twice. The second registration must be a no-op instead of throwing on the message-type
+        // dictionary, and the type must resolve to a single MessageType.
+        var runtime = CreateRuntime(b =>
+        {
+            b.AddMessage<TestEvent>();
+            b.AddMessage<TestEvent>();
+        });
+
+        // assert
+        Assert.Single(runtime.Messages.MessageTypes, m => m.RuntimeType == typeof(TestEvent));
+    }
+
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
     {
         var services = new ServiceCollection();

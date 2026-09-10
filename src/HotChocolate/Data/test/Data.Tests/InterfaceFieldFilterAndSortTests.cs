@@ -15,7 +15,7 @@ public class InterfaceFieldFilterAndSortTests
             .AddSorting()
             .AddQueryType<Query>()
             .AddType<Author>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var personType = executor.Schema.Types.GetType<InterfaceType>("Person");
         var friends = personType.Fields["friends"];
@@ -33,7 +33,7 @@ public class InterfaceFieldFilterAndSortTests
             .AddSorting()
             .AddQueryType<Query>()
             .AddType<Author>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var interfaceType = executor.Schema.Types.GetType<InterfaceType>("Person");
         var objectType = executor.Schema.Types.GetType<ObjectType>("Author");
@@ -59,7 +59,7 @@ public class InterfaceFieldFilterAndSortTests
             .AddSorting()
             .AddQueryType<Query>()
             .AddType<Author>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         executor.Schema.MatchSnapshot();
     }
@@ -73,7 +73,7 @@ public class InterfaceFieldFilterAndSortTests
             .AddSorting()
             .AddQueryType<QueryWithData>()
             .AddType<AuthorWithData>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -86,7 +86,8 @@ public class InterfaceFieldFilterAndSortTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -100,7 +101,7 @@ public class InterfaceFieldFilterAndSortTests
             .AddSorting()
             .AddQueryType<QueryWithData>()
             .AddType<AuthorWithData>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -113,7 +114,8 @@ public class InterfaceFieldFilterAndSortTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -127,7 +129,7 @@ public class InterfaceFieldFilterAndSortTests
             .AddSorting()
             .AddQueryType<QueryWithData>()
             .AddType<AuthorWithData>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -143,7 +145,8 @@ public class InterfaceFieldFilterAndSortTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

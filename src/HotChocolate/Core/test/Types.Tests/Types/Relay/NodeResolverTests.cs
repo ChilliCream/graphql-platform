@@ -22,12 +22,13 @@ public class NodeResolverTests
                 .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -43,7 +44,7 @@ public class NodeResolverTests
                 .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -52,7 +53,8 @@ public class NodeResolverTests
                 a: node(id: "garbage") { ... on Entity { name } }
                 b: node(id: "RW50aXR5OmZvbw==") { ... on Entity { name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchInlineSnapshot(
@@ -89,7 +91,7 @@ public class NodeResolverTests
                 .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -98,7 +100,8 @@ public class NodeResolverTests
                 a: nodes(ids: ["garbage"]) { ... on Entity { name } }
                 b: nodes(ids: ["RW50aXR5OmZvbw=="]) { ... on Entity { name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         // The malformed id in `a` produces exactly one error scoped to `a`. The valid sibling
@@ -133,7 +136,7 @@ public class NodeResolverTests
                 .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // `id: 123` passes validation because IdType accepts int literals, but the resolver
@@ -144,7 +147,8 @@ public class NodeResolverTests
                 a: node(id: 123) { ... on Entity { name } }
                 b: node(id: "RW50aXR5OmZvbw==") { ... on Entity { name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchInlineSnapshot(
@@ -184,7 +188,7 @@ public class NodeResolverTests
                 .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // `ids: 123` passes validation because IdType accepts int literals, but the resolver
@@ -195,7 +199,8 @@ public class NodeResolverTests
                 a: nodes(ids: 123) { ... on Entity { name } }
                 b: nodes(ids: ["RW50aXR5OmZvbw=="]) { ... on Entity { name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         // The incompatible literal in `a` produces exactly one error scoped to `a`. The valid
@@ -233,7 +238,7 @@ public class NodeResolverTests
                 .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // The first id is valid and stages a child, the second id is malformed. The whole field
@@ -243,7 +248,8 @@ public class NodeResolverTests
             {
                 nodes(ids: ["RW50aXR5OmZvbw==", "garbage"]) { ... on Entity { name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchInlineSnapshot(
@@ -281,12 +287,13 @@ public class NodeResolverTests
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -308,12 +315,13 @@ public class NodeResolverTests
                         .Resolve(ctx => ctx.Parent<Entity>().Id);
                 })
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -345,12 +353,13 @@ public class NodeResolverTests
                         .Type(new NamedTypeNode("Entity"))
                         .Resolve(new Entity { Name = "foo" });
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -382,12 +391,13 @@ public class NodeResolverTests
                         .Type(new NamedTypeNode("Entity"))
                         .Resolve(new Entity { Name = "foo" });
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
             "{ node(id: \"RW50aXR5OmZvbw==\")  "
-            + "{ ... on Entity { id name } } }");
+            + "{ ... on Entity { id name } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -415,7 +425,8 @@ public class NodeResolverTests
                     }
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -428,7 +439,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -439,7 +450,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension2>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -450,7 +461,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension3>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -461,7 +472,7 @@ public class NodeResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<EntityExtension4>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -482,7 +493,8 @@ public class NodeResolverTests
                         }
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -494,7 +506,7 @@ public class NodeResolverTests
             .AddQueryType<QueryWithBatchNodeResolver>()
             .AddType<BatchEntity>()
             .AddGlobalObjectIdentification()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -516,7 +528,8 @@ public class NodeResolverTests
                         }
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -537,7 +550,8 @@ public class NodeResolverTests
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
 
@@ -568,7 +582,8 @@ public class NodeResolverTests
                     data
                   }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -588,7 +603,7 @@ public class NodeResolverTests
                 .AddType<BatchEntity>()
                 .AddType<EntityType>()
                 .AddGlobalObjectIdentification()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -598,7 +613,8 @@ public class NodeResolverTests
                 b: node(id: "QmF0Y2hFbnRpdHk6eQ==") { ... on BatchEntity { id name } }
                 dup: node(id: "QmF0Y2hFbnRpdHk6eA==") { ... on BatchEntity { id name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, collector.InvocationCount);
@@ -640,7 +656,7 @@ public class NodeResolverTests
                 .AddType<BatchEntity>()
                 .AddType<EntityType>()
                 .AddGlobalObjectIdentification()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -650,7 +666,8 @@ public class NodeResolverTests
                 b: node(id: "QmF0Y2hFbnRpdHk6eQ==") { ... on BatchEntity { id name } }
                 c: node(id: "RW50aXR5OmZvbw==") { ... on Entity { id name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, collector.InvocationCount);
@@ -690,7 +707,7 @@ public class NodeResolverTests
                 .AddQueryType<QueryWithCollectingBatchNodeResolver>()
                 .AddType<BatchEntity>()
                 .AddGlobalObjectIdentification()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -700,7 +717,8 @@ public class NodeResolverTests
                     ... on BatchEntity { id name }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, collector.InvocationCount);
@@ -742,7 +760,7 @@ public class NodeResolverTests
                 .AddQueryType<QueryWithCollectingBatchNodeResolver>()
                 .AddType<BatchEntity>()
                 .AddGlobalObjectIdentification()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -751,7 +769,8 @@ public class NodeResolverTests
                 a: nodes(ids: ["QmF0Y2hFbnRpdHk6eA=="]) { ... on BatchEntity { name } }
                 b: nodes(ids: ["QmF0Y2hFbnRpdHk6eQ=="]) { ... on BatchEntity { name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, collector.InvocationCount);
@@ -785,7 +804,7 @@ public class NodeResolverTests
                 .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // `123` inside the ids list passes validation (IdType accepts int literals) but the
@@ -796,7 +815,8 @@ public class NodeResolverTests
             {
                 nodes(ids: ["RW50aXR5OmZvbw==", 123]) { ... on Entity { name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchInlineSnapshot(
@@ -834,7 +854,7 @@ public class NodeResolverTests
                 .AddGlobalObjectIdentification()
                 .AddType<EntityType>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var failed = await executor.ExecuteAsync(
@@ -842,14 +862,16 @@ public class NodeResolverTests
             {
                 nodes(ids: ["RW50aXR5OmZvbw==", "garbage"]) { ... on Entity { name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         var recovered = await executor.ExecuteAsync(
             """
             {
                 nodes(ids: ["RW50aXR5OmZvbw=="]) { ... on Entity { name } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Single(failed.ExpectOperationResult().Errors!);
@@ -880,7 +902,7 @@ public class NodeResolverTests
                 .AddType<CustomKeyEntity>()
                 .AddGlobalObjectIdentification()
                 .AddNodeIdValueSerializer<CustomKeyNodeIdValueSerializer>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // "Q3VzdG9tS2V5RW50aXR5OmtleS00Mg==" decodes to "CustomKeyEntity:key-42".
@@ -890,7 +912,8 @@ public class NodeResolverTests
                 a: node(id: "Q3VzdG9tS2V5RW50aXR5OmtleS00Mg==") { ... on CustomKeyEntity { id value } }
                 b: node(id: "garbage") { ... on CustomKeyEntity { id value } }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         // `a` round trips through the custom serializer; `b` errors alone, proving the parse-error
@@ -931,7 +954,7 @@ public class NodeResolverTests
                 .AddTypeExtension<EntityExtension5>()
                 .AddTypeExtension<Entity2Extension1>()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -941,7 +964,8 @@ public class NodeResolverTests
                     id
                 }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Empty(result.ExpectOperationResult().Errors);

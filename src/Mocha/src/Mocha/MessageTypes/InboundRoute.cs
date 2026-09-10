@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Mocha.Middlewares;
 
 namespace Mocha;
 
@@ -33,6 +34,16 @@ public sealed class InboundRoute
     /// Gets the kind of inbound route (subscribe, send, request, or reply).
     /// </summary>
     public InboundRouteKind Kind { get; private set; }
+
+    /// <summary>
+    /// Gets the stable URN identity of this inbound route.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    /// <summary>
+    /// Gets the condition that decides whether this route selects its consumer for a received message.
+    /// </summary>
+    public RouteCondition Condition { get; private set; } = null!;
 
     /// <summary>
     /// Gets the receive endpoint that this route is connected to, or <c>null</c> if not yet connected.
@@ -71,6 +82,19 @@ public sealed class InboundRoute
             context.Messages.GetOrAdd(context, configuration.ResponseRuntimeType);
         }
 
+        Condition = configuration.Condition
+            ?? (MessageType is not null
+                ? new MessageTypeCondition(MessageType)
+                : NoMatchCondition.Instance);
+
+        Condition.Initialize(context);
+
+        Urn = MochaUrn.InboundRoute(
+            context.Host.EffectiveServiceName,
+            Kind.ToString().ToLowerInvariant(),
+            Consumer?.Name,
+            Condition.Describe());
+
         MarkInitialized();
     }
 
@@ -101,7 +125,7 @@ public sealed class InboundRoute
 
         if (Endpoint is null)
         {
-            throw ThrowHelper.RouteEndpointNotConnected();
+            throw ThrowHelper.RouteEndpointNotConnected(this);
         }
 
         MarkCompleted();
@@ -143,9 +167,11 @@ public sealed class InboundRoute
     public InboundRouteDescription Describe()
     {
         return new InboundRouteDescription(
+            Urn,
             Kind,
             MessageType?.Identity,
             Consumer?.Name,
+            Condition.Describe(),
             Endpoint is not null
                 ? new EndpointReferenceDescription(Endpoint.Name, Endpoint.Address?.ToString(), Endpoint.Transport.Name)
                 : null);

@@ -49,8 +49,6 @@ public sealed class SourceSchemaErrors
 
         foreach (var jsonError in json.EnumerateArray())
         {
-            var currentTrie = root;
-
             var error = CreateError(jsonError);
 
             if (error is null)
@@ -65,45 +63,92 @@ public sealed class SourceSchemaErrors
                 continue;
             }
 
-            var rented = s_objectPool.Rent(error.Path.Length);
-            var pathSegments = rented.AsSpan(0, error.Path.Length);
-            error.Path.CopyTo(pathSegments);
-            var lastPathIndex = pathSegments.Length - 1;
-
-            try
-            {
-                for (var i = 0; i < pathSegments.Length; i++)
-                {
-                    var pathSegment = pathSegments[i];
-
-                    if (currentTrie.TryGetValue(pathSegment, out var trieAtPath))
-                    {
-                        currentTrie = trieAtPath;
-                    }
-                    else
-                    {
-                        var newTrie = new ErrorTrie();
-                        currentTrie[pathSegment] = newTrie;
-                        currentTrie = newTrie;
-                    }
-
-                    if (i == lastPathIndex)
-                    {
-                        currentTrie.Error = error;
-                    }
-                }
-            }
-            finally
-            {
-                pathSegments.Clear();
-                s_objectPool.Return(rented);
-            }
+            AddToTrie(root, error);
         }
 
-        return new SourceSchemaErrors { RootErrors = rootErrors?.ToImmutableArray() ?? [], Trie = root };
+        return new SourceSchemaErrors
+        {
+            RootErrors = rootErrors?.ToImmutableArray() ?? [],
+            Trie = root
+        };
     }
 
+    /// <summary>
+    /// Creates a <see cref="SourceSchemaErrors"/> instance from errors that were already
+    /// materialized, for example when a batched response was split into its items.
+    /// </summary>
+    /// <param name="errors">The errors that apply to one result.</param>
+    internal static SourceSchemaErrors Create(ReadOnlySpan<IError> errors)
+    {
+        var root = new ErrorTrie();
+
+        foreach (var error in errors)
+        {
+            AddToTrie(root, error);
+        }
+
+        return new SourceSchemaErrors { RootErrors = [], Trie = root };
+    }
+
+    /// <summary>
+    /// Adds an error to the trie at the position its path describes, creating the tries of the
+    /// path segments that the trie does not hold yet.
+    /// </summary>
+    /// <param name="root">The trie that the error is added to.</param>
+    /// <param name="error">The error to add. Its path must not be <c>null</c>.</param>
+    private static void AddToTrie(ErrorTrie root, IError error)
+    {
+        var currentTrie = root;
+        var path = error.Path!;
+        var rented = s_objectPool.Rent(path.Length);
+        var pathSegments = rented.AsSpan(0, path.Length);
+        path.CopyTo(pathSegments);
+        var lastPathIndex = pathSegments.Length - 1;
+
+        try
+        {
+            for (var i = 0; i < pathSegments.Length; i++)
+            {
+                var pathSegment = pathSegments[i];
+
+                if (currentTrie.TryGetValue(pathSegment, out var trieAtPath))
+                {
+                    currentTrie = trieAtPath;
+                }
+                else
+                {
+                    var newTrie = new ErrorTrie();
+                    currentTrie[pathSegment] = newTrie;
+                    currentTrie = newTrie;
+                }
+
+                if (i == lastPathIndex)
+                {
+                    currentTrie.Error = error;
+                }
+            }
+        }
+        finally
+        {
+            pathSegments.Clear();
+            s_objectPool.Return(rented);
+        }
+    }
+
+    /// <summary>
+    /// Creates an error from a JSON error of a batched response, replacing the leading segment of
+    /// its path with <paramref name="rootName"/> so the path reads as if the item had been
+    /// requested on its own.
+    /// </summary>
+    /// <param name="jsonError">The JSON error to read.</param>
+    /// <param name="rootName">The response name that replaces the leading path segment.</param>
+    internal static IError? CreateRoutedError(SourceResultElement jsonError, string rootName)
+        => CreateError(jsonError, rootName);
+
     private static IError? CreateError(SourceResultElement jsonError)
+        => CreateError(jsonError, rootName: null);
+
+    private static IError? CreateError(SourceResultElement jsonError, string? rootName)
     {
         if (jsonError.ValueKind is not JsonValueKind.Object)
         {
@@ -118,7 +163,7 @@ public sealed class SourceSchemaErrors
 
             if (jsonError.TryGetProperty("path", out var path) && path.ValueKind == JsonValueKind.Array)
             {
-                errorBuilder.SetPath(CreatePathFromJson(path));
+                errorBuilder.SetPath(CreatePathFromJson(path, rootName));
             }
 
             if (jsonError.TryGetProperty("extensions", out var extensions)
@@ -145,12 +190,24 @@ public sealed class SourceSchemaErrors
         return null;
     }
 
-    private static Path CreatePathFromJson(SourceResultElement errorSubPath)
+    private static Path CreatePathFromJson(SourceResultElement errorSubPath, string? rootName)
     {
         var path = Path.Root;
+        var isFirst = true;
 
         foreach (var item in errorSubPath.EnumerateArray())
         {
+            if (isFirst)
+            {
+                isFirst = false;
+
+                if (rootName is not null)
+                {
+                    path = path.Append(rootName);
+                    continue;
+                }
+            }
+
             path = item switch
             {
                 { ValueKind: JsonValueKind.String } nameElement => path.Append(nameElement.GetString()!),

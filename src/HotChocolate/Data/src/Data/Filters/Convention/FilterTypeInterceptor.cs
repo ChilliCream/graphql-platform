@@ -130,12 +130,25 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
             if (field is FilterFieldConfiguration filterFieldDefinition
                 && field.Type is not null
                 && filterFieldDefinition.Type is { } filterFieldType
-                && discoveryContext.TryPredictTypeKind(filterFieldType, out var kind)
+                && TryPredictNamedTypeKind(discoveryContext, filterFieldType, out var kind)
                 && kind is not TypeKind.Scalar and not TypeKind.Enum)
             {
                 field.Type = field.Type.With(scope: discoveryContext.Scope);
             }
         }
+    }
+
+    private static bool TryPredictNamedTypeKind(
+        ITypeDiscoveryContext discoveryContext,
+        TypeReference typeReference,
+        out TypeKind kind)
+    {
+        if (typeReference is SchemaTypeReference { Type: IType type } schemaTypeReference)
+        {
+            typeReference = schemaTypeReference.WithType(type.NamedType());
+        }
+
+        return discoveryContext.TryPredictTypeKind(typeReference, out kind);
     }
 
     private static void ApplyIdAttributesToFields(
@@ -146,6 +159,11 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
         {
             if (field.HasIdAttribute())
             {
+                if (ShouldPreserveIdFilterTypeReference(discoveryContext, field.Type))
+                {
+                    continue;
+                }
+
                 field.Type = discoveryContext.TypeInspector.GetTypeRef(
                     typeof(IdOperationFilterInputType),
                     TypeContext.Input,
@@ -153,6 +171,19 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
             }
         }
     }
+
+    private static bool ShouldPreserveIdFilterTypeReference(
+        ITypeDiscoveryContext discoveryContext,
+        TypeReference? typeReference)
+        => typeReference switch
+        {
+            ExtendedTypeReference { Type.Source: { } source } =>
+                typeof(IdOperationFilterInputType).IsAssignableFrom(
+                    discoveryContext.TypeInspector.ExtractNamedType(source)),
+            SchemaTypeReference { Type: IType type } =>
+                type.NamedType() is IdOperationFilterInputType,
+            _ => false
+        };
 }
 
 file static class Extensions

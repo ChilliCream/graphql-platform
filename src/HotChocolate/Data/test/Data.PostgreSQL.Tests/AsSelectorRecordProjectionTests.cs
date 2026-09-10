@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using System.Linq.Expressions;
 using System.Text.Json;
 using GreenDonut.Data;
@@ -6,7 +7,6 @@ using HotChocolate.Types;
 using HotChocolate.Types.Relay;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
 
@@ -28,7 +28,7 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
 
         var executor = await services
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync();
+            .GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -38,7 +38,8 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -73,7 +74,7 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
 
         var executor = await services
             .GetRequiredService<IRequestExecutorProvider>()
-            .GetExecutorAsync();
+            .GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var serializer = services.GetRequiredService<INodeIdSerializer>();
         var storeId = serializer.Format("Store", 1);
@@ -90,7 +91,7 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
             """;
 
         // act
-        var result = await executor.ExecuteAsync(nodeQuery);
+        var result = await executor.ExecuteAsync(nodeQuery, TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -155,7 +156,7 @@ public sealed class AsSelectorRecordProjectionTests(PostgreSqlResource resource)
         params string[] projectedMembers)
     {
         Assert.NotNull(selector);
-        var body = UnwrapConvert(selector!.Body);
+        var body = UnwrapConvert(selector.Body);
 
         Assert.IsType<NewExpression>(body);
 

@@ -37,7 +37,7 @@ public class PagingTests
                     CancellationToken cancellationToken)
                     => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public class PagingTests
                     public string Cursor => default!;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -349,7 +349,7 @@ public class PagingTests
                     public string Cursor => default!;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -427,7 +427,7 @@ public class PagingTests
                     public string Cursor => default!;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -476,7 +476,62 @@ public class PagingTests
                     public string CustomResolver() => "Foo";
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_Inherit_From_PageConnection_In_Referenced_Assembly()
+    {
+        // arrange
+        var referencedAssembly = TestHelper.CreateReference(
+            """
+            using GreenDonut.Data;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestLibrary;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class AuthorConnection : PageConnection<Author>
+            {
+                public AuthorConnection(Page<Author> page)
+                    : base(page)
+                {
+                }
+
+                public string CustomResolver() => "Foo";
+            }
+            """,
+            "TestLibrary");
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using TestLibrary;
+
+            namespace TestNamespace.Types.Root;
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """,
+            [referencedAssembly]);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -524,7 +579,7 @@ public class PagingTests
                     CancellationToken cancellationToken)
                     => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -574,7 +629,7 @@ public class PagingTests
                     public int TotalCount => 0;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -624,7 +679,7 @@ public class PagingTests
                     public int TotalCount => 0;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -681,7 +736,71 @@ public class PagingTests
                     public Author Author => Node;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_Inherit_From_ConnectionBase_PageEdge_In_Referenced_Assembly()
+    {
+        // arrange
+        var referencedAssembly = TestHelper.CreateReference(
+            """
+            using System.Collections.Generic;
+            using GreenDonut.Data;
+            using HotChocolate.Types.Pagination;
+
+            namespace TestLibrary;
+
+            public sealed class Author
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class AuthorConnection : ConnectionBase<Author, AuthorEdge, ConnectionPageInfo>
+            {
+                public override IReadOnlyList<AuthorEdge>? Edges => default!;
+
+                public IReadOnlyList<Author> Nodes => default!;
+
+                public override ConnectionPageInfo PageInfo => default!;
+
+                public int TotalCount => 0;
+            }
+
+            public class AuthorEdge(
+                Page<Author> page,
+                PageEntry<Author> entry) : PageEdge<Author>(page, entry)
+            {
+                public Author Author => Node;
+            }
+            """,
+            "TestLibrary");
+
+        // act
+        var snapshot = TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Threading;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using TestLibrary;
+
+            namespace TestNamespace.Types.Root;
+
+            [QueryType]
+            public static partial class AuthorQueries
+            {
+                public static Task<AuthorConnection> GetAuthorsAsync(
+                    GreenDonut.Data.PagingArguments pagingArgs,
+                    CancellationToken cancellationToken)
+                    => default!;
+            }
+            """,
+            [referencedAssembly]);
+
+        // assert
+        await snapshot.MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -739,7 +858,7 @@ public class PagingTests
                     public Author Author => Node;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -793,7 +912,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -847,7 +966,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -901,7 +1020,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -955,7 +1074,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1009,7 +1128,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1063,7 +1182,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1114,7 +1233,7 @@ public class PagingTests
                     public string CustomResolver() => "Foo";
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1165,7 +1284,7 @@ public class PagingTests
                     public string CustomResolver() => "Foo";
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1219,7 +1338,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1273,7 +1392,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1327,7 +1446,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1381,7 +1500,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1435,7 +1554,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1489,7 +1608,7 @@ public class PagingTests
 
                 public string Cursor => default!;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1540,7 +1659,7 @@ public class PagingTests
                     public string CustomResolver() => "Foo";
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -1591,6 +1710,6 @@ public class PagingTests
                     public string CustomResolver() => "Foo";
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

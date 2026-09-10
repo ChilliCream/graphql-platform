@@ -142,10 +142,10 @@ public sealed class SourceSchemaMergerInputFieldTests : SourceSchemaMergerTestBa
             """);
     }
 
-    // If an input field is deprecated without a deprecation reason, a default reason is inserted to
-    // be compatible with the latest spec.
+    // If an input field is deprecated without a deprecation reason, the merged schema prints
+    // @deprecated without arguments.
     [Fact]
-    public void Merge_DeprecatedInputFieldsWithoutReasonInsertsDefaultReason_MatchesSnapshot()
+    public void Merge_DeprecatedInputFieldsWithoutReason_MatchesSnapshot()
     {
         AssertMatches(
             [
@@ -164,7 +164,7 @@ public sealed class SourceSchemaMergerInputFieldTests : SourceSchemaMergerTestBa
             ],
             """
             input OrderFilter @fusion__type(schema: A) @fusion__type(schema: B) {
-              minTotal: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "No longer supported.")
+              minTotal: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated
             }
             """);
     }

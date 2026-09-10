@@ -21,7 +21,7 @@ public class OffsetPagingBatchResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<BrandExtensions>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -36,7 +36,8 @@ public class OffsetPagingBatchResolverTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

@@ -21,7 +21,7 @@ public class EntityStoreTests
         // act
         entityStore.Update(session => session.SetEntity(entityId, new MockEntity("abc", 1)));
 
-        await Task.Delay(250);
+        await Task.Delay(250, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Collection(

@@ -16,7 +16,8 @@ public class DocumentCacheTests
             .AddGraphQL()
             .ModifyOptions(o => o.OperationDocumentCacheSize = cacheCapacity)
             .AddQueryType(d => d.Field("foo").Resolve(""));
-        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync();
+        var executor = await services.BuildServiceProvider().GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var documentCache = executor.Schema.Services.GetRequiredService<IDocumentCache>();

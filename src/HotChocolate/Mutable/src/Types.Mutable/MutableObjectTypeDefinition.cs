@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Mutable;
@@ -12,6 +13,20 @@ public class MutableObjectTypeDefinition(string name)
 {
     /// <inheritdoc />
     public override TypeKind Kind => TypeKind.Object;
+
+    /// <inheritdoc cref="IDeprecationProvider.IsDeprecated" />
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
+
+    /// <summary>
+    /// Gets or sets the deprecation reason of this type, or <c>null</c> if this type
+    /// is not deprecated. Setting an empty or white-space value is equivalent to setting <c>null</c>.
+    /// </summary>
+    public string? DeprecationReason
+    {
+        get;
+        set => field = string.IsNullOrWhiteSpace(value) ? null : value;
+    }
 
     /// <summary>
     /// Creates a <see cref="ObjectTypeDefinitionNode"/> from a

@@ -60,18 +60,13 @@ Core contributors will review your pull request and provide feedback.
 
 ## How to launch and build the solution
 
-We use [Nuke](https://nuke.build/) for build automation.
+To work on Hot Chocolate, you will need the .NET 10 SDK (or use the devcontainer which has everything pre-installed).
 
-To work on Hot Chocolate, you will need .NET 10 SDK (or use the devcontainer which has everything pre-installed).
+After cloning the repository, run `init.sh` (or `init.ps1` on Windows) from the repository root to restore .NET packages and install the website's [Yarn](https://yarnpkg.com/) dependencies. [src/All.slnx](./src/All.slnx) is the root solution.
 
-After cloning the repository, run `init.sh` or `init.cmd`, which are located in the repository's root. The script files will create the `src/All.slnx`, which can be used to develop in Visual Studio 2022 and higher or Rider. It will also restore the packages for the documentation.
-
-Other more focused solution files exist if you want to narrow in on a particular part of the platform.
-The smaller solution files are great when working with VSCode.
+More focused per-area solution files exist if you want to narrow in on a particular part of the platform. They're great when working with [VS Code](https://code.visualstudio.com/).
 
 The documentation is located in the `website` directory and can be started with `yarn dev`.
-
-There are other available commands too. As set up in the [.build](./.build/) directory.
 
 ## How to Check the docs
 

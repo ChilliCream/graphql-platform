@@ -51,7 +51,7 @@ internal sealed class EditStagesCommand : Command
         parseResult.AssertHasAuthentication(sessionService);
 
         var apiId = await console.GetOrPromptForApiIdAsync(
-            "For which API do you want to edit the stages?",
+            Prompts.SelectApiForEditStages,
             parseResult,
             apisClient,
             sessionService,
@@ -202,11 +202,9 @@ file static class ClientExtensions
                             errorTree.AddStagePublishedDependencies(e);
                             break;
                         case IApiNotFoundError e:
-                            errorTree.AddErrorMessage(e.Message);
-                            break;
+                            throw new NitroClientNotFoundException(e.Message);
                         case IStageNotFoundError e:
-                            errorTree.AddErrorMessage(e.Message);
-                            break;
+                            throw new NitroClientNotFoundException(e.Message);
                         case IStageValidationError e:
                             errorTree.AddErrorMessage(e.Message);
                             break;

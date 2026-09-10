@@ -20,10 +20,10 @@ public class PagingArgumentsParameterExpressionBuilderTests
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsFirst)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ ints { nodes } }");
+        var result = await executor.ExecuteAsync("{ ints { nodes } }", TestContext.Current.CancellationToken);
         var operationResult = result.ExpectOperationResult();
 
         // assert
@@ -41,7 +41,7 @@ public class PagingArgumentsParameterExpressionBuilderTests
             .AddQueryType<BatchQuery>()
             .AddTypeExtension<BatchBrandExtensions>()
             .AddPagingArguments()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result =
@@ -62,7 +62,8 @@ public class PagingArgumentsParameterExpressionBuilderTests
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(2, BatchBrandExtensions.BatchCallCount);
@@ -127,7 +128,7 @@ public class PagingArgumentsParameterExpressionBuilderTests
             .AddQueryType<BatchQuery>()
             .AddTypeExtension<BatchBrandExtensions>()
             .AddPagingArguments()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result =
@@ -148,7 +149,8 @@ public class PagingArgumentsParameterExpressionBuilderTests
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, BatchBrandExtensions.BatchCallCount);
@@ -208,7 +210,7 @@ public class PagingArgumentsParameterExpressionBuilderTests
             .AddTypeExtension<ConnectionBrandExtensions>()
             .AddType<ConnectionProductConnectionType>()
             .AddPagingArguments()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result =
@@ -229,7 +231,8 @@ public class PagingArgumentsParameterExpressionBuilderTests
                         }
                     }
                 }
-                """);
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(2, ConnectionBrandExtensions.BatchCallCount);

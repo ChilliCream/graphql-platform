@@ -1,0 +1,24 @@
+{
+  "data": {
+    "animal": {
+      "included": [
+        {
+          "name": "Dog"
+        },
+        {
+          "name": "Dragon"
+        }
+      ],
+      "excluded": [
+        {
+          "name": "Dog"
+        }
+      ],
+      "omitted": [
+        {
+          "name": "Dog"
+        }
+      ]
+    }
+  }
+}

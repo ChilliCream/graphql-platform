@@ -19,18 +19,18 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
                     o.Name("Product");
                     o.Field("name")
                         .Type<StringType>()
-                        .Resolve(_ => default!);
+                        .Resolve(_ => default);
                 })
             .AddObjectType(o =>
             {
                 o.Name("Review").Key("id");
                 o.Field("id")
                     .Type<IntType>()
-                    .Resolve(_ => default!);
+                    .Resolve(_ => default);
                 o.Field("product")
                     .Provides("name")
                     .Type("Product")
-                    .Resolve(_ => default!);
+                    .Resolve(_ => default);
             })
             .AddQueryType(o =>
                 {
@@ -38,9 +38,9 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
                     o.Field("someField")
                         .Argument("a", a => a.Type<IntType>())
                         .Type("Review")
-                        .Resolve(_ => default!);
+                        .Resolve(_ => default);
                 })
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("Review");
@@ -72,7 +72,7 @@ public class ProvidesDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("Review");

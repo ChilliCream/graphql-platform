@@ -34,6 +34,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.SortFieldsByName"/>
     public bool SortFieldsByName { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.SortEnumValuesByName"/>
+    public bool SortEnumValuesByName { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.RemoveUnreachableTypes"/>
     public bool RemoveUnreachableTypes { get; set; }
 
@@ -77,6 +80,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableDirectiveIntrospection"/>
     public bool EnableDirectiveIntrospection { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableObjectDeprecation"/>
+    public bool EnableObjectDeprecation { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultDirectiveVisibility"/>
     public DirectiveVisibility DefaultDirectiveVisibility { get; set; } =
         DirectiveVisibility.Public;
@@ -105,6 +111,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableStream"/>
     public bool EnableStream { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableEmptySelectionSets"/>
+    public bool EnableEmptySelectionSets { get; set; }
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.StripLeadingIFromInterface"/>
     public bool StripLeadingIFromInterface { get; set; }
@@ -186,11 +195,20 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToConnections"/>
     public bool ApplyShareableToConnections { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToCollectionSegments"/>
+    public bool ApplyShareableToCollectionSegments { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToCollectionSegmentInfo"/>
+    public bool ApplyShareableToCollectionSegmentInfo { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToNodeFields"/>
     public bool ApplyShareableToNodeFields { get; set; }
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
     public bool ApplySerializeAsToScalars { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.InferKeysFromLookups"/>
+    public bool InferKeysFromLookups { get; set; }
 
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
@@ -209,6 +227,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             FieldMiddleware = options.FieldMiddleware,
             DefaultBindingBehavior = options.DefaultBindingBehavior,
             EnableDirectiveIntrospection = options.EnableDirectiveIntrospection,
+            EnableObjectDeprecation = options.EnableObjectDeprecation,
             DefaultDirectiveVisibility = options.DefaultDirectiveVisibility,
             DisableInternalDirectives = options.DisableInternalDirectives,
             DefaultResolverStrategy = options.DefaultResolverStrategy,
@@ -217,10 +236,12 @@ public class SchemaOptions : IReadOnlySchemaOptions
             RemoveUnreachableTypes = options.RemoveUnreachableTypes,
             RemoveUnusedTypeSystemDirectives = options.RemoveUnusedTypeSystemDirectives,
             SortFieldsByName = options.SortFieldsByName,
+            SortEnumValuesByName = options.SortEnumValuesByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
+            EnableEmptySelectionSets = options.EnableEmptySelectionSets,
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
@@ -233,7 +254,10 @@ public class SchemaOptions : IReadOnlySchemaOptions
             OperationDocumentCacheSize = options.OperationDocumentCacheSize,
             ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
             ApplyShareableToConnections = options.ApplyShareableToConnections,
+            ApplyShareableToCollectionSegments = options.ApplyShareableToCollectionSegments,
+            ApplyShareableToCollectionSegmentInfo = options.ApplyShareableToCollectionSegmentInfo,
             ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
-            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars
+            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars,
+            InferKeysFromLookups = options.InferKeysFromLookups
         };
 }

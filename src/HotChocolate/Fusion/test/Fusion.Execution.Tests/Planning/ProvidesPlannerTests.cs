@@ -59,6 +59,34 @@ public class ProvidesPlannerTests : FusionTestBase
     }
 
     [Fact]
+    public void PlanOperation_Should_CoverOnlyMatchingUnionMember_When_ProvidesIsTypeConditioned()
+    {
+        // arrange
+        var schema = CreateProvidesOnUnionSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              media {
+                ... on Book {
+                  id
+                  title
+                }
+                ... on Movie {
+                  id
+                  title
+                }
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Provides_External_Without_Cover()
     {
         // arrange
@@ -304,6 +332,53 @@ public class ProvidesPlannerTests : FusionTestBase
             type Dog implements Animal @key(fields: "id") {
               id: ID!
               tricks: [String]
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateProvidesOnUnionSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: media
+            schema {
+              query: Query
+            }
+
+            type Query {
+              media: [Media] @provides(fields: "... on Book { title }")
+            }
+
+            union Media = Book | Movie
+
+            type Book @key(fields: "id") {
+              id: ID!
+              title: String @external
+            }
+
+            type Movie @key(fields: "id") {
+              id: ID!
+            }
+            """,
+            """
+            # name: titles
+            schema {
+              query: Query
+            }
+
+            type Query {
+              bookById(id: ID! @is(field: "id")): Book @lookup @internal
+              movieById(id: ID! @is(field: "id")): Movie @lookup @internal
+            }
+
+            type Book @key(fields: "id") {
+              id: ID!
+              title: String
+            }
+
+            type Movie @key(fields: "id") {
+              id: ID!
+              title: String
             }
             """);
     }

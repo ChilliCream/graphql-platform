@@ -1,0 +1,8 @@
+The message bus configuration has 1 unbound inbound route.
+Each route below was registered but never attached to a receive endpoint.
+
+[1] OrderCreatedHandler (Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+OrderCreatedHandler)
+    message : urn:message:mocha.tests.message-types:order-created (Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+OrderCreated)
+    kind    : Subscribe
+    where   : MessageType(urn:message:mocha.tests.message-types:order-created)
+    fix     : No messaging transports are configured, so no receive endpoint can be discovered. If this consumer should receive over a transport, bind it to a receive endpoint. If it is handled in-process only or superseded, remove it from message bus registration. Available default receive endpoints: none.

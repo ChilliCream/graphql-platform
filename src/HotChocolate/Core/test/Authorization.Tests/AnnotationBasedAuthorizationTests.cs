@@ -20,7 +20,7 @@ public class AnnotationBasedAuthorizationTests
             resolver: AuthorizeResult.NotAllowed,
             validation: AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -30,7 +30,8 @@ public class AnnotationBasedAuthorizationTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -67,7 +68,7 @@ public class AnnotationBasedAuthorizationTests
 
         var handler = new AuthHandler2(results);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         await executor.ExecuteAsync(
@@ -77,7 +78,8 @@ public class AnnotationBasedAuthorizationTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -86,7 +88,8 @@ public class AnnotationBasedAuthorizationTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -115,7 +118,7 @@ public class AnnotationBasedAuthorizationTests
             resolver: AuthorizeResult.Allowed,
             validation: AuthorizeResult.NotAllowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -125,7 +128,8 @@ public class AnnotationBasedAuthorizationTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -146,7 +150,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -158,7 +162,7 @@ public class AnnotationBasedAuthorizationTests
             resolver: AuthorizeResult.NotAllowed,
             validation: AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -171,7 +175,8 @@ public class AnnotationBasedAuthorizationTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -212,7 +217,7 @@ public class AnnotationBasedAuthorizationTests
                     : AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -222,7 +227,8 @@ public class AnnotationBasedAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -250,7 +256,7 @@ public class AnnotationBasedAuthorizationTests
                 : AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -260,7 +266,8 @@ public class AnnotationBasedAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -295,7 +302,7 @@ public class AnnotationBasedAuthorizationTests
             resolver: (_, _) => AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -303,7 +310,8 @@ public class AnnotationBasedAuthorizationTests
             {
               thisIsAuthorized
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -340,7 +348,7 @@ public class AnnotationBasedAuthorizationTests
                 ? AuthorizeResult.NotAllowed
                 : AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -348,7 +356,8 @@ public class AnnotationBasedAuthorizationTests
             {
               thisIsAuthorizedOnValidation
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -369,7 +378,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -389,7 +398,7 @@ public class AnnotationBasedAuthorizationTests
                 options.ConfigureSchemaField =
                     descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -399,7 +408,8 @@ public class AnnotationBasedAuthorizationTests
                 description
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -420,7 +430,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -440,7 +450,7 @@ public class AnnotationBasedAuthorizationTests
                 options.ConfigureTypeField =
                     descriptor => descriptor.Authorize("READ_INTRO", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -450,7 +460,8 @@ public class AnnotationBasedAuthorizationTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -471,7 +482,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -495,7 +506,7 @@ public class AnnotationBasedAuthorizationTests
             });
 
         // assert
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         executor.Schema.MatchSnapshot();
     }
 
@@ -515,7 +526,7 @@ public class AnnotationBasedAuthorizationTests
                 options.ConfigureNodeFields =
                     descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -525,7 +536,8 @@ public class AnnotationBasedAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -546,7 +558,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -570,7 +582,7 @@ public class AnnotationBasedAuthorizationTests
                 options.ConfigureNodeFields =
                     descriptor => descriptor.Authorize("READ_NODE");
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -580,7 +592,8 @@ public class AnnotationBasedAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -626,7 +639,7 @@ public class AnnotationBasedAuthorizationTests
                 options.ConfigureNodeFields =
                     descriptor => descriptor.Authorize("READ_NODE");
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -636,7 +649,8 @@ public class AnnotationBasedAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -676,7 +690,7 @@ public class AnnotationBasedAuthorizationTests
                 : AuthorizeResult.Allowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -686,7 +700,8 @@ public class AnnotationBasedAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -723,7 +738,7 @@ public class AnnotationBasedAuthorizationTests
                 : AuthorizeResult.Allowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         var id = Convert.ToBase64String("Street:1"u8);
 
         // act
@@ -738,7 +753,8 @@ public class AnnotationBasedAuthorizationTests
                     }
                     """)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -776,7 +792,7 @@ public class AnnotationBasedAuthorizationTests
                     : AuthorizeResult.Allowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         var id = Convert.ToBase64String("Street:1"u8);
 
         // act
@@ -791,7 +807,8 @@ public class AnnotationBasedAuthorizationTests
                     }
                     """)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -834,7 +851,7 @@ public class AnnotationBasedAuthorizationTests
                 options.ConfigureNodeFields =
                     descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -844,7 +861,8 @@ public class AnnotationBasedAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -865,7 +883,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -877,30 +895,33 @@ public class AnnotationBasedAuthorizationTests
             resolver: (_, _) => AuthorizeResult.NotAllowed,
             validation: (_, _) => AuthorizeResult.Allowed);
         var services = CreateServices(handler);
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(builder =>
-            builder.SetDocument(
-                """
-                query($ids: [ID!]!) {
-                  nodes(ids: $ids) {
-                    __typename
-                  }
-                }
-                """)
-            .SetVariableValues(new Dictionary<string, object?>
-            {
-                {
-                    "ids",
-                    new List<string>
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetDocument(
+                        """
+                        query($ids: [ID!]!) {
+                          nodes(ids: $ids) {
+                            __typename
+                          }
+                        }
+                        """)
+                    .SetVariableValues(new Dictionary<string, object?>
                     {
-                        Convert.ToBase64String("BlogPage:1"u8),
-                        Convert.ToBase64String("Order:1"u8),
-                        Convert.ToBase64String("BlogPage:2"u8)
-                    }
-                }
-            }));
+                        {
+                            "ids",
+                            new List<string>
+                            {
+                                Convert.ToBase64String("BlogPage:1"u8),
+                                Convert.ToBase64String("Order:1"u8),
+                                Convert.ToBase64String("BlogPage:2"u8)
+                            }
+                        }
+                    }),
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -952,7 +973,7 @@ public class AnnotationBasedAuthorizationTests
                 options.ConfigureNodeFields =
                     descriptor => descriptor.Authorize("READ_NODE", ApplyPolicy.Validation);
             });
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -962,7 +983,8 @@ public class AnnotationBasedAuthorizationTests
                 __typename
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -983,7 +1005,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
 
         Assert.NotNull(result.ContextData);
-        Assert.True(result.ContextData!.TryGetValue(HttpStatusCode, out var value));
+        Assert.True(result.ContextData.TryGetValue(HttpStatusCode, out var value));
         Assert.Equal(401, value);
     }
 
@@ -1009,20 +1031,22 @@ public class AnnotationBasedAuthorizationTests
                     descriptor => descriptor.Authorize("READ_NODE");
             });
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(builder =>
-            builder
-                .SetDocument(
-                    """
-                    {
-                      nodes(ids: "abc") {
-                        __typename
-                      }
-                    }
-                    """)
-                .SetUser(new ClaimsPrincipal()));
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetDocument(
+                        """
+                        {
+                          nodes(ids: "abc") {
+                            __typename
+                          }
+                        }
+                        """)
+                    .SetUser(new ClaimsPrincipal()),
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -1061,18 +1085,20 @@ public class AnnotationBasedAuthorizationTests
 
         var services = CreateServices(handler);
 
-        var executor = await services.GetRequestExecutorAsync();
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(builder =>
-            builder
-                .SetDocument(
-                    """
-                    {
-                      null
-                    }
-                    """)
-                .SetUser(new ClaimsPrincipal()));
+        var result = await executor.ExecuteAsync(
+            builder =>
+                builder
+                    .SetDocument(
+                        """
+                        {
+                          null
+                        }
+                        """)
+                    .SetUser(new ClaimsPrincipal()),
+            TestContext.Current.CancellationToken);
 
         // assert
         Snapshot
@@ -1268,7 +1294,9 @@ public class AnnotationBasedAuthorizationTests
                 .AddSubscriptionType<Subscription>()
                 .AddInMemorySubscriptions()
                 .AddAuthorizationHandler<MockAuth>()
-                .ExecuteRequestAsync("subscription { onFoo }");
+                .ExecuteRequestAsync(
+                    "subscription { onFoo }",
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """

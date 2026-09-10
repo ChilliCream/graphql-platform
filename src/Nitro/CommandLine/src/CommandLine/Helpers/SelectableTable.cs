@@ -254,79 +254,8 @@ internal class SelectableTable<TEdge>
     }
 }
 
-internal record InputAction
-{
-    public record Select(int Index) : InputAction;
-
-    public record Next(int Index) : InputAction;
-
-    public record Break : InputAction;
-
-    public record None : InputAction;
-}
-
-internal readonly struct CustomMarkup
-{
-    public Renderable Content { get; init; }
-
-    public Renderable SelectedContent { get; init; }
-
-    public bool IsSelectable { get; init; }
-
-    public bool IsHidden { get; init; }
-
-    public Func<ConsoleKeyInfo, Task<InputAction?>>? HandleInput { get; init; }
-
-    public static readonly CustomMarkup Hidden = new()
-    {
-        Content = Text.Empty,
-        SelectedContent = Text.Empty,
-        IsSelectable = false,
-        IsHidden = true,
-        HandleInput = null
-    };
-}
-
 internal static class SelectableTable
 {
     public static SelectableTable<TEdge> From<TEdge>(IReadOnlyList<TEdge> container)
         => new(container);
-}
-
-internal static class SelectableTableExtension
-{
-    public static SelectableTable<TEdge> AddSelectableAddon<TEdge>(
-        this SelectableTable<TEdge> table,
-        string text,
-        Action handleSelect)
-    {
-        return table.AddAddon(_ => new CustomMarkup
-        {
-            Content = new Markup($"[green]{text}[/]"),
-            SelectedContent = new Markup($"[green underline bold]{text}[/]"),
-            IsSelectable = true,
-            HandleInput = key =>
-            {
-                if (key is not { Key: ConsoleKey.Enter })
-                {
-                    return Task.FromResult<InputAction?>(null);
-                }
-
-                handleSelect();
-
-                return Task.FromResult<InputAction?>(new InputAction.Break());
-            }
-        });
-    }
-
-    public static SelectableTable<TEdge> AddFooterAddon<TEdge>(
-        this SelectableTable<TEdge> table,
-        string text)
-    {
-        return table.AddAddon(_ => new CustomMarkup
-        {
-            Content = new Markup($"[grey dim]{text}[/]"),
-            IsSelectable = false
-        });
-    }
 }

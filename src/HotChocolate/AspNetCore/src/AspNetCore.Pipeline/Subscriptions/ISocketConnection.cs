@@ -29,7 +29,15 @@ public interface ISocketConnection : ISocket, IFeatureProvider, IDisposable
     /// <summary>
     /// Specifies if the connection is connected to a client.
     /// </summary>
-    bool IsConnected { get; set; }
+    bool IsConnected { get; }
+
+    /// <summary>
+    /// Specifies if a connection initialization message has been received from the client.
+    /// This is set as soon as the message arrives, before the connection is accepted, so that
+    /// the initialization timeout only reflects whether the client sent the message in time and
+    /// not how long the acceptance (for example authentication) takes.
+    /// </summary>
+    bool ConnectionInitReceived { get; }
 
     /// <summary>
     /// Tries to accept the connection and returns the accepted protocol handler.

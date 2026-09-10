@@ -1,3 +1,5 @@
+using Mocha.Scheduling;
+
 namespace Mocha;
 
 /// <summary>
@@ -14,4 +16,9 @@ public static class DispatchMiddlewares
     /// The serialization middleware configuration that serializes messages into transport envelopes.
     /// </summary>
     public static readonly DispatchMiddlewareConfiguration Serialization = DispatchSerializerMiddleware.Create();
+
+    /// <summary>
+    /// The scheduling middleware configuration that persists scheduled dispatches before transport send.
+    /// </summary>
+    public static readonly DispatchMiddlewareConfiguration Scheduling = DispatchSchedulingMiddleware.Create();
 }

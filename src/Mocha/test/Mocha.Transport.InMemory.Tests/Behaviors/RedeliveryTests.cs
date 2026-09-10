@@ -70,7 +70,7 @@ public sealed class RedeliveryTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-IGNORED" }, CancellationToken.None);
 
         // assert - only 1 invocation, exception propagates without redelivery
-        await Task.Delay(500);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
         Assert.Equal(1, counter.Count);
     }
 
@@ -94,7 +94,7 @@ public sealed class RedeliveryTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-DISABLED" }, CancellationToken.None);
 
         // assert - no exception policy: only 1 invocation, no retry or redelivery
-        await Task.Delay(500);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
         Assert.Equal(1, counter.Count);
     }
 
@@ -158,7 +158,7 @@ public sealed class RedeliveryTests
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-OVERRIDE" }, CancellationToken.None);
 
         // assert - redelivery disabled at transport level via DeadLetter: only 1 invocation
-        await Task.Delay(500);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
         Assert.Equal(1, counter.Count);
     }
 

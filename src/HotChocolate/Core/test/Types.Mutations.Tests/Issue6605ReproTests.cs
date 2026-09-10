@@ -17,7 +17,7 @@ public class Issue6605ReproTests
                 .AddMutationType<Mutation>()
                 .AddMutationConventions()
                 .AddMutationErrorConfiguration<CustomErrorConfig>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

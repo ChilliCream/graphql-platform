@@ -1,14 +1,13 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
 public class MongoDbFilterCombinatorTests
     : SchemaCache
-    , IClassFixture<MongoResource>
 {
     private static readonly Foo[] s_fooEntities =
     [
@@ -32,12 +31,13 @@ public class MongoDbFilterCombinatorTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(where: { }){ bar }}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         await Snapshot
             .Create()
             .Add(res1)
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

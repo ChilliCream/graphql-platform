@@ -173,11 +173,13 @@ public partial class SchemaBuilder
 
                 var visitorContext = new SchemaSyntaxVisitorContext(context)
                 {
+                    DirectiveExtensions = feature.DirectiveExtensions,
                     ScalarDirectives = feature.ScalarDirectives
                 };
 
                 visitor.Visit(schemaDocument, visitorContext);
                 types.AddRange(visitorContext.Types);
+                feature.DirectiveExtensions = visitorContext.DirectiveExtensions;
                 feature.ScalarDirectives = visitorContext.ScalarDirectives;
 
                 RegisterOperationName(

@@ -143,12 +143,35 @@ public class LocalTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(time, resultValue);
 
         // assert
         resultValue.MatchInlineSnapshot($"\"{result}\"");
+    }
+
+    [Fact]
+    public void CoerceOutputValue_AlwaysOutputFractionalSeconds_PadsAtDefaultPrecision()
+    {
+        // arrange
+        // exercises the bypass of the `LocalFormat` const-string shortcut at default precision
+        var type = new LocalTimeType(
+            new DateTimeOptions
+            {
+                OutputPrecision = DateTimeOptions.DefaultOutputPrecision,
+                AlwaysOutputFractionalSeconds = true
+            });
+        var timeOnly = new TimeOnly(8, 46, 14);
+
+        // act
+        var operation = CommonTestExtensions.CreateOperation();
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
+        var resultValue = resultDocument.Data.GetProperty("first");
+        type.CoerceOutputValue(timeOnly, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"08:46:14.0000000\"");
     }
 
     [Fact]
@@ -160,7 +183,7 @@ public class LocalTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         type.CoerceOutputValue(timeOnly, resultValue);
 
@@ -176,7 +199,7 @@ public class LocalTimeTypeTests
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
         void Action() => type.CoerceOutputValue(123, resultValue);
 
@@ -251,7 +274,7 @@ public class LocalTimeTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime1>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -268,7 +291,8 @@ public class LocalTimeTypeTests
                         time(time: "11:22:00")
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -278,7 +302,7 @@ public class LocalTimeTypeTests
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<QueryDateTime2>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -295,7 +319,8 @@ public class LocalTimeTypeTests
                         time
                     }
                 }
-                """)
+                """,
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

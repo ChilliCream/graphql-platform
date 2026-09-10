@@ -28,5 +28,16 @@ public abstract class InstrumentationOptionsBase
         set => _maxErrorEvents = value < 0 ? 0 : value;
     }
 
+    /// <summary>
+    /// Specifies whether the root GraphQL request span is given a more descriptive
+    /// display name. When enabled, the span is named using the
+    /// <c>{graphql.operation.type} {graphql.operation.name}</c> format when the
+    /// operation name is available and the operation is successfully identified in
+    /// the document. The default is
+    /// <c>false</c>. Only enable this for operation domains with bounded
+    /// cardinality (e.g. persisted operations) to avoid high-cardinality span names.
+    /// </summary>
+    public bool IncludeOperationNameInSpanName { get; set; }
+
     internal bool IncludeRequestDetails => RequestDetails is not RequestDetails.None;
 }

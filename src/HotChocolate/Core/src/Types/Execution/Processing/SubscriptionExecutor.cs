@@ -53,6 +53,12 @@ internal sealed partial class SubscriptionExecutor(
                 timeoutOptions.ExecutionTimeout)
                 .ConfigureAwait(false);
 
+            // the subscription setup is complete and nothing writes into the request memory
+            // anymore; each event rents its own arena. Sealing the request memory here allows
+            // its pages to be returned to the pool once the subscription is disposed. If the
+            // setup fails we never get here and the unsealed memory is abandoned instead.
+            requestContext.Memory?.Seal();
+
             var response = new ResponseStream(() => subscription.ExecuteAsync());
             response.ContextData = response.ContextData.SetItem(WellKnownContextData.Subscription, subscription);
             response.RegisterForCleanup(subscription);

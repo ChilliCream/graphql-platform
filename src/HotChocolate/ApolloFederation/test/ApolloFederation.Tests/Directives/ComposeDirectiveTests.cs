@@ -19,7 +19,7 @@ public class ComposeDirectiveTests
             .AddQueryType()
             .AddType<Address>()
             .ExportDirective<Custom>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;
@@ -42,7 +42,7 @@ public class ComposeDirectiveTests
             .AddQueryType()
             .AddType<Address>()
             .ExportDirective("@custom")
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var entityType = schema.Types.GetType<ObjectType>(FederationTypeNames.ServiceType_Name);
         var sdlResolver = entityType.Fields[WellKnownFieldNames.Sdl].Resolver!;

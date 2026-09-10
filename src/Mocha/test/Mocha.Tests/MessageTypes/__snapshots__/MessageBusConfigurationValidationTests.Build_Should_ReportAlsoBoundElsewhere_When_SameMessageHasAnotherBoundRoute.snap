@@ -1,0 +1,8 @@
+The message bus configuration has 1 unbound inbound route.
+Each route below was registered but never attached to a receive endpoint.
+
+[1] UnboundOrderCreatedHandler (Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+UnboundOrderCreatedHandler)
+    message : urn:message:mocha.tests.message-types:order-created (Mocha.Tests.MessageTypes.MessageBusConfigurationValidationTests+OrderCreated)
+    kind    : Subscribe
+    where   : MessageType(urn:message:mocha.tests.message-types:order-created)
+    fix     : Another route for this message is already bound to consumer 'BoundOrderCreatedHandler' on receive endpoint 'orders' for transport 'memory'. If this consumer is unintended, remove its registration. If it should receive independently, bind it to its own receive endpoint.

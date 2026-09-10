@@ -93,7 +93,11 @@ internal sealed class __DirectiveLocation : EnumType<DirectiveLocation>
                 new EnumValueConfiguration(
                     Lang.InputFieldDefinition.Value,
                     DirectiveLocation_InputFieldDefinition,
-                    DirectiveLocation.InputFieldDefinition)
+                    DirectiveLocation.InputFieldDefinition),
+                new EnumValueConfiguration(
+                    Lang.DirectiveDefinition.Value,
+                    DirectiveLocation_DirectiveDefinition,
+                    DirectiveLocation.DirectiveDefinition)
             }
         };
 

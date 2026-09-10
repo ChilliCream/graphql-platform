@@ -102,7 +102,7 @@ public class QueryableProjectionFieldHandler
         var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
         var memberInit = queryableScope.CreateMemberInit();
 
-        if (context.InMemory && nullabilityInfo.ReadState == NullabilityState.Nullable)
+        if (context.InMemory && nullabilityInfo.ReadState != NullabilityState.NotNull)
         {
             parentScope.Level
                 .Peek()

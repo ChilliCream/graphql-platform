@@ -47,7 +47,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -72,7 +72,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -97,7 +97,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -120,7 +120,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -143,7 +143,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -167,7 +167,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -191,7 +191,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -217,7 +217,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -243,7 +243,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -269,7 +269,7 @@ public class NullErrorPropagationTests
             .AddResolver("Bar", "a", c => new(c.GetGlobalStateOrDefault<string>("a")))
             .AddResolver("Bar", "b", c => new(c.GetGlobalStateOrDefault<string>("b")))
             .AddResolver("Bar", "c", _ => throw new GraphQLException("ERROR"))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request =
             OperationRequestBuilder.New()
@@ -278,7 +278,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -301,7 +301,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);
@@ -328,7 +328,7 @@ public class NullErrorPropagationTests
             .AddResolver("Bar", "a", c => new(c.GetGlobalStateOrDefault<string>("a")))
             .AddResolver("Bar", "b", c => new(c.GetGlobalStateOrDefault<string>("b")))
             .AddResolver("Bar", "c", _ => throw new GraphQLException("ERROR"))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request =
             OperationRequestBuilder.New()
@@ -338,7 +338,7 @@ public class NullErrorPropagationTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         snapshot.Add(result);

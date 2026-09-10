@@ -32,7 +32,7 @@ public class VariableCoercionIntegrationTests
                     """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class VariableCoercionIntegrationTests
                     """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class VariableCoercionIntegrationTests
                     """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class VariableCoercionIntegrationTests
                     """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class VariableCoercionIntegrationTests
                     """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class VariableCoercionIntegrationTests
                     """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class VariableCoercionIntegrationTests
                     """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -214,7 +214,7 @@ public class VariableCoercionIntegrationTests
                     """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class VariableCoercionIntegrationTests
                     """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public class VariableCoercionIntegrationTests
                     """)
                 .Build();
 
-        await executor.ExecuteAsync(request).MatchSnapshotAsync();
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken).MatchSnapshotAsync();
     }
 
     private static async Task<IRequestExecutor> CreateSchemaAsync()

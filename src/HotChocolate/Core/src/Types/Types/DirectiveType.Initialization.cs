@@ -67,6 +67,9 @@ public partial class DirectiveType
         _inputParser = context.DescriptorContext.InputParser;
 
         Locations = configuration.Locations;
+        DeprecationReason = string.IsNullOrWhiteSpace(configuration.DeprecationReason)
+            ? null
+            : configuration.DeprecationReason;
         Arguments = OnCompleteFields(context, configuration);
         IsPublic = configuration.IsPublic
             || context.DescriptorContext.Options.DisableInternalDirectives;
@@ -96,6 +99,11 @@ public partial class DirectiveType
         {
             field.CompleteMetadata(context, this);
         }
+
+        Directives = DirectiveCollection.CreateAndComplete(
+            context,
+            this,
+            configuration.GetDirectives());
     }
 
     protected override void OnMakeExecutable(

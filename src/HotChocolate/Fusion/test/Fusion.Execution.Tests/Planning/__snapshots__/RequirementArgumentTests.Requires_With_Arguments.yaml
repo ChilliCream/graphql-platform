@@ -7,7 +7,7 @@ operation:
           }
           id @fusion__requirement
           comments @fusion__requirement {
-            somethingElse
+            somethingElse @fusion__requirement
             id @fusion__requirement
           }
         }
@@ -16,38 +16,13 @@ operation:
     searchSpace: 1
     expandedNodes: 2
 nodes:
-  - id: 1
-    type: Operation
-    schema: a
-    operation: |
-      query Op_123456789101112_1 {
-        feed {
-          id
-          comments {
-            __typename
-          }
-        }
-      }
-    batchingGroupId: 1
-  - id: 4
-    type: Operation
-    schema: a
-    operation: |
-      query Op_123456789101112_4 {
-        feed {
-          comments @fusion__requirement {
-            id
-          }
-        }
-      }
-    batchingGroupId: 1
   - id: 2
     type: Operation
     schema: b
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: ID!
-          $__fusion_2_somethingElse: [String]
+        $__fusion_2_somethingElse: [String]
       ) {
         postById(id: $__fusion_1_id) {
           author(somethingElse: $__fusion_2_somethingElse) {
@@ -65,7 +40,8 @@ nodes:
         selectionMap: >-
           comments[somethingElse]
     dependencies:
-      - id: 1
+      - id: 3
+      - id: 5
   - id: 3
     type: Operation
     schema: c
@@ -82,4 +58,29 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 1
+      - id: 5
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        feed {
+          id
+          comments {
+            __typename
+          }
+        }
+      }
+    batchingGroupId: 5
+  - id: 4
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_4 {
+        feed {
+          comments {
+            id
+          }
+        }
+      }
+    batchingGroupId: 5

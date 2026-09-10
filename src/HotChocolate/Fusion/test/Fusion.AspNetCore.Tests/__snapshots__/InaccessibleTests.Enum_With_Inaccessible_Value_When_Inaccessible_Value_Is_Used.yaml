@@ -45,7 +45,7 @@ sourceSchemas:
         id: Int! @inaccessible
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
         title: String!
         author: Author!
@@ -62,7 +62,7 @@ sourceSchemas:
         shareable(input: SomeInput!): String!
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         id: Int!
         name: String!
       }

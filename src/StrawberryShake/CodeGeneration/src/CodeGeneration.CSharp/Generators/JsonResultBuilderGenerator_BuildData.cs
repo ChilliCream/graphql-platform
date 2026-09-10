@@ -57,8 +57,7 @@ public partial class JsonResultBuilderGenerator
 
         if (settings.IsStoreEnabled())
         {
-            foreach (var property in
-                     resultNamedType.Properties.Where(prop => prop.Type.IsOrContainsEntity()))
+            foreach (var property in resultNamedType.Properties.Where(prop => prop.Type.IsOrContainsEntity()))
             {
                 var variableName = $"{GetParameterName(property.Name)}Id";
 

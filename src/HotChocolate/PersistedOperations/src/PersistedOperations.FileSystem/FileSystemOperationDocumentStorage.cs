@@ -58,7 +58,7 @@ public class FileSystemOperationDocumentStorage : IOperationDocumentStorage
             writer.Advance(read);
         } while (read != 0);
 
-        var document = Utf8GraphQLParser.Parse(writer.WrittenSpan);
+        var document = Utf8GraphQLParser.Parse(writer.WrittenSpan, ParserOptions.Trusted);
         return new OperationDocument(document);
     }
 

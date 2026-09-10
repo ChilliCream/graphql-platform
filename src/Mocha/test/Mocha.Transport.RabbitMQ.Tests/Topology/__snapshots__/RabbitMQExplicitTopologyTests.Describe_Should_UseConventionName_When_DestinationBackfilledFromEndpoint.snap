@@ -1,0 +1,65 @@
+{
+  "Schema": "rabbitmq",
+  "TransportType": "RabbitMQMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "exchange",
+      "Name": "mocha.test-helpers.order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "exchange",
+      "Name": "order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "exchange",
+      "Name": "special-exchange",
+      "AutoProvision": true,
+      "Origin": "declared"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-spy",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-spy_error",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.rabbit-m-q.tests.order-spy_skipped",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/mocha.test-helpers.order-created",
+      "To": "rabbitmq://localhost:5672/e/order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/order-created",
+      "To": "rabbitmq://localhost:5672/q/mocha.transport.rabbit-m-q.tests.order-spy",
+      "AutoProvision": true,
+      "Origin": "convention"
+    },
+    {
+      "Kind": "bind",
+      "From": "rabbitmq://localhost:5672/e/special-exchange",
+      "To": "rabbitmq://localhost:5672/e/mocha.test-helpers.order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ]
+}

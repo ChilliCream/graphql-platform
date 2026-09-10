@@ -299,26 +299,6 @@ operationPlan:
             }
           }
         }
-    - id: 2
-      type: OperationBatch
-      schema: C
-      operation: |
-        query Op_2bff8025_2($__fusion_1_id: ID!) {
-          authorById(id: $__fusion_1_id) {
-            upvotes
-          }
-        }
-      source: $.authorById
-      targets:
-        - $.b<Author>
-        - $.abstractTypes<Author>
-      batchingGroupId: 2
-      requirements:
-        - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
     - id: 3
       type: Operation
       schema: B
@@ -335,6 +315,26 @@ operationPlan:
       target: $.abstractTypes<Discussion>
       requirements:
         - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 2
+      type: OperationBatch
+      schema: C
+      operation: |
+        query Op_2bff8025_2($__fusion_1_id: ID!) {
+          authorById(id: $__fusion_1_id) {
+            upvotes
+          }
+        }
+      source: $.authorById
+      targets:
+        - $.b<Author>
+        - $.abstractTypes<Author>
+      batchingGroupId: 5
+      requirements:
+        - name: __fusion_1_id
           selectionMap: >-
             id
       dependencies:

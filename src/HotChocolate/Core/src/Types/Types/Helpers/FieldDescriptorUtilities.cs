@@ -138,4 +138,25 @@ public static class FieldDescriptorUtilities
             }
         }
     }
+
+    public static void DiscoverParentRequirements(
+        ParameterInfo[] parameters,
+        FieldConfiguration configuration)
+    {
+        foreach (var parameter in parameters)
+        {
+            if (!parameter.IsDefined(typeof(ParentAttribute)))
+            {
+                continue;
+            }
+
+            var requirements = parameter.GetCustomAttribute<ParentAttribute>()?.Requires;
+            if (!(requirements?.Length > 0))
+            {
+                continue;
+            }
+
+            configuration.SetFieldRequirements(requirements, parameter.ParameterType);
+        }
+    }
 }

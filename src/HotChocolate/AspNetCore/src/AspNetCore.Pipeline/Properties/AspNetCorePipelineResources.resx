@@ -51,6 +51,9 @@
   <data name="ThrowHelper_HttpMultipartMiddleware_FileMissing" xml:space="preserve">
     <value>File of key '{0}' is missing.</value>
   </data>
+  <data name="ThrowHelper_HttpMultipartMiddleware_FileVariableValueNotNull" xml:space="preserve">
+    <value>The file mapped to '{0}' must be referenced by a null value at its variable location, but a non-null value was provided.</value>
+  </data>
   <data name="ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid" xml:space="preserve">
     <value>The variable structure is invalid.</value>
   </data>
@@ -74,6 +77,9 @@
   </data>
   <data name="WebSocketSession_SessionEnded" xml:space="preserve">
     <value>Session ended.</value>
+  </data>
+  <data name="WebSocketConnection_MessageTooBig" xml:space="preserve">
+    <value>The WebSocket message exceeds the maximum allowed message size.</value>
   </data>
   <data name="DataStartMessageHandler_Not_A_SubscriptionResult" xml:space="preserve">
     <value>The specified result object is not a valid subscription result.</value>
@@ -131,5 +137,11 @@
   </data>
   <data name="ErrorHelper_BatchSizeExceeded" xml:space="preserve">
     <value>The batch size exceeds the maximum allowed batch size of {0}.</value>
+  </data>
+  <data name="ErrorHelper_VariableBatchingDisabled" xml:space="preserve">
+    <value>Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.</value>
+  </data>
+  <data name="ErrorHelper_RequestBatchingDisabled" xml:space="preserve">
+    <value>Request batching is disabled. Enable it with GraphQLServerOptions.Batching.</value>
   </data>
 </root>

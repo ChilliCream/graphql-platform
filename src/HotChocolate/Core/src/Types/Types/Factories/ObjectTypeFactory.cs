@@ -27,6 +27,12 @@ internal sealed class ObjectTypeFactory
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
 
+        if (context.Options.EnableObjectDeprecation
+            && node.DeprecationReason() is { Length: > 0 } reason)
+        {
+            typeDefinition.DeprecationReason = reason;
+        }
+
         DeclareFields(context, typeDefinition, node.Fields, path);
 
         return ObjectType.CreateUnsafe(typeDefinition);
@@ -48,6 +54,12 @@ internal sealed class ObjectTypeFactory
         }
 
         SdlToTypeSystemHelper.AddDirectives(context, typeDefinition, node, path);
+
+        if (context.Options.EnableObjectDeprecation
+            && node.DeprecationReason() is { Length: > 0 } reason)
+        {
+            typeDefinition.DeprecationReason = reason;
+        }
 
         DeclareFields(context, typeDefinition, node.Fields, path);
 

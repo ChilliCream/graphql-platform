@@ -27,7 +27,8 @@ public class QueryContextUnionProjectionTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);
@@ -52,7 +53,8 @@ public class QueryContextUnionProjectionTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);
@@ -82,7 +84,8 @@ public class QueryContextUnionProjectionTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);
@@ -103,7 +106,8 @@ public class QueryContextUnionProjectionTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);
@@ -120,7 +124,7 @@ public class QueryContextUnionProjectionTests
             .AddType<FileEntry>()
             .AddType<FolderEntry>()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -137,7 +141,8 @@ public class QueryContextUnionProjectionTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);

@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using CookieCrumble.HotChocolate.Formatters;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -21,13 +22,48 @@ namespace HotChocolate.Fusion;
 
 public abstract partial class FusionTestBase
 {
-    protected async Task MatchSnapshotAsync(
+    protected Task MatchSnapshotAsync(
         Gateway gateway,
         OperationRequest request,
         GraphQLHttpResponse response,
         string? postFix = null,
         RawRequest? rawRequest = null,
         bool stableStream = false)
+        => MatchSnapshotCoreAsync(
+            gateway,
+            request,
+            response,
+            assertResults: null,
+            postFix,
+            rawRequest,
+            stableStream);
+
+    protected Task AssertAndMatchSnapshotAsync(
+        Gateway gateway,
+        OperationRequest request,
+        GraphQLHttpResponse response,
+        Action<IReadOnlyList<OperationResult>> assertResults)
+    {
+        ArgumentNullException.ThrowIfNull(assertResults);
+
+        return MatchSnapshotCoreAsync(
+            gateway,
+            request,
+            response,
+            assertResults,
+            postFix: null,
+            rawRequest: null,
+            stableStream: false);
+    }
+
+    private async Task MatchSnapshotCoreAsync(
+        Gateway gateway,
+        OperationRequest request,
+        GraphQLHttpResponse response,
+        Action<IReadOnlyList<OperationResult>>? assertResults,
+        string? postFix,
+        RawRequest? rawRequest,
+        bool stableStream)
     {
         var snapshot = new Snapshot(postFix, ".yaml");
 
@@ -61,6 +97,8 @@ public abstract partial class FusionTestBase
                 results.Add(result);
             }
         }
+
+        assertResults?.Invoke(results);
 
         var testServerRegistrations = gateway.Services
             .GetServices<TestServerRegistration>()
@@ -435,10 +473,10 @@ public abstract partial class FusionTestBase
 
         jsonWriter.WriteStartObject();
 
-        if (result.RawErrors.ValueKind != JsonValueKind.Undefined)
+        if (result.Errors is { } errors)
         {
             jsonWriter.WritePropertyName("errors");
-            jsonWriter.WriteRawValue(result.RawErrors.GetRawValue());
+            WriteSourceSchemaErrors(jsonWriter, errors);
         }
 
         if (result.Data.ValueKind != JsonValueKind.Undefined)
@@ -460,6 +498,91 @@ public abstract partial class FusionTestBase
 
         using var document = JsonDocument.Parse(memoryStream);
         return JsonSerializer.Serialize(document, new JsonSerializerOptions { WriteIndented = true });
+    }
+
+    /// <summary>
+    /// Writes the errors a source schema result carries, the errors without a path first and the
+    /// errors with a path in the order of the paths they were reported for.
+    /// </summary>
+    private static void WriteSourceSchemaErrors(Utf8JsonWriter jsonWriter, SourceSchemaErrors errors)
+    {
+        jsonWriter.WriteStartArray();
+
+        foreach (var error in errors.RootErrors)
+        {
+            WriteSourceSchemaError(jsonWriter, error);
+        }
+
+        WriteSourceSchemaErrors(jsonWriter, errors.Trie);
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WriteSourceSchemaErrors(Utf8JsonWriter jsonWriter, ErrorTrie trie)
+    {
+        if (trie.Error is not null)
+        {
+            WriteSourceSchemaError(jsonWriter, trie.Error);
+        }
+
+        foreach (var child in trie.Values)
+        {
+            WriteSourceSchemaErrors(jsonWriter, child);
+        }
+    }
+
+    private static void WriteSourceSchemaError(Utf8JsonWriter jsonWriter, IError error)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString("message", error.Message);
+
+        if (error.Path is not null)
+        {
+            jsonWriter.WritePropertyName("path");
+            jsonWriter.WriteStartArray();
+
+            foreach (var segment in error.Path.ToList())
+            {
+                switch (segment)
+                {
+                    case int index:
+                        jsonWriter.WriteNumberValue(index);
+                        break;
+
+                    default:
+                        jsonWriter.WriteStringValue(segment.ToString());
+                        break;
+                }
+            }
+
+            jsonWriter.WriteEndArray();
+        }
+
+        if (error.Extensions is { Count: > 0 } extensions)
+        {
+            jsonWriter.WritePropertyName("extensions");
+            jsonWriter.WriteStartObject();
+
+            foreach (var (key, value) in extensions)
+            {
+                jsonWriter.WritePropertyName(key);
+
+                switch (value)
+                {
+                    case RawJsonValue rawJson:
+                        jsonWriter.WriteRawValue(rawJson.Value.Span);
+                        break;
+
+                    default:
+                        JsonSerializer.Serialize(jsonWriter, value);
+                        break;
+                }
+            }
+
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndObject();
     }
 
     private static void WriteSourceSchemaDocument(CodeWriter writer, string schemaText)
@@ -580,7 +703,7 @@ public abstract partial class FusionTestBase
     {
         var streamReader = new StreamReader(body);
         var rawRequestString = streamReader.ReadToEnd();
-        var contentTypeString = contentType.MediaType!;
+        var contentTypeString = contentType.MediaType;
 
         var boundary = contentType.Parameters
             .FirstOrDefault(

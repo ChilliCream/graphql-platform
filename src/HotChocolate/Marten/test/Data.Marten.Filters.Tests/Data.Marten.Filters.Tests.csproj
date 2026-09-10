@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Marten.Filters.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
@@ -7,9 +9,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Marten.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Squadron.PostgreSql" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.PostgreSql\CookieCrumble.Resources.PostgreSql.csproj" />
   </ItemGroup>
 </Project>

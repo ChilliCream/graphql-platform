@@ -1,13 +1,12 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using Squadron;
 using StackExchange.Redis;
 
 namespace HotChocolate.PersistedOperations.Redis;
 
 public class RedisOperationDocumentStorageTests(RedisResource redisResource)
-    : IClassFixture<RedisResource>
 {
     private readonly IDatabase _database = redisResource.GetConnection().GetDatabase();
 
@@ -20,7 +19,7 @@ public class RedisOperationDocumentStorageTests(RedisResource redisResource)
         var document = new OperationDocumentSourceText("{ foo }");
 
         // act
-        await storage.SaveAsync(documentId, document);
+        await storage.SaveAsync(documentId, document, TestContext.Current.CancellationToken);
 
         // assert
         var buffer = ((byte[])await _database.StringGetAsync(documentId.Value))!;
@@ -68,7 +67,7 @@ public class RedisOperationDocumentStorageTests(RedisResource redisResource)
         await _database.StringSetAsync(documentId.Value, buffer);
 
         // act
-        var document = await storage.TryReadAsync(documentId);
+        var document = await storage.TryReadAsync(documentId, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(document);

@@ -72,8 +72,14 @@
   <data name="DirectiveCollection_LocationNotAllowed" xml:space="preserve">
     <value>The specified directive `@{0}` is not allowed on the current location `{1}`.</value>
   </data>
+  <data name="DirectiveExtension_UnknownTarget" xml:space="preserve">
+    <value>The directive extension `extend directive @{0}` targets an undefined directive.</value>
+  </data>
   <data name="DirectiveLocation_ArgumentDefinition" xml:space="preserve">
     <value>Location adjacent to an argument definition</value>
+  </data>
+  <data name="DirectiveLocation_DirectiveDefinition" xml:space="preserve">
+    <value>Location adjacent to a directive definition.</value>
   </data>
   <data name="DirectiveLocation_Description" xml:space="preserve">
     <value>A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies.</value>
@@ -232,6 +238,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="ObjectFieldDescriptorBase_FieldType" xml:space="preserve">
     <value>The field-type must be an output-type.</value>
+  </data>
+  <data name="ObjectTypeDescriptor_Deprecated_NotEnabled" xml:space="preserve">
+    <value>The object type `{0}` cannot be deprecated because `SchemaOptions.EnableObjectDeprecation` is not enabled.</value>
   </data>
   <data name="ObjectTypeDescriptor_InterfaceBaseClass" xml:space="preserve">
     <value>The interface base class cannot be used as interface implementation declaration.</value>
@@ -885,14 +894,17 @@ Type: `{0}`</value>
   <data name="ErrorHelper_OneOfInputObjectMustHaveNullableFieldsWithoutDefaults" xml:space="preserve">
     <value>OneOf Input Object `{0}` must only have nullable fields without default values. Edit your type and make the field{1} `{2}` nullable and remove any defaults.</value>
   </data>
-  <data name="ErrorHelper_InputObjectMustNotHaveRecursiveNonNullableReferencesToSelf" xml:space="preserve">
-    <value>Cannot reference Input Object `{0}` within itself through a series of non-null fields `{1}`.</value>
+  <data name="ErrorHelper_InputObjectMustNotHaveUnbreakableCycle" xml:space="preserve">
+    <value>Input Object '{0}' cannot be provided a finite value because it references itself through fields: {1}.</value>
   </data>
   <data name="ErrorHelper_RequiredArgumentCannotBeDeprecated" xml:space="preserve">
     <value>Required argument {0} cannot be deprecated.</value>
   </data>
   <data name="ErrorHelper_RequiredFieldCannotBeDeprecated" xml:space="preserve">
     <value>Required input field {0} cannot be deprecated.</value>
+  </data>
+  <data name="ErrorHelper_InvalidObjectDeprecation" xml:space="preserve">
+    <value>The type of `{0}` is the deprecated type `{1}`. Either deprecate the field or change its return type.</value>
   </data>
   <data name="ErrorHelper_InterfaceHasNoImplementation" xml:space="preserve">
     <value>There is no object type implementing interface `{0}`.</value>
@@ -947,6 +959,9 @@ Type: `{0}`</value>
   </data>
   <data name="ErrorHelper_DirectiveCollection_ArgumentValueTypeIsWrong" xml:space="preserve">
     <value>The directive arguments have invalid values: '{0}' at {1}.</value>
+  </data>
+  <data name="ErrorHelper_DirectiveDefinitionSelfApplication" xml:space="preserve">
+    <value>The directive definition '@{0}' must not reference itself.</value>
   </data>
   <data name="TypeDiscoveryInfo_TypeRefKindNotSupported" xml:space="preserve">
     <value>TypeReference kind not supported.</value>
@@ -1033,7 +1048,7 @@ Type: `{0}`</value>
     <value>{0}Type cannot parse the provided value. The value does not match the required regular expression pattern.</value>
   </data>
   <data name="RequiresOptInDirectiveType_TypeDescription" xml:space="preserve">
-    <value>Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used.</value>
+    <value>Indicates that the given field, argument, input field, enum value, or directive definition requires giving explicit consent before being used.</value>
   </data>
   <data name="RequiresOptInDirectiveType_FeatureDescription" xml:space="preserve">
     <value>The name of the feature that requires opt in.</value>
@@ -1085,5 +1100,71 @@ Type: `{0}`</value>
   </data>
   <data name="ThrowHelper_KeyValuePairType_InvalidRuntimeType" xml:space="preserve">
     <value>{0} requires a KeyValuePair&lt;TKey, TValue&gt; runtime type.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueDuplicateField" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the input field '{1}' more than once.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueDuplicateFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the input field '{1}' more than once at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueIncompatibleType" xml:space="preserve">
+    <value>The default value of argument '{0}' is not compatible with the type '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueIncompatibleTypeAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' is not compatible with the type '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueMissingField" xml:space="preserve">
+    <value>The default value of argument '{0}' is missing the required input field '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueMissingFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' is missing the required input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueOneOf" xml:space="preserve">
+    <value>The default value of argument '{0}' must specify exactly one field for the oneOf input object '{1}', and that field must not be null.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueOneOfAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' must specify exactly one field for the oneOf input object '{1}' at path '{2}', and that field must not be null.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueUnknownField" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the unknown input field '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_ArgumentDefaultValueUnknownFieldAtPath" xml:space="preserve">
+    <value>The default value of argument '{0}' specifies the unknown input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueDuplicateField" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the input field '{1}' more than once.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueDuplicateFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the input field '{1}' more than once at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueIncompatibleType" xml:space="preserve">
+    <value>The default value of input field '{0}' is not compatible with the type '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueIncompatibleTypeAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' is not compatible with the type '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueMissingField" xml:space="preserve">
+    <value>The default value of input field '{0}' is missing the required input field '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueMissingFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' is missing the required input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueOneOf" xml:space="preserve">
+    <value>The default value of input field '{0}' must specify exactly one field for the oneOf input object '{1}', and that field must not be null.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueOneOfAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' must specify exactly one field for the oneOf input object '{1}' at path '{2}', and that field must not be null.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueUnknownField" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the unknown input field '{1}'.</value>
+  </data>
+  <data name="ErrorHelper_InputFieldDefaultValueUnknownFieldAtPath" xml:space="preserve">
+    <value>The default value of input field '{0}' specifies the unknown input field '{1}' at path '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_UndefinedArgumentDefaultEnumValue" xml:space="preserve">
+    <value>The default value '{0}' of argument '{1}' is not defined in the enum '{2}'.</value>
+  </data>
+  <data name="ErrorHelper_UndefinedInputFieldDefaultEnumValue" xml:space="preserve">
+    <value>The default value '{0}' of field '{1}' is not defined in the enum '{2}'.</value>
   </data>
 </root>

@@ -24,7 +24,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -59,7 +59,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -93,7 +93,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -124,7 +124,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var batchScheduler = new ManualBatchScheduler();
         var dataLoader = new IFederatedTypeDataLoader(batchScheduler, new DataLoaderOptions());
@@ -165,7 +165,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -192,7 +192,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<TypeWithoutRefResolver>()
             .AddType<MixedFieldTypes>()
             .AddType<FederatedType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -221,7 +221,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<FederatedType>()
             .AddType<IFederatedTypeWithRequiredDetail>()
             .AddType<FederatedTypeWithRequiredDetail>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 
@@ -258,7 +258,7 @@ public class EntitiesResolverForInterfaceTests
             .AddType<FederatedType>()
             .AddType<IFederatedTypeWithOptionalDetail>()
             .AddType<FederatedTypeWithOptionalDetail>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 

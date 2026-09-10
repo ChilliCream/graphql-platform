@@ -49,8 +49,9 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
         {
             await topicEventSender.SendAsync(
                 $"{OnReview}_{topic}",
-                new Review(stars: 1, commentary: "Commentary"));
-            await Task.Delay(1_000);
+                new Review(stars: 1, commentary: "Commentary"),
+                TestContext.Current.CancellationToken);
+            await Task.Delay(1_000, TestContext.Current.CancellationToken);
         }
 
         // complete the topic of subscription from server
@@ -59,7 +60,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
         // waiting for completion message sent
         for (var times = 0; !completionTriggered && times < 10; times++)
         {
-            await Task.Delay(1_000);
+            await Task.Delay(1_000, TestContext.Current.CancellationToken);
         }
 
         // assert
@@ -108,8 +109,9 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
         {
             await topicEventSender.SendAsync(
                 $"{OnReview}_{topic}",
-                new Review(stars: 1, commentary: "Commentary"));
-            await Task.Delay(1_000);
+                new Review(stars: 1, commentary: "Commentary"),
+                TestContext.Current.CancellationToken);
+            await Task.Delay(1_000, TestContext.Current.CancellationToken);
         }
 
         // simulate network error
@@ -121,7 +123,7 @@ public class StarWarsOnReviewSubCompletionTest(TestServerFactory serverFactory)
         // waiting for completion message sent
         for (var times = 0; !completionTriggered && times < 10; times++)
         {
-            await Task.Delay(1_000);
+            await Task.Delay(1_000, TestContext.Current.CancellationToken);
         }
 
         // assert

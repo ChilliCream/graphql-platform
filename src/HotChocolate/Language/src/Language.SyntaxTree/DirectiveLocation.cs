@@ -106,6 +106,8 @@ public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
 
     public static DirectiveLocation InputFieldDefinition { get; } = new("INPUT_FIELD_DEFINITION");
 
+    public static DirectiveLocation DirectiveDefinition { get; } = new("DIRECTIVE_DEFINITION");
+
     public static bool IsValidName(string value)
         => s_cache.ContainsKey(value);
 
@@ -137,5 +139,6 @@ public sealed class DirectiveLocation : IEquatable<DirectiveLocation?>
         yield return EnumValue;
         yield return InputObject;
         yield return InputFieldDefinition;
+        yield return DirectiveDefinition;
     }
 }

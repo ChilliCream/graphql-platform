@@ -1,0 +1,513 @@
+title: Defer_Composite_Field_Under_Type_Condition_On_Abstract_Parent_Is_Wrapped
+request:
+  document: |
+    query ConnectorDetailsQuery($id: ID!) {
+      node(id: $id) {
+        __typename
+        id
+        ... on Connector @defer(label: "Yrs") {
+          system
+          description
+        }
+        ...ConnectorDetailsHeaderFragment
+        ...ConnectorDevicesFragment @defer(label: "testing")
+      }
+    }
+
+    fragment ConnectorDetailsHeaderFragment on Connector {
+      system
+      version
+      vendor
+    }
+
+    fragment ConnectorDevicesFragment on Connector {
+      id
+      devices(first: 10) {
+        edges {
+          node {
+            ... on ConnectorDevice {
+              id
+              name
+              __typename
+            }
+          }
+          cursor
+        }
+        totalCount
+      }
+    }
+  variables: |
+    {
+      "id": "Q29ubmVjdG9yOjE="
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 3,
+    "initial": {
+      "data": {
+        "node": {
+          "__typename": "Connector",
+          "id": "Q29ubmVjdG9yOjE=",
+          "system": "Connector: Q29ubmVjdG9yOjE=",
+          "vendor": "Connector: Q29ubmVjdG9yOjE=",
+          "version": "Connector: Q29ubmVjdG9yOjE="
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "node"
+        ],
+        "label": "Yrs"
+      },
+      {
+        "id": "1",
+        "path": [
+          "node"
+        ],
+        "label": "testing"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "node"
+        ],
+        "data": {
+          "description": "Connector: Q29ubmVjdG9yOjE="
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "node"
+        ],
+        "data": {
+          "devices": {
+            "edges": [
+              {
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToy",
+                "node": {
+                  "__typename": "ConnectorDevice",
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjU=",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjU="
+                }
+              },
+              {
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToz",
+                "node": {
+                  "__typename": "ConnectorDevice",
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjY=",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjY="
+                }
+              },
+              {
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTo0",
+                "node": {
+                  "__typename": "ConnectorDevice",
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjc=",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjc="
+                }
+              }
+            ],
+            "totalCount": 123
+          }
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      },
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "node": {
+          "__typename": "Connector",
+          "description": "Connector: Q29ubmVjdG9yOjE=",
+          "devices": {
+            "edges": [
+              {
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToy",
+                "node": {
+                  "__typename": "ConnectorDevice",
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjU=",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjU="
+                }
+              },
+              {
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToz",
+                "node": {
+                  "__typename": "ConnectorDevice",
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjY=",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjY="
+                }
+              },
+              {
+                "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTo0",
+                "node": {
+                  "__typename": "ConnectorDevice",
+                  "id": "Q29ubmVjdG9yRGV2aWNlOjc=",
+                  "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjc="
+                }
+              }
+            ],
+            "totalCount": 123
+          },
+          "id": "Q29ubmVjdG9yOjE=",
+          "system": "Connector: Q29ubmVjdG9yOjE=",
+          "vendor": "Connector: Q29ubmVjdG9yOjE=",
+          "version": "Connector: Q29ubmVjdG9yOjE="
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        connectorById(id: ID!): Connector @lookup @internal
+      }
+
+      type Connector implements Node {
+        id: ID!
+        system: String!
+        version: String!
+        vendor: String!
+        description: String
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query ConnectorDetailsQuery_b0bc69b8_3($id: ID!) {
+              node(id: $id) {
+                __typename
+                ... on Connector {
+                  __typename
+                  id
+                  system
+                  version
+                  vendor
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "Q29ubmVjdG9yOjE="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Connector",
+                    "id": "Q29ubmVjdG9yOjE=",
+                    "system": "Connector: Q29ubmVjdG9yOjE=",
+                    "version": "Connector: Q29ubmVjdG9yOjE=",
+                    "vendor": "Connector: Q29ubmVjdG9yOjE="
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query ConnectorDetailsQuery_defer_3($id: ID!) {
+              node(id: $id) {
+                __typename
+                ... on Connector {
+                  __typename
+                  description
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "Q29ubmVjdG9yOjE="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Connector",
+                    "description": "Connector: Q29ubmVjdG9yOjE="
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        connectorById(id: ID!): Connector @lookup @internal
+      }
+
+      type Connector implements Node {
+        id: ID!
+        devices(first: Int): ConnectorDeviceConnection!
+      }
+
+      type ConnectorDevice implements Node {
+        id: ID!
+        name: String!
+      }
+
+      type ConnectorDeviceConnection {
+        edges: [ConnectorDeviceEdge!]
+        nodes: [ConnectorDevice!]
+        totalCount: Int!
+      }
+
+      type ConnectorDeviceEdge {
+        node: ConnectorDevice!
+        cursor: String!
+      }
+
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query ConnectorDetailsQuery_defer_3($id: ID!) {
+              node(id: $id) {
+                __typename
+                ... on Connector {
+                  __typename
+                  devices(first: 10) {
+                    totalCount
+                    edges {
+                      cursor
+                      node {
+                        id
+                        name
+                        __typename
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "Q29ubmVjdG9yOjE="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Connector",
+                    "devices": {
+                      "totalCount": 123,
+                      "edges": [
+                        {
+                          "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToy",
+                          "node": {
+                            "id": "Q29ubmVjdG9yRGV2aWNlOjU=",
+                            "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjU=",
+                            "__typename": "ConnectorDevice"
+                          }
+                        },
+                        {
+                          "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZToz",
+                          "node": {
+                            "id": "Q29ubmVjdG9yRGV2aWNlOjY=",
+                            "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjY=",
+                            "__typename": "ConnectorDevice"
+                          }
+                        },
+                        {
+                          "cursor": "ConnectorDeviceEdge: Q29ubmVjdG9yRGV2aWNlRWRnZTo0",
+                          "node": {
+                            "id": "Q29ubmVjdG9yRGV2aWNlOjc=",
+                            "name": "ConnectorDevice: Q29ubmVjdG9yRGV2aWNlOjc=",
+                            "__typename": "ConnectorDevice"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query ConnectorDetailsQuery($id: ID!) {
+          node(id: $id) {
+            __typename
+            id
+            ... on Connector {
+              system
+              version
+              vendor
+            }
+          }
+        }
+      name: ConnectorDetailsQuery
+      hash: b0bc69b8f141920cd280ac8292e05c09
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: $id
+      responseName: node
+      branches:
+        - Connector: 3
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query ConnectorDetailsQuery_b0bc69b8_2($id: ID!) {
+          node(id: $id) {
+            __typename
+            id
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query ConnectorDetailsQuery_b0bc69b8_3($id: ID!) {
+          node(id: $id) {
+            __typename
+            ... on Connector {
+              __typename
+              id
+              system
+              version
+              vendor
+            }
+          }
+        }
+      forwardedVariables:
+        - id
+      dependencies:
+        - id: 1
+  deliveryGroups:
+    - id: 0
+      path: $.node
+      label: Yrs
+    - id: 1
+      path: $.node
+      label: testing
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 2
+      nodes:
+        - id: 1
+          type: Node
+          idValue: $id
+          responseName: node
+          branches:
+            - Connector: 3
+          fallback: 2
+        - id: 2
+          type: Operation
+          operation: |
+            query ConnectorDetailsQuery_defer_2($id: ID!) {
+              node(id: $id) {
+                __typename
+              }
+            }
+          forwardedVariables:
+            - id
+          dependencies:
+            - id: 1
+        - id: 3
+          type: Operation
+          schema: A
+          operation: |
+            query ConnectorDetailsQuery_defer_3($id: ID!) {
+              node(id: $id) {
+                __typename
+                ... on Connector {
+                  __typename
+                  description
+                }
+              }
+            }
+          forwardedVariables:
+            - id
+          dependencies:
+            - id: 1
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 2
+      nodes:
+        - id: 1
+          type: Node
+          idValue: $id
+          responseName: node
+          branches:
+            - Connector: 3
+          fallback: 2
+        - id: 2
+          type: Operation
+          operation: |
+            query ConnectorDetailsQuery_defer_2($id: ID!) {
+              node(id: $id) {
+                __typename
+              }
+            }
+          forwardedVariables:
+            - id
+          dependencies:
+            - id: 1
+        - id: 3
+          type: Operation
+          schema: B
+          operation: |
+            query ConnectorDetailsQuery_defer_3($id: ID!) {
+              node(id: $id) {
+                __typename
+                ... on Connector {
+                  __typename
+                  devices(first: 10) {
+                    totalCount
+                    edges {
+                      cursor
+                      node {
+                        id
+                        name
+                        __typename
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          forwardedVariables:
+            - id
+          dependencies:
+            - id: 1

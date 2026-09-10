@@ -67,8 +67,9 @@ internal static class FileEntryBuilder
                     break;
 
                 case JsonTokenType.PropertyName:
-                    jsonWriter.WritePropertyName(reader.ValueSpan);
-                    path = path.Append(reader.GetString()!);
+                    var propertyName = reader.GetString()!;
+                    jsonWriter.WritePropertyName(propertyName);
+                    path = path.Append(propertyName);
                     break;
 
                 case JsonTokenType.String:
@@ -81,7 +82,7 @@ internal static class FileEntryBuilder
                     }
                     else
                     {
-                        jsonWriter.WriteStringValue(reader.ValueSpan);
+                        jsonWriter.WriteStringValue(reader.ValueSpan, skipEscaping: true);
                     }
                     path = PopAfterValue(path);
                     break;

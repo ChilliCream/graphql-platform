@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.Subscriptions.Diagnostics;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Tests;
 

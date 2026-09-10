@@ -5,7 +5,6 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Tests;
 

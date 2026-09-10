@@ -195,6 +195,12 @@ public static class NitroClientServiceCollectionExtensions
         var provider = sp.GetRequiredService<INitroClientContextProvider>();
         client.BaseAddress = provider.Url;
 
+        if (!string.IsNullOrWhiteSpace(provider.ClientId))
+        {
+            client.DefaultRequestHeaders.Remove(NitroClientHeaders.GraphQLClientId);
+            client.DefaultRequestHeaders.Add(NitroClientHeaders.GraphQLClientId, provider.ClientId);
+        }
+
         switch (provider.Authorization)
         {
             case NitroClientApiKeyAuthorization apiKey:

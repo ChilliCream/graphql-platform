@@ -48,6 +48,12 @@ public interface IReadOnlySchemaOptions
     bool SortFieldsByName { get; }
 
     /// <summary>
+    /// Defines if enum values shall be sorted by name.
+    /// Default: <c>false</c>
+    /// </summary>
+    bool SortEnumValuesByName { get; }
+
+    /// <summary>
     /// Defines if types shall be removed from the schema that are
     /// unreachable from the root types.
     /// </summary>
@@ -79,6 +85,11 @@ public interface IReadOnlySchemaOptions
     /// Defines if the experimental directive introspection feature shall be enabled.
     /// </summary>
     bool EnableDirectiveIntrospection { get; }
+
+    /// <summary>
+    /// Defines if the experimental object type deprecation feature shall be enabled.
+    /// </summary>
+    bool EnableObjectDeprecation { get; }
 
     /// <summary>
     /// The default directive visibility when directive introspection is enabled.
@@ -161,6 +172,12 @@ public interface IReadOnlySchemaOptions
     bool EnableStream { get; }
 
     /// <summary>
+    /// Enables empty selection sets according to GraphQL specification PR 1227; defaults to <c>false</c>.
+    /// When disabled, an empty selection set is a validation error, and an empty subscription root is invalid in either state.
+    /// </summary>
+    bool EnableEmptySelectionSets { get; }
+
+    /// <summary>
     /// Specified if the leading I shall be stripped from the interface name.
     /// </summary>
     bool StripLeadingIFromInterface { get; }
@@ -229,6 +246,16 @@ public interface IReadOnlySchemaOptions
     bool ApplyShareableToConnections { get; }
 
     /// <summary>
+    /// Applies the @shareable directive to all collection segment types.
+    /// </summary>
+    bool ApplyShareableToCollectionSegments { get; }
+
+    /// <summary>
+    /// Applies the @sharable directive to the CollectionSegmentInfo type.
+    /// </summary>
+    bool ApplyShareableToCollectionSegmentInfo { get; }
+
+    /// <summary>
     /// Applies the @sharable directive to the `node(id)` and `nodes(id)`
     /// field when Global Object Identification is turned on.
     /// </summary>
@@ -238,4 +265,10 @@ public interface IReadOnlySchemaOptions
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.
     /// </summary>
     bool ApplySerializeAsToScalars { get; }
+
+    /// <summary>
+    /// Infers @key directives from the arguments of @lookup fields so that the published
+    /// source schema describes the entity keys that the lookups resolve.
+    /// </summary>
+    bool InferKeysFromLookups { get; }
 }

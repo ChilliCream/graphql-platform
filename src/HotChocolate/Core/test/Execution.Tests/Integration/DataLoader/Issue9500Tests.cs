@@ -50,7 +50,8 @@ public class Issue9500Tests
                       }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         Assert.Empty(result.ExpectOperationResult().Errors);
     }

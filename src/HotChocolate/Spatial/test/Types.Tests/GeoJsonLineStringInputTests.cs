@@ -180,7 +180,8 @@ public class GeoJsonLineStringInputTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test(arg: { type: LineString, coordinates: [[30, 10], [10, 30], [40, 40]]})}");
+            "{ test(arg: { type: LineString, coordinates: [[30, 10], [10, 30], [40, 40]]})}",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

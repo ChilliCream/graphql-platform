@@ -1037,7 +1037,7 @@ public class SchemaBuilderTests
 
         // act
         var result =
-            await executor.ExecuteAsync("{ foo { baz } }");
+            await executor.ExecuteAsync("{ foo { baz } }", TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1880,7 +1880,7 @@ public class SchemaBuilderTests
                 .AddGraphQL()
                 .AddQueryType<RootQuery>()
                 .ModifyOptions(options => options.DefaultBindingBehavior = BindingBehavior.Explicit)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

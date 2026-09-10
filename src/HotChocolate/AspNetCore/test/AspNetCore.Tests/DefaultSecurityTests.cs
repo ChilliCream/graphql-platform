@@ -21,10 +21,11 @@ public class DefaultSecurityTests(TestServerFactory serverFactory) : ServerTestB
         using var client = GraphQLHttpClient.Create(server.CreateClient());
         using var result = await client.PostAsync(
             "{ __schema { description } }",
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -57,10 +58,11 @@ public class DefaultSecurityTests(TestServerFactory serverFactory) : ServerTestB
         using var client = GraphQLHttpClient.Create(server.CreateClient());
         using var result = await client.PostAsync(
             "{ __schema { description } }",
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -85,10 +87,11 @@ public class DefaultSecurityTests(TestServerFactory serverFactory) : ServerTestB
         using var client = GraphQLHttpClient.Create(server.CreateClient());
         using var result = await client.PostAsync(
             "{ __schema { description } }",
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -127,10 +130,11 @@ public class DefaultSecurityTests(TestServerFactory serverFactory) : ServerTestB
               }
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -182,10 +186,11 @@ public class DefaultSecurityTests(TestServerFactory serverFactory) : ServerTestB
               }
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert - query passes validation (no HC0087 error)
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
     }
 

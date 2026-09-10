@@ -1,0 +1,185 @@
+title: Playlist_Media_ResolvesConcreteFieldThroughInterfaceObject
+request:
+  document: |
+    query testQuery {
+      playlist {
+        id
+        name
+        media {
+          id
+          ... on Video {
+            duration
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "playlist": {
+          "id": "UGxheWxpc3Q6MQ==",
+          "name": "Playlist: UGxheWxpc3Q6MQ==",
+          "media": {
+            "id": "TWVkaWE6Mg==",
+            "duration": 123
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        media: Media
+        mediaById(id: ID!): Media @lookup
+      }
+
+      type Article implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        wordCount: Int!
+      }
+
+      type Video implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        duration: Int!
+      }
+
+      interface Media {
+        id: ID!
+        title: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_a40319aa_2($__fusion_1_id: ID!) {
+              mediaById(id: $__fusion_1_id) {
+                __typename
+                ... on Video {
+                  duration
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "TWVkaWE6Mg=="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "mediaById": {
+                    "__typename": "Video",
+                    "duration": 123
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        playlist: Playlist
+      }
+
+      type Media @interfaceObject @key(fields: "id") {
+        id: ID!
+      }
+
+      type Playlist @key(fields: "id") {
+        id: ID!
+        name: String!
+        media: Media
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_a40319aa_1 {
+              playlist {
+                id
+                name
+                media {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "playlist": {
+                    "id": "UGxheWxpc3Q6MQ==",
+                    "name": "Playlist: UGxheWxpc3Q6MQ==",
+                    "media": {
+                      "id": "TWVkaWE6Mg=="
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          playlist {
+            id
+            name
+            media {
+              __typename @fusion__requirement
+              id
+              id @fusion__requirement
+              ... on Video {
+                duration
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: a40319aaa234c8e3c78d03216c9a7a8c
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: C
+      operation: |
+        query testQuery_a40319aa_1 {
+          playlist {
+            id
+            name
+            media {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_a40319aa_2($__fusion_1_id: ID!) {
+          mediaById(id: $__fusion_1_id) {
+            __typename
+            ... on Video {
+              duration
+            }
+          }
+        }
+      source: $.mediaById
+      target: $.playlist.media
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

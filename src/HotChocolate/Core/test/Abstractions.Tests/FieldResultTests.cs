@@ -55,7 +55,7 @@ public class FieldResultTests
 
         Assert.False(result.IsSuccess);
         Assert.True(result.IsError);
-        Assert.Collection(result.Errors!, obj => Assert.Equal(error, obj));
+        Assert.Collection(result.Errors, obj => Assert.Equal(error, obj));
         Assert.Equal(result.Errors, ((IFieldResult)result).Value);
     }
 
@@ -178,7 +178,7 @@ public class FieldResultTests
 
         Assert.False(result.IsSuccess);
         Assert.True(result.IsError);
-        Assert.Collection(result.Errors!, err => Assert.Equal(error, err));
+        Assert.Collection(result.Errors, err => Assert.Equal(error, err));
         Assert.Equal(result.Errors, ((IFieldResult)result).Value);
     }
 

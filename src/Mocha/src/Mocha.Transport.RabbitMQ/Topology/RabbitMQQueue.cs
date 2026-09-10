@@ -74,7 +74,15 @@ public sealed class RabbitMQQueue : TopologyResource<RabbitMQQueueConfiguration>
         ImmutableInterlocked.Update(ref _bindings, (current) => current.Add(binding));
     }
 
-    // TODO: this is a bit lost here
+    /// <summary>
+    /// Marks this queue as non-durable and auto-delete.
+    /// </summary>
+    internal void MarkTemporary()
+    {
+        Durable = false;
+        AutoDelete = true;
+    }
+
     /// <summary>
     /// Declares this queue on the broker using the specified channel.
     /// </summary>

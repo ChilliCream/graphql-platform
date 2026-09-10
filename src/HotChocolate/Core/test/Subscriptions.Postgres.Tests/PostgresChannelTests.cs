@@ -1,14 +1,12 @@
+using CookieCrumble.Resources;
 using System.Collections.Concurrent;
 using HotChocolate.Tests;
 using Npgsql;
-using Squadron;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
 public class PostgresChannelTests
-    : IClassFixture<PostgreSqlResource>
-    , IAsyncLifetime
+    : IAsyncLifetime
 {
     private readonly PostgreSqlResource _resource;
     private readonly string _dbName = $"DB_{Guid.NewGuid():N}";
@@ -270,7 +268,7 @@ public class PostgresChannelTests
         await testChannel.SendMessageAsync("aaaaaaaaaaaaaaaaaaaaaaaa:dGVzdA==:foobar");
 
         // Assert
-        await Task.Delay(1000);
+        await Task.Delay(1000, TestContext.Current.CancellationToken);
         Assert.Single(receivedMessages);
     }
 
@@ -400,12 +398,12 @@ public class PostgresChannelTests
     }
 
     /// <inheritdoc />
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _resource.CreateDatabaseAsync(_dbName);
     }
 
     /// <inheritdoc />
-    public Task DisposeAsync()
-        => Task.CompletedTask;
+    public ValueTask DisposeAsync()
+        => ValueTask.CompletedTask;
 }

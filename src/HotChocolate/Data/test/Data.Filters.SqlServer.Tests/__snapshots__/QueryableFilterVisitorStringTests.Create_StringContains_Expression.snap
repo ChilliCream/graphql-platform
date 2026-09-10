@@ -13,11 +13,11 @@ a Result:
 
 a SQL:
 ---------------
-.param set @__p_0 'a'
+.param set @p 'a'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE instr("d"."Bar", @__p_0) > 0
+WHERE instr("d"."Bar", @p) > 0
 ---------------
 
 b Result:
@@ -35,11 +35,11 @@ b Result:
 
 b SQL:
 ---------------
-.param set @__p_0 'b'
+.param set @p 'b'
 
 SELECT "d"."Id", "d"."Bar"
 FROM "Data" AS "d"
-WHERE instr("d"."Bar", @__p_0) > 0
+WHERE instr("d"."Bar", @p) > 0
 ---------------
 
 null

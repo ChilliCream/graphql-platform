@@ -8,22 +8,33 @@ namespace Mocha;
 internal static class ConsumeContextExtensions
 {
     /// <summary>
+    /// Creates reply options from the incoming message metadata when a fault channel is available.
+    /// </summary>
+    public static bool TryCreateFaultOptions(this IMessageContext context, out ReplyOptions options)
+    {
+        return TryCreateReplyOptions(context, context.FaultAddress, out options);
+    }
+
+    /// <summary>
     /// Creates reply options from the incoming message metadata when a response channel is available.
     /// </summary>
     /// <remarks>
-    /// Correlation id and headers are copied so replies/faults remain linked to the original request
-    /// and downstream workflows (for example saga headers) keep working.
+    /// Headers are copied so replies and faults remain linked to the original request and downstream
+    /// workflows (for example saga headers) keep working. The correlation id is echoed when present,
+    /// so callers that correlate by a different mechanism (such as a saga header) are still supported.
     /// </remarks>
-    public static bool TryCreateResponseOptions(this IConsumeContext context, out ReplyOptions options)
+    public static bool TryCreateResponseOptions(this IMessageContext context, out ReplyOptions options)
+    {
+        return TryCreateReplyOptions(context, context.ResponseAddress, out options);
+    }
+
+    private static bool TryCreateReplyOptions(
+        IMessageContext context,
+        Uri? replyTo,
+        out ReplyOptions options)
     {
         options = ReplyOptions.Default;
-        var replyTo = context.ResponseAddress;
         if (replyTo is null)
-        {
-            return false;
-        }
-
-        if (context.CorrelationId is not { } correlationId)
         {
             return false;
         }
@@ -31,7 +42,7 @@ internal static class ConsumeContextExtensions
         options = new ReplyOptions
         {
             Headers = [],
-            CorrelationId = correlationId,
+            CorrelationId = context.CorrelationId,
             ConversationId = context.ConversationId,
             ReplyAddress = replyTo
         };

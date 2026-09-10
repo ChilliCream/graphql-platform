@@ -119,7 +119,7 @@ public class ScalarTypeTestBase
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultElement = resultDocument.Data.GetProperty("first");
         scalar.CoerceOutputValue(runtimeValue, resultElement);
 
@@ -156,7 +156,7 @@ public class ScalarTypeTestBase
 
         // act
         var operation = CommonTestExtensions.CreateOperation();
-        var resultDocument = new ResultDocument(operation, 0);
+        var resultDocument = new ResultDocument(CommonTestExtensions.CreateArena(), operation, 0);
         var resultElement = resultDocument.Data.GetProperty("first");
         var result = Record.Exception(() => scalar.CoerceOutputValue(runtimeValue, resultElement));
 

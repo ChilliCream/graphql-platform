@@ -2,6 +2,7 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
@@ -329,10 +330,16 @@ public class DirectiveTypeTests : TypeTestBase
         var directive = schema.DirectiveTypes["foo"];
         Assert.NotNull(directive.Middleware);
 
-        await schema.MakeExecutable().ExecuteAsync("{ foo }");
-        await schema.MakeExecutable().ExecuteAsync("{ foo1 }");
-        await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
-        var result = await schema.MakeExecutable().ExecuteAsync("{ foo foo1 }");
+        await schema.MakeExecutable().ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
+        await schema.MakeExecutable().ExecuteAsync(
+            "{ foo1 }",
+            TestContext.Current.CancellationToken);
+        await schema.MakeExecutable().ExecuteAsync(
+            "{ foo foo1 }",
+            TestContext.Current.CancellationToken);
+        var result = await schema.MakeExecutable().ExecuteAsync(
+            "{ foo foo1 }",
+            TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }
@@ -427,11 +434,10 @@ public class DirectiveTypeTests : TypeTestBase
                     .Type<StringType>()
                     .Resolve("bar"))
             .AddDirectiveType(
-                new DirectiveType(
-                    d => d
-                        .Name("foo")
-                        .Location(DirectiveLocation.Object)
-                        .Use((_, _) => _ => default)))
+                d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use((_, _) => _ => default))
             .Create();
 
         // assert
@@ -453,11 +459,10 @@ public class DirectiveTypeTests : TypeTestBase
                     .Type<StringType>()
                     .Resolve("bar"))
             .AddDirectiveType(
-                new DirectiveType(
-                    d => d
-                        .Name("foo")
-                        .Location(DirectiveLocation.Object)
-                        .Use<DirectiveMiddleware>()))
+                d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use<DirectiveMiddleware>())
             .Create();
 
         // assert
@@ -479,11 +484,10 @@ public class DirectiveTypeTests : TypeTestBase
                     .Type<StringType>()
                     .Resolve("bar"))
             .AddDirectiveType(
-                new DirectiveType(
-                    d => d
-                        .Name("foo")
-                        .Location(DirectiveLocation.Object)
-                        .Use((_, next) => new DirectiveMiddleware(next))))
+                d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use((_, next) => new DirectiveMiddleware(next)))
             .Create();
 
         // assert
@@ -505,10 +509,9 @@ public class DirectiveTypeTests : TypeTestBase
                         .Type<StringType>()
                         .Resolve("bar"))
                 .AddDirectiveType(
-                    new DirectiveType(
-                        d => d.Name("foo")
-                            .Location(DirectiveLocation.Object)
-                            .Use(null!)))
+                    d => d.Name("foo")
+                        .Location(DirectiveLocation.Object)
+                        .Use(null!))
                 .Create();
 
         // assert
@@ -567,7 +570,7 @@ public class DirectiveTypeTests : TypeTestBase
             .AddDirectiveType(
                 new DirectiveType<Deprecated2Directive>(
                     x => x.Location(DirectiveLocation.FieldDefinition)))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.MatchSnapshot();
@@ -611,14 +614,13 @@ public class DirectiveTypeTests : TypeTestBase
                     .Resolve("asd")
                     .Directive("Qux"))
             .AddDirectiveType(
-                new DirectiveType(
-                    x => x
-                        .Name("Qux")
-                        .Location(DirectiveLocation.FieldDefinition)
-                        .Argument("bar")
-                        .Type<IntType>()
-                        .Deprecated("a")))
-            .BuildRequestExecutorAsync();
+                x => x
+                    .Name("Qux")
+                    .Location(DirectiveLocation.FieldDefinition)
+                    .Argument("bar")
+                    .Type<IntType>()
+                    .Deprecated("a"))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.MatchSnapshot();
@@ -639,13 +641,12 @@ public class DirectiveTypeTests : TypeTestBase
                         .Resolve("asd")
                         .Directive("Qux", new ArgumentNode("bar", 1)))
                 .AddDirectiveType(
-                    new DirectiveType(
-                        x => x
-                            .Name("Qux")
-                            .Location(DirectiveLocation.FieldDefinition)
-                            .Argument("bar")
-                            .Type<NonNullType<IntType>>()
-                            .Deprecated("a")))
+                    x => x
+                        .Name("Qux")
+                        .Location(DirectiveLocation.FieldDefinition)
+                        .Argument("bar")
+                        .Type<NonNullType<IntType>>()
+                        .Deprecated("a"))
                 .BuildRequestExecutorAsync();
 
         // assert
@@ -670,7 +671,7 @@ public class DirectiveTypeTests : TypeTestBase
                 """
                 directive @Qux(bar: String @deprecated(reason: "reason")) on FIELD_DEFINITION
                 """)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -783,7 +784,7 @@ public class DirectiveTypeTests : TypeTestBase
         var sourceText =
             $$"""
             type Query {
-               foo: String @a(d: {{long.MaxValue}})
+                foo: String @a(d: {{long.MaxValue}})
             }
 
             directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION
@@ -821,7 +822,7 @@ public class DirectiveTypeTests : TypeTestBase
                 directive @Example on ARGUMENT_DEFINITION
                 directive @Qux(bar: String @Example) on FIELD_DEFINITION
                 """)
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(
@@ -845,7 +846,7 @@ public class DirectiveTypeTests : TypeTestBase
                     .Resolve("asd")
                     .Directive("anno"))
             .AddType<AnnotationDirective>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -865,7 +866,7 @@ public class DirectiveTypeTests : TypeTestBase
                     .Resolve("asd")
                     .Directive("foo"))
             .AddType<FooDirective>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
@@ -884,10 +885,324 @@ public class DirectiveTypeTests : TypeTestBase
                     .Field("bar")
                     .Resolve("asd")
                     .Directive(new FooDirective("abc")))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public void DirectiveType_WithDirectivesAndDeprecation_CompletesCollection()
+    {
+        // arrange
+        var onDirectiveDefinition = new DirectiveType(d => d
+            .Name("onDirectiveDefinition")
+            .Location(DirectiveLocation.DirectiveDefinition));
+
+        var customConfiguration = new DirectiveTypeConfiguration("custom")
+        {
+            Locations = DirectiveLocation.Object,
+            DeprecationReason = "Use something else."
+        };
+        customConfiguration.Directives.Add(
+            new DirectiveConfiguration(new DirectiveNode("onDirectiveDefinition")));
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(onDirectiveDefinition)
+            .AddDirectiveType(DirectiveType.CreateUnsafe(customConfiguration))
+            .Create();
+
+        // assert
+        var custom = schema.DirectiveTypes["custom"];
+        Assert.True(custom.IsDeprecated);
+        Assert.Equal("Use something else.", custom.DeprecationReason);
+        var directive = Assert.Single(custom.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+    }
+
+    [Fact]
+    public void DirectiveType_DirectiveWithoutDirectiveDefinitionLocation_Errors()
+    {
+        // arrange
+        var onObject = new DirectiveType(d => d
+            .Name("onObject")
+            .Location(DirectiveLocation.Object));
+
+        var customConfiguration = new DirectiveTypeConfiguration("custom")
+        {
+            Locations = DirectiveLocation.Object
+        };
+        customConfiguration.Directives.Add(
+            new DirectiveConfiguration(new DirectiveNode("onObject")));
+
+        // act
+        void Action() => SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(onObject)
+            .AddDirectiveType(DirectiveType.CreateUnsafe(customConfiguration))
+            .Create();
+
+        // assert
+        var exception = Assert.Throws<SchemaException>(Action);
+        exception.Errors.Single().ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public void DeprecatedDirective_DeclaresDirectiveDefinitionLocation()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .Create();
+
+        // act
+        var deprecated = schema.DirectiveTypes[DirectiveNames.Deprecated.Name];
+
+        // assert
+        Assert.True(deprecated.Locations.HasFlag(DirectiveLocation.DirectiveDefinition));
+    }
+
+    [Fact]
+    public void CodeFirst_DeprecatedAndDirectives_AppliedToDirectiveType()
+    {
+        // arrange
+        var onDirectiveDefinition = new DirectiveType(d => d
+            .Name("onDirectiveDefinition")
+            .Location(DirectiveLocation.DirectiveDefinition));
+
+        var custom = new DirectiveType(d => d
+            .Name("custom")
+            .Location(DirectiveLocation.Object)
+            .Deprecated("Use something else.")
+            .Directive("onDirectiveDefinition"));
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(onDirectiveDefinition)
+            .AddDirectiveType(custom)
+            .Create();
+
+        // assert
+        var customType = schema.DirectiveTypes["custom"];
+        Assert.True(customType.IsDeprecated);
+        Assert.Equal("Use something else.", customType.DeprecationReason);
+        var directive = Assert.Single(customType.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+    }
+
+    [Fact]
+    public void CodeFirst_GenericDirectiveType_DeprecatedAndDirectives_Applied()
+    {
+        // arrange
+        var onDirectiveDefinition = new DirectiveType(d => d
+            .Name("onDirectiveDefinition")
+            .Location(DirectiveLocation.DirectiveDefinition));
+
+        var custom = new DirectiveType<MarkerDirective>(d => d
+            .Name("custom")
+            .Location(DirectiveLocation.Object)
+            .Deprecated("Use something else.")
+            .Directive("onDirectiveDefinition"));
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(onDirectiveDefinition)
+            .AddDirectiveType(custom)
+            .Create();
+
+        // assert
+        var customType = schema.DirectiveTypes["custom"];
+        Assert.True(customType.IsDeprecated);
+        Assert.Equal("Use something else.", customType.DeprecationReason);
+        var directive = Assert.Single(customType.Directives);
+        Assert.Equal("onDirectiveDefinition", directive.Name);
+    }
+
+    [Fact]
+    public void CodeFirst_DirectiveType_TypedDirectiveInstance_Applied()
+    {
+        // arrange
+        var marker = new DirectiveType<MarkerDirective>(d => d
+            .Name("marker")
+            .Location(DirectiveLocation.DirectiveDefinition));
+
+        var custom = new DirectiveType(d => d
+            .Name("custom")
+            .Location(DirectiveLocation.Object)
+            .Directive(new MarkerDirective()));
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(marker)
+            .AddDirectiveType(custom)
+            .Create();
+
+        // assert
+        var customType = schema.DirectiveTypes["custom"];
+        var directive = Assert.Single(customType.Directives);
+        Assert.Equal("marker", directive.Name);
+    }
+
+    [Fact]
+    public void CodeFirst_DirectiveType_TypedDirectiveByType_Applied()
+    {
+        // arrange
+        var marker = new DirectiveType<MarkerDirective>(d => d
+            .Name("marker")
+            .Location(DirectiveLocation.DirectiveDefinition));
+
+        var custom = new DirectiveType(d => d
+            .Name("custom")
+            .Location(DirectiveLocation.Object)
+            .Directive<MarkerDirective>());
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(marker)
+            .AddDirectiveType(custom)
+            .Create();
+
+        // assert
+        var customType = schema.DirectiveTypes["custom"];
+        var directive = Assert.Single(customType.Directives);
+        Assert.Equal("marker", directive.Name);
+    }
+
+    [Fact]
+    public void CodeFirst_DirectiveType_DeprecatedNoReason_UsesDefault()
+    {
+        // arrange
+        var custom = new DirectiveType(d => d
+            .Name("custom")
+            .Location(DirectiveLocation.Object)
+            .Deprecated());
+
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("custom")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(custom)
+            .Create();
+
+        // assert
+        var customType = schema.DirectiveTypes["custom"];
+        Assert.True(customType.IsDeprecated);
+        Assert.Equal(
+            DirectiveNames.Deprecated.Arguments.DefaultReason,
+            customType.DeprecationReason);
+    }
+
+    [Fact]
+    public void AnnotationBased_ObsoleteDirectiveClass_SetsDeprecation()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("outdated")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+#pragma warning disable CS0618 // Type is obsolete; obsolescence is the scenario under test.
+            .AddDirectiveType(new DirectiveType<OutdatedDirective>(
+                d => d.Location(DirectiveLocation.Object)))
+#pragma warning restore CS0618
+            .Create();
+
+        // assert
+        var outdated = schema.DirectiveTypes["outdated"];
+        Assert.True(outdated.IsDeprecated);
+        Assert.Equal("Use the replacement directive.", outdated.DeprecationReason);
+    }
+
+    [Fact]
+    public void AnnotationBased_GraphQLDeprecatedDirectiveClass_SetsDeprecation()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Directive("legacy")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(new DirectiveType<LegacyDirective>(
+                d => d.Location(DirectiveLocation.Object)))
+            .Create();
+
+        // assert
+        var legacy = schema.DirectiveTypes["legacy"];
+        Assert.True(legacy.IsDeprecated);
+        Assert.Equal("Use the replacement directive.", legacy.DeprecationReason);
+    }
+
+    [Fact]
+    public void DirectiveArgument_AppliesDirective()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType(c => c
+                .Name("Query")
+                .Field("foo")
+                .Type<StringType>()
+                .Resolve("bar"))
+            .AddDirectiveType(d => d
+                .Name("foo")
+                .Location(DirectiveLocation.Field)
+                .Argument("arg", a => a
+                    .Type<IntType>()
+                    .Directive("deprecated")))
+            .Create();
+
+        // assert
+        var argument = schema.DirectiveTypes["foo"].Arguments["arg"];
+        Assert.True(argument.Directives.ContainsDirective("deprecated"));
     }
 
     public class DirectiveWithSyntaxTypeArg : DirectiveType
@@ -1013,4 +1328,12 @@ public class DirectiveTypeTests : TypeTestBase
 
         public string? Foo { get; }
     }
+
+    public sealed class MarkerDirective;
+
+    [Obsolete("Use the replacement directive.")]
+    public sealed class OutdatedDirective;
+
+    [GraphQLDeprecated("Use the replacement directive.")]
+    public sealed class LegacyDirective;
 }

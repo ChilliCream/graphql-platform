@@ -32,7 +32,8 @@ public class BatchResolverAuthorizationTests
               a: secretById(id: 1) { value }
               b: secretById(id: 2) { value }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.False(SecretQuery.ResolverInvoked);
@@ -87,7 +88,8 @@ public class BatchResolverAuthorizationTests
             {
               a: secretAfterById(id: 1) { value }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -128,7 +130,7 @@ public class BatchResolverAuthorizationTests
             .AddQueryType<FriendsQuery>()
             .AddTypeExtension<AppUserExtensions>()
             .AddAuthorizationHandler(_ => handler)
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -138,7 +140,8 @@ public class BatchResolverAuthorizationTests
                 friend(key: "a") { id }
               }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -195,7 +198,8 @@ public class BatchResolverAuthorizationTests
                     }
                     """)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
-                .Build());
+                .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -237,7 +241,8 @@ public class BatchResolverAuthorizationTests
                     }
                     """)
                 .SetVariableValues(new Dictionary<string, object?> { { "id", id } })
-                .Build());
+                .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -281,7 +286,8 @@ public class BatchResolverAuthorizationTests
             {
               a: thingById(id: 1) { id }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

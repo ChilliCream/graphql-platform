@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Mocha.Mediator;
 
 /// <summary>
@@ -58,7 +60,9 @@ public static class MediatorMiddlewareFactoryContextExtensions
     public static bool IsResponseAssignableTo(this MediatorMiddlewareFactoryContext context, Type type)
         => context.ResponseType is not null && type.IsAssignableFrom(context.ResponseType);
 
-    private static bool HasGenericInterface(Type type, Type openGeneric)
+    private static bool HasGenericInterface(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type type,
+        Type openGeneric)
     {
         foreach (var @interface in type.GetInterfaces())
         {

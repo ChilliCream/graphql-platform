@@ -1,0 +1,18 @@
+{
+  "message": "The variable \u0060x\u0060 is not compatible with the type of the current location.",
+  "locations": [
+    {
+      "line": 3,
+      "column": 28
+    }
+  ],
+  "path": [
+    "dog"
+  ],
+  "extensions": {
+    "variable": "x",
+    "variableType": "Boolean",
+    "locationType": "Boolean!",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variable-Usages-Are-Allowed"
+  }
+}

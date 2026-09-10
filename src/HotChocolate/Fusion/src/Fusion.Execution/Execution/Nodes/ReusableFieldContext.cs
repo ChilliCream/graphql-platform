@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 internal sealed class ReusableFieldContext(
     ISchemaDefinition schema,
     IVariableValueCollection variableValues,
-    ulong includeFlags,
+    ConditionFlags includeConditionFlags,
     PooledArrayWriter memory,
     CancellationToken cancellationToken)
     : FieldContext
@@ -18,7 +18,7 @@ internal sealed class ReusableFieldContext(
     private readonly List<object?> _runtimeResults = [];
     private Selection _selection = null!;
     private object? _parent;
-    private SourceResultElementBuilder _result = default!;
+    private SourceResultElementBuilder _result;
 
     public override PooledArrayWriter Memory => memory;
 
@@ -30,7 +30,7 @@ internal sealed class ReusableFieldContext(
 
     public List<object?> RuntimeResults => _runtimeResults;
 
-    public override ulong IncludeFlags => includeFlags;
+    public override ConditionFlags IncludeConditionFlags => includeConditionFlags;
 
     public override CancellationToken RequestAborted => cancellationToken;
 

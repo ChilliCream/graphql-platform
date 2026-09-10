@@ -58,7 +58,8 @@ public class RequestExecutorBuilderExtensionsOptInFeaturesTests
                             }
                         }
                         """)
-                    .Build()))
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken))
             .MatchInlineSnapshot(
                 """
                 {

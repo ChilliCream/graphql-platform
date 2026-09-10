@@ -1,0 +1,106 @@
+12and13 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": 12
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      }
+    ]
+  }
+}
+---------------
+
+12and13 SQL:
+---------------
+.param set @p1 12
+.param set @p2 13
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarShort" IN (@p1, @p2)
+---------------
+
+13and14 Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barShort": 14
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      }
+    ]
+  }
+}
+---------------
+
+13and14 SQL:
+---------------
+.param set @p1 13
+.param set @p2 14
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarShort" IN (@p1, @p2)
+---------------
+
+13andNull Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": {
+          "barShort": null
+        }
+      },
+      {
+        "foo": {
+          "barShort": 13
+        }
+      }
+    ]
+  }
+}
+---------------
+
+13andNull SQL:
+---------------
+.param set @p1 13
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarShort" IS NULL OR "f"."BarShort" = @p1
+---------------

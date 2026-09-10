@@ -37,7 +37,7 @@ sourceSchemas:
         id: Int!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         id: Int!
         title: String!
         author: Author! @shareable
@@ -108,7 +108,7 @@ sourceSchemas:
         ): AuthorsConnection
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         books: [Book!]!
         id: Int!
         name: String!
@@ -132,7 +132,7 @@ sourceSchemas:
         node: Author!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         idAndTitle(title: String! @require(field: "title")): String!
         id: Int!
         author: Author! @shareable

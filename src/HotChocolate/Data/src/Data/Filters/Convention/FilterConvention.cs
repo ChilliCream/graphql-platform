@@ -14,7 +14,7 @@ namespace HotChocolate.Data.Filters;
 /// </summary>
 public class FilterConvention
     : Convention<FilterConventionConfiguration>
-        , IFilterConvention
+    , IFilterConvention
 {
     private const string InputPostFix = "FilterInput";
     private const string InputTypePostFix = "FilterInputType";
@@ -28,6 +28,7 @@ public class FilterConvention
     private string _argumentName = null!;
     private IFilterProvider _provider = null!;
     private ITypeInspector _typeInspector = null!;
+    private int? _maxAllowedFilterOperations;
     private bool _useAnd;
     private bool _useOr;
 
@@ -58,7 +59,7 @@ public class FilterConvention
             context.DescriptorContext,
             context.Scope);
 
-        _configure!(descriptor);
+        _configure(descriptor);
         _configure = null;
 
         return descriptor.CreateConfiguration();
@@ -100,6 +101,7 @@ public class FilterConvention
         _bindings = Configuration.Bindings;
         _configs = Configuration.Configurations;
         _argumentName = Configuration.ArgumentName;
+        _maxAllowedFilterOperations = Configuration.MaxAllowedFilterOperations;
         _useAnd = Configuration.UseAnd;
         _useOr = Configuration.UseOr;
 
@@ -228,6 +230,9 @@ public class FilterConvention
 
     /// <inheritdoc />
     public string GetArgumentName() => _argumentName;
+
+    /// <inheritdoc />
+    public int? GetMaxAllowedFilterOperations() => _maxAllowedFilterOperations;
 
     /// <inheritdoc cref="IFilterConvention"/>
     public void ApplyConfigurations(

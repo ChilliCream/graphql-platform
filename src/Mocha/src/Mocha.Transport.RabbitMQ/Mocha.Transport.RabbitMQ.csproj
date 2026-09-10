@@ -10,5 +10,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" />
     <PackageReference Include="RabbitMQ.Client" VersionOverride="7.2.0" />
+    <PackageReference Include="System.IO.Hashing" />
   </ItemGroup>
 </Project>

@@ -42,7 +42,7 @@ public static class ASubgraph
             .AddType<AddProductInputType>();
 
         var app = builder.Build();
-        app.MapGraphQL();
+        app.MapSubgraph();
 
         await app.StartAsync();
 

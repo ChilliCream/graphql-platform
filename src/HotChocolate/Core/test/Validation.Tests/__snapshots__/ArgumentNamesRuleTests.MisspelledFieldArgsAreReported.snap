@@ -14,7 +14,7 @@
     "type": "Dog",
     "field": "doesKnowCommand",
     "argument": "DogCommand",
-    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Required-Arguments"
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Argument-Names"
   }
 }
 ---------------

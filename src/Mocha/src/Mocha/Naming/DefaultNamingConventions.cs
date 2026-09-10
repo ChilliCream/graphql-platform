@@ -208,7 +208,7 @@ public sealed partial class DefaultNamingConventions(IHostInfo host) : IBusNamin
     /// </summary>
     /// <remarks>
     /// RabbitMQ conventions:
-    /// - Error queues: _error (MassTransit convention)
+    /// - Error queues: _error
     /// - Dead letter queues: _dead-letter (for messages that cannot be processed)
     /// - Reply queues: _reply (for request-reply patterns)
     /// </remarks>

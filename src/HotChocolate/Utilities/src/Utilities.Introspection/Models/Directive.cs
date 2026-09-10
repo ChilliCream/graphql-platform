@@ -9,6 +9,8 @@ internal class Directive
     public ICollection<InputField> Args { get; set; }
     public ICollection<string> Locations { get; set; }
     public bool? IsRepeatable { get; set; }
+    public bool IsDeprecated { get; set; }
+    public string DeprecationReason { get; set; }
     public bool OnOperation { get; set; }
     public bool OnFragment { get; set; }
     public bool OnField { get; set; }

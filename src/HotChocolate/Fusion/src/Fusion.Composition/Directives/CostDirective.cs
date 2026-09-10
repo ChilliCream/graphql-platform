@@ -1,3 +1,4 @@
+using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Properties.CompositionResources;
@@ -17,6 +18,6 @@ internal sealed class CostDirective(double weight)
             throw new InvalidOperationException(CostDirective_WeightArgument_Invalid);
         }
 
-        return new CostDirective(double.Parse(name.Value));
+        return new CostDirective(double.Parse(name.Value, CultureInfo.InvariantCulture));
     }
 }

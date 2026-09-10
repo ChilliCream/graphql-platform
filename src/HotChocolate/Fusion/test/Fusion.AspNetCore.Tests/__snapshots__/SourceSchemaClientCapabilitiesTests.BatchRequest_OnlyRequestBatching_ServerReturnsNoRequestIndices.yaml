@@ -33,11 +33,11 @@ sourceSchemas:
         authorById(id: ID!): Author @lookup @internal
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         id: ID!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         author: Author
         id: ID!
         title: String!
@@ -77,12 +77,12 @@ sourceSchemas:
         authorById(id: ID!): Author @lookup @internal
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         name(postFix: String): String!
         id: ID!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         rating: String!
         id: ID!
       }

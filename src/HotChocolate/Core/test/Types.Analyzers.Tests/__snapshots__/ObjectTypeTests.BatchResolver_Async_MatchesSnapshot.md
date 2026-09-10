@@ -74,6 +74,7 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
@@ -96,13 +97,19 @@ namespace TestNamespace
             {
                 var args0 = new global::System.Collections.Generic.List<global::TestNamespace.User>(contexts.Length);
                 var args1 = contexts[0].RequestAborted;
+                var args2 = contexts[0].GetGlobalState<global::System.Security.Claims.ClaimsPrincipal>("ClaimsPrincipal");
+                var args3 = contexts[0].Operation.Document;
+                var args4 = contexts[0].Selection.SyntaxNodes[0].Node;
+                var args5 = contexts[0].Selection.Field;
+                var args6 = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(contexts[0]);
+                var args7 = contexts[0].Selection;
 
                 for (var i = 0; i < contexts.Length; i++)
                 {
                     args0.Add(contexts[i].Parent<global::TestNamespace.User>());
                 }
 
-                var result = await global::TestNamespace.UserExtensions.GetGreeting(args0, args1);
+                var result = await global::TestNamespace.UserExtensions.GetGreeting(args0, args1, args2, args3, args4, args5, args6, args7);
 
                 if (result is global::System.Collections.IList list)
                 {

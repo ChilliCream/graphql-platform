@@ -18,9 +18,10 @@ public class CancellationTests
                 .AddSingleton(query)
                 .AddGraphQL()
                 .AddQueryType<Query1>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        using var cts = new CancellationTokenSource(150);
+        using var cts = new CancellationTokenSource();
+        query.Cancellation = cts;
 
         // act
         await executor.ExecuteAsync(
@@ -82,10 +83,20 @@ public class CancellationTests
         [GraphQLIgnore]
         public bool Task2Done { get; set; }
 
+        [GraphQLIgnore]
+        public CancellationTokenSource? Cancellation { get; set; }
+
         [Serial]
         public async Task<string> GetTask1()
         {
             Task1 = true;
+
+            // Cancel while task1 is running so the serial executor skips task2.
+            if (Cancellation is not null)
+            {
+                await Cancellation.CancelAsync();
+            }
+
             await Task.Delay(400);
             Task1Done = true;
             return "foo";

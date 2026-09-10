@@ -217,7 +217,7 @@ operationPlan:
         }
       source: $.productAvailabilityById
       target: $.productById.subgraph1Only
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -240,7 +240,7 @@ operationPlan:
         }
       source: $.node<ProductAvailability>
       target: $.productById.subgraph1Only
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

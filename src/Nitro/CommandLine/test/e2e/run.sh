@@ -1,0 +1,318 @@
+#!/usr/bin/env bash
+# Record the nitro CLI flows with VHS and verify each against its golden frame.
+#
+#   ./run.sh                  record every flow, diff each final frame vs its golden (CI / test)
+#   ./run.sh --update         record every flow, overwrite goldens + committed GIFs (accept output)
+#   ./run.sh remove update    record only the named flows (any subset of the list below)
+#   ./run.sh --update init    update a single flow
+#
+# Each flow <name> is driven by test/e2e/<name>-flow.tape and checked against
+# test/e2e/<name>-flow.golden.txt. One VHS run per flow produces both the demo
+# GIF (<name>-flow.gif) and the text capture that is reduced to a deterministic
+# final frame and diffed.
+#
+# Inputs (the repo) are mounted read-only into the pinned VHS container; the
+# container bundles ttyd + ffmpeg + fonts so nothing needs installing on the host.
+# The published binary and raw recordings land in gitignored dirs (bin/, out/).
+#
+# Results for changed/new flows are collected under out/report/ for CI to upload
+# as artifacts and surface in a PR comment:
+#   out/report/status.tsv      <flow>\t<PASS|FAIL|NEW>   (every recorded flow)
+#   out/report/changed.txt     one <flow> per line       (FAIL or NEW only)
+#   out/report/<flow>-flow.gif / .frame.txt / .golden.txt / .diff
+#
+# Exit code: 0 if every recorded flow PASSed; 1 if any FAILed or was NEW (no
+# golden yet); 2 on usage/setup error; 3 if docker is unavailable. --update
+# exits 0 when every targeted flow recorded successfully, or 1 if any recording
+# failed (its golden is left unchanged).
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../../.." && pwd)"
+OUT_DIR="$SCRIPT_DIR/out"
+BIN_DIR="$SCRIPT_DIR/bin"
+REPORT_DIR="$OUT_DIR/report"
+
+# Pinned by digest so a new VHS release can't silently shift the rendered output
+# (and thus the goldens). Bump deliberately, then re-run with --update. Tag: v0.11.0.
+VHS_IMAGE="${VHS_IMAGE:-ghcr.io/charmbracelet/vhs@sha256:9d5fc3dc0c160b0fb1d2212baff07e6bdf3fa9438c504a3237484567302fcf93}"
+
+# Every flow, in record order, with the literal marker the completed final frame
+# must contain (see extract-frame.sh). Keep this list and ALL_FLOWS in sync.
+#
+# `help` is a trivial pipeline smoke flow: it proves publish -> record -> extract
+# -> diff works end to end before fixture-backed task flows land. The rest run
+# against the deterministic fixture prepared below (out/fixture/acme).
+declare -A MARKERS=(
+  [help]="List tasks."
+  [init]="Initialized agent workspace"
+  [agent-root]="agent-root-flow: back at the shell"
+  [list]="acme-e5f"
+  [show]="Draft new pricing copy"
+  [create]="Created task '"
+  [close-reopen]="Reopened task 'acme-a1b'."
+  [dep-tree]="acme-epic1.1"
+  [error]="[nitro exit: 1]"
+  [board]="> ● [T] P2 acme-epic1.1 Draft new pricing copy"
+  [board-maximize]="In Progress (1)"
+  [search]="> ● parent-child <-"
+  [detail]="acme-epic1 · blocking · depended on by"
+  [mail-send]="Thanks-noted"
+  [mail-error]="[nitro exit: 1]"
+  [mail-board]="Workspace: bob (3)"
+  [agents]="Billing review"
+)
+ALL_FLOWS=(help init agent-root list show create close-reopen dep-tree error board board-maximize search detail mail-send mail-error mail-board agents)
+
+# Per-flow sed expressions (extended regex, `sed -E`) applied to the extracted
+# frame before it is compared with (or written as) the golden. Empty by default.
+#
+# `create` mints its task ID from the title and wall-clock time
+# (TaskStore.CreateTaskIdAsync), so it is non-deterministic across recordings;
+# normalize it to a fixed placeholder before diffing. The expression is a
+# single literal substitution (no alternation/backreferences) so it cannot
+# fail on a well-formed frame.
+declare -A SCRUBS=(
+  [create]='s/acme-[a-z0-9.]+/acme-XXX/g'
+  [mail-send]='s/m-[a-z0-9]+/m-XXX/g; s/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}/DATE/g'
+)
+
+# --- args: optional --update plus an optional subset of flow names ------------
+UPDATE=0
+FLOWS=()
+for arg in "$@"; do
+  case "$arg" in
+    --update) UPDATE=1 ;;
+    -*) echo "unknown option: $arg" >&2; exit 2 ;;
+    *)
+      if [[ -z "${MARKERS[$arg]+x}" ]]; then
+        echo "unknown flow: $arg (known: ${ALL_FLOWS[*]})" >&2
+        exit 2
+      fi
+      FLOWS+=("$arg")
+      ;;
+  esac
+done
+[[ ${#FLOWS[@]} -eq 0 ]] && FLOWS=("${ALL_FLOWS[@]}")
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "docker is required to run the VHS recordings" >&2
+  exit 3
+fi
+
+# 1. Publish a self-contained linux-x64 binary (glibc, matches the Debian-based
+#    VHS image). Skip if already present unless REBUILD=1 or --update, an update
+#    must never bake a stale binary's output into the committed goldens.
+#
+#    The csproj sets UseAppHost=false (it is packed as a dotnet tool), so a
+#    non-AOT e2e publish must override UseAppHost=true to get a native `nitro`
+#    executable rather than only `nitro.dll`. Task commands need no auth, so no
+#    Nitro*ClientId secret properties are passed; the BuildSecrets constants
+#    default to empty.
+#
+#    NITRO_E2E_AOT=1 publishes with PublishAot=true instead, matching the
+#    shipped binary. This is slow, so it is off by default.
+if [[ ! -x "$BIN_DIR/nitro" || "${REBUILD:-0}" == "1" || "$UPDATE" == "1" ]]; then
+  echo "==> publishing nitro (linux-x64, self-contained)"
+  aot_flag=false
+  [[ "${NITRO_E2E_AOT:-0}" == "1" ]] && aot_flag=true
+  dotnet publish "$REPO_ROOT/src/Nitro/CommandLine/src/CommandLine" \
+    -c Release -f net11.0 -r linux-x64 -o "$BIN_DIR" --self-contained \
+    -p:TargetFrameworks=net11.0 -p:RuntimeIdentifiers=linux-x64 \
+    -p:PublishAot=$aot_flag -p:UseAppHost=true >/dev/null
+fi
+
+mkdir -p "$OUT_DIR"
+rm -rf "$REPORT_DIR"
+mkdir -p "$REPORT_DIR"
+: > "$REPORT_DIR/status.tsv"
+: > "$REPORT_DIR/changed.txt"
+
+# 1b. Prepare a deterministic fixture agent workspace (fixed IDs, timestamps,
+#     actors: see fixtures/README.md) that tapes `cp -r` into their own
+#     throwaway /tmp/work rather than seeding state live inside a Hide block.
+#     One unified .nitro/agents/agents.db serves both the task flows and the
+#     mail flows. Rebuilt unconditionally on every run (not cached like the
+#     binary) so schema drift between AgentDatabase/TaskStoreSchema/
+#     MailStoreSchema and fixtures/seed.sql|mail-seed.sql fails fast here,
+#     with a message pointing at fixtures/README.md, instead of turning into
+#     a confusing golden diff once a flow tape lands.
+if ! command -v sqlite3 >/dev/null 2>&1; then
+  echo "sqlite3 is required to prepare the fixture workspace" >&2
+  exit 3
+fi
+
+FIXTURE_DIR="$OUT_DIR/fixture/acme"
+# Matches AgentWorkspace.RootDirectoryName/AgentsDirectoryName/DatabaseFileName.
+FIXTURE_DB="$FIXTURE_DIR/.nitro/agents/agents.db"
+# Read straight from AgentDatabase.CurrentVersion so this guard tracks the
+# binary's schema owner instead of drifting out of sync with a hardcoded
+# number. The binary is still the schema owner: this stays a version-number
+# guard, never a schema-shape comparison.
+AGENT_DATABASE_CS="$REPO_ROOT/src/Nitro/CommandLine/src/CommandLine/Services/Workspace/AgentDatabase.cs"
+FIXTURE_SCHEMA_VERSION="$(sed -n 's/^[[:space:]]*public const int CurrentVersion = \([0-9][0-9]*\);.*/\1/p' "$AGENT_DATABASE_CS" 2>/dev/null || true)"
+if [[ -z "$FIXTURE_SCHEMA_VERSION" ]]; then
+  echo "==> fixture prepare FAILED: could not read AgentDatabase.CurrentVersion from $AGENT_DATABASE_CS" >&2
+  exit 2
+fi
+FIXTURE_TASK_MARKER="acme-epic1"
+FIXTURE_MAIL_MARKER="Retro notes"
+FIXTURE_AGENTS_MARKER="bob  remote"
+
+echo "==> preparing fixture workspace (out/fixture/acme)"
+rm -rf "$FIXTURE_DIR"
+# Pre-create the fallback workspace directory: the fixture lives inside this
+# repository's tree, and without it `nitro agent init` would walk up, find the
+# repo's .git, and initialize .git/nitro instead of the fixture directory.
+mkdir -p "$FIXTURE_DIR/.nitro/agents"
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent init >/dev/null ); then
+  echo "==> fixture prepare FAILED: 'nitro agent init' did not succeed" >&2
+  exit 2
+fi
+
+fixture_version="$(sqlite3 "$FIXTURE_DB" 'PRAGMA user_version;')"
+if [[ "$fixture_version" != "$FIXTURE_SCHEMA_VERSION" ]]; then
+  echo "==> fixture prepare FAILED: agents.db has schema v$fixture_version, expected v$FIXTURE_SCHEMA_VERSION" >&2
+  echo "    the unified workspace schema version moved; see fixtures/README.md" >&2
+  exit 2
+fi
+
+if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/seed.sql"; then
+  echo "==> fixture prepare FAILED: seed.sql did not apply cleanly to $FIXTURE_DB" >&2
+  echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/mail-seed.sql"; then
+  echo "==> fixture prepare FAILED: mail-seed.sql did not apply cleanly to $FIXTURE_DB" >&2
+  echo "    the mail schema likely drifted from fixtures/mail-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! sqlite3 "$FIXTURE_DB" < "$SCRIPT_DIR/fixtures/agents-seed.sql"; then
+  echo "==> fixture prepare FAILED: agents-seed.sql did not apply cleanly to $FIXTURE_DB" >&2
+  echo "    the agent_sessions schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent tasks list ) | grep -q "$FIXTURE_TASK_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent tasks list' did not show '$FIXTURE_TASK_MARKER'" >&2
+  echo "    the task schema likely drifted from fixtures/seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent mail inbox --actor e2e-agent ) \
+    | grep -q "$FIXTURE_MAIL_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent mail inbox' did not show '$FIXTURE_MAIL_MARKER'" >&2
+  echo "    the mail schema likely drifted from fixtures/mail-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+if ! ( cd "$FIXTURE_DIR" && "$BIN_DIR/nitro" agent list ) | grep -q "$FIXTURE_AGENTS_MARKER"; then
+  echo "==> fixture guard FAILED: 'nitro agent list' did not show '$FIXTURE_AGENTS_MARKER'" >&2
+  echo "    the agent_sessions schema likely drifted from fixtures/agents-seed.sql; see fixtures/README.md" >&2
+  exit 2
+fi
+echo "    fixture ready, guard passed"
+
+overall=0
+declare -a SUMMARY=()
+
+for flow in "${FLOWS[@]}"; do
+  tape="$SCRIPT_DIR/${flow}-flow.tape"
+  golden="$SCRIPT_DIR/${flow}-flow.golden.txt"
+  frame="$OUT_DIR/${flow}-flow.frame.txt"
+
+  if [[ ! -f "$tape" ]]; then
+    echo "==> $flow: missing tape ($tape)" >&2
+    exit 2
+  fi
+
+  # 2. Record. The tape writes <flow>-flow.gif + <flow>-flow.txt into OUT_DIR
+  #    (mounted as the VHS workdir at /vhs). A single flow's failure (docker/VHS
+  #    error, or a Wait sentinel that times out) must NOT abort the batch under
+  #    `set -e`: capture it, record the flow as FAIL, and carry on to the rest.
+  echo "==> recording ${flow}-flow"
+  rec_ok=1
+  if ! docker run --rm --shm-size=512m \
+      -v "$REPO_ROOT":/src:ro \
+      -v "$OUT_DIR":/vhs \
+      "$VHS_IMAGE" "/src/src/Nitro/CommandLine/test/e2e/${flow}-flow.tape"; then
+    rec_ok=0
+    echo "    recording FAILED (docker/VHS error)" >&2
+  fi
+
+  # 3. Reduce the multi-frame capture to the deterministic final frame.
+  #    extract-frame.sh exits non-zero if the capture is missing/empty or the
+  #    success marker never appeared; treat that as a failed recording too.
+  extract_ok=0
+  if [[ "$rec_ok" == "1" ]] \
+      && bash "$SCRIPT_DIR/extract-frame.sh" "$OUT_DIR/${flow}-flow.txt" "${MARKERS[$flow]}" > "$frame"; then
+    extract_ok=1
+  else
+    : > "$frame"
+    echo "    frame extraction FAILED (empty capture or missing marker '${MARKERS[$flow]}')" >&2
+  fi
+  recorded_ok=0
+  if [[ "$extract_ok" == "1" && -s "$frame" ]]; then
+    recorded_ok=1
+  fi
+
+  # 3b. Normalize non-deterministic content (task IDs, dates) before compare/update.
+  if [[ "$recorded_ok" == "1" && -n "${SCRUBS[$flow]:-}" ]]; then
+    sed -E -i "${SCRUBS[$flow]}" "$frame"
+  fi
+
+  # 4. Update or verify.
+  if [[ "$UPDATE" == "1" ]]; then
+    if [[ "$recorded_ok" == "1" ]]; then
+      cp "$frame" "$golden"
+      cp "$OUT_DIR/${flow}-flow.gif" "$SCRIPT_DIR/${flow}-flow.gif"
+      echo "    updated golden + GIF"
+      SUMMARY+=("$flow UPDATED")
+    else
+      overall=1
+      echo "    NOT updated, recording failed, golden left unchanged" >&2
+      SUMMARY+=("$flow FAILED")
+    fi
+    continue
+  fi
+
+  if [[ "$recorded_ok" != "1" ]]; then
+    status=FAIL
+  elif [[ ! -f "$golden" ]]; then
+    status=NEW
+  elif diff -u "$golden" "$frame" > "$REPORT_DIR/${flow}-flow.diff" 2>&1; then
+    status=PASS
+    rm -f "$REPORT_DIR/${flow}-flow.diff"
+  else
+    status=FAIL
+  fi
+
+  printf '%s\t%s\n' "$flow" "$status" >> "$REPORT_DIR/status.tsv"
+  SUMMARY+=("$flow $status")
+
+  if [[ "$status" != "PASS" ]]; then
+    overall=1
+    echo "$flow" >> "$REPORT_DIR/changed.txt"
+    cp -f "$OUT_DIR/${flow}-flow.gif" "$REPORT_DIR/${flow}-flow.gif" 2>/dev/null || true
+    cp -f "$frame" "$REPORT_DIR/${flow}-flow.frame.txt" 2>/dev/null || true
+    [[ -f "$golden" ]] && cp -f "$golden" "$REPORT_DIR/${flow}-flow.golden.txt"
+    echo "    $status (recorded; see report)"
+  else
+    echo "    PASS"
+  fi
+done
+
+echo
+echo "==> summary"
+for line in "${SUMMARY[@]}"; do
+  echo "    $line"
+done
+
+if [[ "$UPDATE" == "1" ]]; then
+  exit "$overall"
+fi
+
+if [[ "$overall" -ne 0 ]]; then
+  echo "==> FAIL: $(wc -l < "$REPORT_DIR/changed.txt" | tr -d ' ') flow(s) changed or new (re-run with --update to accept)" >&2
+else
+  echo "==> PASS: all ${#FLOWS[@]} flow(s) match their golden"
+fi
+exit "$overall"

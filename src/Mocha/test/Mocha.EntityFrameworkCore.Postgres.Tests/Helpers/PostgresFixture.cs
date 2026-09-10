@@ -1,4 +1,4 @@
-using Squadron;
+using CookieCrumble.Resources;
 
 namespace Mocha.EntityFrameworkCore.Postgres.Tests.Helpers;
 
@@ -6,12 +6,12 @@ public sealed class PostgresFixture : IAsyncLifetime
 {
     private readonly PostgreSqlResource _resource = new();
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _resource.InitializeAsync();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _resource.DisposeAsync();
     }

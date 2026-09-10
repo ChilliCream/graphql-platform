@@ -260,7 +260,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.authorables<Discussion>.author
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -278,7 +278,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.authorables.author
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

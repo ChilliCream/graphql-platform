@@ -30,6 +30,32 @@ public sealed class ProvidesOnNonCompositeFieldRuleTests : RuleTestBase
         ]);
     }
 
+    [Theory]
+    [InlineData("Media")]
+    [InlineData("[Media]")]
+    [InlineData("[Media!]!")]
+    public void Validate_Should_Succeed_When_FieldReturnsUnion(string mediaType)
+    {
+        AssertValid(
+        [
+            $$"""
+            type Query {
+                media: {{mediaType}} @provides(fields: "... on Book { title }")
+            }
+
+            union Media = Book | Movie
+
+            type Book {
+                title: String @external
+            }
+
+            type Movie {
+                title: String
+            }
+            """
+        ]);
+    }
+
     // In this example, "email" has a scalar base type (String). Because scalars do not expose
     // sub-fields, attaching @provides to "email" triggers a PROVIDES_ON_NON_COMPOSITE_FIELD error.
     [Fact]

@@ -142,7 +142,7 @@ public class SortConventionExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.Operations,
+            convention.DefinitionAccessor.Operations,
             x => Assert.Equal(1, x.Id),
             x => Assert.Equal(2, x.Id));
     }
@@ -168,8 +168,8 @@ public class SortConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
-        Assert.Contains(typeof(int), convention.DefinitionAccessor!.Bindings);
-        Assert.Contains(typeof(double), convention.DefinitionAccessor!.Bindings);
+        Assert.Contains(typeof(int), convention.DefinitionAccessor.Bindings);
+        Assert.Contains(typeof(double), convention.DefinitionAccessor.Bindings);
     }
 
     [Fact]
@@ -194,7 +194,7 @@ public class SortConventionExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         var configuration =
-            Assert.Single(convention.DefinitionAccessor!.Configurations.Values);
+            Assert.Single(convention.DefinitionAccessor.Configurations.Values);
         Assert.Equal(2, configuration.Count);
     }
 
@@ -219,7 +219,7 @@ public class SortConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
-        Assert.Equal(2, convention.DefinitionAccessor!.Configurations.Count);
+        Assert.Equal(2, convention.DefinitionAccessor.Configurations.Count);
     }
 
     [Fact]
@@ -244,7 +244,7 @@ public class SortConventionExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         var configuration =
-            Assert.Single(convention.DefinitionAccessor!.EnumConfigurations.Values);
+            Assert.Single(convention.DefinitionAccessor.EnumConfigurations.Values);
         Assert.Equal(2, configuration.Count);
     }
 
@@ -269,7 +269,7 @@ public class SortConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
-        Assert.Equal(2, convention.DefinitionAccessor!.EnumConfigurations.Count);
+        Assert.Equal(2, convention.DefinitionAccessor.EnumConfigurations.Count);
     }
 
     [Fact]
@@ -294,7 +294,7 @@ public class SortConventionExtensionsTests
 
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
-        Assert.Equal(2, convention.DefinitionAccessor!.ProviderExtensionsTypes.Count);
+        Assert.Equal(2, convention.DefinitionAccessor.ProviderExtensionsTypes.Count);
     }
 
     [Fact]
@@ -319,7 +319,7 @@ public class SortConventionExtensionsTests
         // assert
         Assert.NotNull(convention.DefinitionAccessor);
         Assert.Collection(
-            convention.DefinitionAccessor!.ProviderExtensions,
+            convention.DefinitionAccessor.ProviderExtensions,
             x => Assert.Equal(provider1, x),
             x => Assert.Equal(provider2, x));
     }

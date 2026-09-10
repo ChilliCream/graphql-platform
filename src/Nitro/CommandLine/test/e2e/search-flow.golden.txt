@@ -1,0 +1,35 @@
+ [T]asks   [M]ail   [A]gents   M[e]mory
+> status:open pricing
+╭─Results─────────────────────────────────────╮╭─acme-epic1 Launch v2 pricing page──╮
+│   ○ [E] P1 acme-epic1 Launch v2 pricing     ││ Blocks                             │
+│ page                                        ││                                    │
+│ 1 task(s)                                   ││ > ● parent-child <- acme-epic1.1 … │
+╰─────────────────────────────────────────────╯│   ○ parent-child <- acme-epic1.2 … │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               │                                    │
+                                               ╰────────────────────────────────────╯
+                                               ╭─Details────────────────────────────╮
+                                               │ ○ open                             │
+                                               │ Priority: P1                       │
+                                               │ Type: epic                         │
+                                               │                                    │
+                                               │ Created: 2026-01-01 09:00 by       │
+                                               │ e2e-agent                          │
+                                               │ Updated: 2026-01-01 09:00          │
+                                               │                                    │
+                                               │ Blocked by:                        │
+                                               │ acme-epic1.1:child-open,           │
+                                               │ acme-epic1.2:child-open            │
+                                               ╰────────────────────────────────────╯
+esc back  tab open  hjkl move  enter open  r refresh  y copy id  z zoom  q quit  …

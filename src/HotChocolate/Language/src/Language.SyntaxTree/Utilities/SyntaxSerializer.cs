@@ -131,6 +131,9 @@ public sealed partial class SyntaxSerializer
             case SyntaxKind.InputObjectTypeExtension:
                 VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node, writer);
                 break;
+            case SyntaxKind.DirectiveExtension:
+                VisitDirectiveExtension((DirectiveExtensionNode)node, writer);
+                break;
             case SyntaxKind.SchemaCoordinate:
                 VisitSchemaCoordinate((SchemaCoordinateNode)node, writer);
                 break;
@@ -217,6 +220,9 @@ public sealed partial class SyntaxSerializer
                 break;
             case SyntaxKind.InputObjectTypeExtension:
                 VisitInputObjectTypeExtension((InputObjectTypeExtensionNode)node, writer);
+                break;
+            case SyntaxKind.DirectiveExtension:
+                VisitDirectiveExtension((DirectiveExtensionNode)node, writer);
                 break;
             default:
                 ThrowHelper.NodeKindIsNotSupported(node.Kind);

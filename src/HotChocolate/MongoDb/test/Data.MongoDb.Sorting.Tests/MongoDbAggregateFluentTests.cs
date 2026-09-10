@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -7,11 +8,10 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
-public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture<MongoResource>
+public class MongoDbAggregateFluentTests(MongoResource resource)
 {
     private static readonly Foo[] s_fooEntities =
     [
@@ -41,19 +41,21 @@ public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { bar: ASC}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { bar: DESC}){ bar}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1, "ASC")
             .AddResult(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -79,19 +81,21 @@ public class MongoDbAggregateFluentTests(MongoResource resource) : IClassFixture
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { baz: ASC}){ baz}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { baz: DESC}){ baz}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1, "ASC")
             .AddResult(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

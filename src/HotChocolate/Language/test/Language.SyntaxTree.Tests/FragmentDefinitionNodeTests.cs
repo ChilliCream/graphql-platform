@@ -135,4 +135,40 @@ public class FragmentDefinitionNodeTests
         Assert.Equal(cHash, dHash);
         Assert.NotEqual(aHash, dHash);
     }
+
+    [Fact]
+    public void GetNodes_Should_YieldVariableDefinitionsBetweenNameAndTypeCondition()
+    {
+        // arrange
+        var a = new FragmentDefinitionNode(
+            new Location(1, 1, 1, 1),
+            new("aa"),
+            description: null,
+            new List<VariableDefinitionNode>
+            {
+                new(
+                    null,
+                    new VariableNode("bb"),
+                    description: null,
+                    new NamedTypeNode("Int"),
+                    defaultValue: null,
+                    new List<DirectiveNode>())
+            },
+            new NamedTypeNode("cc"),
+            new List<DirectiveNode>(),
+            new SelectionSetNode(new List<ISelectionNode>()));
+
+        // act
+        var kinds = a.GetNodes().Select(t => t.Kind).ToArray();
+
+        // assert
+        Assert.Equal(
+            [
+                SyntaxKind.Name,
+                SyntaxKind.VariableDefinition,
+                SyntaxKind.NamedType,
+                SyntaxKind.SelectionSet
+            ],
+            kinds);
+    }
 }

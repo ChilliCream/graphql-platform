@@ -129,6 +129,12 @@ internal sealed class OperationExecutionMiddleware
                 resultBuffer,
                 variableSets.Length);
 
+            // Incremental batch items return response streams that are consumed after the request
+            // pipeline has completed. We transfer ownership of each streamed item's operation
+            // context into its stream so the context is only cleaned and returned to the pool once
+            // the stream has been fully consumed, mirroring the single operation path.
+            TransferStreamedContextOwnership(operationContextBuffer, resultBuffer, variableSets.Length);
+
             context.Result = new OperationResultBatch([.. resultBuffer.AsSpan(0, variableSets.Length)]);
         }
         catch (OperationCanceledException)
@@ -172,6 +178,24 @@ internal sealed class OperationExecutionMiddleware
             operationContexts[variableIndex] = operationContextOwner;
         }
 
+        static void TransferStreamedContextOwnership(
+            OperationContextOwner[] operationContextBuffer,
+            IExecutionResult[] resultBuffer,
+            int length)
+        {
+            for (var i = 0; i < length; i++)
+            {
+                if (resultBuffer[i].IsStreamResult() && operationContextBuffer[i] is { } contextOwner)
+                {
+                    resultBuffer[i].RegisterForCleanup(contextOwner);
+
+                    // Ownership now belongs to the stream, so we drop it from the buffer to keep
+                    // ReleaseResources from disposing (and pooling) the context a second time.
+                    operationContextBuffer[i] = null!;
+                }
+            }
+        }
+
         static void AbandonContexts(ref OperationContextOwner[]? operationContextBuffer, int length)
         {
             if (operationContextBuffer is not null)
@@ -201,7 +225,9 @@ internal sealed class OperationExecutionMiddleware
 
             foreach (var contextOwner in contextOwners)
             {
-                contextOwner.Dispose();
+                // Owners transferred to a response stream are cleared from the buffer and are
+                // disposed by that stream once it has been consumed, so we skip them here.
+                contextOwner?.Dispose();
             }
 
             contextOwners.Clear();

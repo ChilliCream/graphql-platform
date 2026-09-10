@@ -15,7 +15,7 @@ public class BuiltInTypesShareableTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act/assert
         schema.MatchSnapshot();
@@ -30,7 +30,7 @@ public class BuiltInTypesShareableTests
             .AddApolloFederation()
             .AddQueryType<Query>()
             .AddType(typeof(ShareableDirective))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act/assert
         schema.MatchSnapshot();

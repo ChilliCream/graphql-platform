@@ -30,6 +30,17 @@ public interface IObjectTypeDescriptor
     IObjectTypeDescriptor Description(string? value);
 
     /// <summary>
+    /// Deprecates the object type.
+    /// </summary>
+    /// <param name="reason">The reason why this object type is deprecated.</param>
+    IObjectTypeDescriptor Deprecated(string? reason);
+
+    /// <summary>
+    /// Deprecates the object type.
+    /// </summary>
+    IObjectTypeDescriptor Deprecated();
+
+    /// <summary>
     /// Specifies an interface that is implemented by the
     /// <see cref="ObjectType"/>.
     /// </summary>

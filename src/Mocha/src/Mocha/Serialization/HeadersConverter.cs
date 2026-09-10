@@ -1,5 +1,9 @@
+using System.Collections;
+using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Mocha;
 
@@ -16,8 +20,25 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
     /// <summary>
     /// Gets pre-configured <see cref="JsonSerializerOptions"/> with this converter registered.
     /// </summary>
-    public static readonly JsonSerializerOptions Options = new() { Converters = { Instance } };
+    public static readonly JsonSerializerOptions Options = CreateOptions();
 
+    private static JsonSerializerOptions CreateOptions()
+    {
+        var options = new JsonSerializerOptions
+        {
+            Converters = { Instance },
+
+            // left unset, the serializer installs the reflection-based resolver on first use
+            TypeInfoResolver = new HeadersTypeInfoResolver()
+        };
+
+        // the writer and reader use the converter directly, so nothing else seals these
+        options.MakeReadOnly();
+
+        return options;
+    }
+
+    /// <inheritdoc />
     public override Headers? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.Null)
@@ -54,6 +75,7 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
         throw new JsonException("Unexpected end of JSON");
     }
 
+    /// <inheritdoc />
     public override void Write(Utf8JsonWriter writer, IHeaders value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
@@ -61,7 +83,7 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
         foreach (var header in value)
         {
             writer.WritePropertyName(header.Key);
-            WriteValue(writer, header.Value, options);
+            WriteValue(writer, header.Value, options, header.Key);
         }
 
         writer.WriteEndObject();
@@ -81,10 +103,6 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
                 return false;
 
             case JsonTokenType.String:
-                if (reader.TryGetDateTime(out var dateTime))
-                {
-                    return dateTime;
-                }
                 return reader.GetString();
 
             case JsonTokenType.Number:
@@ -95,6 +113,10 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
                 if (reader.TryGetInt64(out var longValue))
                 {
                     return longValue;
+                }
+                if (reader.TryGetUInt64(out var ulongValue))
+                {
+                    return ulongValue;
                 }
                 if (reader.TryGetDouble(out var doubleValue))
                 {
@@ -155,7 +177,7 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
         throw new JsonException("Unexpected end of JSON in array");
     }
 
-    private static void WriteValue(Utf8JsonWriter writer, object? value, JsonSerializerOptions options)
+    private static void WriteValue(Utf8JsonWriter writer, object? value, JsonSerializerOptions options, string key)
     {
         switch (value)
         {
@@ -169,6 +191,22 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
 
             case string stringValue:
                 writer.WriteStringValue(stringValue);
+                break;
+
+            case byte[] bytesValue:
+                writer.WriteBase64StringValue(bytesValue);
+                break;
+
+            case ArraySegment<byte> bytesSegment:
+                writer.WriteBase64StringValue(bytesSegment);
+                break;
+
+            case ReadOnlyMemory<byte> bytesMemory:
+                writer.WriteBase64StringValue(bytesMemory.Span);
+                break;
+
+            case Memory<byte> writableBytesMemory:
+                writer.WriteBase64StringValue(writableBytesMemory.Span);
                 break;
 
             case int intValue:
@@ -207,23 +245,18 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
                 jsonDocument.RootElement.WriteTo(writer);
                 break;
 
+            case JsonNode jsonNode:
+                jsonNode.WriteTo(writer);
+                break;
+
             case IDictionary<string, object?> dictionary:
                 writer.WriteStartObject();
                 foreach (var kvp in dictionary)
                 {
                     writer.WritePropertyName(kvp.Key);
-                    WriteValue(writer, kvp.Value, options);
+                    WriteValue(writer, kvp.Value, options, key);
                 }
                 writer.WriteEndObject();
-                break;
-
-            case IEnumerable<object?> enumerable:
-                writer.WriteStartArray();
-                foreach (var item in enumerable)
-                {
-                    WriteValue(writer, item, options);
-                }
-                writer.WriteEndArray();
                 break;
 
             case IReadOnlyHeaders headers:
@@ -231,15 +264,139 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
                 foreach (var header in headers)
                 {
                     writer.WritePropertyName(header.Key);
-                    WriteValue(writer, header.Value, options);
+                    WriteValue(writer, header.Value, options, key);
                 }
                 writer.WriteEndObject();
                 break;
 
-            default:
-                // Fallback to default serialization for unknown types
-                JsonSerializer.Serialize(writer, value, value.GetType(), options);
+            case Guid g:
+                writer.WriteStringValue(g);
                 break;
+
+            case TimeSpan t:
+                writer.WriteStringValue(t.ToString("c", CultureInfo.InvariantCulture));
+                break;
+
+            case Uri u:
+                writer.WriteStringValue(u.OriginalString);
+                break;
+
+            case DateOnly d:
+                writer.WriteStringValue(d.ToString("O", CultureInfo.InvariantCulture));
+                break;
+
+            case TimeOnly to:
+                writer.WriteStringValue(to.ToString("O", CultureInfo.InvariantCulture));
+                break;
+
+            case Enum e:
+                writer.WriteStringValue(e.ToString());
+                break;
+
+            case short s:
+                writer.WriteNumberValue(s);
+                break;
+
+            case ushort us:
+                writer.WriteNumberValue(us);
+                break;
+
+            case byte b:
+                writer.WriteNumberValue(b);
+                break;
+
+            case sbyte sb:
+                writer.WriteNumberValue(sb);
+                break;
+
+            case uint ui:
+                writer.WriteNumberValue(ui);
+                break;
+
+            case ulong ul:
+                writer.WriteNumberValue(ul);
+                break;
+
+            case char c:
+                writer.WriteStringValue([c]);
+                break;
+
+            case IDictionary dictionary:
+                WriteDictionary(writer, dictionary, options, key);
+                break;
+
+            case IEnumerable enumerable:
+                writer.WriteStartArray();
+                foreach (var item in enumerable)
+                {
+                    WriteValue(writer, item, options, key);
+                }
+                writer.WriteEndArray();
+                break;
+
+            default:
+                WriteUnknownValue(writer, value, options, key);
+                break;
+        }
+    }
+
+    private static void WriteDictionary(
+        Utf8JsonWriter writer,
+        IDictionary dictionary,
+        JsonSerializerOptions options,
+        string key)
+    {
+        writer.WriteStartObject();
+
+        foreach (DictionaryEntry entry in dictionary)
+        {
+            if (entry.Key is not string name)
+            {
+                throw ThrowHelper.HeaderDictionaryKeyMustBeString(key, entry.Key);
+            }
+
+            writer.WritePropertyName(name);
+            WriteValue(writer, entry.Value, options, key);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static void WriteUnknownValue(
+        Utf8JsonWriter writer,
+        object value,
+        JsonSerializerOptions options,
+        string key)
+    {
+        try
+        {
+            JsonSerializer.Serialize(writer, value, options.GetTypeInfo(value.GetType()));
+        }
+        catch (NotSupportedException ex)
+        {
+            throw ThrowHelper.HeaderValueNotSupported(key, value, ex);
+        }
+    }
+
+    /// <summary>
+    /// Resolves JSON type metadata for headers, and for nothing else.
+    /// </summary>
+    private sealed class HeadersTypeInfoResolver : IJsonTypeInfoResolver
+    {
+        public JsonTypeInfo? GetTypeInfo(Type type, JsonSerializerOptions options)
+        {
+            if (type == typeof(IHeaders))
+            {
+                return JsonMetadataServices.CreateValueInfo<IHeaders>(options, Instance);
+            }
+
+            // the concrete type Read returns
+            if (type == typeof(Headers))
+            {
+                return JsonMetadataServices.CreateValueInfo<Headers>(options, Instance);
+            }
+
+            return null;
         }
     }
 }

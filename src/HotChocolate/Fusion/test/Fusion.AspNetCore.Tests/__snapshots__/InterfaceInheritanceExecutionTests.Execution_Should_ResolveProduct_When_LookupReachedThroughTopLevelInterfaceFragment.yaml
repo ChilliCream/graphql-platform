@@ -1,0 +1,411 @@
+title: Execution_Should_ResolveProduct_When_LookupReachedThroughTopLevelInterfaceFragment
+request:
+  document: |
+    {
+      orders {
+        ... on OrderBase {
+          items {
+            product {
+              id
+              name
+              description
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "orders": [
+          {
+            "items": [
+              {
+                "product": {
+                  "id": "UHJvZHVjdDoxOQ==",
+                  "name": "Product: UHJvZHVjdDoxOQ==",
+                  "description": "Product: UHJvZHVjdDoxOQ=="
+                }
+              },
+              {
+                "product": {
+                  "id": "UHJvZHVjdDoyMA==",
+                  "name": "Product: UHJvZHVjdDoyMA==",
+                  "description": "Product: UHJvZHVjdDoyMA=="
+                }
+              },
+              {
+                "product": {
+                  "id": "UHJvZHVjdDoyMQ==",
+                  "name": "Product: UHJvZHVjdDoyMQ==",
+                  "description": "Product: UHJvZHVjdDoyMQ=="
+                }
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "product": {
+                  "id": "UHJvZHVjdDoxNg==",
+                  "name": "Product: UHJvZHVjdDoxNg==",
+                  "description": "Product: UHJvZHVjdDoxNg=="
+                }
+              },
+              {
+                "product": {
+                  "id": "UHJvZHVjdDoxNw==",
+                  "name": "Product: UHJvZHVjdDoxNw==",
+                  "description": "Product: UHJvZHVjdDoxNw=="
+                }
+              },
+              {
+                "product": {
+                  "id": "UHJvZHVjdDoxOA==",
+                  "name": "Product: UHJvZHVjdDoxOA==",
+                  "description": "Product: UHJvZHVjdDoxOA=="
+                }
+              }
+            ]
+          },
+          {
+            "items": [
+              {
+                "product": {
+                  "id": "UHJvZHVjdDoxMw==",
+                  "name": "Product: UHJvZHVjdDoxMw==",
+                  "description": "Product: UHJvZHVjdDoxMw=="
+                }
+              },
+              {
+                "product": {
+                  "id": "UHJvZHVjdDoxNA==",
+                  "name": "Product: UHJvZHVjdDoxNA==",
+                  "description": "Product: UHJvZHVjdDoxNA=="
+                }
+              },
+              {
+                "product": {
+                  "id": "UHJvZHVjdDoxNQ==",
+                  "name": "Product: UHJvZHVjdDoxNQ==",
+                  "description": "Product: UHJvZHVjdDoxNQ=="
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: ordering
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        orders: [OrderBase]
+      }
+
+      type OrderA implements MultiOrderBase & OrderBase {
+        name: String
+        items: [OrderItem!]
+      }
+
+      type OrderB implements MultiOrderBase & OrderBase {
+        name: String
+        items: [OrderItem!]
+      }
+
+      type OrderItem {
+        product: Product
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+
+      interface MultiOrderBase implements OrderBase {
+        name: String
+        items: [OrderItem!]
+      }
+
+      interface OrderBase {
+        name: String
+        items: [OrderItem!]
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d01bd81b_1 {
+              orders {
+                __typename
+                items {
+                  product {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "orders": [
+                    {
+                      "__typename": "OrderA",
+                      "items": [
+                        {
+                          "product": {
+                            "id": "UHJvZHVjdDoxOQ=="
+                          }
+                        },
+                        {
+                          "product": {
+                            "id": "UHJvZHVjdDoyMA=="
+                          }
+                        },
+                        {
+                          "product": {
+                            "id": "UHJvZHVjdDoyMQ=="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "__typename": "OrderB",
+                      "items": [
+                        {
+                          "product": {
+                            "id": "UHJvZHVjdDoxNg=="
+                          }
+                        },
+                        {
+                          "product": {
+                            "id": "UHJvZHVjdDoxNw=="
+                          }
+                        },
+                        {
+                          "product": {
+                            "id": "UHJvZHVjdDoxOA=="
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "__typename": "OrderA",
+                      "items": [
+                        {
+                          "product": {
+                            "id": "UHJvZHVjdDoxMw=="
+                          }
+                        },
+                        {
+                          "product": {
+                            "id": "UHJvZHVjdDoxNA=="
+                          }
+                        },
+                        {
+                          "product": {
+                            "id": "UHJvZHVjdDoxNQ=="
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+  - name: products
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID! @is(field: "id")): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String
+        description: String
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_d01bd81b_2($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                name
+                description
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxOQ=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoyMA=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoyMQ=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxNg=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxNw=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxOA=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxMw=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxNA=="
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoxNQ=="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxOQ==",
+                    "description": "Product: UHJvZHVjdDoxOQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoyMA==",
+                    "description": "Product: UHJvZHVjdDoyMA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoyMQ==",
+                    "description": "Product: UHJvZHVjdDoyMQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxNg==",
+                    "description": "Product: UHJvZHVjdDoxNg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxNw==",
+                    "description": "Product: UHJvZHVjdDoxNw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxOA==",
+                    "description": "Product: UHJvZHVjdDoxOA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxMw==",
+                    "description": "Product: UHJvZHVjdDoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxNA==",
+                    "description": "Product: UHJvZHVjdDoxNA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDoxNQ==",
+                    "description": "Product: UHJvZHVjdDoxNQ=="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          orders {
+            __typename @fusion__requirement
+            items {
+              product {
+                id
+                id @fusion__requirement
+                name
+                description
+              }
+            }
+          }
+        }
+      hash: d01bd81be0874c647cb11a3d95317e4d
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: ordering
+      operation: |
+        query Op_d01bd81b_1 {
+          orders {
+            __typename
+            items {
+              product {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: products
+      operation: |
+        query Op_d01bd81b_2($__fusion_1_id: ID!) {
+          productById(id: $__fusion_1_id) {
+            name
+            description
+          }
+        }
+      source: $.productById
+      target: $.orders.items.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

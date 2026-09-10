@@ -16,9 +16,9 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
 {
     protected static ResourceContainer Container { get; } = new();
 
-    public async Task InitializeAsync() => await Container.InitializeAsync();
+    public async ValueTask InitializeAsync() => await Container.InitializeAsync();
 
-    public async Task DisposeAsync() => await Container.DisposeAsync();
+    public async ValueTask DisposeAsync() => await Container.DisposeAsync();
 
     protected T[] CreateEntity<T>(params T[] entities) => entities;
 

@@ -1,0 +1,336 @@
+title: Defer_MixedSubgraphFields_Should_KeepBothFields_When_SameAndForeignSubgraphSplit
+request:
+  document: |
+    {
+      users {
+        name
+        ... @defer {
+          birthdate
+          reviewCount
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "users": [
+          {
+            "name": "User: VXNlcjox"
+          },
+          {
+            "name": "User: VXNlcjoy"
+          },
+          {
+            "name": "User: VXNlcjoz"
+          }
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "birthdate": "User: VXNlcjox",
+          "reviewCount": 123
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "birthdate": "User: VXNlcjoy",
+          "reviewCount": 123
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "birthdate": "User: VXNlcjoz",
+          "reviewCount": 123
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "users": [
+          {
+            "birthdate": "User: VXNlcjox",
+            "name": "User: VXNlcjox",
+            "reviewCount": 123
+          },
+          {
+            "birthdate": "User: VXNlcjoy",
+            "name": "User: VXNlcjoy",
+            "reviewCount": 123
+          },
+          {
+            "birthdate": "User: VXNlcjoz",
+            "name": "User: VXNlcjoz",
+            "reviewCount": 123
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: accounts
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+        userById(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+        birthdate: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_dd49dded_1 {
+              users {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "name": "User: VXNlcjox",
+                      "id": "VXNlcjox"
+                    },
+                    {
+                      "name": "User: VXNlcjoy",
+                      "id": "VXNlcjoy"
+                    },
+                    {
+                      "name": "User: VXNlcjoz",
+                      "id": "VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_2($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
+                birthdate
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "VXNlcjox"
+              },
+              {
+                "__fusion_2_id": "VXNlcjoy"
+              },
+              {
+                "__fusion_2_id": "VXNlcjoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "birthdate": "User: VXNlcjox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "birthdate": "User: VXNlcjoy"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "birthdate": "User: VXNlcjoz"
+                  }
+                }
+              }
+  - name: reviews
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup @internal
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        reviewCount: Int!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                reviewCount
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "VXNlcjox"
+              },
+              {
+                "__fusion_1_id": "VXNlcjoy"
+              },
+              {
+                "__fusion_1_id": "VXNlcjoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "reviewCount": 123
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "reviewCount": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          users {
+            name
+            id @fusion__requirement
+          }
+        }
+      hash: dd49dded91f543a2b995f3b26da18a2d
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: accounts
+      operation: |
+        query Op_dd49dded_1 {
+          users {
+            name
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.users
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: reviews
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                reviewCount
+              }
+            }
+          source: $.userById
+          target: $.users
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1
+        - id: 2
+          type: Operation
+          schema: accounts
+          operation: |
+            query Op_defer_2($__fusion_2_id: ID!) {
+              userById(id: $__fusion_2_id) {
+                birthdate
+              }
+            }
+          source: $.userById
+          target: $.users
+          requirements:
+            - name: __fusion_2_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

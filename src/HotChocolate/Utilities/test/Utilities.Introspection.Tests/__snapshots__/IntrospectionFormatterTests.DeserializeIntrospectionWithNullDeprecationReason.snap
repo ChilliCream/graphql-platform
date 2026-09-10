@@ -116,7 +116,7 @@ type Question {
   id: ID
   question: String
   userId: Int
-  deprecatedNullReason: Int @deprecated(reason: "No longer supported.")
+  deprecatedNullReason: Int @deprecated
 }
 
 "Built-in ID"

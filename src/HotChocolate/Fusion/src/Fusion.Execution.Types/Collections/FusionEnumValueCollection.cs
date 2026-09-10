@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Collections;
@@ -15,6 +16,7 @@ public sealed class FusionEnumValueCollection
     private readonly FusionEnumValue[] _values;
     private readonly int _length;
     private readonly FrozenDictionary<string, FusionEnumValue> _map;
+    private readonly byte[][] _utf8AccessibleNames;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FusionEnumValueCollection"/> class.
@@ -29,6 +31,7 @@ public sealed class FusionEnumValueCollection
         _map = values.ToFrozenDictionary(t => t.Name);
         _values = values;
         _values.PartitionByAccessibility(out _length);
+        _utf8AccessibleNames = BuildUtf8AccessibleNames(_values, _length);
     }
 
     /// <summary>
@@ -259,6 +262,89 @@ public sealed class FusionEnumValueCollection
         }
 
         return _map.TryGetValue(name, out var value) && !value.IsInaccessible;
+    }
+
+    /// <summary>
+    /// Determines whether the collection contains an accessible enum value whose
+    /// name matches the specified UTF-8 encoded <paramref name="utf8Name"/>.
+    /// </summary>
+    /// <param name="utf8Name">
+    /// The GraphQL enum value name as UTF-8 bytes.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if the collection contains an accessible enum value with the
+    /// specified name; otherwise, <c>false</c>.
+    /// </returns>
+    public bool ContainsName(ReadOnlySpan<byte> utf8Name)
+    {
+        var utf8Names = _utf8AccessibleNames;
+        var count = utf8Names.Length;
+
+        if (count <= 8)
+        {
+            for (var i = 0; i < count; i++)
+            {
+                if (utf8Name.SequenceEqual(utf8Names[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        var low = 0;
+        var high = count - 1;
+
+        while (low <= high)
+        {
+            var mid = low + ((high - low) >> 1);
+            var comparison = CompareLengthThenBytes(utf8Names[mid], utf8Name);
+
+            if (comparison == 0)
+            {
+                return true;
+            }
+
+            if (comparison < 0)
+            {
+                low = mid + 1;
+            }
+            else
+            {
+                high = mid - 1;
+            }
+        }
+
+        return false;
+    }
+
+    private static byte[][] BuildUtf8AccessibleNames(FusionEnumValue[] values, int length)
+    {
+        var utf8Names = new byte[length][];
+
+        for (var i = 0; i < length; i++)
+        {
+            utf8Names[i] = Encoding.UTF8.GetBytes(values[i].Name);
+        }
+
+        // Sorted by length ascending then lexicographic byte order so the span
+        // lookup can binary search with a length-first comparison.
+        Array.Sort(utf8Names, static (a, b) => CompareLengthThenBytes(a, b));
+
+        return utf8Names;
+    }
+
+    private static int CompareLengthThenBytes(ReadOnlySpan<byte> x, ReadOnlySpan<byte> y)
+    {
+        var lengthComparison = x.Length - y.Length;
+
+        if (lengthComparison != 0)
+        {
+            return lengthComparison;
+        }
+
+        return x.SequenceCompareTo(y);
     }
 
     /// <summary>

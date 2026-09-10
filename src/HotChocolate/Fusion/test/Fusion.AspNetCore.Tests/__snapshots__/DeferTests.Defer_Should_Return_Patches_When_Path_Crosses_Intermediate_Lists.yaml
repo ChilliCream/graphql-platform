@@ -1,0 +1,386 @@
+title: Defer_Should_Return_Patches_When_Path_Crosses_Intermediate_Lists
+request:
+  document: |
+    {
+      users {
+        nodes {
+          reviews {
+            product {
+              name
+              ... @defer(label: "dimension") {
+                dimension {
+                  height
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "users": {
+          "nodes": [
+            {
+              "reviews": [
+                {
+                  "product": {
+                    "name": "Table"
+                  }
+                },
+                {
+                  "product": {
+                    "name": "Chair"
+                  }
+                }
+              ]
+            },
+            {
+              "reviews": [
+                {
+                  "product": {
+                    "name": "Couch"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "users",
+          "nodes"
+        ],
+        "label": "dimension"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "users",
+          "nodes"
+        ],
+        "subPath": [
+          0,
+          "reviews",
+          0,
+          "product"
+        ],
+        "data": {
+          "dimension": {
+            "height": 30.0
+          }
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users",
+          "nodes"
+        ],
+        "subPath": [
+          0,
+          "reviews",
+          1,
+          "product"
+        ],
+        "data": {
+          "dimension": {
+            "height": 40.0
+          }
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users",
+          "nodes"
+        ],
+        "subPath": [
+          1,
+          "reviews",
+          0,
+          "product"
+        ],
+        "data": {
+          "dimension": {
+            "height": 50.0
+          }
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "users": {
+          "nodes": [
+            {
+              "reviews": [
+                {
+                  "product": {
+                    "dimension": {
+                      "height": 30.0
+                    },
+                    "name": "Table"
+                  }
+                },
+                {
+                  "product": {
+                    "dimension": {
+                      "height": 40.0
+                    },
+                    "name": "Chair"
+                  }
+                }
+              ]
+            },
+            {
+              "reviews": [
+                {
+                  "product": {
+                    "dimension": {
+                      "height": 50.0
+                    },
+                    "name": "Couch"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: UserConnection!
+      }
+
+      type DefaultUserConnection implements UserConnection {
+        nodes: [User!]!
+      }
+
+      type Dimension {
+        height: Float!
+      }
+
+      type Product {
+        name: String!
+        dimension: Dimension!
+      }
+
+      type Review {
+        product: Product!
+      }
+
+      type User {
+        reviews: [Review!]!
+      }
+
+      interface UserConnection {
+        nodes: [User!]!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_63ddfa41_1 {
+              users {
+                __typename
+                nodes {
+                  reviews {
+                    product {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "users": {
+                    "__typename": "DefaultUserConnection",
+                    "nodes": [
+                      {
+                        "reviews": [
+                          {
+                            "product": {
+                              "name": "Table",
+                              "dimension": {
+                                "height": 30.0
+                              }
+                            }
+                          },
+                          {
+                            "product": {
+                              "name": "Chair",
+                              "dimension": {
+                                "height": 40.0
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "reviews": [
+                          {
+                            "product": {
+                              "name": "Couch",
+                              "dimension": {
+                                "height": 50.0
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1 {
+              users {
+                __typename
+                nodes {
+                  reviews {
+                    product {
+                      dimension {
+                        height
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "users": {
+                    "__typename": "DefaultUserConnection",
+                    "nodes": [
+                      {
+                        "reviews": [
+                          {
+                            "product": {
+                              "name": "Table",
+                              "dimension": {
+                                "height": 30.0
+                              }
+                            }
+                          },
+                          {
+                            "product": {
+                              "name": "Chair",
+                              "dimension": {
+                                "height": 40.0
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "reviews": [
+                          {
+                            "product": {
+                              "name": "Couch",
+                              "dimension": {
+                                "height": 50.0
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          users {
+            __typename @fusion__requirement
+            nodes {
+              reviews {
+                product {
+                  name
+                }
+              }
+            }
+          }
+        }
+      hash: 63ddfa416fc211d1615a0850fed56b9e
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_63ddfa41_1 {
+          users {
+            __typename
+            nodes {
+              reviews {
+                product {
+                  name
+                }
+              }
+            }
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.users.nodes.reviews.product
+      label: dimension
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_1 {
+              users {
+                __typename
+                nodes {
+                  reviews {
+                    product {
+                      dimension {
+                        height
+                      }
+                    }
+                  }
+                }
+              }
+            }

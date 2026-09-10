@@ -20,7 +20,7 @@ public class OperationTests
                     return arg.Length;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -41,7 +41,7 @@ public class OperationTests
                     return arg.Length;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class OperationTests
                     return arg.Length;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class OperationTests
                 internal static int GetInternal()
                     => 2;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class OperationTests
                 internal static int GetInternal()
                     => 2;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public class OperationTests
             {
                 public string Id { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -163,7 +163,7 @@ public class OperationTests
             {
                 public string Bar { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public class OperationTests
             {
                 public string Id { get; set; }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public class OperationTests
             {
 
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -235,7 +235,7 @@ public class OperationTests
                     return arg.Length;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -258,7 +258,7 @@ public class OperationTests
                     return arg.Length;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -281,7 +281,7 @@ public class OperationTests
                     return arg.Length;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -304,7 +304,7 @@ public class OperationTests
                     return arg.Length;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -327,7 +327,7 @@ public class OperationTests
                     return arg.Length;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -350,7 +350,7 @@ public class OperationTests
                     return arg.Length;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -378,7 +378,7 @@ public class OperationTests
                     yield return categoryId;
                 }
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -402,7 +402,7 @@ public class OperationTests
                 [Subscribe(With = nameof(OnFoo))]
                 public static Task<int> NotARealResolver() => Task.FromResult(0);
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -426,6 +426,6 @@ public class OperationTests
             }
 
             public record Product(int Id);
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

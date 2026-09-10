@@ -39,7 +39,8 @@ internal sealed class CapabilityInspector
             InspectArgumentDeprecationAsync(),
             InspectDirectiveTypeAsync(),
             InspectDirectivesAsync(),
-            InspectSchemaAsync());
+            InspectSchemaAsync(),
+            InspectTypeAsync());
 
     private async Task InspectArgumentDeprecationAsync()
     {
@@ -118,6 +119,9 @@ internal sealed class CapabilityInspector
                         },
                         {
                             "name": "isRepeatable"      # <--- and we are looking for this!
+                        },
+                        {
+                            "name": "isDeprecated"      # <--- and for this!
                         }
                     ]
                 }
@@ -145,6 +149,7 @@ internal sealed class CapabilityInspector
         {
             var locations = false;
             var isRepeatable = false;
+            var isDeprecated = false;
 
             foreach (var field in fields.EnumerateArray())
             {
@@ -168,7 +173,13 @@ internal sealed class CapabilityInspector
                     _features.HasRepeatableDirectives = true;
                 }
 
-                if (locations && isRepeatable)
+                if (fieldNameString.EqualsOrdinal("isDeprecated"))
+                {
+                    isDeprecated = true;
+                    _features.HasDirectiveDeprecation = true;
+                }
+
+                if (locations && isRepeatable && isDeprecated)
                 {
                     return;
                 }
@@ -319,6 +330,50 @@ internal sealed class CapabilityInspector
 
                 if (description && subscriptionType)
                 {
+                    return;
+                }
+            }
+        }
+    }
+    private async Task InspectTypeAsync()
+    {
+        // Queries/inspect_type.graphql
+
+        /*
+        {
+            "data": {
+                "__type": {
+                    "fields": [
+                        {
+                            "name": "isDeprecated"      # <--- we are looking for this!
+                        }
+                    ]
+                }
+            }
+        }
+        */
+
+        var request = CreateInspectTypeRequest(_options);
+
+        using var response = await _client.SendAsync(request, _cancellationToken).ConfigureAwait(false);
+        using var result = await response.ReadAsResultAsync(_cancellationToken).ConfigureAwait(false);
+
+        if (result.Data.ValueKind is JsonValueKind.Object
+            && result.Data.TryGetProperty("__type", out var type)
+            && type.ValueKind is JsonValueKind.Object
+            && type.TryGetProperty("fields", out var fields))
+        {
+            foreach (var field in fields.EnumerateArray())
+            {
+                if (!field.TryGetProperty("name", out var fieldName)
+                    || fieldName.ValueKind is not JsonValueKind.String)
+                {
+                    return;
+                }
+
+                if (fieldName.GetString().EqualsOrdinal("isDeprecated"))
+                {
+                    _features.HasObjectDeprecation = true;
                     return;
                 }
             }

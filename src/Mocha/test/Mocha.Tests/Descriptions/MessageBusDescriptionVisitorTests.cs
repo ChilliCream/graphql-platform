@@ -80,9 +80,9 @@ public class MessageBusDescriptionVisitorTests
 
         // assert
         Assert.NotNull(description.Sagas);
-        Assert.NotEmpty(description.Sagas!);
+        Assert.NotEmpty(description.Sagas);
 
-        var saga = Assert.Single(description.Sagas!);
+        var saga = Assert.Single(description.Sagas);
         Assert.NotEmpty(saga.States);
         Assert.Contains(saga.States, s => s.Name == "__Initial");
 

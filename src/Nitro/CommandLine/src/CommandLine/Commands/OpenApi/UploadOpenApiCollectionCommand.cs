@@ -82,7 +82,8 @@ internal sealed class UploadOpenApiCollectionCommand : Command
             {
                 var errorMessage = error switch
                 {
-                    IOpenApiCollectionNotFoundError err => err.Message,
+                    IOpenApiCollectionNotFoundError err =>
+                        throw new NitroClientNotFoundException(err.Message),
                     IUnauthorizedOperation err => err.Message,
                     IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors_InvalidSourceMetadataInputError err => err.Message,
                     IDuplicatedTagError err => err.Message,

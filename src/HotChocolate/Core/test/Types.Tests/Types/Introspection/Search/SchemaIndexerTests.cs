@@ -192,6 +192,80 @@ public class SchemaIndexerTests
         Assert.Contains(documents, d => d.Coordinate == new SchemaCoordinate("Node", "id"));
     }
 
+    [Fact]
+    public void Index_Should_MapObjectToImplementedInterface_When_ObjectImplementsInterface()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("node")
+                .Type<NodeType>()
+                .Resolve(new NodeImpl { Id = "1" }))
+            .AddType<NodeType>()
+            .AddType<NodeImplType>()
+            .ModifyOptions(o => o.EnableSemanticIntrospection = false)
+            .Create();
+
+        // act
+        var abstractTypeMap = SchemaIndexer.Index(schema).AbstractTypeMap;
+
+        // assert
+        // NodeImpl is reachable through the Node interface it implements.
+        Assert.True(abstractTypeMap.ContainsKey("NodeImpl"));
+        Assert.Contains("Node", abstractTypeMap["NodeImpl"]);
+    }
+
+    [Fact]
+    public void Index_Should_MapMemberToUnion_When_TypeIsUnionMember()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("search")
+                .Type<SearchResultType>()
+                .Resolve(new Product("Test", 9.99m)))
+            .AddType<SearchResultType>()
+            .AddType<ProductType>()
+            .AddType<NodeImplType>()
+            .ModifyOptions(o => o.EnableSemanticIntrospection = false)
+            .Create();
+
+        // act
+        var abstractTypeMap = SchemaIndexer.Index(schema).AbstractTypeMap;
+
+        // assert
+        // Product is reachable through the SearchResult union it belongs to.
+        Assert.True(abstractTypeMap.ContainsKey("Product"));
+        Assert.Contains("SearchResult", abstractTypeMap["Product"]);
+    }
+
+    [Fact]
+    public void Index_Should_MapInterfaceToInterface_When_InterfaceImplementsInterface()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(d => d
+                .Name("Query")
+                .Field("node")
+                .Type<NodeType>()
+                .Resolve(new NodeImpl { Id = "1" }))
+            .AddType<NodeType>()
+            .AddType<ResourceType>()
+            .AddType<NodeImplType>()
+            .ModifyOptions(o => o.EnableSemanticIntrospection = false)
+            .Create();
+
+        // act
+        var abstractTypeMap = SchemaIndexer.Index(schema).AbstractTypeMap;
+
+        // assert
+        // Resource implements Node, so the interface to interface edge is recorded.
+        Assert.True(abstractTypeMap.ContainsKey("Resource"));
+        Assert.Contains("Node", abstractTypeMap["Resource"]);
+    }
+
     private static Schema CreateSchema(Action<IObjectTypeDescriptor> configure)
     {
         return SchemaBuilder.New()
@@ -262,6 +336,16 @@ public class SchemaIndexerTests
         }
     }
 
+    private sealed class ResourceType : InterfaceType
+    {
+        protected override void Configure(IInterfaceTypeDescriptor descriptor)
+        {
+            descriptor.Name("Resource");
+            descriptor.Implements<NodeType>();
+            descriptor.Field("id").Type<NonNullType<IdType>>();
+        }
+    }
+
     private sealed class NodeImplType : ObjectType<NodeImpl>
     {
         protected override void Configure(IObjectTypeDescriptor<NodeImpl> descriptor)
@@ -269,6 +353,16 @@ public class SchemaIndexerTests
             descriptor.Name("NodeImpl");
             descriptor.Implements<NodeType>();
             descriptor.Field(n => n.Id).Type<NonNullType<IdType>>();
+        }
+    }
+
+    private sealed class SearchResultType : UnionType
+    {
+        protected override void Configure(IUnionTypeDescriptor descriptor)
+        {
+            descriptor.Name("SearchResult");
+            descriptor.Type<ProductType>();
+            descriptor.Type<NodeImplType>();
         }
     }
 }

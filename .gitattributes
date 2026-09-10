@@ -4,6 +4,7 @@
 # Scripts with interpreter lines must have LF
 *.sh        text eol=lf
 *.bash      text eol=lf
+*.mjs       text eol=lf
 
 # Windows scripts
 *.bat       text eol=crlf

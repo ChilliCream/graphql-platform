@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.Serialization;
@@ -243,6 +244,52 @@ public class SchemaFormatterTests
 
             extend type Product {
               price: Float!
+            }
+            """);
+    }
+
+    [Fact]
+    public void Format_Single_Object_Type_Deprecated()
+    {
+        // arrange
+        // the deprecation state is set programmatically, so the formatter synthesizes @deprecated
+        const string sdl =
+            """
+            type Query {
+              foo: Foo
+            }
+
+            type Foo implements Bar {
+              id: ID
+            }
+
+            interface Bar {
+              id: ID
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        ((MutableObjectTypeDefinition)schema.Types["Foo"]).DeprecationReason = "Use Bar.";
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              foo: Foo
+            }
+
+            type Foo implements Bar @deprecated(reason: "Use Bar.") {
+              id: ID
+            }
+
+            interface Bar {
+              id: ID
             }
             """);
     }

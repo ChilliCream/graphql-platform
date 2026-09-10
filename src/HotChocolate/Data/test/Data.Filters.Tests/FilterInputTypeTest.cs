@@ -479,7 +479,8 @@ public class FilterInputTypeTest : FilterTestBase
 
         // act
         var result = await schema.MakeExecutable().ExecuteAsync(
-            """{ bars(where: { baz: { contains: "test" } }) { baz } }""");
+            """{ bars(where: { baz: { contains: "test" } }) { baz } }""",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

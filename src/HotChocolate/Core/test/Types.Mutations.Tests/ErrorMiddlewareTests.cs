@@ -29,13 +29,13 @@ public class ErrorMiddlewareTests
                 field => field.Error<InvalidOperationException>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -48,13 +48,13 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomException>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -67,13 +67,13 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomError>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -92,13 +92,13 @@ public class ErrorMiddlewareTests
                     .Error<ArgumentException>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -111,13 +111,13 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorWithFactory>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -130,13 +130,13 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorWithMultipleFactory>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -149,13 +149,13 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorWithMultipleFactoriesOfDifferentType>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -168,13 +168,13 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorWithMultipleFactoriesOfDifferentType>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -187,13 +187,13 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorNonStatic>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -206,7 +206,7 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorWithMultipleConstructors>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         AssertMappedPayloadError(res, "InvalidOperationException");
@@ -222,7 +222,7 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorWithMultipleConstructors>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         AssertMappedPayloadError(res, "NullReferenceException");
@@ -238,13 +238,13 @@ public class ErrorMiddlewareTests
                 field => field.Error<CustomErrorPayloadErrorFactory>());
 
         // Act
-        var res = await executor.ExecuteAsync(Query);
+        var res = await executor.ExecuteAsync(Query, TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -258,7 +258,8 @@ public class ErrorMiddlewareTests
                 b => b.AddErrorInterfaceType<CustomErrorInterfaceType>());
 
         // Act
-        var res = await executor.ExecuteAsync(@"
+        var res = await executor.ExecuteAsync(
+            @"
             mutation {
                 throw {
                     errors {
@@ -269,13 +270,14 @@ public class ErrorMiddlewareTests
                         }
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -289,7 +291,8 @@ public class ErrorMiddlewareTests
                 b => b.AddErrorInterfaceType<IUserError>());
 
         // Act
-        var res = await executor.ExecuteAsync(@"
+        var res = await executor.ExecuteAsync(
+            @"
             mutation {
                 throw {
                     errors {
@@ -300,13 +303,14 @@ public class ErrorMiddlewareTests
                         }
                     }
                 }
-            }");
+            }",
+            TestContext.Current.CancellationToken);
 
         // Assert
         await Snapshot.Create()
             .Add(res, "result:")
             .Add(executor.Schema, "schema:")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     private ValueTask<IRequestExecutor> BuildSchemaAsync(

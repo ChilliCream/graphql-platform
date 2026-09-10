@@ -192,6 +192,7 @@ fragment DirectiveModifiedChange on DirectiveModifiedChange {
     __typename
     ...DirectiveLocationAdded
     ...DirectiveLocationRemoved
+    ...DeprecatedChange
     ...DescriptionChanged
     ...ArgumentRemoved
     ...ArgumentChanged

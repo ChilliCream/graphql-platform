@@ -11,9 +11,14 @@ public abstract class RuleTestBase
 
     protected void AssertValid([StringSyntax("graphql")] string[] sdl)
     {
+        AssertValid(sdl, Rule);
+    }
+
+    protected void AssertValid([StringSyntax("graphql")] string[] sdl, object rule)
+    {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new PreMergeValidator(schemas, [Rule], _log);
+        var validator = new PreMergeValidator(schemas, [rule], _log);
 
         // act
         var result = validator.Validate();
@@ -25,9 +30,17 @@ public abstract class RuleTestBase
 
     protected void AssertInvalid([StringSyntax("graphql")] string[] sdl, string[] errorMessages)
     {
+        AssertInvalid(sdl, errorMessages, Rule);
+    }
+
+    protected void AssertInvalid(
+        [StringSyntax("graphql")] string[] sdl,
+        string[] errorMessages,
+        object rule)
+    {
         // arrange
         var schemas = CreateSchemaDefinitions(sdl);
-        var validator = new PreMergeValidator(schemas, [Rule], _log);
+        var validator = new PreMergeValidator(schemas, [rule], _log);
 
         // act
         validator.Validate();

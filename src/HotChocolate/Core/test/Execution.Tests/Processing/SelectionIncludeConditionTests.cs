@@ -298,7 +298,8 @@ public class SelectionIncludeConditionTests
                               "include": true
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -337,7 +338,8 @@ public class SelectionIncludeConditionTests
                               "shouldSkip": true
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -376,7 +378,8 @@ public class SelectionIncludeConditionTests
                               "shouldSkip": false
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -416,7 +419,8 @@ public class SelectionIncludeConditionTests
                               "include": true
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -443,7 +447,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -477,7 +482,8 @@ public class SelectionIncludeConditionTests
                               "include": false
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -504,7 +510,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -538,7 +545,8 @@ public class SelectionIncludeConditionTests
                               "include": false
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -565,7 +573,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -603,7 +612,8 @@ public class SelectionIncludeConditionTests
                               "include": true
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -634,7 +644,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -667,7 +678,8 @@ public class SelectionIncludeConditionTests
                               "skip": true
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -697,7 +709,8 @@ public class SelectionIncludeConditionTests
                                 }
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -743,7 +756,8 @@ public class SelectionIncludeConditionTests
                               "permission": false
                             }
                             """)
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """

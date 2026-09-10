@@ -62,7 +62,7 @@ public class OperationDocumentSourceTextTests
         // act
         await using (var stream = new MemoryStream())
         {
-            await query.WriteToAsync(stream);
+            await query.WriteToAsync(stream, TestContext.Current.CancellationToken);
             buffer = stream.ToArray();
         }
 

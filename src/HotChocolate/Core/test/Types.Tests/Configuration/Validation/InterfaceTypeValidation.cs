@@ -68,4 +68,27 @@ public class InterfaceTypeValidation : TypeValidationTestBase
                 }
             ");
     }
+
+    [Fact]
+    public void Non_Deprecated_Field_Returning_Deprecated_Object_Is_Not_Allowed()
+    {
+        ExpectError(
+            """
+            type Query {
+                bar: Bar
+            }
+
+            interface Bar {
+                foo: Foo
+            }
+
+            type Baz implements Bar {
+                foo: Foo
+            }
+
+            type Foo @deprecated(reason: "Use Bar.") {
+                id: ID
+            }
+            """);
+    }
 }

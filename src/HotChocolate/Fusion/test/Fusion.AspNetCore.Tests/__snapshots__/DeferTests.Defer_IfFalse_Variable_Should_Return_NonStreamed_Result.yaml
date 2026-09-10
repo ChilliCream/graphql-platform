@@ -214,7 +214,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUser_defer_2($__fusion_1_id: ID!) {
+            query GetUser_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 reviews {
                   title

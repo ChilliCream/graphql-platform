@@ -36,6 +36,12 @@ public sealed class DirectiveIsDefinedRuleTests : RuleTestBase<DirectiveIsDefine
             type Object @example {
                 field(argument: Int @example): Int @example
             }
+
+            enum Enum {
+                VALUE @example
+            }
+
+            directive @other(argument: Int @example) on FIELD
             """,
             """
             {
@@ -64,6 +70,26 @@ public sealed class DirectiveIsDefinedRuleTests : RuleTestBase<DirectiveIsDefine
                 "severity": "Error",
                 "coordinate": "Object.field",
                 "member": "field",
+                "extensions": {}
+            }
+            """,
+            """
+            {
+                "message": "The directive '@example' on 'Enum.VALUE' is not defined in the schema.",
+                "code": "HCV0026",
+                "severity": "Error",
+                "coordinate": "Enum.VALUE",
+                "member": "VALUE",
+                "extensions": {}
+            }
+            """,
+            """
+            {
+                "message": "The directive '@example' on '@other(argument:)' is not defined in the schema.",
+                "code": "HCV0026",
+                "severity": "Error",
+                "coordinate": "@other(argument:)",
+                "member": "argument",
                 "extensions": {}
             }
             """);

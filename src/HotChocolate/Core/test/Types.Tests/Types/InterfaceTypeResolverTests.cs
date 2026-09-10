@@ -13,7 +13,7 @@ public static class InterfaceTypeResolverTests
                 .AddGraphQLServer()
                 .AddType<QueryType>()
                 .AddType<SomeObjectType>()
-                .ExecuteRequestAsync("{ some { field } }");
+                .ExecuteRequestAsync("{ some { field } }", cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchSnapshot();
     }

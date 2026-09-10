@@ -12,7 +12,7 @@ public class ArgumentCoercionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request =
             OperationRequestBuilder
@@ -26,7 +26,7 @@ public class ArgumentCoercionTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -40,7 +40,7 @@ public class ArgumentCoercionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request =
             OperationRequestBuilder
@@ -54,7 +54,7 @@ public class ArgumentCoercionTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -68,7 +68,7 @@ public class ArgumentCoercionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request =
             OperationRequestBuilder
@@ -82,7 +82,7 @@ public class ArgumentCoercionTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -96,7 +96,7 @@ public class ArgumentCoercionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request =
             OperationRequestBuilder
@@ -116,7 +116,7 @@ public class ArgumentCoercionTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -130,7 +130,7 @@ public class ArgumentCoercionTests
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType<Query>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var request =
             OperationRequestBuilder
@@ -150,7 +150,7 @@ public class ArgumentCoercionTests
                 .Build();
 
         // act
-        var result = await executor.ExecuteAsync(request);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

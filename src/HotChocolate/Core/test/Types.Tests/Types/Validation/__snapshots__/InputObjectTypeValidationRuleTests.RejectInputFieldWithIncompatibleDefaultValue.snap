@@ -1,0 +1,9 @@
+{
+  "message": "The default value of input field 'FooInput.a' is not compatible with the type 'Int'.",
+  "type": "FooInput",
+  "extensions": {
+    "field": "a",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Input-Objects.Type-Validation"
+  }
+}
+

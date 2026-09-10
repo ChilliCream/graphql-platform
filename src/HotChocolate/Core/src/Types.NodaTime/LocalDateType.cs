@@ -35,7 +35,7 @@ public class LocalDateType : ScalarType<LocalDate, StringValueNode>
     {
         Description = description;
         Pattern = @"^\d{4}-\d{2}-\d{2}$";
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
         _inputPattern = LocalDatePattern.CreateWithInvariantCulture(LocalFormat);
     }
 

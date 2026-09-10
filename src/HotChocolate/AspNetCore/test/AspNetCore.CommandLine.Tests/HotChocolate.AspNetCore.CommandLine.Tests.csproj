@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.AspNetCore.CommandLine.Tests</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.CommandLine</RootNamespace>
@@ -21,6 +23,10 @@
 
   <ItemGroup>
     <Folder Include="__snapshots__" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Moq" />
   </ItemGroup>
 
 </Project>

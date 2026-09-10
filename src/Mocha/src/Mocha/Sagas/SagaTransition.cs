@@ -6,15 +6,20 @@ namespace Mocha.Sagas;
 /// Defines a state transition within a saga, triggered by a specific event type, with associated actions, messages, and the target state.
 /// </summary>
 public sealed class SagaTransition(
+    string urn,
     Type eventType,
     string transitionTo,
     SagaTransitionKind transitionKind,
     Action<object, object> action,
     IEnumerable<SagaEventPublish> publish,
     IEnumerable<SagaEventSend> send,
-    Func<object, SagaStateBase>? stateFactory,
-    bool autoProvision)
+    Func<object, SagaStateBase>? stateFactory)
 {
+    /// <summary>
+    /// Gets the stable URN identity of this transition.
+    /// </summary>
+    public string Urn { get; } = urn;
+
     /// <summary>
     /// Gets the CLR type of the event that triggers this transition.
     /// </summary>
@@ -44,11 +49,6 @@ public sealed class SagaTransition(
     /// Gets the factory that creates new saga state instances, or <c>null</c> if the state is not auto-provisioned.
     /// </summary>
     public Func<object, SagaStateBase>? StateFactory { get; } = stateFactory;
-
-    /// <summary>
-    /// Gets a value indicating whether the saga instance should be automatically created when this transition is triggered.
-    /// </summary>
-    public bool AutoProvision { get; } = autoProvision;
 
     /// <summary>
     /// Gets the kind of transition (initial, transition, or final).

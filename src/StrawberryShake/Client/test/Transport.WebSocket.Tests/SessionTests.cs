@@ -41,7 +41,7 @@ public class SessionTests
                 async (snapshot, ct) =>
                 {
                     // arrange
-                    var client = new SocketClientStub { Protocol = null! };
+                    var client = new SocketClientStub { Protocol = null };
                     var manager = new Session(client);
 
                     // act

@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
 using HotChocolate.Fusion.Comparers;
+using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.PostMergeValidationRules;
@@ -8,10 +10,11 @@ using HotChocolate.Fusion.PreMergeValidationRules;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Fusion.SourceSchemaValidationRules;
 using HotChocolate.Types.Mutable;
+using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
 
 namespace HotChocolate.Fusion;
 
-public sealed class SchemaComposer
+internal sealed class SchemaComposer
 {
     private readonly IEnumerable<SourceSchemaText> _sourceSchemas;
     private readonly SchemaComposerOptions _schemaComposerOptions;
@@ -33,13 +36,47 @@ public sealed class SchemaComposer
 
     public CompositionResult<MutableSchemaDefinition> Compose()
     {
+        if (!Enum.IsDefined(_schemaComposerOptions.Merger.EnumValuesMergeBehavior))
+        {
+            return InvalidEnumValuesMergeBehavior(
+                $"The enum values merge behavior '{_schemaComposerOptions.Merger.EnumValuesMergeBehavior}' is invalid.");
+        }
+
+        if (!Enum.IsDefined(_schemaComposerOptions.Merger.NodeResolution))
+        {
+            return InvalidNodeResolution(
+                $"The node resolution mode '{_schemaComposerOptions.Merger.NodeResolution}' is invalid.");
+        }
+
+        if (_schemaComposerOptions.Merger.NodeResolution is NodeResolution.SourceSchema
+            && !_schemaComposerOptions.Merger.EnableGlobalObjectIdentification)
+        {
+            return InvalidNodeResolution(
+                "Source-schema node resolution requires global object identification to be enabled.");
+        }
+
+        if (!Enum.IsDefined(
+            _schemaComposerOptions.ApolloFederationCompatibility
+                .ShareableFieldRuntimeTypeRouting))
+        {
+            return InvalidShareableFieldRuntimeTypeRouting(
+                "The shareable field runtime type routing mode "
+                + $"'{_schemaComposerOptions.ApolloFederationCompatibility.ShareableFieldRuntimeTypeRouting}' "
+                + "is invalid.");
+        }
+
         // Parse Source Schemas
         var parsingResult =
             _sourceSchemas.Select(schema =>
             {
                 var options = _schemaComposerOptions.SourceSchemas.GetValueOrDefault(schema.Name);
 
-                return new SourceSchemaParser(schema, _log, options?.Parser).Parse();
+                return new SourceSchemaParser(
+                    schema,
+                    _log,
+                    options?.Parser,
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning,
+                    options?.IsApolloFederationV1 ?? false).Parse();
             }).Combine();
 
         if (parsingResult.IsFailure)
@@ -61,12 +98,39 @@ public sealed class SchemaComposer
                     schemas,
                     _log,
                     options?.Version,
-                    options?.Preprocessor).Preprocess();
+                    options?.Preprocessor,
+                    options?.InvalidFieldDeprecationSeverity ?? LogSeverity.Warning,
+                    options?.IsApolloFederationV1 ?? false)
+                    .Preprocess();
             }).Combine();
 
         if (preprocessingResult.IsFailure)
         {
             return preprocessingResult.Errors;
+        }
+
+        var apolloFederationSchemaNames = schemas
+            .Where(static schema =>
+                schema.Features.Get<ApolloFederation.ConnectorKindMetadata>()?.Kind
+                    == "ApolloFederation")
+            .Select(static schema => StringUtilities.ToConstantCase(schema.Name))
+            .ToHashSet(StringComparer.Ordinal);
+
+        if (_schemaComposerOptions.ApolloFederationCompatibility
+                .AllowNonResolvableInterfaceObjects)
+        {
+            foreach (var schema in schemas)
+            {
+                if (schema.Features.Get<ApolloFederation.ConnectorKindMetadata>()?.Kind
+                    == "ApolloFederation")
+                {
+                    schema.Features.Set(
+                        new ApolloFederation.ApolloFederationCompatibilityMetadata
+                        {
+                            AllowNonResolvableInterfaceObjects = true
+                        });
+                }
+            }
         }
 
         // Enrich Source Schemas
@@ -78,9 +142,21 @@ public sealed class SchemaComposer
             return enrichmentResult.Errors;
         }
 
+        // Prune unreachable definitions from each source schema before validation, so types
+        // stripped by @excludeByTag (or otherwise unreferenced) are not validated or merged.
+        if (_schemaComposerOptions.Merger.RemoveUnreferencedDefinitions)
+        {
+            var preservedTypeNames = MutableSchemaDefinitionExtensions.GetPreservedTypeNames(schemas);
+
+            foreach (var schema in schemas)
+            {
+                schema.RemoveUnreferencedDefinitions(preservedTypeNames, seedUnionsAsRoots: true);
+            }
+        }
+
         // Validate Source Schemas
         var validationResult =
-            new SourceSchemaValidator(schemas, s_sourceSchemaRules, _log).Validate();
+            new SourceSchemaValidator(schemas, SourceSchemaRules, _log).Validate();
 
         if (validationResult.IsFailure)
         {
@@ -89,7 +165,8 @@ public sealed class SchemaComposer
 
         // Pre Merge Validation
         var preMergeValidationResult =
-            new PreMergeValidator(schemas, s_preMergeRules, _log).Validate();
+            new PreMergeValidator(schemas, CreatePreMergeRules(_schemaComposerOptions), _log)
+                .Validate();
 
         if (preMergeValidationResult.IsFailure)
         {
@@ -99,7 +176,11 @@ public sealed class SchemaComposer
         // Merge Source Schemas
         var sourceSchemaMergerOptions = _schemaComposerOptions.Merger;
         var (_, isMergeFailure, mergedSchema, mergeErrors) =
-            new SourceSchemaMerger(schemas, sourceSchemaMergerOptions).Merge();
+            new SourceSchemaMerger(
+                schemas,
+                sourceSchemaMergerOptions,
+                _schemaComposerOptions.ApolloFederationCompatibility
+                    .ShareableFieldRuntimeTypeRouting).Merge();
 
         if (isMergeFailure)
         {
@@ -108,7 +189,7 @@ public sealed class SchemaComposer
 
         // Post Merge Validation
         var postMergeValidationResult =
-            new PostMergeValidator(mergedSchema, s_postMergeRules, schemas, _log).Validate();
+            new PostMergeValidator(mergedSchema, PostMergeRules, schemas, _log).Validate();
 
         if (postMergeValidationResult.IsFailure)
         {
@@ -116,9 +197,14 @@ public sealed class SchemaComposer
         }
 
         // Validate Satisfiability
-        var satisfiabilityOptions = _schemaComposerOptions.Satisfiability;
         var satisfiabilityResult =
-            new SatisfiabilityValidator(mergedSchema, _log, satisfiabilityOptions).Validate();
+            new SatisfiabilityValidator(
+                mergedSchema,
+                _log,
+                _schemaComposerOptions.Satisfiability,
+                _schemaComposerOptions.Merger.NodeResolution,
+                _schemaComposerOptions.ApolloFederationCompatibility,
+                apolloFederationSchemaNames).Validate();
 
         if (satisfiabilityResult.IsFailure)
         {
@@ -128,7 +214,46 @@ public sealed class SchemaComposer
         return mergedSchema;
     }
 
-    private static readonly ImmutableArray<object> s_sourceSchemaRules =
+    private CompositionError InvalidEnumValuesMergeBehavior(string message)
+    {
+        _log.Write(
+            LogEntryBuilder.New()
+                .SetMessage(message)
+                .SetCode(LogEntryCodes.InvalidEnumValuesMergeBehavior)
+                .SetSeverity(LogSeverity.Error)
+                .Build());
+
+        return new CompositionError(message);
+    }
+
+    private CompositionError InvalidNodeResolution(string message)
+    {
+        _log.Write(
+            LogEntryBuilder.New()
+                .SetMessage(message)
+                .SetCode(LogEntryCodes.InvalidNodeResolution)
+                .SetSeverity(LogSeverity.Error)
+                .Build());
+
+        return new CompositionError(message);
+    }
+
+    private CompositionError InvalidShareableFieldRuntimeTypeRouting(string message)
+    {
+        _log.Write(
+            LogEntryBuilder.New()
+                .SetMessage(message)
+                .SetCode(LogEntryCodes.InvalidShareableFieldRuntimeTypeRouting)
+                .SetSeverity(LogSeverity.Error)
+                .Build());
+
+        return new CompositionError(message);
+    }
+
+    /// <summary>
+    /// Gets the rules that run against each source schema, in the order they are applied.
+    /// </summary>
+    internal static ImmutableArray<object> SourceSchemaRules { get; } =
     [
         new DisallowedInaccessibleElementsRule(),
         new ExternalOnInterfaceRule(),
@@ -136,15 +261,18 @@ public sealed class SchemaComposer
         new ExternalProvidesCollisionRule(),
         new ExternalRequireCollisionRule(),
         new ExternalUnusedRule(),
+        new EventCursorMarkerRule(),
+        new InterfaceObjectKeyMissingRule(),
         new InvalidShareableUsageRule(),
         new IsInvalidFieldTypeRule(),
         new IsInvalidSyntaxRule(),
         new IsInvalidUsageRule(),
         new KeyDirectiveInFieldsArgumentRule(),
-        new KeyFieldsHasArgumentsRule(),
         new KeyFieldsSelectInvalidTypeRule(),
+        new KeyInvalidArgumentsRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),
+        new LookupMustHaveArgumentsRule(),
         new LookupReturnsListRule(),
         new LookupReturnsNonNullableTypeRule(),
         new OverrideFromSelfRule(),
@@ -161,12 +289,18 @@ public sealed class SchemaComposer
         new RequireInvalidSyntaxRule(),
         new RootMutationUsedRule(),
         new RootQueryUsedRule(),
-        new RootSubscriptionUsedRule()
+        new RootSubscriptionUsedRule(),
+        new EventStreamMessageInvalidFieldsRule(),
+        new EventStreamTopicsEmptyRule()
     ];
 
-    private static readonly ImmutableArray<object> s_preMergeRules =
+    /// <summary>
+    /// Creates the rules that run across the source schemas before the merge, in the order they
+    /// are applied, configured from the given options.
+    /// </summary>
+    internal static ImmutableArray<object> CreatePreMergeRules(SchemaComposerOptions options) =>
     [
-        new EnumValuesMismatchRule(),
+        new EnumValuesMismatchRule(options.Merger.EnumValuesMergeBehavior),
         new ExternalArgumentDefaultMismatchRule(),
         new ExternalArgumentMissingRule(),
         new ExternalArgumentTypeMismatchRule(),
@@ -178,13 +312,20 @@ public sealed class SchemaComposer
         new InputFieldTypesMergeableRule(),
         new InputWithMissingRequiredFieldsRule(),
         new InputWithMissingOneOfRule(),
+        new InterfaceObjectKeyMismatchRule(),
+        new InterfaceObjectNoInterfaceRule(),
         new InvalidFieldSharingRule(),
+        new MultipleEventStreamSourcesRule(),
+        new OptInFeatureStabilityMismatchRule(),
         new OutputFieldTypesMergeableRule(),
         new SpecifiedByUrlMismatchRule(),
         new TypeKindMismatchRule()
     ];
 
-    private static readonly ImmutableArray<object> s_postMergeRules =
+    /// <summary>
+    /// Gets the rules that run against the merged schema, in the order they are applied.
+    /// </summary>
+    internal static ImmutableArray<object> PostMergeRules { get; } =
     [
         new EmptyMergedEnumTypeRule(),
         new EmptyMergedInputObjectTypeRule(),
@@ -192,12 +333,17 @@ public sealed class SchemaComposer
         new EmptyMergedObjectTypeRule(),
         new EmptyMergedUnionTypeRule(),
         new EnumTypeDefaultValueInaccessibleRule(),
+        new EventStreamMessageAbstractTypeRequiresTypeNameRule(),
         new ImplementedByInaccessibleRule(),
+        new ImplementWithoutDefaultRule(),
         new InterfaceFieldNoImplementationRule(),
+        new InterfaceObjectFieldRequiresImplementRule(),
+        new InvalidProjectedFieldSharingRule(),
         new IsInvalidFieldsRule(),
         new KeyInvalidFieldsRule(),
         new NonNullInputFieldIsInaccessibleRule(),
         new NoQueriesRule(),
+        new ReferenceToDeprecatedTypeRule(),
         new ReferenceToInaccessibleTypeRule(),
         new ReferenceToInternalTypeRule(),
         new RequireInvalidFieldsRule()

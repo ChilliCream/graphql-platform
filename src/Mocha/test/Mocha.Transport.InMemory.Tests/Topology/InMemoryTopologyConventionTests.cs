@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Mocha.Sagas;
 using Mocha.Transport.InMemory.Tests.Helpers;
 using CookieCrumble;
 
@@ -220,6 +221,130 @@ public class InMemoryTopologyConventionTests
         Assert.Contains(transport.ReceiveEndpoints, e => e.Name == requestQueueName);
     }
 
+    [Fact]
+    public async Task Receives_Should_StillDeliver_When_QueueOwnedByEndpoint()
+    {
+        // arrange
+        // The endpoint now owns its queue via OnDiscoverTopology instead of the convention.
+        // Publishing a message through the convention topology must still reach the handler.
+        var recorder = new MessageRecorder();
+        await using var provider = await new ServiceCollection()
+            .AddSingleton(recorder)
+            .AddMessageBus()
+            .AddEventHandler<OrderCreatedHandler>()
+            .AddInMemory()
+            .BuildServiceProvider();
+
+        var bus = provider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new OrderCreated { OrderId = "EOQ-1" }, CancellationToken.None);
+
+        // assert
+        Assert.True(
+            await recorder.WaitAsync(TimeSpan.FromSeconds(10)),
+            "Handler did not receive message after endpoint-owns-queue move");
+
+        var msg = Assert.IsType<OrderCreated>(Assert.Single(recorder.Messages));
+        Assert.Equal("EOQ-1", msg.OrderId);
+    }
+
+    [Fact]
+    public void Topology_Should_OmitConventionBinding_When_SagaHasOnReplyTransition()
+    {
+        // arrange
+        // A saga with an OnReply transition registers an InboundRouteKind.Reply route. The receive
+        // convention must skip reply routes so no spurious topic or binding appears for the reply type.
+        var services = new ServiceCollection();
+        services.AddInMemorySagas();
+        var builder = services.AddMessageBus();
+        builder.AddSaga<OrderStockCheckSaga>();
+        var runtime = builder
+            .AddInMemory(t => t.BindImplicitly())
+            .BuildRuntime();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+
+        // act
+        var snapshot = TopologySnapshotHelper.CreateSnapshot(topology);
+
+        // assert
+        // Only the start event chain appears. No topic or binding for
+        // StockInfoResult (the reply type) should be present.
+        snapshot.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Topology_Should_OmitConventionTopology_When_QueueBindExplicit()
+    {
+        // arrange
+        // Queue-scope auto-binding is off, so the service does not derive convention topics or
+        // bindings for this route. It may still consume from topology provisioned elsewhere.
+        var transport = CreateTransport(
+            b => b.AddConsumer<OrderSpyConsumer>(),
+            t =>
+            {
+                t.BindExplicitly();
+                t.Queue("orders")
+                    .Consumer<OrderSpyConsumer>()
+                    .BindExplicitly();
+            });
+
+        // act
+        var description = transport.Describe();
+
+        // assert
+        var snapshot = TopologySnapshotHelper.CreateDescribeSnapshot(description);
+        snapshot.MatchSnapshot();
+    }
+
+    [Fact]
+    public void DiscoverTopology_Should_BindFromExplicitTopic_When_MessageHasExplicitPublishDestination()
+    {
+        // arrange
+        // When a message type names an explicit publish topic the receive convention must bind from
+        // that exact topic instead of the convention-derived chain.
+        var services = new ServiceCollection();
+        var builder = services.AddMessageBus();
+        builder.AddMessage<OrderCreated>(d => d.Publish(r => r.ToInMemoryTopic("custom-orders-topic")));
+        builder.AddEventHandler<OrderCreatedHandler>();
+        var runtime = builder.AddInMemory().BuildRuntime();
+        var topology = (InMemoryMessagingTopology)
+            runtime.Transports.OfType<InMemoryMessagingTransport>().Single().Topology;
+
+        // act
+        var explicitTopic = topology.Topics.FirstOrDefault(t => t.Name == "custom-orders-topic");
+        var bindingFromExplicit = topology.Bindings.OfType<InMemoryQueueBinding>()
+            .FirstOrDefault(b => b.Source.Name == "custom-orders-topic");
+
+        // assert
+        Assert.NotNull(explicitTopic);
+        Assert.NotNull(bindingFromExplicit);
+    }
+
+    [Fact]
+    public void DiscoverTopology_Should_SkipConventionBinding_When_MessageHasExplicitQueueDestination()
+    {
+        // arrange
+        // When a consumed message type is routed to an explicit queue there is no topic chain to bind
+        // from. The convention should skip the consume binding instead of rejecting a topology that may
+        // be provisioned outside this service.
+        var services = new ServiceCollection();
+        var builder = services.AddMessageBus();
+        builder.AddMessage<OrderCreated>(d => d.Publish(r => r.ToInMemoryQueue("direct-q")));
+        builder.AddEventHandler<OrderCreatedHandler>();
+
+        // act
+        var runtime = builder.AddInMemory().BuildRuntime();
+        var topology = (InMemoryMessagingTopology)runtime.Transports
+            .OfType<InMemoryMessagingTransport>()
+            .Single()
+            .Topology;
+
+        // assert
+        Assert.Empty(topology.Bindings.OfType<InMemoryQueueBinding>());
+    }
+
     private static (
         MessagingRuntime Runtime,
         InMemoryMessagingTransport Transport,
@@ -235,8 +360,50 @@ public class InMemoryTopologyConventionTests
         return (runtime, transport, topology);
     }
 
+    private static InMemoryMessagingTransport CreateTransport(
+        Action<IMessageBusHostBuilder> configureBuilder,
+        Action<IInMemoryMessagingTransportDescriptor> configureTransport)
+    {
+        var services = new ServiceCollection();
+        var builder = services.AddMessageBus();
+        builder.Host(h => h.ServiceName("test-app"));
+        configureBuilder(builder);
+        var runtime = builder.AddInMemory(configureTransport).BuildRuntime();
+        return runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+    }
+
+    public sealed class OrderSpyConsumer : IConsumer<OrderCreated>
+    {
+        public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context) => default;
+    }
+
     public sealed class ProcessPaymentHandler : IEventRequestHandler<ProcessPayment>
     {
         public ValueTask HandleAsync(ProcessPayment request, CancellationToken cancellationToken) => default;
+    }
+
+    public sealed class StockCheckStarted;
+
+    public sealed class StockInfoResult;
+
+    public sealed class GetStockInfoRequest : IEventRequest<StockInfoResult>;
+
+    public sealed class StockCheckState : SagaStateBase;
+
+    public sealed class OrderStockCheckSaga : Saga<StockCheckState>
+    {
+        protected override void Configure(ISagaDescriptor<StockCheckState> descriptor)
+        {
+            descriptor
+                .Initially()
+                .OnEvent<StockCheckStarted>()
+                .StateFactory(_ => new StockCheckState())
+                .Send((_, _) => new GetStockInfoRequest())
+                .TransitionTo("Awaiting");
+
+            descriptor.During("Awaiting").OnReply<StockInfoResult>().TransitionTo("Done");
+
+            descriptor.Finally("Done");
+        }
     }
 }

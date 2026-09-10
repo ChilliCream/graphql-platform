@@ -1,0 +1,36 @@
+[
+  {
+    "id": 2,
+    "type": "ApolloOperation",
+    "schema": "b",
+    "operation": {
+      "name": "Op_123456789101112_2",
+      "kind": "Query",
+      "document": "query($representations: [_Any!]!) {\n  _entities(representations: $representations) {\n    ... on Foo {\n      details: bar {\n        x\n      }\n    }\n  }\n}",
+      "hash": "155215c957a65a76fbd51f86069672e611933694f3c16794b765cb92ccb16c16",
+      "shortHash": "155215c9",
+      "xxHash": 1829608922667530834
+    },
+    "entityType": "Foo",
+    "resultSelectionSet": "{ details { x } }",
+    "source": "$._entities",
+    "target": "$.foos",
+    "requirements": [
+      {
+        "name": "__fusion_1_id",
+        "type": "ID!",
+        "path": "$.foos",
+        "selectionMap": "id"
+      },
+      {
+        "name": "__fusion_2_y",
+        "type": "String",
+        "path": "$.foos.details",
+        "selectionMap": "y"
+      }
+    ],
+    "dependencies": [
+      1
+    ]
+  }
+]

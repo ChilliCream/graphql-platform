@@ -361,6 +361,28 @@ public class AllVariableUsagesAreAllowedRuleTests
         );
     }
 
+    // The rule must fire once per lexical variable usage, not once per fragment spread.
+    [Fact]
+    public void IntNullableToIntWithinReusedFragment()
+    {
+        ExpectErrors(
+            """
+            fragment nonNullIntArgFieldFrag on Arguments {
+              nonNullIntArgField(intArg: $intArg)
+            }
+
+            query Query($intArg: Int) {
+              arguments {
+                ...nonNullIntArgFieldFrag
+                ...nonNullIntArgFieldFrag
+              }
+            }
+            """,
+            t => Assert.Equal(
+                "The variable `intArg` is not compatible with the type of the current location.",
+                t.Message));
+    }
+
     [Fact]
     public void IntNullableToIntWithinNestedFragment()
     {
@@ -544,5 +566,42 @@ public class AllVariableUsagesAreAllowedRuleTests
             }
             """
         );
+    }
+
+    [Fact]
+    public void Validate_Should_ResolveTheOperationVariable_When_UsedAfterAShadowingSpread()
+    {
+        ExpectValid(
+            """
+            query ($x: Boolean!) {
+                dog {
+                    ...shadowing(x: false)
+                    isHouseTrained @skip(if: $x)
+                }
+            }
+
+            fragment shadowing($x: Boolean) on Dog {
+                isHouseTrained(atOtherHomes: $x)
+            }
+            """,
+            FragmentArgumentParserOptions);
+    }
+
+    [Fact]
+    public void Validate_Should_Report_When_ANullableVariableIsPassedToANonNullFragmentArgument()
+    {
+        ExpectErrors(
+            """
+            query ($x: Boolean) {
+                dog {
+                    ...withRequired(y: $x)
+                }
+            }
+
+            fragment withRequired($y: Boolean!) on Dog {
+                isHouseTrained(atOtherHomes: $y)
+            }
+            """,
+            FragmentArgumentParserOptions);
     }
 }

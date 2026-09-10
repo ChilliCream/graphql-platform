@@ -161,7 +161,8 @@ public class UseDataLoaderTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequest.FromSourceText("{ single { id }}"));
+            OperationRequest.FromSourceText("{ single { id }}"),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -181,7 +182,8 @@ public class UseDataLoaderTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequest.FromSourceText("{ multiple { id }}"));
+            OperationRequest.FromSourceText("{ multiple { id }}"),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -201,7 +203,8 @@ public class UseDataLoaderTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequest.FromSourceText("{ single { id }}"));
+            OperationRequest.FromSourceText("{ single { id }}"),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -221,7 +224,8 @@ public class UseDataLoaderTests
 
         // act
         var result = await executor.ExecuteAsync(
-            OperationRequest.FromSourceText("{ multiple { id }}"));
+            OperationRequest.FromSourceText("{ multiple { id }}"),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

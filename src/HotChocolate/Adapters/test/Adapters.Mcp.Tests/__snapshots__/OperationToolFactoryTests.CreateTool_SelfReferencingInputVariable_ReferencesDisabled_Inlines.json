@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "properties": {
+    "filter": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "and": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object"
+          }
+        },
+        "or": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": "object"
+          }
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": []
+    }
+  },
+  "required": []
+}

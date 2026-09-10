@@ -48,7 +48,7 @@ public class KnownTypeSymbolsTests
                 public ValueTask HandleAsync(MyEvent n, CancellationToken ct) => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public class KnownTypeSymbolsTests
                 public void DoWork() { }
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class KnownTypeSymbolsTests
                 public ValueTask HandleAsync(FireAndForgetCommand cmd, CancellationToken ct) => default;
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -111,6 +111,6 @@ public class KnownTypeSymbolsTests
                     => new((long)cmd.X + cmd.Y);
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

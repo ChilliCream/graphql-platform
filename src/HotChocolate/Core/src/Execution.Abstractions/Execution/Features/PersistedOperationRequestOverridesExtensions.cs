@@ -27,7 +27,7 @@ public static class PersistedOperationRequestOverridesExtensions
         }
         else
         {
-            options = new PersistedOperationRequestOverrides(AllowNonPersistedOperation: true);
+            options = options with { AllowNonPersistedOperation = true };
         }
 
         builder.Features.Set(options);

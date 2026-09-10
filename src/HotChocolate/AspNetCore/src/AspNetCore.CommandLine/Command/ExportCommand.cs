@@ -18,17 +18,21 @@ internal sealed class ExportCommand : Command
     {
         Description = "Export the graphql schema to a schema file";
 
-        Options.Add(Opt<OutputOption>.Instance);
-        Options.Add(Opt<SchemaNameOption>.Instance);
-        Options.Add(Opt<SemanticNonNullOption>.Instance);
+        var outputOption = new OutputOption();
+        var schemaNameOption = new SchemaNameOption();
+        var semanticNonNullOption = new SemanticNonNullOption();
+
+        Options.Add(outputOption);
+        Options.Add(schemaNameOption);
+        Options.Add(semanticNonNullOption);
 
         SetAction(
             (parseResult, cancellationToken) =>
             {
                 var output = parseResult.InvocationConfiguration.Output;
-                var outputFile = parseResult.GetValue(Opt<OutputOption>.Instance);
-                var schemaName = parseResult.GetValue(Opt<SchemaNameOption>.Instance);
-                var semanticNonNull = parseResult.GetValue(Opt<SemanticNonNullOption>.Instance);
+                var outputFile = parseResult.GetValue(outputOption);
+                var schemaName = parseResult.GetValue(schemaNameOption);
+                var semanticNonNull = parseResult.GetValue(semanticNonNullOption);
 
                 return ExecuteAsync(output, host, outputFile, schemaName, semanticNonNull, cancellationToken);
             });

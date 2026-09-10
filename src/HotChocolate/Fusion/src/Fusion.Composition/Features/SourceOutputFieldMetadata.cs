@@ -8,6 +8,10 @@ internal sealed class SourceOutputFieldMetadata
 {
     public bool HasExternalDirective { get; set; }
 
+    public bool HasEventCursorDirective { get; set; }
+
+    public bool HasImplementDirective { get; set; }
+
     public bool HasInternalDirective { get; set; }
 
     public bool HasOverrideDirective { get; set; }

@@ -1,4 +1,3 @@
-using ChilliCream.Testing;
 using Xunit.Sdk;
 using static StrawberryShake.CodeGeneration.CSharp.GeneratorTestHelper;
 
@@ -192,8 +191,8 @@ public class ScalarGeneratorTests
                   }
                 }
                 fragment Offer on Offer {
-                   numberFloat
-                   numberInt
+                  numberFloat
+                  numberInt
                 }",
             @"
                 schema {

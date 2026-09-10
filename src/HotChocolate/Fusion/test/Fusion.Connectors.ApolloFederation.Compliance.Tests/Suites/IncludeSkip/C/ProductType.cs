@@ -63,5 +63,6 @@ public sealed class ProductType : ObjectType<Product>
                 "neverCalledSkip should not be called."));
     }
 
-    private static Product ResolveById(string id) => new() { Id = id };
+    private static Product? ResolveById(string id)
+        => A.AData.ById.ContainsKey(id) ? new Product { Id = id } : null;
 }

@@ -227,10 +227,10 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
             """);
     }
 
-    // If an argument is deprecated without a deprecation reason, a default reason is inserted to be
-    // compatible with the latest spec.
+    // If an argument is deprecated without a deprecation reason, the merged schema prints
+    // @deprecated without arguments.
     [Fact]
-    public void Merge_DeprecatedArgumentsWithoutReasonInsertsDefaultReason_MatchesSnapshot()
+    public void Merge_DeprecatedArgumentsWithoutReason_MatchesSnapshot()
     {
         AssertMatches(
             [
@@ -250,7 +250,7 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
             """
             type Product @fusion__type(schema: A) @fusion__type(schema: B) {
               reviews(
-                filter: String @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "No longer supported.")
+                filter: String @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated
               ): [String] @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);

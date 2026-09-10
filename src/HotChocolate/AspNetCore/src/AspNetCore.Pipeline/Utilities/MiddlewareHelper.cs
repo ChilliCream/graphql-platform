@@ -19,7 +19,7 @@ internal static class MiddlewareHelper
         // with a 400 Bad Request.
         if (headerResult.HasError)
         {
-            var errors = headerResult.ErrorResult.Errors!;
+            var errors = headerResult.ErrorResult.Errors;
             executorSession.DiagnosticEvents.HttpRequestError(context, errors[0]);
 
             return new ValidateAcceptContentTypeResult(

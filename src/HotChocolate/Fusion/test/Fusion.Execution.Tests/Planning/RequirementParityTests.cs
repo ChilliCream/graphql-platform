@@ -92,6 +92,29 @@ public class RequirementParityTests : FusionTestBase
     }
 
     [Fact]
+    public void Two_Same_Service_Calls_With_Different_Requirement_Args_Do_Not_Merge()
+    {
+        // arrange
+        var schema = CreateTwoSameServiceCallsWithDifferentRequirementArgsSchema();
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+              products {
+                isExpensive
+                reducedPrice
+                price
+              }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
     public void Deep_Requires()
     {
         // arrange
@@ -332,6 +355,43 @@ public class RequirementParityTests : FusionTestBase
               upc: String!
               isExpensive(price: Int @require(field: "price")): Boolean
               reducedPrice(price: Int @require(field: "price")): Boolean
+            }
+            """,
+            """
+            # name: products
+            schema {
+              query: Query
+            }
+
+            type Query {
+              productByUpc(upc: String! @is(field: "upc")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "upc") {
+              upc: String!
+              price(withDiscount: Boolean): Int
+            }
+            """);
+    }
+
+    private static FusionSchemaDefinition CreateTwoSameServiceCallsWithDifferentRequirementArgsSchema()
+    {
+        return ComposeSchema(
+            """
+            # name: inventory
+            schema {
+              query: Query
+            }
+
+            type Query {
+              products: [Product]
+              productByUpc(upc: String! @is(field: "upc")): Product @lookup @internal
+            }
+
+            type Product @key(fields: "upc") {
+              upc: String!
+              isExpensive(price: Int @require(field: "price(withDiscount: true)")): Boolean
+              reducedPrice(price: Int @require(field: "price(withDiscount: false)")): Boolean
             }
             """,
             """

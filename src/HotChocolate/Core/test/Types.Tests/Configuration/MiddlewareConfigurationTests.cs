@@ -26,7 +26,9 @@ public class MiddlewareConfigurationTests
             .Create();
 
         // act
-        var result = await schema.MakeExecutable().ExecuteAsync("{ a b }");
+        var result = await schema.MakeExecutable().ExecuteAsync(
+            "{ a b }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -48,7 +50,9 @@ public class MiddlewareConfigurationTests
             .Create();
 
         // act
-        var result = await schema.MakeExecutable().ExecuteAsync("{ a b }");
+        var result = await schema.MakeExecutable().ExecuteAsync(
+            "{ a b }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -71,7 +75,9 @@ public class MiddlewareConfigurationTests
             .Create();
 
         // act
-        var result = await schema.MakeExecutable().ExecuteAsync("{ a b }");
+        var result = await schema.MakeExecutable().ExecuteAsync(
+            "{ a b }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.ToJson().MatchSnapshot();

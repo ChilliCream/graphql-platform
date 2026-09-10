@@ -1,0 +1,115 @@
+title: Lookup_With_NonNull_Argument_Selecting_Nullable_Path_Returning_Null
+request:
+  document: |
+    {
+      productById(id: "1") {
+        fieldB
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productById": {
+          "fieldB": null
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Brand {
+        name: String!
+      }
+
+      type Product {
+        id: ID!
+        brand: Brand @null
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_1146a07f_1 {
+              productById(id: "1") {
+                brand {
+                  name
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "brand": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productByBrandName(brandName: String! @is(field: "brand.name")): Product
+          @lookup
+          @internal
+      }
+
+      type Product {
+        fieldB: String
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          productById(id: "1") {
+            fieldB
+            brand @fusion__requirement {
+              name @fusion__requirement
+            }
+          }
+        }
+      hash: 1146a07feeac63e70b9e07e888326c30
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_1146a07f_1 {
+          productById(id: "1") {
+            brand {
+              name
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_1146a07f_2($__fusion_1_brandName: String!) {
+          productByBrandName(brandName: $__fusion_1_brandName) {
+            fieldB
+          }
+        }
+      source: $.productByBrandName
+      target: $.productById
+      requirements:
+        - name: __fusion_1_brandName
+          selectionMap: >-
+            brand.name
+      dependencies:
+        - id: 1

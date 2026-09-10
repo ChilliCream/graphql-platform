@@ -1,0 +1,28 @@
+{
+  "data": {
+    "__schema": {
+      "directives": [
+        {
+          "name": "skip",
+          "isDeprecated": false,
+          "deprecationReason": null
+        },
+        {
+          "name": "include",
+          "isDeprecated": false,
+          "deprecationReason": null
+        },
+        {
+          "name": "deprecated",
+          "isDeprecated": false,
+          "deprecationReason": null
+        },
+        {
+          "name": "current",
+          "isDeprecated": false,
+          "deprecationReason": null
+        }
+      ]
+    }
+  }
+}

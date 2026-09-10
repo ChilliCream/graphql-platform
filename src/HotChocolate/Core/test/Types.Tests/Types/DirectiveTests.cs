@@ -133,7 +133,7 @@ public class DirectiveTests : TypeTestBase
                     .Field("foo")
                     .Resolve("Bar"))
             .AddType<FooQueryDirectiveType>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var printedSchema = schema.ToString();

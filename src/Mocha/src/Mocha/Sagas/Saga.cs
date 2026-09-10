@@ -37,12 +37,17 @@ public abstract partial class Saga : IFeatureProvider
     /// <summary>
     /// Gets the serializer used to persist and restore saga state.
     /// </summary>
-    public ISagaStateSerializer StateSerializer { get; protected set; } = null!;
+    public ISagaStateSerializer StateSerializer { get; protected internal set; } = null!;
 
     /// <summary>
     /// Gets the logical name of this saga, used for logging, diagnostics, and state store identification.
     /// </summary>
     public string Name { get; protected set; } = "__Unnamed";
+
+    /// <summary>
+    /// Gets the stable URN identity of this saga.
+    /// </summary>
+    public string Urn { get; private protected set; } = null!;
 
     /// <summary>
     /// Gets the dispatch endpoint used to send response messages when the saga completes a request-reply flow.
@@ -58,6 +63,11 @@ public abstract partial class Saga : IFeatureProvider
     /// Gets the dictionary of all configured states in this saga, keyed by state name.
     /// </summary>
     public abstract IReadOnlyDictionary<string, SagaState> States { get; }
+
+    /// <summary>
+    /// Gets the compiled saga configuration containing the resolved state machine definition.
+    /// </summary>
+    protected internal SagaConfiguration Configuration { get; private protected set; } = null!;
 
     /// <summary>
     /// Processes an incoming message by loading or creating saga state, executing transitions, and persisting the result.
@@ -88,11 +98,11 @@ public abstract partial class Saga : IFeatureProvider
             {
                 transitions.Add(
                     new SagaTransitionDescription(
+                        transition.Urn,
                         DescriptionHelpers.GetTypeName(eventType),
                         eventType.FullName,
                         transition.TransitionTo,
                         transition.TransitionKind,
-                        transition.AutoProvision,
                         transition.Publish.IsEmpty
                             ? null
                             : transition
@@ -111,6 +121,7 @@ public abstract partial class Saga : IFeatureProvider
 
             states.Add(
                 new SagaStateDescription(
+                    state.Urn,
                     stateName,
                     state.IsInitial,
                     state.IsFinal,
@@ -140,11 +151,13 @@ public abstract partial class Saga : IFeatureProvider
         }
 
         return new SagaDescription(
+            Urn,
             Name,
             DescriptionHelpers.GetTypeName(StateType),
             StateType.FullName,
             Consumer.Name,
-            states);
+            states,
+            Configuration?.Source);
     }
 
     /// <summary>
@@ -202,11 +215,6 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     {
         _configure = Configure;
     }
-
-    /// <summary>
-    /// Gets the compiled saga configuration containing the resolved state machine definition.
-    /// </summary>
-    protected internal SagaConfiguration Configuration { get; private set; } = null!;
 
     private Dictionary<string, SagaState>? _states;
 
@@ -371,6 +379,13 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             eventType = eventType.BaseType;
         }
 
+        if (eventType == typeof(object)
+            && transition?.TransitionKind is SagaTransitionKind.Reply
+            && context.Headers.GetMessageKind() == MessageKind.Fault)
+        {
+            transition = null;
+        }
+
         if (transition is null)
         {
             throw new SagaExecutionException(
@@ -524,6 +539,12 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
                 options = options with { Headers = [] };
             }
 
+            var eventType = context.Runtime.GetMessageType(message.GetType());
+            var endpoint = context.Runtime.GetPublishEndpoint(eventType);
+            var replyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+
+            options = options with { FaultEndpoint = replyEndpoint };
+
             options.Headers.Set(SagaContextData.SagaId, state.Id.ToString("D"));
 
             _logger!.PublishingEvent(Name, message.GetType().Name);
@@ -566,7 +587,10 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             var requestType = context.Runtime.GetMessageType(message.GetType());
             var endpoint = context.Runtime.GetSendEndpoint(requestType);
 
-            options = options with { ReplyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address };
+            // Route replies and faults to the shared reply endpoint, where the saga's reply routes
+            // are bound and correlated by the saga header.
+            var replyEndpoint = endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
+            options = options with { ReplyEndpoint = replyEndpoint, FaultEndpoint = replyEndpoint };
 
             options.Headers.Set(SagaContextData.SagaId, state.Id.ToString("D"));
 

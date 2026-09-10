@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace HotChocolate.Fetching;
 
 public sealed partial class BatchDispatcher
@@ -20,7 +18,6 @@ public sealed partial class BatchDispatcher
             lock (dispatcher._sync)
             {
                 dispatcher._sessions = dispatcher._sessions.Add(this);
-                dispatcher._lastSubscribed = Stopwatch.GetTimestamp();
                 dispatcher._signal.Set();
             }
         }

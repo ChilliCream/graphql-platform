@@ -370,7 +370,7 @@ public sealed partial class SyntaxSerializer
                     writer.Write(", ");
                 }
 
-                VisitArgumentValueDefinition(arguments[i], writer);
+                WriteFlatInputValueDefinition(arguments[i], writer);
             }
 
             writer.Write(")");
@@ -383,16 +383,7 @@ public sealed partial class SyntaxSerializer
             foreach (var argument in arguments)
             {
                 writer.WriteLine();
-                writer.WriteIndent();
-
-                if (argument.Description is { })
-                {
-                    writer.WriteStringValue(argument.Description);
-                    writer.WriteLine();
-                    writer.WriteIndent();
-                }
-
-                WriteInputValueDefinition(argument, writer);
+                VisitInputValueDefinition(argument, writer);
             }
 
             writer.WriteLine();
@@ -429,6 +420,8 @@ public sealed partial class SyntaxSerializer
             WriteArgumentDefinitions(node.Arguments, writer);
         }
 
+        WriteDirectives(node.Directives, writer);
+
         writer.WriteSpace();
 
         if (node.IsRepeatable)
@@ -447,6 +440,20 @@ public sealed partial class SyntaxSerializer
             " ",
             (n, w) => w.WriteName(n),
             writer);
+    }
+
+    private void VisitDirectiveExtension(
+        DirectiveExtensionNode node,
+        ISyntaxWriter writer)
+    {
+        writer.Write(Keywords.Extend);
+        writer.WriteSpace();
+        writer.Write(Keywords.Directive);
+        writer.WriteSpace();
+        writer.Write('@');
+        writer.WriteName(node.Name);
+
+        WriteDirectives(node.Directives, writer);
     }
 
     private void VisitArgumentValueDefinition(

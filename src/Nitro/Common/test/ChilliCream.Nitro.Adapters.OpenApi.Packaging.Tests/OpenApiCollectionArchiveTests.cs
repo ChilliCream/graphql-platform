@@ -44,10 +44,10 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
 
         // Can read immediately within the same session
-        var retrieved = await archive.GetArchiveMetadataAsync();
+        var retrieved = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.NotNull(retrieved);
         Assert.Equal(metadata.FormatVersion, retrieved.FormatVersion);
     }
@@ -60,7 +60,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream);
-        var result = await archive.GetArchiveMetadataAsync();
+        var result = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.Null(result);
     }
 
@@ -73,7 +73,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream);
         await Assert.ThrowsAsync<ArgumentNullException>(
-            () => archive.SetArchiveMetadataAsync(null!));
+            () => archive.SetArchiveMetadataAsync(null!, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -90,27 +90,33 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act - Create and commit
         using (var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
-            await archive.AddOpenApiEndpointAsync(key, operation, settings);
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.AddOpenApiEndpointAsync(key, operation, settings, TestContext.Current.CancellationToken);
             using var modelSettings = CreateEmptyModelSettings();
-            await archive.AddOpenApiModelAsync("UserFields", fragment, modelSettings);
-            await archive.CommitAsync();
+            await archive.AddOpenApiModelAsync(
+                "UserFields",
+                fragment,
+                modelSettings,
+                TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - Reopen and verify persistence
         stream.Position = 0;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var retrievedMetadata = await readArchive.GetArchiveMetadataAsync();
+            var retrievedMetadata = await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
             Assert.NotNull(retrievedMetadata);
             Assert.Equal(metadata.FormatVersion, retrievedMetadata.FormatVersion);
 
-            var endpoint = await readArchive.TryGetOpenApiEndpointAsync(key);
+            var endpoint = await readArchive.TryGetOpenApiEndpointAsync(key, TestContext.Current.CancellationToken);
             Assert.NotNull(endpoint);
             Assert.Equal(operation, endpoint.Document.ToArray());
             endpoint.Dispose();
 
-            using var model = await readArchive.TryGetOpenApiModelAsync("UserFields");
+            using var model = await readArchive.TryGetOpenApiModelAsync(
+                "UserFields",
+                TestContext.Current.CancellationToken);
             Assert.NotNull(model);
             Assert.Equal(fragment, model.Document.ToArray());
         }
@@ -132,29 +138,33 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act - Create initial archive
         using (var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
-            await archive.AddOpenApiEndpointAsync(key1, operation1, settings1);
-            await archive.CommitAsync();
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.AddOpenApiEndpointAsync(key1, operation1, settings1, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // act - Update existing archive
         stream.Position = 0;
         using (var updateArchive = OpenApiCollectionArchive.Open(stream, OpenApiCollectionArchiveMode.Update, leaveOpen: true))
         {
-            await updateArchive.AddOpenApiEndpointAsync(key2, operation2, settings2);
-            await updateArchive.CommitAsync();
+            await updateArchive.AddOpenApiEndpointAsync(
+                key2,
+                operation2,
+                settings2,
+                TestContext.Current.CancellationToken);
+            await updateArchive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - Verify both endpoints exist
         stream.Position = 0;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var endpoint1 = await readArchive.TryGetOpenApiEndpointAsync(key1);
+            var endpoint1 = await readArchive.TryGetOpenApiEndpointAsync(key1, TestContext.Current.CancellationToken);
             Assert.NotNull(endpoint1);
             Assert.Equal(operation1, endpoint1.Document.ToArray());
             endpoint1.Dispose();
 
-            var endpoint2 = await readArchive.TryGetOpenApiEndpointAsync(key2);
+            var endpoint2 = await readArchive.TryGetOpenApiEndpointAsync(key2, TestContext.Current.CancellationToken);
             Assert.NotNull(endpoint2);
             Assert.Equal(operation2, endpoint2.Document.ToArray());
             endpoint2.Dispose();
@@ -169,8 +179,8 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
-        var found = await archive.TryGetOpenApiModelAsync("non-existent");
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
+        var found = await archive.TryGetOpenApiModelAsync("non-existent", TestContext.Current.CancellationToken);
         Assert.Null(found);
     }
 
@@ -186,11 +196,11 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddOpenApiEndpointAsync(key, operation, settings);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddOpenApiEndpointAsync(key, operation, settings, TestContext.Current.CancellationToken);
 
         // assert - Can read immediately within the same session
-        var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
+        var endpoint = await archive.TryGetOpenApiEndpointAsync(key, TestContext.Current.CancellationToken);
 
         Assert.NotNull(endpoint);
         Assert.Equal(operation, endpoint.Document.ToArray());
@@ -218,15 +228,15 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddOpenApiEndpointAsync(key1, operation1, settings1);
-        await archive.AddOpenApiEndpointAsync(key2, operation2, settings2);
-        await archive.AddOpenApiEndpointAsync(key3, operation3, settings3);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddOpenApiEndpointAsync(key1, operation1, settings1, TestContext.Current.CancellationToken);
+        await archive.AddOpenApiEndpointAsync(key2, operation2, settings2, TestContext.Current.CancellationToken);
+        await archive.AddOpenApiEndpointAsync(key3, operation3, settings3, TestContext.Current.CancellationToken);
 
         // assert
-        var endpoint1 = await archive.TryGetOpenApiEndpointAsync(key1);
-        var endpoint2 = await archive.TryGetOpenApiEndpointAsync(key2);
-        var endpoint3 = await archive.TryGetOpenApiEndpointAsync(key3);
+        var endpoint1 = await archive.TryGetOpenApiEndpointAsync(key1, TestContext.Current.CancellationToken);
+        var endpoint2 = await archive.TryGetOpenApiEndpointAsync(key2, TestContext.Current.CancellationToken);
+        var endpoint3 = await archive.TryGetOpenApiEndpointAsync(key3, TestContext.Current.CancellationToken);
 
         Assert.NotNull(endpoint1);
         Assert.Equal(operation1, endpoint1.Document.ToArray());
@@ -258,7 +268,7 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream);
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.AddOpenApiEndpointAsync(key, operation, settings));
+            () => archive.AddOpenApiEndpointAsync(key, operation, settings, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -272,9 +282,9 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => archive.AddOpenApiEndpointAsync(key, operation, settings));
+            () => archive.AddOpenApiEndpointAsync(key, operation, settings, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -287,9 +297,9 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
         await Assert.ThrowsAsync<ArgumentNullException>(
-            () => archive.AddOpenApiEndpointAsync(key, operation, null!));
+            () => archive.AddOpenApiEndpointAsync(key, operation, null!, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -301,9 +311,9 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
 
-        var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
+        var endpoint = await archive.TryGetOpenApiEndpointAsync(key, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(endpoint);
@@ -322,16 +332,16 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act - Create and commit
         using (var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
-            await archive.AddOpenApiEndpointAsync(key, operation, settings);
-            await archive.CommitAsync();
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.AddOpenApiEndpointAsync(key, operation, settings, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - Reopen and verify persistence
         stream.Position = 0;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var endpoint = await readArchive.TryGetOpenApiEndpointAsync(key);
+            var endpoint = await readArchive.TryGetOpenApiEndpointAsync(key, TestContext.Current.CancellationToken);
 
             Assert.NotNull(endpoint);
             Assert.Equal(operation, endpoint.Document.ToArray());
@@ -365,11 +375,11 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddOpenApiEndpointAsync(key, operation, settings);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddOpenApiEndpointAsync(key, operation, settings, TestContext.Current.CancellationToken);
 
         // assert
-        var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
+        var endpoint = await archive.TryGetOpenApiEndpointAsync(key, TestContext.Current.CancellationToken);
 
         Assert.NotNull(endpoint);
         var retrievedSettings = endpoint.Settings.RootElement;
@@ -392,12 +402,12 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
         using var settings = CreateEmptyModelSettings();
-        await archive.AddOpenApiModelAsync("UserFields", fragment, settings);
+        await archive.AddOpenApiModelAsync("UserFields", fragment, settings, TestContext.Current.CancellationToken);
 
         // assert - Can read immediately within the same session
-        using var model = await archive.TryGetOpenApiModelAsync("UserFields");
+        using var model = await archive.TryGetOpenApiModelAsync("UserFields", TestContext.Current.CancellationToken);
 
         Assert.NotNull(model);
         Assert.Equal(fragment, model.Document.ToArray());
@@ -415,18 +425,24 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
         using var settings1 = CreateEmptyModelSettings();
         using var settings2 = CreateEmptyModelSettings();
         using var settings3 = CreateEmptyModelSettings();
-        await archive.AddOpenApiModelAsync("UserFields", fragment1, settings1);
-        await archive.AddOpenApiModelAsync("ProductFields", fragment2, settings2);
-        await archive.AddOpenApiModelAsync("OrderFields", fragment3, settings3);
+        await archive.AddOpenApiModelAsync("UserFields", fragment1, settings1, TestContext.Current.CancellationToken);
+        await archive.AddOpenApiModelAsync(
+            "ProductFields",
+            fragment2,
+            settings2,
+            TestContext.Current.CancellationToken);
+        await archive.AddOpenApiModelAsync("OrderFields", fragment3, settings3, TestContext.Current.CancellationToken);
 
         // assert
-        using var model1 = await archive.TryGetOpenApiModelAsync("UserFields");
-        using var model2 = await archive.TryGetOpenApiModelAsync("ProductFields");
-        using var model3 = await archive.TryGetOpenApiModelAsync("OrderFields");
+        using var model1 = await archive.TryGetOpenApiModelAsync("UserFields", TestContext.Current.CancellationToken);
+        using var model2 = await archive.TryGetOpenApiModelAsync(
+            "ProductFields",
+            TestContext.Current.CancellationToken);
+        using var model3 = await archive.TryGetOpenApiModelAsync("OrderFields", TestContext.Current.CancellationToken);
 
         Assert.NotNull(model1);
         Assert.Equal(fragment1, model1.Document.ToArray());
@@ -449,7 +465,11 @@ public class OpenApiCollectionArchiveTests : IDisposable
         using var archive = OpenApiCollectionArchive.Create(stream);
         using var settings = CreateEmptyModelSettings();
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.AddOpenApiModelAsync("UserFields", fragment, settings));
+            () => archive.AddOpenApiModelAsync(
+                "UserFields",
+                fragment,
+                settings,
+                TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -461,10 +481,14 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
         using var settings = CreateEmptyModelSettings();
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => archive.AddOpenApiModelAsync("UserFields", fragment, settings));
+            () => archive.AddOpenApiModelAsync(
+                "UserFields",
+                fragment,
+                settings,
+                TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -475,9 +499,9 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
 
-        var model = await archive.TryGetOpenApiModelAsync("NonExistent");
+        var model = await archive.TryGetOpenApiModelAsync("NonExistent", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(model);
@@ -494,17 +518,19 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act - Create and commit
         using (var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
             using var settings = CreateEmptyModelSettings();
-            await archive.AddOpenApiModelAsync("UserFields", fragment, settings);
-            await archive.CommitAsync();
+            await archive.AddOpenApiModelAsync("UserFields", fragment, settings, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - Reopen and verify persistence
         stream.Position = 0;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
-            using var model = await readArchive.TryGetOpenApiModelAsync("UserFields");
+            using var model = await readArchive.TryGetOpenApiModelAsync(
+                "UserFields",
+                TestContext.Current.CancellationToken);
 
             Assert.NotNull(model);
             Assert.Equal(fragment, model.Document.ToArray());
@@ -524,19 +550,23 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddOpenApiEndpointAsync(key, operation, endpointSettings);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddOpenApiEndpointAsync(key, operation, endpointSettings, TestContext.Current.CancellationToken);
         using var modelSettings = CreateEmptyModelSettings();
-        await archive.AddOpenApiModelAsync("UserFields", fragment, modelSettings);
+        await archive.AddOpenApiModelAsync(
+            "UserFields",
+            fragment,
+            modelSettings,
+            TestContext.Current.CancellationToken);
 
         // assert - Endpoints
-        var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
+        var endpoint = await archive.TryGetOpenApiEndpointAsync(key, TestContext.Current.CancellationToken);
 
         Assert.NotNull(endpoint);
         Assert.Equal(operation, endpoint.Document.ToArray());
 
         // assert - Models
-        using var model = await archive.TryGetOpenApiModelAsync("UserFields");
+        using var model = await archive.TryGetOpenApiModelAsync("UserFields", TestContext.Current.CancellationToken);
 
         Assert.NotNull(model);
         Assert.Equal(fragment, model.Document.ToArray());
@@ -556,11 +586,11 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddOpenApiEndpointAsync(key, operation, settings);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddOpenApiEndpointAsync(key, operation, settings, TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.AddOpenApiEndpointAsync(key, operation, settings));
+            () => archive.AddOpenApiEndpointAsync(key, operation, settings, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -573,13 +603,17 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
         using var settings = CreateEmptyModelSettings();
-        await archive.AddOpenApiModelAsync("UserFields", fragment, settings);
+        await archive.AddOpenApiModelAsync("UserFields", fragment, settings, TestContext.Current.CancellationToken);
 
         using var settings2 = CreateEmptyModelSettings();
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.AddOpenApiModelAsync("UserFields", fragment, settings2));
+            () => archive.AddOpenApiModelAsync(
+                "UserFields",
+                fragment,
+                settings2,
+                TestContext.Current.CancellationToken));
     }
 
     [Theory]
@@ -598,10 +632,10 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act & Assert - Should not throw
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
-        await archive.AddOpenApiEndpointAsync(key, operation, settings);
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
+        await archive.AddOpenApiEndpointAsync(key, operation, settings, TestContext.Current.CancellationToken);
 
-        var endpoint = await archive.TryGetOpenApiEndpointAsync(key);
+        var endpoint = await archive.TryGetOpenApiEndpointAsync(key, TestContext.Current.CancellationToken);
         Assert.NotNull(endpoint);
         endpoint.Dispose();
     }
@@ -619,13 +653,17 @@ public class OpenApiCollectionArchiveTests : IDisposable
 
         // act
         using var archive = OpenApiCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddOpenApiEndpointAsync(key, operation, settings);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddOpenApiEndpointAsync(key, operation, settings, TestContext.Current.CancellationToken);
         using var modelSettings = CreateEmptyModelSettings();
-        await archive.AddOpenApiModelAsync("UserFields", fragment, modelSettings);
+        await archive.AddOpenApiModelAsync(
+            "UserFields",
+            fragment,
+            modelSettings,
+            TestContext.Current.CancellationToken);
 
         // assert
-        var retrievedMetadata = await archive.GetArchiveMetadataAsync();
+        var retrievedMetadata = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.NotNull(retrievedMetadata);
         Assert.Contains(key, retrievedMetadata.Endpoints);
         Assert.Contains("UserFields", retrievedMetadata.Models);
@@ -663,12 +701,18 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act
         using (var writeArchive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await writeArchive.SetArchiveMetadataAsync(metadata);
+            await writeArchive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
 
             var ms = new MemoryStream();
-            await endpointDefinition.Document.PrintToAsync(ms);
-            await writeArchive.AddOpenApiEndpointAsync(key, ms.ToArray(), settingsJson);
-            await writeArchive.CommitAsync();
+            await endpointDefinition.Document.PrintToAsync(
+                ms,
+                cancellationToken: TestContext.Current.CancellationToken);
+            await writeArchive.AddOpenApiEndpointAsync(
+                key,
+                ms.ToArray(),
+                settingsJson,
+                TestContext.Current.CancellationToken);
+            await writeArchive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         stream.Position = 0;
@@ -676,9 +720,11 @@ public class OpenApiCollectionArchiveTests : IDisposable
         OpenApiEndpointDefinition parsedDefinition;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var readMetadata = await readArchive.GetArchiveMetadataAsync();
+            var readMetadata = await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
             var endpointKey = readMetadata!.Endpoints[0];
-            using var endpoint = await readArchive.TryGetOpenApiEndpointAsync(endpointKey);
+            using var endpoint = await readArchive.TryGetOpenApiEndpointAsync(
+                endpointKey,
+                TestContext.Current.CancellationToken);
 
             var readDocument = Utf8GraphQLParser.Parse(endpoint!.Document.Span);
             var readSettings = OpenApiEndpointSettingsSerializer.Parse(endpoint.Settings);
@@ -740,12 +786,16 @@ public class OpenApiCollectionArchiveTests : IDisposable
         // act
         using (var writeArchive = OpenApiCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await writeArchive.SetArchiveMetadataAsync(metadata);
+            await writeArchive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
 
             var ms = new MemoryStream();
-            await modelDefinition.Document.PrintToAsync(ms);
-            await writeArchive.AddOpenApiModelAsync(modelDefinition.Name, ms.ToArray(), settingsJson);
-            await writeArchive.CommitAsync();
+            await modelDefinition.Document.PrintToAsync(ms, cancellationToken: TestContext.Current.CancellationToken);
+            await writeArchive.AddOpenApiModelAsync(
+                modelDefinition.Name,
+                ms.ToArray(),
+                settingsJson,
+                TestContext.Current.CancellationToken);
+            await writeArchive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         stream.Position = 0;
@@ -753,9 +803,11 @@ public class OpenApiCollectionArchiveTests : IDisposable
         OpenApiModelDefinition parsedDefinition;
         using (var readArchive = OpenApiCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var readMetadata = await readArchive.GetArchiveMetadataAsync();
+            var readMetadata = await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
             var modelName = readMetadata!.Models[0];
-            using var model = await readArchive.TryGetOpenApiModelAsync(modelName);
+            using var model = await readArchive.TryGetOpenApiModelAsync(
+                modelName,
+                TestContext.Current.CancellationToken);
 
             var readDocument = Utf8GraphQLParser.Parse(model!.Document.Span);
             var readSettings = OpenApiModelSettingsSerializer.Parse(model.Settings);

@@ -6,6 +6,40 @@ namespace HotChocolate.Types;
 public class IsSelectedTests
 {
     [Fact]
+    public async Task BuildSchemaAsync_Should_RejectInvalidIsSelectedPattern_When_ResolverIsSourceGenerated()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddIntegrationTestTypes()
+            .AddPagingArguments()
+            .AddGlobalObjectIdentification()
+            .AddTypeExtension(
+                new ObjectTypeExtension(
+                    descriptor => descriptor
+                        .Name(nameof(IsSelectedNode))
+                        .Field("description")
+                        .Ignore()));
+
+        // act
+        var exception = await Assert.ThrowsAsync<SchemaException>(
+            async () => await builder.BuildSchemaAsync(
+                cancellationToken: TestContext.Current.CancellationToken));
+
+        // assert
+        exception.Errors.Single().Message.MatchInlineSnapshot(
+            """
+            The specified pattern on field `Query.isSelectedPatternTest` is invalid:
+            `{
+              name
+              description
+            }`
+
+            The field `description` does not exist on type `IsSelectedNode`.
+            """);
+    }
+
+    [Fact]
     public async Task IsSelected_Should_ReturnTrue_When_FieldIsSelected()
     {
         // arrange
@@ -14,10 +48,12 @@ public class IsSelectedTests
             .AddIntegrationTestTypes()
             .AddPagingArguments()
             .AddGlobalObjectIdentification()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ isSelectedTest { name wasNameSelected } }");
+        var result = await executor.ExecuteAsync(
+            "{ isSelectedTest { name wasNameSelected } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -42,10 +78,12 @@ public class IsSelectedTests
             .AddIntegrationTestTypes()
             .AddPagingArguments()
             .AddGlobalObjectIdentification()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ isSelectedTest { description wasNameSelected } }");
+        var result = await executor.ExecuteAsync(
+            "{ isSelectedTest { description wasNameSelected } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -70,13 +108,14 @@ public class IsSelectedTests
             .AddIntegrationTestTypes()
             .AddPagingArguments()
             .AddGlobalObjectIdentification()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var id = Convert.ToBase64String("IsSelectedNode:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
-            $$"""{ node(id: "{{id}}") { ... on IsSelectedNode { name wasNameSelected } } }""");
+            $$"""{ node(id: "{{id}}") { ... on IsSelectedNode { name wasNameSelected } } }""",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -101,13 +140,14 @@ public class IsSelectedTests
             .AddIntegrationTestTypes()
             .AddPagingArguments()
             .AddGlobalObjectIdentification()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var id = Convert.ToBase64String("IsSelectedNode:1"u8);
 
         // act
         var result = await executor.ExecuteAsync(
-            $$"""{ node(id: "{{id}}") { ... on IsSelectedNode { description wasNameSelected } } }""");
+            $$"""{ node(id: "{{id}}") { ... on IsSelectedNode { description wasNameSelected } } }""",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

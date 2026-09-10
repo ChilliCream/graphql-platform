@@ -33,7 +33,7 @@ public sealed class NotificationStrategyTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        await mediator.PublishAsync(new StrategyTestNotification("sequential"));
+        await mediator.PublishAsync(new StrategyTestNotification("sequential"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal(
@@ -70,7 +70,8 @@ public sealed class NotificationStrategyTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => mediator.PublishAsync(new StrategyTestNotification("fail")).AsTask());
+            () => mediator.PublishAsync(new StrategyTestNotification("fail"), TestContext.Current.CancellationToken)
+                .AsTask());
 
         // Handler1 ran, then the throw occurred; Handler3 was never reached
         Assert.Single(log);
@@ -107,7 +108,7 @@ public sealed class NotificationStrategyTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        await mediator.PublishAsync(new StrategyTestNotification("concurrent"));
+        await mediator.PublishAsync(new StrategyTestNotification("concurrent"), TestContext.Current.CancellationToken);
 
         // Assert - all handlers invoked (order is not guaranteed with WhenAll)
         var results = bag.OrderBy(x => x).ToList();
@@ -145,7 +146,8 @@ public sealed class NotificationStrategyTests
 
         // Act & Assert - concurrent mode surfaces AggregateException with all failures
         var ex = await Assert.ThrowsAsync<AggregateException>(
-            () => mediator.PublishAsync(new StrategyTestNotification("throw")).AsTask());
+            () => mediator.PublishAsync(new StrategyTestNotification("throw"), TestContext.Current.CancellationToken)
+                .AsTask());
 
         Assert.Single(ex.InnerExceptions);
         Assert.Equal("notification handler error", ex.InnerExceptions[0].Message);

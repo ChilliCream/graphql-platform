@@ -23,6 +23,6 @@ public class NestedHandlerTests
                 }
             }
             """
-        ]).MatchMarkdownAsync();
+        ]).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

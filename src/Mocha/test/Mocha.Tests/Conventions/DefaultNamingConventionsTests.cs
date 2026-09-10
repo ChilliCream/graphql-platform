@@ -12,7 +12,7 @@ public class DefaultNamingConventionsTests
         AssemblyName = "TestAssembly",
         AssemblyVersion = "1.0.0",
         PackageVersion = "1.0.0",
-        FrameworkVersion = ".NET 10.0",
+        FrameworkVersion = ".NET 11.0",
         OperatingSystemVersion = "Linux",
         EnvironmentName = "Test",
         ServiceName = "TestService",
@@ -29,7 +29,7 @@ public class DefaultNamingConventionsTests
         AssemblyName = "TestAssembly",
         AssemblyVersion = "1.0.0",
         PackageVersion = "1.0.0",
-        FrameworkVersion = ".NET 10.0",
+        FrameworkVersion = ".NET 11.0",
         OperatingSystemVersion = "Linux",
         EnvironmentName = "Test",
         ServiceName = null,
@@ -162,6 +162,16 @@ public class DefaultNamingConventionsTests
         var result = sut.GetReceiveEndpointName("  OrderProcessing  ", ReceiveEndpointKind.Default);
 
         Assert.Equal("order-processing", result);
+    }
+
+    [Fact]
+    public void GetReceiveEndpointName_Should_KebabCaseName_When_ErrorQueueLikePascalInput()
+    {
+        var sut = new DefaultNamingConventions(s_hostWithService);
+
+        var result = sut.GetReceiveEndpointName("ErrorQueue", ReceiveEndpointKind.Default);
+
+        Assert.Equal("error-queue", result);
     }
 
     [Fact]

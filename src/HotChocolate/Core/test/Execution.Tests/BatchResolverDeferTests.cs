@@ -54,7 +54,7 @@ public class BatchResolverDeferTests
                     d.Field(p => p.Name);
                 })
                 .ModifyOptions(o => o.EnableDefer = true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -67,7 +67,8 @@ public class BatchResolverDeferTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var (errors, data) = await DrainAsync(result);
@@ -88,7 +89,7 @@ public class BatchResolverDeferTests
                 .AddType<BatchEntity>()
                 .AddGlobalObjectIdentification()
                 .ModifyOptions(o => o.EnableDefer = true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -103,7 +104,8 @@ public class BatchResolverDeferTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var (errors, data) = await DrainAsync(result);

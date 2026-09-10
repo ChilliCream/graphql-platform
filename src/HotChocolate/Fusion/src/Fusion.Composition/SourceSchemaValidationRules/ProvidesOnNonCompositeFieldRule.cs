@@ -9,8 +9,8 @@ namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
 /// <summary>
 /// The <c>@provides</c> directive allows a field to “provide” additional nested fields on the
-/// composite type it returns. If a field’s base type is not an object or interface type (e.g.,
-/// String, Int, Boolean, Enum, Union, or an Input type), it cannot hold nested fields for
+/// composite type it returns. If a field’s base type is not an object, interface, or union type
+/// (e.g., String, Int, Boolean, Enum, or an input type), it cannot hold nested fields for
 /// <c>@provides</c> to select. Consequently, attaching <c>@provides</c> to such a field is
 /// invalid and raises a PROVIDES_ON_NON_COMPOSITE_FIELD error.
 /// </summary>
@@ -27,7 +27,8 @@ internal sealed class ProvidesOnNonCompositeFieldRule : IEventHandler<OutputFiel
         {
             var fieldType = field.Type.AsTypeDefinition();
 
-            if (fieldType is not MutableComplexTypeDefinition)
+            if (fieldType is not MutableComplexTypeDefinition
+                and not MutableUnionTypeDefinition)
             {
                 context.Log.Write(ProvidesOnNonCompositeField(field, schema));
             }

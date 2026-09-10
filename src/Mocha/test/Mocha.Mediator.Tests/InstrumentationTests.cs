@@ -36,7 +36,7 @@ public sealed class InstrumentationTests : IDisposable
         _listener.Reset();
 
         // Act
-        await mediator.SendAsync(new InstrumentedCommand("test-value"));
+        await mediator.SendAsync(new InstrumentedCommand("test-value"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(_listener.ExecuteCalled);
@@ -55,7 +55,8 @@ public sealed class InstrumentationTests : IDisposable
 
         // Act
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => mediator.SendAsync(new InstrumentedThrowingCommand("boom")).AsTask());
+            () => mediator.SendAsync(new InstrumentedThrowingCommand("boom"), TestContext.Current.CancellationToken)
+                .AsTask());
 
         // Assert
         Assert.True(_listener.ExecuteCalled);
@@ -89,7 +90,7 @@ public sealed class InstrumentationTests : IDisposable
         second.Reset();
 
         // Act
-        await mediator.SendAsync(new InstrumentedCommand("multi"));
+        await mediator.SendAsync(new InstrumentedCommand("multi"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(first.ExecuteCalled);

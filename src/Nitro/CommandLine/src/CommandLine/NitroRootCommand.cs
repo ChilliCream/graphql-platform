@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Clients;
@@ -35,6 +36,7 @@ internal sealed class NitroRootCommand : RootCommand
     {
         Description = "Nitro CLI";
 
+        Subcommands.Add(new AgentCommand());
         Subcommands.Add(new ApiKeyCommand());
         Subcommands.Add(new ApiCommand());
         Subcommands.Add(new ClientCommand());

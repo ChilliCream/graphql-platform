@@ -67,6 +67,8 @@ public sealed class SelectionSet : ISelectionSet
     /// </summary>
     public IObjectTypeDefinition Type { get; }
 
+    IComplexTypeDefinition ISelectionSet.Type => Type;
+
     /// <summary>
     /// Gets the declaring operation.
     /// </summary>

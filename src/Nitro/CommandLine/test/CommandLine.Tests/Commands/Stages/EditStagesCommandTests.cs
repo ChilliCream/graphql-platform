@@ -25,8 +25,8 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
             Options:
               --api-id <api-id>                The ID of the API [env: NITRO_API_ID]
               --configuration <configuration>  The stage configuration. If not provided, an interactive selection will beshown. This input is a JSON array of stage configuration in the following format:[{"name":"stage1","displayName":"Stage 1","conditions":[{"afterStage":"stage2"}]},...]
-              --cloud-url <cloud-url>          The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>              The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>          The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>              The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                   Show help and usage information
 
@@ -263,6 +263,48 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
     }
 
     [Fact]
+    public async Task ApiNotFound_ReturnsError()
+    {
+        // arrange
+        SetupUpdateStagesMutation(CreateUpdateStagesApiNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "stage", "edit", "--api-id", ApiId, "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        // arrange
+        SetupUpdateStagesMutation(CreateUpdateStagesStageNotFoundError());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "stage", "edit", "--api-id", ApiId, "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
     public async Task UpdateStagesReturnsNullApi_ReturnsSuccess()
     {
         // arrange
@@ -284,22 +326,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
     public static TheoryData<IUpdateStages_UpdateStages_Errors, string>
         GetUpdateStagesErrors() => new()
     {
-        {
-            CreateUpdateStagesApiNotFoundError(),
-            """
-            Updating stages for API 'api-1'
-            └── ✕ Failed to update the stages.
-                └── API not found
-            """
-        },
-        {
-            CreateUpdateStagesStageNotFoundError(),
-            """
-            Updating stages for API 'api-1'
-            └── ✕ Failed to update the stages.
-                └── Stage not found
-            """
-        },
         {
             CreateUpdateStagesStagesHavePublishedDependenciesError(),
             """

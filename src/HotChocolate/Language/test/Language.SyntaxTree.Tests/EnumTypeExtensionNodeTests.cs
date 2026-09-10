@@ -110,10 +110,10 @@ public class EnumTypeExtensionNodeTests
         var values = new List<EnumValueDefinitionNode>();
 
         var type = new EnumTypeExtensionNode(
-           location,
-           name,
-           directives,
-           values);
+            location,
+            name,
+            directives,
+            values);
 
         // act
         type = type.WithName(new NameNode("baz"));
@@ -132,10 +132,10 @@ public class EnumTypeExtensionNodeTests
         var values = new List<EnumValueDefinitionNode>();
 
         var type = new EnumTypeExtensionNode(
-           location,
-           name,
-           new List<DirectiveNode>(),
-           values);
+            location,
+            name,
+            new List<DirectiveNode>(),
+            values);
 
         // act
         type = type.WithDirectives(directives);
@@ -154,10 +154,10 @@ public class EnumTypeExtensionNodeTests
         var values = new List<EnumValueDefinitionNode>();
 
         var type = new EnumTypeExtensionNode(
-           location,
-           name,
-           directives,
-           new List<EnumValueDefinitionNode>());
+            location,
+            name,
+            directives,
+            new List<EnumValueDefinitionNode>());
 
         // act
         type = type.WithValues(values);
@@ -176,10 +176,10 @@ public class EnumTypeExtensionNodeTests
         var values = new List<EnumValueDefinitionNode>();
 
         var type = new EnumTypeExtensionNode(
-           null,
-           name,
-           directives,
-           values);
+            null,
+            name,
+            directives,
+            values);
 
         // act
         type = type.WithLocation(location);

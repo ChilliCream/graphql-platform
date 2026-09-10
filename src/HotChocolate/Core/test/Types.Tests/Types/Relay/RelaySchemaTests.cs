@@ -14,7 +14,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -25,7 +25,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification(o => o.AddNodesField = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -36,7 +36,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -47,7 +47,7 @@ public class RelaySchemaTests
             .AddGraphQL()
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -59,7 +59,7 @@ public class RelaySchemaTests
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -72,7 +72,7 @@ public class RelaySchemaTests
             .AddMutationType(d => d.Name("Mutation"))
             .AddTypeExtension<MutationExtension>()
             .AddQueryFieldToMutationPayloads()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -84,7 +84,7 @@ public class RelaySchemaTests
             .AddQueryType<QueryType>()
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads(o => o.QueryFieldName = "rootQuery")
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -97,7 +97,7 @@ public class RelaySchemaTests
             .AddMutationType<Mutation2>()
             .AddQueryFieldToMutationPayloads(
                 o => o.MutationPayloadPredicate = type => type.Name.EndsWith("Result"))
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -110,7 +110,9 @@ public class RelaySchemaTests
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
+            .ExecuteRequestAsync(
+                "mutation { foo { query { some { id } } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -123,7 +125,9 @@ public class RelaySchemaTests
             .AddMutationType<Mutation>()
             .AddQueryFieldToMutationPayloads()
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("mutation { foo { query { some { id } } } }")
+            .ExecuteRequestAsync(
+                "mutation { foo { query { some { id } } } }",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -137,7 +141,9 @@ public class RelaySchemaTests
                 .Type<UserType>()
                 .Resolve(_ => new User { Name = "TEST" }))
             .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync("query { user { id name } } ")
+            .ExecuteRequestAsync(
+                "query { user { id name } } ",
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

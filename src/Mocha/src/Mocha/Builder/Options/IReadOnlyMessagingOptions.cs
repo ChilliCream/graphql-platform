@@ -10,4 +10,10 @@ public interface IReadOnlyMessagingOptions
     /// is specified on a message type.
     /// </summary>
     MessageContentType DefaultContentType { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether all message types must be explicitly registered at startup.
+    /// When <c>true</c>, runtime auto-registration of unknown types is disabled.
+    /// </summary>
+    bool IsAotCompatible { get; }
 }

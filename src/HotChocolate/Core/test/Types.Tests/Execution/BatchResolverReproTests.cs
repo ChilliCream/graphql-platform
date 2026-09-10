@@ -60,7 +60,8 @@ public class BatchResolverReproTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -132,7 +133,8 @@ public class BatchResolverReproTests
                             externalId
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -223,7 +225,8 @@ public class BatchResolverReproTests
                             ... on Droid { friends }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -299,7 +302,8 @@ public class BatchResolverReproTests
                         b: batchAppendLog(s: "2")
                         c: appendLog(s: "3")
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         // Per the GraphQL spec top-level mutation fields execute serially in document
@@ -349,7 +353,8 @@ public class BatchResolverReproTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

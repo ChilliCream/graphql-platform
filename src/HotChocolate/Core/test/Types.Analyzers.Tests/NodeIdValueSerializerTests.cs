@@ -22,7 +22,7 @@ public class NodeIdValueSerializerTests
                 }
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class NodeIdValueSerializerTests
                 }
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class NodeIdValueSerializerTests
                 }
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class NodeIdValueSerializerTests
                 }
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class NodeIdValueSerializerTests
                 }
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class NodeIdValueSerializerTests
                 }
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class NodeIdValueSerializerTests
                 }
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -191,7 +191,7 @@ public class NodeIdValueSerializerTests
                 }
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -214,7 +214,7 @@ public class NodeIdValueSerializerTests
                 }
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -237,6 +237,6 @@ public class NodeIdValueSerializerTests
                 }
                 """
             ],
-            enableInterceptors: true).MatchMarkdownAsync();
+            enableInterceptors: true).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

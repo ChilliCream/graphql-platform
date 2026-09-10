@@ -1,12 +1,12 @@
 using Azure.Storage.Blobs;
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
-using Squadron;
 
 namespace HotChocolate.PersistedOperations.AzureBlobStorage;
 
-public class AzureBlobStorageOperationDocumentStorageTests : IClassFixture<AzureStorageBlobResource>
+public class AzureBlobStorageOperationDocumentStorageTests
 {
     private readonly BlobContainerClient _client;
 
@@ -25,7 +25,7 @@ public class AzureBlobStorageOperationDocumentStorageTests : IClassFixture<Azure
         var document = new OperationDocumentSourceText("{ foo }");
 
         // act
-        await storage.SaveAsync(documentId, document);
+        await storage.SaveAsync(documentId, document, TestContext.Current.CancellationToken);
 
         // assert
         var actual = await ReadBlob(documentId.Value);
@@ -73,7 +73,7 @@ public class AzureBlobStorageOperationDocumentStorageTests : IClassFixture<Azure
         await WriteBlob(documentId.Value, buffer);
 
         // act
-        var document = await storage.TryReadAsync(documentId);
+        var document = await storage.TryReadAsync(documentId, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(document);

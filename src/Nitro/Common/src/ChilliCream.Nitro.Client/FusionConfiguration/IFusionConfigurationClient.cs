@@ -154,8 +154,11 @@ public interface IFusionConfigurationClient
     /// <summary>
     /// Downloads the latest Fusion v2 archive (.far) for the specified stage.
     /// </summary>
-    /// <returns>The archive stream, or <c>null</c> if no archive exists.</returns>
+    /// <returns>The archive stream.</returns>
     /// <remarks>The caller owns and must dispose the returned stream.</remarks>
+    /// <exception cref="NitroClientNotFoundException">
+    /// No archive exists for the requested stage/version.
+    /// </exception>
     /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
@@ -165,7 +168,7 @@ public interface IFusionConfigurationClient
     /// <exception cref="OperationCanceledException">
     /// The operation was canceled.
     /// </exception>
-    Task<Stream?> DownloadLatestFusionArchiveAsync(
+    Task<Stream> DownloadLatestFusionArchiveAsync(
         string apiId,
         string stageName,
         string archiveVersion,
@@ -175,8 +178,11 @@ public interface IFusionConfigurationClient
     /// <summary>
     /// Downloads a source schema archive stream for a specific source schema version.
     /// </summary>
-    /// <returns>The archive stream, or <c>null</c> if the source schema version was not found.</returns>
+    /// <returns>The archive stream.</returns>
     /// <remarks>The caller owns and must dispose the returned stream.</remarks>
+    /// <exception cref="NitroClientNotFoundException">
+    /// The requested source schema version was not found.
+    /// </exception>
     /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
@@ -186,9 +192,33 @@ public interface IFusionConfigurationClient
     /// <exception cref="OperationCanceledException">
     /// The operation was canceled.
     /// </exception>
-    Task<Stream?> DownloadSourceSchemaArchiveAsync(
+    Task<Stream> DownloadSourceSchemaArchiveAsync(
         string apiId,
         string sourceSchemaName,
         string sourceSchemaVersion,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets the composition settings stored on the specified stage.
+    /// </summary>
+    /// <returns>
+    /// The stage composition settings, or <c>null</c> if the stage or its composition
+    /// settings were not found.
+    /// </returns>
+    /// <exception cref="NitroClientGraphQLException">
+    /// The server returned a GraphQL error.
+    /// </exception>
+    /// <exception cref="NitroClientHttpRequestException">
+    /// The server returned an HTTP error without a GraphQL response body.
+    /// </exception>
+    /// <exception cref="NitroClientAuthorizationException">
+    /// The request was rejected because the current credentials do not grant access.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">
+    /// The operation was canceled.
+    /// </exception>
+    Task<StageCompositionSettings?> GetStageCompositionSettingsAsync(
+        string apiId,
+        string stageName,
         CancellationToken cancellationToken);
 }

@@ -109,6 +109,11 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     public Uri Address { get; protected set; } = null!;
 
     /// <summary>
+    /// Gets the stable URN identity of this dispatch endpoint.
+    /// </summary>
+    public string Urn { get; private set; } = null!;
+
+    /// <summary>
     /// Gets the endpoint configuration that was applied during initialization.
     /// </summary>
     protected DispatchEndpointConfiguration Configuration { get; private set; } = null!;
@@ -128,10 +133,12 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     {
         AssertUninitialized();
 
+        Transport.Routing.ConfigureEndpoint(context, configuration);
         Transport.Conventions.Configure(context, Transport, configuration);
         Configuration = configuration;
         Kind = configuration.Kind;
         Name = configuration.Name ?? throw ThrowHelper.EndpointNameRequired();
+        Urn = MochaUrn.DispatchEndpoint(context.Host.EffectiveServiceName, Transport.Schema, Transport.Name, Name);
 
         OnInitialize(context, configuration);
 
@@ -165,7 +172,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// <param name="context">The messaging configuration context used for topology discovery.</param>
     public void DiscoverTopology(IMessagingConfigurationContext context)
     {
-        Transport.Conventions.DiscoverTopology(context, this, Configuration);
+        Transport.Routing.DiscoverTopology(context, this, Configuration);
         context.Endpoints.AddOrUpdate(this);
     }
 
@@ -227,7 +234,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     /// </returns>
     public DispatchEndpointDescription Describe()
     {
-        return new DispatchEndpointDescription(Name, Kind, Address?.ToString(), Destination?.Address?.ToString());
+        return new DispatchEndpointDescription(Urn, Name, Kind, Address?.ToString(), Destination?.Address?.ToString());
     }
 
     /// <summary>

@@ -1,0 +1,150 @@
+title: Lookup_Should_Return_Null_When_Nested_Entity_Not_Found
+request:
+  document: |
+    {
+      resources {
+        displayImage {
+          id
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "Cannot return null for non-nullable field.",
+          "path": [
+            "resources",
+            0,
+            "displayImage",
+            "id"
+          ],
+          "extensions": {
+            "code": "HC0018"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        resources: [Resource!]!
+      }
+
+      type File @key(fields: "originId") {
+        originId: Int!
+      }
+
+      type Resource {
+        id: Int!
+        displayImage: File! @shareable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_12ec73ed_1 {
+              resources {
+                displayImage {
+                  originId
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "resources": [
+                    {
+                      "displayImage": {
+                        "originId": 42
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        fileByOriginId(originId: Int!): File @lookup @internal
+      }
+
+      type File @key(fields: "originId") {
+        originId: Int!
+        id: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_12ec73ed_2($__fusion_1_originId: Int!) {
+              fileByOriginId(originId: $__fusion_1_originId) {
+                id
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_originId": 42
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "fileByOriginId": null
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          resources {
+            displayImage {
+              id
+              originId @fusion__requirement
+            }
+          }
+        }
+      hash: 12ec73ed991207ae3bc5b78abf8091dc
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_12ec73ed_1 {
+          resources {
+            displayImage {
+              originId
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_12ec73ed_2($__fusion_1_originId: Int!) {
+          fileByOriginId(originId: $__fusion_1_originId) {
+            id
+          }
+        }
+      source: $.fileByOriginId
+      target: $.resources.displayImage
+      requirements:
+        - name: __fusion_1_originId
+          selectionMap: >-
+            originId
+      dependencies:
+        - id: 1

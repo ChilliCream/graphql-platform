@@ -5,9 +5,6 @@ namespace HotChocolate.Fusion.Execution.Introspection;
 
 internal static class MemHelper
 {
-    public static void WriteValue(this FieldContext context, Uri? uri)
-        => WriteValue(context, uri?.ToString());
-
     public static void WriteValue(this FieldContext context, string? s)
     {
         if (s is null)

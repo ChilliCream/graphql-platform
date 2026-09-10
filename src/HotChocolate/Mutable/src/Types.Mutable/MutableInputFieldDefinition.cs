@@ -15,7 +15,6 @@ public class MutableInputFieldDefinition
     , IMutableFieldDefinition
 {
     private IInputType _type;
-    private bool _isDeprecated;
     private DirectiveCollection? _directives;
 
     /// <summary>
@@ -98,34 +97,15 @@ public class MutableInputFieldDefinition
     /// </summary>
     public IValueNode? DefaultValue { get; set; }
 
-    /// <inheritdoc cref="IMutableFieldDefinition.IsDeprecated" />
-    public bool IsDeprecated
-    {
-        get => _isDeprecated;
-        set
-        {
-            _isDeprecated = value;
-
-            if (!value)
-            {
-                DeprecationReason = null;
-            }
-        }
-    }
+    /// <inheritdoc cref="IDeprecationProvider.IsDeprecated" />
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
 
     /// <inheritdoc cref="IMutableFieldDefinition.DeprecationReason" />
     public string? DeprecationReason
     {
         get;
-        set
-        {
-            field = value;
-
-            if (!string.IsNullOrEmpty(value))
-            {
-                _isDeprecated = true;
-            }
-        }
+        set => field = string.IsNullOrWhiteSpace(value) ? null : value;
     }
 
     /// <inheritdoc cref="IMutableFieldDefinition.IsIntrospectionField" />

@@ -4,6 +4,7 @@
   "extensions": {
     "String": "def",
     "null": null,
+    "SByte": 123,
     "Byte": 123,
     "Int16": 123,
     "UInt16": 123,

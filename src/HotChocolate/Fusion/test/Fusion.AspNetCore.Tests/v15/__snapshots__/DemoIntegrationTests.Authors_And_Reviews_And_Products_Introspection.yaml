@@ -326,6 +326,20 @@ response:
                     "name": null,
                     "kind": "NON_NULL"
                   }
+                },
+                {
+                  "name": "isDeprecated",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "deprecationReason",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
                 }
               ]
             },

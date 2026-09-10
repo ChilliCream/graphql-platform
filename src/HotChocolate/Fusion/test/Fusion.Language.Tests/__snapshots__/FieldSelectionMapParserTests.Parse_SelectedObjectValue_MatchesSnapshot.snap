@@ -18,6 +18,7 @@
         },
         "Value": "field1"
       },
+      "Arguments": [],
       "ValueSelection": {
         "Kind": "Path",
         "Location": {
@@ -44,6 +45,7 @@
             },
             "Value": "field1"
           },
+          "Arguments": [],
           "TypeName": null,
           "PathSegment": null
         },

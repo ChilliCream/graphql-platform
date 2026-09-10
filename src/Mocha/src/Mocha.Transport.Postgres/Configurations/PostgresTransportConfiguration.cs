@@ -19,6 +19,7 @@ public class PostgresTransportConfiguration : MessagingTransportConfiguration
     {
         Name = DefaultName;
         Schema = DefaultSchema;
+        RoutingStrategyFactory = static _ => new PostgresRoutingStrategy();
     }
 
     /// <summary>

@@ -110,7 +110,13 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_FileMissing", resourceCulture);
             }
         }
-        
+
+        internal static string ThrowHelper_HttpMultipartMiddleware_FileVariableValueNotNull {
+            get {
+                return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_FileVariableValueNotNull", resourceCulture);
+            }
+        }
+
         internal static string ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid {
             get {
                 return ResourceManager.GetString("ThrowHelper_HttpMultipartMiddleware_VariableStructureInvalid", resourceCulture);
@@ -156,6 +162,12 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string WebSocketSession_SessionEnded {
             get {
                 return ResourceManager.GetString("WebSocketSession_SessionEnded", resourceCulture);
+            }
+        }
+        
+        internal static string WebSocketConnection_MessageTooBig {
+            get {
+                return ResourceManager.GetString("WebSocketConnection_MessageTooBig", resourceCulture);
             }
         }
         
@@ -270,6 +282,18 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string ErrorHelper_BatchSizeExceeded {
             get {
                 return ResourceManager.GetString("ErrorHelper_BatchSizeExceeded", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_VariableBatchingDisabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_VariableBatchingDisabled", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequestBatchingDisabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestBatchingDisabled", resourceCulture);
             }
         }
     }

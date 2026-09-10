@@ -38,6 +38,8 @@ public record OperationPlanStep : PlanStep
 
     public Lookup? Lookup { get; init; }
 
+    internal EventStreamPlan? EventStreamPlan { get; init; }
+
     public bool DependsOn(OperationPlanStep otherStep, ImmutableList<PlanStep> allSteps)
         => DependsOnRecursive(otherStep, Id, allSteps, []);
 

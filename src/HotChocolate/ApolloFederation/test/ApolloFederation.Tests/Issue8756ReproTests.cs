@@ -15,7 +15,7 @@ public class Issue8756ReproTests
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Issue8756Query>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var context = CreateResolverContext(schema);
 

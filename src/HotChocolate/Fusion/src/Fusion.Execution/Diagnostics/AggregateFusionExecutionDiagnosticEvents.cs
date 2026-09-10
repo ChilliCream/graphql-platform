@@ -184,6 +184,21 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         return new AggregateActivityScope(scopes);
     }
 
+    public IDisposable ExecuteApolloOperationExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationExecutionNode node,
+        string schemaName)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].ExecuteApolloOperationExecutionNode(context, node, schemaName);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
     public IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
         OperationBatchExecutionNode node,
@@ -199,9 +214,54 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         return new AggregateActivityScope(scopes);
     }
 
+    public IDisposable ExecuteApolloOperationBatchExecutionNode(
+        OperationPlanContext context,
+        ApolloOperationBatchExecutionNode node,
+        string schemaName)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].ExecuteApolloOperationBatchExecutionNode(context, node, schemaName);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
     public IDisposable ExecuteSourceSchemaRequest(
         OperationPlanContext context,
         OperationExecutionNode node,
+        string schemaName)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].ExecuteSourceSchemaRequest(context, node, schemaName);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        ApolloOperationExecutionNode node,
+        string schemaName)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].ExecuteSourceSchemaRequest(context, node, schemaName);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        ApolloOperationBatchExecutionNode node,
         string schemaName)
     {
         var scopes = new IDisposable[listeners.Length];
@@ -310,6 +370,22 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         }
 
         return new AggregateActivityScope(scopes);
+    }
+
+    public void SubscriptionEventDelivered(
+        OperationPlanContext context,
+        ExecutionNode node,
+        string schemaName,
+        ulong subscriptionId)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].SubscriptionEventDelivered(
+                context,
+                node,
+                schemaName,
+                subscriptionId);
+        }
     }
 
     public IDisposable ExecuteNodeFieldNode(OperationPlanContext context, NodeFieldExecutionNode node)

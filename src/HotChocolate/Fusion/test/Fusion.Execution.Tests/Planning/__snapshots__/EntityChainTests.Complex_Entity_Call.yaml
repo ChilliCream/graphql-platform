@@ -10,8 +10,8 @@ operation:
             }
             pid @fusion__requirement
             category @fusion__requirement {
-              id
-              tag
+              id @fusion__requirement
+              tag @fusion__requirement
             }
           }
         }

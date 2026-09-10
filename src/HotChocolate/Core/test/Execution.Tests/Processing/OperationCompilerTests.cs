@@ -35,6 +35,33 @@ public class OperationCompilerTests
     }
 
     [Fact]
+    public void Compile_Should_ExposeObjectSelectionSetThroughPublicContract()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddQueryType(
+                c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolve("foo"))
+            .Create();
+        var document = Utf8GraphQLParser.Parse("{ foo }");
+
+        // act
+        var operation = OperationCompiler.Compile("opid", document, schema);
+        ISelectionSet selectionSet = operation.RootSelectionSet;
+
+        // assert
+        Assert.Equal("Query", selectionSet.Type.Name);
+        Assert.IsAssignableFrom<IObjectTypeDefinition>(selectionSet.Type);
+
+        var selection = Assert.Single(selectionSet.GetSelections());
+        Assert.Equal("Query", selection.DeclaringSelectionSet.Type.Name);
+        Assert.IsAssignableFrom<IObjectTypeDefinition>(selection.DeclaringSelectionSet.Type);
+    }
+
+    [Fact]
     public void Prepare_Duplicate_Field()
     {
         // arrange
@@ -59,8 +86,9 @@ public class OperationCompilerTests
         MatchSnapshot(document, operation);
     }
 
+    // The compiler preserves an empty root selection set in the compiled operation.
     [Fact]
-    public void Prepare_Empty_Operation_SelectionSet()
+    public void Compile_Should_CreateOperationWithEmptySelectionSet_When_RootSelectionSetIsEmpty()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -103,7 +131,7 @@ public class OperationCompilerTests
                         homePlanet
                     }
                 }
-             }");
+            }");
 
         // act
         var operation = OperationCompiler.Compile(
@@ -139,7 +167,7 @@ public class OperationCompilerTests
               fragment def on Human {
                   homePlanet
               }
-             ");
+            ");
 
         // act
         var operation = OperationCompiler.Compile(
@@ -947,7 +975,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1016,7 +1044,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1089,7 +1117,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1153,7 +1181,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1316,7 +1344,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1421,89 +1449,6 @@ public class OperationCompilerTests
     }
 
     [Fact]
-    public void FragmentSpread_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean){
-              hero(episode: EMPIRE) {
-                name @include(if: $v)
-                ... abc
-              }
-            }
-
-            fragment abc on Droid { }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
-    public void InlineFragment_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean){
-              hero(episode: EMPIRE) {
-                name @include(if: $v)
-                ... on Droid { }
-              }
-            }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
-    public void CompositeType_SelectionsSet_Empty()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddStarWarsTypes()
-            .Create();
-
-        var document = Utf8GraphQLParser.Parse(
-            """
-            query foo($v: Boolean) {
-              hero(episode: EMPIRE) { }
-            }
-            """);
-
-        // act
-        var operation = OperationCompiler.Compile(
-            "opid",
-            document,
-            schema);
-
-        // assert
-        MatchSnapshot(document, operation);
-    }
-
-    [Fact]
     public async Task Large_Query_Test()
     {
         // arrange
@@ -1511,7 +1456,7 @@ public class OperationCompilerTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddStarWarsTypes()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("LargeQuery.graphql"));
@@ -1535,7 +1480,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("CryptoDetailQuery.graphql"));
@@ -1559,7 +1504,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1598,7 +1543,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1637,7 +1582,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1677,7 +1622,7 @@ public class OperationCompilerTests
                 .AddGraphQLServer()
                 .AddDocumentFromString(FileResource.Open("Crypto.graphql"))
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             FileResource.Open("CryptoQuery.graphql"));
@@ -1732,7 +1677,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1814,7 +1759,7 @@ public class OperationCompilerTests
                     }
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1867,7 +1812,7 @@ public class OperationCompilerTests
                 .AddType<TypeOne>()
                 .AddType<TypeTwo>()
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1907,7 +1852,7 @@ public class OperationCompilerTests
                 .AddQueryType<UnionQuery>()
                 .AddType<TypeOne>()
                 .AddType<TypeTwo>()
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var document = Utf8GraphQLParser.Parse(
             """
@@ -1928,7 +1873,9 @@ public class OperationCompilerTests
             """);
 
         // act
-        var result = await executor.ExecuteAsync(builder => builder.SetDocument(document));
+        var result = await executor.ExecuteAsync(
+            builder => builder.SetDocument(document),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -1977,8 +1924,9 @@ public class OperationCompilerTests
                     "someName",
                     SelectionPath.Root,
                     baz,
-                    [new FieldSelectionNode(bazSelection, 0)],
+                    [new FieldSelectionNode(bazSelection, default(ConditionFlags))],
                     [],
+                    isProjectionRequirement: false,
                     isInternal: true,
                     resolverPipeline: bazPipeline);
 

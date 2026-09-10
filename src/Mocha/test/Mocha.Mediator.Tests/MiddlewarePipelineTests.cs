@@ -99,7 +99,9 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.SendAsync(new PipelineTestCommand("order-test"));
+        var result = await mediator.SendAsync(
+            new PipelineTestCommand("order-test"),
+            TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal("handled:order-test", result);
@@ -185,7 +187,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.SendAsync(new PipelineTestCommand("test"));
+        var result = await mediator.SendAsync(new PipelineTestCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal("handled:test-modified", result);
@@ -225,7 +227,7 @@ public sealed class MiddlewarePipelineTests : IDisposable
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => mediator.SendAsync(new PipelineTestCommand("boom")).AsTask());
+            () => mediator.SendAsync(new PipelineTestCommand("boom"), TestContext.Current.CancellationToken).AsTask());
 
         Assert.True(middlewareSawException);
     }
@@ -255,7 +257,8 @@ public sealed class MiddlewarePipelineTests : IDisposable
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<ApplicationException>(
-            () => mediator.SendAsync(new PipelineTestCommand("never-handled")).AsTask());
+            () => mediator.SendAsync(new PipelineTestCommand("never-handled"), TestContext.Current.CancellationToken)
+                .AsTask());
 
         Assert.Equal("middleware failure", ex.Message);
         Assert.False(handlerInvoked);
@@ -288,7 +291,9 @@ public sealed class MiddlewarePipelineTests : IDisposable
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.SendAsync(new PipelineTestCommand("ignored"));
+        var result = await mediator.SendAsync(
+            new PipelineTestCommand("ignored"),
+            TestContext.Current.CancellationToken);
 
         // Assert
         Assert.Equal("short-circuited", result);

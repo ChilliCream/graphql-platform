@@ -126,7 +126,7 @@ internal sealed class UpdateMockCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IMockSchemaNotFoundError err => err.Message,
+                        IMockSchemaNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IMockSchemaNonUniqueNameError err => err.Message,
                         IUnauthorizedOperation err => err.Message,
                         IValidationError err => err.Message,

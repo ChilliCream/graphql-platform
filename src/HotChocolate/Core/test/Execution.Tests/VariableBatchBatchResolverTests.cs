@@ -44,7 +44,7 @@ public class VariableBatchBatchResolverTests
                     d.Field(p => p.Id);
                     d.Field(p => p.Name);
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -63,7 +63,8 @@ public class VariableBatchBatchResolverTests
                         new Dictionary<string, object?> { { "id", 1 } },
                         new Dictionary<string, object?> { { "id", 2 } }
                     })
-                .Build());
+                .Build(),
+                cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         // Each variable set must execute with its own $id, so set 0 yields Product 1 and set 1

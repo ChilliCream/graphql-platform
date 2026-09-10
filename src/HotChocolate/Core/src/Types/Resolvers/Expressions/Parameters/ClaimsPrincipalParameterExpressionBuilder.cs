@@ -60,5 +60,5 @@ internal sealed class ClaimsPrincipalParameterExpressionBuilder
         => this;
 
     public T Execute<T>(IResolverContext context)
-        => context.GetGlobalState<T>(nameof(ClaimsPrincipal))!;
+        => context.GetGlobalState<T>(nameof(ClaimsPrincipal));
 }

@@ -31,6 +31,12 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="onError">
     /// The error handling mode requested by the source schema.
     /// </param>
+    /// <param name="subscriptionReadTimeout">
+    /// The maximum time to wait for data on a subscription response stream. Keep-alive messages count
+    /// as data. <c>null</c> uses <see cref="HttpSourceSchemaClientConfiguration.DefaultSubscriptionReadTimeout"/>,
+    /// <see cref="Timeout.InfiniteTimeSpan"/> disables the timeout. A finite value must be between
+    /// one millisecond and <c>uint.MaxValue - 1</c> milliseconds.
+    /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
     /// </param>
@@ -57,8 +63,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default,
         ErrorHandlingMode? onError = null,
+        TimeSpan? subscriptionReadTimeout = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -73,6 +80,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             supportedOperations,
             capabilities,
             onError,
+            subscriptionReadTimeout,
             defaultAcceptHeaderValues,
             batchingAcceptHeaderValues,
             subscriptionAcceptHeaderValues,
@@ -104,6 +112,12 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="onError">
     /// The error handling mode requested by the source schema.
     /// </param>
+    /// <param name="subscriptionReadTimeout">
+    /// The maximum time to wait for data on a subscription response stream. Keep-alive messages count
+    /// as data. <c>null</c> uses <see cref="HttpSourceSchemaClientConfiguration.DefaultSubscriptionReadTimeout"/>,
+    /// <see cref="Timeout.InfiniteTimeSpan"/> disables the timeout. A finite value must be between
+    /// one millisecond and <c>uint.MaxValue - 1</c> milliseconds.
+    /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
     /// </param>
@@ -131,8 +145,9 @@ public static partial class CoreFusionGatewayBuilderExtensions
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default,
         ErrorHandlingMode? onError = null,
+        TimeSpan? subscriptionReadTimeout = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -154,6 +169,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
                 supportedOperations,
                 capabilities,
                 onError,
+                subscriptionReadTimeout,
                 defaultAcceptHeaderValues,
                 batchingAcceptHeaderValues,
                 subscriptionAcceptHeaderValues,

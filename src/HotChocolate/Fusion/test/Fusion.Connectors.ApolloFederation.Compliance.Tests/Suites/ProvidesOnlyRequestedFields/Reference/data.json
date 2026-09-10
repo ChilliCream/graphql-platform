@@ -1,0 +1,14 @@
+[
+  {
+    "id": "e1",
+    "name": "Entity One",
+    "description": "Description One",
+    "extra": "Extra One"
+  },
+  {
+    "id": "e2",
+    "name": "Entity Two",
+    "description": "Description Two",
+    "extra": "Extra Two"
+  }
+]

@@ -24,7 +24,7 @@ public class CorrelationTests
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, default);
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-1" }, TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(await capture.WaitAsync(s_timeout));
@@ -54,10 +54,10 @@ public class CorrelationTests
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act - two independent publishes
-        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-A" }, default);
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-A" }, TestContext.Current.CancellationToken);
         Assert.True(await capture.WaitAsync(s_timeout));
 
-        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-B" }, default);
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-B" }, TestContext.Current.CancellationToken);
         Assert.True(await capture.WaitAsync(s_timeout));
 
         // assert - each publish gets its own MessageId and ConversationId
@@ -84,7 +84,7 @@ public class CorrelationTests
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-CTX" }, default);
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-CTX" }, TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(await capture.WaitAsync(s_timeout));
@@ -112,7 +112,7 @@ public class CorrelationTests
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act
-        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-FAN" }, default);
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-FAN" }, TestContext.Current.CancellationToken);
 
         // assert - both consumers received the event
         Assert.True(await capture.WaitAsync(s_timeout, 2));
@@ -148,7 +148,7 @@ public class CorrelationTests
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
         // act - publish the initial event
-        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-CHAIN" }, default);
+        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-CHAIN" }, TestContext.Current.CancellationToken);
 
         // assert - wait for both captures (OrderCreated + ProcessPayment)
         Assert.True(await capture.WaitAsync(s_timeout, 2), "Both handlers should fire");

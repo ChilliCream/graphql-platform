@@ -97,9 +97,13 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
             $"No client factory found for configuration type: {configuration.GetType().Name}.");
     }
 
-    public async ValueTask DisposeAsync()
+    /// <summary>
+    /// Disposes the source schema clients created during the current request and clears the
+    /// scope so the container can be reused for the next request.
+    /// </summary>
+    internal async ValueTask ResetAsync()
     {
-        if (_disposed)
+        if (_disposed || _clients.IsEmpty)
         {
             return;
         }
@@ -110,6 +114,16 @@ public sealed class DefaultSourceSchemaClientScope : ISourceSchemaClientScope
         }
 
         _clients.Clear();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        await ResetAsync().ConfigureAwait(false);
         _disposed = true;
     }
 }

@@ -1,0 +1,33 @@
+schema {
+  query: Query
+  subscription: Subscription
+}
+
+type Query @fusion__type(schema: EVENTS) {
+  version: String! @fusion__field(schema: EVENTS)
+}
+
+type Subscription @fusion__type(schema: EVENTS) {
+  onUserCreated(
+    after: String @fusion__inputField(schema: EVENTS)
+    id: String! @fusion__inputField(schema: EVENTS)
+  ): OnUserCreatedEvent!
+    @fusion__field(schema: EVENTS)
+    @fusion__eventStream(
+      schema: EVENTS
+      topics: ["onUserCreated-{$args.id}"]
+      broker: "memory"
+      message: "{ user { id } }"
+      cursorField: "cursor"
+      cursorArgument: "after"
+    )
+}
+
+type OnUserCreatedEvent @fusion__type(schema: EVENTS) {
+  cursor: String! @fusion__field(schema: EVENTS)
+  user: User! @fusion__field(schema: EVENTS)
+}
+
+type User @fusion__type(schema: EVENTS) {
+  id: String! @fusion__field(schema: EVENTS)
+}

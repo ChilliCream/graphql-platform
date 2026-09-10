@@ -1,38 +1,48 @@
 using System.Buffers;
+using System.Diagnostics;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed partial class FetchResultStore
 {
-    /// <summary>
-    /// Initializes the <see cref="FetchResultStore"/> for a new request.
-    /// </summary>
     public void Initialize(
-        ISchemaDefinition schema,
+        IMemoryArena arena,
+        FusionSchemaDefinition schema,
         IErrorHandler errorHandler,
         Operation operation,
         ErrorHandlingMode errorHandlingMode,
-        ulong includeFlags,
-        ulong deferFlags,
+        ConditionFlags includeFlags,
+        ConditionFlags deferFlags,
         int pathSegmentLocalPoolCapacity)
     {
+        ArgumentNullException.ThrowIfNull(arena);
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(operation);
 
+        _arena = arena;
         _schema = schema;
         _errorHandler = errorHandler;
         _operation = operation;
         _errorHandlingMode = errorHandlingMode;
-        _includeFlags = includeFlags;
-        _deferFlags = deferFlags;
+        _includeFlags = includeFlags.Word0;
+        _deferFlags = deferFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
+        _wideDeferFlags = deferFlags.Overflow;
         _disposed = false;
 
         _pathPool ??= new PathSegmentLocalPool(pathSegmentLocalPoolCapacity);
-        _result = new CompositeResultDocument(operation, includeFlags, deferFlags, _pathPool);
+        _result = new CompositeResultDocument(
+            arena,
+            operation,
+            includeFlags,
+            deferFlags,
+            _pathPool);
 
         _valueCompletion = new ValueCompletion(
             this,
@@ -44,11 +54,38 @@ internal sealed partial class FetchResultStore
         _memory.Push(_result);
     }
 
-    public void Reset()
+    /// <summary>
+    /// Resets the store for the next subscription event onto <paramref name="arena"/>.
+    /// This rebuilds the pending result document and clears accumulated errors.
+    /// </summary>
+    public void Reset(IMemoryArena arena)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(arena);
 
-        _result = new CompositeResultDocument(_operation, _includeFlags, _deferFlags, _pathPool);
+        // arenas can only be reset in a subscription context,
+        // and only once complete is called on the context.
+        Debug.Assert(
+            _memory.Count <= 1,
+            "Reset expects an empty stack or a single pending seed result. "
+            + "Extra entries mean a prior event's memory owners were not drained by Complete.");
+
+        // The most recent seed result document is untouched at this point (no data has been added
+        // for the current event yet), so it is safe to discard it and rebuild over the new arena.
+        if (_memory.TryPop(out var pending))
+        {
+            pending.Dispose();
+        }
+
+        _arena = arena;
+
+        _result = new CompositeResultDocument(
+            _arena,
+            _operation,
+            new ConditionFlags(_includeFlags, _wideIncludeFlags),
+            new ConditionFlags(_deferFlags, _wideDeferFlags),
+            _pathPool);
+
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
@@ -59,6 +96,8 @@ internal sealed partial class FetchResultStore
             _errorHandlingMode,
             maxDepth: 32);
 
+        // The arena is a disposable instance whose lifetime travels with the result it backs.
+        _memory.Push((IDisposable)arena);
         _memory.Push(_result);
     }
 
@@ -75,7 +114,7 @@ internal sealed partial class FetchResultStore
         }
 
         // return path segments to global pool and reset local pool
-        _pathPool.Dispose();
+        _pathPool?.Dispose();
         _pathPool = null!;
 
         // clear errors
@@ -93,7 +132,6 @@ internal sealed partial class FetchResultStore
 
         // clear dictionaries/hashsets; drop oversized ones.
         TrimOrClear(ref _seenPaths, maxDictionaryRetainCapacity, ReferenceEqualityComparer.Instance);
-        _variableDedupTable.Clear();
 
         // null out per-request references
         _result = default!;
@@ -101,6 +139,9 @@ internal sealed partial class FetchResultStore
         _schema = default!;
         _errorHandler = default!;
         _operation = default!;
+        _arena = default!;
+        _wideIncludeFlags = null;
+        _wideDeferFlags = null;
     }
 
     private static void TrimOrClearBuffer(ref CompositeResultElement[] buffer, int maxRetainLength)

@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Filters;
 
@@ -74,30 +75,30 @@ public class QueryableFilterVisitorListTests
                         }
                     }
                     """)
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { some: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { some: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "a")
             .AddResult(res2, "d")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -111,30 +112,30 @@ public class QueryableFilterVisitorListTests
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { none: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { none: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "a")
             .AddResult(res2, "d")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -148,30 +149,30 @@ public class QueryableFilterVisitorListTests
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"a\"}}}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { all: {bar: { eq: \"d\"}}}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { all: {bar: { eq: null}}}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "a")
             .AddResult(res2, "d")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -185,19 +186,22 @@ public class QueryableFilterVisitorListTests
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { any: false}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { any: true}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         var res3 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     "{ root(where: { fooNested: { all: null}}){ fooNested {bar}}}")
-                .Build());
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
@@ -205,7 +209,7 @@ public class QueryableFilterVisitorListTests
             .AddResult(res1, "false")
             .AddResult(res2, "true")
             .AddResult(res3, "null")
-            .MatchAsync();
+            .MatchAsync(Xunit.TestContext.Current.CancellationToken);
     }
 
     public class Foo

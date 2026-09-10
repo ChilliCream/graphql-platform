@@ -29,7 +29,7 @@ public abstract class FieldConfiguration
         get => _deprecationReason;
         set
         {
-            if (string.IsNullOrEmpty(value))
+            if (string.IsNullOrWhiteSpace(value))
             {
                 Flags &= ~CoreFieldFlags.Deprecated;
             }
@@ -127,8 +127,15 @@ public abstract class FieldConfiguration
 
     public void SetConnectionTotalCountFieldFlags() => Flags |= CoreFieldFlags.TotalCount;
 
-    public void SetFieldRequirements(string requirements, Type entityType)
+    public void SetFieldRequirements(string? requirements, Type? entityType)
     {
+        if (string.IsNullOrEmpty(requirements))
+        {
+            Flags &= ~CoreFieldFlags.WithRequirements;
+            Features.Set<FieldRequirementFeature>(null);
+            return;
+        }
+
         Flags |= CoreFieldFlags.WithRequirements;
         Features.Set(new FieldRequirementFeature(requirements, entityType));
     }

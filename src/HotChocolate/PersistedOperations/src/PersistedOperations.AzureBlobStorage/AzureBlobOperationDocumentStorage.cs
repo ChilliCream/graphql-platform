@@ -86,7 +86,7 @@ public class AzureBlobOperationDocumentStorage : IOperationDocumentStorage
             }
 
             var span = new ReadOnlySpan<byte>(buffer, 0, position);
-            return new OperationDocument(Utf8GraphQLParser.Parse(span));
+            return new OperationDocument(Utf8GraphQLParser.Parse(span, ParserOptions.Trusted));
         }
         catch (RequestFailedException e)
         {

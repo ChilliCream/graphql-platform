@@ -14,31 +14,16 @@ namespace Mocha;
 /// success via timeout behavior.
 /// </remarks>
 internal sealed class SendConsumer<THandler, TRequest> : Consumer
-    where THandler : IEventRequestHandler<TRequest>
+    where THandler : class, IEventRequestHandler<TRequest>
     where TRequest : notnull
 {
-    private readonly Action<IConsumerDescriptor>? _configure;
-
-    public SendConsumer(Action<IConsumerDescriptor> configure)
-    {
-        _configure = configure;
-    }
-
-    public SendConsumer() { }
-
-    protected override void OnAfterInitialize(IMessagingSetupContext context)
-    {
-        base.OnAfterInitialize(context);
-        SetIdentity(typeof(THandler));
-    }
+    public SendConsumer() : base(typeof(THandler)) { }
 
     protected override void Configure(IConsumerDescriptor descriptor)
     {
         descriptor
             .Name(typeof(THandler).Name)
             .AddRoute(r => r.MessageType(typeof(TRequest)).Kind(InboundRouteKind.Send));
-
-        _configure?.Invoke(descriptor);
     }
 
     protected override async ValueTask ConsumeAsync(IConsumeContext context)

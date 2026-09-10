@@ -23,6 +23,6 @@ public class CollectionInferenceTests
                     CancellationToken cancellationToken)
                     => default;
             }
-            """).MatchMarkdownAsync();
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 }

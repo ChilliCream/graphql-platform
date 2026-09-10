@@ -41,7 +41,7 @@ public class RedisOperationDocumentStorage : IOperationDocumentStorage
     private async ValueTask<IOperationDocument?> TryReadInternalAsync(OperationDocumentId documentId)
     {
         var buffer = (byte[]?)await _database.StringGetAsync(documentId.Value).ConfigureAwait(false);
-        return buffer is null ? null : new OperationDocument(Utf8GraphQLParser.Parse(buffer));
+        return buffer is null ? null : new OperationDocument(Utf8GraphQLParser.Parse(buffer, ParserOptions.Trusted));
     }
 
     /// <inheritdoc />

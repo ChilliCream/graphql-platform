@@ -1,14 +1,12 @@
+using CookieCrumble.Resources;
 using System.Data;
 using HotChocolate.Tests;
 using Npgsql;
-using Squadron;
-using Xunit.Abstractions;
 
 namespace HotChocolate.Subscriptions.Postgres;
 
 public class PostgresChannelWriterTests
-    : IClassFixture<PostgreSqlResource>
-    , IAsyncLifetime
+    : IAsyncLifetime
 {
     private readonly PostgreSqlResource _resource;
     private readonly string _dbName = $"DB_{Guid.NewGuid():N}";
@@ -69,7 +67,9 @@ public class PostgresChannelWriterTests
         // Assert
         while (testChannel.ReceivedMessages.Count < 1000)
         {
-            await testChannel.WaitForNotificationAsync().WaitAsync(TimeSpan.FromSeconds(10));
+            await testChannel.WaitForNotificationAsync().WaitAsync(
+                TimeSpan.FromSeconds(10),
+                TestContext.Current.CancellationToken);
         }
 
         Assert.Equal(1000, testChannel.ReceivedMessages.Count);
@@ -103,7 +103,7 @@ public class PostgresChannelWriterTests
     public async Task Initialize_Should_ReconnectOnConnectionDrop()
     {
         // Arrange
-        var reconnected = false;
+        var reconnected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         NpgsqlConnection? connection = null;
         var options = new PostgresSubscriptionOptions
         {
@@ -115,7 +115,7 @@ public class PostgresChannelWriterTests
                     return connection;
                 }
 
-                reconnected = true;
+                reconnected.TrySetResult();
 
                 return await ConnectionFactory(ct);
             },
@@ -128,8 +128,7 @@ public class PostgresChannelWriterTests
         await connection!.CloseAsync();
 
         // Assert
-        SpinWait.SpinUntil(() => reconnected, TimeSpan.FromSeconds(5));
-        Assert.True(reconnected);
+        await reconnected.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -177,11 +176,11 @@ public class PostgresChannelWriterTests
     }
 
     /// <inheritdoc />
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
-        return _resource.CreateDatabaseAsync(_dbName);
+        return new ValueTask(_resource.CreateDatabaseAsync(_dbName));
     }
 
     /// <inheritdoc />
-    public Task DisposeAsync() => Task.CompletedTask;
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

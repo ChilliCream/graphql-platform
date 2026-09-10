@@ -109,7 +109,7 @@ public class PostgresConnectionManagerTests
             WHERE table_schema = 'public'
               AND table_name LIKE 'mocha_%';
             """;
-        var tableCount = (long)(await command.ExecuteScalarAsync())!;
+        var tableCount = (long)(await command.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.True(tableCount > 0, "Expected mocha tables to exist after migration");
     }
 
@@ -137,7 +137,7 @@ public class PostgresConnectionManagerTests
             WHERE table_schema = 'public'
               AND table_name LIKE 'mocha_%';
             """;
-        var tableCount = (long)(await command.ExecuteScalarAsync())!;
+        var tableCount = (long)(await command.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.True(tableCount > 0, "Expected mocha tables to still exist after second migration");
     }
 

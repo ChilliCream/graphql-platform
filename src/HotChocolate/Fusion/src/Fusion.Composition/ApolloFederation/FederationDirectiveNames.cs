@@ -6,6 +6,7 @@ internal static class FederationDirectiveNames
     public const string Requires = "requires";
     public const string Provides = "provides";
     public const string External = "external";
+    public const string Extends = "extends";
     public const string Link = "link";
     public const string Shareable = "shareable";
     public const string Inaccessible = "inaccessible";

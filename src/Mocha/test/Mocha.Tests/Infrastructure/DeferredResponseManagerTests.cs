@@ -105,14 +105,23 @@ public class DeferredResponseManagerTests
     }
 
     [Fact]
-    public void SetException_Should_BeNoOp_When_PromiseDoesNotExist()
+    public async Task SetException_Should_LeaveOtherPromisePending_When_TargetPromiseDoesNotExist()
     {
         // arrange
         var manager = new DeferredResponseManager(TimeProvider.System);
+        var correlationId = Guid.NewGuid().ToString();
         var nonExistentId = Guid.NewGuid().ToString();
+        var tcs = manager.AddPromise(correlationId, TimeSpan.FromSeconds(30));
 
-        // act & assert - should not throw
+        // act
         manager.SetException(nonExistentId, new InvalidOperationException("test"));
+
+        // assert
+        Assert.False(tcs.Task.IsCompleted);
+
+        // cleanup
+        manager.CompletePromise(correlationId, null);
+        await tcs.Task;
     }
 
     [Fact]
@@ -273,7 +282,7 @@ public class DeferredResponseManagerTests
                     manager.CompletePromise(correlationId, $"result-{correlationId}");
                     var result = await tcs.Task;
                     Assert.Equal($"result-{correlationId}", result);
-                }, default));
+                }, TestContext.Current.CancellationToken));
         }
 
         // assert - all should complete without error

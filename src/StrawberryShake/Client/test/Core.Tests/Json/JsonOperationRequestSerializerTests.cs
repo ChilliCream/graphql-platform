@@ -98,6 +98,7 @@ public class JsonOperationRequestSerializerTests
         operationRequest.Extensions.Add(nameof(String), "def");
         operationRequest.Extensions.Add("null", null);
 
+        operationRequest.Extensions.Add(nameof(SByte), (sbyte)123);
         operationRequest.Extensions.Add(nameof(Byte), (byte)123);
         operationRequest.Extensions.Add(nameof(Int16), (short)123);
         operationRequest.Extensions.Add(nameof(UInt16), (ushort)123);

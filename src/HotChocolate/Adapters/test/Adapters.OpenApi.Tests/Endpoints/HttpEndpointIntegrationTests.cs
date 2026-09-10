@@ -55,7 +55,7 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
         var client = server.CreateClient();
 
         // act
-        var response = await client.GetAsync("/users");
+        var response = await client.GetAsync("/users", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -106,7 +106,7 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
             Encoding.UTF8,
             "application/json");
 
-        var response = await client.PostAsync("/users", content);
+        var response = await client.PostAsync("/users", content, TestContext.Current.CancellationToken);
 
         // assert
         response.MatchSnapshot();

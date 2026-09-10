@@ -1,0 +1,49 @@
+operation:
+  - document: |
+      {
+        feed {
+          __typename @fusion__requirement
+          id
+          ... on ImagePost {
+            createdAt
+            id @fusion__requirement
+          }
+          ... on TextPost {
+            createdAt
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 2
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        feed {
+          __typename
+          id
+          ... on ImagePost {
+            id
+          }
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
+        imagePostById(id: $__fusion_1_id) {
+          createdAt
+        }
+      }
+    source: $.imagePostById
+    target: $.feed<ImagePost>
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

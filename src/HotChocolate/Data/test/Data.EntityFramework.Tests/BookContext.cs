@@ -15,6 +15,6 @@ public class BookContext(DbContextOptions options) : DbContext(options)
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         => modelBuilder.Entity<Author>()
             .HasMany(t => t.Books)
-            .WithOne(t => t.Author!)
+            .WithOne(t => t.Author)
             .HasForeignKey(t => t.AuthorId);
 }

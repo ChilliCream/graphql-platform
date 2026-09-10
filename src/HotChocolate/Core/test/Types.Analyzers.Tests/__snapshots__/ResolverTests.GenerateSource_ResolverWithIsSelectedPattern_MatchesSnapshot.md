@@ -74,8 +74,15 @@ namespace TestNamespace
                         typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
                     configuration.ResultType = typeof(int);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetTest_isSelected(),
+                        fieldDescriptor);
 
                     configuration.Resolvers = context.Resolvers.GetTest();
                 },
@@ -94,6 +101,15 @@ namespace TestNamespace
             {
                 _isSelected_GetTest_isSelected = global::HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseSelectionSet("{ email category { name } }");
             }
+
+            public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetTest_isSelected()
+                => new HotChocolate.Internal.ParameterDescriptor(
+                    "isSelected",
+                    typeof(bool),
+                    isNullable: false,
+                    [
+                        new global::HotChocolate.Types.IsSelectedAttribute("email category { name }")
+                    ]);
 
             public HotChocolate.Resolvers.FieldResolverDelegates GetTest()
             {

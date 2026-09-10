@@ -22,7 +22,7 @@ public class FilteringBatchResolverTests
             .AddQueryType<Query>()
             .AddTypeExtension<BrandExtensions>()
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -35,7 +35,8 @@ public class FilteringBatchResolverTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -74,7 +75,7 @@ public class FilteringBatchResolverTests
             .AddQueryType<Query>()
             .AddTypeExtension<BrandExtensions>()
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var brandType = executor.Schema.Types.GetType<ObjectType>("Brand");
@@ -99,7 +100,7 @@ public class FilteringBatchResolverTests
             .AddQueryType<Query>()
             .AddType<PredicateBrandType>()
             .AddFiltering()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -115,7 +116,8 @@ public class FilteringBatchResolverTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

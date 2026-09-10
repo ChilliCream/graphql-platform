@@ -14,7 +14,7 @@ internal static class RootCommandExtensions
         InvocationConfiguration? invocationConfiguration,
         CancellationToken cancellationToken)
     {
-        CommandExecutionContext.s_services.Value = new CommandServices(services);
+        CommandExecutionContext.Initialize(new CommandServices(services));
 
         var console = services.GetRequiredService<INitroConsole>();
 
@@ -75,14 +75,12 @@ internal static class RootCommandExtensions
         ParseResult parseResult,
         Session? session)
     {
-        var cloudUrlResult = parseResult.GetResult(Opt<OptionalCloudUrlOption>.Instance);
-        var cloudUrl = parseResult.GetValue(Opt<OptionalCloudUrlOption>.Instance);
-        string? apiUrl;
-        if (cloudUrlResult is { Implicit: false } && !string.IsNullOrWhiteSpace(cloudUrl))
-        {
-            apiUrl = cloudUrl;
-        }
-        else
+        // The option resolves explicit --cloud-url, then the NITRO_CLOUD_URL env var.
+        // We then fall back to the session's URL, and finally Constants.ApiUrl
+        // (applied by NitroClientContext.Configure when apiUrl is null).
+        var apiUrl = parseResult.GetValue(Opt<OptionalCloudUrlOption>.Instance);
+
+        if (string.IsNullOrWhiteSpace(apiUrl))
         {
             apiUrl = session?.ApiUrl;
         }

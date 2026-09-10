@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Text;
 using System.Text.Json.Nodes;
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Extensions;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Language;
@@ -13,7 +14,7 @@ using static HotChocolate.Adapters.Mcp.WellKnownFieldNames;
 
 namespace HotChocolate.Adapters.Mcp;
 
-internal sealed class OperationToolFactory(ISchemaDefinition schema)
+internal sealed class OperationToolFactory(ISchemaDefinition schema, McpToolOptions options)
 {
     private static readonly Walker s_walker = new();
 
@@ -137,11 +138,12 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
     {
         var properties = new Dictionary<string, JsonSchema>();
         var requiredProperties = new List<string>();
+        var context = new JsonSchemaContext { UseReferences = options.UseJsonSchemaReferences };
 
         foreach (var variableNode in operation.VariableDefinitions)
         {
             var type = variableNode.Type.ToType(schema);
-            var propertyBuilder = type.ToJsonSchemaBuilder();
+            var propertyBuilder = type.ToJsonSchemaBuilder(context: context);
             var variableName = variableNode.Variable.Name.Value;
 
             // Description.
@@ -165,12 +167,22 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
             properties.Add(variableName, propertyBuilder);
         }
 
-        return
+        var schemaBuilder =
             new JsonSchemaBuilder()
                 .Type(SchemaValueType.Object)
                 .Properties(properties)
-                .Required(requiredProperties)
-                .Build();
+                .Required(requiredProperties);
+
+        // Definitions, emitted in a stable order so the schema is deterministic.
+        if (context.Defs.Count > 0)
+        {
+            schemaBuilder.Defs(
+                context.Defs
+                    .OrderBy(definition => definition.Key, StringComparer.Ordinal)
+                    .ToDictionary());
+        }
+
+        return schemaBuilder.Build();
     }
 
     private static JsonSchema CreateOutputSchema(JsonSchema dataSchema)
@@ -425,12 +437,22 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
 
             var parentType =
                 context.PendingFields.Count == 0
-                    ? null
+                    ? context.Schema.GetOperationType(context.OperationType)
                     : context.PendingFields.Peek().Field.Type.NamedType();
 
+            var declaringNode = context.Nodes.ElementAtOrDefault(2);
+
+            NamedTypeNode? fragmentTypeCondition = null;
+            if (declaringNode is FragmentSpreadNode spreadNode
+                && context.Fragments.TryGetValue(spreadNode.Name.Value, out var fragmentNode))
+            {
+                fragmentTypeCondition = fragmentNode.TypeCondition;
+            }
+
             var selectionState = fieldNode.GetSelectionState(
-                declaringNode: context.Nodes.ElementAtOrDefault(2),
-                parentType);
+                declaringNode,
+                parentType,
+                fragmentTypeCondition);
 
             if (selectionState is SelectionState.Excluded)
             {
@@ -545,14 +567,76 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
                 propertyJsonSchemaBuilder.Description(pendingField.Field.Description);
             }
 
-            properties.Add(pendingField.ResponseName, propertyJsonSchemaBuilder.Build());
+            var propertySchema = propertyJsonSchemaBuilder.Build();
 
-            if (pendingField.SelectionState is SelectionState.Included)
+            // Multiple selections can share one response name (duplicate fields, or fields
+            // selected in different fragments), so merge on collision.
+            if (!properties.TryAdd(pendingField.ResponseName, propertySchema))
+            {
+                properties[pendingField.ResponseName] =
+                    MergeProperties(properties[pendingField.ResponseName], propertySchema);
+            }
+
+            if (pendingField.SelectionState is SelectionState.Included
+                && !requiredProperties.Contains(pendingField.ResponseName))
             {
                 requiredProperties.Add(pendingField.ResponseName);
             }
 
             return Continue;
+        }
+
+        /// <summary>
+        /// Merges two JSON schemas built for the same response name into one. Object schemas
+        /// merge to the union of their properties, with only the properties required by both
+        /// sides staying required; array schemas merge their item schemas the same way; all
+        /// other keywords are taken from <paramref name="first"/>.
+        /// </summary>
+        private static JsonSchema MergeProperties(JsonSchema first, JsonSchema second)
+        {
+            var builder = new JsonSchemaBuilder();
+            var mergeProperties =
+                first.GetProperties() is not null && second.GetProperties() is not null;
+            var mergeItems = first.GetItems() is not null && second.GetItems() is not null;
+
+            foreach (var keyword in first.Keywords ?? [])
+            {
+                switch (keyword)
+                {
+                    case PropertiesKeyword or RequiredKeyword when mergeProperties:
+                    case ItemsKeyword when mergeItems:
+                        continue;
+
+                    default:
+                        builder.Add(keyword);
+                        break;
+                }
+            }
+
+            if (mergeProperties)
+            {
+                var properties = new Dictionary<string, JsonSchema>(first.GetProperties()!);
+
+                foreach (var (propertyName, propertySchema) in second.GetProperties()!)
+                {
+                    properties[propertyName] =
+                        properties.TryGetValue(propertyName, out var existingSchema)
+                            ? MergeProperties(existingSchema, propertySchema)
+                            : propertySchema;
+                }
+
+                builder.Properties(properties);
+                builder.Required(
+                    (first.GetRequired() ?? [])
+                        .Intersect(second.GetRequired() ?? [], StringComparer.Ordinal));
+            }
+
+            if (mergeItems)
+            {
+                builder.Items(MergeProperties(first.GetItems()!, second.GetItems()!));
+            }
+
+            return builder.Build();
         }
 
         protected override ISyntaxVisitorAction Enter(
@@ -561,7 +645,14 @@ internal sealed class OperationToolFactory(ISchemaDefinition schema)
         {
             if (context.Fragments.TryGetValue(fragmentSpreadNode.Name.Value, out var fragmentNode))
             {
+                // Narrow the type for the duration of this fragment.
+                var parent = context.Frames.Peek();
+                var typeCondition = fragmentNode.TypeCondition.Name.Value;
+                var narrowed = (IOutputTypeDefinition)context.Schema.Types[typeCondition];
+
+                context.Frames.Push(parent with { Type = narrowed });
                 Visit(fragmentNode.SelectionSet, context);
+                context.Frames.Pop();
             }
 
             return Skip;

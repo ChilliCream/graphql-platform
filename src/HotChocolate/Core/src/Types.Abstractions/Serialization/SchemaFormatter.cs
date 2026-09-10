@@ -48,6 +48,7 @@ public static class SchemaFormatter
             Schema = schema,
             OrderTypesByName = options.OrderTypesByName ?? schemaDefaults?.OrderTypesByName ?? true,
             OrderFieldsByName = options.OrderFieldsByName ?? schemaDefaults?.OrderFieldsByName ?? true,
+            OrderEnumValuesByName = options.OrderEnumValuesByName ?? schemaDefaults?.OrderEnumValuesByName ?? false,
             PrintSpecScalars = options.PrintSpecScalars,
             PrintSpecDirectives = options.PrintSpecDirectives,
             IncludeInternalDirectives = options.IncludeInternalDirectives
@@ -313,6 +314,8 @@ public static class SchemaFormatter
             VisitDirectives(type.Directives, context);
             var directives = (List<DirectiveNode>)context.Result!;
 
+            directives = ApplyDeprecatedDirective(type, directives);
+
             VisitOutputFields(type.Fields, context);
             var fields = (List<FieldDefinitionNode>)context.Result!;
 
@@ -395,7 +398,7 @@ public static class SchemaFormatter
                         DirectiveNames.SpecifiedBy.Name,
                         new ArgumentNode(
                             DirectiveNames.SpecifiedBy.Arguments.Url,
-                            new StringValueNode(type.SpecifiedBy.ToString()))));
+                            new StringValueNode(type.SpecifiedBy))));
             }
 
             context.Result = IsTypeExtension(type)
@@ -436,7 +439,7 @@ public static class SchemaFormatter
         {
             var definitionNodes = new List<EnumValueDefinitionNode>();
 
-            foreach (var value in values.AsEnumerable().OrderBy(t => t.Name, context.OrderFieldsByName))
+            foreach (var value in values.AsEnumerable().OrderBy(t => t.Name, context.OrderEnumValuesByName))
             {
                 VisitEnumValue(value, context);
                 definitionNodes.Add((EnumValueDefinitionNode)context.Result!);
@@ -484,17 +487,31 @@ public static class SchemaFormatter
             IDirectiveDefinition mutableDirective,
             VisitorContext context)
         {
+            VisitDirectives(mutableDirective.Directives, context);
+            var directives = (List<DirectiveNode>)context.Result!;
+
+            directives = ApplyDeprecatedDirective(mutableDirective, directives);
+
+            if (IsTypeExtension(mutableDirective))
+            {
+                context.Result = new DirectiveExtensionNode(
+                    null,
+                    new NameNode(mutableDirective.Name),
+                    directives);
+                return;
+            }
+
             VisitInputFields(mutableDirective.Arguments, context);
             var arguments = (List<InputValueDefinitionNode>)context.Result!;
 
-            context.Result =
-                new DirectiveDefinitionNode(
-                    null,
-                    new NameNode(mutableDirective.Name),
-                    CreateDescription(mutableDirective.Description),
-                    mutableDirective.IsRepeatable,
-                    arguments,
-                    mutableDirective.Locations.ToNameNodes());
+            context.Result = new DirectiveDefinitionNode(
+                null,
+                new NameNode(mutableDirective.Name),
+                CreateDescription(mutableDirective.Description),
+                mutableDirective.IsRepeatable,
+                arguments,
+                directives,
+                mutableDirective.Locations.ToNameNodes());
         }
 
         public override void VisitOutputFields(
@@ -594,35 +611,28 @@ public static class SchemaFormatter
             IDeprecationProvider canBeDeprecated,
             List<DirectiveNode> directives)
         {
-            if (canBeDeprecated.IsDeprecated)
+            if (!canBeDeprecated.IsDeprecated)
             {
-                var deprecateDirective = CreateDeprecatedDirective(canBeDeprecated.DeprecationReason);
+                return directives;
+            }
 
-                if (directives.Count == 0)
-                {
-                    directives = [deprecateDirective];
-                }
-                else
-                {
-                    var temp = directives.ToList();
-                    temp.Add(deprecateDirective);
-                    directives = temp;
-                }
+            var index = directives.FindIndex(t => t.Name.Value == DirectiveNames.Deprecated.Name);
+
+            if (index == -1)
+            {
+                var temp = directives.ToList();
+                temp.Add(SchemaDebugFormatter.CreateDeprecatedDirective(canBeDeprecated));
+                return temp;
+            }
+
+            if (canBeDeprecated.HasDefaultDeprecationReason && directives[index].Arguments.Count > 0)
+            {
+                var temp = directives.ToList();
+                temp[index] = SchemaDebugFormatter.CreateDeprecatedDirective(canBeDeprecated);
+                return temp;
             }
 
             return directives;
-        }
-
-        private static DirectiveNode CreateDeprecatedDirective(string? reason = null)
-        {
-            if (string.IsNullOrEmpty(reason))
-            {
-                reason = DirectiveNames.Deprecated.Arguments.DefaultReason;
-            }
-
-            return new DirectiveNode(
-                new NameNode(DirectiveNames.Deprecated.Name),
-                [new ArgumentNode(DirectiveNames.Deprecated.Arguments.Reason, reason)]);
         }
 
         private static StringValueNode? CreateDescription(string? description)
@@ -651,6 +661,8 @@ public static class SchemaFormatter
         public required bool OrderTypesByName { get; init; }
 
         public required bool OrderFieldsByName { get; init; }
+
+        public required bool OrderEnumValuesByName { get; init; }
 
         public required bool PrintSpecScalars { get; init; }
 

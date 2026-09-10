@@ -16,15 +16,28 @@ public abstract class MessagingTransportConfiguration : MessagingConfiguration
     public string? Schema { get; set; }
 
     /// <summary>
-    /// Gets or sets the consumer binding mode that controls how consumers are mapped to receive endpoints.
+    /// Gets or sets the bind mode that controls how consumers are mapped to receive endpoints
+    /// and whether convention binds are generated for consumed message types.
+    /// When <see cref="MessagingBindMode.Implicit"/>, consumers are auto-discovered and convention
+    /// binds are on by default.
+    /// When <see cref="MessagingBindMode.Explicit"/>, discovery is suppressed and convention binds
+    /// are off by default.
     /// </summary>
-    public ConsumerBindingMode ConsumerBindingMode { get; set; } = ConsumerBindingMode.Implicit;
+    public MessagingBindMode BindMode { get; set; } = MessagingBindMode.Implicit;
 
-    // TODO not sure if we still need this
     /// <summary>
-    /// Gets or sets a value indicating whether this is the default transport.
+    /// Gets or sets a value indicating whether this is the default transport for routing when
+    /// multiple transports are registered. In multi-transport applications, the default transport is
+    /// used as the fallback destination when no explicit transport is specified. If no transport is
+    /// marked as default and multiple transports can handle an address, the first matching transport
+    /// is used. Single-transport applications do not require this flag to be set.
     /// </summary>
     public bool IsDefaultTransport { get; set; }
+
+    /// <summary>
+    /// Gets or sets the factory that creates the routing strategy for this transport.
+    /// </summary>
+    public Func<IServiceProvider, RoutingStrategy>? RoutingStrategyFactory { get; set; }
 
     /// <summary>
     /// Gets or sets the transport-specific conventions.

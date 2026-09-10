@@ -3,6 +3,6 @@ schema {
 }
 
 type Foo {
-  description: String @deprecated(reason: "No longer supported.")
+  description: String @deprecated
   name(a: String): String
 }

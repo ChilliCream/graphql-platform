@@ -1,0 +1,37 @@
+$ nitro agent register --actor alice --role reviewer
+✓ Actor 'alice', role 'reviewer'.
+$ nitro agent register --actor bob
+✓ Actor 'bob'.
+$ nitro agent mail send --to bob --actor alice --cc alice --subject Status --body All-good
+✓ Sent 'm-XXX' to bob, alice.
+$ nitro agent mail inbox --actor bob
+m-XXX  *  alice  Status  now
+m-XXX  *  e2e-agent  Standup notes  2026-01-01
+m-XXX  *  alice  Deploy window  2026-01-01
+
+3 message(s)
+$ MSG_ID=$(nitro agent mail inbox --actor bob | awk 'NR==1{print $1}')
+$ echo "captured $MSG_ID"
+captured m-XXX
+$ nitro agent mail reply --message "$MSG_ID" --actor bob --body Thanks-noted
+✓ Sent 'm-XXX' to alice.
+$ nitro agent mail read --message "$MSG_ID" --thread --actor alice
+From: alice (reviewer)
+To: bob
+Cc: alice
+Date: DATE
+Subject: Status
+Thread: m-XXX
+
+All-good
+
+---
+
+From: bob
+To: alice
+Date: DATE
+Subject: Status
+Thread: m-XXX
+
+Thanks-noted
+$

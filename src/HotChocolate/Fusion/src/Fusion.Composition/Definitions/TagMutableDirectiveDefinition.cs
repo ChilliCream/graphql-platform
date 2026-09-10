@@ -24,7 +24,8 @@ internal sealed class TagMutableDirectiveDefinition : MutableDirectiveDefinition
             | DirectiveLocation.InputFieldDefinition
             | DirectiveLocation.ArgumentDefinition
             | DirectiveLocation.EnumValue
-            | DirectiveLocation.Schema;
+            | DirectiveLocation.Schema
+            | DirectiveLocation.DirectiveDefinition;
     }
 
     public static TagMutableDirectiveDefinition Create(ISchemaDefinition schema)

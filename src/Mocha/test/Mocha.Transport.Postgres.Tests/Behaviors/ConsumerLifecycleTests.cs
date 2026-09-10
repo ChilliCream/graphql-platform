@@ -31,11 +31,11 @@ public class ConsumerLifecycleTests
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM mocha_consumers WHERE id = @id";
         cmd.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        var count = (long)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.Equal(1, count);
 
         await connectionManager.DisposeAsync();
@@ -56,13 +56,13 @@ public class ConsumerLifecycleTests
 
         // get initial timestamp
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd1 = conn.CreateCommand();
         cmd1.CommandText = "SELECT updated_at FROM mocha_consumers WHERE id = @id";
         cmd1.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        var initialTime = (DateTime)(await cmd1.ExecuteScalarAsync())!;
+        var initialTime = (DateTime)(await cmd1.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
 
-        await Task.Delay(50); // Ensure clock advances
+        await Task.Delay(50, TestContext.Current.CancellationToken); // Ensure clock advances
 
         // act
         await consumerManager.HeartbeatAsync(CancellationToken.None);
@@ -71,7 +71,7 @@ public class ConsumerLifecycleTests
         await using var cmd2 = conn.CreateCommand();
         cmd2.CommandText = "SELECT updated_at FROM mocha_consumers WHERE id = @id";
         cmd2.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        var updatedTime = (DateTime)(await cmd2.ExecuteScalarAsync())!;
+        var updatedTime = (DateTime)(await cmd2.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
 
         Assert.True(updatedTime >= initialTime, "Heartbeat should update the timestamp");
 
@@ -96,11 +96,11 @@ public class ConsumerLifecycleTests
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM mocha_consumers WHERE id = @id";
         cmd.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        var count = (long)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.Equal(0, count);
 
         await connectionManager.DisposeAsync();
@@ -121,11 +121,11 @@ public class ConsumerLifecycleTests
 
         // Set the updated_at to the past to simulate expiration
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var updateCmd = conn.CreateCommand();
         updateCmd.CommandText = "UPDATE mocha_consumers SET updated_at = now() - INTERVAL '5 minutes' WHERE id = @id";
         updateCmd.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        await updateCmd.ExecuteNonQueryAsync();
+        await updateCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
         // act
         await consumerManager.CleanupExpiredConsumersAsync(
@@ -136,7 +136,7 @@ public class ConsumerLifecycleTests
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM mocha_consumers WHERE id = @id";
         cmd.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        var count = (long)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.Equal(0, count);
 
         await connectionManager.DisposeAsync();
@@ -162,11 +162,11 @@ public class ConsumerLifecycleTests
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM mocha_consumers WHERE id = @id";
         cmd.Parameters.AddWithValue("id", consumerManager.ConsumerId);
-        var count = (long)(await cmd.ExecuteScalarAsync())!;
+        var count = (long)(await cmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.Equal(1, count);
 
         await connectionManager.DisposeAsync();
@@ -187,19 +187,19 @@ public class ConsumerLifecycleTests
 
         // Create a temp queue linked to this consumer
         await using var conn = new NpgsqlConnection(db.ConnectionString);
-        await conn.OpenAsync();
+        await conn.OpenAsync(TestContext.Current.CancellationToken);
         await using var insertCmd = conn.CreateCommand();
         insertCmd.CommandText = """
             INSERT INTO mocha_queue (name, consumer_id)
             VALUES ('temp-reply-queue', @consumerId)
             """;
         insertCmd.Parameters.AddWithValue("consumerId", consumerManager.ConsumerId);
-        await insertCmd.ExecuteNonQueryAsync();
+        await insertCmd.ExecuteNonQueryAsync(TestContext.Current.CancellationToken);
 
         // Verify queue exists
         await using var checkCmd = conn.CreateCommand();
         checkCmd.CommandText = "SELECT COUNT(*) FROM mocha_queue WHERE name = 'temp-reply-queue'";
-        var beforeCount = (long)(await checkCmd.ExecuteScalarAsync())!;
+        var beforeCount = (long)(await checkCmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.Equal(1, beforeCount);
 
         // act
@@ -208,7 +208,7 @@ public class ConsumerLifecycleTests
         // assert - queue should be cascade deleted
         await using var afterCmd = conn.CreateCommand();
         afterCmd.CommandText = "SELECT COUNT(*) FROM mocha_queue WHERE name = 'temp-reply-queue'";
-        var afterCount = (long)(await afterCmd.ExecuteScalarAsync())!;
+        var afterCount = (long)(await afterCmd.ExecuteScalarAsync(TestContext.Current.CancellationToken))!;
         Assert.Equal(0, afterCount);
 
         await connectionManager.DisposeAsync();

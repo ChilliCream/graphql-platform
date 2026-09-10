@@ -1,8 +1,8 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
 
@@ -30,7 +30,8 @@ public sealed class Issue8252UnionProjectionTests(PostgreSqlResource resource)
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -73,7 +74,8 @@ public sealed class Issue8252UnionProjectionTests(PostgreSqlResource resource)
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -115,7 +117,8 @@ public sealed class Issue8252UnionProjectionTests(PostgreSqlResource resource)
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();

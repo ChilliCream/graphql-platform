@@ -13,10 +13,10 @@
 
 1 SQL:
 ---------------
--- @__p_0='POINT (1 1)' (DbType = Object)
+-- @p='POINT (1 1)' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE ST_Contains(d."Bar", @__p_0)
+WHERE ST_Contains(d."Bar", @p)
 ---------------
 
 2 Result:
@@ -34,8 +34,8 @@ WHERE ST_Contains(d."Bar", @__p_0)
 
 2 SQL:
 ---------------
--- @__p_0='POINT (-1 -1)' (DbType = Object)
+-- @p='POINT (-1 -1)' (DbType = Object)
 SELECT d."Id", d."Bar"
 FROM "Data" AS d
-WHERE ST_Contains(d."Bar", @__p_0)
+WHERE ST_Contains(d."Bar", @p)
 ---------------

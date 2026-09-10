@@ -12,4 +12,6 @@ internal class FullType
     public ICollection<TypeRef> Interfaces { get; set; }
     public ICollection<EnumValue> EnumValues { get; set; }
     public ICollection<TypeRef> PossibleTypes { get; set; }
+    public bool? IsDeprecated { get; set; }
+    public string DeprecationReason { get; set; }
 }

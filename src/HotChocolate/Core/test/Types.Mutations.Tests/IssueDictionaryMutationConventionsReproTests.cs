@@ -14,7 +14,7 @@ public class IssueDictionaryMutationConventionsReproTests
             .AddQueryType<Query>()
             .AddMutationType<Mutation>()
             .AddMutationConventions()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -31,7 +31,8 @@ public class IssueDictionaryMutationConventionsReproTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         var operationResult = result.ExpectOperationResult();
@@ -47,7 +48,7 @@ public class IssueDictionaryMutationConventionsReproTests
             .AddQueryType<Query>()
             .AddMutationType<Mutation>()
             .AddMutationConventions()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var keyValuePairType = schema.Types.GetType<ObjectType>("KeyValuePairOfStringAndString");

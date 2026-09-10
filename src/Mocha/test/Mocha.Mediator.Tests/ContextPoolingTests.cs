@@ -111,7 +111,7 @@ public sealed class ContextPoolingTests : IDisposable
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        await mediator.SendAsync(new NestedOuterCommand(mediator));
+        await mediator.SendAsync(new NestedOuterCommand(mediator), TestContext.Current.CancellationToken);
 
         // Assert: two distinct context references were captured.
         Assert.NotNull(NestedOuterCommandHandler.OuterContextRef);

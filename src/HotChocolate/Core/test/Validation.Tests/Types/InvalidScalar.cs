@@ -13,7 +13,7 @@ public class InvalidScalar : ScalarType<string>
     {
     }
 
-    public override ScalarSerializationType SerializationType => ScalarSerializationType.Undefined;
+    public override ScalarSerializationType SerializationType => ScalarSerializationType.String;
 
     public override object CoerceInputLiteral(IValueNode valueLiteral)
         => throw new InvalidOperationException();

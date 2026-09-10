@@ -9,6 +9,7 @@ using HotChocolate.Execution.Requirements;
 using HotChocolate.Fetching;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Composite;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
@@ -144,6 +145,7 @@ public static class RequestExecutorServiceCollectionExtensions
 
         builder.TryAddTypeInterceptor<DataLoaderRootFieldTypeInterceptor>();
         builder.TryAddTypeInterceptor<RequirementsTypeInterceptor>();
+        builder.TryAddTypeInterceptor<SourceSchemaKeyInferenceTypeInterceptor>();
 
         builder.AddDocumentCache();
 

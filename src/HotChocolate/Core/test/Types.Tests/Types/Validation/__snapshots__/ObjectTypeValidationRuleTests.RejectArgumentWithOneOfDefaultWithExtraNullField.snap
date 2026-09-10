@@ -1,0 +1,9 @@
+{
+  "message": "The default value of argument 'Foo.field(arg:)' must specify exactly one field for the oneOf input object 'FooOneOf', and that field must not be null.",
+  "type": "Foo",
+  "extensions": {
+    "argument": "arg",
+    "specifiedBy": "https://spec.graphql.org/September2025/#sec-Objects.Type-Validation"
+  }
+}
+

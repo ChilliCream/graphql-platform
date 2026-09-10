@@ -71,7 +71,8 @@ public class TransformationIntegrationTests
                             crs
                             coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -115,7 +116,8 @@ public class TransformationIntegrationTests
                         crs
                         coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -161,7 +163,8 @@ public class TransformationIntegrationTests
                         crs
                         coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -207,7 +210,8 @@ public class TransformationIntegrationTests
                         crs
                         coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -253,7 +257,8 @@ public class TransformationIntegrationTests
                         crs
                         coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -285,7 +290,8 @@ public class TransformationIntegrationTests
                             crs
                             coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -320,7 +326,8 @@ public class TransformationIntegrationTests
                             crs
                             coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -354,7 +361,8 @@ public class TransformationIntegrationTests
                             crs
                             coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -388,7 +396,8 @@ public class TransformationIntegrationTests
                             crs
                             coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -431,7 +440,8 @@ public class TransformationIntegrationTests
                         crs
                         coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -466,7 +476,8 @@ public class TransformationIntegrationTests
                             crs
                             coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -502,7 +513,8 @@ public class TransformationIntegrationTests
                             crs
                             coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -547,7 +559,8 @@ public class TransformationIntegrationTests
                         crs
                         coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -592,7 +605,8 @@ public class TransformationIntegrationTests
                         crs
                         coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -627,7 +641,8 @@ public class TransformationIntegrationTests
                             crs
                             coordinates
                     }
-                }");
+                }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

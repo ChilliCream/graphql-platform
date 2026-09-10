@@ -761,7 +761,7 @@ internal sealed class TypeInitializer
             {
                 // the name might not be set at this point.
                 var name = string.IsNullOrEmpty(type.Type.Name)
-                    ? type.References[0].ToString()!
+                    ? type.References[0].ToString()
                     : type.Type.Name;
 
                 IReadOnlyList<TypeReference> needed =

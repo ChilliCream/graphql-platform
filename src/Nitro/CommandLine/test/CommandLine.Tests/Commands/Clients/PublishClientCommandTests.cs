@@ -29,8 +29,8 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
               --stage <stage> (REQUIRED)          The name of the stage [env: NITRO_STAGE]
               --force                             Skip confirmation prompts for deletes and overwrites
               --wait-for-approval                 Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                 The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                 The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                      Show help and usage information
 
@@ -154,6 +154,62 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             """
             Publishing new version 'v1' of client 'client-1' to stage 'dev'
             └── ✕ Failed to publish a new client version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientNotFound_ReturnsError()
+    {
+        SetupPublishClientMutation(errors:
+            new PublishClientVersion_PublishClient_Errors_ClientNotFoundError("Client not found.", ClientId));
+
+        var result = await ExecuteCommandAsync(
+            "client", "publish", "--tag", Tag, "--stage", Stage, "--client-id", ClientId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupPublishClientMutation(errors:
+            new PublishClientVersion_PublishClient_Errors_StageNotFoundError(
+                "StageNotFoundError", "Stage not found.", Stage));
+
+        var result = await ExecuteCommandAsync(
+            "client", "publish", "--tag", Tag, "--stage", Stage, "--client-id", ClientId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientVersionNotFound_ReturnsError()
+    {
+        SetupPublishClientMutation(errors:
+            new PublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError(
+                Tag, "Client version not found.", ClientId));
+
+        var result = await ExecuteCommandAsync(
+            "client", "publish", "--tag", Tag, "--stage", Stage, "--client-id", ClientId);
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client version not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -426,26 +482,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
                     "UnauthorizedOperation",
                     "Not authorized to publish."),
                 "Not authorized to publish."
-            },
-            {
-                new PublishClientVersion_PublishClient_Errors_ClientNotFoundError(
-                    "Client not found.",
-                    "client-1"),
-                "Client not found."
-            },
-            {
-                new PublishClientVersion_PublishClient_Errors_StageNotFoundError(
-                    "StageNotFoundError",
-                    "Stage not found.",
-                    "dev"),
-                "Stage not found."
-            },
-            {
-                new PublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError(
-                    "v1",
-                    "Client version not found.",
-                    "client-1"),
-                "Client version not found."
             },
             {
                 new PublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError(

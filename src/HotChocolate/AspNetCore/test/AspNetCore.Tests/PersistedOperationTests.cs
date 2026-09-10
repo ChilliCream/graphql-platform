@@ -462,7 +462,7 @@ public class PersistedOperationTests(TestServerFactory serverFactory)
             .Add(result1ShouldBeOk, "Result 1 - Should be OK")
             .Add(result2ShouldBeOk, "Result 2 - Should be OK")
             .Add(result3ShouldFail, "Result 3 - Should fail")
-            .MatchMarkdownAsync();
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
     private ClientQueryRequest CreateApolloStyleRequest(string hashName, string key)

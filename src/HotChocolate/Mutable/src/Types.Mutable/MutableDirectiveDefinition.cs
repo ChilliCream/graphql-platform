@@ -15,6 +15,7 @@ public class MutableDirectiveDefinition
     , IFeatureProvider
 {
     private InputFieldDefinitionCollection? _arguments;
+    private DirectiveCollection? _directives;
 
     /// <summary>
     /// Represents a GraphQL directive definition.
@@ -43,6 +44,20 @@ public class MutableDirectiveDefinition
     /// The description of the directive.
     /// </value>
     public string? Description { get; set; }
+
+    /// <inheritdoc cref="IDeprecationProvider.IsDeprecated" />
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
+
+    /// <summary>
+    /// Gets or sets the deprecation reason of this directive, or <c>null</c> if this directive
+    /// is not deprecated. Setting an empty or white-space value is equivalent to setting <c>null</c>.
+    /// </summary>
+    public string? DeprecationReason
+    {
+        get;
+        set => field = string.IsNullOrWhiteSpace(value) ? null : value;
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether this directive type is a spec directive.
@@ -85,6 +100,12 @@ public class MutableDirectiveDefinition
 
     public SchemaCoordinate Coordinate
         => new(Name, ofDirective: true);
+
+    public DirectiveCollection Directives
+        => _directives ??= [];
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => _directives as IReadOnlyDirectiveCollection ?? EmptyCollections.Directives;
 
     public Type RuntimeType => typeof(object);
 

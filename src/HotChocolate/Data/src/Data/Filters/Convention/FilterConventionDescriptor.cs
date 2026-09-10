@@ -152,6 +152,22 @@ public class FilterConventionDescriptor : IFilterConventionDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IFilterConventionDescriptor MaxAllowedFilterOperations(int? maxAllowedFilterOperations)
+    {
+        if (maxAllowedFilterOperations is < 1)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(maxAllowedFilterOperations),
+                maxAllowedFilterOperations,
+                "The maximum number of filter operations must be greater than zero.");
+        }
+
+        Configuration.MaxAllowedFilterOperations = maxAllowedFilterOperations;
+
+        return this;
+    }
+
     public IFilterConventionDescriptor AddProviderExtension<TExtension>()
         where TExtension : class, IFilterProviderExtension
     {

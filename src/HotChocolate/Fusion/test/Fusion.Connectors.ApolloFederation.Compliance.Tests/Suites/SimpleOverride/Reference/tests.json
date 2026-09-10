@@ -1,0 +1,26 @@
+[
+  {
+    "query": "query {\n  feed {\n    createdAt\n  }\n}\n",
+    "expected": {
+      "data": {
+        "feed": [
+          { "createdAt": "p1-createdAt" },
+          { "createdAt": "p2-createdAt" }
+        ]
+      }
+    }
+  },
+  {
+    "query": "query {\n  aFeed {\n    createdAt\n  }\n  bFeed {\n    createdAt\n  }\n}\n",
+    "expected": {
+      "data": {
+        "aFeed": [
+          { "createdAt": "p2-createdAt" }
+        ],
+        "bFeed": [
+          { "createdAt": "p1-createdAt" }
+        ]
+      }
+    }
+  }
+]

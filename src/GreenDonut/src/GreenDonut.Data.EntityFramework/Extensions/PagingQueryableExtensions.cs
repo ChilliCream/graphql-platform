@@ -248,7 +248,13 @@ public static class PagingQueryableExtensions
 
         if (builder.Count == 0)
         {
-            return Page<T>.Empty;
+            if (includeTotalCount)
+            {
+                TryGetQueryInterceptor()?.OnBeforeExecute(originalQuery);
+                totalCount = await originalQuery.CountAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            return Page<T>.Create([], false, false, _ => string.Empty, totalCount);
         }
 
         if (isBackward)
@@ -534,14 +540,16 @@ public static class PagingQueryableExtensions
             .WithCancellation(cancellationToken)
             .ConfigureAwait(false))
         {
+            var totalCount = counts?.GetValueOrDefault(item.Key) ?? batchExpression.Cursor?.TotalCount;
+
             if (item.Items.Count == 0)
             {
-                map.Add(item.Key, Page<TValue>.Empty);
+                var page = Page<TValue>.Create([], false, false, static _ => string.Empty, totalCount);
+                map.Add(item.Key, page);
                 continue;
             }
 
             var itemCount = requestedCount > item.Items.Count ? item.Items.Count : requestedCount;
-            var totalCount = counts?.GetValueOrDefault(item.Key) ?? batchExpression.Cursor?.TotalCount;
             var pageIndex = CreateIndex(arguments, batchExpression.Cursor, totalCount);
 
             if (valueSelector is not null)

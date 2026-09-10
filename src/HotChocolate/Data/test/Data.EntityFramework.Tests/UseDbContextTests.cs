@@ -25,15 +25,15 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using var scope = services.CreateAsyncScope();
         await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-        await context.Authors.AddAsync(new Author { Name = "foo" });
-        await context.SaveChangesAsync();
+        await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+        await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ authors { name } }");
+        var result = await executor.ExecuteAsync("{ authors { name } }", Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -58,17 +58,17 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
-        var result = await executor.ExecuteAsync("{ authors { name } }");
+        var result = await executor.ExecuteAsync("{ authors { name } }", Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -93,17 +93,17 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
-        var result = await executor.ExecuteAsync("{ authors { name } }");
+        var result = await executor.ExecuteAsync("{ authors { name } }", Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -128,14 +128,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -153,7 +153,8 @@ public class UseDbContextTests
                     totalCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -178,14 +179,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -201,7 +202,8 @@ public class UseDbContextTests
                         }
                         totalCount
                     }
-                }");
+                }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -226,14 +228,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -249,7 +251,8 @@ public class UseDbContextTests
                         }
                         totalCount
                     }
-                }");
+                }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -274,14 +277,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -299,7 +302,8 @@ public class UseDbContextTests
                     totalCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -324,14 +328,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -346,7 +350,8 @@ public class UseDbContextTests
                             hasPreviousPage
                         }
                     }
-                }");
+                }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -371,14 +376,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -393,7 +398,8 @@ public class UseDbContextTests
                             hasPreviousPage
                         }
                     }
-                }");
+                }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -418,14 +424,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -442,7 +448,8 @@ public class UseDbContextTests
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -467,17 +474,17 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
-        var result = await executor.ExecuteAsync("{ author { name } }");
+        var result = await executor.ExecuteAsync("{ author { name } }", Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -498,7 +505,7 @@ public class UseDbContextTests
                 .AddProjections()
                 .AddQueryType<Query>()
                 .AddQueryableCursorPagingProvider(inlineTotalCount: true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -519,7 +526,7 @@ public class UseDbContextTests
                 .AddProjections()
                 .AddQueryType<QueryTask>()
                 .AddQueryableCursorPagingProvider(inlineTotalCount: true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -540,7 +547,7 @@ public class UseDbContextTests
                 .AddProjections()
                 .AddQueryType<QueryValueTask>()
                 .AddQueryableCursorPagingProvider(inlineTotalCount: true)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();
@@ -557,7 +564,7 @@ public class UseDbContextTests
                 .AddGraphQL()
                 .AddQueryType<QueryType>()
                 .AddQueryableCursorPagingProvider(inlineTotalCount: true)
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -567,7 +574,8 @@ public class UseDbContextTests
                     id
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -593,14 +601,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -616,7 +624,8 @@ public class UseDbContextTests
                         }
                         totalCount
                     }
-                }");
+                }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -641,14 +650,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -664,7 +673,8 @@ public class UseDbContextTests
                         }
                         totalCount
                     }
-                }");
+                }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -689,14 +699,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -714,7 +724,8 @@ public class UseDbContextTests
                     totalCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -739,14 +750,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -762,7 +773,8 @@ public class UseDbContextTests
                         }
                         totalCount
                     }
-                }");
+                }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -787,14 +799,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -809,7 +821,8 @@ public class UseDbContextTests
                             hasPreviousPage
                         }
                     }
-                }");
+                }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -834,14 +847,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -856,7 +869,8 @@ public class UseDbContextTests
                             hasPreviousPage
                         }
                     }
-                }");
+                }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -881,14 +895,14 @@ public class UseDbContextTests
 
         var executor =
             await services.GetRequiredService<IRequestExecutorProvider>()
-                .GetExecutorAsync();
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         await using (var scope = services.CreateAsyncScope())
         {
             await using var context = scope.ServiceProvider.GetRequiredService<BookContext>();
-            await context.Authors.AddAsync(new Author { Name = "foo" });
-            await context.Authors.AddAsync(new Author { Name = "bar" });
-            await context.SaveChangesAsync();
+            await context.Authors.AddAsync(new Author { Name = "foo" }, Xunit.TestContext.Current.CancellationToken);
+            await context.Authors.AddAsync(new Author { Name = "bar" }, Xunit.TestContext.Current.CancellationToken);
+            await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         // act
@@ -903,7 +917,8 @@ public class UseDbContextTests
                             hasPreviousPage
                         }
                     }
-                }");
+                }",
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

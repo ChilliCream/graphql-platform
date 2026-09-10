@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Types;
 
@@ -23,6 +24,7 @@ internal sealed class HttpSourceSchemaClientFactory
 
         return new HttpSourceSchemaClient(
             GraphQLHttpClient.Create(httpClient, disposeHttpClient: true),
-            configuration);
+            configuration,
+            schema.GetRequestOptions().AnnotateOperationKind);
     }
 }

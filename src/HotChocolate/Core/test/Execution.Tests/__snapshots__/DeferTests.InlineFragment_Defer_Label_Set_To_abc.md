@@ -2,11 +2,30 @@
 
 ```text
 {
-  "data": {
-    "person": {
-      "id": "UGVyc29uOjE="
+  "data": {},
+  "pending": [
+    {
+      "id": "2",
+      "path": [],
+      "label": "abc"
     }
-  }
+  ],
+  "incremental": [
+    {
+      "id": "2",
+      "data": {
+        "person": {
+          "id": "UGVyc29uOjE="
+        }
+      }
+    }
+  ],
+  "completed": [
+    {
+      "id": "2"
+    }
+  ],
+  "hasNext": false
 }
 
 ```

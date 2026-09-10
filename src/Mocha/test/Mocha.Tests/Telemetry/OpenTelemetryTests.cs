@@ -31,7 +31,7 @@ public class OpenTelemetryTests
         Assert.True(await recorder.WaitAsync(s_timeout));
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, default);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // assert - at least one activity was created
         Assert.NotEmpty(activities);
@@ -58,7 +58,7 @@ public class OpenTelemetryTests
         var response = await bus.RequestAsync(new TracedRequest { Query = "test" }, CancellationToken.None);
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, default);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(activities);
@@ -87,7 +87,7 @@ public class OpenTelemetryTests
         Assert.True(await recorder.WaitAsync(s_timeout));
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, default);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEmpty(activities);
@@ -119,10 +119,51 @@ public class OpenTelemetryTests
         Assert.True(await recorder.WaitAsync(s_timeout, expectedCount: 3));
 
         // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
-        await Task.Delay(100, default);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
 
         // assert - at least 3 activities (dispatch + consume for each)
         Assert.True(activities.Count >= 3, $"Expected at least 3 activities but got {activities.Count}");
+    }
+
+    [Fact]
+    public async Task BatchConsume_Should_LinkReceiveActivities_When_BatchDelivered()
+    {
+        // arrange
+        var activities = new ConcurrentBag<Activity>();
+        using var listener = CreateListener(activities);
+
+        var recorder = new BatchMessageRecorder();
+        await using var provider = await CreateBusAsync(
+            b =>
+            {
+                b.Services.AddSingleton(recorder);
+                b.AddBatchHandler<TracedBatchHandler>(opts =>
+                {
+                    opts.MaxBatchSize = 2;
+                    opts.BatchTimeout = TimeSpan.FromSeconds(5);
+                });
+            },
+            t => t.Endpoint("batch-ep").Handler<TracedBatchHandler>().MaxConcurrency(2));
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.PublishAsync(new TracedBatchEvent { Data = "batch-1" }, CancellationToken.None);
+        await bus.PublishAsync(new TracedBatchEvent { Data = "batch-2" }, CancellationToken.None);
+
+        Assert.True(await recorder.WaitAsync(s_timeout), "Batch handler did not receive the events");
+
+        // Task.Delay: ActivityListener callbacks fire asynchronously; brief wait lets all callbacks complete
+        await Task.Delay(200, TestContext.Current.CancellationToken);
+
+        // assert
+        var batchActivity = activities.SingleOrDefault(
+            static a => Equals(a.GetTagItem("messaging.batch.message_count"), 2));
+
+        Assert.NotNull(batchActivity);
+        Assert.NotNull(batchActivity.GetTagItem("messaging.batch.id"));
+        Assert.Equal(2, batchActivity.Links.Count());
     }
 
     [Fact]
@@ -171,7 +212,11 @@ public class OpenTelemetryTests
         var traceparent = headers.GetValue(MessageHeaders.Traceparent.Key) as string;
         Assert.NotNull(traceparent);
 
+#if NET11_0_OR_GREATER
+        var expected = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-03";
+#else
         var expected = $"00-{activity.TraceId.ToHexString()}-{activity.SpanId.ToHexString()}-01";
+#endif
         Assert.Equal(expected, traceparent);
     }
 
@@ -288,7 +333,11 @@ public class OpenTelemetryTests
         // assert
         var traceparent = headers.GetValue(MessageHeaders.Traceparent.Key) as string;
         Assert.NotNull(traceparent);
+#if NET11_0_OR_GREATER
+        Assert.EndsWith("-02", traceparent);
+#else
         Assert.EndsWith("-00", traceparent);
+#endif
     }
 
     [Fact]
@@ -834,12 +883,24 @@ public class OpenTelemetryTests
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(10);
 
     private static async Task<ServiceProvider> CreateBusAsync(Action<IMessageBusHostBuilder> configure)
+        => await CreateBusAsync(configure, configureTransport: null);
+
+    private static async Task<ServiceProvider> CreateBusAsync(
+        Action<IMessageBusHostBuilder> configure,
+        Action<IInMemoryMessagingTransportDescriptor>? configureTransport)
     {
         var services = new ServiceCollection();
         var builder = services.AddMessageBus();
         configure(builder);
         builder.AddInstrumentation();
-        builder.AddInMemory();
+        if (configureTransport is null)
+        {
+            builder.AddInMemory();
+        }
+        else
+        {
+            builder.AddInMemory(configureTransport);
+        }
 
         var provider = services.BuildServiceProvider();
         var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
@@ -848,6 +909,11 @@ public class OpenTelemetryTests
     }
 
     public sealed class TracedEvent
+    {
+        public required string Data { get; init; }
+    }
+
+    public sealed class TracedBatchEvent
     {
         public required string Data { get; init; }
     }
@@ -867,6 +933,15 @@ public class OpenTelemetryTests
         public ValueTask HandleAsync(TracedEvent message, CancellationToken ct)
         {
             recorder.Record(message);
+            return default;
+        }
+    }
+
+    public sealed class TracedBatchHandler(BatchMessageRecorder recorder) : IBatchEventHandler<TracedBatchEvent>
+    {
+        public ValueTask HandleAsync(IMessageBatch<TracedBatchEvent> batch, CancellationToken ct)
+        {
+            recorder.Record(batch);
             return default;
         }
     }

@@ -108,7 +108,7 @@ public class ObjectTypeAttributeTests
                 .AddType<StructQuery>()
                 .AddType<StructQueryExtension>()
                 .TrimTypes()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         schema.ToString().MatchSnapshot();

@@ -30,4 +30,9 @@ public sealed class SagaConfiguration : MessagingConfiguration
     /// Gets or sets a factory for creating a custom saga state serializer.
     /// </summary>
     public Func<IServiceProvider, ISagaStateSerializer>? StateSerializer { get; set; }
+
+    /// <summary>
+    /// Source metadata captured from the saga declaration.
+    /// </summary>
+    public SourceMetadata? Source { get; set; }
 }

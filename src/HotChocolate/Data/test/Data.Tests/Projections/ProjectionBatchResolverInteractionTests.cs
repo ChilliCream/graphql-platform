@@ -24,7 +24,7 @@ public class ProjectionBatchResolverInteractionTests
             .AddFiltering()
             .AddSorting()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -37,7 +37,8 @@ public class ProjectionBatchResolverInteractionTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, FilterBrandExtensions.BatchCallCount);
@@ -89,7 +90,7 @@ public class ProjectionBatchResolverInteractionTests
             .AddFiltering()
             .AddSorting()
             .AddProjections()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -102,7 +103,8 @@ public class ProjectionBatchResolverInteractionTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, SortBrandExtensions.BatchCallCount);

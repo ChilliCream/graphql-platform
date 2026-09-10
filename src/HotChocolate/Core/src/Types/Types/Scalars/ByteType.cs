@@ -25,7 +25,7 @@ public class ByteType : IntegerTypeBase<sbyte>
         : base(name, sbyte.MinValue, sbyte.MaxValue, bind)
     {
         Description = description;
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
     }
 
     /// <summary>

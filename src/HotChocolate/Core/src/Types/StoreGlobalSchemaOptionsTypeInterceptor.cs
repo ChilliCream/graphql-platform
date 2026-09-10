@@ -17,7 +17,8 @@ internal sealed class StoreGlobalSchemaOptionsTypeInterceptor : TypeInterceptor
             schemaDef.Features.Set(
                 new SchemaFormatterOptions
                 {
-                    OrderFieldsByName = options.SortFieldsByName
+                    OrderFieldsByName = options.SortFieldsByName,
+                    OrderEnumValuesByName = options.SortEnumValuesByName
                 });
         }
     }

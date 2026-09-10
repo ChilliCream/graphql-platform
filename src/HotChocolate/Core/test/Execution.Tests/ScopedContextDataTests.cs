@@ -46,7 +46,8 @@ public class ScopedContextDataTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ root { a { foo } b { foo } } }");
+            "{ root { a { foo } b { foo } } }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

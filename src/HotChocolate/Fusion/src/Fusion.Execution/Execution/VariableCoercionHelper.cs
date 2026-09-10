@@ -51,7 +51,7 @@ internal static class VariableCoercionHelper
             {
                 if (variableType.IsNonNullType())
                 {
-                    throw ExceptionHelper.NonNullVariableIsNull(variableDefinition);
+                    throw ThrowHelper.NonNullVariableIsNull(variableDefinition);
                 }
 
                 // if we do not have any value, we will not create an entry to the
@@ -119,6 +119,6 @@ internal static class VariableCoercionHelper
             return type;
         }
 
-        throw ExceptionHelper.VariableIsNotAnInputType(variableDefinition);
+        throw ThrowHelper.VariableIsNotAnInputType(variableDefinition);
     }
 }

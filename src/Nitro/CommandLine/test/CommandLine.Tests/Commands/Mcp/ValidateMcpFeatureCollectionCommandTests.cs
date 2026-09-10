@@ -28,8 +28,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
               --stage <stage> (REQUIRED)                                          The name of the stage [env: NITRO_STAGE]
               -p, --prompt-pattern <prompt-pattern>                               One or more file patterns to locate MCP prompt definition files (*.json)
               -t, --tool-pattern <tool-pattern>                                   One or more file patterns to locate MCP tool definition files (*.graphql)
-              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                                 The API key used for authentication [env: NITRO_API_KEY]
+              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                                                 The API key or PAT used for authentication [env: NITRO_API_KEY]
               --output <json>                                                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                                      Show help and usage information
 
@@ -136,6 +136,48 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             Validating MCP feature collection 'mcp-1' against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to validate the MCP feature collection.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task StageNotFound_ReturnsError()
+    {
+        SetupMcpDefinitionFiles();
+        SetupValidateMcpFeatureCollectionMutation(
+            new ValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_StageNotFoundError(
+                "StageNotFoundError", "Stage not found.", Stage));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "validate", "--stage", Stage, "--mcp-feature-collection-id", McpFeatureCollectionId,
+            "--prompt-pattern", "**/*.json", "--tool-pattern", "**/*.graphql");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task CollectionNotFound_ReturnsError()
+    {
+        SetupMcpDefinitionFiles();
+        SetupValidateMcpFeatureCollectionMutation(
+            new ValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
+                McpFeatureCollectionId, "MCP Feature Collection not found."));
+
+        var result = await ExecuteCommandAsync(
+            "mcp", "validate", "--stage", Stage, "--mcp-feature-collection-id", McpFeatureCollectionId,
+            "--prompt-pattern", "**/*.json", "--tool-pattern", "**/*.graphql");
+
+        result.StdErr.MatchInlineSnapshot(
+            """
+            MCP Feature Collection not found.
+            This may mean the entity does not exist, or that you do not have permission to view it.
+            If you are targeting a dedicated or self-hosted instance, make sure you supply the correct '--cloud-url'. Currently targeting 'https://api.chillicream.com'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -293,19 +335,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
                     "UnauthorizedOperation",
                     "Not authorized to validate."),
                 "Not authorized to validate."
-            },
-            {
-                new ValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_StageNotFoundError(
-                    "StageNotFoundError",
-                    "Stage not found.",
-                    Stage),
-                "Stage not found."
-            },
-            {
-                new ValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
-                    McpFeatureCollectionId,
-                    "MCP Feature Collection not found."),
-                "MCP Feature Collection not found."
             },
             {
                 unexpectedError.Object,

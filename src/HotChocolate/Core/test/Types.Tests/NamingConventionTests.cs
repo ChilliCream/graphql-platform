@@ -29,7 +29,7 @@ public class NamingConventionTests
             .AddQueryType<QueryNamingConvention>()
             .AddMutationType<MutationNamingConvention>()
             .AddConvention<INamingConventions, CustomNamingConvention>()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

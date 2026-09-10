@@ -1,14 +1,13 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Sorting;
 
 public class MongoDbSortVisitorEnumTests
-    : SchemaCache,
-      IClassFixture<MongoResource>
+    : SchemaCache
 {
     private static readonly Foo[] s_fooEntities =
     [
@@ -42,19 +41,21 @@ public class MongoDbSortVisitorEnumTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { barEnum: ASC}){ barEnum}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { barEnum: DESC}){ barEnum}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1, "ASC")
             .AddResult(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -68,19 +69,21 @@ public class MongoDbSortVisitorEnumTests
         var res1 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { barEnum: ASC}){ barEnum}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         var res2 = await tester.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument("{ root(order: { barEnum: DESC}){ barEnum}}")
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         await Snapshot
             .Create()
             .AddResult(res1, "ASC")
             .AddResult(res2, "DESC")
-            .MatchAsync();
+            .MatchAsync(TestContext.Current.CancellationToken);
     }
 
     public class Foo

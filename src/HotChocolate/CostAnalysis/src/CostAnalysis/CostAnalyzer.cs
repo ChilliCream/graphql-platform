@@ -14,11 +14,9 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 {
     public CostMetrics Analyze(OperationDefinitionNode operation, DocumentValidatorContext context)
     {
-        var feature = context.Features.GetOrSet<CostContext>();
-
         Visit(operation, context);
 
-        var summary = feature.SelectionSetCost[operation.SelectionSet];
+        var summary = context.GetSelectionSetCost(operation.SelectionSet);
 
         return new CostMetrics { TypeCost = summary.TypeCost, FieldCost = summary.FieldCost };
     }
@@ -27,7 +25,8 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
         OperationDefinitionNode node,
         DocumentValidatorContext context)
     {
-        context.GetFieldSets().Clear();
+        var costContext = context.Features.GetOrSet<CostContext>();
+        costContext.FieldSets.Clear();
         context.SelectionSets.Clear();
 
         return base.Enter(node, context);
@@ -38,10 +37,9 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
         DocumentValidatorContext context)
     {
         // add operation cost
-        var costContext = context.GetCostContext();
         var type = context.Types.Peek();
         var cost = type.GetTypeWeight();
-        var summary = costContext.SelectionSetCost[node.SelectionSet];
+        var summary = context.GetSelectionSetCost(node.SelectionSet);
         summary.TypeCost += cost;
 
         return base.Leave(node, context);
@@ -193,6 +191,8 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
         if (context.Fragments.TryEnter(node, out var fragment))
         {
             var result = Visit(fragment, node, context);
+            // Re-enable per-spread re-walks of the fragment body so each spread's outer
+            // selection set collects its own field set, which is how cost is accumulated.
             context.Fragments.Leave(fragment);
 
             if (result.IsBreak())
@@ -228,6 +228,10 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
     {
         var costContext = context.GetCostContext();
         var processed = costContext.Processed;
+
+        // Deduplicate response names only within this selection set.
+        // Nested sets can reuse names like "nodes" and must still be priced.
+        processed.Clear();
         var inputCostVisitor = costContext.InputCostVisitor;
 
         var typeCostSum = 0.0;
@@ -238,9 +242,9 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
             var fieldInfo = fields[i];
             var fieldNode = fieldInfo.SyntaxNode;
 
-            if (processed.Add(fieldInfo.ResponseName)
-                && fieldInfo.DeclaringType.NamedType().IsAssignableFrom(possibleType)
-                && possibleType.Fields.TryGetField(fieldNode.Name.Value, out var field))
+            if (fieldInfo.DeclaringType.NamedType().IsAssignableFrom(possibleType)
+                && possibleType.Fields.TryGetField(fieldNode.Name.Value, out var field)
+                && processed.Add(fieldInfo.ResponseName))
             {
                 // https://ibm.github.io/graphql-specs/cost-spec.html#sec-Field-Cost
                 // First, add up the raw cost of field f by calculating the sum of:
@@ -410,7 +414,9 @@ file static class DocumentValidatorContextExtensions
     public static CostSummary GetSelectionSetCost(
         this DocumentValidatorContext context,
         SelectionSetNode selectionSetNode)
-        => context.GetCostContext().SelectionSetCost[selectionSetNode];
+        => context.GetCostContext().SelectionSetCost.TryGetValue(selectionSetNode, out var cost)
+            ? cost
+            : new CostSummary();
 }
 
 file sealed class CostSummary

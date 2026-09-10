@@ -16,7 +16,7 @@ public class IntegrationTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         const string query = @"
         {
@@ -27,7 +27,7 @@ public class IntegrationTests
         ";
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -41,7 +41,7 @@ public class IntegrationTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         const string query = @"
         {
@@ -55,7 +55,7 @@ public class IntegrationTests
         ";
 
         // act
-        var result = await executor.ExecuteAsync(query);
+        var result = await executor.ExecuteAsync(query, TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -71,7 +71,7 @@ public class IntegrationTests
             .AddQueryType<QueryWithIgnoredUnsupportedField>()
             .AddType<EntityWithIgnoredUnsupportedFieldType>()
             .AddSorting()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(schema);
@@ -90,7 +90,7 @@ public class IntegrationTests
             .AddQueryType<QueryWithIgnoredField>()
             .AddType<EntityWithIgnoredFieldType>()
             .AddSorting()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(schema);
@@ -111,7 +111,7 @@ public class IntegrationTests
             .AddQueryType<QueryWithExplicitIgnoredFieldSort>()
             .AddType<EntityWithIgnoredFieldType>()
             .AddSorting()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotNull(schema);

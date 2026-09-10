@@ -1,8 +1,8 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using CookieCrumble.Resources;
 using Npgsql;
-using Squadron;
 
 namespace Mocha.Transport.Postgres.Tests.Helpers;
 
@@ -10,12 +10,12 @@ public sealed class PostgresFixture : IAsyncLifetime
 {
     private readonly PostgreSqlResource _resource = new();
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _resource.InitializeAsync();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _resource.DisposeAsync();
     }

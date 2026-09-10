@@ -8,7 +8,9 @@ namespace HotChocolate.Execution.Processing;
 internal partial class MiddlewareContext
 {
     private readonly PureResolverContext _childContext;
+#pragma warning disable IDE0370 // Remove unnecessary suppression
     private Selection _selection = null!;
+#pragma warning restore IDE0370 // Remove unnecessary suppression
 
     public ObjectType ObjectType => _selection.DeclaringType;
 
@@ -54,7 +56,9 @@ internal partial class MiddlewareContext
         }
 
         var selectionSet = _operationContext.CollectFields(selection, typeContext);
-        return new SelectionEnumerator(selectionSet, _operationContext.IncludeFlags);
+        return new SelectionEnumerator(
+            selectionSet,
+            _operationContext.IncludeConditionFlags);
     }
 
     public ISelectionCollection Select()
@@ -63,7 +67,7 @@ internal partial class MiddlewareContext
             _operationContext.Schema,
             Operation,
             [Selection],
-            _operationContext.IncludeFlags);
+            _operationContext.IncludeConditionFlags);
     }
 
     public ISelectionCollection Select(string fieldName)

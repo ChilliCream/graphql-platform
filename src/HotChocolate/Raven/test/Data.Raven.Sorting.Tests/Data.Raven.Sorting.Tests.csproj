@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
   <PropertyGroup>
     <AssemblyName>HotChocolate.Data.Raven.Sorting.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
@@ -7,9 +9,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.Raven.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Squadron.RavenDB" />
+    <ProjectReference
+      Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.RavenDB\CookieCrumble.Resources.RavenDB.csproj"
+    />
   </ItemGroup>
 </Project>

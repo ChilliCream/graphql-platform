@@ -160,45 +160,70 @@ internal sealed partial class RequestExecutorManager
             _applicationServices);
 
         var typeModuleChangeMonitor = new TypeModuleChangeMonitor(this, context.SchemaName);
+        ServiceProvider? schemaServices = null;
 
-        // If there are any type modules, we will register them with the
-        // type module change monitor.
-        // The module will track if type modules signal changes to the schema and
-        // start a schema eviction.
-        foreach (var typeModule in setup.TypeModules)
+        try
         {
-            typeModuleChangeMonitor.Register(typeModule);
-        }
+            // If there are any type modules, we will register them with the
+            // type module change monitor.
+            // The module will track if type modules signal changes to the schema and
+            // start a schema eviction.
+            foreach (var typeModule in setup.TypeModules)
+            {
+                typeModuleChangeMonitor.Register(typeModule);
+            }
 
-        var schemaServices =
-            await CreateSchemaServicesAsync(context, setup, typeModuleChangeMonitor, cancellationToken)
+            schemaServices =
+                await CreateSchemaServicesAsync(context, setup, typeModuleChangeMonitor, cancellationToken)
+                    .ConfigureAwait(false);
+
+            var registeredExecutor = new RegisteredExecutor(
+                schemaServices.GetRequiredService<IRequestExecutor>(),
+                schemaServices,
+                schemaServices.GetRequiredService<IExecutionDiagnosticEvents>(),
+                setup,
+                typeModuleChangeMonitor,
+                setup.EvictionTimeout);
+
+            var executor = registeredExecutor.Executor;
+
+            await OnRequestExecutorCreatedAsync(context, executor, setup, cancellationToken)
                 .ConfigureAwait(false);
 
-        var registeredExecutor = new RegisteredExecutor(
-            schemaServices.GetRequiredService<IRequestExecutor>(),
-            schemaServices,
-            schemaServices.GetRequiredService<IExecutionDiagnosticEvents>(),
-            setup,
-            typeModuleChangeMonitor,
-            setup.EvictionTimeout);
+            await WarmupExecutorAsync(executor, isInitialCreation, cancellationToken).ConfigureAwait(false);
 
-        var executor = registeredExecutor.Executor;
+            _executors[schemaName] = registeredExecutor;
 
-        await OnRequestExecutorCreatedAsync(context, executor, setup, cancellationToken)
-            .ConfigureAwait(false);
+            registeredExecutor.DiagnosticEvents.ExecutorCreated(
+                schemaName,
+                registeredExecutor.Executor);
 
-        await WarmupExecutorAsync(executor, isInitialCreation, cancellationToken).ConfigureAwait(false);
+            _events.RaiseEvent(
+                RequestExecutorEvent.Created(registeredExecutor.Executor));
 
-        _executors[schemaName] = registeredExecutor;
+            return registeredExecutor;
+        }
+        catch
+        {
+            // If the executor creation fails, we have to dispose of the change monitor so that
+            // its event subscriptions do not leak. A leaked subscription would cause subsequent
+            // type changes to trigger additional (also failing) rebuild attempts.
+            typeModuleChangeMonitor.Dispose();
 
-        registeredExecutor.DiagnosticEvents.ExecutorCreated(
-            schemaName,
-            registeredExecutor.Executor);
+            if (schemaServices is not null)
+            {
+                try
+                {
+                    await schemaServices.DisposeAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    // A dispose failure must not mask the original executor creation error.
+                }
+            }
 
-        _events.RaiseEvent(
-            RequestExecutorEvent.Created(registeredExecutor.Executor));
-
-        return registeredExecutor;
+            throw;
+        }
     }
 
     private async Task UpdateRequestExecutorAsync(string schemaName, RegisteredExecutor previousExecutor)
@@ -274,11 +299,17 @@ internal sealed partial class RequestExecutorManager
             static sp => new InputParser(sp.GetRequiredService<ITypeConverter>()));
 
         serviceCollection.AddSingleton(
-            static sp => new OperationCompiler(
-                sp.GetRequiredService<Schema>(),
-                sp.GetRequiredService<InputParser>(),
-                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
-                sp.GetRequiredService<OperationCompilerOptimizers>()));
+            static sp =>
+            {
+                var options = sp.GetRequiredService<RequestExecutorOptions>();
+                return new OperationCompiler(
+                    sp.GetRequiredService<Schema>(),
+                    sp.GetRequiredService<InputParser>(),
+                    sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
+                    sp.GetRequiredService<OperationCompilerOptimizers>(),
+                    options.MaxAllowedIncludeConditions,
+                    options.MaxAllowedDeferConditions);
+            });
 
         serviceCollection.AddSingleton<ObjectPoolProvider>(
             static _ => new DefaultObjectPoolProvider());
@@ -414,11 +445,14 @@ internal sealed partial class RequestExecutorManager
         serviceCollection.AddSingleton(sp =>
         {
             var rootServices = sp.GetRootServiceProvider();
+            // The document validator is resolved after the schema is assigned to LazySchema.
+            var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
 
             var builder =
                 DocumentValidatorBuilder.New()
                     .SetServices(rootServices)
-                    .AddDefaultRules();
+                    .AddDefaultRules()
+                    .ModifyOptions(o => o.EnableEmptySelectionSets = options.EnableEmptySelectionSets);
 
             foreach (var hook in hooks)
             {

@@ -69,10 +69,10 @@ internal sealed class UnpublishClientCommand : Command
                     var errorMessage = error switch
                     {
                         IConcurrentOperationError err => err.Message,
-                        IStageNotFoundError err => err.Message,
-                        IClientVersionNotFoundError err => err.Message,
+                        IStageNotFoundError err => throw new NitroClientNotFoundException(err.Message),
+                        IClientVersionNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IUnauthorizedOperation err => err.Message,
-                        IClientNotFoundError err => err.Message,
+                        IClientNotFoundError err => throw new NitroClientNotFoundException(err.Message),
                         IError err => Messages.UnexpectedMutationError(err),
                         _ => Messages.UnexpectedMutationError()
                     };

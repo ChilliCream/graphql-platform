@@ -33,7 +33,7 @@ internal sealed class InputFieldTypesMergeableRule : IEventHandler<InputFieldGro
             var typeA = fieldInfoA.Field.Type;
             var typeB = fieldInfoB.Field.Type;
 
-            if (!ValidationHelper.SameTypeShape(typeA, typeB))
+            if (!TypeMergeHelper.SameTypeShape(typeA, typeB))
             {
                 context.Log.Write(
                     InputFieldTypesNotMergeable(

@@ -36,6 +36,7 @@ public sealed class DefaultMessageBus(
     /// <param name="message">The message instance to publish. Must not be <see langword="null"/>.</param>
     /// <param name="cancellationToken">A token to cancel the publish operation.</param>
     public async ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken)
+        where T : notnull
     {
         await PublishAsync(message, PublishOptions.Default, cancellationToken);
     }
@@ -45,16 +46,17 @@ public sealed class DefaultMessageBus(
     /// </summary>
     /// <remarks>
     /// The message is routed through the publish endpoint resolved by the runtime's router for the
-    /// given message type. Custom headers and expiration time from <paramref name="options"/> are
-    /// applied to the dispatch context before pipeline execution.
+    /// given message type. Fault routing, custom headers, and expiration from <paramref name="options"/>
+    /// are applied to the dispatch context before pipeline execution.
     /// </remarks>
     /// <typeparam name="T">The type of the message to publish.</typeparam>
     /// <param name="message">The message instance to publish. Must not be <see langword="null"/>.</param>
-    /// <param name="options">Options controlling headers and expiration for this publish operation.</param>
+    /// <param name="options">Options controlling fault routing, headers, and expiration for this publish operation.</param>
     /// <param name="cancellationToken">A token to cancel the publish operation.</param>
     public async ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken)
+        where T : notnull
     {
-        var messageType = runtime.GetMessageType(message!.GetType());
+        var messageType = runtime.GetMessageType(message.GetType());
         var endpoint = runtime.GetPublishEndpoint(messageType);
 
         var context = _contextPool.Get();
@@ -65,6 +67,7 @@ public sealed class DefaultMessageBus(
             context.Message = message;
             context.AddHeaders(options.Headers);
             context.Headers.SetMessageKind(MessageKind.Publish);
+            context.FaultAddress = options.FaultEndpoint;
             context.ScheduledTime = options.ScheduledTime;
             context.DeliverBy = options.ExpirationTime;
 
@@ -79,9 +82,11 @@ public sealed class DefaultMessageBus(
     /// <summary>
     /// Sends a message to a single consumer endpoint using default send options.
     /// </summary>
+    /// <typeparam name="T">The type of the message to send.</typeparam>
     /// <param name="message">The message instance to send. Must not be <see langword="null"/>.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
-    public ValueTask SendAsync(object message, CancellationToken cancellationToken)
+    public ValueTask SendAsync<T>(T message, CancellationToken cancellationToken)
+        where T : notnull
     {
         return SendAsync(message, SendOptions.Default, cancellationToken);
     }
@@ -94,10 +99,12 @@ public sealed class DefaultMessageBus(
     /// address; otherwise the runtime's router resolves the endpoint by message type. Reply and fault
     /// addresses from the options are propagated to the dispatch context.
     /// </remarks>
+    /// <typeparam name="T">The type of the message to send.</typeparam>
     /// <param name="message">The message instance to send. Must not be <see langword="null"/>.</param>
     /// <param name="options">Options controlling the target endpoint, headers, reply/fault addresses, and expiration.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
-    public async ValueTask SendAsync(object message, SendOptions options, CancellationToken cancellationToken)
+    public async ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken)
+        where T : notnull
     {
         var messageType = runtime.GetMessageType(message.GetType());
         var endpoint = options.Endpoint is { } address
@@ -233,14 +240,13 @@ public sealed class DefaultMessageBus(
             context.Message = response;
 
             context.AddHeaders(headers);
-            context.Headers.SetMessageKind(MessageKind.Reply);
+            context.Headers.SetMessageKind(options.MessageKind ?? MessageKind.Reply);
 
             await replyEndpoint.ExecuteAsync(context);
         }
-        catch
+        finally
         {
             _contextPool.Return(context);
-            throw;
         }
     }
 
@@ -316,7 +322,7 @@ public sealed class DefaultMessageBus(
         CancellationToken cancellationToken)
         where T : notnull
     {
-        var messageType = runtime.GetMessageType(message!.GetType());
+        var messageType = runtime.GetMessageType(message.GetType());
         var endpoint = runtime.GetPublishEndpoint(messageType);
 
         var context = _contextPool.Get();
@@ -327,6 +333,7 @@ public sealed class DefaultMessageBus(
             context.Message = message;
             context.AddHeaders(options.Headers);
             context.Headers.SetMessageKind(MessageKind.Publish);
+            context.FaultAddress = options.FaultEndpoint;
             context.ScheduledTime = scheduledTime;
             context.DeliverBy = options.ExpirationTime;
 
@@ -350,10 +357,11 @@ public sealed class DefaultMessageBus(
     /// <summary>
     /// Sends a message scheduled for delivery at the specified time using default options.
     /// </summary>
-    public async ValueTask<SchedulingResult> ScheduleSendAsync(
-        object message,
+    public async ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+        T message,
         DateTimeOffset scheduledTime,
         CancellationToken cancellationToken)
+        where T : notnull
     {
         return await ScheduleSendAsync(message, scheduledTime, SendOptions.Default, cancellationToken);
     }
@@ -361,11 +369,12 @@ public sealed class DefaultMessageBus(
     /// <summary>
     /// Sends a message scheduled for delivery at the specified time with additional options.
     /// </summary>
-    public async ValueTask<SchedulingResult> ScheduleSendAsync(
-        object message,
+    public async ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+        T message,
         DateTimeOffset scheduledTime,
         SendOptions options,
         CancellationToken cancellationToken)
+        where T : notnull
     {
         var messageType = runtime.GetMessageType(message.GetType());
         var endpoint = options.Endpoint is { } address
@@ -418,21 +427,22 @@ public sealed class DefaultMessageBus(
             return false;
         }
 
-        var store = services.GetService<IScheduledMessageStore>();
-        if (store is null)
-        {
-            return false;
-        }
-
-        return await store.CancelAsync(token, cancellationToken);
+        var resolver = services.GetRequiredService<ScheduledMessageStoreResolver>();
+        return await resolver.CancelAsync(token, cancellationToken);
     }
 
     private void PropagateCorrelationIds(DispatchContext context)
     {
+        // ConversationId and CausationId are lineage ids that flow through the whole graph.
+        // CorrelationId is a per-hop routing key (request/reply pairing, saga correlation) and must
+        // be set explicitly, never inherited, or an outbound message could complete the wrong
+        // request promise or attach to the wrong saga.
         if (consumeContextAccessor.Context is { } ambient)
         {
             context.ConversationId ??= ambient.ConversationId;
-            context.CausationId ??= ambient.MessageId;
+            context.CausationId ??= ambient is IBatchConsumeContext batchContext
+                ? batchContext.BatchId
+                : ambient.MessageId;
         }
     }
 }

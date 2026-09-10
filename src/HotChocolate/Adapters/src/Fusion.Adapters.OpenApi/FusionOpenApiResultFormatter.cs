@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Text.Json;
 using Microsoft.AspNetCore.Http;
@@ -18,22 +19,28 @@ internal sealed class FusionOpenApiResultFormatter : IOpenApiResultFormatter
             return;
         }
 
-        if (!resultDocument.Data.TryGetProperty(endpoint.ResponseNameToExtract, out var rootProperty))
-        {
-            await Results.InternalServerError().ExecuteAsync(httpContext);
-            return;
-        }
+        var responseValue = resultDocument.Data;
 
-        // If the root field is null, and we don't have any errors,
-        // we return HTTP 404 for queries and HTTP 500 otherwise.
-        if (rootProperty.IsNullOrInvalidated)
+        foreach (var segment in endpoint.ResponseBodySelection.ResponseNamePath)
         {
-            var result = endpoint.HttpMethod == HttpMethods.Get
-                ? Results.NotFound()
-                : Results.InternalServerError();
+            if (responseValue.ValueKind is not JsonValueKind.Object
+                || !responseValue.TryGetProperty(segment, out responseValue))
+            {
+                await Results.InternalServerError().ExecuteAsync(httpContext);
+                return;
+            }
 
-            await result.ExecuteAsync(httpContext);
-            return;
+            // If any field on the response name path is null, and we don't have any errors,
+            // we return HTTP 404 for queries and HTTP 500 otherwise.
+            if (responseValue.IsNullOrInvalidated)
+            {
+                var result = endpoint.HttpMethod == HttpMethods.Get
+                    ? Results.NotFound()
+                    : Results.InternalServerError();
+
+                await result.ExecuteAsync(httpContext);
+                return;
+            }
         }
 
         httpContext.Response.StatusCode = StatusCodes.Status200OK;
@@ -41,7 +48,7 @@ internal sealed class FusionOpenApiResultFormatter : IOpenApiResultFormatter
 
         var bodyWriter = httpContext.Response.BodyWriter;
 
-        rootProperty.WriteTo(bodyWriter);
+        responseValue.WriteTo(bodyWriter);
 
         await bodyWriter.FlushAsync(cancellationToken);
     }

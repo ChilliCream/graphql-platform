@@ -15,7 +15,7 @@ public class Issue5072VerificationTests
             .AddProjections()
             .AddQueryType<Issue5072Query>()
             .AddTypeExtension<Issue5072UserExtensions>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -27,7 +27,8 @@ public class Issue5072VerificationTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);
@@ -41,7 +42,7 @@ public class Issue5072VerificationTests
             .AddProjections()
             .AddQueryType<Issue5072Query>()
             .AddTypeExtension<Issue5072UserExtensionsWithRequirements>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -52,7 +53,8 @@ public class Issue5072VerificationTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.Empty(operationResult.Errors ?? []);

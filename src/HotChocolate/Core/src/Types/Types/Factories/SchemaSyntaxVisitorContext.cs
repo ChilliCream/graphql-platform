@@ -10,6 +10,13 @@ internal class SchemaSyntaxVisitorContext(IDescriptorContext descriptorContext)
 
     public IReadOnlyCollection<DirectiveNode>? Directives { get; set; }
 
+    public ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> DirectiveExtensions { get; set; } =
+#if NET10_0_OR_GREATER
+        [];
+#else
+        ImmutableDictionary<string, IReadOnlyList<DirectiveNode>>.Empty;
+#endif
+
     public ImmutableDictionary<string, IReadOnlyList<DirectiveNode>> ScalarDirectives { get; set; } =
 #if NET10_0_OR_GREATER
         [];

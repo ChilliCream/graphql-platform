@@ -20,7 +20,7 @@ public class CursorPagingBatchResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<BrandExtensions>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -46,7 +46,8 @@ public class CursorPagingBatchResolverTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(2, BrandExtensions.BatchCallCount);
@@ -124,7 +125,7 @@ public class CursorPagingBatchResolverTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddTypeExtension<BrandExtensions>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -144,7 +145,8 @@ public class CursorPagingBatchResolverTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, BrandExtensions.BatchCallCount);

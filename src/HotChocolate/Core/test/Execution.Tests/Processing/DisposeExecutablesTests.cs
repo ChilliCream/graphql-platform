@@ -21,7 +21,8 @@ public static class DisposeExecutablesTests
                     {
                         items
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(executable.IsDisposed);
@@ -44,7 +45,8 @@ public static class DisposeExecutablesTests
                     {
                         items
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.True(executable.IsDisposed);

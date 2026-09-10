@@ -17,11 +17,13 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         client.BaseAddress = new Uri("http://localhost:5000");
 
         // act
-        var result = await client.GetAsync("/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName");
+        var result = await client.GetAsync(
+            "/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = await result.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         json!.RootElement.MatchMarkdownSnapshot();
     }
 
@@ -34,11 +36,13 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         client.BaseAddress = new Uri("http://localhost:5000");
 
         // act
-        var result = await client.GetAsync("/graphql/persisted/60ddx_GGk4FDObSa6eK0s1/GetHeroName");
+        var result = await client.GetAsync(
+            "/graphql/persisted/60ddx_GGk4FDObSa6eK0s1/GetHeroName",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
-        var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = await result.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         json!.RootElement.MatchMarkdownSnapshot();
     }
 
@@ -51,11 +55,13 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
         client.BaseAddress = new Uri("http://localhost:5000");
 
         // act
-        var result = await client.GetAsync("/graphql/persisted/60ddx_GG+k4FDObSa6eK0s1/GetHeroName");
+        var result = await client.GetAsync(
+            "/graphql/persisted/60ddx_GG+k4FDObSa6eK0s1/GetHeroName",
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
-        var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = await result.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         json!.RootElement.MatchMarkdownSnapshot();
     }
 
@@ -78,11 +84,12 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
 
         var result = await client.PostAsync(
             "/graphql/persisted/60ddx_GGk4FDObSa6eK0sg/GetHeroName",
-            body);
+            body,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = await result.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         json!.RootElement.MatchMarkdownSnapshot();
     }
 
@@ -105,11 +112,12 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
 
         var result = await client.PostAsync(
             "/graphql/persisted/60ddx_GGk4FDObSa6eK0sg",
-            body);
+            body,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
-        var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = await result.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         json!.RootElement.MatchMarkdownSnapshot();
     }
 
@@ -132,11 +140,12 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
 
         var result = await client.PostAsync(
             "/graphql/persisted/60ddx_GGk4FDObSa6eK0sg",
-            body);
+            body,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = await result.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         json!.RootElement.MatchMarkdownSnapshot();
     }
 
@@ -159,11 +168,12 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
 
         var result = await client.PostAsync(
             "/graphql/persisted/60ddx_GGk4FDObSa6eK0sg1/GetHeroName",
-            body);
+            body,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
-        var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = await result.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         json!.RootElement.MatchMarkdownSnapshot();
     }
 
@@ -186,11 +196,12 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
 
         var result = await client.PostAsync(
             "/graphql/persisted/60ddx_GGk4+FDObSa6eK0sg1/GetHeroName",
-            body);
+            body,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
-        var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = await result.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         json!.RootElement.MatchMarkdownSnapshot();
     }
 
@@ -216,11 +227,12 @@ public class PersistedOperationMiddlewareTests(TestServerFactory serverFactory) 
 
         var result = await client.PostAsync(
             "/graphql/persisted/abc123/Test",
-            body);
+            body,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-        var json = await result.Content.ReadFromJsonAsync<JsonDocument>();
+        var json = await result.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         json!.RootElement.MatchMarkdownSnapshot();
     }
 }

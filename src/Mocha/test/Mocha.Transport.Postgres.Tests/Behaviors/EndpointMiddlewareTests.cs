@@ -155,7 +155,7 @@ public class EndpointMiddlewareTests
                 t.DeclareTopic("ex");
                 t.DeclareQueue("q");
                 t.DeclareSubscription("ex", "q");
-                t.Endpoint("recv-ep").Consumer<TrackingConsumer>().Queue("q");
+                t.Queue("q").Consumer<TrackingConsumer>();
                 t.DispatchEndpoint("ep")
                     .ToTopic("ex")
                     .Publish<OrderCreated>()
@@ -200,7 +200,7 @@ public class EndpointMiddlewareTests
                 t.DeclareTopic("ex");
                 t.DeclareQueue("q");
                 t.DeclareSubscription("ex", "q");
-                t.Endpoint("recv-ep").Consumer<TrackingConsumer>().Queue("q");
+                t.Queue("q").Consumer<TrackingConsumer>();
                 t.DispatchEndpoint("ep")
                     .ToTopic("ex")
                     .Publish<OrderCreated>()
@@ -246,7 +246,7 @@ public class EndpointMiddlewareTests
                 t.DeclareTopic("ex");
                 t.DeclareQueue("q");
                 t.DeclareSubscription("ex", "q");
-                t.Endpoint("recv-ep").Consumer<TrackingConsumer>().Queue("q");
+                t.Queue("q").Consumer<TrackingConsumer>();
                 t.DispatchEndpoint("ep")
                     .ToTopic("ex")
                     .Publish<OrderCreated>()

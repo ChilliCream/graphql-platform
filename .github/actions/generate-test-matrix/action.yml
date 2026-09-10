@@ -1,0 +1,33 @@
+name: Generate test matrix
+description: >
+  Reads src/All.slnx, filters to *.Tests.csproj projects, and emits a JSON
+  matrix payload (with name / path / directoryPath per entry) ready to be
+  consumed by a strategy.matrix in a calling workflow.
+
+outputs:
+  matrix:
+    description: Test-project matrix as a compact JSON string for use with `strategy.matrix`.
+    value: ${{ steps.set-matrix.outputs.matrix }}
+
+runs:
+  using: composite
+  steps:
+    - name: Generate matrix from src/All.slnx
+      id: set-matrix
+      shell: bash
+      run: |
+        set -euo pipefail
+        matrix=$(grep -oE 'Path="[^"]+\.Tests\.csproj"' src/All.slnx \
+          | sed 's/^Path="//; s/"$//' \
+          | tr '\\' '/' \
+          | sed 's|^|src/|' \
+          | LC_ALL=C sort -u \
+          | jq -R -s -c '
+              split("\n")
+              | map(select(length > 0))
+              | { include: map({
+                    name: (split("/") | last | sub("\\.csproj$"; "")),
+                    path: .,
+                    directoryPath: (split("/")[:-1] | join("/"))
+                  }) }')
+        echo "matrix=$matrix" >> "$GITHUB_OUTPUT"

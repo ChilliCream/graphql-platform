@@ -80,6 +80,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
         {
             Configuration.ResolverField ??= new ObjectFieldConfiguration();
             Configuration.ResolverField.Member = m;
+            Configuration.ResolverField.DeclaringType = m.ReflectedType ?? m.DeclaringType;
             Configuration.ResolverField.ResolverType = typeof(TResolver);
             return _configureNodeField();
         }
@@ -95,6 +96,7 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
 
         Configuration.ResolverField ??= new ObjectFieldConfiguration();
         Configuration.ResolverField.Member = method;
+        Configuration.ResolverField.DeclaringType = method.ReflectedType ?? method.DeclaringType;
         Configuration.ResolverField.ResolverType = method.DeclaringType ?? typeof(object);
         return _configureNodeField();
     }

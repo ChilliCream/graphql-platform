@@ -29,7 +29,8 @@ namespace HotChocolate.Types;
     | DirectiveLocation.InputFieldDefinition
     | DirectiveLocation.ArgumentDefinition
     | DirectiveLocation.EnumValue
-    | DirectiveLocation.Schema,
+    | DirectiveLocation.Schema
+    | DirectiveLocation.DirectiveDefinition,
     IsRepeatable = true)]
 [TagDirectiveConfig]
 [GraphQLDescription(

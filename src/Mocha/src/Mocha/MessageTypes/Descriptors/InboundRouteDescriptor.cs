@@ -38,6 +38,13 @@ public class InboundRouteDescriptor : MessagingDescriptorBase<InboundRouteConfig
         return this;
     }
 
+    /// <inheritdoc />
+    public IInboundRouteDescriptor Condition(RouteCondition condition)
+    {
+        Configuration.Condition = condition;
+        return this;
+    }
+
     /// <summary>
     /// Creates the final configuration from the descriptor state.
     /// </summary>

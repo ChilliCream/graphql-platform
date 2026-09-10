@@ -22,6 +22,10 @@ public class McpDiagnosticEventListener : IMcpDiagnosticEventListener
 
     public virtual IDisposable UpdateTools() => EmptyScope;
 
+    public virtual void ToolCreationFailed(string toolName, Exception exception)
+    {
+    }
+
     public virtual void ValidationErrors(IReadOnlyList<IError> errors)
     {
     }

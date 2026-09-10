@@ -35,12 +35,29 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
     /// </summary>
     public IReadOnlyList<InMemoryBinding> Bindings => _bindings;
 
+    public InMemoryTopic GetOrAddTopic(
+        string name,
+        Func<string, InMemoryTopicConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var topic = _topics.FirstOrDefault(e => e.Name == name);
+            if (topic is not null)
+            {
+                return topic;
+            }
+
+            var configuration = factory(name);
+            configuration.Name = name;
+            return CreateTopic(configuration);
+        }
+    }
+
     /// <summary>
-    /// Registers a new topic in the topology.
+    /// Adds a topic to the topology or applies a contribution to the existing topic with the same name.
     /// </summary>
     /// <param name="configuration">The topic configuration specifying the topic name.</param>
-    /// <returns>The newly created <see cref="InMemoryTopic"/>.</returns>
-    /// <exception cref="InvalidOperationException">A topic with the same name already exists.</exception>
+    /// <returns>The created or existing <see cref="InMemoryTopic"/>.</returns>
     public InMemoryTopic AddTopic(InMemoryTopicConfiguration configuration)
     {
         lock (_lock)
@@ -48,50 +65,76 @@ public sealed class InMemoryMessagingTopology(InMemoryMessagingTransport transpo
             var topic = _topics.FirstOrDefault(e => e.Name == configuration.Name);
             if (topic is not null)
             {
-                throw new InvalidOperationException($"Topic '{configuration.Name}' already exists");
+                return topic;
             }
 
-            topic = new InMemoryTopic();
+            return CreateTopic(configuration);
+        }
+    }
 
-            configuration.Topology = this;
-            topic.Initialize(configuration);
+    private InMemoryTopic CreateTopic(InMemoryTopicConfiguration configuration)
+    {
+        var topic = new InMemoryTopic();
 
-            _topics.Add(topic);
+        configuration.Topology = this;
+        topic.Initialize(configuration);
 
-            topic.Complete();
+        _topics.Add(topic);
 
-            return topic;
+        topic.Complete();
+
+        return topic;
+    }
+
+    public InMemoryQueue GetOrAddQueue(
+        string name,
+        Func<string, InMemoryQueueConfiguration> factory)
+    {
+        lock (_lock)
+        {
+            var queue = _queues.FirstOrDefault(q => q.Name == name);
+            if (queue is not null)
+            {
+                return queue;
+            }
+
+            var configuration = factory(name);
+            configuration.Name = name;
+            return CreateQueue(configuration);
         }
     }
 
     /// <summary>
-    /// Registers a new queue in the topology.
+    /// Adds a queue to the topology or applies a contribution to the existing queue with the same name.
     /// </summary>
     /// <param name="configuration">The queue configuration specifying the queue name.</param>
-    /// <returns>The newly created <see cref="InMemoryQueue"/>.</returns>
-    /// <exception cref="InvalidOperationException">A queue with the same name already exists.</exception>
+    /// <returns>The created or existing <see cref="InMemoryQueue"/>.</returns>
     public InMemoryQueue AddQueue(InMemoryQueueConfiguration configuration)
     {
         lock (_lock)
         {
-            configuration.Topology ??= this;
-
             var queue = _queues.FirstOrDefault(q => q.Name == configuration.Name);
             if (queue is not null)
             {
-                throw new InvalidOperationException($"Queue '{configuration.Name}' already exists");
+                return queue;
             }
 
-            configuration.Topology = this;
-            queue = new InMemoryQueue();
-            queue.Initialize(configuration);
-
-            _queues.Add(queue);
-
-            queue.Complete();
-
-            return queue;
+            return CreateQueue(configuration);
         }
+    }
+
+    private InMemoryQueue CreateQueue(InMemoryQueueConfiguration configuration)
+    {
+        configuration.Topology = this;
+
+        var queue = new InMemoryQueue();
+        queue.Initialize(configuration);
+
+        _queues.Add(queue);
+
+        queue.Complete();
+
+        return queue;
     }
 
     /// <summary>

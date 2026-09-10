@@ -1,6 +1,6 @@
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning.Partitioners;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 

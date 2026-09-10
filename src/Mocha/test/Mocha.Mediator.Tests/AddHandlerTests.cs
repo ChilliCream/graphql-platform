@@ -14,7 +14,7 @@ public class AddHandlerTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        await mediator.SendAsync(new ManualVoidCommand("test"));
+        await mediator.SendAsync(new ManualVoidCommand("test"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ManualVoidCommandHandler.WasInvoked);
@@ -29,7 +29,7 @@ public class AddHandlerTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.SendAsync(new ManualCommand("hello"));
+        var result = await mediator.SendAsync(new ManualCommand("hello"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -45,7 +45,7 @@ public class AddHandlerTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        var result = await mediator.QueryAsync(new ManualQuery(42));
+        var result = await mediator.QueryAsync(new ManualQuery(42), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.NotNull(result);
@@ -62,7 +62,7 @@ public class AddHandlerTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        await mediator.PublishAsync(new ManualNotification("ping"));
+        await mediator.PublishAsync(new ManualNotification("ping"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ManualNotificationHandler1.WasInvoked);
@@ -83,7 +83,7 @@ public class AddHandlerTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act
-        await mediator.PublishAsync(new ManualNotification("fan-out"));
+        await mediator.PublishAsync(new ManualNotification("fan-out"), TestContext.Current.CancellationToken);
 
         // Assert
         Assert.True(ManualNotificationHandler1.WasInvoked);
@@ -119,17 +119,17 @@ public class AddHandlerTests
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
         // Act & Assert - all handler types work together
-        await mediator.SendAsync(new ManualVoidCommand("v"));
+        await mediator.SendAsync(new ManualVoidCommand("v"), TestContext.Current.CancellationToken);
         Assert.True(ManualVoidCommandHandler.WasInvoked);
 
-        var cmdResult = await mediator.SendAsync(new ManualCommand("c"));
+        var cmdResult = await mediator.SendAsync(new ManualCommand("c"), TestContext.Current.CancellationToken);
         Assert.Equal("manual-c", cmdResult.Data);
 
-        var queryResult = await mediator.QueryAsync(new ManualQuery(7));
+        var queryResult = await mediator.QueryAsync(new ManualQuery(7), TestContext.Current.CancellationToken);
         Assert.Equal("query-7", queryResult.Data);
 
         ManualNotificationHandler1.WasInvoked = false;
-        await mediator.PublishAsync(new ManualNotification("n"));
+        await mediator.PublishAsync(new ManualNotification("n"), TestContext.Current.CancellationToken);
         Assert.True(ManualNotificationHandler1.WasInvoked);
     }
 

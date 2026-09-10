@@ -55,13 +55,6 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
         var connection = session.Connection;
         var connected = connection.IsConnected;
 
-        if (connected && message.IsSingleSegment
-            && message.First.Equals(Utf8MessageBodies.KeepAlive))
-        {
-            // received a simple ping, we do not need to answer to this message.
-            return;
-        }
-
         using var document = JsonDocument.Parse(message);
         var root = document.RootElement;
         JsonElement idProp;
@@ -85,6 +78,12 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
             return;
         }
 
+        if (type.ValueEquals("ka"u8))
+        {
+            // a client keep-alive is a no-op, we must not close the connection.
+            return;
+        }
+
         if (type.ValueEquals(Utf8Messages.ConnectionInitialize))
         {
             if (connected)
@@ -95,6 +94,10 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
                     cancellationToken);
                 return;
             }
+
+            // signal that the client sent the connection init in time, even if accepting the
+            // connection (for example authentication) still needs to run.
+            ((WebSocketConnection)connection).ConnectionInitReceived = true;
 
             var operationMessageObj =
                 TryGetPayload(root, out var payload)
@@ -109,7 +112,7 @@ internal sealed class ApolloSubscriptionProtocolHandler : IProtocolHandler
 
             if (connectionStatus.Accepted)
             {
-                connection.IsConnected = true;
+                ((WebSocketConnection)connection).IsConnected = true;
                 await SendConnectionAcceptMessage(
                     session,
                     connectionStatus.Extensions,

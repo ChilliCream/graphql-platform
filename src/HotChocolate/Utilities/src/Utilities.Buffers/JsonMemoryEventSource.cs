@@ -44,4 +44,16 @@ internal sealed class JsonMemoryEventSource : EventSource
             WriteEvent(3, kind, bufferCount);
         }
     }
+
+    [Event(
+        eventId: 4,
+        Level = EventLevel.Verbose,
+        Message = "Buffer abandoned (Kind={0}, BufferCount={1})")]
+    public void BufferAbandoned(JsonMemoryKind kind, int bufferCount)
+    {
+        if (IsEnabled(EventLevel.Verbose, EventKeywords.None))
+        {
+            WriteEvent(4, kind, bufferCount);
+        }
+    }
 }

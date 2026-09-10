@@ -13,7 +13,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypesTests
                     .AddGraphQL()
                     .AddQueryType()
                     .AddObjectType<ObjectType>()
-                    .BuildSchemaAsync()))
+                    .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)))
             .Message
             .MatchSnapshot();
     }
@@ -26,7 +26,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypesTests
                     .AddGraphQL()
                     .AddQueryType()
                     .AddObjectType<ObjectType>(d => { })
-                    .BuildSchemaAsync()))
+                    .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)))
             .Message
             .MatchSnapshot();
     }
@@ -39,7 +39,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypesTests
                     .AddGraphQL()
                     .AddQueryType()
                     .AddInterfaceType<ObjectType>()
-                    .BuildSchemaAsync()))
+                    .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)))
             .Message
             .MatchSnapshot();
     }
@@ -52,7 +52,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypesTests
                     .AddGraphQL()
                     .AddQueryType()
                     .AddInterfaceType<ObjectType>(d => { })
-                    .BuildSchemaAsync()))
+                    .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)))
             .Message
             .MatchSnapshot();
     }
@@ -65,7 +65,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypesTests
                     .AddGraphQL()
                     .AddQueryType()
                     .AddUnionType<ObjectType>()
-                    .BuildSchemaAsync()))
+                    .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)))
             .Message
             .MatchSnapshot();
     }
@@ -78,7 +78,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypesTests
                     .AddGraphQL()
                     .AddQueryType()
                     .AddObjectType<ObjectType>(d => { })
-                    .BuildSchemaAsync()))
+                    .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)))
             .Message
             .MatchSnapshot();
     }
@@ -91,7 +91,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypesTests
                     .AddGraphQL()
                     .AddQueryType()
                     .AddEnumType<ObjectType>()
-                    .BuildSchemaAsync()))
+                    .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)))
             .Message
             .MatchSnapshot();
     }
@@ -104,7 +104,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypesTests
                     .AddGraphQL()
                     .AddQueryType()
                     .AddEnumType<ObjectType>(d => { })
-                    .BuildSchemaAsync()))
+                    .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)))
             .Message
             .MatchSnapshot();
     }
@@ -117,7 +117,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypesTests
                     .AddGraphQL()
                     .AddQueryType()
                     .AddInputObjectType<ObjectType>()
-                    .BuildSchemaAsync()))
+                    .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)))
             .Message
             .MatchSnapshot();
     }
@@ -130,7 +130,7 @@ public class SchemaRequestExecutorBuilderExtensionsTypesTests
                     .AddGraphQL()
                     .AddQueryType()
                     .AddInputObjectType<ObjectType>(d => { })
-                    .BuildSchemaAsync()))
+                    .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)))
             .Message
             .MatchSnapshot();
     }

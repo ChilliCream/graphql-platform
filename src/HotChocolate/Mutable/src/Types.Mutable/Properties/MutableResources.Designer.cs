@@ -186,6 +186,15 @@ namespace HotChocolate.Types.Mutable.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The {0} root type &apos;{1}&apos; must be an Object type..
+        /// </summary>
+        internal static string SchemaParser_InvalidRootType {
+            get {
+                return ResourceManager.GetString("SchemaParser_InvalidRootType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Union type &apos;{0}&apos; cannot include the type &apos;{1}&apos;. Unions can only contain Object types..
         /// </summary>
         internal static string SchemaParser_InvalidUnionMemberType {
@@ -195,11 +204,20 @@ namespace HotChocolate.Types.Mutable.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The non-repeatable directive &apos;@{0}&apos; was already applied to &apos;{1}&apos; and cannot be applied again by an extension..
+        ///   Looks up a localized string similar to The {0} root type &apos;{1}&apos; is not defined..
         /// </summary>
-        internal static string SchemaParser_NonRepeatableDirectiveAlreadyApplied {
+        internal static string SchemaParser_RootTypeNotDefined {
             get {
-                return ResourceManager.GetString("SchemaParser_NonRepeatableDirectiveAlreadyApplied", resourceCulture);
+                return ResourceManager.GetString("SchemaParser_RootTypeNotDefined", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The Union type &apos;{0}&apos; cannot include the undefined type &apos;{1}&apos;..
+        /// </summary>
+        internal static string SchemaParser_UnionMemberTypeNotDefined {
+            get {
+                return ResourceManager.GetString("SchemaParser_UnionMemberTypeNotDefined", resourceCulture);
             }
         }
     }

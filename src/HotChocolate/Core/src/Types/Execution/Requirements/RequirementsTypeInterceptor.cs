@@ -25,7 +25,7 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
         "IL2072",
         Justification =
             "Runtime types come from the schema type model and are statically referenced.")]
-    public override void OnBeforeCompleteType(
+    public override void OnAfterCompleteType(
         ITypeCompletionContext completionContext,
         TypeSystemConfiguration configuration)
     {
@@ -44,6 +44,11 @@ internal sealed class RequirementsTypeInterceptor : TypeInterceptor
                 var feature = fieldDef.Features.GetRequired<FieldRequirementFeature>();
                 var requirements = feature.Requirements;
                 var entityType = runtimeType ?? feature.EntityType;
+
+                if (entityType is null)
+                {
+                    continue;
+                }
 
                 var propertyNodes = PropertyTreeBuilder.Build(
                     fieldCoordinate,

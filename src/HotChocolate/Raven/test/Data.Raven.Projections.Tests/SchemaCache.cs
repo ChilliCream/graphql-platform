@@ -9,7 +9,7 @@ public class SchemaCache
     : ProjectionVisitorTestBase,
       IDisposable
 {
-    private readonly ConcurrentDictionary<(Type, object, bool, bool), IRequestExecutor> _cache =
+    private readonly ConcurrentDictionary<(Type, object, bool, bool, ITypeDefinition?), IRequestExecutor> _cache =
         new();
 
     public IRequestExecutor CreateSchema<T>(
@@ -21,7 +21,7 @@ public class SchemaCache
         Type? schemaType = null)
         where T : class
     {
-        var key = (typeof(T), entities, usePaging, useOffsetPaging);
+        var key = (typeof(T), entities, usePaging, useOffsetPaging, objectType);
 
         return _cache.GetOrAdd(
             key,

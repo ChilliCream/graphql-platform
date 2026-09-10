@@ -1,0 +1,52 @@
+namespace ChilliCream.Nitro.CommandLine.Services.Hook;
+
+/// <summary>
+/// Implements the Claude Code turn-boundary event state machine: presence
+/// upsert on <c>SessionStart</c>, the unread-mail digest on
+/// <c>UserPromptSubmit</c>, the Stop gate, and presence teardown on
+/// <c>SessionEnd</c>. Every member is fail-open by contract: it never
+/// throws for a condition the command layer's caller cannot act on
+/// (unresolvable workspace, unclaimed session, contended database), instead
+/// returning <see cref="ClaudeHookOutcome.Neutral"/>. The command layer
+/// wraps every call in an additional catch-all and timeout regardless, so
+/// this type does not have to be exhaustive about it.
+/// </summary>
+internal interface IClaudeHookHandler
+{
+    /// <summary>
+    /// Upserts the session's presence row. <paramref name="dryRun"/> pins the
+    /// row's generation to a fixed sentinel identity instead of walking this
+    /// process's ancestors for a live Claude Code parent, so a fixture-driven
+    /// test (or a human replaying a captured payload) can drive the full
+    /// adapter without a real Claude Code process above it, and so the same
+    /// generation resolves consistently across separate process invocations.
+    /// Dry-run still writes presence/ledger/budget rows to the real
+    /// workspace database; a caller must not replay it with a live
+    /// session's session_id.
+    /// </summary>
+    Task<ClaudeHookOutcome> HandleSessionStartAsync(
+        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Resets the Stop gate's per-turn block budget, then returns the unread
+    /// mail digest for messages not yet delivered on the digest channel, or
+    /// <see cref="ClaudeHookOutcome.Neutral"/> when there is nothing new.
+    /// </summary>
+    Task<ClaudeHookOutcome> HandleUserPromptSubmitAsync(
+        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Blocks the turn from ending when unread mail not yet delivered on the
+    /// gate channel exists for the session's claimed actor, honoring
+    /// <see cref="ClaudeHookPayload.StopHookActive"/> reentrancy and the
+    /// per-turn block budget.
+    /// </summary>
+    Task<ClaudeHookOutcome> HandleStopAsync(
+        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Conditionally deletes the session's presence row.
+    /// </summary>
+    Task<ClaudeHookOutcome> HandleSessionEndAsync(
+        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+}

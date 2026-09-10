@@ -18,7 +18,7 @@ public class HeadersSerializationTests
 
         // assert
         Assert.NotNull(result);
-        Assert.True(result!.TryGetValue(key, out var value));
+        Assert.True(result.TryGetValue(key, out var value));
         Assert.Equal(expected, value);
     }
 
@@ -36,31 +36,24 @@ public class HeadersSerializationTests
 
         // assert
         Assert.NotNull(result);
-        Assert.True(result!.TryGetValue(key, out var value));
+        Assert.True(result.TryGetValue(key, out var value));
         Assert.NotNull(value);
     }
 
     [Fact]
-    public void RoundTrip_Should_PreserveDateTime_When_Serialized()
+    public void RoundTrip_Should_PreserveDateTimeAsIsoText_When_Serialized()
     {
         // arrange
         var headers = new Headers();
-        var dateTime = new DateTime(2024, 1, 15, 10, 30, 45, DateTimeKind.Utc);
-        headers.Set("dateTime", dateTime);
+        headers.Set("dateTime", new DateTime(2024, 1, 15, 10, 30, 45, DateTimeKind.Utc));
 
         // act
         var json = JsonSerializer.Serialize<IHeaders>(headers, HeadersJsonConverter.Options);
         var result = JsonSerializer.Deserialize<IHeaders>(json, HeadersJsonConverter.Options);
 
         // assert
-        Assert.NotNull(result);
-        Assert.True(result!.TryGetValue("dateTime", out var value));
-        Assert.IsType<DateTime>(value);
-        var resultDateTime = (DateTime)value!;
-        // DateTime may be deserialized with some precision loss
-        Assert.Equal(dateTime.Year, resultDateTime.Year);
-        Assert.Equal(dateTime.Month, resultDateTime.Month);
-        Assert.Equal(dateTime.Day, resultDateTime.Day);
+        result!.TryGetValue("dateTime", out var value);
+        Assert.Equal("2024-01-15T10:30:45Z", Assert.IsType<string>(value));
     }
 
     [Fact]
@@ -77,9 +70,9 @@ public class HeadersSerializationTests
 
         // assert
         Assert.NotNull(result);
-        Assert.True(result!.TryGetValue("nested", out var value));
+        Assert.True(result.TryGetValue("nested", out var value));
         Assert.IsType<Dictionary<string, object?>>(value);
-        var dict = (Dictionary<string, object?>)value!;
+        var dict = (Dictionary<string, object?>)value;
         Assert.Equal("innerValue", dict["innerKey"]);
         Assert.Equal(123, dict["innerNumber"]);
     }
@@ -126,9 +119,9 @@ public class HeadersSerializationTests
 
         // assert
         Assert.NotNull(result);
-        Assert.True(result!.TryGetValue(key, out var value));
+        Assert.True(result.TryGetValue(key, out var value));
         Assert.IsType<object[]>(value);
-        var array = (object[])value!;
+        var array = (object[])value;
         Assert.Equal(expected.Length, array.Length);
         for (var i = 0; i < expected.Length; i++)
         {
@@ -154,11 +147,11 @@ public class HeadersSerializationTests
 
         // assert
         Assert.NotNull(result);
-        Assert.True(result!.TryGetValue("items", out var value));
+        Assert.True(result.TryGetValue("items", out var value));
         Assert.IsType<object[]>(value);
-        var array = (object[])value!;
+        var array = (object[])value;
         Assert.Equal(2, array.Length);
-        var first = (Dictionary<string, object?>)array[0]!;
+        var first = (Dictionary<string, object?>)array[0];
         Assert.Equal(1, first["id"]);
         Assert.Equal("first", first["name"]);
     }
@@ -207,7 +200,7 @@ public class HeadersSerializationTests
 
         // assert
         Assert.NotNull(result);
-        Assert.Equal(6, result!.Count);
+        Assert.Equal(6, result.Count);
         Assert.True(result.TryGetValue("string", out var strVal));
         Assert.Equal("value", strVal);
         Assert.True(result.TryGetValue("number", out var numVal));
@@ -237,11 +230,11 @@ public class HeadersSerializationTests
         Assert.NotNull(result);
         if (expectedType is null)
         {
-            Assert.Equal(0, result!.Count);
+            Assert.Equal(0, result.Count);
         }
         else
         {
-            Assert.True(result!.TryGetValue(key, out var value));
+            Assert.True(result.TryGetValue(key, out var value));
             Assert.IsType(expectedType, value);
 
             if (value is Dictionary<string, object?> dict)
@@ -266,7 +259,7 @@ public class HeadersSerializationTests
 
         // assert
         Assert.NotNull(result);
-        Assert.True(result!.TryGetValue("key", out var value));
+        Assert.True(result.TryGetValue("key", out var value));
         Assert.Equal("value", value);
     }
 
@@ -281,9 +274,9 @@ public class HeadersSerializationTests
 
         // assert
         Assert.NotNull(result);
-        Assert.True(result!.TryGetValue("nested", out var value));
+        Assert.True(result.TryGetValue("nested", out var value));
         Assert.IsType<Dictionary<string, object?>>(value);
-        var dict = (Dictionary<string, object?>)value!;
+        var dict = (Dictionary<string, object?>)value;
         Assert.Equal("value", dict["inner"]);
         Assert.Equal(42, dict["count"]);
     }
@@ -299,9 +292,9 @@ public class HeadersSerializationTests
 
         // assert
         Assert.NotNull(result);
-        Assert.True(result!.TryGetValue("items", out var value));
+        Assert.True(result.TryGetValue("items", out var value));
         Assert.IsType<object[]>(value);
-        var array = (object[])value!;
+        var array = (object[])value;
         Assert.Equal(3, array.Length);
     }
 

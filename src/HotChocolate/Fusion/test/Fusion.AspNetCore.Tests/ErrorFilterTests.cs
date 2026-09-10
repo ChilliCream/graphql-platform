@@ -44,10 +44,11 @@ public class ErrorFilterTests : FusionTestBase
               field
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -105,10 +106,11 @@ public class ErrorFilterTests : FusionTestBase
               field
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -167,10 +169,11 @@ public class ErrorFilterTests : FusionTestBase
               field
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -228,10 +231,11 @@ public class ErrorFilterTests : FusionTestBase
               field
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {
@@ -290,10 +294,11 @@ public class ErrorFilterTests : FusionTestBase
               field
             }
             """,
-            new Uri("http://localhost:5000/graphql"));
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
 
         // assert
-        using var response = await result.ReadAsResultAsync();
+        using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchInlineSnapshot(
             """
             {

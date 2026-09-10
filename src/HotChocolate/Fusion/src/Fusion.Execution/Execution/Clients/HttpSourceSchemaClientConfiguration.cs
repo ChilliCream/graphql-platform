@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Net.Http.Headers;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -11,6 +12,11 @@ namespace HotChocolate.Fusion.Execution.Clients;
 public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfiguration
 {
     public const string DefaultClientName = "fusion";
+
+    /// <summary>
+    /// The default maximum time to wait for data on a subscription response stream.
+    /// </summary>
+    public static readonly TimeSpan DefaultSubscriptionReadTimeout = TimeSpan.FromSeconds(60);
 
     /// <summary>
     /// Initializes a new instance of <see cref="HttpSourceSchemaClientConfiguration"/>.
@@ -29,6 +35,12 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
     /// </param>
     /// <param name="onError">
     /// The error handling mode requested by the source schema.
+    /// </param>
+    /// <param name="subscriptionReadTimeout">
+    /// The maximum time to wait for data on a subscription response stream. Keep-alive messages count
+    /// as data. <c>null</c> uses <see cref="DefaultSubscriptionReadTimeout"/>,
+    /// <see cref="Timeout.InfiniteTimeSpan"/> disables the timeout. A finite value must be between
+    /// one millisecond and <c>uint.MaxValue - 1</c> milliseconds.
     /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
@@ -52,8 +64,9 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default,
         ErrorHandlingMode? onError = null,
+        TimeSpan? subscriptionReadTimeout = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -67,6 +80,7 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
             supportedOperations,
             capabilities,
             onError,
+            subscriptionReadTimeout,
             defaultAcceptHeaderValues,
             batchingAcceptHeaderValues,
             subscriptionAcceptHeaderValues,
@@ -97,6 +111,12 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
     /// <param name="onError">
     /// The error handling mode requested by the source schema.
     /// </param>
+    /// <param name="subscriptionReadTimeout">
+    /// The maximum time to wait for data on a subscription response stream. Keep-alive messages count
+    /// as data. <c>null</c> uses <see cref="DefaultSubscriptionReadTimeout"/>,
+    /// <see cref="Timeout.InfiniteTimeSpan"/> disables the timeout. A finite value must be between
+    /// one millisecond and <c>uint.MaxValue - 1</c> milliseconds.
+    /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
     /// </param>
@@ -120,8 +140,9 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.Default,
         ErrorHandlingMode? onError = null,
+        TimeSpan? subscriptionReadTimeout = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -132,6 +153,17 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(httpClientName);
         ArgumentNullException.ThrowIfNull(baseAddress);
+
+        if (subscriptionReadTimeout is { } readTimeout
+            && readTimeout != Timeout.InfiniteTimeSpan
+            && !ReadTimeoutStream.IsValidTimeout(readTimeout))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(subscriptionReadTimeout),
+                readTimeout,
+                "The subscription read timeout must be Timeout.InfiniteTimeSpan or between 1 millisecond "
+                + "and uint.MaxValue - 1 milliseconds.");
+        }
 
         Name = name;
         HttpClientName = httpClientName;
@@ -155,6 +187,7 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
         OnBeforeSend = onBeforeSend;
         OnAfterReceive = onAfterReceive;
         OnSourceSchemaResult = onSourceSchemaResult;
+        SubscriptionReadTimeout = subscriptionReadTimeout ?? DefaultSubscriptionReadTimeout;
     }
 
     /// <summary>
@@ -216,6 +249,13 @@ public class HttpSourceSchemaClientConfiguration : ISourceSchemaClientConfigurat
     /// Called after a <see cref="SourceSchemaResult"/> was materialized.
     /// </summary>
     public Action<OperationPlanContext, ExecutionNode, SourceSchemaResult>? OnSourceSchemaResult { get; }
+
+    /// <summary>
+    /// Gets the maximum time to wait for data on a subscription response stream before the source
+    /// schema is considered unresponsive. Keep-alive messages count as data.
+    /// <see cref="Timeout.InfiniteTimeSpan"/> disables the timeout.
+    /// </summary>
+    public TimeSpan SubscriptionReadTimeout { get; }
 
     private static class AcceptContentTypes
     {

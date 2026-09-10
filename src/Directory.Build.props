@@ -1,5 +1,4 @@
 <Project>
-
   <PropertyGroup>
     <LangVersion>preview</LangVersion>
     <Version Condition="$(Version) == ''">0.0.0</Version>
@@ -9,6 +8,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <NeutralLanguage>en</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net11.0'">
+    <Features>$(Features);runtime-async=on</Features>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TreatWarningsAsErrors)' == ''">
@@ -21,32 +24,44 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Product>Hot Chocolate</Product>
     <Authors>ChilliCream authors and contributors</Authors>
     <Company>ChilliCream Inc.</Company>
-    <Copyright>Copyright &#169; 2021 ChilliCream Inc.</Copyright>
+    <Copyright>Copyright &#169; 2018 - present ChilliCream Inc.</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://chillicream.com</PackageProjectUrl>
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/graphql-platform/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageIcon>hotchocolate-signet.png</PackageIcon>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <RepositoryUrl>https://github.com/ChilliCream/graphql-platform.git</RepositoryUrl>
     <RepositoryType>GitHub</RepositoryType>
+    <RepositoryUrl>https://github.com/ChilliCream/graphql-platform.git</RepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0; net9.0; net8.0</TargetFrameworks>
-    <ExtendedTargetFrameworks>net10.0; net9.0; net8.0; netstandard2.0</ExtendedTargetFrameworks>
-    <OpenApiTargetFrameworks>net10.0; net9.0</OpenApiTargetFrameworks>
+    <AnalyzerTargetFramework>netstandard2.0</AnalyzerTargetFramework>
+    <TargetFrameworks>net11.0;net10.0;net9.0;net8.0</TargetFrameworks>
+    <ExtendedTargetFrameworks>net11.0;net10.0;net9.0;net8.0;$(AnalyzerTargetFramework)</ExtendedTargetFrameworks>
+    <OpenApiTargetFrameworks>net11.0;net10.0;net9.0</OpenApiTargetFrameworks>
+    <AspireTargetFrameworks>net11.0;net10.0;net9.0</AspireTargetFrameworks>
+    <DemoTargetFramework>net11.0</DemoTargetFramework>
+    <BenchmarkTargetFramework>net11.0</BenchmarkTargetFramework>
+  </PropertyGroup>
+
+  <!--
+    Single-target local dev only builds the target framework that local runs and tests use.
+    Analyzers and source generators keep netstandard2.0 so they still load into Roslyn.
+  -->
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK)' == '1'">
+    <LocalDevTargetFramework>net10.0</LocalDevTargetFramework>
+    <TargetFrameworks>$(LocalDevTargetFramework)</TargetFrameworks>
+    <ExtendedTargetFrameworks>$(LocalDevTargetFramework);$(AnalyzerTargetFramework)</ExtendedTargetFrameworks>
+    <OpenApiTargetFrameworks>$(LocalDevTargetFramework)</OpenApiTargetFrameworks>
+    <AspireTargetFrameworks>$(LocalDevTargetFramework)</AspireTargetFrameworks>
+    <DemoTargetFramework>$(LocalDevTargetFramework)</DemoTargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -54,15 +69,34 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\greendonut-signet.png" Pack="true" PackagePath="greendonut-signet.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\hotchocolate-signet.png" Pack="true" PackagePath="hotchocolate-signet.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\nitro-signet.png" Pack="true" PackagePath="nitro-signet.png" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)..\website\static\resources\strawberryshake-signet.png" Pack="true" PackagePath="strawberryshake-signet.png" Visible="false" />
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1'">
+    <CreateHardLinksForCopyLocalIfPossible>true</CreateHardLinksForCopyLocalIfPossible>
+    <CreateHardLinksForAdditionalFilesIfPossible>true</CreateHardLinksForAdditionalFilesIfPossible>
+    <CreateHardLinksForPublishFilesIfPossible>true</CreateHardLinksForPublishFilesIfPossible>
+    <CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>true</CreateHardLinksForCopyFilesToOutputDirectoryIfPossible>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1' AND '$(RuntimeIdentifier)' == '' AND '$(RuntimeIdentifiers)' == ''">
+    <RuntimeIdentifier>$([System.Runtime.InteropServices.RuntimeInformation]::RuntimeIdentifier)</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(PackageIcon)' != ''">
+    <None
+      Include="$(MSBuildThisFileDirectory)..\website\public\resources\$(PackageIcon)"
+      Pack="true"
+      PackagePath="$(PackageIcon)"
+      Visible="false"
+    />
     <None Include="$(MSBuildThisFileDirectory)..\LICEN*" Pack="true" PackagePath="" Visible="false" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'debug'">
+    <PackageReference Include="ChilliCream.AnalyzerConfig.Libraries">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Roslynator.Analyzers">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -76,5 +110,4 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-
 </Project>

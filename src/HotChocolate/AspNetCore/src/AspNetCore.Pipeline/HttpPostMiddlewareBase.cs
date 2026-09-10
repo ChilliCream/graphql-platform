@@ -97,10 +97,16 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             }
             catch (GraphQLRequestException ex)
             {
-                // A GraphQL request exception is thrown if the HTTP request body couldn't be
-                // parsed. In this case we will return HTTP status code 400 and return a
-                // GraphQL error result.
-                statusCode = HttpStatusCode.BadRequest;
+                // request-interpretation failures (invalid JSON, missing query, etc.) propose
+                // 400 per graphql-over-http §6.4.1.1.1. GraphQL document syntax errors
+                // are document-parsing failures and leave the proposed status unset so the
+                // formatter applies the per-content-type rule (200 for application/json
+                // per §6.4.1.1.3, 400 for application/graphql-response+json).
+                //
+                // classification uses the original parser errors: error filters run by
+                // session.Handle can rewrite the error code and would otherwise misclassify
+                // the failure. the handled errors are used only for the response body.
+                statusCode = IsDocumentSyntaxError(ex.Errors) ? null : HttpStatusCode.BadRequest;
                 var errors = session.Handle(ex.Errors);
                 result = OperationResult.FromError([.. errors]);
                 session.DiagnosticEvents.ParserErrors(context, errors);
@@ -143,18 +149,26 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 {
                     string? operationNames = context.Request.Query[BatchOperations];
 
-                    if (!string.IsNullOrEmpty(operationNames)
-                        && TryParseOperations(operationNames, out var ops)
-                        && options.Batching.HasFlag(AllowedBatching.RequestBatching))
+                    if (!options.Batching.HasFlag(AllowedBatching.RequestBatching))
                     {
-                        result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
+                        var error = session.Handle(ErrorHelper.InvalidRequest());
+                        statusCode = HttpStatusCode.BadRequest;
+                        result = OperationResult.FromError(error);
+                        session.DiagnosticEvents.HttpRequestError(
+                            context,
+                            session.Handle(ErrorHelper.RequestBatchingDisabled()));
                     }
-                    else
+                    else if (string.IsNullOrEmpty(operationNames)
+                        || !TryParseOperations(operationNames, out var ops))
                     {
                         var error = session.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
                         result = OperationResult.FromError(error);
                         session.DiagnosticEvents.HttpRequestError(context, error);
+                    }
+                    else
+                    {
+                        result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
                     }
 
                     break;
@@ -183,7 +197,9 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                         var error = session.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
                         result = OperationResult.FromError(error);
-                        session.DiagnosticEvents.HttpRequestError(context, error);
+                        session.DiagnosticEvents.HttpRequestError(
+                            context,
+                            session.Handle(ErrorHelper.RequestBatchingDisabled()));
                     }
                     break;
             }
@@ -259,6 +275,24 @@ HANDLE_RESULT:
         }
 
         return requests;
+    }
+
+    private static bool IsDocumentSyntaxError(IReadOnlyList<IError> errors)
+    {
+        if (errors.Count == 0)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < errors.Count; i++)
+        {
+            if (!string.Equals(errors[i].Code, ErrorCodes.Server.SyntaxError, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static bool TryParseOperations(

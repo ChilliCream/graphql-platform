@@ -1,0 +1,127 @@
+title: Default_Field_Inheritance_Resolves_From_StandIn_Only
+request:
+  document: |
+    query testQuery {
+      trendingMedia {
+        id
+        views
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "trendingMedia": [
+          {
+            "id": "TWVkaWE6MQ==",
+            "views": 123
+          },
+          {
+            "id": "TWVkaWE6Mg==",
+            "views": 123
+          },
+          {
+            "id": "TWVkaWE6Mw==",
+            "views": 123
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        mediaById(id: ID!): Media @lookup
+      }
+
+      type Book implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        isbn: String!
+      }
+
+      type Movie implements Media @key(fields: "id") {
+        id: ID!
+        title: String!
+        runtime: Int!
+      }
+
+      interface Media {
+        id: ID!
+        title: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        trendingMedia: [Media!]!
+        mediaByKey(id: ID!): Media @lookup @internal
+      }
+
+      type Media @interfaceObject @key(fields: "id") {
+        id: ID!
+        views: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_9dd08c29_1 {
+              trendingMedia {
+                id
+                views
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "trendingMedia": [
+                    {
+                      "id": "TWVkaWE6MQ==",
+                      "views": 123
+                    },
+                    {
+                      "id": "TWVkaWE6Mg==",
+                      "views": 123
+                    },
+                    {
+                      "id": "TWVkaWE6Mw==",
+                      "views": 123
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          trendingMedia {
+            __typename @fusion__requirement
+            id
+            views
+          }
+        }
+      name: testQuery
+      hash: 9dd08c295249f39bff1a955dfb9e3fbb
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_9dd08c29_1 {
+          trendingMedia {
+            id
+            views
+          }
+        }

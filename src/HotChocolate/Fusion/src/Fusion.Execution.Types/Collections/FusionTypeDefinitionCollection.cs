@@ -1,7 +1,9 @@
+using System.Buffers;
 using System.Collections;
 using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Types.Properties.FusionTypeResources;
 
@@ -10,9 +12,16 @@ namespace HotChocolate.Fusion.Types.Collections;
 public sealed class FusionTypeDefinitionCollection
     : IReadOnlyTypeDefinitionCollection
 {
+    private const int CharStackallocThreshold = 128;
+
+    private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
+
     private readonly IFusionTypeDefinition[] _types;
     private readonly FrozenDictionary<string, IFusionTypeDefinition> _typesLookup;
     private readonly int _length;
+#if NET9_0_OR_GREATER
+    private readonly FrozenDictionary<string, IFusionTypeDefinition>.AlternateLookup<ReadOnlySpan<char>> _spanLookup;
+#endif
 
     public FusionTypeDefinitionCollection(IFusionTypeDefinition[] types)
     {
@@ -20,6 +29,9 @@ public sealed class FusionTypeDefinitionCollection
         _types = types;
         _typesLookup = types.ToFrozenDictionary(t => t.Name);
         _types.PartitionByAccessibility(out _length);
+#if NET9_0_OR_GREATER
+        _spanLookup = _typesLookup.GetAlternateLookup<ReadOnlySpan<char>>();
+#endif
     }
 
     public int Count => _length;
@@ -135,6 +147,132 @@ public sealed class FusionTypeDefinitionCollection
 
         typeDefinition = null;
         return false;
+    }
+
+    /// <summary>
+    /// Resolves a type by its raw UTF-8 name without requiring a materialized string.
+    /// </summary>
+    [return: NotNull]
+    public T GetType<T>(ReadOnlySpan<byte> asciiName) where T : ITypeDefinition
+        => GetType<T>(asciiName, allowInaccessibleFields: true);
+
+    /// <summary>
+    /// Resolves a type by its raw UTF-8 name without requiring a materialized string.
+    /// </summary>
+    [return: NotNull]
+    public T GetType<T>(
+        ReadOnlySpan<byte> asciiName,
+        bool allowInaccessibleFields)
+        where T : ITypeDefinition
+    {
+#if NET9_0_OR_GREATER
+        char[]? rented = null;
+        var buffer = asciiName.Length <= CharStackallocThreshold
+            ? stackalloc char[CharStackallocThreshold]
+            : rented = ArrayPool<char>.Shared.Rent(asciiName.Length);
+
+        try
+        {
+            // Type names are validated GraphQL identifiers and therefore always ASCII; a
+            // non-ASCII byte means the value can never match a real type name, so the lookup
+            // fails outright without needing the general UTF-8 decoder.
+            if (Ascii.ToUtf16(asciiName, buffer, out var written) is not OperationStatus.Done)
+            {
+                throw new KeyNotFoundException(string.Format(
+                    FusionTypeDefinitionCollection_TypeName_NotFound,
+                    s_utf8Encoding.GetString(asciiName)));
+            }
+
+            var name = buffer[..written];
+
+            if (_spanLookup.TryGetValue(name, out var type)
+                && (allowInaccessibleFields || !type.IsInaccessible))
+            {
+                if (type is T casted)
+                {
+                    return casted;
+                }
+
+                throw new InvalidCastException(string.Format(
+                    FusionTypeDefinitionCollection_TypeIsNotOfRequestedT,
+                    name.ToString(),
+                    typeof(T).Name));
+            }
+
+            throw new KeyNotFoundException(string.Format(
+                FusionTypeDefinitionCollection_TypeName_NotFound,
+                name.ToString()));
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<char>.Shared.Return(rented);
+            }
+        }
+#else
+        return GetType<T>(s_utf8Encoding.GetString(asciiName), allowInaccessibleFields);
+#endif
+    }
+
+    /// <summary>
+    /// Resolves a type by its raw UTF-8 name without requiring a materialized string.
+    /// </summary>
+    public bool TryGetType<T>(
+        ReadOnlySpan<byte> asciiName,
+        [NotNullWhen(true)] out T? typeDefinition)
+        where T : ITypeDefinition
+        => TryGetType(asciiName, allowInaccessibleFields: false, out typeDefinition);
+
+    /// <summary>
+    /// Resolves a type by its raw UTF-8 name without requiring a materialized string.
+    /// </summary>
+    public bool TryGetType<T>(
+        ReadOnlySpan<byte> asciiName,
+        bool allowInaccessibleFields,
+        [NotNullWhen(true)] out T? typeDefinition)
+        where T : ITypeDefinition
+    {
+#if NET9_0_OR_GREATER
+        char[]? rented = null;
+        var buffer = asciiName.Length <= CharStackallocThreshold
+            ? stackalloc char[CharStackallocThreshold]
+            : rented = ArrayPool<char>.Shared.Rent(asciiName.Length);
+
+        try
+        {
+            // Type names are validated GraphQL identifiers and therefore always ASCII; a
+            // non-ASCII byte means the value can never match a real type name, so the lookup
+            // fails outright without needing the general UTF-8 decoder.
+            if (Ascii.ToUtf16(asciiName, buffer, out var written) is not OperationStatus.Done)
+            {
+                typeDefinition = default;
+                return false;
+            }
+
+            var name = buffer[..written];
+
+            if (_spanLookup.TryGetValue(name, out var type)
+                && (allowInaccessibleFields || !type.IsInaccessible)
+                && type is T casted)
+            {
+                typeDefinition = casted;
+                return true;
+            }
+
+            typeDefinition = default;
+            return false;
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<char>.Shared.Return(rented);
+            }
+        }
+#else
+        return TryGetType(s_utf8Encoding.GetString(asciiName), allowInaccessibleFields, out typeDefinition);
+#endif
     }
 
     public bool TryGetType<T>(

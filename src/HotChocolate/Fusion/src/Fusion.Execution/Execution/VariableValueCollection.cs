@@ -29,10 +29,10 @@ internal sealed class VariableValueCollection : IVariableValueCollection
 
         if (_coercedValues.ContainsKey(name))
         {
-            throw ExceptionHelper.VariableNotOfType(name, typeof(T));
+            throw ThrowHelper.VariableNotOfType(name, typeof(T));
         }
 
-        throw ExceptionHelper.VariableNotFound(name);
+        throw ThrowHelper.VariableNotFound(name);
     }
 
     public bool TryGetValue<T>(string name, [NotNullWhen(true)] out T? value) where T : IValueNode

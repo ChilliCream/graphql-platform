@@ -20,6 +20,6 @@ Result:
 
 SQL:
 ---------------
-SELECT "d"."Bar_Baz"
+SELECT "d"."Bar_Baz" AS "Baz"
 FROM "Data" AS "d"
 ---------------

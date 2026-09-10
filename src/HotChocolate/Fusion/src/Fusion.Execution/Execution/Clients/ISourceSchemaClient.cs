@@ -15,13 +15,16 @@ public interface ISourceSchemaClient : IAsyncDisposable
     SourceSchemaClientCapabilities Capabilities { get; }
 
     /// <summary>
-    /// Executes a single GraphQL operation against the source schema.
+    /// Executes a single GraphQL operation against the source schema and streams the
+    /// results back as they arrive.
     /// </summary>
     /// <param name="context">The current operation plan execution context.</param>
     /// <param name="request">The request to execute.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
-    /// <returns>The response from the source schema.</returns>
-    ValueTask<SourceSchemaClientResponse> ExecuteAsync(
+    /// <returns>
+    /// An async stream of <see cref="SourceSchemaResult"/> items produced by the source schema.
+    /// </returns>
+    IAsyncEnumerable<SourceSchemaResult> ExecuteAsync(
         OperationPlanContext context,
         SourceSchemaClientRequest request,
         CancellationToken cancellationToken);
@@ -35,11 +38,26 @@ public interface ISourceSchemaClient : IAsyncDisposable
     /// <param name="requests">The requests to include in the batch.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>
-    /// An async stream of <see cref="BatchStreamResult"/> where each item contains
+    /// An async stream of <see cref="SourceSchemaBatchResult"/> where each item contains
     /// the request index and the corresponding <see cref="SourceSchemaResult"/>.
     /// </returns>
-    IAsyncEnumerable<BatchStreamResult> ExecuteBatchStreamAsync(
+    IAsyncEnumerable<SourceSchemaBatchResult> ExecuteBatchAsync(
         OperationPlanContext context,
         ImmutableArray<SourceSchemaClientRequest> requests,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Subscribes to a GraphQL subscription operation against the source schema and streams the
+    /// events back as they arrive.
+    /// </summary>
+    /// <param name="context">The current operation plan execution context.</param>
+    /// <param name="request">The subscription request to execute.</param>
+    /// <param name="cancellationToken">A token to cancel the subscription.</param>
+    /// <returns>
+    /// An async stream of <see cref="SourceSchemaResult"/> items produced by the subscription.
+    /// </returns>
+    IAsyncEnumerable<SourceSchemaResult> SubscribeAsync(
+        OperationPlanContext context,
+        SourceSchemaClientRequest request,
         CancellationToken cancellationToken);
 }

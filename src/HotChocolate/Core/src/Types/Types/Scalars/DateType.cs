@@ -33,7 +33,7 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
     {
         Description = description;
         Pattern = @"^\d{4}-\d{2}-\d{2}$";
-        SpecifiedBy = new Uri(SpecifiedByUri);
+        SpecifiedBy = SpecifiedByUri;
         _enforceSpecFormat = !disableFormatCheck;
     }
 
@@ -112,6 +112,15 @@ public class DateType : ScalarType<DateOnly, StringValueNode>
             out var date))
         {
             value = date;
+            return true;
+        }
+        else if (DateTimeOffset.TryParse(
+            serialized,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var dateTimeOffset))
+        {
+            value = DateOnly.FromDateTime(dateTimeOffset.UtcDateTime);
             return true;
         }
 

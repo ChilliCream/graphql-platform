@@ -51,7 +51,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -98,7 +99,8 @@ public class BatchResolverTests
                             name
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, ProductByIdQuery.BatchCallCount);
@@ -149,7 +151,8 @@ public class BatchResolverTests
                                 { "x", 1 },
                                 { "y", 2 }
                             })
-                        .Build());
+                        .Build(),
+                        cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, ProductByIdQuery.BatchCallCount);
@@ -199,7 +202,8 @@ public class BatchResolverTests
                             {
                                 { "skip", true }
                             })
-                        .Build());
+                        .Build(),
+                        cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, ProductByIdQuery.BatchCallCount);
@@ -238,7 +242,8 @@ public class BatchResolverTests
                             name
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(0, ProductByIdQuery.BatchCallCount);
@@ -285,7 +290,8 @@ public class BatchResolverTests
                             {
                                 { "flag", false }
                             })
-                        .Build());
+                        .Build(),
+                        cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, ProductByIdQuery.BatchCallCount);
@@ -354,7 +360,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -439,7 +446,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -534,7 +542,8 @@ public class BatchResolverTests
                             }
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(1, MutationPayloadQuery.BatchCallCount);
@@ -596,7 +605,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -655,7 +665,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -714,7 +725,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -772,7 +784,8 @@ public class BatchResolverTests
                             greeting(prefix: "Hi")
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -834,7 +847,8 @@ public class BatchResolverTests
                             }
                             """)
                         .SetGlobalState("prefix", "Hey")
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -892,7 +906,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -934,7 +949,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -976,7 +992,8 @@ public class BatchResolverTests
                             greeting(prefix: "Hi")
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1018,7 +1035,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1063,7 +1081,8 @@ public class BatchResolverTests
                             }
                             """)
                         .SetGlobalState("prefix", "Hey")
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1119,7 +1138,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1160,7 +1180,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1219,7 +1240,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1278,7 +1300,8 @@ public class BatchResolverTests
                             greeting(prefix: "Hi")
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1338,7 +1361,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1401,7 +1425,8 @@ public class BatchResolverTests
                             }
                             """)
                         .SetGlobalState("prefix", "Hey")
-                        .Build());
+                        .Build(),
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1464,7 +1489,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1523,7 +1549,8 @@ public class BatchResolverTests
                             greeting
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -1597,15 +1624,19 @@ public class BatchResolverTests
                             return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                         });
                 })
-                .BuildRequestExecutorAsync();
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // A CancellationToken passed to ExecuteAsync does not unblock the hang. The work loop
         // checks the token, but the scheduler pause awaits its signal without a cancellation
         // registration and so never observes it, so the guard must be WaitAsync at the test
         // level. See https://github.com/ChilliCream/graphql-platform/issues/9892.
-        var resultTask = executor.ExecuteAsync("{ parents { children { id computed } } }");
-        var result = await resultTask.WaitAsync(TimeSpan.FromSeconds(10));
+        var resultTask = executor.ExecuteAsync(
+            "{ parents { children { id computed } } }",
+            TestContext.Current.CancellationToken);
+        var result = await resultTask.WaitAsync(
+            TimeSpan.FromSeconds(10),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(

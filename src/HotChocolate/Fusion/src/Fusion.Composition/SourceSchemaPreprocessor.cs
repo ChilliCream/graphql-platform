@@ -4,6 +4,7 @@ using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Language;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Results;
@@ -13,6 +14,8 @@ using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.WellKnownDirectiveNames;
 using ArgumentNames = HotChocolate.Fusion.WellKnownArgumentNames;
+using StringValueNode = HotChocolate.Language.StringValueNode;
+using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
 
 namespace HotChocolate.Fusion;
 
@@ -24,22 +27,33 @@ internal sealed partial class SourceSchemaPreprocessor(
     ImmutableSortedSet<MutableSchemaDefinition> schemas,
     ICompositionLog log,
     Version? sourceSchemaVersion = null,
-    SourceSchemaPreprocessorOptions? options = null)
+    SourceSchemaPreprocessorOptions? options = null,
+    LogSeverity invalidFieldDeprecationSeverity = LogSeverity.Warning,
+    bool isApolloFederationV1 = false)
 {
     private readonly SourceSchemaPreprocessorOptions _options = options ?? new SourceSchemaPreprocessorOptions();
+    private readonly ScopedCompositionLog _log = new(log);
 
     public CompositionResult Preprocess()
     {
         var fusionV1CompatibilityMode = sourceSchemaVersion?.Major == 1;
 
-        if (FederationSchemaTransformer.IsFederationSchema(schema)
-            && FederationSchemaAnalyzer.Validate(schema, log))
+        SourceExternalFieldMetadata.CaptureMarker(schema);
+
+        var isFederationSchema = isApolloFederationV1
+            || (FederationSchemaTransformer.IsFederationSchema(schema)
+                && FederationSchemaAnalyzer.Validate(schema, _log));
+
+        if (isFederationSchema)
         {
+            SourceExternalFieldMetadata.Capture(schema);
             RemoveFederationInfrastructure.Apply(schema);
             GenerateLookupFields.Apply(schema);
             RewriteKeyDirectives.Apply(schema);
+            MarkKeyFieldsShareable.Apply(schema, schemas);
+            SynthesizeImplementDirectives.Apply(schema, schemas);
             TransformRequiresToRequire.Apply(schema);
-            RemoveExternalFields.Apply(schema);
+            GenerateNodeLookup.Apply(schema);
             StampConnectorKind.Apply(schema);
         }
 
@@ -65,29 +79,47 @@ internal sealed partial class SourceSchemaPreprocessor(
         }
 
         // We need to run this after keys have been inferred, so we do not attempt to mark them as @shareable.
-        if (fusionV1CompatibilityMode)
+        if (isApolloFederationV1
+            || fusionV1CompatibilityMode
+            || _options.InferShareable)
         {
             ApplyShareableDirectives();
         }
 
-        // Additional schema validation will catch issues introduced during preprocessing.
+        if (isFederationSchema)
+        {
+            RemoveEmptyQueryRoot.Apply(schema);
+        }
+
+        // Additional schema validation will catch issues introduced during preprocessing. It runs
+        // while @external fields are still present so that the validator sees the source schema as
+        // authored (modulo the earlier transforms); the external fields are stripped afterwards and
+        // never contribute fields to the execution schema.
         if (_options.EnableSchemaValidation)
         {
             var validationLog = new ValidationLog();
             if (!new SchemaValidator().Validate(schema, validationLog) && validationLog.HasErrors)
             {
-                log.WriteValidationLog(validationLog, schema);
+                _log.WriteValidationLog(
+                    validationLog, schema, invalidFieldDeprecationSeverity);
             }
         }
 
-        return log.HasErrors
+        if (isFederationSchema)
+        {
+            RemoveExternalFields.Apply(schema);
+            RemoveEmptyQueryRoot.Apply(schema);
+        }
+
+        return _log.HasErrors
             ? ErrorHelper.SourceSchemaPreprocessingFailed()
             : CompositionResult.Success();
     }
 
     /// <summary>
-    /// Removes types, fields, arguments, and enum values that are tagged with any of the specified
-    /// tags.
+    /// Removes types, fields, arguments, and enum values that are tagged with any of the
+    /// specified tags. Also removes directive definitions tagged for exclusion and cascades
+    /// the removal to their applications.
     /// </summary>
     private void RemoveTaggedMembers(HashSet<string> excludeByTag)
     {
@@ -211,6 +243,114 @@ internal sealed partial class SourceSchemaPreprocessor(
         {
             schema.SubscriptionType = null;
         }
+
+        var removedDirectiveNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var directiveDefinition in schema.DirectiveDefinitions.AsEnumerable())
+        {
+            if (directiveDefinition.GetTags().Overlaps(excludeByTag))
+            {
+                removedDirectiveNames.Add(directiveDefinition.Name);
+            }
+        }
+
+        if (removedDirectiveNames.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var directiveName in removedDirectiveNames)
+        {
+            schema.DirectiveDefinitions.Remove(directiveName);
+        }
+
+        RemoveDirectiveApplications(removedDirectiveNames);
+    }
+
+    /// <summary>
+    /// Removes every application of the specified directives from all directive-bearing members of
+    /// the schema, so that removing the directive definitions leaves a consistent schema without
+    /// dangling applications.
+    /// </summary>
+    private void RemoveDirectiveApplications(HashSet<string> directiveNames)
+    {
+        RemoveMatchingDirectives(schema.Directives, directiveNames);
+
+        foreach (var type in schema.Types)
+        {
+            if (type is IMutableTypeDefinition mutableType)
+            {
+                RemoveMatchingDirectives(mutableType.Directives, directiveNames);
+            }
+
+            switch (type)
+            {
+                case MutableComplexTypeDefinition complexType:
+                    foreach (var field in complexType.Fields.AsEnumerable())
+                    {
+                        RemoveMatchingDirectives(field.Directives, directiveNames);
+
+                        foreach (var argument in field.Arguments.AsEnumerable())
+                        {
+                            RemoveMatchingDirectives(argument.Directives, directiveNames);
+                        }
+                    }
+
+                    break;
+
+                case MutableInputObjectTypeDefinition inputObjectType:
+                    foreach (var field in inputObjectType.Fields.AsEnumerable())
+                    {
+                        RemoveMatchingDirectives(field.Directives, directiveNames);
+                    }
+
+                    break;
+
+                case MutableEnumTypeDefinition enumType:
+                    foreach (var value in enumType.Values.AsEnumerable())
+                    {
+                        RemoveMatchingDirectives(value.Directives, directiveNames);
+                    }
+
+                    break;
+            }
+        }
+
+        foreach (var directiveDefinition in schema.DirectiveDefinitions.AsEnumerable())
+        {
+            RemoveMatchingDirectives(directiveDefinition.Directives, directiveNames);
+
+            foreach (var argument in directiveDefinition.Arguments.AsEnumerable())
+            {
+                RemoveMatchingDirectives(argument.Directives, directiveNames);
+            }
+        }
+    }
+
+    private static void RemoveMatchingDirectives(
+        DirectiveCollection directives,
+        HashSet<string> directiveNames)
+    {
+        List<Directive>? directivesToRemove = null;
+
+        foreach (var directive in directives.AsEnumerable())
+        {
+            if (directiveNames.Contains(directive.Name))
+            {
+                directivesToRemove ??= [];
+                directivesToRemove.Add(directive);
+            }
+        }
+
+        if (directivesToRemove is null)
+        {
+            return;
+        }
+
+        foreach (var directive in directivesToRemove)
+        {
+            directives.Remove(directive);
+        }
     }
 
     /// <summary>
@@ -222,6 +362,11 @@ internal sealed partial class SourceSchemaPreprocessor(
         {
             foreach (var type in schema.Types.OfType<MutableObjectTypeDefinition>())
             {
+                if (type == schema.SubscriptionType)
+                {
+                    continue;
+                }
+
                 if (!sourceSchema.Types.TryGetType<MutableObjectTypeDefinition>(type.Name, out var otherType))
                 {
                     continue;
@@ -241,13 +386,16 @@ internal sealed partial class SourceSchemaPreprocessor(
                         continue;
                     }
 
-                    if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal) || field.Directives.ContainsName(Inaccessible))
+                    if (field.Directives.ContainsName(WellKnownDirectiveNames.Internal)
+                        || field.Directives.ContainsName(External)
+                        || field.Directives.ContainsName(Inaccessible))
                     {
                         continue;
                     }
 
                     if (!otherType.Fields.TryGetField(field.Name, out var otherField)
                         || otherField.Directives.ContainsName(WellKnownDirectiveNames.Internal)
+                        || otherField.Directives.ContainsName(External)
                         || otherField.Directives.ContainsName(Inaccessible))
                     {
                         continue;

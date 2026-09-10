@@ -137,7 +137,6 @@ internal sealed class AuthorizeValidationVisitor : TypeDocumentValidatorVisitor
         if (context.Fragments.TryEnter(node, out var fragment))
         {
             var result = Visit(fragment, node, context);
-            context.Fragments.Leave(fragment);
 
             if (result.IsBreak())
             {

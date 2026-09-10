@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -80,6 +81,27 @@ public partial class DirectiveType
 
     IReadOnlyFieldDefinitionCollection<IInputValueDefinition> IDirectiveDefinition.Arguments
         => Arguments.AsReadOnlyFieldDefinitionCollection();
+
+    /// <summary>
+    /// Gets the directives that are annotated to this directive definition.
+    /// </summary>
+    public DirectiveCollection Directives { get; private set; } = null!;
+
+    IReadOnlyDirectiveCollection IDirectivesProvider.Directives
+        => Directives.AsReadOnlyDirectiveCollection();
+
+    /// <summary>
+    /// Defines if this directive is deprecated.
+    /// This is <c>true</c> if a <see cref="DeprecationReason"/> is present.
+    /// </summary>
+    [MemberNotNullWhen(true, nameof(DeprecationReason))]
+    public bool IsDeprecated => DeprecationReason is not null;
+
+    /// <summary>
+    /// Gets the deprecation reason of this directive,
+    /// or <c>null</c> if this directive is not deprecated.
+    /// </summary>
+    public string? DeprecationReason { get; private set; }
 
     /// <summary>
     /// Gets the directive field middleware.

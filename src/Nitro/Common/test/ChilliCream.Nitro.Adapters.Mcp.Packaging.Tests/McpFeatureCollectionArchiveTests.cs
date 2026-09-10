@@ -45,10 +45,10 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
 
         // Can read immediately within the same session
-        var retrieved = await archive.GetArchiveMetadataAsync();
+        var retrieved = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.NotNull(retrieved);
         Assert.Equal(metadata.FormatVersion, retrieved.FormatVersion);
     }
@@ -61,7 +61,7 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = McpFeatureCollectionArchive.Create(stream);
-        var result = await archive.GetArchiveMetadataAsync();
+        var result = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.Null(result);
     }
 
@@ -74,7 +74,7 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         // act & Assert
         using var archive = McpFeatureCollectionArchive.Create(stream);
         await Assert.ThrowsAsync<ArgumentNullException>(
-            () => archive.SetArchiveMetadataAsync(null!));
+            () => archive.SetArchiveMetadataAsync(null!, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -91,26 +91,31 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         // act - Create and commit
         using (var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
-            await archive.AddPromptAsync("GetUsersPrompt", promptSettings);
-            await archive.AddToolAsync("GetUsers", operation, toolSettings, viewHtml);
-            await archive.CommitAsync();
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.AddPromptAsync("GetUsersPrompt", promptSettings, TestContext.Current.CancellationToken);
+            await archive.AddToolAsync(
+                "GetUsers",
+                operation,
+                toolSettings,
+                viewHtml,
+                TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - Reopen and verify persistence
         stream.Position = 0;
         using (var readArchive = McpFeatureCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var retrievedMetadata = await readArchive.GetArchiveMetadataAsync();
+            var retrievedMetadata = await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
             Assert.NotNull(retrievedMetadata);
             Assert.Equal(metadata.FormatVersion, retrievedMetadata.FormatVersion);
 
-            var prompt = await readArchive.TryGetPromptAsync("GetUsersPrompt");
+            var prompt = await readArchive.TryGetPromptAsync("GetUsersPrompt", TestContext.Current.CancellationToken);
             Assert.NotNull(prompt);
             Assert.True(JsonElement.DeepEquals(promptSettings.RootElement, prompt.Settings.RootElement));
             prompt.Dispose();
 
-            using var tool = await readArchive.TryGetToolAsync("GetUsers");
+            using var tool = await readArchive.TryGetToolAsync("GetUsers", TestContext.Current.CancellationToken);
             Assert.NotNull(tool);
             Assert.Equal(operation, tool.Document.ToArray());
             Assert.NotNull(tool.Settings);
@@ -133,29 +138,29 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         // act - Create initial archive
         using (var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
-            await archive.AddPromptAsync(name1, settings1);
-            await archive.CommitAsync();
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.AddPromptAsync(name1, settings1, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // act - Update existing archive
         stream.Position = 0;
         using (var updateArchive = McpFeatureCollectionArchive.Open(stream, McpFeatureCollectionArchiveMode.Update, leaveOpen: true))
         {
-            await updateArchive.AddPromptAsync(name2, settings2);
-            await updateArchive.CommitAsync();
+            await updateArchive.AddPromptAsync(name2, settings2, TestContext.Current.CancellationToken);
+            await updateArchive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - Verify both prompts exist
         stream.Position = 0;
         using (var readArchive = McpFeatureCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var prompt1 = await readArchive.TryGetPromptAsync(name1);
+            var prompt1 = await readArchive.TryGetPromptAsync(name1, TestContext.Current.CancellationToken);
             Assert.NotNull(prompt1);
             Assert.True(JsonElement.DeepEquals(settings1.RootElement, prompt1.Settings.RootElement));
             prompt1.Dispose();
 
-            var prompt2 = await readArchive.TryGetPromptAsync(name2);
+            var prompt2 = await readArchive.TryGetPromptAsync(name2, TestContext.Current.CancellationToken);
             Assert.NotNull(prompt2);
             Assert.True(JsonElement.DeepEquals(settings2.RootElement, prompt2.Settings.RootElement));
             prompt2.Dispose();
@@ -170,8 +175,8 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
-        var found = await archive.TryGetToolAsync("non-existent");
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
+        var found = await archive.TryGetToolAsync("non-existent", TestContext.Current.CancellationToken);
         Assert.Null(found);
     }
 
@@ -185,11 +190,11 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddPromptAsync("GetUsersPrompt", settings);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddPromptAsync("GetUsersPrompt", settings, TestContext.Current.CancellationToken);
 
         // assert - Can read immediately within the same session
-        var prompt = await archive.TryGetPromptAsync("GetUsersPrompt");
+        var prompt = await archive.TryGetPromptAsync("GetUsersPrompt", TestContext.Current.CancellationToken);
 
         Assert.NotNull(prompt);
         Assert.Equal("Test Prompt", prompt.Settings.RootElement.GetProperty("title").GetString());
@@ -212,15 +217,15 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddPromptAsync(name1, settings1);
-        await archive.AddPromptAsync(name2, settings2);
-        await archive.AddPromptAsync(name3, settings3);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddPromptAsync(name1, settings1, TestContext.Current.CancellationToken);
+        await archive.AddPromptAsync(name2, settings2, TestContext.Current.CancellationToken);
+        await archive.AddPromptAsync(name3, settings3, TestContext.Current.CancellationToken);
 
         // assert
-        var prompt1 = await archive.TryGetPromptAsync(name1);
-        var prompt2 = await archive.TryGetPromptAsync(name2);
-        var prompt3 = await archive.TryGetPromptAsync(name3);
+        var prompt1 = await archive.TryGetPromptAsync(name1, TestContext.Current.CancellationToken);
+        var prompt2 = await archive.TryGetPromptAsync(name2, TestContext.Current.CancellationToken);
+        var prompt3 = await archive.TryGetPromptAsync(name3, TestContext.Current.CancellationToken);
 
         Assert.NotNull(prompt1);
         Assert.Equal("TestPrompt1", prompt1.Settings.RootElement.GetProperty("title").GetString());
@@ -246,7 +251,7 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         // act & Assert
         using var archive = McpFeatureCollectionArchive.Create(stream);
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.AddPromptAsync("GetUsersPrompt", settings));
+            () => archive.AddPromptAsync("GetUsersPrompt", settings, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -257,9 +262,9 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
         await Assert.ThrowsAsync<ArgumentNullException>(
-            () => archive.AddPromptAsync("GetUsersPrompt", null!));
+            () => archive.AddPromptAsync("GetUsersPrompt", null!, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -270,9 +275,9 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
 
-        var prompt = await archive.TryGetPromptAsync("Nonexistent");
+        var prompt = await archive.TryGetPromptAsync("Nonexistent", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(prompt);
@@ -289,16 +294,16 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         // act - Create and commit
         using (var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
-            await archive.AddPromptAsync("GetUsersPrompt", settings);
-            await archive.CommitAsync();
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.AddPromptAsync("GetUsersPrompt", settings, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - Reopen and verify persistence
         stream.Position = 0;
         using (var readArchive = McpFeatureCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var prompt = await readArchive.TryGetPromptAsync("GetUsersPrompt");
+            var prompt = await readArchive.TryGetPromptAsync("GetUsersPrompt", TestContext.Current.CancellationToken);
 
             Assert.NotNull(prompt);
             Assert.Equal("Test Prompt", prompt.Settings.RootElement.GetProperty("title").GetString());
@@ -330,11 +335,11 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddPromptAsync("GetUsersPrompt", settings);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddPromptAsync("GetUsersPrompt", settings, TestContext.Current.CancellationToken);
 
         // assert
-        var prompt = await archive.TryGetPromptAsync("GetUsersPrompt");
+        var prompt = await archive.TryGetPromptAsync("GetUsersPrompt", TestContext.Current.CancellationToken);
 
         Assert.NotNull(prompt);
         var retrievedSettings = prompt.Settings.RootElement;
@@ -360,11 +365,11 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddToolAsync("GetUsers", operation, null, null);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddToolAsync("GetUsers", operation, null, null, TestContext.Current.CancellationToken);
 
         // assert - Can read immediately within the same session
-        using var tool = await archive.TryGetToolAsync("GetUsers");
+        using var tool = await archive.TryGetToolAsync("GetUsers", TestContext.Current.CancellationToken);
 
         Assert.NotNull(tool);
         Assert.Equal(operation, tool.Document.ToArray());
@@ -382,15 +387,15 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddToolAsync("GetUsers", operation1, null, null);
-        await archive.AddToolAsync("CreateUser", operation2, null, null);
-        await archive.AddToolAsync("DeleteUser", operation3, null, null);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddToolAsync("GetUsers", operation1, null, null, TestContext.Current.CancellationToken);
+        await archive.AddToolAsync("CreateUser", operation2, null, null, TestContext.Current.CancellationToken);
+        await archive.AddToolAsync("DeleteUser", operation3, null, null, TestContext.Current.CancellationToken);
 
         // assert
-        using var tool1 = await archive.TryGetToolAsync("GetUsers");
-        using var tool2 = await archive.TryGetToolAsync("CreateUser");
-        using var tool3 = await archive.TryGetToolAsync("DeleteUser");
+        using var tool1 = await archive.TryGetToolAsync("GetUsers", TestContext.Current.CancellationToken);
+        using var tool2 = await archive.TryGetToolAsync("CreateUser", TestContext.Current.CancellationToken);
+        using var tool3 = await archive.TryGetToolAsync("DeleteUser", TestContext.Current.CancellationToken);
 
         Assert.NotNull(tool1);
         Assert.Equal(operation1, tool1.Document.ToArray());
@@ -413,7 +418,7 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         // act & Assert
         using var archive = McpFeatureCollectionArchive.Create(stream);
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.AddToolAsync("GetUsers", operation, settings, null));
+            () => archive.AddToolAsync("GetUsers", operation, settings, null, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -426,9 +431,9 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => archive.AddToolAsync("GetUsers", operation, settings, null));
+            () => archive.AddToolAsync("GetUsers", operation, settings, null, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -439,9 +444,9 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
 
-        var tool = await archive.TryGetToolAsync("NonExistent");
+        var tool = await archive.TryGetToolAsync("NonExistent", TestContext.Current.CancellationToken);
 
         // assert
         Assert.Null(tool);
@@ -459,16 +464,16 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         // act - Create and commit
         using (var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await archive.SetArchiveMetadataAsync(metadata);
-            await archive.AddToolAsync("GetUserById", operation, settings, null);
-            await archive.CommitAsync();
+            await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await archive.AddToolAsync("GetUserById", operation, settings, null, TestContext.Current.CancellationToken);
+            await archive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         // assert - Reopen and verify persistence
         stream.Position = 0;
         using (var readArchive = McpFeatureCollectionArchive.Open(stream, leaveOpen: true))
         {
-            using var tool = await readArchive.TryGetToolAsync("GetUserById");
+            using var tool = await readArchive.TryGetToolAsync("GetUserById", TestContext.Current.CancellationToken);
 
             Assert.NotNull(tool);
             Assert.Equal(operation, tool.Document.ToArray());
@@ -487,18 +492,18 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddPromptAsync("GetUserPrompt", promptSettings);
-        await archive.AddToolAsync("GetUser", operation, null, null);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddPromptAsync("GetUserPrompt", promptSettings, TestContext.Current.CancellationToken);
+        await archive.AddToolAsync("GetUser", operation, null, null, TestContext.Current.CancellationToken);
 
         // assert - Prompts
-        var prompt = await archive.TryGetPromptAsync("GetUserPrompt");
+        var prompt = await archive.TryGetPromptAsync("GetUserPrompt", TestContext.Current.CancellationToken);
 
         Assert.NotNull(prompt);
         Assert.True(JsonElement.DeepEquals(prompt.Settings.RootElement, prompt.Settings.RootElement));
 
         // assert - Tools
-        using var tool = await archive.TryGetToolAsync("GetUser");
+        using var tool = await archive.TryGetToolAsync("GetUser", TestContext.Current.CancellationToken);
 
         Assert.NotNull(tool);
         Assert.Equal(operation, tool.Document.ToArray());
@@ -516,11 +521,11 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddPromptAsync("GetUsersPrompt", settings);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddPromptAsync("GetUsersPrompt", settings, TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.AddPromptAsync("GetUsersPrompt", settings));
+            () => archive.AddPromptAsync("GetUsersPrompt", settings, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -534,11 +539,11 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act & Assert
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddToolAsync("GetUsers", operation, settings, null);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddToolAsync("GetUsers", operation, settings, null, TestContext.Current.CancellationToken);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => archive.AddToolAsync("GetUsers", operation, settings, null));
+            () => archive.AddToolAsync("GetUsers", operation, settings, null, TestContext.Current.CancellationToken));
     }
 
     [Theory]
@@ -554,10 +559,10 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act & Assert - Should not throw
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(CreateTestMetadata());
-        await archive.AddPromptAsync(name, settings);
+        await archive.SetArchiveMetadataAsync(CreateTestMetadata(), TestContext.Current.CancellationToken);
+        await archive.AddPromptAsync(name, settings, TestContext.Current.CancellationToken);
 
-        var prompt = await archive.TryGetPromptAsync(name);
+        var prompt = await archive.TryGetPromptAsync(name, TestContext.Current.CancellationToken);
         Assert.NotNull(prompt);
         prompt.Dispose();
     }
@@ -573,12 +578,12 @@ public class McpFeatureCollectionArchiveTests : IDisposable
 
         // act
         using var archive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true);
-        await archive.SetArchiveMetadataAsync(metadata);
-        await archive.AddPromptAsync("GetUsersPrompt", promptSettings);
-        await archive.AddToolAsync("GetUsers", operation, null, null);
+        await archive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+        await archive.AddPromptAsync("GetUsersPrompt", promptSettings, TestContext.Current.CancellationToken);
+        await archive.AddToolAsync("GetUsers", operation, null, null, TestContext.Current.CancellationToken);
 
         // assert
-        var retrievedMetadata = await archive.GetArchiveMetadataAsync();
+        var retrievedMetadata = await archive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
         Assert.NotNull(retrievedMetadata);
         Assert.Contains("GetUsersPrompt", retrievedMetadata.Prompts);
         Assert.Contains("GetUsers", retrievedMetadata.Tools);
@@ -635,9 +640,9 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         // act
         using (var writeArchive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await writeArchive.SetArchiveMetadataAsync(metadata);
-            await writeArchive.AddPromptAsync("TestPrompt", settingsJson);
-            await writeArchive.CommitAsync();
+            await writeArchive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
+            await writeArchive.AddPromptAsync("TestPrompt", settingsJson, TestContext.Current.CancellationToken);
+            await writeArchive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         stream.Position = 0;
@@ -645,9 +650,9 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         PromptDefinition parsedDefinition;
         using (var readArchive = McpFeatureCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var readMetadata = await readArchive.GetArchiveMetadataAsync();
+            var readMetadata = await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
             var promptName = readMetadata!.Prompts[0];
-            using var prompt = await readArchive.TryGetPromptAsync(promptName);
+            using var prompt = await readArchive.TryGetPromptAsync(promptName, TestContext.Current.CancellationToken);
 
             var readSettings = McpPromptSettingsSerializer.Parse(prompt!.Settings);
 
@@ -749,16 +754,17 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         // act
         using (var writeArchive = McpFeatureCollectionArchive.Create(stream, leaveOpen: true))
         {
-            await writeArchive.SetArchiveMetadataAsync(metadata);
+            await writeArchive.SetArchiveMetadataAsync(metadata, TestContext.Current.CancellationToken);
 
             var ms = new MemoryStream();
-            await toolDefinition.Document.PrintToAsync(ms);
+            await toolDefinition.Document.PrintToAsync(ms, cancellationToken: TestContext.Current.CancellationToken);
             await writeArchive.AddToolAsync(
                 toolDefinition.Name,
                 ms.ToArray(),
                 settingsJson,
-                Encoding.UTF8.GetBytes(viewHtml));
-            await writeArchive.CommitAsync();
+                Encoding.UTF8.GetBytes(viewHtml),
+                TestContext.Current.CancellationToken);
+            await writeArchive.CommitAsync(TestContext.Current.CancellationToken);
         }
 
         stream.Position = 0;
@@ -766,9 +772,9 @@ public class McpFeatureCollectionArchiveTests : IDisposable
         OperationToolDefinition parsedDefinition;
         using (var readArchive = McpFeatureCollectionArchive.Open(stream, leaveOpen: true))
         {
-            var readMetadata = await readArchive.GetArchiveMetadataAsync();
+            var readMetadata = await readArchive.GetArchiveMetadataAsync(TestContext.Current.CancellationToken);
             var toolName = readMetadata!.Tools[0];
-            using var tool = await readArchive.TryGetToolAsync(toolName);
+            using var tool = await readArchive.TryGetToolAsync(toolName, TestContext.Current.CancellationToken);
 
             var readDocument = Utf8GraphQLParser.Parse(tool!.Document.Span);
             var readSettings = tool.Settings is null ? null : McpToolSettingsSerializer.Parse(tool.Settings);

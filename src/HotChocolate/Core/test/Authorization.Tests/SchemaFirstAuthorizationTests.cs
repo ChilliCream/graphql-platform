@@ -19,7 +19,7 @@ public class SchemaFirstAuthorizationTests
                 """)
             .AddResolver("Query", "hello", "world")
             .AddAuthorizationHandler<MockAuth>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

@@ -5,6 +5,8 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration.Parsers;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,7 +78,7 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
             HttpClientName: products-client
             BaseAddress: http://localhost:5000/graphql
             SupportedOperations: All
-            Capabilities: All
+            Capabilities: Default
             OnError: <null>
             """);
     }
@@ -115,6 +117,156 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
         Assert.True(claimed);
         var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
         Assert.Equal(SourceSchemaClientCapabilities.RequestBatching, http.Capabilities);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Honor_Declared_VariableBatching_When_Schema_Is_ApolloFederation()
+    {
+        // arrange
+        // the source schema is composed as an Apollo Federation connector, so it defaults to
+        // alias batching; the declared variable batching is added on top of that default.
+        var schema = ComposeApolloFederationSchema("products");
+        Assert.Equal("ApolloFederation", schema.GetSourceSchemaConnectorKind("products"));
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "capabilities": {
+                                    "batching": {
+                                        "variableBatching": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
+        Assert.Equal(
+            SourceSchemaClientCapabilities.VariableBatching
+            | SourceSchemaClientCapabilities.AliasBatching,
+            http.Capabilities);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Default_To_AliasBatching_When_Schema_Is_ApolloFederation()
+    {
+        // arrange
+        // a federation subgraph is only assumed to speak plain GraphQL, so the settings that
+        // declare no batching capabilities at all leave alias batching as the only default.
+        var schema = ComposeApolloFederationSchema("products");
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql"
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
+        Assert.Equal(SourceSchemaClientCapabilities.AliasBatching, http.Capabilities);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Add_RequestBatching_To_The_AliasBatching_Default_When_Schema_Is_ApolloFederation()
+    {
+        // arrange
+        var schema = ComposeApolloFederationSchema("products");
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "capabilities": {
+                                    "batching": {
+                                        "requestBatching": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
+        Assert.Equal(
+            SourceSchemaClientCapabilities.RequestBatching
+            | SourceSchemaClientCapabilities.AliasBatching,
+            http.Capabilities);
+    }
+
+    [Fact]
+    public void DefaultGraphQLClientConfigurationParser_Should_Disable_The_AliasBatching_Default_When_Schema_Is_ApolloFederation()
+    {
+        // arrange
+        var schema = ComposeApolloFederationSchema("products");
+        var sourceSchema = GetSourceSchemaProperty(
+            """
+            {
+                "sourceSchemas": {
+                    "products": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "capabilities": {
+                                    "batching": {
+                                        "aliasBatching": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """,
+            "products");
+        var parser = new DefaultGraphQLClientConfigurationParser();
+
+        // act
+        var claimed = parser.TryParse(schema, sourceSchema, out var configurations);
+
+        // assert
+        Assert.True(claimed);
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(Assert.Single(configurations!));
+        Assert.Equal(SourceSchemaClientCapabilities.None, http.Capabilities);
     }
 
     [Fact]
@@ -387,7 +539,55 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
 
         // assert
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(Act);
-        Assert.Equal("No parser claimed source schema 'a'.", exception.Message);
+        Assert.Equal(
+            "The source schema configuration of 'a' could not be parsed and no client "
+            + "configuration was registered for it in code.",
+            exception.Message);
+    }
+
+    [Fact]
+    public async Task CreateClientConfigurations_Should_Not_Throw_When_Modifier_Provides_Missing_Configuration()
+    {
+        // arrange
+        // settings carry only a non-http transport, but a client configuration for "a"
+        // is supplied in code via AddHttpClientConfiguration.
+        var config = CreateConfigurationWithSettings(
+            """
+            {
+                "sourceSchemas": {
+                    "a": {
+                        "transports": {
+                            "xyz": { "url": "xyz://localhost" }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var configProvider = new TestFusionConfigurationProvider(config);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .AddHttpClientConfiguration(
+                    new HttpSourceSchemaClientConfiguration(
+                        name: "a",
+                        httpClientName: HttpSourceSchemaClientConfiguration.DefaultClientName,
+                        baseAddress: new Uri("http://localhost:5000/graphql")))
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
+        Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
+        var http = Assert.IsType<HttpSourceSchemaClientConfiguration>(queryConfig);
+        Assert.Equal(new Uri("http://localhost:5000/graphql"), http.BaseAddress);
     }
 
     [Fact]
@@ -426,12 +626,64 @@ public class DefaultGraphQLClientConfigurationParserTests : FusionTestBase
         var manager = services.GetRequiredService<FusionRequestExecutorManager>();
 
         // act
-        var executor = await manager.GetExecutorAsync();
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
         Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
         Assert.IsType<StubClientConfiguration>(queryConfig);
+    }
+
+    private static FusionSchemaDefinition ComposeApolloFederationSchema(string name)
+    {
+        const string sdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: ID!
+              name: String
+            }
+
+            type Query {
+              product(id: ID!): Product
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+
+            type _Service { sdl: String! }
+
+            union _Entity = Product
+
+            scalar FieldSet
+            scalar _Any
+
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        var composerOptions = new SchemaComposerOptions();
+        composerOptions.SourceSchemas[name] = new SourceSchemaOptions
+        {
+            Preprocessor = new SourceSchemaPreprocessorOptions
+            {
+                InferKeysFromLookups = false
+            }
+        };
+
+        var result = new SchemaComposer(
+            [new SourceSchemaText(name, sdl)],
+            composerOptions,
+            new CompositionLog()).Compose();
+
+        if (!result.IsSuccess)
+        {
+            throw new InvalidOperationException(result.Errors[0].Message);
+        }
+
+        return FusionSchemaDefinition.Create(result.Value.ToSyntaxNode());
     }
 
     private static JsonProperty GetSourceSchemaProperty(string settingsJson, string schemaName)

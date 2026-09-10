@@ -6,6 +6,11 @@ namespace HotChocolate.Fusion.Options;
 public sealed class SchemaComposerOptions
 {
     /// <summary>
+    /// Compatibility options for Apollo Federation source schemas.
+    /// </summary>
+    public ApolloFederationCompatibilityOptions ApolloFederationCompatibility { get; init; } = new();
+
+    /// <summary>
     /// Configuration options for each source schema.
     /// </summary>
     public Dictionary<string, SourceSchemaOptions> SourceSchemas { get; init; } = [];

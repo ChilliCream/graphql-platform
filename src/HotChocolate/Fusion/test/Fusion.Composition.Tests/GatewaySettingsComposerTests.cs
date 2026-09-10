@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Text;
 using System.Text.Json;
+using HotChocolate.Fusion.Logging;
 
 namespace HotChocolate.Fusion;
 
@@ -17,7 +18,7 @@ public class SettingsComposerTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(
-            () => _composer.Compose(null!, sourceSchemas, "development"));
+            () => ComposeWithDefaultOptions(null!, sourceSchemas, "development"));
     }
 
     [Fact]
@@ -30,10 +31,10 @@ public class SettingsComposerTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(
-            () => _composer.Compose(buffer, sourceSchemas, null!));
+            () => ComposeWithDefaultOptions(buffer, sourceSchemas, null!));
 
         Assert.Throws<ArgumentException>(
-            () => _composer.Compose(buffer, sourceSchemas, ""));
+            () => ComposeWithDefaultOptions(buffer, sourceSchemas, ""));
     }
 
     [Fact]
@@ -45,7 +46,7 @@ public class SettingsComposerTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(
-            () => _composer.Compose(buffer, sourceSchemas, "development"));
+            () => ComposeWithDefaultOptions(buffer, sourceSchemas, "development"));
 
         Assert.Contains("At least one source schema settings document is required", exception.Message);
     }
@@ -70,7 +71,7 @@ public class SettingsComposerTests
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(
-            () => _composer.Compose(buffer, sourceSchemas, "development"));
+            () => ComposeWithDefaultOptions(buffer, sourceSchemas, "development"));
 
         Assert.Contains("Source schema missing required 'name' property", exception.Message);
     }
@@ -96,7 +97,7 @@ public class SettingsComposerTests
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(
-            () => _composer.Compose(buffer, sourceSchemas, "development"));
+            () => ComposeWithDefaultOptions(buffer, sourceSchemas, "development"));
 
         Assert.Contains("Source schema 'name' property cannot be empty", exception.Message);
     }
@@ -110,7 +111,7 @@ public class SettingsComposerTests
         JsonElement[] sourceSchemas = [sourceSchema];
 
         // Act
-        _composer.Compose(buffer, sourceSchemas, "development");
+        ComposeWithDefaultOptions(buffer, sourceSchemas, "development");
 
         // Assert
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -138,7 +139,7 @@ public class SettingsComposerTests
         JsonElement[] sourceSchemas = [userService, productService];
 
         // Act
-        _composer.Compose(buffer, sourceSchemas, "development");
+        ComposeWithDefaultOptions(buffer, sourceSchemas, "development");
 
         // Assert
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -174,7 +175,7 @@ public class SettingsComposerTests
         JsonElement[] sourceSchemas = [sourceSchema];
 
         // Act
-        _composer.Compose(buffer, sourceSchemas, "development");
+        ComposeWithDefaultOptions(buffer, sourceSchemas, "development");
 
         // Assert
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -220,7 +221,7 @@ public class SettingsComposerTests
         JsonElement[] sourceSchemas = [sourceSchema];
 
         // Act
-        _composer.Compose(buffer, sourceSchemas, "development");
+        ComposeWithDefaultOptions(buffer, sourceSchemas, "development");
 
         // Assert
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -267,7 +268,7 @@ public class SettingsComposerTests
         JsonElement[] sourceSchemas = [sourceSchema];
 
         // Act
-        _composer.Compose(buffer, sourceSchemas, "development");
+        ComposeWithDefaultOptions(buffer, sourceSchemas, "development");
 
         // Assert
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -309,7 +310,7 @@ public class SettingsComposerTests
 
         // Act & Assert
         var exception = Assert.Throws<InvalidOperationException>(
-            () => _composer.Compose(buffer, sourceSchemas, "development"));
+            () => ComposeWithDefaultOptions(buffer, sourceSchemas, "development"));
 
         Assert.Contains("Variable 'API_URL' not found in environment", exception.Message);
     }
@@ -334,7 +335,7 @@ public class SettingsComposerTests
         JsonElement[] sourceSchemas = [sourceSchema];
 
         // Act
-        _composer.Compose(buffer, sourceSchemas, "development");
+        ComposeWithDefaultOptions(buffer, sourceSchemas, "development");
 
         // Assert - Should not throw
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -394,7 +395,7 @@ public class SettingsComposerTests
         JsonElement[] sourceSchemas = [sourceSchema];
 
         // Act
-        _composer.Compose(buffer, sourceSchemas, "development");
+        ComposeWithDefaultOptions(buffer, sourceSchemas, "development");
 
         // Assert
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -469,7 +470,7 @@ public class SettingsComposerTests
         JsonElement[] sourceSchemas = [sourceSchema];
 
         // Act
-        _composer.Compose(buffer, sourceSchemas, "development");
+        ComposeWithDefaultOptions(buffer, sourceSchemas, "development");
 
         // Assert
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
@@ -538,13 +539,25 @@ public class SettingsComposerTests
         JsonElement[] sourceSchemas = [sourceSchema];
 
         // Act
-        _composer.Compose(buffer, sourceSchemas, "dev");
+        ComposeWithDefaultOptions(buffer, sourceSchemas, "dev");
 
         // Assert
         var result = Encoding.UTF8.GetString(buffer.WrittenSpan);
         var gatewaySettings = JsonDocument.Parse(result);
         gatewaySettings.RootElement.ToString().MatchSnapshot(extension: ".json");
     }
+
+    private void ComposeWithDefaultOptions(
+        IBufferWriter<byte> gatewaySettings,
+        JsonElement[] sourceSchemas,
+        string environment)
+        => _composer.Compose(
+            gatewaySettings,
+            sourceSchemas,
+            environment,
+            new Dictionary<string, Uri>(),
+            preferDevUrls: false,
+            new CompositionLog());
 
     private static JsonElement CreateSimpleSourceSchema(string name, string url)
     {

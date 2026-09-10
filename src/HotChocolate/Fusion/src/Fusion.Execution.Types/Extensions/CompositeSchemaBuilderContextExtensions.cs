@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types.Completion;
+using HotChocolate.Fusion.Types.Rewriters;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Types;
@@ -17,6 +17,8 @@ internal static class CompositeSchemaBuilderContextExtensions
         ImmutableArray<IValueSelectionNode> valueSelections)
     {
         var rewriter = context.Features.GetOrSet(static s => new ValueSelectionToSelectionSetRewriter(s), schema);
-        return rewriter.Rewrite(valueSelections.Where(t => t is not null), schema.Types[declaringTypeName]);
+        return rewriter.Rewrite(
+            valueSelections.Where(t => t is not null),
+            schema.Types.GetType(declaringTypeName, allowInaccessibleFields: true));
     }
 }

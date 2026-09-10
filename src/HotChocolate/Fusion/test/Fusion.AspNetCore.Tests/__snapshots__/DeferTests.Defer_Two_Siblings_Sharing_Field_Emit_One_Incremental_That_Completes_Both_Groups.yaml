@@ -133,7 +133,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
               }
@@ -155,7 +155,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 address
               }
@@ -218,7 +218,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
               }
@@ -243,7 +243,7 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query Op_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_1($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 address
               }

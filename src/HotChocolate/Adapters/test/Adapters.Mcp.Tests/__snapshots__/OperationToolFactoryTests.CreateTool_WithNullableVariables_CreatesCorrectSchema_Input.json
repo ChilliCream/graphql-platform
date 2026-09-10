@@ -157,41 +157,14 @@
       "description": "Long description"
     },
     "object": {
-      "type": [
-        "object",
-        "null"
-      ],
-      "properties": {
-        "field1A": {
-          "type": [
-            "object",
-            "null"
-          ],
-          "properties": {
-            "field1B": {
-              "type": [
-                "object",
-                "null"
-              ],
-              "properties": {
-                "field1C": {
-                  "type": [
-                    "string",
-                    "null"
-                  ],
-                  "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
-                  "description": "field1C description"
-                }
-              },
-              "required": [],
-              "description": "field1B description"
-            }
-          },
-          "required": [],
-          "description": "field1A description"
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Object1NullableInput"
+        },
+        {
+          "type": "null"
         }
-      },
-      "required": [],
+      ],
       "description": "Object description"
     },
     "short": {
@@ -279,5 +252,55 @@
       "description": "UUID description"
     }
   },
-  "required": []
+  "required": [],
+  "$defs": {
+    "Object1NullableInput": {
+      "type": "object",
+      "properties": {
+        "field1A": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Object2NullableInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "field1A description"
+        }
+      },
+      "required": []
+    },
+    "Object2NullableInput": {
+      "type": "object",
+      "properties": {
+        "field1B": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Object3NullableInput"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "field1B description"
+        }
+      },
+      "required": []
+    },
+    "Object3NullableInput": {
+      "type": "object",
+      "properties": {
+        "field1C": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,9})?$",
+          "description": "field1C description"
+        }
+      },
+      "required": []
+    }
+  }
 }

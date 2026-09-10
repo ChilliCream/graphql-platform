@@ -14,11 +14,11 @@ public interface IPostgresMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.Schema(string)"/>
     new IPostgresMessagingTransportDescriptor Schema(string schema);
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersImplicitly"/>
-    new IPostgresMessagingTransportDescriptor BindHandlersImplicitly();
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindImplicitly"/>
+    new IPostgresMessagingTransportDescriptor BindImplicitly();
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.BindHandlersExplicitly"/>
-    new IPostgresMessagingTransportDescriptor BindHandlersExplicitly();
+    /// <inheritdoc cref="IMessagingTransportDescriptor.BindExplicitly"/>
+    new IPostgresMessagingTransportDescriptor BindExplicitly();
 
     /// <summary>
     /// Declares or retrieves a receive endpoint with the specified name.
@@ -39,14 +39,14 @@ public interface IPostgresMessagingTransportDescriptor
     /// </summary>
     /// <param name="name">The topic name.</param>
     /// <returns>A descriptor for further configuring the topic.</returns>
-    IPostgresTopicDescriptor DeclareTopic(string name);
+    IPostgresTopicTopologyDescriptor DeclareTopic(string name);
 
     /// <summary>
     /// Declares a queue in the PostgreSQL topology.
     /// </summary>
     /// <param name="name">The queue name.</param>
-    /// <returns>A descriptor for further configuring the queue.</returns>
-    IPostgresQueueDescriptor DeclareQueue(string name);
+    /// <returns>A queue topology descriptor for further configuring the queue.</returns>
+    IPostgresQueueTopologyDescriptor DeclareQueue(string name);
 
     /// <summary>
     /// Declares a subscription that routes messages from a topic to a queue in the PostgreSQL topology.
@@ -54,7 +54,7 @@ public interface IPostgresMessagingTransportDescriptor
     /// <param name="topic">The source topic name.</param>
     /// <param name="queue">The destination queue name.</param>
     /// <returns>A descriptor for further configuring the subscription.</returns>
-    IPostgresSubscriptionDescriptor DeclareSubscription(string topic, string queue);
+    IPostgresSubscriptionTopologyDescriptor DeclareSubscription(string topic, string queue);
 
     /// <summary>
     /// Sets the PostgreSQL connection string for this transport.
@@ -90,6 +90,9 @@ public interface IPostgresMessagingTransportDescriptor
     /// <inheritdoc cref="IMessagingTransportDescriptor.IsDefaultTransport()"/>
     new IPostgresMessagingTransportDescriptor IsDefaultTransport();
 
+    /// <inheritdoc cref="IMessagingTransportDescriptor.UseRoutingStrategy(Func{IServiceProvider, RoutingStrategy})"/>
+    new IPostgresMessagingTransportDescriptor UseRoutingStrategy(Func<IServiceProvider, RoutingStrategy> factory);
+
     /// <inheritdoc cref="IMessagingTransportDescriptor.UseDispatch(DispatchMiddlewareConfiguration, string?, string?)"/>
     new IPostgresMessagingTransportDescriptor UseDispatch(
         DispatchMiddlewareConfiguration configuration,
@@ -109,4 +112,13 @@ public interface IPostgresMessagingTransportDescriptor
     /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
     IMessagingTransportConsumerDescriptor<IPostgresReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
+
+    /// <summary>
+    /// Gets or creates a queue descriptor whose identity is the given queue name. The queue is
+    /// declared in the topology and has a receive endpoint using the same identity. Calling this
+    /// method multiple times with the same name returns the same descriptor.
+    /// </summary>
+    /// <param name="name">The queue name, which also serves as the endpoint identity.</param>
+    /// <returns>A queue descriptor for further configuration.</returns>
+    IPostgresQueueDescriptor Queue(string name);
 }

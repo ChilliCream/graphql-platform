@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types.Directives;
 
@@ -10,14 +10,19 @@ internal static class DeprecatedDirectiveParser
 
     public static DeprecatedDirective Parse(DirectiveNode directiveNode)
     {
-        var reason = "No longer supported";
+        var reason = DirectiveNames.Deprecated.Arguments.DefaultReason;
 
         foreach (var argument in directiveNode.Arguments)
         {
             switch (argument.Name.Value)
             {
                 case "reason":
-                    reason = ((StringValueNode)argument.Value).Value;
+                    if (argument.Value is StringValueNode reasonValue
+                        && !string.IsNullOrWhiteSpace(reasonValue.Value))
+                    {
+                        reason = reasonValue.Value;
+                    }
+
                     break;
 
                 default:
@@ -29,21 +34,18 @@ internal static class DeprecatedDirectiveParser
         return new DeprecatedDirective(reason);
     }
 
-    public static bool TryParse(
-        IReadOnlyList<DirectiveNode> directiveNodes,
-        [NotNullWhen(true)] out DeprecatedDirective? deprecated)
+    public static string? ParseReason(IReadOnlyList<DirectiveNode> directiveNodes)
     {
         for (var i = 0; i < directiveNodes.Count; i++)
         {
             var directiveNode = directiveNodes[i];
+
             if (CanParse(directiveNode))
             {
-                deprecated = Parse(directiveNode);
-                return true;
+                return Parse(directiveNode).Reason;
             }
         }
 
-        deprecated = null;
-        return false;
+        return null;
     }
 }

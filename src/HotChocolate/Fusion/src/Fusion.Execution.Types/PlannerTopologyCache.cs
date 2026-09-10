@@ -6,25 +6,25 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
+/// <summary>
+/// Caches topology data used by the operation planner.
+/// </summary>
 internal sealed class PlannerTopologyCache
 {
     private readonly FrozenDictionary<FieldKey, FieldResolutionInfo> _fieldResolutions;
     private readonly FrozenDictionary<LookupKey, ImmutableArray<Lookup>> _orderedLookups;
     private readonly FrozenDictionary<TransitionKey, Lookup> _directTransitions;
-    private readonly FrozenSet<TransitionKey> _impossibleDirectTransitions;
     private readonly FrozenDictionary<string, TypeScatterInfo> _typeScatter;
 
     private PlannerTopologyCache(
         FrozenDictionary<FieldKey, FieldResolutionInfo> fieldResolutions,
         FrozenDictionary<LookupKey, ImmutableArray<Lookup>> orderedLookups,
         FrozenDictionary<TransitionKey, Lookup> directTransitions,
-        FrozenSet<TransitionKey> impossibleDirectTransitions,
         FrozenDictionary<string, TypeScatterInfo> typeScatter)
     {
         _fieldResolutions = fieldResolutions;
         _orderedLookups = orderedLookups;
         _directTransitions = directTransitions;
-        _impossibleDirectTransitions = impossibleDirectTransitions;
         _typeScatter = typeScatter;
     }
 
@@ -38,15 +38,14 @@ internal sealed class PlannerTopologyCache
             .ToArray();
         var schemaNames = CollectSchemaNames(complexTypes);
         var fieldResolutions = BuildFieldResolutions(complexTypes);
-        var orderedLookups = BuildOrderedLookups(schema, complexTypes, schemaNames);
-        var (directTransitions, impossibleDirectTransitions) = BuildTransitions(schema, complexTypes, schemaNames);
+        var orderedLookups = BuildOrderedLookups(schema, complexTypes);
+        var directTransitions = BuildTransitions(schema, complexTypes, schemaNames);
         var typeScatter = BuildTypeScatter(complexTypes, fieldResolutions);
 
         return new PlannerTopologyCache(
             fieldResolutions.ToFrozenDictionary(),
             orderedLookups.ToFrozenDictionary(),
             directTransitions.ToFrozenDictionary(),
-            impossibleDirectTransitions.ToFrozenSet(),
             typeScatter.ToFrozenDictionary(StringComparer.Ordinal));
     }
 
@@ -69,12 +68,6 @@ internal sealed class PlannerTopologyCache
         [NotNullWhen(true)]
         out Lookup? lookup)
         => _directTransitions.TryGetValue(new TransitionKey(typeName, fromSchema, toSchema), out lookup);
-
-    public bool IsDirectTransitionImpossible(
-        string typeName,
-        string fromSchema,
-        string toSchema)
-        => _impossibleDirectTransitions.Contains(new TransitionKey(typeName, fromSchema, toSchema));
 
     public bool TryGetTypeScatter(
         string typeName,
@@ -127,8 +120,7 @@ internal sealed class PlannerTopologyCache
 
     private static Dictionary<LookupKey, ImmutableArray<Lookup>> BuildOrderedLookups(
         FusionSchemaDefinition schema,
-        IEnumerable<FusionComplexTypeDefinition> complexTypes,
-        IEnumerable<string> schemaNames)
+        IEnumerable<FusionComplexTypeDefinition> complexTypes)
     {
         var orderedLookups = new Dictionary<LookupKey, ImmutableArray<Lookup>>();
 
@@ -137,8 +129,9 @@ internal sealed class PlannerTopologyCache
             orderedLookups[new LookupKey(complexType.Name, null)] =
                 OrderLookups(schema.GetPossibleLookups(complexType));
 
-            foreach (var schemaName in schemaNames)
+            foreach (var source in complexType.Sources)
             {
+                var schemaName = source.SchemaName;
                 orderedLookups[new LookupKey(complexType.Name, schemaName)] =
                     OrderLookups(schema.GetPossibleLookups(complexType, schemaName));
             }
@@ -147,40 +140,68 @@ internal sealed class PlannerTopologyCache
         return orderedLookups;
     }
 
-    private static (
-        Dictionary<TransitionKey, Lookup> DirectTransitions,
-        HashSet<TransitionKey> ImpossibleDirectTransitions)
-        BuildTransitions(
-            FusionSchemaDefinition schema,
-            IEnumerable<FusionComplexTypeDefinition> complexTypes,
-            IEnumerable<string> schemaNames)
+    private static Dictionary<TransitionKey, Lookup> BuildTransitions(
+        FusionSchemaDefinition schema,
+        IEnumerable<FusionComplexTypeDefinition> complexTypes,
+        IEnumerable<string> schemaNames)
     {
         var directTransitions = new Dictionary<TransitionKey, Lookup>();
-        var impossibleDirectTransitions = new HashSet<TransitionKey>();
         var visitor = new KeyTransitionVisitor();
 
         foreach (var complexType in complexTypes)
         {
-            foreach (var fromSchema in schemaNames)
+            foreach (var toSchema in GetTransitionTargetSchemas(complexType))
             {
-                foreach (var toSchema in schemaNames)
+                // A direct transition can only target a schema that has lookups for this
+                // type; if there are none, no from-schema can transition here, so skip the sweep.
+                if (schema.GetPossibleLookups(complexType, toSchema).Length == 0)
                 {
-                    var key = new TransitionKey(complexType.Name, fromSchema, toSchema);
+                    continue;
+                }
+
+                foreach (var fromSchema in schemaNames)
+                {
                     var bestLookup = FindBestDirectLookup(schema, visitor, complexType, fromSchema, toSchema);
 
                     if (bestLookup is not null)
                     {
-                        directTransitions[key] = bestLookup;
-                    }
-                    else
-                    {
-                        impossibleDirectTransitions.Add(key);
+                        directTransitions[new TransitionKey(complexType.Name, fromSchema, toSchema)] = bestLookup;
                     }
                 }
             }
         }
 
-        return (directTransitions, impossibleDirectTransitions);
+        return directTransitions;
+    }
+
+    // The schemas a transition may target for a type: the schemas that declare the type, plus the
+    // @interfaceObject stand-in schemas of the interfaces it implements. A stand-in holds no source
+    // for the concrete type yet resolves its projected fields through a single covering interface
+    // lookup, so a value must be able to transition there under a concrete type condition. Bounded
+    // to stand-in schemas, this leaves the transition sweep unchanged for schemas without
+    // interfaceObject.
+    private static IEnumerable<string> GetTransitionTargetSchemas(FusionComplexTypeDefinition complexType)
+    {
+        var targets = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var source in complexType.Sources)
+        {
+            targets.Add(source.SchemaName);
+        }
+
+        foreach (var interfaceType in complexType.Implements)
+        {
+            foreach (var interfaceSource in interfaceType.Sources)
+            {
+                if (interfaceSource.IsInterfaceObject
+                    && !complexType.Sources.TryGetMember(interfaceSource.SchemaName, out _))
+                {
+                    targets.Add(interfaceSource.SchemaName);
+                }
+            }
+        }
+
+        return targets;
     }
 
     private static Lookup? FindBestDirectLookup(

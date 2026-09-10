@@ -24,8 +24,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
     /// <summary>
     /// <para>
-    /// Configure if this field should be projected by <see cref="UseProjection{T}"/> or if it
-    /// should be skipped
+    /// Configure if this field should be projected or if it should be skipped
     /// </para>
     /// <para>
     /// if <paramref name="isProjected"/> is false, this field will never be projected even if
@@ -45,13 +44,19 @@ public static class ProjectionObjectFieldDescriptorExtensions
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
-        descriptor
-            .Extend()
-            .OnBeforeCreate(
-                c => c.Features.Update<ProjectionFeature>(
-                    f => f is null
-                        ? new ProjectionFeature(AlwaysProjected: isProjected)
-                        : f with { AlwaysProjected = isProjected }));
+        var configuration = descriptor.Extend().Configuration;
+
+        if (isProjected)
+        {
+            configuration.Flags |= CoreFieldFlags.AlwaysProjected;
+            configuration.Flags &= ~CoreFieldFlags.NotProjected;
+        }
+        else
+        {
+            configuration.Flags |= CoreFieldFlags.NotProjected;
+            configuration.Flags &= ~CoreFieldFlags.AlwaysProjected;
+        }
+
         return descriptor;
     }
 
@@ -172,16 +177,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         var convention = context.DescriptorContext.GetProjectionConvention(scope);
         RegisterOptimizer(definition, convention.CreateOptimizer());
 
-        var feature = definition.Features.Get<ProjectionFeature>();
-
-        if (feature is null)
-        {
-            definition.Features.Set(new ProjectionFeature(HasProjectionMiddleware: true));
-        }
-        else if (!feature.HasProjectionMiddleware)
-        {
-            definition.Features.Set(feature with { HasProjectionMiddleware = true });
-        }
+        definition.Flags |= CoreFieldFlags.HasProjectionMiddleware;
 
         var factory = s_factoryTemplate.MakeGenericMethod(type);
         var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
@@ -270,7 +266,9 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         public Path Path => _context.Path;
 
-        public ulong IncludeFlags => _context.IncludeFlags;
+        public ulong IncludeFlags => _context.IncludeConditionFlags.Word0;
+
+        public ConditionFlags IncludeConditionFlags => _context.IncludeConditionFlags;
 
         public IServiceProvider RequestServices => _context.RequestServices;
 

@@ -1,0 +1,243 @@
+title: Defer_ListAnchor_Should_PlanKeyedLookup_When_UsersFieldHasSiblingLookup
+request:
+  document: |
+    {
+      users {
+        ... @defer {
+          id
+          name
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "users": [
+          {},
+          {},
+          {}
+        ]
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ]
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "id": "VXNlcjox",
+          "name": "User: VXNlcjox"
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "id": "VXNlcjoy",
+          "name": "User: VXNlcjoy"
+        }
+      },
+      {
+        "id": "0",
+        "path": [
+          "users"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "id": "VXNlcjoz",
+          "name": "User: VXNlcjoz"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "users": [
+          {
+            "id": "VXNlcjox",
+            "name": "User: VXNlcjox"
+          },
+          {
+            "id": "VXNlcjoy",
+            "name": "User: VXNlcjoy"
+          },
+          {
+            "id": "VXNlcjoz",
+            "name": "User: VXNlcjoz"
+          }
+        ]
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        users: [User!]!
+        userById(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_ffeee14c_1 {
+              users {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "VXNlcjox"
+                    },
+                    {
+                      "id": "VXNlcjoy"
+                    },
+                    {
+                      "id": "VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                id
+                name
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "VXNlcjox"
+              },
+              {
+                "__fusion_1_id": "VXNlcjoy"
+              },
+              {
+                "__fusion_1_id": "VXNlcjoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "id": "VXNlcjox",
+                    "name": "User: VXNlcjox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "id": "VXNlcjoy",
+                    "name": "User: VXNlcjoy"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "id": "VXNlcjoz",
+                    "name": "User: VXNlcjoz"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          users {
+            __typename @fusion__empty
+            id @fusion__requirement
+          }
+        }
+      hash: ffeee14c444e77d0dd957d6a13459bf0
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_ffeee14c_1 {
+          users {
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.users
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_1($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                id
+                name
+              }
+            }
+          source: $.userById
+          target: $.users
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

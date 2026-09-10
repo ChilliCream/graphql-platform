@@ -21,6 +21,12 @@ internal static class SettingsExtensions
                     EnableGlobalObjectIdentification =
                         compositionSettings.Merger.EnableGlobalObjectIdentification
                         ?? settings.Merger.EnableGlobalObjectIdentification,
+                    EnumValuesMergeBehavior =
+                        compositionSettings.Merger.EnumValuesMergeBehavior
+                        ?? settings.Merger.EnumValuesMergeBehavior,
+                    NodeResolution =
+                        compositionSettings.Merger.NodeResolution
+                        ?? settings.Merger.NodeResolution,
                     RemoveUnreferencedDefinitions =
                         compositionSettings.Merger.RemoveUnreferencedDefinitions
                         ?? settings.Merger.RemoveUnreferencedDefinitions,
@@ -39,8 +45,42 @@ internal static class SettingsExtensions
                     IncludeSatisfiabilityPaths =
                         compositionSettings.Satisfiability.IncludeSatisfiabilityPaths
                         ?? settings.Satisfiability.IncludeSatisfiabilityPaths
-                }
+                },
+                ApolloFederationCompatibility =
+                    new CompositionSettings.ApolloFederationCompatibilitySettings
+                    {
+                        AllowNonResolvableInterfaceObjects =
+                            compositionSettings.ApolloFederationCompatibility
+                                .AllowNonResolvableInterfaceObjects
+                            ?? settings.ApolloFederationCompatibility
+                                .AllowNonResolvableInterfaceObjects,
+                        ShareableFieldRuntimeTypeRouting =
+                            compositionSettings.ApolloFederationCompatibility
+                                .ShareableFieldRuntimeTypeRouting
+                            ?? settings.ApolloFederationCompatibility
+                                .ShareableFieldRuntimeTypeRouting
+                    }
             };
+        }
+    }
+
+    extension(CompositionSettings.ApolloFederationCompatibilitySettings compatibilitySettings)
+    {
+        public ApolloFederationCompatibilityOptions ToOptions()
+        {
+            var options = new ApolloFederationCompatibilityOptions();
+
+            if (compatibilitySettings.AllowNonResolvableInterfaceObjects is { } allow)
+            {
+                options.AllowNonResolvableInterfaceObjects = allow;
+            }
+
+            if (compatibilitySettings.ShareableFieldRuntimeTypeRouting is { } routing)
+            {
+                options.ShareableFieldRuntimeTypeRouting = routing;
+            }
+
+            return options;
         }
     }
 
@@ -74,6 +114,16 @@ internal static class SettingsExtensions
             if (mergerSettings.EnableGlobalObjectIdentification is { } enableGlobalObjectIdentification)
             {
                 mergerOptions.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
+            }
+
+            if (mergerSettings.EnumValuesMergeBehavior is { } enumValuesMergeBehavior)
+            {
+                mergerOptions.EnumValuesMergeBehavior = enumValuesMergeBehavior;
+            }
+
+            if (mergerSettings.NodeResolution is { } nodeResolution)
+            {
+                mergerOptions.NodeResolution = nodeResolution;
             }
 
             if (mergerSettings.RemoveUnreferencedDefinitions is { } removeUnreferencedDefinitions)
@@ -159,6 +209,11 @@ internal static class SettingsExtensions
             if (preprocessorSettings.InferKeysFromLookups is { } inferKeys)
             {
                 preprocessorOptions.InferKeysFromLookups = inferKeys;
+            }
+
+            if (preprocessorSettings.InferShareable is { } inferShareable)
+            {
+                preprocessorOptions.InferShareable = inferShareable;
             }
 
             if (preprocessorSettings.InheritInterfaceKeys is { } inheritInterfaceKeys)

@@ -1,0 +1,13 @@
+schema {
+  query: Query
+}
+
+type Query @custom @old {
+  field: String
+}
+
+directive @custom @onDirectiveDefinition on OBJECT
+
+directive @old @deprecated(reason: "Use @custom.") on OBJECT
+
+directive @onDirectiveDefinition on DIRECTIVE_DEFINITION

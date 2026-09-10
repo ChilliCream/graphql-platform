@@ -17,7 +17,7 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .AddQueryType<OutputQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         executor.Schema.MatchSnapshot();
@@ -31,10 +31,10 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .AddQueryType<OutputQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync("{ document }");
+        var result = await executor.ExecuteAsync("{ document }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -59,7 +59,7 @@ public class BsonTypeTests
                             res = ctx.ArgumentValue<object>("val");
                             return "done";
                         }))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         await executor.ExecuteAsync(
@@ -79,7 +79,8 @@ public class BsonTypeTests
                     }
                 )
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.IsType<BsonDocument>(res).ToString().MatchSnapshot();
@@ -104,7 +105,7 @@ public class BsonTypeTests
                             res = ctx.ArgumentValue<object>("val");
                             return "done";
                         }))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         await executor.ExecuteAsync(
@@ -141,7 +142,7 @@ public class BsonTypeTests
                             res = ctx.ArgumentValue<object>("val");
                             return "done";
                         }))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         await executor.ExecuteAsync(
@@ -176,10 +177,10 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .AddQueryType<OutputQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync($"{{ {fieldName} }}");
+        var result = await executor.ExecuteAsync($"{{ {fieldName} }}", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot(fieldName);
@@ -217,10 +218,10 @@ public class BsonTypeTests
                             res = ctx.ArgumentValue<object>("val");
                             return "done";
                         }))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        await executor.ExecuteAsync($"{{ in(val:{value}) }}");
+        await executor.ExecuteAsync($"{{ in(val:{value}) }}", TestContext.Current.CancellationToken);
 
         // assert
         Assert.NotEqual("INVALID", res);
@@ -255,7 +256,7 @@ public class BsonTypeTests
                             res = ctx.ArgumentValue<object>("val");
                             return "done";
                         }))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         await executor.ExecuteAsync(
@@ -279,7 +280,8 @@ public class BsonTypeTests
             .AddGraphQL()
             .AddBsonType()
             .ModifyOptions(x => x.StrictValidation = false)
-            .BuildSchemaAsync()).Types.GetType<BsonType>("Bson");
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken))
+                .Types.GetType<BsonType>("Bson");
 
         // act
         var value = type.ValueToLiteral(null);
@@ -304,7 +306,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -326,7 +328,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ foo }");
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -350,7 +352,8 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: { a: \"foo\" }) }");
+            "{ foo(input: { a: \"foo\" }) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -373,8 +376,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ foo(input: [\"foo\"]) }");
+        var result = await executor.ExecuteAsync("{ foo(input: [\"foo\"]) }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -398,7 +400,8 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: [{ a: \"foo\" }]) }");
+            "{ foo(input: [{ a: \"foo\" }]) }",
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -421,8 +424,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ foo(input: \"foo\") }");
+        var result = await executor.ExecuteAsync("{ foo(input: \"foo\") }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -445,8 +447,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ foo(input: 123) }");
+        var result = await executor.ExecuteAsync("{ foo(input: 123) }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -469,7 +470,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync("{ foo(input: 1.2) }");
+        var result = await executor.ExecuteAsync("{ foo(input: 1.2) }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -492,8 +493,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ foo(input: true) }");
+        var result = await executor.ExecuteAsync("{ foo(input: true) }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -516,8 +516,7 @@ public class BsonTypeTests
         var executor = schema.MakeExecutable();
 
         // act
-        var result = await executor.ExecuteAsync(
-            "{ foo(input: null) }");
+        var result = await executor.ExecuteAsync("{ foo(input: null) }", TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -549,7 +548,8 @@ public class BsonTypeTests
                       "foo": ["abc"]
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -585,7 +585,8 @@ public class BsonTypeTests
                       ]
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -617,7 +618,8 @@ public class BsonTypeTests
                       "foo": "bar"
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -649,7 +651,8 @@ public class BsonTypeTests
                       "foo": 123
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -681,7 +684,8 @@ public class BsonTypeTests
                       "foo": 1.2
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -715,7 +719,8 @@ public class BsonTypeTests
                       }
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -747,7 +752,8 @@ public class BsonTypeTests
                       "foo": false
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -779,7 +785,8 @@ public class BsonTypeTests
                       "foo": null
                     }
                     """)
-                .Build());
+                .Build(),
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();

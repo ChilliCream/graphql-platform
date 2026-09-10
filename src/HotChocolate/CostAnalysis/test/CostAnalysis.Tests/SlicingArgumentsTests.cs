@@ -22,7 +22,8 @@ public class SlicingArgumentsTests
                             nodes
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -63,7 +64,8 @@ public class SlicingArgumentsTests
                             nodes
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -104,7 +106,8 @@ public class SlicingArgumentsTests
                             nodes
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -144,7 +147,8 @@ public class SlicingArgumentsTests
                             nodes
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -174,7 +178,8 @@ public class SlicingArgumentsTests
                             nodes
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -204,7 +209,8 @@ public class SlicingArgumentsTests
                             nodes
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -234,7 +240,8 @@ public class SlicingArgumentsTests
                             nodes
                         }
                     }
-                    """);
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
 
         result.MatchInlineSnapshot(
             """
@@ -257,7 +264,7 @@ public class SlicingArgumentsTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query2>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -269,7 +276,7 @@ public class SlicingArgumentsTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query3>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }

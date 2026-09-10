@@ -184,6 +184,23 @@ operationPlan:
             }
           }
         }
+    - id: 4
+      type: Operation
+      schema: C
+      operation: |
+        query Op_e8751f64_4($__fusion_3_id: ID!) {
+          userById(id: $__fusion_3_id) {
+            profile
+          }
+        }
+      source: $.userById
+      target: $.search<User>
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
     - id: 2
       type: Operation
       schema: B
@@ -195,7 +212,7 @@ operationPlan:
         }
       source: $.productById
       target: $.search<Product>
-      batchingGroupId: 2
+      batchingGroupId: 5
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -213,26 +230,9 @@ operationPlan:
         }
       source: $.userById
       target: $.search<User>
-      batchingGroupId: 2
+      batchingGroupId: 5
       requirements:
         - name: __fusion_2_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 4
-      type: Operation
-      schema: C
-      operation: |
-        query Op_e8751f64_4($__fusion_3_id: ID!) {
-          userById(id: $__fusion_3_id) {
-            profile
-          }
-        }
-      source: $.userById
-      target: $.search<User>
-      requirements:
-        - name: __fusion_3_id
           selectionMap: >-
             id
       dependencies:

@@ -151,12 +151,12 @@ public class TypeTrimmerTests
                 .Field("field")
                 .Type<StringType>()
                 .Resolve("test"))
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("_abc")
-                .Location(DirectiveLocation.Object)))
-            .AddDirectiveType(new DirectiveType(d => d
+                .Location(DirectiveLocation.Object))
+            .AddDirectiveType(d => d
                 .Name("_def")
-                .Location(DirectiveLocation.Object)))
+                .Location(DirectiveLocation.Object))
             .AddType<FloatType>()
             .ModifyOptions(o => o.RemoveUnreachableTypes = true)
             .Create();
@@ -186,9 +186,9 @@ public class TypeTrimmerTests
                 .Field("field")
                 .Type<StringType>()
                 .Resolve("test"))
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("_abc")
-                .Location(DirectiveLocation.Query)))
+                .Location(DirectiveLocation.Query))
             .AddType<FloatType>()
             .ModifyOptions(o => o.RemoveUnreachableTypes = true)
             .Create();
@@ -218,9 +218,9 @@ public class TypeTrimmerTests
                 .Field("field")
                 .Type<StringType>()
                 .Resolve("test"))
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("_abc")
-                .Location(DirectiveLocation.Object | DirectiveLocation.Query)))
+                .Location(DirectiveLocation.Object | DirectiveLocation.Query))
             .AddType<FloatType>()
             .ModifyOptions(o => o.RemoveUnreachableTypes = true)
             .Create();
@@ -251,11 +251,11 @@ public class TypeTrimmerTests
                 .Type<StringType>()
                 .Resolve("test"))
             .AddType(new UuidType('D'))
-            .AddDirectiveType(new DirectiveType(d => d
+            .AddDirectiveType(d => d
                 .Name("_abc")
                 .Location(DirectiveLocation.Object | DirectiveLocation.Query)
                 .Argument("arg")
-                .Type<UuidType>()))
+                .Type<UuidType>())
             .AddType<FloatType>()
             .ModifyOptions(o => o.RemoveUnreachableTypes = true)
             .Create();

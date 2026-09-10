@@ -67,7 +67,7 @@ nodes:
         selectionMap: >-
           pid
     dependencies:
-      - id: 4
+      - id: 6
   - id: 3
     type: Operation
     schema: d
@@ -96,7 +96,7 @@ nodes:
       }
     source: $.productById
     target: $.viewer.review<UserReview>.product
-    batchingGroupId: 4
+    batchingGroupId: 6
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -114,7 +114,7 @@ nodes:
       }
     source: $.productById
     target: $.viewer.review<AnonymousReview>.product
-    batchingGroupId: 4
+    batchingGroupId: 6
     requirements:
       - name: __fusion_4_id
         selectionMap: >-

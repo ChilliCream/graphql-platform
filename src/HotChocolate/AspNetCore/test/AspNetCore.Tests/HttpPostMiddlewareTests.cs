@@ -794,7 +794,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __schema { description } }" });
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         // expected response content-type: application/json
@@ -829,7 +829,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __schema { description } }" });
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         // expected response content-type: application/json
@@ -869,7 +869,7 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ nullValues }" });
 
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         // expected response content-type: application/json
@@ -886,6 +886,177 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
                 -------------------------->
                 {"data":{"nullValues":["abc"]}}
                 """);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_ReportReasonToDiagnostics_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+
+        // act
+        var result = await server.PostAsync(
+            """
+            {
+              "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Variable batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
+        Assert.NotNull(result.Errors);
+        var responseError = Assert.Single(result.Errors);
+        Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_ReportBatchSizeToDiagnostics_When_MaxSizeIsExceeded()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.MaxBatchSize = 1));
+
+        // act
+        var result = await server.PostAsync(
+            """
+            {
+              "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "The batch size exceeds the maximum allowed batch size of 1.",
+            diagnosticError.Message);
+        Assert.NotNull(result.Errors);
+        var responseError = Assert.Single(result.Errors);
+        Assert.Equal(
+            "The batch size exceeds the maximum allowed batch size of 1.",
+            responseError["message"]);
+    }
+
+    [Fact]
+    public async Task RequestBatch_Should_ReportReasonToDiagnostics_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+
+        // act
+        var result = await server.PostAsync(
+            """
+            [
+              { "query": "{ hero(episode: NEW_HOPE) { name } }" },
+              { "query": "{ hero(episode: EMPIRE) { name } }" }
+            ]
+            """);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Request batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
+        Assert.NotNull(result.Errors);
+        var responseError = Assert.Single(result.Errors);
+        Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_ReportReasonToDiagnostics_When_BatchingIsDisabled()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener)
+                .ModifyServerOptions(o => o.Batching = AllowedBatching.None));
+
+        // act
+        var result = await server.PostAsync(
+            """
+            {
+              "query": "query a { __typename } query b { __typename }"
+            }
+            """,
+            "/graphql?batchOperations=[a,b]");
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Request batching is disabled. Enable it with GraphQLServerOptions.Batching.",
+            diagnosticError.Message);
+        Assert.NotNull(result.Errors);
+        var responseError = Assert.Single(result.Errors);
+        Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_ExecuteEachOperation_When_BatchingIsEnabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var results = await server.PostOperationAsync(
+            new ClientQueryRequest
+            {
+                Query =
+                    """
+                    query a { hero(episode: NEW_HOPE) { name } }
+                    query b { hero(episode: EMPIRE) { name } }
+                    """
+            },
+            "a,b");
+
+        // assert
+        results.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task OperationBatch_Should_ReportGenericError_When_OperationNamesAreInvalid()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener));
+
+        // act
+        var result = await server.PostAsync(
+            """
+            {
+              "query": "query a { __typename } query b { __typename }"
+            }
+            """,
+            "/graphql?batchOperations=");
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal("Invalid GraphQL Request.", diagnosticError.Message);
+        Assert.NotNull(result.Errors);
+        var responseError = Assert.Single(result.Errors);
+        Assert.Equal("Invalid GraphQL Request.", responseError["message"]);
     }
 
     public class ErrorRequestInterceptor : DefaultHttpRequestInterceptor
@@ -914,5 +1085,13 @@ public class HttpPostMiddlewareTests(TestServerFactory serverFactory) : ServerTe
     public class NullListQuery
     {
         public List<string?> NullValues => [null, "abc", null];
+    }
+
+    public sealed class RecordingListener : ServerDiagnosticEventListener
+    {
+        public List<IError> Errors { get; } = [];
+
+        public override void HttpRequestError(HttpContext context, IError error)
+            => Errors.Add(error);
     }
 }

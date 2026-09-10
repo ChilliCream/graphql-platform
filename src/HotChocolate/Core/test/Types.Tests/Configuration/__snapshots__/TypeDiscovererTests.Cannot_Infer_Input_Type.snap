@@ -1,3 +1,5 @@
 ﻿For more details look at the `Errors` property.
 
-1. Unable to infer or resolve a schema type from the type reference `IMyArg (Input)`. (HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.QueryWithInferError>)
+1. Unable to infer or resolve a schema type from the type reference `IMyArg (Input)`.
+
+QueryWithInferError.Foo(o) -> IMyArg (HotChocolate.Types.ObjectType<HotChocolate.Configuration.TypeDiscovererTests.QueryWithInferError>)

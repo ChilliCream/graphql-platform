@@ -1,0 +1,82 @@
+BAR Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "BAR"
+        }
+      },
+      {
+        "foo": {
+          "barEnum": "BAR"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+BAR SQL:
+---------------
+.param set @__p_0 1
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarEnum" = @__p_0
+---------------
+
+FOO Result:
+---------------
+{
+  "data": {
+    "root": [
+      {
+        "foo": {
+          "barEnum": "FOO"
+        }
+      }
+    ]
+  }
+}
+---------------
+
+FOO SQL:
+---------------
+.param set @__p_0 0
+
+SELECT "d"."Id", "d"."FooId"
+FROM "Data" AS "d"
+INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
+WHERE "f"."BarEnum" = @__p_0
+---------------
+
+null
+---------------
+{
+  "errors": [
+    {
+      "message": "The provided value for filter `eq` of type BarEnumOperationFilterInput is invalid. Null values are not supported.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 39
+        }
+      ],
+      "path": [
+        "root"
+      ],
+      "extensions": {
+        "code": "HC0026",
+        "expectedType": "BarEnum!",
+        "filterType": "BarEnumOperationFilterInput"
+      }
+    }
+  ],
+  "data": {
+    "root": null
+  }
+}
+---------------

@@ -76,9 +76,6 @@ sourceSchemas:
                   author {
                     id
                   }
-                  author {
-                    id
-                  }
                 }
               }
             }
@@ -216,9 +213,6 @@ operationPlan:
             ... on Discussion {
               __typename
               id
-              author {
-                id
-              }
               author {
                 id
               }

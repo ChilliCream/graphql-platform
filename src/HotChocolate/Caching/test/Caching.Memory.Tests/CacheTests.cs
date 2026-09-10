@@ -173,8 +173,8 @@ public class CacheTests
         Assert.NotNull(diag.SizeGauge);
         Assert.NotNull(diag.CapacityGauge);
 
-        Assert.Equal(2, diag.SizeGauge!());
-        Assert.Equal(4, diag.CapacityGauge!());
+        Assert.Equal(2, diag.SizeGauge());
+        Assert.Equal(4, diag.CapacityGauge());
     }
 
     [Fact]
@@ -189,6 +189,287 @@ public class CacheTests
         Assert.Equal(1, diag.Misses); // miss path recorded
         Assert.Equal(0, diag.Hits);
     }
+
+    [Fact]
+    public void TryGet_Should_Throw_When_KeyIsNull()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(() => cache.TryGet(null!, out _));
+    }
+
+    [Fact]
+    public void TryGet_Should_Throw_When_KeyIsEmpty()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.TryGet(string.Empty, out _));
+    }
+
+    [Fact]
+    public void TryAdd_Should_Throw_When_KeyIsNull()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(() => cache.TryAdd(null!, "value"));
+    }
+
+    [Fact]
+    public void TryAdd_Should_Throw_When_KeyIsEmpty()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.TryAdd(string.Empty, "value"));
+    }
+
+    [Fact]
+    public void GetOrCreate_Should_Throw_When_KeyIsNull()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentNullException>(() => cache.GetOrCreate(null!, _ => "value"));
+    }
+
+    [Fact]
+    public void GetOrCreate_Should_Throw_When_KeyIsEmpty()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.GetOrCreate(string.Empty, _ => "value"));
+    }
+
+#if NET9_0_OR_GREATER
+    [Fact]
+    public void TryGet_Should_ReturnTrue_When_KeyExists_UsingSpan()
+    {
+        // arrange
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
+        cache.TryAdd("key", "value");
+
+        // act
+        var found = cache.TryGet("key".AsSpan(), out var value);
+
+        // assert
+        Assert.True(found);
+        Assert.Equal("value", value);
+        Assert.Equal(1, diag.Hits);
+        Assert.Equal(1, diag.Misses); // from setup TryAdd
+    }
+
+    [Fact]
+    public void TryGet_Should_ReturnFalse_When_KeyDoesNotExist_UsingSpan()
+    {
+        // arrange
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
+
+        // act
+        var found = cache.TryGet("missing".AsSpan(), out var value);
+
+        // assert
+        Assert.False(found);
+        Assert.Null(value);
+        Assert.Equal(1, diag.Misses);
+        Assert.Equal(0, diag.Hits);
+    }
+
+    [Fact]
+    public void TryAdd_Should_AddEntry_When_KeyDoesNotExist_UsingSpan()
+    {
+        // arrange
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
+
+        // act
+        cache.TryAdd("key".AsSpan(), "value");
+
+        // assert
+        Assert.True(cache.TryGet("key", out var value));
+        Assert.Equal("value", value);
+        Assert.Equal(1, diag.Misses); // span TryAdd fell through to string TryAdd factory
+        Assert.Equal(1, diag.Hits); // the string TryGet in the assertion
+    }
+
+    [Fact]
+    public void TryAdd_Should_NotOverwrite_When_KeyExists_UsingSpan()
+    {
+        // arrange
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
+        cache.TryAdd("key", "original");
+
+        // act
+        cache.TryAdd("key".AsSpan(), "replacement");
+
+        // assert
+        Assert.True(cache.TryGet("key", out var value));
+        Assert.Equal("original", value);
+        Assert.Equal(1, diag.Misses); // only from setup; span fast path records nothing
+        Assert.Equal(1, diag.Hits); // the string TryGet in the assertion
+    }
+
+    [Fact]
+    public void GetOrCreate_Should_ReturnExisting_When_KeyExists_UsingSpan()
+    {
+        // arrange
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
+        cache.TryAdd("key", "existing");
+        var factoryInvocations = 0;
+
+        // act
+        var value = cache.GetOrCreate(
+            "key".AsSpan(),
+            _ =>
+            {
+                factoryInvocations++;
+                return "created";
+            });
+
+        // assert
+        Assert.Equal("existing", value);
+        Assert.Equal(0, factoryInvocations);
+        Assert.Equal(1, diag.Hits);
+        Assert.Equal(1, diag.Misses); // from setup TryAdd
+    }
+
+    [Fact]
+    public void GetOrCreate_Should_InvokeFactory_When_KeyDoesNotExist_UsingSpan()
+    {
+        // arrange
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
+        var factoryInvocations = 0;
+
+        // act
+        var value = cache.GetOrCreate(
+            "key".AsSpan(),
+            _ =>
+            {
+                factoryInvocations++;
+                return "created";
+            });
+
+        // assert
+        Assert.Equal("created", value);
+        Assert.Equal(1, factoryInvocations);
+        Assert.True(cache.TryGet("key".AsSpan(), out var stored));
+        Assert.Equal("created", stored);
+        $"Hits: {diag.Hits}, Misses: {diag.Misses}".MatchInlineSnapshot("Hits: 1, Misses: 1");
+    }
+
+    [Fact]
+    public void GetOrCreate_WithState_Should_PassStateToFactory_UsingSpan()
+    {
+        // arrange
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
+        string? receivedKey = null;
+        var receivedState = 0;
+
+        // act
+        var value = cache.GetOrCreate(
+            "key".AsSpan(),
+            (k, s) =>
+            {
+                receivedKey = k;
+                receivedState = s;
+                return $"{k}:{s}";
+            },
+            42);
+
+        // assert
+        Assert.Equal("key:42", value);
+        Assert.Equal("key", receivedKey);
+        Assert.Equal(42, receivedState);
+        Assert.Equal(1, diag.Misses);
+        Assert.Equal(0, diag.Hits);
+    }
+
+    [Fact]
+    public void SpanAndStringLookups_Should_SeeSameEntries()
+    {
+        // arrange
+        var diag = new TestDiagnostics();
+        var cache = new Cache<string>(capacity: 8, diagnostics: diag);
+        cache.TryAdd("via-string", "a");
+        cache.TryAdd("via-span".AsSpan(), "b");
+
+        // act
+        var spanFoundString = cache.TryGet("via-string".AsSpan(), out var spanValue);
+        var stringFoundSpan = cache.TryGet("via-span", out var stringValue);
+
+        // assert
+        Assert.True(spanFoundString);
+        Assert.Equal("a", spanValue);
+        Assert.True(stringFoundSpan);
+        Assert.Equal("b", stringValue);
+        $"Hits: {diag.Hits}, Misses: {diag.Misses}".MatchInlineSnapshot("Hits: 2, Misses: 2");
+    }
+
+    [Fact]
+    public void TryGet_Should_Throw_When_KeyIsEmpty_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.TryGet(ReadOnlySpan<char>.Empty, out _));
+    }
+
+    [Fact]
+    public void TryAdd_Should_Throw_When_KeyIsEmpty_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.TryAdd(ReadOnlySpan<char>.Empty, "value"));
+    }
+
+    [Fact]
+    public void GetOrCreate_Should_Throw_When_KeyIsEmpty_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.GetOrCreate(ReadOnlySpan<char>.Empty, _ => "value"));
+    }
+
+    [Fact]
+    public void GetOrCreate_WithState_Should_Throw_When_KeyIsEmpty_UsingSpan()
+    {
+        // arrange
+        var cache = new Cache<string>(capacity: 8);
+
+        // act
+        // assert
+        Assert.Throws<ArgumentException>(() => cache.GetOrCreate(ReadOnlySpan<char>.Empty, (k, s) => $"{k}:{s}", 1));
+    }
+#endif
 
     private sealed class TestDiagnostics : CacheDiagnostics
     {

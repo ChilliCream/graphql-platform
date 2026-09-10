@@ -2,7 +2,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Text;
 using CookieCrumble.Formatters;
-using CookieCrumble.Xunit;
+using CookieCrumble.Xunit3;
 using Xunit.Sdk;
 
 namespace CookieCrumble;
@@ -16,7 +16,7 @@ public class SnapshotTests
 
     static SnapshotTests()
     {
-        Snapshot.RegisterTestFramework(new XunitFramework());
+        Snapshot.RegisterTestFramework(new Xunit3Framework());
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class SnapshotTests
         snapshot.Add(new MyClass());
         snapshot.Add(new MyClass { Foo = "Bar" });
         snapshot.Add(new MyClass { Foo = "Baz" });
-        await snapshot.MatchAsync();
+        await snapshot.MatchAsync(TestContext.Current.CancellationToken);
     }
 
     [Fact]

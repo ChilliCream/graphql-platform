@@ -1,0 +1,40 @@
+{
+  "Schema": "azuresb",
+  "TransportType": "AzureServiceBusMessagingTransport",
+  "Entities": [
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.azure-service-bus.tests.order-spy",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.azure-service-bus.tests.order-spy_error",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "queue",
+      "Name": "mocha.transport.azure-service-bus.tests.order-spy_skipped",
+      "AutoProvision": true,
+      "Origin": "endpoint"
+    },
+    {
+      "Kind": "topic",
+      "Name": "mocha.test-helpers.order-created",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ],
+  "Links": [
+    {
+      "Kind": "subscription",
+      "From": "azuresb://localhost/t/mocha.test-helpers.order-created",
+      "To": "azuresb://localhost/q/mocha.transport.azure-service-bus.tests.order-spy",
+      "Name": "fwd-mocha.transport.azure-service-c1f12d52b17759dd",
+      "AutoProvision": true,
+      "Origin": "convention"
+    }
+  ]
+}

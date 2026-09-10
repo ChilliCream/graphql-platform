@@ -329,16 +329,24 @@ internal sealed class FusionRequestExecutorManager
     private static Dictionary<string, ITypeResolverInterceptor> CreateTypeResolverInterceptors(
         FusionOptions options)
     {
+        var enableObjectDeprecation = options.EnableObjectDeprecation;
+        var enableOptIn = options.EnableOptInFeatures;
+
         var interceptors = new Dictionary<string, ITypeResolverInterceptor>
         {
             { nameof(Query), new Query(options.EnableSemanticIntrospection) },
-            { nameof(__Directive), new __Directive() },
-            { nameof(__EnumValue), new __EnumValue() },
-            { nameof(__Field), new __Field() },
-            { nameof(__InputValue), new __InputValue() },
-            { nameof(__Schema), new __Schema() },
-            { nameof(__Type), new __Type() }
+            { nameof(__Directive), new __Directive(enableOptIn) },
+            { nameof(__EnumValue), new __EnumValue(enableOptIn) },
+            { nameof(__Field), new __Field(enableOptIn) },
+            { nameof(__InputValue), new __InputValue(enableOptIn) },
+            { nameof(__Schema), new __Schema(enableObjectDeprecation, enableOptIn) },
+            { nameof(__Type), new __Type(enableObjectDeprecation, enableOptIn) }
         };
+
+        if (enableOptIn)
+        {
+            interceptors.Add(nameof(__OptInFeatureStability), new __OptInFeatureStability());
+        }
 
         if (options.EnableSemanticIntrospection)
         {
@@ -365,7 +373,7 @@ internal sealed class FusionRequestExecutorManager
             requestOptions);
         AddOperationPlanner(schemaServices, plannerOptions);
         AddParserServices(schemaServices);
-        AddDocumentValidator(setup, schemaServices);
+        AddDocumentValidator(setup, schemaServices, options);
         AddDiagnosticEvents(schemaServices);
 
         foreach (var configure in setup.SchemaServiceModifiers)
@@ -449,9 +457,15 @@ internal sealed class FusionRequestExecutorManager
             });
 
         services.AddSingleton(
-            static sp => new OperationCompiler(
-                sp.GetRequiredService<FusionSchemaDefinition>(),
-                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>()));
+            static sp =>
+            {
+                var requestOptions = sp.GetRequiredService<FusionRequestOptions>();
+                return new OperationCompiler(
+                    sp.GetRequiredService<FusionSchemaDefinition>(),
+                    sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
+                    requestOptions.MaxAllowedIncludeConditions,
+                    requestOptions.MaxAllowedDeferConditions);
+            });
 
         services.AddSingleton(plannerOptions);
 
@@ -470,12 +484,14 @@ internal sealed class FusionRequestExecutorManager
 
     private void AddDocumentValidator(
         FusionGatewaySetup setup,
-        IServiceCollection services)
+        IServiceCollection services,
+        FusionOptions options)
     {
         var builder =
             DocumentValidatorBuilder.New()
                 .SetServices(_applicationServices)
-                .AddDefaultRules();
+                .AddDefaultRules()
+                .ModifyOptions(o => o.EnableEmptySelectionSets = options.EnableEmptySelectionSets);
 
         foreach (var modifier in setup.DocumentValidatorBuilderModifiers)
         {
@@ -863,24 +879,45 @@ internal sealed class FusionRequestExecutorManager
             JsonElement settings)
         {
             var configurations = new List<ISourceSchemaClientConfiguration>();
+            List<string>? unclaimedSourceSchemas = null;
 
             if (settings.TryGetProperty("sourceSchemas", out var sourceSchemas))
             {
                 foreach (var sourceSchema in sourceSchemas.EnumerateObject())
                 {
-                    if (!TryClaimSourceSchema(schema, sourceSchema, setup, out var sourceConfigurations))
+                    if (TryClaimSourceSchema(schema, sourceSchema, setup, out var sourceConfigurations))
                     {
-                        throw new InvalidOperationException(
-                            $"No parser claimed source schema '{sourceSchema.Name}'.");
+                        configurations.AddRange(sourceConfigurations);
                     }
-
-                    configurations.AddRange(sourceConfigurations);
+                    else
+                    {
+                        (unclaimedSourceSchemas ??= []).Add(sourceSchema.Name);
+                    }
                 }
             }
 
             foreach (var configure in setup.ClientConfigurationModifiers)
             {
                 configurations.Add(configure.Invoke(applicationServices));
+            }
+
+            if (unclaimedSourceSchemas is not null)
+            {
+                var configuredNames = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var configuration in configurations)
+                {
+                    configuredNames.Add(configuration.Name);
+                }
+
+                foreach (var name in unclaimedSourceSchemas)
+                {
+                    if (!configuredNames.Contains(name))
+                    {
+                        throw new InvalidOperationException(
+                            $"The source schema configuration of '{name}' could not be parsed "
+                            + "and no client configuration was registered for it in code.");
+                    }
+                }
             }
 
             // Register configurations that need post-Seal projection. The

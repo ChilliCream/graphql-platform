@@ -1,9 +1,15 @@
+using System.Data.Common;
+using System.Linq.Expressions;
+using System.Text.Json;
+using CookieCrumble;
+using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using System.Text.Json;
 
 namespace HotChocolate.Data;
 
@@ -21,6 +27,193 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     }
 
     [Fact]
+    public async Task Projection_Should_ProjectRequiredNavigation_When_ParentRequiresObject()
+    {
+        // arrange
+        var fileName = Guid.NewGuid().ToString("N") + ".db";
+        var connectionString = "Data Source=" + fileName;
+        var sql = new List<string>();
+
+        try
+        {
+            await using (var seed = new BookContext(
+                new DbContextOptionsBuilder<BookContext>().UseSqlite(connectionString).Options))
+            {
+                await seed.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+                seed.Authors.Add(
+                    new Author { Id = 1, Name = "Foo", Books = { new Book { Id = 1, Title = "Foo1" } } });
+                await seed.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var result = await new ServiceCollection()
+                .AddDbContext<BookContext>(
+                    b => b
+                        .UseSqlite(connectionString)
+                        .AddInterceptors(new SqlCapturingInterceptor(sql)))
+                .AddGraphQL()
+                .AddProjections()
+                .AddQueryType(
+                    d => d
+                        .Name("Query")
+                        .Field("books")
+                        .Resolve(ctx => ctx.Service<BookContext>().Books)
+                        .UseProjection())
+                .AddObjectType<Book>(
+                    d =>
+                    {
+                        d.Field(b => b.Title);
+                        d.Field("authorInfo")
+                            .Type<ObjectType<Author>>()
+                            .Resolve(ctx => ctx.Parent<Book>().Author)
+                            .ParentRequires<Book>(b => b.Author!);
+                    })
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .ExecuteRequestAsync(
+                    "{ books { title authorInfo { name } } }",
+                    cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            // assert
+            // The SQL must join and select the Authors columns, proving the required navigation
+            // is projected from the database rather than relying on an in-memory object graph.
+            Snapshot
+                .Create(
+                    postFix: TestEnvironment.TargetFramework == "NET10_0"
+                        ? TestEnvironment.TargetFramework
+                        : null)
+                .Add(string.Join("\n", sql), "SQL")
+                .Add(result, "Result")
+                .MatchMarkdownSnapshot();
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            File.Delete(fileName);
+        }
+    }
+
+    private sealed class SqlCapturingInterceptor(List<string> queries) : DbCommandInterceptor
+    {
+        public override InterceptionResult<DbDataReader> ReaderExecuting(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result)
+        {
+            queries.Add(command.CommandText);
+            return base.ReaderExecuting(command, eventData, result);
+        }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            queries.Add(command.CommandText);
+            return base.ReaderExecutingAsync(command, eventData, result, cancellationToken);
+        }
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_IncludeRequiredParentProperty_When_UsingParentRequiresWithString()
+    {
+        // arrange
+        var executor = await CreateParentRequiresExecutorAsync<AuthorTypeWithStringRequirement>();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ authors { requirement } }",
+            Xunit.TestContext.Current.CancellationToken);
+        var resultWithExplicitSelection = await executor.ExecuteAsync(
+            "{ authors { name requirement } }",
+            Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authors": {
+                  "requirement": "Author Name: Foo"
+                }
+              }
+            }
+            """);
+        resultWithExplicitSelection.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authors": {
+                  "name": "Foo",
+                  "requirement": "Author Name: Foo"
+                }
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_IncludeRequiredParentProperty_When_UsingParentRequiresWithExpression()
+    {
+        // arrange
+        var executor = await CreateParentRequiresExecutorAsync<AuthorTypeWithExpressionRequirement>();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ authors { requirement } }",
+            Xunit.TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "authors": {
+                  "requirement": "Author Name: Foo"
+                }
+              }
+            }
+            """);
+    }
+
+    private async Task<IRequestExecutor> CreateParentRequiresExecutorAsync<T>()
+        where T : ObjectType<Author>
+        => await new ServiceCollection()
+            .AddGraphQL()
+            .AddType<T>()
+            .AddProjections()
+            .AddQueryType(
+                descriptor => descriptor
+                    .Name("Query")
+                    .Field("authors")
+                    .Type<T>()
+                    .Resolve(Executable.From(_authors.AsNoTracking()))
+                    .UseFirstOrDefault()
+                    .UseProjection())
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+    public sealed class AuthorTypeWithStringRequirement : ObjectType<Author>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
+        {
+            descriptor
+                .Field("requirement")
+                .ParentRequires(nameof(Author.Name))
+                .Resolve(context => "Author Name: " + context.Parent<Author>().Name);
+        }
+    }
+
+    public sealed class AuthorTypeWithExpressionRequirement : ObjectType<Author>
+    {
+        protected override void Configure(IObjectTypeDescriptor<Author> descriptor)
+        {
+            descriptor
+                .Field("requirement")
+                .ParentRequires<Author>(author => new { author.Name })
+                .Resolve(context => "Author Name: " + context.Parent<Author>().Name);
+        }
+    }
+
+    [Fact]
     public async Task ExecuteAsync_Should_ReturnAllItems_When_ToListAsync()
     {
         // arrange
@@ -34,7 +227,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Name("Query")
                     .Field("executable")
                     .Resolve(_authors))
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -44,7 +237,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 name
               }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -66,7 +260,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Type<ObjectType<Author>>()
                     .Resolve(_authors.Take(1))
                     .UseSingleOrDefault())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -76,7 +270,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -101,7 +296,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -111,7 +306,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -136,7 +332,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -146,7 +342,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -168,7 +365,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Type<ObjectType<Author>>()
                     .Resolve(_authors)
                     .UseFirstOrDefault())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -178,7 +375,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -203,7 +401,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -213,7 +411,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -232,7 +431,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddSorting()
             .AddProjections()
             .AddQueryType<Query>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // assert
         var result = await executor.ExecuteAsync(
@@ -248,7 +447,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     }
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -271,7 +471,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -281,7 +481,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -306,7 +507,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -316,7 +517,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -341,7 +543,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -351,7 +553,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -376,7 +579,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -386,7 +589,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -411,7 +615,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -421,7 +625,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -446,7 +651,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .UseProjection()
                     .UseFiltering()
                     .UseSorting())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -456,7 +661,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     name
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -484,7 +690,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     .Type<ObjectType<SingleOrDefaultActiveUser>>()
                     .Resolve(users)
                     .UseSingleOrDefault())
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -495,7 +701,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     isActive
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         // assert
         result.MatchSnapshot();
@@ -511,19 +718,19 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 .UseInMemoryDatabase(databaseName)
                 .Options))
         {
-            await seedContext.Database.EnsureCreatedAsync();
+            await seedContext.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
             var blog1 = new ConstructorInjectionBlog { Name = "Blog1" };
             var blog2 = new ConstructorInjectionBlog { Name = "Blog2" };
 
             await seedContext.Blogs.AddRangeAsync(blog1, blog2);
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
 
             await seedContext.Posts.AddRangeAsync(
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog2.Id });
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         var executor = await new ServiceCollection()
@@ -532,7 +739,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddGraphQL()
             .AddProjections()
             .AddQueryType<ConstructorInjectionQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -546,7 +753,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     postCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
@@ -584,19 +792,19 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                 .UseInMemoryDatabase(databaseName)
                 .Options))
         {
-            await seedContext.Database.EnsureCreatedAsync();
+            await seedContext.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
 
             var blog1 = new ConstructorInjectionBlog { Name = "Blog1" };
             var blog2 = new ConstructorInjectionBlog { Name = "Blog2" };
 
             await seedContext.Blogs.AddRangeAsync(blog1, blog2);
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
 
             await seedContext.Posts.AddRangeAsync(
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog1.Id },
                 new ConstructorInjectionPost { BlogId = blog2.Id });
-            await seedContext.SaveChangesAsync();
+            await seedContext.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
         }
 
         var executor = await new ServiceCollection()
@@ -605,7 +813,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             .AddGraphQL()
             .AddProjections()
             .AddQueryType<ConstructorInjectionQuery>()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
 
         var result = await executor.ExecuteAsync(
             """
@@ -619,7 +827,8 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
                     postCount
                 }
             }
-            """);
+            """,
+            Xunit.TestContext.Current.CancellationToken);
 
         var operationResult = result.ExpectOperationResult();
         Assert.True(operationResult.Errors is null || operationResult.Errors.Count == 0);
@@ -644,6 +853,970 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
             }
 
             return result;
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AsSelector_Should_Project_Conditional_Child_When_Include_Flag_Is_Set(bool include)
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            var sqlCapture = new ConditionalSqlCapture();
+
+            await using var services = new ServiceCollection()
+                .AddSingleton(sqlCapture)
+                .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddProjectionSelectorCache()
+                .AddQueryType<ConditionalQuery>()
+                .AddType<ConditionalTenantType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            // act
+            // the workspaces relation carries a variable based @include directive, which makes
+            // the child selection conditional. when included, the relation must be projected and
+            // present in the SQL. when excluded, the relation must not be projected (no over-fetch).
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($if: Boolean!) {
+                          tenants {
+                            id
+                            workspaces @include(if: $if) {
+                              id
+                            }
+                          }
+                        }
+                        """)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = include })
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
+
+            // assert
+            await new Snapshot(postFix: include ? "include_true" : "include_false")
+                .Add(result, "Result")
+                .Add(sqlCapture.Sql ?? "<none>", "SQL")
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Project_Child_When_Parent_Include_Is_True()
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            var sqlCapture = new ConditionalSqlCapture();
+
+            await using var services = new ServiceCollection()
+                .AddSingleton(sqlCapture)
+                .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddProjectionSelectorCache()
+                .AddQueryType<ConditionalQuery>()
+                .AddType<ConditionalTenantType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            // act
+            // the parent field carries a variable based @include directive, which makes the
+            // selection conditional. the unconditional workspaces child inherits the parent's
+            // path include-flag and must still be projected (relation present in the SQL).
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($if: Boolean!) {
+                          tenants @include(if: $if) {
+                            id
+                            workspaces {
+                              id
+                            }
+                          }
+                        }
+                        """)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = true })
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
+
+            // assert
+            await new Snapshot()
+                .Add(result, "Result")
+                .Add(sqlCapture.Sql ?? "<none>", "SQL")
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Not_Invoke_Resolver_When_Parent_Include_Is_False()
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            var sqlCapture = new ConditionalSqlCapture();
+
+            await using var services = new ServiceCollection()
+                .AddSingleton(sqlCapture)
+                .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddProjectionSelectorCache()
+                .AddQueryType<ConditionalQuery>()
+                .AddType<ConditionalTenantType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            // act
+            // the parent field is excluded at the top level, so the resolver is never invoked
+            // and the tenants field is absent from the result.
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($if: Boolean!) {
+                          tenants @include(if: $if) {
+                            id
+                            workspaces {
+                              id
+                            }
+                          }
+                        }
+                        """)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = false })
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
+
+            // assert
+            var operationResult = result.ExpectOperationResult();
+            using var document = JsonDocument.Parse(operationResult.ToJson());
+            Assert.Empty(operationResult.Errors ?? []);
+            Assert.Null(sqlCapture.Sql);
+            Assert.False(
+                document.RootElement.GetProperty("data").TryGetProperty("tenants", out _),
+                operationResult.ToJson());
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AsSelector_Should_Project_Conditional_Child_When_No_Flags_Are_Passed(bool include)
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            var sqlCapture = new ConditionalSqlCapture();
+
+            await using var services = new ServiceCollection()
+                .AddSingleton(sqlCapture)
+                .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddProjectionSelectorCache()
+                .AddQueryType<ConditionalQuery>()
+                .AddType<ConditionalTenantType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            // act
+            // the resolver builds the selector without runtime include flags, so the runtime
+            // inclusion of the conditional workspaces relation is unknown. the relation must
+            // always be projected (relation present in the SQL) so that no data is missing
+            // when the relation is included. the result must only contain the relation when
+            // it is included.
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($if: Boolean!) {
+                          tenantsWithDefaultSelector {
+                            id
+                            workspaces @include(if: $if) {
+                              id
+                            }
+                          }
+                        }
+                        """)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = include })
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
+
+            // assert
+            await new Snapshot(postFix: include ? "include_true" : "include_false")
+                .Add(result, "Result")
+                .Add(sqlCapture.Sql ?? "<none>", "SQL")
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Project_Child_When_Parent_Is_Conditional_And_No_Flags_Are_Passed()
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            var sqlCapture = new ConditionalSqlCapture();
+
+            await using var services = new ServiceCollection()
+                .AddSingleton(sqlCapture)
+                .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddProjectionSelectorCache()
+                .AddQueryType<ConditionalQuery>()
+                .AddType<ConditionalTenantType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            // act
+            // the parent field carries a variable based @include directive and the resolver
+            // builds the selector without runtime include flags. the children inherit the
+            // parent's include condition and must still be projected, since the resolver
+            // only runs when the parent is included.
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($if: Boolean!) {
+                          tenantsWithDefaultSelector @include(if: $if) {
+                            id
+                            workspaces {
+                              id
+                            }
+                          }
+                        }
+                        """)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = true })
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
+
+            // assert
+            await new Snapshot()
+                .Add(result, "Result")
+                .Add(sqlCapture.Sql ?? "<none>", "SQL")
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AsSelector_Should_Project_Conditional_Child_When_Paging_Is_Used(bool include)
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            var sqlCapture = new ConditionalSqlCapture();
+
+            await using var services = new ServiceCollection()
+                .AddSingleton(sqlCapture)
+                .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddProjectionSelectorCache()
+                .AddQueryType<ConditionalQuery>()
+                .AddType<ConditionalTenantType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            // act
+            // the projection is created for a connection field, so the selector is built
+            // from the nodes selection of the connection. the conditional workspaces
+            // relation below the nodes selection must be projected exactly as included.
+            var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(
+                        """
+                        query($if: Boolean!) {
+                          tenantsPaged {
+                            nodes {
+                              id
+                              workspaces @include(if: $if) {
+                                id
+                              }
+                            }
+                          }
+                        }
+                        """)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = include })
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
+
+            // assert
+            await new Snapshot(postFix: include ? "include_true" : "include_false")
+                .Add(result, "Result")
+                .Add(sqlCapture.Sql ?? "<none>", "SQL")
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Project_Conditional_Child_When_Executor_Is_Reused()
+    {
+        // arrange
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+
+        try
+        {
+            var sqlCapture = new ConditionalSqlCapture();
+
+            await using var services = new ServiceCollection()
+                .AddSingleton(sqlCapture)
+                .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString))
+                .AddGraphQL()
+                .AddProjectionSelectorCache()
+                .AddQueryType<ConditionalQuery>()
+                .AddType<ConditionalTenantType>()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                .Services
+                .BuildServiceProvider();
+
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            const string document =
+                """
+                query($if: Boolean!) {
+                  tenants {
+                    id
+                    workspaces @include(if: $if) {
+                      id
+                    }
+                  }
+                }
+                """;
+
+            // act
+            // the same executor processes the same document with different variable values,
+            // so the second request reuses the cached operation. the projection of the second
+            // request must not be affected by any state the first request left behind.
+            var excludedResult = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(document)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = false })
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
+            var excludedSql = sqlCapture.Sql;
+
+            sqlCapture.Sql = null;
+
+            var includedResult = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument(document)
+                    .SetVariableValues(new Dictionary<string, object?> { ["if"] = true })
+                    .Build(),
+                Xunit.TestContext.Current.CancellationToken);
+            var includedSql = sqlCapture.Sql;
+
+            // assert
+            await new Snapshot()
+                .Add(excludedResult, "Result include=false")
+                .Add(excludedSql ?? "<none>", "SQL include=false")
+                .Add(includedResult, "Result include=true")
+                .Add(includedSql ?? "<none>", "SQL include=true")
+                .MatchMarkdownAsync(Xunit.TestContext.Current.CancellationToken);
+        }
+        finally
+        {
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Reuse_Cached_Selector_When_False_Flags_Repeat()
+    {
+        // arrange
+        await using var context = await CreateConditionalTestContextAsync();
+
+        // act
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, false);
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, true);
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, false);
+
+        // assert
+        Assert.Equal(3, context.SelectorCapture.Selectors.Count);
+        Assert.Same(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[2]);
+        Assert.NotSame(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[1]);
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Reuse_Cached_Selector_When_True_Flags_Repeat()
+    {
+        // arrange
+        await using var context = await CreateConditionalTestContextAsync();
+
+        // act
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, true);
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, false);
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, true);
+
+        // assert
+        Assert.Equal(3, context.SelectorCapture.Selectors.Count);
+        Assert.Same(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[2]);
+        Assert.NotSame(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[1]);
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Not_MisShare_Cached_Wide_Selector_When_Overflow_Flag_Differs()
+    {
+        // arrange
+        await using var context = await CreateConditionalTestContextAsync();
+        var document = CreateWideConditionalSelectorDocument("tenantsCapturedWide");
+        var excludedVariables = CreateWideConditionalVariables(include: false);
+        var includedVariables = CreateWideConditionalVariables(include: true);
+
+        // act
+        await ExecuteConditionalRequestAsync(context, document, excludedVariables);
+        await ExecuteConditionalRequestAsync(context, document, includedVariables);
+        await ExecuteConditionalRequestAsync(context, document, excludedVariables);
+
+        // assert
+        Assert.Equal(3, context.SelectorCapture.Selectors.Count);
+        Assert.NotSame(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[1]);
+        Assert.Same(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[2]);
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Evict_Narrow_Selector_When_Wide_Variants_Reach_Aggregate_Capacity()
+    {
+        // arrange
+        var diagnostics = new ConditionalCacheDiagnostics();
+        await using var context = await CreateConditionalTestContextAsync(2, diagnostics);
+        var wideDocument = CreateWideConditionalSelectorDocument("tenantsCapturedWide");
+
+        // act
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, false);
+        await ExecuteConditionalRequestAsync(
+            context,
+            wideDocument,
+            CreateWideConditionalVariables(include: false));
+        await ExecuteConditionalRequestAsync(
+            context,
+            wideDocument,
+            CreateWideConditionalVariables(include: true));
+        await ExecuteConditionalSelectorCaptureRequestAsync(context, false);
+
+        // assert
+        Assert.Equal(4, context.SelectorCapture.Selectors.Count);
+        Assert.NotSame(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[3]);
+        Assert.Equal(1, diagnostics.CapacityGaugeRegistrations);
+        Assert.Equal(2, diagnostics.CapacityGauge!());
+        Assert.InRange(diagnostics.SizeGauge!(), 0, 2);
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Reuse_Selection_Cached_Selector_When_Subtree_Is_Unconditional_In_Conditional_Operation()
+    {
+        // arrange
+        await using var context = await CreateConditionalTestContextAsync();
+
+        const string document =
+            """
+            query($if: Boolean!) {
+              tenantsCapturedUnconditional {
+                id
+              }
+              tenantNames @include(if: $if)
+            }
+            """;
+
+        // act
+        await ExecuteConditionalRequestAsync(context, document, false);
+        await ExecuteConditionalRequestAsync(context, document, true);
+
+        // assert
+        Assert.Equal(4, context.SelectorCapture.Selectors.Count);
+        Assert.Same(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[1]);
+        Assert.Same(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[2]);
+        Assert.Same(context.SelectorCapture.Selectors[0], context.SelectorCapture.Selectors[3]);
+    }
+
+    [Fact]
+    public async Task AsSelector_Should_Throw_For_Raw_Flags_When_Wide_Selector_Is_Cached()
+    {
+        // arrange
+        await using var context = await CreateConditionalTestContextAsync();
+        var document = CreateWideConditionalSelectorDocument("tenantsRawSelectorGuard");
+
+        // act
+        await ExecuteConditionalRequestAsync(
+            context,
+            document,
+            CreateWideConditionalVariables(include: true));
+
+        // assert
+        context.SelectorCapture.RawSelectorExceptions
+            .Select(static exception => $"{exception?.GetType().Name}: {exception?.Message}")
+            .MatchInlineSnapshots(
+                [
+                    """
+                    InvalidOperationException: The operation has more than 64 include conditions; this projection requires the wide include flags. Use AsSelector<TValue>(ConditionFlags).
+                    """,
+                    """
+                    InvalidOperationException: The operation has more than 64 include conditions; this projection requires the wide include flags. Use AsSelector<TValue>(ConditionFlags).
+                    """
+                ]);
+    }
+
+    private static async Task ExecuteConditionalSelectorCaptureRequestAsync(
+        ConditionalTestContext context,
+        bool include)
+        => await ExecuteConditionalRequestAsync(
+            context,
+            """
+            query($if: Boolean!) {
+              tenantsCaptured {
+                id
+                workspaces @include(if: $if) {
+                  id
+                }
+              }
+            }
+            """,
+            include);
+
+    private static Task ExecuteConditionalRequestAsync(
+        ConditionalTestContext context,
+        string document,
+        bool include)
+        => ExecuteConditionalRequestAsync(
+            context,
+            document,
+            new Dictionary<string, object?> { ["if"] = include });
+
+    private static async Task ExecuteConditionalRequestAsync(
+        ConditionalTestContext context,
+        string document,
+        IReadOnlyDictionary<string, object?> variables)
+    {
+        var result = await context.Executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(document)
+                .SetVariableValues(variables)
+                .Build(),
+            Xunit.TestContext.Current.CancellationToken);
+
+        var operationResult = result.ExpectOperationResult();
+        if (operationResult.Errors is { Count: > 0 })
+        {
+            throw new InvalidOperationException(operationResult.ToJson());
+        }
+    }
+
+    private static string CreateWideConditionalSelectorDocument(string fieldName)
+    {
+        var variables = new string[65];
+        var fields = new string[64];
+
+        for (var i = 0; i < 64; i++)
+        {
+            variables[i] = $"$condition{i}: Boolean!";
+            fields[i] = $"tenantNames{i}: tenantNames @include(if: $condition{i})";
+        }
+
+        variables[64] = "$wide: Boolean!";
+
+        return $$"""
+            query({{string.Join(", ", variables)}}) {
+              {{string.Join(Environment.NewLine + "  ", fields)}}
+              tenants: {{fieldName}} {id
+                workspaces @include(if: $wide) {
+                  id
+                }
+              }
+            }
+            """;
+    }
+
+    private static IReadOnlyDictionary<string, object?> CreateWideConditionalVariables(bool include)
+    {
+        var variables = new Dictionary<string, object?>(65);
+
+        for (var i = 0; i < 64; i++)
+        {
+            variables.Add($"condition{i}", false);
+        }
+
+        variables.Add("wide", include);
+        return variables;
+    }
+
+    private static async Task<ConditionalTestContext> CreateConditionalTestContextAsync(
+        int cacheCapacity = 4096,
+        CacheDiagnostics? cacheDiagnostics = null)
+    {
+        var dbFile = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            $"conditional-projection-{Guid.NewGuid():N}.db");
+        var connectionString = $"Data Source={dbFile}";
+        var sqlCapture = new ConditionalSqlCapture();
+        var selectorCapture = new ConditionalSelectorCapture();
+
+        var serviceCollection = new ServiceCollection()
+            .AddSingleton(sqlCapture)
+            .AddSingleton(selectorCapture)
+            .AddDbContext<ConditionalDbContext>(b => b.UseSqlite(connectionString));
+
+        var builder = serviceCollection.AddGraphQL();
+
+        if (cacheDiagnostics is not null)
+        {
+            builder.ConfigureSchemaServices(
+                services => services.AddSingleton<CacheDiagnostics>(cacheDiagnostics));
+        }
+
+        var services = builder
+            .AddProjectionSelectorCache(cacheCapacity)
+            .AddQueryType<ConditionalQuery>()
+            .AddType<ConditionalTenantType>()
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+            .Services
+            .BuildServiceProvider();
+
+        try
+        {
+            await using (var scope = services.CreateAsyncScope())
+            {
+                await using var context = scope.ServiceProvider.GetRequiredService<ConditionalDbContext>();
+                await context.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+
+                context.Tenants.Add(
+                    new ConditionalTenant
+                    {
+                        Id = 1,
+                        Name = "Acme",
+                        Workspaces =
+                        [
+                            new ConditionalWorkspace { Id = 1, Name = "Alpha" },
+                            new ConditionalWorkspace { Id = 2, Name = "Beta" }
+                        ]
+                    });
+
+                await context.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await services
+                .GetRequiredService<IRequestExecutorProvider>()
+                .GetExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            return new ConditionalTestContext(
+                dbFile,
+                services,
+                executor,
+                sqlCapture,
+                selectorCapture);
+        }
+        catch
+        {
+            await services.DisposeAsync();
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+
+            throw;
+        }
+    }
+
+    [Fact]
+    public async Task UseProjection_Should_Project_Only_Selected_Columns_When_Entity_Is_Record()
+    {
+        // arrange
+        var fileName = Guid.NewGuid().ToString("N") + ".db";
+        var connectionString = "Data Source=" + fileName;
+        var sql = new List<string>();
+
+        try
+        {
+            await using (var seed = new RecordProjectionDbContext(
+                new DbContextOptionsBuilder<RecordProjectionDbContext>()
+                    .UseSqlite(connectionString)
+                    .Options))
+            {
+                await seed.Database.EnsureCreatedAsync(Xunit.TestContext.Current.CancellationToken);
+                seed.Products.Add(
+                    new RecordProjectionProduct { Id = 1, Name = "Product", Description = "Description" });
+                await seed.SaveChangesAsync(Xunit.TestContext.Current.CancellationToken);
+            }
+
+            var executor = await new ServiceCollection()
+                .AddDbContext<RecordProjectionDbContext>(
+                    b => b
+                        .UseSqlite(connectionString)
+                        .AddInterceptors(new SqlCapturingInterceptor(sql)))
+                .AddGraphQL()
+                .AddProjections()
+                .AddQueryType<RecordProjectionQuery>()
+                .BuildRequestExecutorAsync(cancellationToken: Xunit.TestContext.Current.CancellationToken);
+
+            // act
+            var result = await executor.ExecuteAsync(
+                "{ products { id } }",
+                Xunit.TestContext.Current.CancellationToken);
+
+            // assert
+            var operationResult = result.ExpectOperationResult();
+            Assert.Empty(operationResult.Errors);
+            string.Join("\n", sql).MatchInlineSnapshot(
+                """
+                SELECT "p"."Id"
+                FROM "Products" AS "p"
+                """);
+        }
+        finally
+        {
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            File.Delete(fileName);
         }
     }
 
@@ -701,6 +1874,29 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         public int BlogId { get; set; }
     }
 
+    public class RecordProjectionQuery
+    {
+        [UseProjection]
+        public IQueryable<RecordProjectionProduct> GetProducts(RecordProjectionDbContext context)
+            => context.Products;
+    }
+
+    public class RecordProjectionDbContext(
+        DbContextOptions<RecordProjectionDbContext> options)
+        : DbContext(options)
+    {
+        public DbSet<RecordProjectionProduct> Products => Set<RecordProjectionProduct>();
+    }
+
+    public record RecordProjectionProduct
+    {
+        public required int Id { get; init; }
+
+        public required string Name { get; init; }
+
+        public required string Description { get; init; }
+    }
+
     public class SingleOrDefaultUser
     {
         public string Name { get; set; } = string.Empty;
@@ -709,5 +1905,207 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
     public class SingleOrDefaultActiveUser : SingleOrDefaultUser
     {
         public bool IsActive { get; set; }
+    }
+
+    public sealed class ConditionalSqlCapture
+    {
+        public string? Sql { get; set; }
+    }
+
+    public sealed class ConditionalSelectorCapture
+    {
+        public List<LambdaExpression> Selectors { get; } = [];
+
+        public List<Exception?> RawSelectorExceptions { get; } = [];
+    }
+
+    private sealed class ConditionalCacheDiagnostics : CacheDiagnostics
+    {
+        public int CapacityGaugeRegistrations { get; private set; }
+
+        public Func<long>? CapacityGauge { get; private set; }
+
+        public Func<long>? SizeGauge { get; private set; }
+
+        public override void RegisterCapacityGauge(Func<long> capacityProvider)
+        {
+            CapacityGaugeRegistrations++;
+            CapacityGauge = capacityProvider;
+        }
+
+        public override void RegisterSizeGauge(Func<long> sizeProvider)
+            => SizeGauge = sizeProvider;
+
+        public override void Hit() { }
+
+        public override void Miss() { }
+
+        public override void Evict() { }
+    }
+
+    private sealed class ConditionalTestContext(
+        string dbFile,
+        ServiceProvider services,
+        IRequestExecutor executor,
+        ConditionalSqlCapture sqlCapture,
+        ConditionalSelectorCapture selectorCapture)
+        : IAsyncDisposable
+    {
+        public IRequestExecutor Executor { get; } = executor;
+
+        public ConditionalSqlCapture SqlCapture { get; } = sqlCapture;
+
+        public ConditionalSelectorCapture SelectorCapture { get; } = selectorCapture;
+
+        public async ValueTask DisposeAsync()
+        {
+            await services.DisposeAsync();
+
+            if (File.Exists(dbFile))
+            {
+                File.Delete(dbFile);
+            }
+        }
+    }
+
+    public sealed class ConditionalQuery
+    {
+        public IQueryable<ConditionalTenant> GetTenants(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture)
+        {
+            var selection = context.Selection;
+            var query = database.Tenants.Select(selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags));
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        public IQueryable<ConditionalTenant> GetTenantsCaptured(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture,
+            [Service] ConditionalSelectorCapture selectorCapture)
+        {
+            var selection = context.Selection;
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
+            selectorCapture.Selectors.Add(selector);
+            var query = database.Tenants.Select(selector);
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        public IQueryable<ConditionalTenant> GetTenantsCapturedWide(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture,
+            [Service] ConditionalSelectorCapture selectorCapture)
+        {
+            var selection = context.Selection;
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
+            selectorCapture.Selectors.Add(selector);
+            var query = database.Tenants.Select(selector);
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        public IQueryable<ConditionalTenant> GetTenantsRawSelectorGuard(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture,
+            [Service] ConditionalSelectorCapture selectorCapture)
+        {
+            var selection = context.Selection;
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
+            var includeFlags = context.IncludeConditionFlags.Word0;
+
+#pragma warning disable CS0618 // The obsolete overloads are the regression scenario under test.
+            selectorCapture.RawSelectorExceptions.Add(
+                Record.Exception(() => selection.AsSelector<ConditionalTenant>(includeFlags)));
+
+            ISelection interfaceSelection = selection;
+            selectorCapture.RawSelectorExceptions.Add(
+                Record.Exception(() => interfaceSelection.AsSelector<ConditionalTenant>(includeFlags)));
+#pragma warning restore CS0618
+
+            var query = database.Tenants.Select(selector);
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        public IQueryable<ConditionalTenant> GetTenantsCapturedUnconditional(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture,
+            [Service] ConditionalSelectorCapture selectorCapture)
+        {
+            var selection = context.Selection;
+            var selector = selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags);
+            var defaultSelector = selection.AsSelector<ConditionalTenant>();
+            selectorCapture.Selectors.Add(selector);
+            selectorCapture.Selectors.Add(defaultSelector);
+            var query = database.Tenants.Select(selector);
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        public IQueryable<ConditionalTenant> GetTenantsWithDefaultSelector(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture)
+        {
+            var selection = context.Selection;
+            var query = database.Tenants.Select(selection.AsSelector<ConditionalTenant>());
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        [UsePaging]
+        public IQueryable<ConditionalTenant> GetTenantsPaged(
+            ConditionalDbContext database,
+            IResolverContext context,
+            [Service] ConditionalSqlCapture sqlCapture)
+        {
+            var selection = context.Selection;
+            var query = database.Tenants
+                .OrderBy(t => t.Id)
+                .Select(selection.AsSelector<ConditionalTenant>(context.IncludeConditionFlags));
+            sqlCapture.Sql = query.ToQueryString();
+            return query;
+        }
+
+        public IQueryable<string> GetTenantNames(ConditionalDbContext database)
+            => database.Tenants.Select(t => t.Name);
+    }
+
+    public sealed class ConditionalTenantType : ObjectType<ConditionalTenant>
+    {
+        protected override void Configure(IObjectTypeDescriptor<ConditionalTenant> descriptor)
+        {
+            descriptor.Field(t => t.Name).Ignore();
+        }
+    }
+
+    public sealed class ConditionalDbContext(DbContextOptions<ConditionalDbContext> options) : DbContext(options)
+    {
+        public DbSet<ConditionalTenant> Tenants => Set<ConditionalTenant>();
+
+        public DbSet<ConditionalWorkspace> Workspaces => Set<ConditionalWorkspace>();
+    }
+
+    public sealed class ConditionalTenant
+    {
+        public int Id { get; set; }
+
+        public required string Name { get; set; }
+
+        public List<ConditionalWorkspace> Workspaces { get; set; } = [];
+    }
+
+    public sealed class ConditionalWorkspace
+    {
+        public int Id { get; set; }
+
+        public required string Name { get; set; }
     }
 }

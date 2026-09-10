@@ -19,5 +19,7 @@ public sealed class BookType : ObjectType<Book>
     }
 
     private static Book? ResolveByUpc(string upc)
-        => AData.ByUpc.TryGetValue(upc, out var b) ? b : null;
+        => AData.ByUpc.TryGetValue(upc, out var b)
+            ? b
+            : throw new InvalidOperationException("Invalid reference.");
 }

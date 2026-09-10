@@ -67,7 +67,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_DispatchToErrorEndpoint_When_MessageNotConsumed()
+    public async Task InvokeAsync_Should_DispatchToSkippedEndpoint_When_MessageNotConsumed()
     {
         // arrange
         var executed = false;
@@ -89,6 +89,93 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
 
         // assert
         Assert.True(executed);
+    }
+
+    [Fact]
+    public async Task Create_Should_DispatchToSkippedEndpoint_When_SkippedEndpointConfigured()
+    {
+        // arrange
+        var faultExecuted = false;
+        var skippedExecuted = false;
+        var transport = new StubTransport();
+        SetTransportOptions(transport, new StubTransportOptions());
+        var receiveEndpoint = new StubReceiveEndpoint(transport);
+        var faultEndpoint = CreateDispatchEndpoint(transport, _ =>
+        {
+            faultExecuted = true;
+            return ValueTask.CompletedTask;
+        });
+        var skippedEndpoint = CreateDispatchEndpoint(transport, _ =>
+        {
+            skippedExecuted = true;
+            return ValueTask.CompletedTask;
+        });
+        receiveEndpoint.Features.GetOrSet<ReceiveFaultEndpointFeature>().Endpoint = faultEndpoint;
+        receiveEndpoint.Features.GetOrSet<ReceiveSkippedEndpointFeature>().Endpoint = skippedEndpoint;
+        var pools = new MockMessagingPools(new DispatchContext());
+        var services = CreateServices(s => s.AddSingleton<IMessagingPools>(pools));
+        var middleware = ReceiveDeadLetterMiddleware.Create().Middleware(
+            new ReceiveMiddlewareFactoryContext
+            {
+                Services = services,
+                Endpoint = receiveEndpoint,
+                Transport = transport
+            },
+            CreatePassthroughDelegate());
+        var context = new StubReceiveContext
+        {
+            Services = services,
+            Runtime = new StubMessagingRuntime(),
+            Endpoint = receiveEndpoint,
+            Envelope = CreateEnvelope()
+        };
+
+        // act
+        await middleware(context);
+
+        // assert
+        Assert.True(skippedExecuted);
+        Assert.False(faultExecuted);
+    }
+
+    [Fact]
+    public async Task Create_Should_DispatchToFaultEndpoint_When_SkippedEndpointNotConfigured()
+    {
+        // arrange
+        var faultExecuted = false;
+        var transport = new StubTransport();
+        SetTransportOptions(transport, new StubTransportOptions());
+        var receiveEndpoint = new StubReceiveEndpoint(transport);
+        var feature = receiveEndpoint.Features.GetOrSet<ReceiveFaultEndpointFeature>();
+        feature.Endpoint = CreateDispatchEndpoint(transport, _ =>
+        {
+            faultExecuted = true;
+            return ValueTask.CompletedTask;
+        });
+        var pools = new MockMessagingPools(new DispatchContext());
+        var services = CreateServices(s => s.AddSingleton<IMessagingPools>(pools));
+        var middlewareFactory = ReceiveDeadLetterMiddleware.Create().Middleware;
+        var middleware = middlewareFactory(
+            new ReceiveMiddlewareFactoryContext
+            {
+                Services = services,
+                Endpoint = receiveEndpoint,
+                Transport = transport
+            },
+            CreatePassthroughDelegate());
+        var context = new StubReceiveContext
+        {
+            Services = services,
+            Runtime = new StubMessagingRuntime(),
+            Endpoint = receiveEndpoint,
+            Envelope = CreateEnvelope()
+        };
+
+        // act
+        await middleware(context);
+
+        // assert
+        Assert.True(faultExecuted);
     }
 
     [Fact]
@@ -116,6 +203,97 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         // assert
         Assert.NotNull(capturedEnvelope);
         Assert.Same(envelope, capturedEnvelope);
+    }
+
+    [Fact]
+    public async Task ReceiveDeadLetterMiddleware_Should_BeNoOp_When_SkippedEndpointIsNull()
+    {
+        // arrange - no skipped-endpoint convention is registered, so SkippedEndpoint is null
+        // on every receive endpoint and Create() must short-circuit to next. Send a message of
+        // an unmatched type directly to the receive endpoint's queue: it arrives at the pipeline
+        // but no consumer matches. With the dead-letter MW absent, the message must simply pass
+        // through without being re-routed and the call must not throw.
+        var recorder = new MessageRecorder();
+        await using var provider = await CreateBusWithUnmatchedRouteAsync(
+            b => b.Services.AddSingleton(recorder),
+            registerSkippedConvention: false);
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act - this must not throw despite no consumer matching.
+        await bus.SendAsync(
+            new UnmatchedDeadLetterEvent { Id = "noop-1" },
+            new SendOptions { Endpoint = new Uri($"{InMemorySchema}:q/{NoopEndpointQueue}") },
+            CancellationToken.None);
+
+        // assert - no _skipped queue exists; the short-circuit kept the DeadLetter MW out of the pipeline.
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+        Assert.DoesNotContain(topology.Queues, q => q.Name.EndsWith("_skipped"));
+        Assert.Empty(recorder.Messages);
+    }
+
+    [Fact]
+    public async Task ReceiveDeadLetterMiddleware_Should_ForwardToSkippedEndpoint_When_NoConsumerMatched()
+    {
+        // arrange - configure an endpoint that handles only DeadLetterTestEvent and a skipped
+        // convention. Send a message of an unrelated type directly to the queue. The receive
+        // endpoint's pipeline runs, RoutingMiddleware finds no consumers, and the dead-letter MW
+        // must forward the envelope to the skipped endpoint.
+        var recorder = new MessageRecorder();
+        await using var provider = await CreateBusWithUnmatchedRouteAsync(
+            b => b.Services.AddSingleton(recorder),
+            registerSkippedConvention: true);
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act
+        await bus.SendAsync(
+            new UnmatchedDeadLetterEvent { Id = "skipped-1" },
+            new SendOptions { Endpoint = new Uri($"{InMemorySchema}:q/{NoopEndpointQueue}") },
+            CancellationToken.None);
+
+        // assert - one message lands on the skipped queue with the original message type intact.
+        var skippedQueue = GetSkippedQueue(provider);
+        var items = await ConsumeFromQueueAsync(skippedQueue, expectedCount: 1);
+
+        var envelope = Assert.Single(items);
+        Assert.NotNull(envelope.MessageType);
+        // The default naming convention emits identities like
+        // "urn:message:<kebab-namespace>:<kebab-typename>" so search for the kebab-cased name.
+        Assert.Contains("unmatched-dead-letter-event", envelope.MessageType);
+        Assert.Empty(recorder.Messages);
+    }
+
+    private const string InMemorySchema = InMemoryTransportConfiguration.DefaultSchema;
+    private const string NoopEndpointQueue = "noop-endpoint";
+
+    private static async Task<ServiceProvider> CreateBusWithUnmatchedRouteAsync(
+        Action<IMessageBusHostBuilder> configure,
+        bool registerSkippedConvention)
+    {
+        var services = new ServiceCollection();
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<DeadLetterTestEventHandler>();
+        configure(builder);
+
+        builder.AddInMemory(d =>
+        {
+            d.Endpoint(NoopEndpointQueue).Handler<DeadLetterTestEventHandler>();
+
+            if (registerSkippedConvention)
+            {
+                d.AddConvention(new TestSkippedEndpointConvention());
+            }
+        });
+
+        var provider = services.BuildServiceProvider();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(CancellationToken.None);
+        return provider;
     }
 
     [Fact]
@@ -256,7 +434,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
 
         // No deterministic signal for a swallowed exception; let the fault settle
         // so the message is routed to the error endpoint.
-        await Task.Delay(500, default);
+        await Task.Delay(500, TestContext.Current.CancellationToken);
 
         // assert - the recorder should NOT have the message because the handler threw
         // before it could record. Dead letter middleware catches the exception silently.
@@ -286,7 +464,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
 
         // Let the fault propagate before publishing the next message -
         // no deterministic signal for a swallowed exception.
-        await Task.Delay(200, default);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         await bus.PublishAsync(new DeadLetterTestEvent { Id = "success-1" }, CancellationToken.None);
 
@@ -331,7 +509,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
             "Should receive exactly 3 successful messages");
 
         // Negative wait: confirm no extra messages arrive after the expected 3.
-        await Task.Delay(200, default);
+        await Task.Delay(200, TestContext.Current.CancellationToken);
 
         Assert.Equal(3, recorder.Messages.Count);
         var ids = recorder.Messages.Cast<DeadLetterTestEvent>().Select(e => e.Id).OrderBy(id => id).ToList();
@@ -457,6 +635,14 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         return topology.Queues.First(q => q.Name.EndsWith("_error"));
     }
 
+    private static InMemoryQueue GetSkippedQueue(ServiceProvider provider)
+    {
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+        return topology.Queues.First(q => q.Name.EndsWith("_skipped"));
+    }
+
     private static async Task<List<MessageEnvelope>> ConsumeFromQueueAsync(InMemoryQueue queue, int expectedCount)
     {
         using var cts = new CancellationTokenSource(Timeout);
@@ -491,7 +677,23 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         {
             if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
             {
-                configuration.ErrorEndpoint ??= new Uri($"{transport.Schema}:q/{queueName}_error");
+                configuration.Features.GetOrSet<ReceiveFaultEndpointFeature>().Address ??=
+                    new Uri($"{transport.Schema}:q/{queueName}_error");
+            }
+        }
+    }
+
+    private sealed class TestSkippedEndpointConvention : IInMemoryReceiveEndpointConfigurationConvention
+    {
+        public void Configure(
+            IMessagingConfigurationContext context,
+            InMemoryMessagingTransport transport,
+            InMemoryReceiveEndpointConfiguration configuration)
+        {
+            if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
+            {
+                configuration.Features.GetOrSet<ReceiveSkippedEndpointFeature>().Address ??=
+                    new Uri($"{transport.Schema}:q/{queueName}_skipped");
             }
         }
     }
@@ -503,8 +705,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         var transport = new StubTransport();
         SetTransportOptions(transport, transportOptions);
 
-        var endpoint = new StubDispatchEndpoint(transport);
-        SetPipeline(endpoint, onExecute ?? (_ => ValueTask.CompletedTask));
+        var endpoint = CreateDispatchEndpoint(transport, onExecute ?? (_ => ValueTask.CompletedTask));
 
         var dispatchContext = new DispatchContext();
         var pools = new MockMessagingPools(dispatchContext);
@@ -512,6 +713,15 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
 
         var middleware = new ReceiveDeadLetterMiddleware(endpoint, pools, logger);
         return (middleware, pools);
+    }
+
+    private static StubDispatchEndpoint CreateDispatchEndpoint(
+        MessagingTransport transport,
+        Func<IDispatchContext, ValueTask> onExecute)
+    {
+        var endpoint = new StubDispatchEndpoint(transport);
+        SetPipeline(endpoint, onExecute);
+        return endpoint;
     }
 
     private static void SetPipeline(DispatchEndpoint endpoint, Func<IDispatchContext, ValueTask> handler)
@@ -538,6 +748,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
     private sealed class StubMessagingOptions : IReadOnlyMessagingOptions
     {
         public MessageContentType DefaultContentType => new("application/json");
+        public bool IsAotCompatible => false;
     }
 
     private sealed class StubHostInfo : IHostInfo
@@ -619,6 +830,31 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         protected override DispatchEndpoint CreateDispatchEndpoint() => null!;
     }
 
+    private sealed class StubReceiveEndpoint(MessagingTransport transport) : ReceiveEndpoint(transport)
+    {
+        protected override void OnInitialize(
+            IMessagingConfigurationContext context,
+            ReceiveEndpointConfiguration configuration)
+        {
+        }
+
+        protected override void OnComplete(
+            IMessagingConfigurationContext context,
+            ReceiveEndpointConfiguration configuration)
+        {
+        }
+
+        protected override ValueTask OnStartAsync(
+            IMessagingRuntimeContext context,
+            CancellationToken cancellationToken)
+            => ValueTask.CompletedTask;
+
+        protected override ValueTask OnStopAsync(
+            IMessagingRuntimeContext context,
+            CancellationToken cancellationToken)
+            => ValueTask.CompletedTask;
+    }
+
     private sealed class StubDispatchEndpoint : DispatchEndpoint
     {
         public StubDispatchEndpoint(MessagingTransport transport) : base(transport) { }
@@ -665,6 +901,14 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
     }
 
     public sealed class DeadLetterTestEvent
+    {
+        public required string Id { get; init; }
+    }
+
+    /// <summary>
+    /// Distinct event with no registered handler; used to exercise the no-consumer-matched path.
+    /// </summary>
+    public sealed class UnmatchedDeadLetterEvent
     {
         public required string Id { get; init; }
     }

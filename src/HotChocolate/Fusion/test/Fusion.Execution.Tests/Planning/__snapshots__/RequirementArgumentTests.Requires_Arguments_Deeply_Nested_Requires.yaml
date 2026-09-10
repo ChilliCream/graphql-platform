@@ -8,10 +8,10 @@ operation:
           comments(limit: 1) {
             id
           }
-          comments @fusion__requirement {
-            authorId
-          }
           id @fusion__requirement
+          fusion__requirement_comments_0: comments @fusion__requirement {
+            authorId @fusion__requirement
+          }
         }
       }
     hash: 123456789101112
@@ -27,10 +27,10 @@ nodes:
           comments(limit: 1) {
             id
           }
-          comments {
+          id
+          fusion__requirement_comments_0: comments {
             authorId
           }
-          id
         }
       }
   - id: 2
@@ -39,7 +39,7 @@ nodes:
     operation: |
       query Op_123456789101112_2(
         $__fusion_1_id: ID!
-          $__fusion_2_commentAuthorIds: [ID]
+        $__fusion_2_commentAuthorIds: [ID]
       ) {
         postById(id: $__fusion_1_id) {
           author(commentAuthorIds: $__fusion_2_commentAuthorIds) {
@@ -54,6 +54,7 @@ nodes:
         selectionMap: >-
           id
       - name: __fusion_2_commentAuthorIds
+        internalAlias: fusion__requirement_comments_0
         selectionMap: >-
           comments[authorId]
     dependencies:

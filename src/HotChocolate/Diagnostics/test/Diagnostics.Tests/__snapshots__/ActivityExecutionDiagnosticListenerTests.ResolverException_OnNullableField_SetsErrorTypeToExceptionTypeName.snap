@@ -68,7 +68,7 @@
             },
             {
               "Key": "exception.stacktrace",
-              "Value": "System.InvalidOperationException: custom resolver failure\n   at HotChocolate.Diagnostics.ActivityExecutionDiagnosticListenerTests.SimpleQuery.ThrowInvalidOperation() in ActivityExecutionDiagnosticListenerTests.cs\n   at lambda_method(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in FieldMiddlewareCompiler.cs\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs"
+              "Value": "System.InvalidOperationException: custom resolver failure\n   at HotChocolate.Diagnostics.ActivityExecutionDiagnosticListenerTests.SimpleQuery.ThrowInvalidOperation() in ActivityExecutionDiagnosticListenerTests.cs\n   at lambda_method(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in FieldMiddlewareCompiler.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs"
             }
           ]
         }

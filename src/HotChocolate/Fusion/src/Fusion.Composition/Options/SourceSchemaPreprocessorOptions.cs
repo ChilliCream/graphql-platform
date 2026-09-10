@@ -17,6 +17,11 @@ public sealed class SourceSchemaPreprocessorOptions
     public HashSet<string> ExcludeByTag { get; set; } = [];
 
     /// <summary>
+    /// Infers the @shareable directive for fields that are resolvable by multiple source schemas.
+    /// </summary>
+    public bool InferShareable { get; set; }
+
+    /// <summary>
     /// Applies inferred key directives to types that are returned by lookup fields.
     /// </summary>
     public bool InferKeysFromLookups { get; set; } = true;

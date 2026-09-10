@@ -31,7 +31,8 @@ public class ResolverContextStateExtensionTests
                 OperationRequestBuilder.New()
                     .SetDocument("{ foo }")
                     .SetUser(user)
-                    .Build())
+                    .Build(),
+                cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 

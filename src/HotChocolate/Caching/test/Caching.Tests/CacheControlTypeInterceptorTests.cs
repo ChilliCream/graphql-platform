@@ -16,13 +16,13 @@ public class CacheControlTypeInterceptorTests
             .AddDocumentFromString(
                 """
                 type Query {
-                   field1: String
-                   field2: String @cacheControl(maxAge: 200)
+                    field1: String
+                    field2: String @cacheControl(maxAge: 200)
                 }
                 """)
             .UseField(_ => _)
             .AddCacheControl()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -40,7 +40,7 @@ public class CacheControlTypeInterceptorTests
             .UseField(_ => _)
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.DefaultMaxAge = 100)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -58,7 +58,7 @@ public class CacheControlTypeInterceptorTests
             .UseField(_ => _)
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -76,7 +76,7 @@ public class CacheControlTypeInterceptorTests
             .UseField(_ => _)
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -94,7 +94,7 @@ public class CacheControlTypeInterceptorTests
             .UseField(_ => _)
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.Enable = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -105,7 +105,7 @@ public class CacheControlTypeInterceptorTests
             .AddGraphQL()
             .AddQueryType<Query>()
             .AddCacheControl()
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -117,7 +117,7 @@ public class CacheControlTypeInterceptorTests
             .AddQueryType<Query>()
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.DefaultMaxAge = 100)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -129,7 +129,7 @@ public class CacheControlTypeInterceptorTests
             .AddQueryType<Query>()
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.DefaultScope = CacheControlScope.Private)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -141,7 +141,7 @@ public class CacheControlTypeInterceptorTests
             .AddQueryType<Query>()
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.ApplyDefaults = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -153,7 +153,7 @@ public class CacheControlTypeInterceptorTests
             .AddQueryType<Query>()
             .AddCacheControl()
             .ModifyCacheControlOptions(o => o.Enable = false)
-            .BuildSchemaAsync()
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
     }
 
@@ -336,7 +336,7 @@ public class CacheControlTypeInterceptorTests
 
         public Task<string> TaskField() => null!;
 
-        public ValueTask<string> ValueTaskField() => default!;
+        public ValueTask<string> ValueTaskField() => default;
 
         public IExecutable<string> ExecutableField() => null!;
 
@@ -355,7 +355,7 @@ public class CacheControlTypeInterceptorTests
         public Task<string> TaskFieldWithCacheControl() => null!;
 
         [CacheControl(200)]
-        public ValueTask<string> ValueTaskFieldWithCacheControl() => default!;
+        public ValueTask<string> ValueTaskFieldWithCacheControl() => default;
 
         [CacheControl(200)]
         public IExecutable<string> ExecutableFieldWithCacheControl() => null!;

@@ -148,11 +148,11 @@
                     },
                     {
                       "Key": "graphql.operation.fieldCost",
-                      "Value": 1.0
+                      "Value": 23.0
                     },
                     {
                       "Key": "graphql.operation.typeCost",
-                      "Value": 2.0
+                      "Value": 6.0
                     }
                   ],
                   "event": []

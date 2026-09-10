@@ -12,8 +12,10 @@ query IntrospectionQuery {
     directives {
       name
       description
-      args {
+      args(includeDeprecated: true) {
         ...InputValue
+        isDeprecated
+        deprecationReason
       }
       onOperation
       onFragment

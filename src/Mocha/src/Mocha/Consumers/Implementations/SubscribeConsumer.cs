@@ -10,30 +10,16 @@ namespace Mocha;
 /// Keeping subscribe behavior separate from request/send consumers avoids accidental response
 /// semantics on broadcast event flows.
 /// </remarks>
-internal sealed class SubscribeConsumer<THandler, TEvent> : Consumer where THandler : IEventHandler<TEvent>
+internal sealed class SubscribeConsumer<THandler, TEvent> : Consumer
+    where THandler : class, IEventHandler<TEvent>
 {
-    private readonly Action<IConsumerDescriptor>? _configure;
-
-    public SubscribeConsumer(Action<IConsumerDescriptor> configure)
-    {
-        _configure = configure;
-    }
-
-    public SubscribeConsumer() { }
+    public SubscribeConsumer() : base(typeof(THandler)) { }
 
     protected override void Configure(IConsumerDescriptor descriptor)
     {
         descriptor
             .Name(typeof(THandler).Name)
             .AddRoute(r => r.MessageType(typeof(TEvent)).Kind(InboundRouteKind.Subscribe));
-
-        _configure?.Invoke(descriptor);
-    }
-
-    protected override void OnAfterInitialize(IMessagingSetupContext context)
-    {
-        base.OnAfterInitialize(context);
-        SetIdentity(typeof(THandler));
     }
 
     protected override async ValueTask ConsumeAsync(IConsumeContext context)

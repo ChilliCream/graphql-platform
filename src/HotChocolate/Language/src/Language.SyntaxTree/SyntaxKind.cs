@@ -45,5 +45,6 @@ public enum SyntaxKind
     InputObjectTypeExtension,
     DirectiveDefinition,
     FloatValue,
-    SchemaCoordinate
+    SchemaCoordinate,
+    DirectiveExtension
 }

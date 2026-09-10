@@ -42,7 +42,7 @@ public class DescriptionTests
             .AddQueryType(d => d
                 .Field("field").Type<StringType>()
                 .Description("Comment with manual\nline break"))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -71,7 +71,7 @@ public class DescriptionTests
             .AddQueryType(d => d
                 .Field("field").Type<StringType>()
                 .Description("Comment with manual\n\nline breaks"))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -101,7 +101,7 @@ public class DescriptionTests
             .AddQueryType(d => d
                 .Field("field").Type<StringType>()
                 .Description("   Single line comment    "))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -127,7 +127,7 @@ public class DescriptionTests
             .AddQueryType(d => d
                 .Field("field").Type<StringType>()
                 .Description("   Multi line\ncomment    "))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -160,7 +160,7 @@ public class DescriptionTests
                                line
                              description
                              """))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert
@@ -190,7 +190,7 @@ public class DescriptionTests
             .AddQueryType(d => d
                 .Field("field").Type<StringType>()
                 .Description("Single line with linebreak at end\n"))
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         // assert

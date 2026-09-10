@@ -27,8 +27,9 @@ public sealed class DefaultEnumValue : EnumValue
             ? configuration.RuntimeValue.ToString()!
             : configuration.Name;
         Description = configuration.Description;
-        DeprecationReason = configuration.DeprecationReason;
-        IsDeprecated = !string.IsNullOrEmpty(configuration.DeprecationReason);
+        DeprecationReason = string.IsNullOrWhiteSpace(configuration.DeprecationReason)
+            ? null
+            : configuration.DeprecationReason;
         Value = configuration.RuntimeValue;
         Features = configuration.GetFeatures();
     }
@@ -36,8 +37,6 @@ public sealed class DefaultEnumValue : EnumValue
     public override string Name { get; }
 
     public override string? Description { get; }
-
-    public override bool IsDeprecated { get; }
 
     public override string? DeprecationReason { get; }
 

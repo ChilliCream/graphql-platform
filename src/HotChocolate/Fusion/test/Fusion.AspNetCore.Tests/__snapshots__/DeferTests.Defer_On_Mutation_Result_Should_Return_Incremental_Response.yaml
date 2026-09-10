@@ -1,0 +1,187 @@
+title: Defer_On_Mutation_Result_Should_Return_Incremental_Response
+request:
+  document: |
+    mutation {
+      createProduct(name: "Widget") {
+        name
+        ... @defer(label: "pricing") {
+          price
+        }
+      }
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "createProduct": {
+          "name": "Product: UHJvZHVjdDox"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "createProduct"
+        ],
+        "label": "pricing"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "createProduct"
+        ],
+        "data": {
+          "price": 123.456
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "createProduct": {
+          "name": "Product: UHJvZHVjdDox",
+          "price": 123.456
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+        mutation: Mutation
+      }
+
+      type Query {
+        product(id: ID!): Product @lookup
+      }
+
+      type Mutation {
+        createProduct(name: String!): Product!
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            mutation Op_654979ad_1 {
+              createProduct(name: "Widget") {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "createProduct": {
+                    "name": "Product: UHJvZHVjdDox",
+                    "id": "UHJvZHVjdDox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: ID!): Product @lookup
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+        price: Float!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_2($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                price
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "UHJvZHVjdDox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "price": 123.456
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        mutation {
+          createProduct(name: "Widget") {
+            name
+            id @fusion__requirement
+          }
+        }
+      hash: 654979adf678ba0b25661914ea45e4be
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        mutation Op_654979ad_1 {
+          createProduct(name: "Widget") {
+            name
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.createProduct
+      label: pricing
+  incrementalPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_2($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                price
+              }
+            }
+          source: $.productById
+          target: $.createProduct
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - parentNodeId: 1

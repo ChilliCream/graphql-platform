@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Mocha.Mediator;
 
 /// <summary>
@@ -14,6 +16,7 @@ public class MediatorHandlerConfiguration : MediatorConfiguration
     /// <summary>
     /// Gets or sets the message type (command, query, or notification type).
     /// </summary>
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
     public Type? MessageType { get; set; }
 
     /// <summary>
@@ -34,4 +37,9 @@ public class MediatorHandlerConfiguration : MediatorConfiguration
     /// It is wrapped in middleware during pipeline compilation.
     /// </summary>
     public MediatorDelegate? Delegate { get; set; }
+
+    /// <summary>
+    /// Source metadata captured from the handler declaration.
+    /// </summary>
+    public SourceMetadata? Source { get; set; }
 }

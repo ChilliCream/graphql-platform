@@ -42,7 +42,10 @@ internal sealed class WebSocketSession : ISocketSession
         ExecutorSession executorSession,
         GraphQLServerOptions serverOptions)
     {
-        using var connection = new WebSocketConnection(context, executorSession);
+        using var connection = new WebSocketConnection(
+            context,
+            executorSession,
+            serverOptions.Sockets.MaxAllowedMessageSize);
         connection.Features.Set(serverOptions);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             context.RequestAborted,
@@ -75,9 +78,11 @@ internal sealed class WebSocketSession : ISocketSession
                     await executorSession.SocketSessionInterceptor.OnCloseAsync(session,
                         connection.HttpContext.RequestAborted);
 
-                    if (!connection.IsClosed)
+                    if (connection.RequiresClose)
                     {
-                        // ensure that the connection is closed at the end.
+                        // ensure that the connection is closed at the end. This also
+                        // covers the case where the client half-closed (CloseReceived)
+                        // and the server still needs to send the answering Close frame.
                         await connection.CloseAsync(
                             WebSocketSession_SessionEnded,
                             NormalClosure,

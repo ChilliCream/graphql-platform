@@ -21,7 +21,7 @@ public class SortingBatchResolverTests
             .AddQueryType<Query>()
             .AddTypeExtension<BrandExtensions>()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -34,7 +34,8 @@ public class SortingBatchResolverTests
                     }
                 }
             }
-            """);
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
         result.MatchInlineSnapshot(
@@ -79,7 +80,7 @@ public class SortingBatchResolverTests
             .AddQueryType<Query>()
             .AddTypeExtension<BrandExtensions>()
             .AddSorting()
-            .BuildRequestExecutorAsync();
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var brandType = executor.Schema.Types.GetType<ObjectType>("Brand");

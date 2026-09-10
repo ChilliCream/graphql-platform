@@ -13,7 +13,7 @@ public static class SpecifiedByDirectiveTypeTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query1>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         schema.MatchSnapshot();
     }
@@ -25,7 +25,7 @@ public static class SpecifiedByDirectiveTypeTests
             await new ServiceCollection()
                 .AddGraphQLServer()
                 .AddQueryType<Query1>()
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Contains(
             schema.DirectiveTypes,
@@ -61,7 +61,7 @@ public static class SpecifiedByDirectiveTypeTests
                     scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/chillicream/date-time.html")
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Contains(
             schema.DirectiveTypes,
@@ -94,7 +94,7 @@ public static class SpecifiedByDirectiveTypeTests
                     directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
                     """)
                 .UseField(next => next)
-                .BuildSchemaAsync();
+                .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Contains(
             schema.DirectiveTypes,

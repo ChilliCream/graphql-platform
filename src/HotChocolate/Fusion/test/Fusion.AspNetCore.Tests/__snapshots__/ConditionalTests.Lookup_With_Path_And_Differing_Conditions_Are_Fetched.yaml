@@ -1,0 +1,149 @@
+title: Lookup_With_Path_And_Differing_Conditions_Are_Fetched
+request:
+  document: |
+    query testQuery($f: Boolean!) {
+      thing {
+        delta @skip(if: $f)
+        epsilon @include(if: $f)
+      }
+    }
+  variables: |
+    {
+      "f": false
+    }
+response:
+  body: |
+    {
+      "data": {
+        "thing": {
+          "delta": 123
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        thing: Thing
+      }
+
+      type Thing @key(fields: "id") {
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_ae99f7ef_1 {
+              thing {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "thing": {
+                    "id": 123
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        lookups: Lookups!
+      }
+
+      type Lookups {
+        thingById(id: Int!): Thing @lookup
+      }
+
+      type Thing {
+        id: Int!
+        delta: Int!
+        epsilon: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_ae99f7ef_2($f: Boolean!, $__fusion_1_id: Int!) {
+              lookups {
+                thingById(id: $__fusion_1_id) {
+                  delta @skip(if: $f)
+                  epsilon @include(if: $f)
+                }
+              }
+            }
+          variables: |
+            {
+              "f": false,
+              "__fusion_1_id": 123
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "lookups": {
+                    "thingById": {
+                      "delta": 123
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($f: Boolean!) {
+          thing {
+            id @fusion__requirement
+            delta @skip(if: $f)
+            epsilon @include(if: $f)
+          }
+        }
+      name: testQuery
+      hash: ae99f7ef761c5b175b58e506800b87a9
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_ae99f7ef_1 {
+          thing {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_ae99f7ef_2($f: Boolean!, $__fusion_1_id: Int!) {
+          lookups {
+            thingById(id: $__fusion_1_id) {
+              delta @skip(if: $f)
+              epsilon @include(if: $f)
+            }
+          }
+        }
+      source: $.lookups.thingById
+      target: $.thing
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      forwardedVariables:
+        - f
+      dependencies:
+        - id: 1

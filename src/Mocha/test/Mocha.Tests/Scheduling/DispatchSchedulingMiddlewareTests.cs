@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using Mocha.Features;
@@ -12,79 +11,22 @@ namespace Mocha.Tests.Scheduling;
 public class DispatchSchedulingMiddlewareTests
 {
     [Fact]
-    public void Create_Should_ReturnNext_When_TransportHasSchedulingTransportFeature()
+    public void Create_Should_ReturnMiddleware()
     {
         // arrange
-        var features = new FeatureCollection();
-        features.Set(new SchedulingTransportFeature { SupportsSchedulingNatively = true });
-        var transport = new StubTransport(features);
-
-        var appProvider = BuildAppProvider(registerStore: true);
-        var busProvider = BuildBusProvider(appProvider);
-
         DispatchDelegate next = _ => ValueTask.CompletedTask;
         var config = DispatchSchedulingMiddleware.Create();
         var factoryContext = new DispatchMiddlewareFactoryContext
         {
-            Services = busProvider,
+            Services = new ServiceCollection().BuildServiceProvider(),
             Endpoint = null!,
-            Transport = transport
+            Transport = new StubTransport()
         };
 
         // act
         var result = config.Middleware(factoryContext, next);
 
-        // assert - native feature → skip middleware
-        Assert.Same(next, result);
-    }
-
-    [Fact]
-    public void Create_Should_ReturnNext_When_NoScheduledMessageStoreRegistered()
-    {
-        // arrange
-        var transport = new StubTransport(new FeatureCollection());
-
-        var appProvider = BuildAppProvider(registerStore: false);
-        var busProvider = BuildBusProvider(appProvider);
-
-        DispatchDelegate next = _ => ValueTask.CompletedTask;
-        var config = DispatchSchedulingMiddleware.Create();
-        var factoryContext = new DispatchMiddlewareFactoryContext
-        {
-            Services = busProvider,
-            Endpoint = null!,
-            Transport = transport
-        };
-
-        // act
-        var result = config.Middleware(factoryContext, next);
-
-        // assert - no store registered → skip middleware
-        Assert.Same(next, result);
-    }
-
-    [Fact]
-    public void Create_Should_ReturnMiddleware_When_StoreRegisteredAndNoNativeFeature()
-    {
-        // arrange
-        var transport = new StubTransport(new FeatureCollection());
-
-        var appProvider = BuildAppProvider(registerStore: true);
-        var busProvider = BuildBusProvider(appProvider);
-
-        DispatchDelegate next = _ => ValueTask.CompletedTask;
-        var config = DispatchSchedulingMiddleware.Create();
-        var factoryContext = new DispatchMiddlewareFactoryContext
-        {
-            Services = busProvider,
-            Endpoint = null!,
-            Transport = transport
-        };
-
-        // act
-        var result = config.Middleware(factoryContext, next);
-
-        // assert - store registered, no native feature → install middleware
+        // assert
         Assert.NotSame(next, result);
     }
 
@@ -116,19 +58,17 @@ public class DispatchSchedulingMiddlewareTests
         var timeProvider = new FakeTimeProvider();
         var middleware = new DispatchSchedulingMiddleware();
         var store = new InMemoryScheduledMessageStore();
-        var services = new ServiceCollection();
-        services.AddScoped<IScheduledMessageStore>(_ => store);
-        var provider = services.BuildServiceProvider();
+        await using var provider = BuildProvider(store);
         using var scope = provider.CreateScope();
 
         var context = new DispatchContext
         {
             ScheduledTime = timeProvider.GetUtcNow().AddMinutes(10),
             Services = scope.ServiceProvider,
-            Envelope = new MessageEnvelope { MessageId = "msg-skip" }
+            Envelope = new MessageEnvelope { MessageId = "msg-skip" },
+            Transport = new StubTransport()
         };
 
-        // Set SkipScheduler flag
         context.Features.Configure<SchedulingMiddlewareFeature>(f => f.SkipScheduler = true);
 
         var nextCalled = false;
@@ -141,7 +81,7 @@ public class DispatchSchedulingMiddlewareTests
         // act
         await middleware.InvokeAsync(context, next);
 
-        // assert - next should be called, store should be empty
+        // assert
         Assert.True(nextCalled);
         Assert.Empty(store.Entries);
     }
@@ -153,18 +93,17 @@ public class DispatchSchedulingMiddlewareTests
         var timeProvider = new FakeTimeProvider();
         var middleware = new DispatchSchedulingMiddleware();
         var store = new InMemoryScheduledMessageStore();
-        var services = new ServiceCollection();
-        services.AddScoped<IScheduledMessageStore>(_ => store);
-        var provider = services.BuildServiceProvider();
+        await using var provider = BuildProvider(store);
         using var scope = provider.CreateScope();
 
         var scheduledTime = timeProvider.GetUtcNow().AddMinutes(10);
-        var envelope = new MessageEnvelope { MessageId = "msg-persist" };
+        var envelope = new MessageEnvelope { MessageId = "msg-persist", ScheduledTime = scheduledTime };
         var context = new DispatchContext
         {
             ScheduledTime = scheduledTime,
             Services = scope.ServiceProvider,
-            Envelope = envelope
+            Envelope = envelope,
+            Transport = new StubTransport()
         };
 
         var nextCalled = false;
@@ -177,11 +116,97 @@ public class DispatchSchedulingMiddlewareTests
         // act
         await middleware.InvokeAsync(context, next);
 
-        // assert - store should have the entry, next should NOT be called
+        // assert
         Assert.False(nextCalled);
         var entry = Assert.Single(store.Entries);
         Assert.Same(envelope, entry.Envelope);
         Assert.Equal(scheduledTime, entry.ScheduledTime);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_CopyScheduledTimeToEnvelope_When_PreBuiltEnvelopeHasNoScheduledTime()
+    {
+        // arrange
+        var timeProvider = new FakeTimeProvider();
+        var middleware = new DispatchSchedulingMiddleware();
+        var store = new InMemoryScheduledMessageStore();
+        await using var provider = BuildProvider(store);
+        using var scope = provider.CreateScope();
+
+        var scheduledTime = timeProvider.GetUtcNow().AddMinutes(10);
+        var envelope = new MessageEnvelope { MessageId = "msg-persist" };
+        var context = new DispatchContext
+        {
+            ScheduledTime = scheduledTime,
+            Services = scope.ServiceProvider,
+            Envelope = envelope,
+            Transport = new StubTransport()
+        };
+
+        // act
+        await middleware.InvokeAsync(context, _ => ValueTask.CompletedTask);
+
+        // assert
+        var entry = Assert.Single(store.Entries);
+        Assert.NotSame(envelope, entry.Envelope);
+        Assert.Equal(scheduledTime, entry.Envelope.ScheduledTime);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_OverwriteEnvelopeScheduledTime_When_ContextScheduledTimeDiffers()
+    {
+        // arrange
+        var timeProvider = new FakeTimeProvider();
+        var middleware = new DispatchSchedulingMiddleware();
+        var store = new InMemoryScheduledMessageStore();
+        await using var provider = BuildProvider(store);
+        using var scope = provider.CreateScope();
+
+        var scheduledTime = timeProvider.GetUtcNow().AddMinutes(10);
+        var envelope = new MessageEnvelope
+        {
+            MessageId = "msg-persist",
+            ScheduledTime = scheduledTime.AddMinutes(-5)
+        };
+        var context = new DispatchContext
+        {
+            ScheduledTime = scheduledTime,
+            Services = scope.ServiceProvider,
+            Envelope = envelope,
+            Transport = new StubTransport()
+        };
+
+        // act
+        await middleware.InvokeAsync(context, _ => ValueTask.CompletedTask);
+
+        // assert
+        var entry = Assert.Single(store.Entries);
+        Assert.NotSame(envelope, entry.Envelope);
+        Assert.Equal(scheduledTime, entry.Envelope.ScheduledTime);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_ThrowNotSupported_When_NoStoreMatchesTransport()
+    {
+        // arrange
+        var middleware = new DispatchSchedulingMiddleware();
+        var services = new ServiceCollection();
+        services.AddScoped<ScheduledMessageStoreResolver>(ScheduledMessageStoreResolver.Create);
+        await using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        var scheduledTime = DateTimeOffset.UtcNow.AddMinutes(10);
+        var context = new DispatchContext
+        {
+            ScheduledTime = scheduledTime,
+            Services = scope.ServiceProvider,
+            Envelope = new MessageEnvelope { MessageId = "msg-unsupported", ScheduledTime = scheduledTime },
+            Transport = new StubTransport()
+        };
+
+        // act + assert
+        await Assert.ThrowsAsync<NotSupportedException>(async () =>
+            await middleware.InvokeAsync(context, _ => ValueTask.CompletedTask));
     }
 
     [Fact]
@@ -191,16 +216,15 @@ public class DispatchSchedulingMiddlewareTests
         var timeProvider = new FakeTimeProvider();
         var middleware = new DispatchSchedulingMiddleware();
         var store = new InMemoryScheduledMessageStore();
-        var services = new ServiceCollection();
-        services.AddScoped<IScheduledMessageStore>(_ => store);
-        var provider = services.BuildServiceProvider();
+        await using var provider = BuildProvider(store);
         using var scope = provider.CreateScope();
 
         var context = new DispatchContext
         {
             ScheduledTime = timeProvider.GetUtcNow().AddMinutes(10),
             Services = scope.ServiceProvider,
-            Envelope = null
+            Envelope = null,
+            Transport = new StubTransport()
         };
 
         var nextCalled = false;
@@ -213,40 +237,26 @@ public class DispatchSchedulingMiddlewareTests
         // act
         await middleware.InvokeAsync(context, next);
 
-        // assert - store should be empty, next should be called as fallback
+        // assert
         Assert.True(nextCalled);
         Assert.Empty(store.Entries);
     }
 
-    private static ServiceProvider BuildAppProvider(bool registerStore)
+    private static ServiceProvider BuildProvider(InMemoryScheduledMessageStore store)
     {
         var services = new ServiceCollection();
-        if (registerStore)
-        {
-            services.AddScoped<IScheduledMessageStore>(_ => new InMemoryScheduledMessageStore());
-        }
-
+        services.AddScoped<ScheduledMessageStoreResolver>(ScheduledMessageStoreResolver.Create);
+        services.AddScoped(_ => store);
+        services.AddSingleton(
+            new ScheduledMessageStoreRegistration(
+                typeof(StubTransport),
+                InMemoryScheduledMessageStore.TokenPrefix,
+                typeof(InMemoryScheduledMessageStore)));
         return services.BuildServiceProvider();
-    }
-
-    private static ServiceProvider BuildBusProvider(ServiceProvider appProvider)
-    {
-        var busServices = new ServiceCollection();
-        busServices.AddSingleton<IRootServiceProviderAccessor>(
-            new RootServiceProviderAccessor(appProvider));
-        return busServices.BuildServiceProvider();
     }
 
     private sealed class StubTransport : MessagingTransport
     {
-        private static readonly FieldInfo s_featuresField =
-            typeof(MessagingTransport).GetField("_features", BindingFlags.NonPublic | BindingFlags.Instance)!;
-
-        public StubTransport(IFeatureCollection features)
-        {
-            s_featuresField.SetValue(this, features);
-        }
-
         public override MessagingTopology Topology => null!;
 
         public override bool TryGetDispatchEndpoint(
@@ -279,15 +289,19 @@ public class DispatchSchedulingMiddlewareTests
 
     private sealed class InMemoryScheduledMessageStore : IScheduledMessageStore
     {
+        public const string TokenPrefix = "in-memory:";
+
         public ConcurrentBag<(MessageEnvelope Envelope, DateTimeOffset ScheduledTime)> Entries { get; } = [];
 
         public ValueTask<string> PersistAsync(
-            MessageEnvelope envelope,
-            DateTimeOffset scheduledTime,
+            IDispatchContext context,
             CancellationToken cancellationToken)
         {
+            var envelope = context.Envelope ?? throw new InvalidOperationException("Envelope is not set");
+            var scheduledTime = envelope.ScheduledTime
+                ?? throw new InvalidOperationException("Scheduled time is not set");
             Entries.Add((envelope, scheduledTime));
-            var token = $"in-memory:{Guid.NewGuid()}";
+            var token = $"{TokenPrefix}{Guid.NewGuid()}";
             return ValueTask.FromResult(token);
         }
 

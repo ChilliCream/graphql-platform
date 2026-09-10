@@ -45,7 +45,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
                         .Type<StringType>()
                         .Resolve(_ => "bar");
                 })
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("TestType");
@@ -74,7 +74,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypeClassDirective>>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("TestTypeClassDirective");
@@ -102,7 +102,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypePropertyDirective>>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("TestTypePropertyDirective");
@@ -130,7 +130,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypePropertyDirectives>>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<ObjectType>("TestTypePropertyDirectives");
@@ -159,7 +159,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .AddGraphQL()
             .AddApolloFederation()
             .AddQueryType<Query<TestTypeInconsistentResolvablePropertyDirectives>>()
-            .BuildSchemaAsync());
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken));
 
         // assert
         Assert.Collection(ex.Errors,
@@ -177,7 +177,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
             .AddApolloFederation()
             .AddQueryType<Query<TestTypeClassDirective>>()
             .AddInterfaceType<ITestTypeInterfaceDirective>()
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<InterfaceType>("ITestTypeInterfaceDirective");
@@ -247,7 +247,7 @@ public class NonResolvableKeyDirectiveTests : FederationTypesTestBase
                         .Type<StringType>()
                         .Resolve(_ => "bar");
                 })
-            .BuildSchemaAsync();
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
         var testType = schema.Types.GetType<InterfaceType>("ITestType");

@@ -86,12 +86,12 @@ type Viewer {
 }
 
 enum ScalarSerializationType {
-  BOOLEAN
-  FLOAT
-  INT
-  LIST
-  OBJECT
   STRING
+  BOOLEAN
+  INT
+  FLOAT
+  OBJECT
+  LIST
 }
 
 scalar Custom

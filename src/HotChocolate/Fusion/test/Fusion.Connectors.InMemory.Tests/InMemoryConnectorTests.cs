@@ -1,11 +1,32 @@
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Fusion;
 
 public sealed class InMemoryConnectorTests
 {
+    [Fact]
+    public void ModifyInMemoryCompositionOptions_Should_ConfigureSchemaComposerOptions()
+    {
+        // arrange
+        var services = new ServiceCollection();
+
+        services.AddGraphQLGateway()
+            .ModifyInMemoryCompositionOptions(
+                options => options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects = true);
+
+        using var serviceProvider = services.BuildServiceProvider();
+
+        // act
+        var options = serviceProvider.GetRequiredService<IOptions<SchemaComposerOptions>>().Value;
+
+        // assert
+        Assert.True(options.ApolloFederationCompatibility.AllowNonResolvableInterfaceObjects);
+    }
+
     [Fact]
     public async Task Execute_Should_ReturnData_When_SingleInMemorySchema()
     {
@@ -19,7 +40,7 @@ public sealed class InMemoryConnectorTests
         services.AddGraphQLGateway()
             .AddInMemorySchema("products");
 
-        var executor = await services.BuildGatewayAsync();
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -30,7 +51,8 @@ public sealed class InMemoryConnectorTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -54,7 +76,7 @@ public sealed class InMemoryConnectorTests
             .AddInMemorySchema("products")
             .AddInMemorySchema("reviews");
 
-        var executor = await services.BuildGatewayAsync();
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -65,7 +87,8 @@ public sealed class InMemoryConnectorTests
                 name
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();
@@ -89,7 +112,7 @@ public sealed class InMemoryConnectorTests
             .AddInMemorySchema("products")
             .AddInMemorySchema("reviews");
 
-        var executor = await services.BuildGatewayAsync();
+        var executor = await services.BuildGatewayAsync(TestContext.Current.CancellationToken);
 
         // act
         var result = await executor.ExecuteAsync(
@@ -104,7 +127,8 @@ public sealed class InMemoryConnectorTests
                 }
               }
             }
-            """);
+            """,
+            TestContext.Current.CancellationToken);
 
         // assert
         result.MatchMarkdownSnapshot();

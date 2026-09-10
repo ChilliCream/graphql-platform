@@ -3,14 +3,14 @@
 ## SQL 0
 
 ```sql
--- @__value_0='Brand10'
--- @__value_1='11'
--- @__p_2='3'
+-- @value='Brand10'
+-- @value3='11'
+-- @p='3'
 SELECT b."Id", b."AlwaysNull", b."DisplayName", b."Name", b."BrandDetails_Country_Name"
 FROM "Brands" AS b
-WHERE b."Name" > @__value_0 OR (b."Name" = @__value_0 AND b."AlwaysNull" IS NULL AND b."Id" > @__value_1)
+WHERE b."Name" > @value OR (b."Name" = @value AND b."AlwaysNull" IS NULL AND b."Id" > @value3)
 ORDER BY b."Name", b."AlwaysNull", b."Id"
-LIMIT @__p_2
+LIMIT @p
 ```
 
 ## Expression 0

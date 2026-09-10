@@ -78,11 +78,11 @@ sourceSchemas:
         authorById(id: ID!): Author @lookup @internal
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         id: ID!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         author: Author
         id: ID!
         title: String!
@@ -137,12 +137,12 @@ sourceSchemas:
         authorById(id: ID!): Author @lookup @internal
       }
 
-      type Author {
+      type Author @key(fields: "id") {
         name(postFix: String): String!
         id: ID!
       }
 
-      type Book {
+      type Book @key(fields: "id") {
         rating: String!
         id: ID!
       }
@@ -238,7 +238,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.books.b
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -256,7 +256,7 @@ operationPlan:
         }
       source: $.authorById
       target: $.books.a
-      batchingGroupId: 2
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

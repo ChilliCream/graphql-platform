@@ -20,12 +20,12 @@
 
 12 SQL:
 ---------------
-.param set @__p_0 12
+.param set @p 12
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" = @__p_0
+WHERE "f"."BarShort" = @p
 ---------------
 
 13 Result:
@@ -45,12 +45,12 @@ WHERE "f"."BarShort" = @__p_0
 
 13 SQL:
 ---------------
-.param set @__p_0 13
+.param set @p 13
 
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 LEFT JOIN "FooNullable" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarShort" = @__p_0
+WHERE "f"."BarShort" = @p
 ---------------
 
 null Result:

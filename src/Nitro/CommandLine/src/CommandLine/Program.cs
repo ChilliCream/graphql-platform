@@ -51,11 +51,10 @@ public static class Program
         }
 
         services
-            .AddSingleton<INitroConsole>(sp =>
+            .AddSingleton<INitroConsole>(_ =>
                 new NitroConsole(
                     outConsole,
                     errorConsole,
-                    sp.GetRequiredService<IEnvironmentVariableProvider>(),
                     new ActivitySinkFactory()));
 
         await using var provider = services.BuildServiceProvider();

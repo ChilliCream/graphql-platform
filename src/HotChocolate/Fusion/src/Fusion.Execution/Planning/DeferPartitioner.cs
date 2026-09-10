@@ -83,7 +83,7 @@ internal static class DeferPartitioner
                     var label = GetDeferLabel(inline);
                     var ifVariable = GetDeferIfVariable(inline);
 
-                    var usage = new DeliveryGroup(label, parent, (byte)deferIndex)
+                    var usage = new DeliveryGroup(label, parent, deferIndex)
                     {
                         Path = currentPath,
                         IfVariable = ifVariable

@@ -59,17 +59,17 @@ public sealed class PostgresSubscription : TopologyResource<PostgresSubscription
 
         command.CommandText =
             $"""
-             WITH topic_info AS (
-                 SELECT id FROM {schemaOptions.TopicTable} WHERE name = @source_name LIMIT 1
-             ),
-             queue_info AS (
-                 SELECT id FROM {schemaOptions.QueueTable} WHERE name = @destination_name LIMIT 1
-             )
-             INSERT INTO {schemaOptions.QueueSubscriptionTable} (source_id, destination_id)
-             SELECT topic_info.id, queue_info.id
-             FROM topic_info, queue_info
-             ON CONFLICT (source_id, destination_id) DO NOTHING
-             """;
+            WITH topic_info AS (
+                SELECT id FROM {schemaOptions.TopicTable} WHERE name = @source_name LIMIT 1
+            ),
+            queue_info AS (
+                SELECT id FROM {schemaOptions.QueueTable} WHERE name = @destination_name LIMIT 1
+            )
+            INSERT INTO {schemaOptions.QueueSubscriptionTable} (source_id, destination_id)
+            SELECT topic_info.id, queue_info.id
+            FROM topic_info, queue_info
+            ON CONFLICT (source_id, destination_id) DO NOTHING
+            """;
 
         command.Parameters.AddWithValue("source_name", Source.Name);
         command.Parameters.AddWithValue("destination_name", Destination.Name);

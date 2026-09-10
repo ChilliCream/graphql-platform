@@ -118,4 +118,16 @@ public class InterfaceTypeValidationRuleTests : TypeValidationTestBase
           }
         ");
     }
+
+    [Fact]
+    public void RejectInterfaceArgumentWithIncompatibleDefaultValue()
+    {
+        ExpectError("""
+          type Query { stub: String }
+
+          interface Foo {
+              field(arg: Int = "abc"): String
+          }
+        """);
+    }
 }

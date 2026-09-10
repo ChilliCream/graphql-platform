@@ -37,13 +37,14 @@ internal static class ReferenceResolverHelper
     }
 
     public static void TrySetExternal<TValue>(
+        Schema schema,
         ObjectType type,
         IValueNode data,
         object entity,
         string[] path,
         Action<object, TValue?> setValue)
     {
-        if (ArgumentParser.TryGetValue<TValue>(data, type, path, out var value))
+        if (ArgumentParser.TryGetValue<TValue>(data, type, path, schema, out var value))
         {
             setValue(entity, value);
         }

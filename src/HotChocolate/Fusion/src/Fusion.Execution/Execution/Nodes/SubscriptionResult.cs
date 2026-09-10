@@ -1,6 +1,6 @@
 namespace HotChocolate.Fusion.Execution.Nodes;
 
-public sealed class SubscriptionResult
+internal sealed class SubscriptionResult
 {
     private readonly IAsyncEnumerable<EventMessageResult>? _stream;
 

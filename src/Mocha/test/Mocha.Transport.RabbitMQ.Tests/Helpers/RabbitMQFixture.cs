@@ -1,27 +1,21 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
+using CookieCrumble.Resources;
 using RabbitMQ.Client;
-using Squadron;
 
 namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
 
-public class MochaRabbitMQResource : RabbitMQResource
-{
-    public Task<string?> InvokeCommandAsync(string[] command)
-        => Manager.InvokeCommandAsync(command);
-}
-
 public sealed class RabbitMQFixture : IAsyncLifetime
 {
-    private readonly MochaRabbitMQResource _resource = new();
+    private readonly RabbitMQResource _resource = new();
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _resource.InitializeAsync();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _resource.DisposeAsync();
     }
@@ -40,7 +34,7 @@ public sealed class RabbitMQFixture : IAsyncLifetime
         return new VhostContext(this, vhostName);
     }
 
-    internal async Task<string?> InvokeCommandAsync(string[] command)
+    internal async Task<string> InvokeCommandAsync(string[] command)
     {
         return await _resource.InvokeCommandAsync(command);
     }
