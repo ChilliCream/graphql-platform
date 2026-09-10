@@ -3,11 +3,11 @@ import { FaqSection } from "@/src/components/FaqSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 
 import { FEDERATION_FAQ_ITEMS } from "./faq";
+import { FusionCta } from "./sections/FusionCta";
 import { HowItWorksSection } from "./sections/HowItWorksSection";
 import { ProblemSection } from "./sections/ProblemSection";
 import { GRADIENT, Section } from "./sections/shared";
 import { WhatIsSection } from "./sections/WhatIsSection";
-import { WhyFusionSection } from "./sections/WhyFusionSection";
 import { WhySection } from "./sections/WhySection";
 
 export function ExplainerPage() {
@@ -45,7 +45,7 @@ export function ExplainerPage() {
       <WhatIsSection />
       <WhySection />
       <HowItWorksSection />
-      <WhyFusionSection />
+      <FusionCta />
 
       <Section id="faq">
         <FaqSection
