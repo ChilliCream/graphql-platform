@@ -42,7 +42,7 @@ const RING: readonly Placed[] = [...PARTS, ...BOUGHT_IN].map((part, i, all) => {
     no: part.no,
     name: part.name.toUpperCase(),
     meta: boughtIn
-      ? `${(part as (typeof BOUGHT_IN)[number]).kind} · BOUGHT-IN`
+      ? (part as (typeof BOUGHT_IN)[number]).kind
       : (part as (typeof PARTS)[number]).language,
     x: CX + RX * Math.cos(angle),
     y: CY + RY * Math.sin(angle),
@@ -174,7 +174,7 @@ export function HeroAssembly() {
 
   return (
     <Sheet
-      title={`${ASSEMBLY.name} · general arrangement`}
+      title="General arrangement"
       no="DWG-100"
       rev="C"
       field="1:1"
@@ -255,7 +255,7 @@ export function HeroAssembly() {
           EXPLODED VIEW · TURNTABLE
         </text>
         <text className="bp-t-dim" x={14} y={348} fontSize={7}>
-          {`${RING.length} SUB-ASSEMBLIES · 1 COMPOSITE SCHEMA`}
+          {`${RING.length} SUB-ASSEMBLIES · 1 COMPOSITE SCHEMA · DASHED = BOUGHT-IN`}
         </text>
 
         <g className="bp-h-stamp" style={{ transformOrigin: "398px 336px" }}>

@@ -34,8 +34,8 @@ const MAIN: readonly Dial[] = [
     value: 0.34,
     drift: 0.06,
     cx: 78,
-    cy: 92,
-    r: 38,
+    cy: 84,
+    r: 34,
   },
   {
     id: "throughput",
@@ -44,8 +44,8 @@ const MAIN: readonly Dial[] = [
     value: 0.62,
     drift: 0.05,
     cx: 202,
-    cy: 92,
-    r: 38,
+    cy: 84,
+    r: 34,
   },
   {
     id: "errors",
@@ -54,8 +54,8 @@ const MAIN: readonly Dial[] = [
     value: 0.09,
     drift: 0.03,
     cx: 326,
-    cy: 92,
-    r: 38,
+    cy: 84,
+    r: 34,
   },
 ];
 
@@ -66,8 +66,8 @@ const SUB: readonly Dial[] = PARTS.slice(0, 4).map((part, i) => ({
   value: 0.3 + i * 0.12,
   drift: 0.07,
   cx: 62 + i * 112,
-  cy: 186,
-  r: 20,
+  cy: 196,
+  r: 17,
 }));
 
 const DIALS = [...MAIN, ...SUB];
@@ -98,9 +98,10 @@ ${DIALS.map((_, i) => draw(`bp-g-face${i}`, 4 + i * 3, 6)).join("\n")}
 ${DIALS.map((_, i) => fade(`bp-g-label${i}`, 12 + i * 3)).join("\n")}
 ${DIALS.map(
   (dial, i) => `
-.bp-g-needle${i}{transform:rotate(${angle(dial.value).toFixed(1)}deg);animation:bp-g-needle${i} ${DUR}s ease-in-out infinite}
+.bp-g-needle${i}{opacity:1;transform:rotate(${angle(dial.value).toFixed(1)}deg);animation:bp-g-needle${i} ${DUR}s ease-in-out infinite}
 @keyframes bp-g-needle${i}{
-0%{transform:rotate(${angle(dial.value).toFixed(1)}deg)}
+0%,${12 + i * 3}%{opacity:0;transform:rotate(${angle(dial.value).toFixed(1)}deg)}
+${14 + i * 3}%{opacity:1;transform:rotate(${angle(dial.value).toFixed(1)}deg)}
 ${30 + i * 2}%{transform:rotate(${angle(Math.max(0, dial.value - dial.drift)).toFixed(1)}deg)}
 ${55 + i * 2}%{transform:rotate(${angle(Math.min(1, dial.value + dial.drift)).toFixed(1)}deg)}
 ${80 + i}%,100%{transform:rotate(${angle(dial.value).toFixed(1)}deg)}}`,
@@ -142,26 +143,26 @@ function DialFace({ dial, index, detail }: DialFaceProps) {
           />
         ))}
         <circle cx={dial.cx} cy={dial.cy} r={2} fill={BP.dim} />
-        <text
-          className="bp-t-dim"
-          x={dial.cx}
-          y={dial.cy + dial.r + 14}
-          textAnchor="middle"
-          fontSize={detail ? 7 : 6}
-        >
-          {dial.label}
-        </text>
         {detail ? (
           <text
             className="bp-t-cyan"
             x={dial.cx}
-            y={dial.cy + 22}
+            y={dial.cy + dial.r + 16}
             textAnchor="middle"
-            fontSize={8}
+            fontSize={8.5}
           >
             {dial.reading}
           </text>
         ) : null}
+        <text
+          className="bp-t-dim"
+          x={dial.cx}
+          y={dial.cy + dial.r + (detail ? 29 : 14)}
+          textAnchor="middle"
+          fontSize={detail ? 6.5 : 6}
+        >
+          {dial.label}
+        </text>
       </g>
       <path
         className={`bp-g-needle${index}`}
@@ -203,13 +204,13 @@ export function GaugeSchedule() {
 
         <path
           className="bp-g-rule"
-          d="M14 146h452"
+          d="M14 158h452"
           pathLength={1}
           fill="none"
           stroke={BP.inkFaint}
           strokeWidth={0.9}
         />
-        <text className="bp-g-head bp-t-dim" x={14} y={160} fontSize={6.5}>
+        <text className="bp-g-head bp-t-dim" x={14} y={172} fontSize={6.5}>
           EACH SUBGRAPH BEHIND IT
         </text>
 
@@ -222,9 +223,14 @@ export function GaugeSchedule() {
           />
         ))}
 
-        <text className="bp-g-note bp-t-dim" x={14} y={232} fontSize={6.2}>
-          SCHEMA CHANGES CHECKED AGAINST PUBLISHED OPERATIONS · READINGS PER
-          SOURCE
+        <text
+          className="bp-g-note bp-t-dim"
+          x={466}
+          y={16}
+          textAnchor="end"
+          fontSize={6.2}
+        >
+          SCHEMA CHANGES CHECKED AGAINST PUBLISHED OPERATIONS
         </text>
       </svg>
     </Sheet>

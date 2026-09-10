@@ -88,7 +88,7 @@ export function AsBuiltRecord() {
 
   return (
     <Sheet
-      title="Schema governance · as-built record"
+      title="As-built record"
       no="DWG-104"
       rev="E"
       run={active && !reduced}
@@ -255,7 +255,7 @@ export function AsBuiltRecord() {
         </text>
 
         <text className="bp-a-note bp-t-dim" x={240} y={318} fontSize={6.2}>
-          THE OPERATION THE MOBILE APP RUNS IS FLAGGED BEFORE IT SHIPS
+          FLAGGED BEFORE THE MERGE · NOT AFTER THE DEPLOY
         </text>
       </svg>
     </Sheet>

@@ -32,6 +32,7 @@ ${ROWS.map((_, i) => fade(`bp-s-label${i}`, 8 + i * 3)).join("\n")}
 ${ROWS.map((_, i) => stamp(`bp-s-stamp${i}`, 26 + i * 3.6)).join("\n")}
 ${SOURCES.map((_, i) => fade(`bp-s-src${i}`, 46 + i * 4)).join("\n")}
 ${SOURCES.map((_, i) => draw(`bp-s-adapter${i}`, 50 + i * 4, 5)).join("\n")}
+${SOURCES.map((_, i) => fade(`bp-s-adapter-label${i}`, 55 + i * 4)).join("\n")}
 ${draw("bp-s-trunk", 60, 8)}
 ${[...ROWS, ...SOURCES].map((_, i) => draw(`bp-s-link${i}`, 62 + i * 1.4, 3)).join("\n")}
 ${draw("bp-s-out", 74, 6)}
@@ -73,12 +74,14 @@ function StampMark({ className, y, label }: StampMarkProps) {
 
 interface AdapterProps {
   readonly className: string;
+  /** Fade class for the lettering, which has no stroke to draw on. */
+  readonly labelClassName: string;
   readonly y: number;
   readonly label: string;
 }
 
 /** The adapter drawing a bought-in part mates to the assembly with. */
-function Adapter({ className, y, label }: AdapterProps) {
+function Adapter({ className, labelClassName, y, label }: AdapterProps) {
   return (
     <g className={className}>
       <path
@@ -96,7 +99,7 @@ function Adapter({ className, y, label }: AdapterProps) {
         strokeWidth={0.8}
       />
       <text
-        className="bp-t-cyan"
+        className={`${labelClassName} bp-t-cyan`}
         x={STAMP_X + 49}
         y={y + 18}
         textAnchor="middle"
@@ -114,7 +117,7 @@ export function SpecStamps() {
 
   return (
     <Sheet
-      title="Source schemas · specification stamps"
+      title="Specification stamps"
       no="DWG-102"
       rev="B"
       run={active && !reduced}
@@ -185,6 +188,7 @@ export function SpecStamps() {
             </g>
             <Adapter
               className={`bp-s-adapter${i}`}
+              labelClassName={`bp-s-adapter-label${i}`}
               y={source.y}
               label={source.adapter}
             />
