@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Isolated pinned-old-reader/writer harness for repo-7i1.2.
+
+    This project references the released 16.6.4 HotChocolate.Fusion.Packaging NuGet
+    package (the last pre-rename version) instead of the in-repo, renamed
+    Fusion.Packaging project. It is built and invoked as a separate OS process by
+    ArchiveCompatibilityTests so the pinned old reader/writer never shares an
+    AppDomain, assembly-load context, or output directory with the renamed
+    HotChocolate.Fusion.Packaging assembly under test. Do not add a ProjectReference
+    to src/Fusion.Packaging here: that would defeat the isolation this harness exists
+    to provide.
+  -->
+
+  <PropertyGroup>
+    <AssemblyName>LegacyPackagingHarness</AssemblyName>
+    <RootNamespace>LegacyPackagingHarness</RootNamespace>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Pinned released pre-rename package: repo-7i1.2 provenance. VersionOverride
+      pins this one dependency to the released 16.6.4 build regardless of the
+      repository's central package versions, without disabling central package
+      management (and its versioning of the inherited analyzer references) for
+      the rest of this project.
+    -->
+    <PackageReference Include="HotChocolate.Fusion.Packaging" VersionOverride="16.6.4" />
+  </ItemGroup>
+
+</Project>

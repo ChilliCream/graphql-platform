@@ -22,4 +22,18 @@
     </None>
   </ItemGroup>
 
+  <!--
+    tools\LegacyPackagingHarness is a standalone console project (its own pinned
+    package reference to the released 16.6.4 HotChocolate.Fusion.Packaging), built
+    and invoked out-of-process by ArchiveCompatibilityTests. None of it, including its
+    own bin/obj output, may become part of this project's item set: picking up its
+    compiled HotChocolate.Fusion.Packaging.dll (the old, pinned one) here would risk
+    colliding with the renamed assembly this project references above.
+  -->
+  <ItemGroup>
+    <Compile Remove="tools\**" />
+    <None Remove="tools\**" />
+    <Content Remove="tools\**" />
+  </ItemGroup>
+
 </Project>
