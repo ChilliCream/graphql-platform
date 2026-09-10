@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
-using Spectre.Console;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Graph.Render;
 
