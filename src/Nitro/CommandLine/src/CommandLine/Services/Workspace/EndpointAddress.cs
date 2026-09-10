@@ -19,21 +19,23 @@ internal static partial class EndpointAddress
 
     /// <summary>
     /// True only when <paramref name="value"/> is a syntactically valid
-    /// opencode server URL AND the shim reported that this process passed
-    /// one of the flags that actually make opencode bind an HTTP server
-    /// (<c>--port</c>, <c>--hostname</c>, or <c>--mdns</c>). A plain
-    /// <c>opencode</c> TUI binds none of them: it reaches its own server
-    /// inside a Worker over postMessage RPC, and the plugin's
-    /// <c>serverUrl</c> getter then falls back to a hardcoded
-    /// <c>http://localhost:4096</c> placeholder that is syntactically fine
-    /// but proves nothing about what, if anything, is listening there. That
-    /// is worse than a dead port: 4096 is also opencode's own
-    /// <c>opencode serve</c> default, so trusting the placeholder risks
-    /// pushing into an unrelated process's session (see hc-10-w61.1).
-    /// <paramref name="serverBound"/> is the shim's own answer, taken from
-    /// its process.argv, to the one question that actually decides whether
-    /// opencode bound a server - opencode has no other process-identity
-    /// probe this hook can call to confirm the endpoint belongs to it.
+    /// opencode server URL AND the shim proved, by reading its plugin
+    /// input's <c>serverUrl</c> getter twice and comparing the results by
+    /// reference, that this process actually bound an HTTP server. A plain
+    /// <c>opencode</c> TUI binds none: it reaches its own server inside a
+    /// Worker over postMessage RPC, and the plugin's <c>serverUrl</c>
+    /// getter then returns a fresh <c>http://localhost:4096</c> placeholder
+    /// on every read - syntactically fine but proving nothing about what,
+    /// if anything, is listening there. That is worse than a dead port:
+    /// 4096 is also opencode's own <c>opencode serve</c> default, so
+    /// trusting the placeholder risks pushing into an unrelated process's
+    /// session (see hc-10-w61.1). <paramref name="serverBound"/> is the
+    /// shim's own answer to the one question that actually decides whether
+    /// opencode bound a server: opencode has no documented
+    /// process-identity probe this hook can call to confirm the endpoint
+    /// belongs to it, but its <c>serverUrl</c> getter returns the same URL
+    /// object on every read once bound, and a fresh placeholder otherwise -
+    /// an in-realm proof the shim can perform without argv.
     /// </summary>
     public static bool IsTrustedOpencodeServerUrl(string value, bool serverBound)
         => serverBound && IsValidOpencodeServerUrl(value);

@@ -472,6 +472,90 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
+    /// Regression for hc-10-w61.1: opencode's plugins run inside a Bun
+    /// Worker whose <c>process.argv</c> never carries the parent process's
+    /// <c>--port</c>/<c>--hostname</c>/<c>--mdns</c> flags, so an
+    /// argv-based probe cannot tell a bound server from the placeholder.
+    /// Instead the shim reads the plugin input's <c>serverUrl</c> getter
+    /// twice and compares by reference: opencode returns a fresh
+    /// placeholder URL on every read when nothing is bound, so two reads
+    /// are never the same object. Runs the generated JavaScript itself
+    /// under Node, with <c>Bun.spawn</c> stubbed to capture the
+    /// <c>session-created</c> payload the shim sends to the hook process.
+    /// </summary>
+    [Fact]
+    public async Task Build_Should_ReportServerNotBound_When_TheServerUrlGetterReturnsAFreshUrlEachRead()
+    {
+        // arrange
+        var node = FindNode();
+
+        if (node is null)
+        {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD")))
+            {
+                Assert.Fail("node was not found on PATH; CI must provide node for the generated-JavaScript regression.");
+            }
+
+            Assert.Skip("node was not found on PATH.");
+        }
+
+        var ct = TestContext.Current.CancellationToken;
+        var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
+        var scriptPath = Path.Combine(_tempRoot.FullName, "shim-server-not-bound.mjs");
+        await File.WriteAllTextAsync(scriptPath, template + BuildServerBoundDriverScript(stableServerUrl: false), ct);
+
+        // act
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+
+        // assert
+        Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
+        var result = JsonDocument.Parse(stdOut).RootElement;
+        Assert.False(result.GetProperty("serverBound").GetBoolean());
+    }
+
+    /// <summary>
+    /// Regression for hc-10-w61.1: when the plugin input's <c>serverUrl</c>
+    /// getter returns the SAME URL object on every read - as opencode's
+    /// does once a server actually bound - the shim reports
+    /// <c>serverBound: true</c> and forwards that URL. Proven against
+    /// a44492ccc6 (the argv-mirror predecessor): under plain Node,
+    /// <c>process.argv</c> carries no <c>--port</c>/<c>--hostname</c>/
+    /// <c>--mdns</c> flag, so that shim always reported
+    /// <c>serverBound: false</c> here regardless of what the getter
+    /// returned.
+    /// </summary>
+    [Fact]
+    public async Task Build_Should_ReportServerBound_When_TheServerUrlGetterReturnsTheSameUrlEachRead()
+    {
+        // arrange
+        var node = FindNode();
+
+        if (node is null)
+        {
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CI_BUILD")))
+            {
+                Assert.Fail("node was not found on PATH; CI must provide node for the generated-JavaScript regression.");
+            }
+
+            Assert.Skip("node was not found on PATH.");
+        }
+
+        var ct = TestContext.Current.CancellationToken;
+        var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
+        var scriptPath = Path.Combine(_tempRoot.FullName, "shim-server-bound.mjs");
+        await File.WriteAllTextAsync(scriptPath, template + BuildServerBoundDriverScript(stableServerUrl: true), ct);
+
+        // act
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+
+        // assert
+        Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
+        var result = JsonDocument.Parse(stdOut).RootElement;
+        Assert.True(result.GetProperty("serverBound").GetBoolean());
+        Assert.Equal("http://127.0.0.1:5123/", result.GetProperty("serverUrl").GetString());
+    }
+
+    /// <summary>
     /// A driver appended to the generated shim module: stubs
     /// <c>Bun.spawn</c> so <c>chat.message</c> can run under plain Node,
     /// then feeds it an <c>input.parts</c> WITHOUT the pushed prefix and an
@@ -523,6 +607,49 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             .Replace("__STDOUT__", JsonSerializer.Serialize(stdout), StringComparison.Ordinal)
             .Replace("__EXIT_CODE__", exitCode.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal)
             .Replace("__MESSAGE__", includeMessage ? """{ "sessionID": "ses_1", "id": "msg_1" }""" : "undefined", StringComparison.Ordinal);
+
+    /// <summary>
+    /// A driver appended to the generated shim module: stubs
+    /// <c>Bun.spawn</c> to capture the <c>session-created</c> payload, then
+    /// instantiates the plugin with an input whose <c>serverUrl</c> getter
+    /// either returns one stable <c>URL</c> object on every read
+    /// (<paramref name="stableServerUrl"/> true, mimicking a genuinely
+    /// bound opencode server) or a fresh placeholder <c>URL</c> object on
+    /// every read (false, mimicking the unbound-TUI placeholder), and
+    /// fires a <c>session.created</c> event.
+    /// </summary>
+    private static string BuildServerBoundDriverScript(bool stableServerUrl)
+        => """
+
+
+        globalThis.Bun = {
+          spawn() {
+            return {
+              stdin: { write: (chunk) => { globalThis.__capturedStdin = chunk; }, end() {} },
+              stdout: "{}",
+              exited: Promise.resolve(0),
+            };
+          },
+        };
+
+        const stableUrl = new URL("http://127.0.0.1:5123/");
+        const pluginInput = {
+          get serverUrl() {
+            return __STABLE__ ? stableUrl : new URL("http://localhost:4096");
+          },
+        };
+
+        const hooks = await nitroHooks(pluginInput);
+        await hooks.event({ event: { type: "session.created", properties: { session: { id: "ses_1" } } } });
+
+        const body = JSON.parse(globalThis.__capturedStdin);
+
+        console.log(JSON.stringify({
+          serverBound: body.serverBound,
+          serverUrl: body.serverUrl,
+        }));
+        """
+            .Replace("__STABLE__", stableServerUrl ? "true" : "false", StringComparison.Ordinal);
 
     /// <summary>
     /// A driver appended to the generated shim module for two sequential

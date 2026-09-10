@@ -160,7 +160,19 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
+        if (row?.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
+        {
+            // The idle-push gate spends real HTTP pushes, so it is only
+            // armed for a session whose endpoint was proven to belong to
+            // this process (see HandleSessionCreatedAsync and
+            // EndpointAddress.IsTrustedOpencodeServerUrl). A session
+            // demoted to endpoint_kind='none' would otherwise still arm
+            // the gate here on every genuine chat message, even though the
+            // dispatcher can never spend it - the row never has a URL to
+            // push into.
+            await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
+        }
+
         await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
 
         if (row is null || row.BindingKind == AgentSessionBindingKind.None || row.AgentName is null)

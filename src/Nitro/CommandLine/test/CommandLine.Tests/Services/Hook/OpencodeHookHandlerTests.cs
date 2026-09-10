@@ -123,6 +123,35 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         Assert.True(await _sessions.IsAnnouncementPendingAsync(CurrentGeneration(), cancellationToken));
     }
 
+    /// <summary>
+    /// Regression for hc-10-w61.1 finding F2: the idle-push gate spends
+    /// real HTTP pushes, so arming it must be conditioned on the session's
+    /// endpoint actually being trusted, not on the chat message merely
+    /// being genuine (non-Nitro-pushed). A session demoted to
+    /// <c>endpoint_kind = 'none'</c> at session.created (untrusted
+    /// serverUrl) must stay unarmed even after a genuine chat message,
+    /// since the dispatcher can never spend a push into it.
+    /// </summary>
+    [Fact]
+    public async Task HandleChatMessageAsync_Should_NotArmIdlePush_When_EndpointIsUntrusted()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var untrustedPayload = Payload(SessionId);
+        untrustedPayload.ServerUrl = "http://localhost:4096/";
+        untrustedPayload.ServerBound = false;
+        await _handler.HandleSessionCreatedAsync(untrustedPayload, dryRun: true, cancellationToken);
+
+        // act: a genuine (non-Nitro-pushed) chat message on that same,
+        // still-untrusted session.
+        await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert: the idle-push gate was never armed, so the dispatcher's
+        // sole claimant finds nothing to claim.
+        Assert.False(await _sessions.ClaimIdlePushAsync(CurrentGeneration(), cancellationToken));
+    }
+
     [Fact]
     public async Task HandleChatMessageAsync_Should_AppendTheActorAnnouncementOnlyOnce()
     {

@@ -31,28 +31,28 @@ internal static class OpencodeHooksTemplate
             // boundary can wait for confirmed delivery instead of clearing
             // on the attempt.
             const appendOutcomes = new Map();
-            // A plain `opencode` TUI never binds an HTTP server: it reaches
-            // its own server inside a Worker over postMessage RPC, and
-            // serverUrl below then falls back to a hardcoded
-            // http://localhost:4096 placeholder nothing is listening on.
-            // opencode's own bind gate checks process.argv for exactly
-            // these flags before binding a server; mirrored here so the
-            // hook process can tell a proven endpoint from the placeholder
-            // instead of trusting liveness alone (see hc-10-w61.1). Read
-            // once: argv cannot change for the life of this process.
-            const serverBound = ["--port", "--hostname", "--mdns"].some(
-              (flag) => process.argv.some((arg) => arg === flag || arg.startsWith(flag + "="))
-            );
 
             function sessionId(properties) {
               return properties.sessionID ?? properties.sessionId ?? properties.session?.id ?? properties.info?.id;
             }
 
-            function payload(properties, serverUrl) {
+            // A plain `opencode` TUI never binds an HTTP server: it reaches
+            // its own server inside a Worker over postMessage RPC. When
+            // nothing is bound, opencode's serverUrl getter returns a fresh
+            // `new URL("http://localhost:4096")` placeholder on every read;
+            // when a server IS bound, the getter instead returns the same
+            // URL object every time (see hc-10-w61.1). Reading it twice and
+            // comparing by reference is therefore an in-realm proof of a
+            // bound server that needs no argv or process-identity probe -
+            // read fresh on every call, since a server can bind after this
+            // plugin was instantiated.
+            function payload(properties, pluginInput) {
+              const first = pluginInput.serverUrl;
+              const second = pluginInput.serverUrl;
               const result = {
-                serverUrl: serverUrl.toString(),
+                serverUrl: first.toString(),
                 sessionId: sessionId(properties),
-                serverBound,
+                serverBound: first === second,
               };
 
               if (process.env.OPENCODE_SERVER_PASSWORD) {
@@ -179,13 +179,11 @@ internal static class OpencodeHooksTemplate
               return pushed;
             }
 
-            export default async function nitroHooks(input) {
-              const serverUrl = input.serverUrl;
-
+            export default async function nitroHooks(pluginInput) {
               process.on("exit", () => {
                 for (const [id, version] of activeSessions) {
                   void invoke("session-deleted", {
-                    ...payload({ sessionID: id }, serverUrl),
+                    ...payload({ sessionID: id }, pluginInput),
                     harnessVersion: version,
                   });
                 }
@@ -194,7 +192,7 @@ internal static class OpencodeHooksTemplate
               return {
                 event: async ({ event }) => {
                   const properties = event.properties ?? {};
-                  const body = payload(properties, serverUrl);
+                  const body = payload(properties, pluginInput);
 
                   if (event.type === "session.created") {
                     body.harnessVersion = properties.info?.version ?? properties.session?.version;
@@ -219,7 +217,7 @@ internal static class OpencodeHooksTemplate
                   const nitroPushed = stripNitroPushedPrefix(output.parts);
                   const chatSessionId = input.sessionID ?? input.sessionId;
                   const body = {
-                    ...payload({ sessionID: chatSessionId }, serverUrl),
+                    ...payload({ sessionID: chatSessionId }, pluginInput),
                     nitroPushed,
                   };
                   // Always sent, never guarded on the map entry existing:
