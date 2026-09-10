@@ -51,5 +51,5 @@ public static class DiagnosticsFusionGatewayBuilderExtensions
         return builder;
     }
 
-    internal sealed class InternalActivityEnricher(InstrumentationOptions options) : FusionActivityEnricher(options);
+    private sealed class InternalActivityEnricher(InstrumentationOptions options) : FusionActivityEnricher(options);
 }
