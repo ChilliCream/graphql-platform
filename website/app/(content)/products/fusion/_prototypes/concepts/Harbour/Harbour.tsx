@@ -35,6 +35,8 @@ interface Berth {
   readonly marker: string;
   readonly Visual: ComponentType;
   readonly ratio: string;
+  /** Accessible name for the scene; the SVG inside it is decorative. */
+  readonly label: string;
 }
 
 /** One berth per text block, in the order the copy lists them. */
@@ -44,24 +46,32 @@ const BERTHS: readonly Berth[] = [
     marker: "Berth 01 · the pier",
     Visual: ManifestPier,
     ratio: "4 / 3",
+    label:
+      "One query is loaded as containers from four warehouses onto the single ship at the pier.",
   },
   {
     id: "both-specifications",
     marker: "Berth 02 · the quay",
     Visual: QuayFlags,
     ratio: "4 / 3",
+    label:
+      "Warehouses flying GraphQL Federation and Apollo Federation pennants, plus OpenAPI and gRPC warehouses, all moored to one harbour.",
   },
   {
     id: "any-server",
     marker: "Berth 03 · the customs gate",
     Visual: CustomsGate,
     ratio: "4 / 3",
+    label:
+      "Five source schemas pass the customs check; a conflicting manifest drops the barrier and stops the build.",
   },
   {
     id: "client-safety",
     marker: "Berth 04 · the harbour log",
     Visual: HarbourLog,
     ratio: "4 / 3",
+    label:
+      "Composition still passes after a container is withdrawn; the harbour log marks the mobile client's operation as breaking.",
   },
 ];
 
@@ -165,7 +175,7 @@ function BerthSection({ berth, section, flipped }: BerthSectionProps) {
 
           <div className={flipped ? "lg:order-1" : undefined}>
             <div className="border-cc-card-border bg-cc-surface overflow-hidden rounded-2xl border">
-              <Scene ratio={berth.ratio}>
+              <Scene ratio={berth.ratio} label={berth.label}>
                 <Visual />
               </Scene>
             </div>
@@ -247,7 +257,10 @@ export function Harbour() {
               </div>
             </div>
             <div className="border-cc-card-border bg-cc-surface overflow-hidden rounded-2xl border">
-              <Scene ratio="16 / 9">
+              <Scene
+                ratio="16 / 9"
+                label="A harbour beacon sweeping berths that report latency, throughput and error rate for the gateway and each subgraph."
+              >
                 <BeaconSweep />
               </Scene>
             </div>

@@ -75,12 +75,7 @@ export function HarbourLog() {
   return (
     <div className="hbr-log absolute inset-0" data-run={run ? "true" : "false"}>
       <style>{CSS}</style>
-      <svg
-        viewBox="0 0 640 480"
-        className="h-full w-full"
-        role="img"
-        aria-label="Composition still passes after a container is withdrawn; the harbour log marks the mobile client's operation as breaking."
-      >
+      <svg viewBox="0 0 640 480" className="h-full w-full" aria-hidden="true">
         <rect width="640" height="480" fill={DUSK.skyTop} />
 
         {/* The warehouse withdrawing a container */}

@@ -91,12 +91,7 @@ export function QuayFlags() {
       data-run={run ? "true" : "false"}
     >
       <style>{CSS}</style>
-      <svg
-        viewBox="0 0 640 480"
-        className="h-full w-full"
-        role="img"
-        aria-label="Warehouses flying GraphQL Federation and Apollo Federation pennants, plus OpenAPI and gRPC warehouses, all moored to one harbour."
-      >
+      <svg viewBox="0 0 640 480" className="h-full w-full" aria-hidden="true">
         <rect width="640" height="480" fill={DUSK.skyTop} />
 
         {BERTHS.map((berth, i) => {
