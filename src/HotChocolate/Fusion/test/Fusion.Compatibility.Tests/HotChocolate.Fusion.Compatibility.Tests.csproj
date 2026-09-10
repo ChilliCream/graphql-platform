@@ -12,6 +12,8 @@
   <PropertyGroup>
     <AssemblyName>HotChocolate.Fusion.Compatibility.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Fusion.Compatibility</RootNamespace>
+    <!-- The committed baseline artifact under Baseline\artifacts is a net10.0 assembly, so only net10.0 and net11.0 can load it. -->
+    <TargetFrameworks>net11.0;net10.0</TargetFrameworks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,8 +37,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Basic.Reference.Assemblies.Net80" Condition="'$(TargetFramework)' == 'net8.0'" />
-    <PackageReference Include="Basic.Reference.Assemblies.Net90" Condition="'$(TargetFramework)' == 'net9.0'" />
     <PackageReference Include="Basic.Reference.Assemblies.Net100" Condition="'$(TargetFramework)' == 'net10.0'" />
     <PackageReference Include="Basic.Reference.Assemblies.Net110" Condition="'$(TargetFramework)' == 'net11.0'" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
