@@ -69,6 +69,18 @@ const SOURCE_Y = [374, 418];
 
 /** Right-hand jacks: the five subgraphs, then the two adapters. */
 const RIGHT_Y = [...LINE_Y, ...SOURCE_Y];
+const RIGHT_JACKS = [
+  ...LINES.map((line) => ({
+    name: line.name,
+    tag: `${line.lang} · ${SPEC_TAG[line.spec]}`,
+    adapter: false,
+  })),
+  ...SOURCES.map((source) => ({
+    name: source.name,
+    tag: source.kind as string,
+    adapter: true,
+  })),
+];
 
 const CALLER_CORDS = CALLER_Y.map((y) =>
   cord(CALLER_X + 10, y, PORT_IN.x, PORT_IN.y, 34),
@@ -86,6 +98,30 @@ function digitPos(value: number, k: number): number {
   const whole = Math.floor(value / scale) % 10;
   const rest = value % scale;
   return whole + (rest > scale - 1 ? rest - (scale - 1) : 0);
+}
+
+interface JackProps {
+  readonly cx: number;
+  readonly cy: number;
+  /** Adapter jacks are ringed with a dashed collar. */
+  readonly dashed?: boolean;
+}
+
+/** One jack in the field: brass ring, dark core. */
+function Jack({ cx, cy, dashed }: JackProps) {
+  return (
+    <>
+      <circle
+        cx={cx}
+        cy={cy}
+        r="10"
+        fill={FIELD}
+        stroke={dashed ? EDGE_SOFT : EDGE}
+        strokeDasharray={dashed ? "3 3" : undefined}
+      />
+      <circle cx={cx} cy={cy} r="4" fill={PANEL} stroke={EDGE_SOFT} />
+    </>
+  );
 }
 
 function drumTransform(value: number, k: number): string {
@@ -445,20 +481,7 @@ export function HeroBoard() {
             >
               {name}
             </text>
-            <circle
-              cx={CALLER_X}
-              cy={CALLER_Y[i]}
-              r="10"
-              fill={FIELD}
-              stroke={EDGE}
-            />
-            <circle
-              cx={CALLER_X}
-              cy={CALLER_Y[i]}
-              r="4"
-              fill={PANEL}
-              stroke={EDGE_SOFT}
-            />
+            <Jack cx={CALLER_X} cy={CALLER_Y[i]} />
             <circle
               ref={(el) => {
                 callerLamps.current[i] = el;
@@ -468,53 +491,6 @@ export function HeroBoard() {
               r="4"
               fill={i === REST_CALL.caller ? LAMP_ON : LAMP_OFF}
             />
-          </g>
-        ))}
-
-        {LINES.map((line, i) => (
-          <g key={line.name}>
-            <circle
-              cx={RIGHT_X}
-              cy={LINE_Y[i]}
-              r="10"
-              fill={FIELD}
-              stroke={EDGE}
-            />
-            <circle
-              cx={RIGHT_X}
-              cy={LINE_Y[i]}
-              r="4"
-              fill={PANEL}
-              stroke={EDGE_SOFT}
-            />
-            <circle
-              ref={(el) => {
-                rightLamps.current[i] = el;
-              }}
-              cx={RIGHT_X}
-              cy={LINE_Y[i] - 20}
-              r="4"
-              fill={REST_CALL.targets.includes(i) ? LAMP_ON : LAMP_OFF}
-            />
-            <text
-              x={RIGHT_X + 18}
-              y={LINE_Y[i] - 1}
-              fill={BRASS}
-              fontFamily={MONO}
-              fontSize="11"
-              letterSpacing="1"
-            >
-              {line.name}
-            </text>
-            <text
-              x={RIGHT_X + 18}
-              y={LINE_Y[i] + 11}
-              fill={BRASS_FAINT}
-              fontFamily={MONO}
-              fontSize="8"
-            >
-              {`${line.lang} · ${SPEC_TAG[line.spec]}`}
-            </text>
           </g>
         ))}
 
@@ -534,50 +510,37 @@ export function HeroBoard() {
         >
           VIA ADAPTER
         </text>
-        {SOURCES.map((source, i) => (
-          <g key={source.name}>
-            <circle
-              cx={RIGHT_X}
-              cy={SOURCE_Y[i]}
-              r="10"
-              fill={FIELD}
-              stroke={EDGE_SOFT}
-              strokeDasharray="3 3"
-            />
-            <circle
-              cx={RIGHT_X}
-              cy={SOURCE_Y[i]}
-              r="4"
-              fill={PANEL}
-              stroke={EDGE_SOFT}
-            />
+
+        {RIGHT_JACKS.map((jack, i) => (
+          <g key={jack.name}>
+            <Jack cx={RIGHT_X} cy={RIGHT_Y[i]} dashed={jack.adapter} />
             <circle
               ref={(el) => {
-                rightLamps.current[LINE_Y.length + i] = el;
+                rightLamps.current[i] = el;
               }}
               cx={RIGHT_X}
-              cy={SOURCE_Y[i] - 20}
+              cy={RIGHT_Y[i] - 20}
               r="4"
-              fill={LAMP_OFF}
+              fill={REST_CALL.targets.includes(i) ? LAMP_ON : LAMP_OFF}
             />
             <text
               x={RIGHT_X + 18}
-              y={SOURCE_Y[i] - 1}
+              y={RIGHT_Y[i] - 1}
               fill={BRASS}
               fontFamily={MONO}
               fontSize="11"
               letterSpacing="1"
             >
-              {source.name}
+              {jack.name}
             </text>
             <text
               x={RIGHT_X + 18}
-              y={SOURCE_Y[i] + 11}
+              y={RIGHT_Y[i] + 11}
               fill={BRASS_FAINT}
               fontFamily={MONO}
               fontSize="8"
             >
-              {source.kind}
+              {jack.tag}
             </text>
           </g>
         ))}
