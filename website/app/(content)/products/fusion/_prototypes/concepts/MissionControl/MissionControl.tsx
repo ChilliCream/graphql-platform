@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import type { ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 
 import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
@@ -35,7 +35,7 @@ const monoStyle = { fontFamily: MC.mono } as const;
 
 /** Re-links the phrases the production page links, leaving the words untouched. */
 function withLinks(text: string, links: readonly CopyLink[]): ReactNode {
-  let parts: ReactNode[] = [text];
+  let parts: (string | ReactElement)[] = [text];
 
   for (const link of links) {
     parts = parts.flatMap((part) => {
