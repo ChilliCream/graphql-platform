@@ -25,9 +25,9 @@ public static class FusionServerAspNetCoreHostingBuilderExtensions
     /// Defines if the default security policy should be disabled.
     /// </param>
     /// <returns>
-    /// The <see cref="IFusionGatewayBuilder"/> for configuration chaining.
+    /// The <see cref="IFusionRouterBuilder"/> for configuration chaining.
     /// </returns>
-    public static IFusionGatewayBuilder AddGraphQLRouter(
+    public static IFusionRouterBuilder AddGraphQLRouter(
         this IHostApplicationBuilder builder,
         string? name = null,
         int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize,
@@ -52,6 +52,7 @@ public static class FusionServerAspNetCoreHostingBuilderExtensions
     /// <returns>
     /// The <see cref="IFusionGatewayBuilder"/> for configuration chaining.
     /// </returns>
+    // TODO [17]: Remove the legacy registration after the 16.x compatibility window.
     [Obsolete("Use AddGraphQLRouter() instead.")]
     public static IFusionGatewayBuilder AddGraphQLGateway(
         this IHostApplicationBuilder builder,

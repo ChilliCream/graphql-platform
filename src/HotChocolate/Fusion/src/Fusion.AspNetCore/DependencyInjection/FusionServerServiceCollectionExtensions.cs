@@ -25,8 +25,8 @@ public static class FusionServerServiceCollectionExtensions
     /// <param name="name">The name of the GraphQL schema, <c>null</c> for the default schema.</param>
     /// <param name="maxAllowedRequestSize">The max allowed GraphQL request size.</param>
     /// <param name="disableDefaultSecurity">Defines if the default security policy should be disabled.</param>
-    /// <returns>The <see cref="IFusionGatewayBuilder"/> for configuration chaining.</returns>
-    public static IFusionGatewayBuilder AddGraphQLRouter(
+    /// <returns>The <see cref="IFusionRouterBuilder"/> for configuration chaining.</returns>
+    public static IFusionRouterBuilder AddGraphQLRouter(
         this IServiceCollection services,
         string? name = null,
         int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize,
@@ -66,6 +66,7 @@ public static class FusionServerServiceCollectionExtensions
     /// <param name="maxAllowedRequestSize">The max allowed GraphQL request size.</param>
     /// <param name="disableDefaultSecurity">Defines if the default security policy should be disabled.</param>
     /// <returns>The <see cref="IFusionGatewayBuilder"/> for configuration chaining.</returns>
+    // TODO [17]: Remove the legacy registration after the 16.x compatibility window.
     [Obsolete("Use AddGraphQLRouter() instead.")]
     public static IFusionGatewayBuilder AddGraphQLGatewayServer(
         this IServiceCollection services,
@@ -74,8 +75,8 @@ public static class FusionServerServiceCollectionExtensions
         bool disableDefaultSecurity = false)
         => services.AddGraphQLRouter(name, maxAllowedRequestSize, disableDefaultSecurity);
 
-    private static IFusionGatewayBuilder AddHttpTransport(
-        this IFusionGatewayBuilder builder,
+    private static IFusionRouterBuilder AddHttpTransport(
+        this IFusionRouterBuilder builder,
         int maxAllowedRequestSize)
         => builder.ConfigureSchemaServices((_, sc) =>
         {
@@ -95,8 +96,8 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<ParserOptions>()));
         });
 
-    private static IFusionGatewayBuilder AddServerDiagnostics(
-        this IFusionGatewayBuilder builder)
+    private static IFusionRouterBuilder AddServerDiagnostics(
+        this IFusionRouterBuilder builder)
         => builder.ConfigureSchemaServices(
             (_, sc) => sc.TryAddSingleton<IServerDiagnosticEvents>(sp =>
             {
@@ -109,8 +110,8 @@ public static class FusionServerServiceCollectionExtensions
                 };
             }));
 
-    private static IFusionGatewayBuilder AddExecutionConcurrencyGate(
-        this IFusionGatewayBuilder builder)
+    private static IFusionRouterBuilder AddExecutionConcurrencyGate(
+        this IFusionRouterBuilder builder)
         => builder.ConfigureSchemaServices(
             (applicationServices, sc) => sc.TryAddSingleton(schemaServices =>
             {
@@ -121,21 +122,21 @@ public static class FusionServerServiceCollectionExtensions
                 return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
             }));
 
-    private static IFusionGatewayBuilder AddStartupInitialization(
-        this IFusionGatewayBuilder builder)
+    private static IFusionRouterBuilder AddStartupInitialization(
+        this IFusionRouterBuilder builder)
     {
         builder.Services.AddHostedService<FusionRequestExecutorWarmupService>();
 
         return builder;
     }
 
-    private static IFusionGatewayBuilder AddDefaultHttpRequestInterceptor(
-        this IFusionGatewayBuilder builder)
+    private static IFusionRouterBuilder AddDefaultHttpRequestInterceptor(
+        this IFusionRouterBuilder builder)
         => builder.ConfigureSchemaServices(
             (_, s) => s.TryAddSingleton<IHttpRequestInterceptor, DefaultHttpRequestInterceptor>());
 
-    private static IFusionGatewayBuilder AddSubscriptionServices(
-        this IFusionGatewayBuilder builder)
+    private static IFusionRouterBuilder AddSubscriptionServices(
+        this IFusionRouterBuilder builder)
         => builder
             .ConfigureSchemaServices((_, s) =>
             {
@@ -145,16 +146,16 @@ public static class FusionServerServiceCollectionExtensions
             .AddApolloProtocol()
             .AddGraphQLOverWebSocketProtocol();
 
-    private static IFusionGatewayBuilder AddApolloProtocol(
-        this IFusionGatewayBuilder builder)
+    private static IFusionRouterBuilder AddApolloProtocol(
+        this IFusionRouterBuilder builder)
         => builder.ConfigureSchemaServices(
             (_, s) => s.AddSingleton<IProtocolHandler>(
                 sp => new ApolloSubscriptionProtocolHandler(
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
                     sp.GetRequiredService<IWebSocketPayloadFormatter>())));
 
-    private static IFusionGatewayBuilder AddGraphQLOverWebSocketProtocol(
-        this IFusionGatewayBuilder builder)
+    private static IFusionRouterBuilder AddGraphQLOverWebSocketProtocol(
+        this IFusionRouterBuilder builder)
         => builder.ConfigureSchemaServices(
             (_, s) => s.AddSingleton<IProtocolHandler>(
                 sp => new GraphQLOverWebSocketProtocolHandler(

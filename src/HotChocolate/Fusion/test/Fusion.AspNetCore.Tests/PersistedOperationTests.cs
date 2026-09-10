@@ -511,7 +511,7 @@ public class PersistedOperationTests : FusionTestBase
             });
     }
 
-    private async Task<Gateway> CreateGatewayAsync(Action<IFusionGatewayBuilder> configureBuilder)
+    private async Task<Gateway> CreateGatewayAsync(Action<IFusionRouterBuilder> configureBuilder)
     {
         var server1 = CreateSourceSchema(
             "A",
