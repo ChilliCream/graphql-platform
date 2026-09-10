@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
+  <!--
+    This project is a deliberately non-friend Fusion consumer: it must never appear in any
+    Fusion source project's InternalsVisibleTo list, and it must never reference the friend
+    Fusion.*.Tests / Fusion.Tests.Shared projects that do have internals access. That is what
+    lets it prove real, externally observable compatibility instead of hiding behind internals.
+  -->
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Compatibility.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Compatibility</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Baseline/BaselineConsumer is its own isolated project (see its Directory.Build.props) and
+      must never be compiled as part of this project; only its committed, prebuilt output under
+      Baseline/artifacts is consumed, via the None/CopyToOutputDirectory item below.
+    -->
+    <Compile Remove="Baseline\**\*.cs" />
+    <None Remove="Baseline\**\*.cs" />
+    <None Remove="Baseline\**\*.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Caching\HotChocolate.Fusion.Caching.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Diagnostics\HotChocolate.Fusion.Diagnostics.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Connectors.InMemory\HotChocolate.Fusion.Connectors.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Basic.Reference.Assemblies.Net80" Condition="'$(TargetFramework)' == 'net8.0'" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net90" Condition="'$(TargetFramework)' == 'net9.0'" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net100" Condition="'$(TargetFramework)' == 'net10.0'" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net110" Condition="'$(TargetFramework)' == 'net11.0'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Baseline\artifacts\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>Baseline\%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
+</Project>

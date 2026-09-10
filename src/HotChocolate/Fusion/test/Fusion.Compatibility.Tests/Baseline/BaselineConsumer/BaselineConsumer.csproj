@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Isolated 16.6 baseline consumer. This project is NOT part of any solution file and is NOT
+    referenced by HotChocolate.Fusion.Compatibility.Tests.csproj. It is built exactly once, out
+    of band, by build-baseline.sh, and its output assembly is committed under ../artifacts with
+    provenance recorded in ../artifacts/PROVENANCE.md. See ../artifacts/PROVENANCE.md for the
+    pinned package versions and the exact commands that produced the committed DLL. Rebuilding
+    it here never happens as a side effect of building or testing the compatibility harness.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>HotChocolate.Fusion.Compatibility.BaselineConsumer</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Compatibility.BaselineConsumer</RootNamespace>
+    <LangVersion>13.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Pinned to the released 16.6.4 packages (the latest 16.6.x release on nuget.org). -->
+    <PackageReference Include="HotChocolate.Fusion.AspNetCore" Version="16.6.4" />
+    <PackageReference Include="HotChocolate.Fusion.Caching" Version="16.6.4" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+  </ItemGroup>
+
+</Project>

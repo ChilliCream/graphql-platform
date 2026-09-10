@@ -1,0 +1,13 @@
+<Project>
+
+  <!--
+    Central package management is disabled here on purpose: the baseline consumer pins exact,
+    real 16.6 release versions inline in BaselineConsumer.csproj instead of inheriting the
+    repository's centrally managed (local, 16.7) package versions from src/Directory.Packages.props.
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+</Project>
