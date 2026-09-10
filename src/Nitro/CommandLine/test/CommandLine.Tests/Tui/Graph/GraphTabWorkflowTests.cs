@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
@@ -5,7 +6,9 @@ using ChilliCream.Nitro.CommandLine.Tui.Graph;
 using ChilliCream.Nitro.CommandLine.Tui.Graph.Render;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
+using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
+using ChilliCream.Nitro.CommandLine.Tui.Tree;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Graph;
@@ -212,12 +215,7 @@ public sealed class GraphTabWorkflowTests
                 Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
             }]);
         var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
-        var shell = new TuiShell(
-            [CreateTab("Tasks", 'T', board), CreateTab("Graph", 'G', graph)],
-            80,
-            8,
-            store: store,
-            actor: "tester");
+        var shell = CreateShell([CreateTab("Tasks", 'T', board), CreateTab("Graph", 'G', graph)], store, 80, 8);
         board.SelectTask("board-selected");
 
         // act
@@ -281,12 +279,21 @@ public sealed class GraphTabWorkflowTests
     }
 
     private static TuiShell CreateGraphShell(FakeTaskStore store, GraphMode graph, int width = 80, int height = 24)
+        => CreateShell([CreateTab("Tasks", 'T', new FakeTuiMode()), CreateTab("Graph", 'G', graph)], store, width, height);
+
+    private static TuiShell CreateShell(IReadOnlyList<TuiTab> tabs, FakeTaskStore store, int width, int height)
         => new(
-            [CreateTab("Tasks", 'T', new FakeTuiMode()), CreateTab("Graph", 'G', graph)],
+            tabs,
             width,
             height,
-            store: store,
-            actor: "tester");
+            tasksTabIndex: 0,
+            new SearchMode(store),
+            new DependencyTreeView(store, rootId: ""),
+            store,
+            actor: "tester",
+            mailWakeDaemonState: () => MailWakeDaemonState.Standby,
+            quitGates: [],
+            quitGateDrainBound: TimeSpan.FromSeconds(5));
 
     private static TuiTab CreateTab(string title, char mnemonic, ITuiMode mode)
         => new(title, mnemonic, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));

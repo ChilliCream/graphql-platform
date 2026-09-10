@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
@@ -9,17 +10,17 @@ using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
+using ChilliCream.Nitro.CommandLine.Tui.Tree;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 
 /// <summary>
-/// Covers <see cref="TuiShell"/>'s tabbed-hosting constructor: the tab
-/// strip, per-tab dispatcher and mode-stack isolation, tab-switch key
-/// handling, and the shell-level broadcast of a data-changed refresh to
-/// every hosted tab. <see cref="TuiShellTests"/> covers the single-mode
-/// constructor and the shell-level overlay machinery those tabbed tests
-/// reuse.
+/// Covers <see cref="TuiShell"/>'s multi-tab hosting: the tab strip,
+/// per-tab dispatcher and mode-stack isolation, tab-switch key handling,
+/// and the shell-level broadcast of a data-changed refresh to every hosted
+/// tab. <see cref="TuiShellTests"/> covers a single-tab shell and the
+/// shell-level overlay machinery those tabbed tests reuse.
 /// </summary>
 public sealed class TuiShellTabsTests
 {
@@ -47,6 +48,37 @@ public sealed class TuiShellTabsTests
     private static TuiTab CreateAgentsTab(string title, ITuiMode mode, char mnemonic = 'A') =>
         new(title, mnemonic, mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
 
+    private static TuiShell CreateShell(IReadOnlyList<TuiTab> tabs, int width = 80, int height = 24) =>
+        CreateShell(tabs, new FakeTaskStore(), actor: null, width, height);
+
+    private static TuiShell CreateShell(
+        IReadOnlyList<TuiTab> tabs,
+        FakeTaskStore store,
+        string? actor,
+        int width = 80,
+        int height = 24) =>
+        CreateShell(tabs, store, new SearchMode(store), actor, width, height);
+
+    private static TuiShell CreateShell(
+        IReadOnlyList<TuiTab> tabs,
+        FakeTaskStore store,
+        SearchMode searchMode,
+        string? actor,
+        int width = 80,
+        int height = 24) =>
+        new(
+            tabs,
+            width,
+            height,
+            tasksTabIndex: 0,
+            searchMode,
+            new DependencyTreeView(store, rootId: ""),
+            store,
+            actor,
+            mailWakeDaemonState: () => MailWakeDaemonState.Standby,
+            quitGates: [],
+            quitGateDrainBound: TimeSpan.FromSeconds(5));
+
     private static AgentRecord Agent(string name, string role = "") => new()
     {
         Name = name,
@@ -73,7 +105,7 @@ public sealed class TuiShellTabsTests
         var tab2Mode = new FakeTuiMode();
 
         // act
-        _ = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
+        _ = CreateShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)]);
 
         // assert: the inactive tab's mode is entered too, so its tab-strip
         // title (for example an unread badge) is accurate before it is ever
@@ -86,8 +118,7 @@ public sealed class TuiShellTabsTests
     public void Render_Should_ShowATabStrip_WithEveryTabsTitle_When_MoreThanOneTabIsHosted()
     {
         // arrange
-        var shell = new TuiShell(
-            [CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", new FakeTuiMode())], 80, 24);
+        var shell = CreateShell([CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", new FakeTuiMode())]);
 
         // act
         var text = RenderToText(shell);
@@ -103,14 +134,12 @@ public sealed class TuiShellTabsTests
         // arrange: the tasks tab (index 0) is active by default, the agents
         // tab (index 2) is inactive, covering both the active and inactive
         // tab-strip styles the mnemonic bracket is rendered under.
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [
                 CreateTasksTab("Tasks", new FakeTuiMode()),
                 CreateMailTab("Mail", new FakeTuiMode()),
                 CreateAgentsTab("Agents", new FakeTuiMode())
-            ],
-            80,
-            24);
+            ]);
 
         // act
         var text = RenderToText(shell);
@@ -128,14 +157,12 @@ public sealed class TuiShellTabsTests
         var tasksMode = new FakeTuiMode();
         var mailMode = new FakeTuiMode();
         var agentsMode = new FakeTuiMode();
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [
                 CreateTasksTab("Tasks", tasksMode),
                 CreateMailTab("Mail", mailMode),
                 CreateAgentsTab("Agents", agentsMode)
-            ],
-            80,
-            24);
+            ]);
 
         // act: Shift+A jumps straight from the (active) tasks tab to agents.
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('A', ConsoleKey.A, ConsoleModifiers.Shift)));
@@ -165,13 +192,11 @@ public sealed class TuiShellTabsTests
         // arrange
         var tasksMode = new FakeTuiMode();
         var graphMode = new FakeTuiMode();
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [
                 CreateTasksTab("Tasks", tasksMode),
                 CreateTasksTab("Graph", graphMode, mnemonic: 'G')
-            ],
-            80,
-            24);
+            ]);
 
         // act
         var switched = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
@@ -189,8 +214,7 @@ public sealed class TuiShellTabsTests
     {
         // arrange
         var tasksMode = new FakeTuiMode();
-        var shell = new TuiShell(
-            [CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", new FakeTuiMode())], 80, 24);
+        var shell = CreateShell([CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", new FakeTuiMode())]);
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('T', ConsoleKey.T, ConsoleModifiers.Shift)));
@@ -208,14 +232,12 @@ public sealed class TuiShellTabsTests
         // unrelated, already-bound key. 'r' (refresh) stays reachable on the
         // tasks tab's global table even with tab mnemonics installed.
         var tasksMode = new FakeTuiMode();
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [
                 CreateTasksTab("Tasks", tasksMode),
                 CreateMailTab("Mail", new FakeTuiMode()),
                 CreateAgentsTab("Agents", new FakeTuiMode())
-            ],
-            80,
-            24);
+            ]);
 
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
@@ -227,11 +249,11 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_ReserveOneExtraRow_ForTheTabStrip_When_MultipleTabsHosted()
     {
-        // arrange: the single-tab constructor reserves only the status row
+        // arrange: a single-tab shell reserves only the status row
         // (covered by TuiShellTests), so a second reserved row here isolates
         // the tab strip's own contribution.
         var mode = new FakeTuiMode();
-        var shell = new TuiShell([CreateTasksTab("Tasks", mode), CreateMailTab("Mail", new FakeTuiMode())], 80, 24);
+        var shell = CreateShell([CreateTasksTab("Tasks", mode), CreateMailTab("Mail", new FakeTuiMode())]);
 
         // act
         shell.Handle(new TuiEvent.ResizeEvent(100, 30));
@@ -248,7 +270,7 @@ public sealed class TuiShellTabsTests
         // each tab's dispatcher is checked instead of a shared one.
         var tasksMode = new FakeTuiMode();
         var mailMode = new FakeTuiMode();
-        var shell = new TuiShell([CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)], 80, 24);
+        var shell = CreateShell([CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)]);
 
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
@@ -274,7 +296,7 @@ public sealed class TuiShellTabsTests
         // arrange
         var tab1Mode = new FakeTuiMode();
         var tab2Mode = new FakeTuiMode();
-        var shell = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
+        var shell = CreateShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)]);
 
         // act: '[' from the first tab wraps to the last.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('[', ConsoleKey.Oem4)));
@@ -298,7 +320,7 @@ public sealed class TuiShellTabsTests
         // Oem4/Oem6-only tests above leave for that platform shape.
         var tab1Mode = new FakeTuiMode();
         var tab2Mode = new FakeTuiMode();
-        var shell = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
+        var shell = CreateShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)]);
 
         // act
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.None)));
@@ -312,9 +334,22 @@ public sealed class TuiShellTabsTests
     {
         // arrange
         var tabs = new[] { CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", new FakeTuiMode()) };
+        var store = new FakeTaskStore();
 
         // act & assert
-        Assert.Throws<ArgumentOutOfRangeException>(() => new TuiShell(tabs, 80, 24, tasksTabIndex: 2));
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => new TuiShell(
+                tabs,
+                80,
+                24,
+                tasksTabIndex: 2,
+                new SearchMode(store),
+                new DependencyTreeView(store, rootId: ""),
+                store,
+                actor: null,
+                mailWakeDaemonState: () => MailWakeDaemonState.Standby,
+                quitGates: [],
+                quitGateDrainBound: TimeSpan.FromSeconds(5)));
     }
 
     [Fact]
@@ -330,7 +365,7 @@ public sealed class TuiShellTabsTests
         {
             HandleResult = message => message is TuiMessage.RefreshRequested ? [mailFollowUp] : []
         };
-        var shell = new TuiShell([CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)], 80, 24);
+        var shell = CreateShell([CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)]);
         tasksMode.HandledMessages.Clear();
         mailMode.HandledMessages.Clear();
 
@@ -358,12 +393,9 @@ public sealed class TuiShellTabsTests
         };
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
         var otherMode = new FakeTuiMode();
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", board), CreateTasksTab("Other", otherMode, mnemonic: 'O')],
-            80,
-            24,
-            tasksTabIndex: 0,
-            store: store,
+            store,
             actor: "tester");
 
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
@@ -392,12 +424,9 @@ public sealed class TuiShellTabsTests
         };
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
         var otherMode = new FakeTuiMode();
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", board), CreateTasksTab("Other", otherMode, mnemonic: 'O')],
-            80,
-            24,
-            tasksTabIndex: 0,
-            store: store,
+            store,
             actor: "tester");
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
 
@@ -417,7 +446,7 @@ public sealed class TuiShellTabsTests
         // derived from it) stays current.
         var tab1Mode = new FakeTuiMode();
         var tab2Mode = new FakeTuiMode();
-        var shell = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
+        var shell = CreateShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)]);
 
         // act
         var dirty = shell.Handle(new TuiEvent.DataChangedEvent());
@@ -438,12 +467,8 @@ public sealed class TuiShellTabsTests
             mailStore,
             "actor",
             new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry());
-        var mailTab = new TuiTab(
-            () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
-            mnemonic: 'M',
-            mailMode,
-            new KeyDispatcher(MailKeyMap.CreateDefault()));
-        var shell = new TuiShell([CreateTasksTab("Tasks", new FakeTuiMode()), mailTab], 80, 24);
+        var mailTab = new TuiTab("Mail", mnemonic: 'M', mailMode, new KeyDispatcher(MailKeyMap.CreateDefault()));
+        var shell = CreateShell([CreateTasksTab("Tasks", new FakeTuiMode()), mailTab]);
 
         // assert: computed at construction, before the mail tab is ever
         // active; the badge suffix is untouched by the bracketed mnemonic.
@@ -473,7 +498,7 @@ public sealed class TuiShellTabsTests
             mailStore,
             "alice",
             new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry());
-        var shell = new TuiShell([CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", mailMode)], 80, 24);
+        var shell = CreateShell([CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", mailMode)]);
         mailMode.Handle(new TuiMessage.SelectInboxRequested());
         mailMode.Handle(new TuiMessage.ComposeRequested());
 
@@ -546,12 +571,9 @@ public sealed class TuiShellTabsTests
             Columns = [new ColumnDefinition { Name = "Open", Statuses = [TaskStates.Open] }]
         };
         var board = new BoardMode(new BoardDataLoader(store, TimeProvider.System), [view]);
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", board), CreateTasksTab("Other", new FakeTuiMode(), mnemonic: 'O')],
-            80,
-            24,
-            tasksTabIndex: 0,
-            store: store,
+            store,
             actor: "tester");
 
         // act
@@ -580,13 +602,7 @@ public sealed class TuiShellTabsTests
             mailStore,
             sessions,
             new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader());
-        var shell = new TuiShell(
-            [CreateAgentsTab("Agents", agentsMode)],
-            100,
-            24,
-            tasksTabIndex: 0,
-            store: taskStore,
-            mailStore: mailStore);
+        var shell = CreateShell([CreateAgentsTab("Agents", agentsMode)], taskStore, actor: null, width: 100);
         Assert.Contains("backend", RenderToText(shell, width: 100));
 
         // act: Enter no longer pushes a full-screen detail mode; it focuses
@@ -617,13 +633,7 @@ public sealed class TuiShellTabsTests
             mailStore,
             sessions,
             new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader());
-        var shell = new TuiShell(
-            [CreateAgentsTab("Agents", agentsMode)],
-            80,
-            24,
-            tasksTabIndex: 0,
-            store: taskStore,
-            mailStore: mailStore);
+        var shell = CreateShell([CreateAgentsTab("Agents", agentsMode)], taskStore, actor: null);
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\x1b', ConsoleKey.Escape)));
@@ -637,17 +647,13 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void TaskOverlayGesture_Should_DoNothing_When_TheTasksTabIsNotActive()
     {
-        // arrange: a store is present (so it is not merely a null-store
-        // no-op), but the active tab is not the one that owns it.
+        // arrange: the active tab is not the one that owns the task overlays.
         var store = new FakeTaskStore();
         store.Tasks["a"] = TaskItemBuilder.Create("a");
         var otherMode = new FakeTuiMode { SelectedTaskId = "a" };
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Other", otherMode, mnemonic: 'O')],
-            80,
-            24,
-            tasksTabIndex: 0,
-            store: store,
+            store,
             actor: "tester");
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
@@ -672,13 +678,12 @@ public sealed class TuiShellTabsTests
         }
 
         var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
-            60,
-            8,
-            tasksTabIndex: 0,
-            store: store,
-            actor: "tester");
+            store,
+            actor: "tester",
+            width: 60,
+            height: 8);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
         graph.Handle(new TuiMessage.ToggleGraphProjection());
         graph.SelectTask("task-11");
@@ -724,12 +729,9 @@ public sealed class TuiShellTabsTests
         var store = new FakeTaskStore();
         store.Tasks["graph-task"] = TaskItemBuilder.Create("graph-task", "Graph Detail");
         var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
-            80,
-            24,
-            tasksTabIndex: 0,
-            store: store,
+            store,
             actor: actor);
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
@@ -756,12 +758,9 @@ public sealed class TuiShellTabsTests
         store.DependencyEdges.Add(Blocks("origin", "target-a"));
         store.DependencyEdges.Add(Blocks("origin", "target-b"));
         var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
-            80,
-            24,
-            tasksTabIndex: 0,
-            store: store,
+            store,
             actor: "writer");
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
         graph.Handle(new TuiMessage.ToggleGraphProjection());
@@ -788,12 +787,9 @@ public sealed class TuiShellTabsTests
         var store = new FakeTaskStore();
         store.Tasks["origin"] = TaskItemBuilder.Create("origin");
         var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
-            80,
-            24,
-            tasksTabIndex: 0,
-            store: store,
+            store,
             actor: "writer");
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
@@ -818,13 +814,10 @@ public sealed class TuiShellTabsTests
         store.Tasks["graph-task"] = TaskItemBuilder.Create("graph-task", "Find Graph Task");
         var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         var search = new SearchMode(store);
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", new FakeTuiMode()), CreateTasksTab("Graph", graph, mnemonic: 'G')],
-            80,
-            24,
-            tasksTabIndex: 0,
-            searchMode: search,
-            store: store,
+            store,
+            search,
             actor: "writer");
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('G', ConsoleKey.G, ConsoleModifiers.Shift)));
 
@@ -856,12 +849,9 @@ public sealed class TuiShellTabsTests
             }]);
         var graph = new GraphMode(new GraphDataLoader(store, TimeProvider.System));
         graph.SelectTask("graph-task");
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", board), CreateTasksTab("Graph", graph, mnemonic: 'G')],
-            80,
-            24,
-            tasksTabIndex: 0,
-            store: store,
+            store,
             actor: "tester");
 
         // act
@@ -885,13 +875,10 @@ public sealed class TuiShellTabsTests
         var store = new FakeTaskStore();
         var searchMode = new SearchMode(store);
         var board = new FakeTuiMode { RenderText = "board" };
-        var shell = new TuiShell(
+        var shell = CreateShell(
             [CreateTasksTab("Tasks", board), CreateTasksTab("Other", new FakeTuiMode { RenderText = "other" }, mnemonic: 'O')],
-            80,
-            24,
-            tasksTabIndex: 0,
-            searchMode: searchMode,
-            store: store,
+            store,
+            searchMode,
             actor: "tester");
 
         // act: enter search from the tasks tab's board root.

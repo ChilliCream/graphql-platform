@@ -42,24 +42,6 @@ public sealed class AgentTuiLauncherTests
 
     private static Mock<IEnvironmentVariableProvider> CreateEnvironment() => new();
 
-    private static TuiShell BuildShell(TuiTab mailTab)
-    {
-        var taskStore = new FakeTaskStore();
-        var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(Now));
-        var boardMode = new BoardMode(loader);
-        var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
-
-        return new TuiShell(
-            [tasksTab, mailTab],
-            80,
-            24,
-            tasksTabIndex: 0,
-            new SearchMode(taskStore),
-            new DependencyTreeView(taskStore, rootId: ""),
-            taskStore,
-            actor: "tasks-actor");
-    }
-
     private static string RenderToText(TuiShell shell, int width = 80)
     {
         var console = new TestConsole().Width(width);
@@ -137,7 +119,10 @@ public sealed class AgentTuiLauncherTests
                 new SearchMode(taskStore),
                 new DependencyTreeView(taskStore, rootId: ""),
                 taskStore,
-                actor: "tasks-actor");
+                actor: "tasks-actor",
+                mailWakeDaemonState: () => MailWakeDaemonState.Standby,
+                quitGates: [],
+                quitGateDrainBound: TimeSpan.FromSeconds(5));
 
             // act
             var text = RenderToText(shell);
@@ -225,7 +210,7 @@ public sealed class AgentTuiLauncherTests
     [InlineData("Standby", "mail-wake:standby")]
     [InlineData("Degraded", "mail-wake:degraded")]
     [InlineData("Stopping", "mail-wake:stopping")]
-    public void Render_Should_ShowTheMailWakeDaemonBadge_When_AStateProviderIsGiven(
+    public void Render_Should_ShowTheMailWakeDaemonBadge_When_TheDaemonReportsAState(
         string stateName, string expectedBadge)
     {
         // arrange: InlineData cannot carry the internal MailWakeDaemonState
@@ -238,12 +223,17 @@ public sealed class AgentTuiLauncherTests
         var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(Now));
         var boardMode = new BoardMode(loader);
         var shell = new TuiShell(
-            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
-            boardMode,
+            [new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()))],
             width,
             24,
+            tasksTabIndex: 0,
+            new SearchMode(taskStore),
+            new DependencyTreeView(taskStore, rootId: ""),
+            taskStore,
             actor: "tasks-actor",
-            mailWakeDaemonState: () => state);
+            mailWakeDaemonState: () => state,
+            quitGates: [],
+            quitGateDrainBound: TimeSpan.FromSeconds(5));
 
         // act
         var text = RenderToText(shell, width);

@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text;
-using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
@@ -12,7 +11,6 @@ using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
-using Spectre.Console;
 using Spectre.Console.Rendering;
 using EditingConfirmDialog = ChilliCream.Nitro.CommandLine.Tui.Editing.ConfirmDialog;
 
@@ -33,20 +31,18 @@ internal sealed class TuiShell
     private const string FooterEllipsis = "…";
     private const string TabStripSeparator = " ";
 
-    private static readonly TimeSpan s_quitGateDrainBound = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan s_quitGateGrace = TimeSpan.FromSeconds(1);
 
     private readonly IReadOnlyList<TuiTab> _tabs;
     private readonly TuiTab _tasksTab;
     private readonly Toaster _toaster = new();
-    private readonly SearchMode? _searchMode;
-    private readonly DependencyTreeView? _treeView;
-    private readonly ITaskStore? _store;
-    private readonly IMailStore? _mailStore;
+    private readonly SearchMode _searchMode;
+    private readonly DependencyTreeView _treeView;
+    private readonly ITaskStore _store;
     private readonly string? _actor;
     private readonly Dictionary<TuiTab, BoardDetailMode> _detailModes = [];
 
-    private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
+    private readonly Func<MailWakeDaemonState> _mailWakeDaemonState;
     private readonly IReadOnlyList<TuiQuitGate> _quitGates;
     private readonly TimeSpan _quitGateDrainBound;
 
@@ -66,59 +62,28 @@ internal sealed class TuiShell
     private int _width;
     private int _height;
 
-    public TuiShell(
-        KeyDispatcher dispatcher,
-        ITuiMode activeMode,
-        int initialWidth,
-        int initialHeight,
-        SearchMode? searchMode = null,
-        DependencyTreeView? treeView = null,
-        ITaskStore? store = null,
-        string? actor = null,
-        IMailStore? mailStore = null,
-        Func<MailWakeDaemonState>? mailWakeDaemonState = null,
-        IReadOnlyList<TuiQuitGate>? quitGates = null,
-        TimeSpan? quitGateDrainBound = null)
-        : this(
-            [new TuiTab(
-                string.Empty,
-                mnemonic: '\0',
-                activeMode ?? throw new ArgumentNullException(nameof(activeMode)),
-                dispatcher ?? throw new ArgumentNullException(nameof(dispatcher)))],
-            initialWidth,
-            initialHeight,
-            tasksTabIndex: 0,
-            searchMode,
-            treeView,
-            store,
-            actor,
-            mailStore,
-            mailWakeDaemonState,
-            quitGates,
-            quitGateDrainBound)
-    {
-    }
-
     /// <summary>
-    /// Builds a tabbed shell hosting <paramref name="tabs"/> in order, starting on
-    /// the first. Each tab keeps its own mode stack and key dispatcher, so switching
+    /// Builds a shell hosting <paramref name="tabs"/> in order, starting on the
+    /// first. Each tab keeps its own mode stack and key dispatcher, so switching
     /// tabs preserves nested mode state and routes keys only to the active tab.
     /// <paramref name="tasksTabIndex"/> identifies which tab owns the shell-level task
     /// overlay machinery (the task editor, the close/reopen/delete confirmation, the
     /// status and priority quick pickers, and the task create form): that machinery
     /// only activates while the tab at that index is active. A one-row tab strip
     /// renders above the content region whenever more than one tab is hosted.
+    /// <paramref name="actor"/> is the identity every task write is attributed to.
+    /// Without one the board is read-only and refuses every write.
     /// <paramref name="quitGates"/> runs before a confirmed normal quit is allowed to
     /// raise <see cref="QuitConfirmed"/>: each stops its own feature's new submissions
-    /// and bounded-drains what is already in flight, and a nonzero pending or
+    /// and bounded-drains what is already in flight within
+    /// <paramref name="quitGateDrainBound"/>, and a nonzero pending or
     /// outcome-unknown count reported back turns the confirmation into a second
-    /// prompt naming those counts rather than quitting immediately. Omitted, quitting
-    /// behaves exactly as before.
-    /// <paramref name="mailWakeDaemonState"/>, when given, is polled once per render
-    /// and shown as a short badge in the footer's trailing segment (to the left of
-    /// the actor identity), so the mail-wake daemon's Ready/Standby/Degraded/Stopping
-    /// state stays visible while the dashboard is open, never blocking or altering
-    /// any tab's own behavior.
+    /// prompt naming those counts rather than quitting immediately.
+    /// <paramref name="mailWakeDaemonState"/> is polled once per render and shown as
+    /// a short badge in the footer's trailing segment (to the left of the actor
+    /// identity), so the mail-wake daemon's Ready/Standby/Degraded/Stopping state
+    /// stays visible while the dashboard is open, never blocking or altering any
+    /// tab's own behavior.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
@@ -127,18 +92,15 @@ internal sealed class TuiShell
         IReadOnlyList<TuiTab> tabs,
         int initialWidth,
         int initialHeight,
-        int tasksTabIndex = 0,
-        SearchMode? searchMode = null,
-        DependencyTreeView? treeView = null,
-        ITaskStore? store = null,
-        string? actor = null,
-        IMailStore? mailStore = null,
-        Func<MailWakeDaemonState>? mailWakeDaemonState = null,
-        IReadOnlyList<TuiQuitGate>? quitGates = null,
-        TimeSpan? quitGateDrainBound = null)
+        int tasksTabIndex,
+        SearchMode searchMode,
+        DependencyTreeView treeView,
+        ITaskStore store,
+        string? actor,
+        Func<MailWakeDaemonState> mailWakeDaemonState,
+        IReadOnlyList<TuiQuitGate> quitGates,
+        TimeSpan quitGateDrainBound)
     {
-        ArgumentNullException.ThrowIfNull(tabs);
-
         if (tabs.Count == 0)
         {
             throw new ArgumentException("A shell needs at least one tab.", nameof(tabs));
@@ -156,11 +118,10 @@ internal sealed class TuiShell
         _searchMode = searchMode;
         _treeView = treeView;
         _store = store;
-        _mailStore = mailStore;
         _actor = actor;
         _mailWakeDaemonState = mailWakeDaemonState;
-        _quitGates = quitGates ?? [];
-        _quitGateDrainBound = quitGateDrainBound ?? s_quitGateDrainBound;
+        _quitGates = quitGates;
+        _quitGateDrainBound = quitGateDrainBound;
         _width = initialWidth;
         _height = initialHeight;
 
@@ -242,12 +203,12 @@ internal sealed class TuiShell
                                 : ActiveMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render()
-            ?? (IRenderable)new Markup(
+            ?? new Markup(
                 FormatFooter(
                     BuildFooterHints(),
                     _width,
                     _actor,
-                    _mailWakeDaemonState?.Invoke(),
+                    _mailWakeDaemonState(),
                     ActiveMode.FooterStatus));
 
         if (_tabs.Count <= 1)
@@ -266,9 +227,11 @@ internal sealed class TuiShell
     /// <summary>
     /// Renders the one-row tab strip: every hosted tab's title with its
     /// <see cref="TuiTab.Mnemonic"/> bracketed (for example <c>[A]gents</c>)
-    /// and styled in the footer's own key token, the active tab highlighted
-    /// the same way a selected board row is, reusing the footer's own
-    /// tokens rather than introducing new ones.
+    /// and styled in the footer's own key token, followed by its root mode's
+    /// <see cref="ITuiMode.TabBadgeCount"/> when nonzero (for example
+    /// <c>[M]ail (2)</c>), the active tab highlighted the same way a selected
+    /// board row is, reusing the footer's own tokens rather than introducing
+    /// new ones.
     /// </summary>
     private IRenderable RenderTabStrip()
     {
@@ -279,9 +242,12 @@ internal sealed class TuiShell
 
         for (var i = 0; i < _tabs.Count; i++)
         {
+            var tab = _tabs[i];
             var style = i == _activeTabIndex ? activeStyle : inactiveStyle;
-            var titleMarkup = FormatMnemonicTitle(_tabs[i].Title, _tabs[i].Mnemonic, keyStyle);
-            parts[i] = $"[{style}] {titleMarkup} [/]";
+            var titleMarkup = FormatMnemonicTitle(tab.Title, tab.Mnemonic, keyStyle);
+            var badgeCount = tab.RootMode.TabBadgeCount;
+            var badge = badgeCount > 0 ? $" ({badgeCount})" : string.Empty;
+            parts[i] = $"[{style}] {titleMarkup}{badge} [/]";
         }
 
         return new Markup(string.Join(TabStripSeparator, parts));
@@ -323,9 +289,8 @@ internal sealed class TuiShell
     private bool HandleTick(DateTimeOffset now)
     {
         var toastDirty = _toaster.Tick(now);
-        var searchDirty = _searchMode is { } search
-            && ReferenceEquals(ActiveMode, search)
-            && search.TickAsync(now, CancellationToken.None).GetAwaiter().GetResult();
+        var searchDirty = ReferenceEquals(ActiveMode, _searchMode)
+            && _searchMode.TickAsync(now, CancellationToken.None).GetAwaiter().GetResult();
 
         return toastDirty || searchDirty;
     }
@@ -416,12 +381,11 @@ internal sealed class TuiShell
             return HandleCreateFormKey(info);
         }
 
-        if (_searchMode is { } searchMode
-            && ReferenceEquals(ActiveMode, searchMode)
-            && searchMode.Focus == SearchFocus.Input
+        if (ReferenceEquals(ActiveMode, _searchMode)
+            && _searchMode.Focus == SearchFocus.Input
             && info.Key is not (ConsoleKey.Escape or ConsoleKey.Tab or ConsoleKey.Enter))
         {
-            searchMode.HandleQueryKey(info, DateTimeOffset.UtcNow);
+            _searchMode.HandleQueryKey(info, DateTimeOffset.UtcNow);
             return true;
         }
 
@@ -532,7 +496,7 @@ internal sealed class TuiShell
 
     private bool SubmitEditorForm(FormResult.Submitted submitted)
     {
-        var outcome = _editorForm!.SubmitAsync(_store!, submitted.Values, _actor!, CancellationToken.None)
+        var outcome = _editorForm!.SubmitAsync(_store, submitted.Values, _actor!, CancellationToken.None)
             .GetAwaiter().GetResult();
 
         HandleMessage(outcome.ToShowToast());
@@ -579,9 +543,9 @@ internal sealed class TuiShell
 
         var outcomeTask = action switch
         {
-            TaskLifecycleAction.Close => TaskLifecycleActions.CloseAsync(_store!, task, reason, _actor!, CancellationToken.None),
-            TaskLifecycleAction.Reopen => TaskLifecycleActions.ReopenAsync(_store!, task, reason, _actor!, CancellationToken.None),
-            TaskLifecycleAction.Delete => TaskLifecycleActions.DeleteAsync(_store!, task, reason, _actor!, CancellationToken.None),
+            TaskLifecycleAction.Close => TaskLifecycleActions.CloseAsync(_store, task, reason, _actor!, CancellationToken.None),
+            TaskLifecycleAction.Reopen => TaskLifecycleActions.ReopenAsync(_store, task, reason, _actor!, CancellationToken.None),
+            TaskLifecycleAction.Delete => TaskLifecycleActions.DeleteAsync(_store, task, reason, _actor!, CancellationToken.None),
             _ => throw new NotSupportedException()
         };
         var outcome = outcomeTask.GetAwaiter().GetResult();
@@ -672,9 +636,9 @@ internal sealed class TuiShell
 
         var outcomeTask = kind switch
         {
-            PickerKind.Status => StatusPicker.ApplyAsync(_store!, task, selectedId, _actor!, CancellationToken.None),
+            PickerKind.Status => StatusPicker.ApplyAsync(_store, task, selectedId, _actor!, CancellationToken.None),
             PickerKind.Priority => PriorityPicker.ApplyAsync(
-                _store!, task, int.Parse(selectedId, CultureInfo.InvariantCulture), _actor!, CancellationToken.None),
+                _store, task, int.Parse(selectedId, CultureInfo.InvariantCulture), _actor!, CancellationToken.None),
             _ => throw new NotSupportedException()
         };
         var outcome = outcomeTask.GetAwaiter().GetResult();
@@ -720,7 +684,7 @@ internal sealed class TuiShell
 
     private bool SubmitCreateForm(FormResult.Submitted submitted)
     {
-        var outcome = _createForm!.SubmitAsync(_store!, submitted.Values, _actor!, CancellationToken.None)
+        var outcome = _createForm!.SubmitAsync(_store, submitted.Values, _actor!, CancellationToken.None)
             .GetAwaiter().GetResult();
 
         HandleMessage(outcome.ToShowToast());
@@ -781,13 +745,13 @@ internal sealed class TuiShell
                     return true;
                 }
 
-                if (!IsTasksTabActive || _searchMode is not { } search)
+                if (!IsTasksTabActive)
                 {
                     return false;
                 }
 
-                SwitchTo(search);
-                search.FocusInput();
+                SwitchTo(_searchMode);
+                _searchMode.FocusInput();
                 return true;
 
             case TuiMessage.OpenTreeRequested:
@@ -908,11 +872,6 @@ internal sealed class TuiShell
     /// </summary>
     private bool TryOpenDetail()
     {
-        if (_store is null)
-        {
-            return false;
-        }
-
         if (ActiveMode.SelectedTaskId is not { } id)
         {
             return ShowToastNow("No task selected.", ToastStyle.Warn);
@@ -931,24 +890,19 @@ internal sealed class TuiShell
 
     private bool TryOpenTree()
     {
-        if (_treeView is not { } tree)
-        {
-            return false;
-        }
-
         if (ActiveMode.SelectedTaskId is not { } id)
         {
             return ShowToastNow("No task selected.", ToastStyle.Warn);
         }
 
-        tree.EnterOnTask(id);
-        SwitchTo(tree);
+        _treeView.EnterOnTask(id);
+        SwitchTo(_treeView);
         return true;
     }
 
     private bool TryOpenEditor()
     {
-        if (!IsTasksTabActive || _store is null)
+        if (!IsTasksTabActive)
         {
             return false;
         }
@@ -977,7 +931,7 @@ internal sealed class TuiShell
 
     private bool TryOpenCloseOrReopenDialog()
     {
-        if (!IsTasksTabActive || _store is null)
+        if (!IsTasksTabActive)
         {
             return false;
         }
@@ -1010,7 +964,7 @@ internal sealed class TuiShell
 
     private bool TryOpenDeleteDialog()
     {
-        if (!IsTasksTabActive || _store is null)
+        if (!IsTasksTabActive)
         {
             return false;
         }
@@ -1033,7 +987,7 @@ internal sealed class TuiShell
 
     private bool TryOpenPicker(PickerKind kind)
     {
-        if (!IsTasksTabActive || _store is null)
+        if (!IsTasksTabActive)
         {
             return false;
         }
@@ -1056,7 +1010,7 @@ internal sealed class TuiShell
 
     private bool TryOpenCreateForm(string typePreset)
     {
-        if (!IsTasksTabActive || _store is null)
+        if (!IsTasksTabActive)
         {
             return false;
         }
@@ -1075,11 +1029,6 @@ internal sealed class TuiShell
 
     private TaskItem? LoadSelectedTask()
     {
-        if (_store is null)
-        {
-            return null;
-        }
-
         if (ActiveMode.SelectedTaskId is not { } id)
         {
             ShowToastNow("No task selected.", ToastStyle.Warn);
@@ -1169,9 +1118,8 @@ internal sealed class TuiShell
 
         var contextHints = ActiveMode.KeyMap?.Hints ?? [];
 
-        if (_searchMode is { } search
-            && ReferenceEquals(ActiveMode, search)
-            && search.Focus == SearchFocus.Input)
+        if (ReferenceEquals(ActiveMode, _searchMode)
+            && _searchMode.Focus == SearchFocus.Input)
         {
             return [SearchMode.TypingHint, .. contextHints, SearchMode.EnterHint];
         }
@@ -1195,8 +1143,8 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Formats <paramref name="hints"/>, the mail-wake daemon badge (when
-    /// <paramref name="mailWakeDaemonState"/> is given), and the current agent
+    /// Formats <paramref name="hints"/>, the mail-wake daemon badge for
+    /// <paramref name="mailWakeDaemonState"/>, and the current agent
     /// identity (when <paramref name="actor"/> is given) as the footer's single
     /// status-row line: the hints on the left as <see cref="FormatFooterHints"/>
     /// lays them out, the badge and identity right-aligned to the row's right
@@ -1211,7 +1159,7 @@ internal sealed class TuiShell
         IReadOnlyList<KeyHint> hints,
         int width,
         string? actor,
-        MailWakeDaemonState? mailWakeDaemonState,
+        MailWakeDaemonState mailWakeDaemonState,
         string? inlineStatus)
     {
         if (width <= 0)
@@ -1241,17 +1189,14 @@ internal sealed class TuiShell
         var trailingMarkup = string.Empty;
         var trailingPlainWidth = 0;
 
-        if (mailWakeDaemonState is { } state)
-        {
-            var badgeText = FormatMailWakeDaemonBadge(state);
+        var badgeText = FormatMailWakeDaemonBadge(mailWakeDaemonState);
 
-            if (GetFooterDisplayWidth(badgeText) <= available)
-            {
-                var badgeStyle = ThemeTokens.GetStyle(MailWakeDaemonStyleToken(state)).ToMarkup();
-                trailingMarkup = $"[{badgeStyle}]{Markup.Escape(badgeText)}[/]";
-                trailingPlainWidth = GetFooterDisplayWidth(badgeText);
-                available -= trailingPlainWidth;
-            }
+        if (GetFooterDisplayWidth(badgeText) <= available)
+        {
+            var badgeStyle = ThemeTokens.GetStyle(MailWakeDaemonStyleToken(mailWakeDaemonState)).ToMarkup();
+            trailingMarkup = $"[{badgeStyle}]{Markup.Escape(badgeText)}[/]";
+            trailingPlainWidth = GetFooterDisplayWidth(badgeText);
+            available -= trailingPlainWidth;
         }
 
         if (!string.IsNullOrEmpty(actor))

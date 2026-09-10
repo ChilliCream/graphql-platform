@@ -23,6 +23,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent;
 internal static class AgentTuiLauncher
 {
     private static readonly TimeSpan s_pendingSendShutdownTimeout = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan s_quitGateDrainBound = TimeSpan.FromSeconds(5);
 
     /// <summary>
     /// Runs the TUI and owns its mail wake daemon. The board is an
@@ -74,8 +75,7 @@ internal static class AgentTuiLauncher
             timeProvider,
             quitCts.Token);
 
-        // An unavailable Mail tab has no send effects to drain on exit.
-        var mailMode = tabs.Select(t => t.RootMode).OfType<MailMode>().FirstOrDefault();
+        var mailMode = tabs.Select(t => t.RootMode).OfType<MailMode>().Single();
 
         var shell = new TuiShell(
             tabs,
@@ -86,28 +86,19 @@ internal static class AgentTuiLauncher
             treeView,
             taskStore,
             actor: null,
-            mailStore,
             mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State,
-            quitGates: mailMode is null ? null : [mailMode.CreateQuitGate()]);
+            quitGates: [mailMode.CreateQuitGate()],
+            quitGateDrainBound: s_quitGateDrainBound);
         var application = new TuiApplication(console);
         var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
         shell.QuitConfirmed += () => quitCts.Cancel();
-
-        if (mailMode is not null)
-        {
-            shell.QuitCancelled += mailMode.ResumeSendAcceptance;
-        }
+        shell.QuitCancelled += mailMode.ResumeSendAcceptance;
 
         // Start only after the shell is ready to report daemon status.
         await mailWakeDaemonCoordinator.StartAsync(cancellationToken);
 
-        var eventSources = new List<TuiEventSource> { dbWatcher.RunAsync };
-
-        if (mailMode is not null)
-        {
-            eventSources.Add(mailMode.RunSendEffectEventsAsync);
-        }
+        List<TuiEventSource> eventSources = [dbWatcher.RunAsync, mailMode.RunSendEffectEventsAsync];
 
         try
         {
@@ -120,10 +111,7 @@ internal static class AgentTuiLauncher
 
             // Ctrl+C bypasses the quit gate. Give a started store write a
             // brief chance to commit before the process exits.
-            if (mailMode is not null)
-            {
-                await mailMode.ShieldPendingSendsAsync(s_pendingSendShutdownTimeout, CancellationToken.None);
-            }
+            await mailMode.ShieldPendingSendsAsync(s_pendingSendShutdownTimeout, CancellationToken.None);
         }
 
         return ExitCodes.Success;
@@ -181,10 +169,6 @@ internal static class AgentTuiLauncher
             timeProvider,
             effectCancellationToken);
 
-        return new TuiTab(
-            () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
-            mnemonic: 'M',
-            mailMode,
-            new KeyDispatcher(MailKeyMap.CreateDefault()));
+        return new TuiTab("Mail", mnemonic: 'M', mailMode, new KeyDispatcher(MailKeyMap.CreateDefault()));
     }
 }

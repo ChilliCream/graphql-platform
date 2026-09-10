@@ -20,12 +20,28 @@ public sealed class TuiShellTests
             modifiers.HasFlag(ConsoleModifiers.Alt),
             modifiers.HasFlag(ConsoleModifiers.Control));
 
-    private static TuiShell CreateShell(FakeTuiMode mode, int width = 80, int height = 24, string? actor = null) =>
-        new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, width, height, actor: actor);
+    private static TuiShell CreateShell(
+        FakeTuiMode mode,
+        int width = 80,
+        int height = 24,
+        string? actor = null,
+        MailWakeDaemonState mailWakeDaemonState = MailWakeDaemonState.Standby) =>
+        BuildShell(mode, new FakeTaskStore(), actor, mailWakeDaemonState, width, height, out _, out _);
 
     private static TuiShell CreateShellWithModes(
         ITuiMode initialMode,
         FakeTaskStore store,
+        out SearchMode searchMode,
+        out DependencyTreeView treeView) =>
+        BuildShell(initialMode, store, "tester", MailWakeDaemonState.Standby, 80, 24, out searchMode, out treeView);
+
+    private static TuiShell BuildShell(
+        ITuiMode mode,
+        FakeTaskStore store,
+        string? actor,
+        MailWakeDaemonState mailWakeDaemonState,
+        int width,
+        int height,
         out SearchMode searchMode,
         out DependencyTreeView treeView)
     {
@@ -33,14 +49,17 @@ public sealed class TuiShellTests
         treeView = new DependencyTreeView(store, rootId: "");
 
         return new TuiShell(
-            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
-            initialMode,
-            80,
-            24,
+            [new TuiTab("Tasks", mnemonic: 'T', mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()))],
+            width,
+            height,
+            tasksTabIndex: 0,
             searchMode,
             treeView,
             store,
-            actor: "tester");
+            actor,
+            mailWakeDaemonState: () => mailWakeDaemonState,
+            quitGates: [],
+            quitGateDrainBound: TimeSpan.FromSeconds(5));
     }
 
     private static string RenderToText(TuiShell shell)
@@ -1309,8 +1328,7 @@ public sealed class TuiShellTests
     [Fact]
     public void Render_Should_OmitActorIdentity_When_ActorIsNull()
     {
-        // arrange: the other TuiShell constructor can be built without an
-        // actor.
+        // arrange
         var shell = CreateShell(new FakeTuiMode(), actor: null);
 
         // act
@@ -1363,13 +1381,7 @@ public sealed class TuiShellTests
     {
         // arrange
         var mode = new FakeTuiMode { FooterStatus = "Search: find (2 hits); Filters active" };
-        var shell = new TuiShell(
-            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
-            mode,
-            160,
-            24,
-            actor: "lucy",
-            mailWakeDaemonState: () => MailWakeDaemonState.Ready);
+        var shell = CreateShell(mode, width: 160, actor: "lucy", mailWakeDaemonState: MailWakeDaemonState.Ready);
 
         // act
         var footer = RenderFooterText(shell, 160);
@@ -1388,12 +1400,7 @@ public sealed class TuiShellTests
     public void Render_Should_ShowDaemonBadgeWithoutAnActor_When_ActorIsMissing()
     {
         // arrange
-        var shell = new TuiShell(
-            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
-            new FakeTuiMode(),
-            120,
-            24,
-            mailWakeDaemonState: () => MailWakeDaemonState.Degraded);
+        var shell = CreateShell(new FakeTuiMode(), width: 120, mailWakeDaemonState: MailWakeDaemonState.Degraded);
 
         // act
         var footer = RenderFooterText(shell, 120);

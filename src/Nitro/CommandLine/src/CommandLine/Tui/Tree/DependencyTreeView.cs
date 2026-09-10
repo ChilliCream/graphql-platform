@@ -227,10 +227,6 @@ internal sealed class DependencyTreeView : ITuiMode
         var (lines, maxRowWidth) = RenderLines(innerWidth, innerHeight);
         var headerBudget = maxRowWidth == 0 ? innerWidth : Math.Min(innerWidth, maxRowWidth);
 
-        // This view is the tree mode's only pane - there is no sibling pane
-        // it ever loses focus to - so it keeps the plain Rounded box from
-        // the shared PaneBorders rule rather than the Heavy one; only its
-        // accent color (unchanged) marks it as the active view.
         return new Panel(lines.Count == 0 ? new Markup(string.Empty) : new Rows(lines))
         {
             Header = new PanelHeader(BuildTitle(headerBudget)),

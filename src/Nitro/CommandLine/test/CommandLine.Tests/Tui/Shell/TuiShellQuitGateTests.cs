@@ -1,6 +1,9 @@
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
+using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
+using ChilliCream.Nitro.CommandLine.Tui.Tree;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
@@ -24,16 +27,25 @@ public sealed class TuiShellQuitGateTests
     private static readonly TimeSpan ShortDrainBound = TimeSpan.FromMilliseconds(200);
 
     private static TuiShell CreateShell(FakeTuiMode mode, params TuiQuitGate[] quitGates) =>
-        new(new KeyDispatcher(KeyMap.CreateDefaultGlobal()), mode, 80, 24, quitGates: quitGates);
+        CreateShell(mode, TimeSpan.FromSeconds(5), quitGates);
 
-    private static TuiShell CreateShell(FakeTuiMode mode, TimeSpan quitGateDrainBound, params TuiQuitGate[] quitGates) =>
-        new(
-            new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
-            mode,
+    private static TuiShell CreateShell(FakeTuiMode mode, TimeSpan quitGateDrainBound, params TuiQuitGate[] quitGates)
+    {
+        var store = new FakeTaskStore();
+
+        return new TuiShell(
+            [new TuiTab("Tasks", mnemonic: 'T', mode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()))],
             80,
             24,
+            tasksTabIndex: 0,
+            new SearchMode(store),
+            new DependencyTreeView(store, rootId: ""),
+            store,
+            actor: null,
+            mailWakeDaemonState: () => MailWakeDaemonState.Standby,
             quitGates: quitGates,
             quitGateDrainBound: quitGateDrainBound);
+    }
 
     private static TuiQuitGate QueueGate(TuiEffectQueue<string> queue, int outcomeUnknown = 0) =>
         async (bound, ct) =>

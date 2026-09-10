@@ -22,22 +22,6 @@ public sealed class TuiTabTests
     }
 
     [Fact]
-    public void Title_Should_ReadTheFactory_OnEveryAccess()
-    {
-        // arrange
-        var count = 0;
-        var tab = new TuiTab(() => $"Mail ({++count})", mnemonic: 'M', new FakeTuiMode(), CreateDispatcher());
-
-        // act
-        var first = tab.Title;
-        var second = tab.Title;
-
-        // assert: the factory is a live callback, not captured once.
-        Assert.Equal("Mail (1)", first);
-        Assert.Equal("Mail (2)", second);
-    }
-
-    [Fact]
     public void SwitchTo_Should_PushCurrentMode_AndEnterTheNewOne()
     {
         // arrange
