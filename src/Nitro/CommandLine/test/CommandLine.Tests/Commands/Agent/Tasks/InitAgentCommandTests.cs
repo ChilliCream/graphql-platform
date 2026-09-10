@@ -305,6 +305,60 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
             """);
     }
 
+    /// <summary>
+    /// The connect error tells the user to run `nitro agent init` "to
+    /// migrate it"; `--migrate` must honor that even when the workspace is
+    /// already at '.git/nitro', not just report nothing to do and leave the
+    /// stale schema behind.
+    /// </summary>
+    [Fact]
+    public async Task Migrate_WorkspaceAlreadyInGitDirectory_UpgradesStaleSchema()
+    {
+        // arrange
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+        await SeedV3WorkspaceAsync("legacy3", GitWorkspaceDirectory);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Upgraded agent workspace schema at '.git/nitro' to v{AgentDatabase.CurrentVersion}.
+            """);
+        Assert.Equal(
+            AgentDatabase.CurrentVersion.ToString(),
+            await QueryScalarAsync("PRAGMA user_version;", GitDatabasePath));
+        Assert.Equal(
+            "legacy3", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'", GitDatabasePath));
+    }
+
+    [Fact]
+    public async Task Migrate_WorkspaceAlreadyInGitDirectory_NewerSchema_Errors()
+    {
+        // arrange
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+        Directory.CreateDirectory(GitWorkspaceDirectory);
+        var cancellationToken = TestContext.Current.CancellationToken;
+
+        await using (var connection = new SqliteConnection($"Data Source={GitDatabasePath};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await using var command = connection.CreateCommand();
+            command.CommandText = $"PRAGMA user_version = {AgentDatabase.CurrentVersion + 1};";
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--migrate");
+
+        // assert
+        result.AssertError(
+            $"""
+            The agent workspace was created by a newer version of the Nitro CLI (schema v{AgentDatabase.CurrentVersion + 1}, supported up to v{AgentDatabase.CurrentVersion}). Update the CLI to use it.
+            """);
+    }
+
     [Theory]
     [InlineData("--force")]
     [InlineData("--prefix", "app")]
@@ -515,12 +569,22 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     /// prefix in config, mirroring an existing workspace from before this
     /// bead.
     /// </summary>
-    private async Task SeedV3WorkspaceAsync(string prefix)
+    private Task SeedV3WorkspaceAsync(string prefix)
+        => SeedV3WorkspaceAsync(prefix, WorkspaceDirectory);
+
+    /// <summary>
+    /// Same as <see cref="SeedV3WorkspaceAsync(string)"/>, but at the given
+    /// workspace directory instead of the fallback <c>.nitro/agents</c>
+    /// path, so a test can seed a stale schema directly inside
+    /// <c>.git/nitro</c>.
+    /// </summary>
+    private async Task SeedV3WorkspaceAsync(string prefix, string workspaceDirectory)
     {
-        Directory.CreateDirectory(WorkspaceDirectory);
+        Directory.CreateDirectory(workspaceDirectory);
+        var databasePath = AgentWorkspace.GetDatabasePath(workspaceDirectory);
         var cancellationToken = TestContext.Current.CancellationToken;
 
-        await using var connection = new SqliteConnection($"Data Source={DatabasePath};Pooling=False");
+        await using var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
         await connection.OpenAsync(cancellationToken);
 
         await using (var command = connection.CreateCommand())
