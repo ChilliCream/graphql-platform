@@ -661,6 +661,31 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public async Task ListTools_StatelessTransport_ReturnsTools()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        var server =
+            await CreateTestServerAsync(
+                storage,
+                configureMcpServer: b => b.WithHttpTransport(o => o.Stateless = true));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("get_books_with_title1", Assert.Single(tools).Name);
+    }
+
+    [Fact]
     public async Task ListTools_AfterToolsUpdate_ReturnsUpdatedTools()
     {
         // arrange
@@ -1365,6 +1390,33 @@ public abstract class IntegrationTestBase
 
         // assert
         Assert.Equal("Hello, World!", ((TextContentBlock)result.Content[0]).Text);
+    }
+
+    [Fact]
+    public async Task CallTool_StatelessTransport_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        var server =
+            await CreateTestServerAsync(
+                storage,
+                configureMcpServer: b => b.WithHttpTransport(o => o.Stateless = true));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.CallToolAsync(
+            "get_books_with_title1",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
