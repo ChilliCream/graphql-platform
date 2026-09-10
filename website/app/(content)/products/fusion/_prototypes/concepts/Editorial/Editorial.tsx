@@ -271,7 +271,7 @@ export function Editorial() {
               className="h-px flex-1"
               style={{ backgroundColor: PAPER.pencil, opacity: 0.4 }}
             />
-            <span className={FOLIO_TYPE}>Feature</span>
+            <span className={`${FOLIO_TYPE} hidden sm:inline`}>Feature</span>
           </div>
           <h1
             className="font-heading text-cc-heading mt-6 leading-[0.86] font-bold"
