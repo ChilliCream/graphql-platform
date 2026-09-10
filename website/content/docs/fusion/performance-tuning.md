@@ -27,7 +27,7 @@ builder.Services.AddHttpClient("fusion");
 // 2. Configure the Fusion router
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far");
+    .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
 app.MapGraphQLHttp();
@@ -174,7 +174,7 @@ Set the limit through `ModifyServerOptions` on the router builder:
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .ModifyServerOptions(options =>
     {
         options.MaxConcurrentExecutions = 128;

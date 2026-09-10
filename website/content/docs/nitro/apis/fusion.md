@@ -150,10 +150,10 @@ Here’s an example of what the `subgraph-config.json` file should look like:
 
 This file is required for the topology to recognize and display your subgraph correctly.
 
-### Step 4: Pack your subgraph and compose your Gateway
+### Step 4: Pack your subgraph and compose your router
 
-After configuring your subgraph you have to `pack` your subgraph and `compose` your gateway.
-This process links your subgraph with the gateway, ensuring a cohesive GraphQL architecture.
+After configuring your subgraph you have to `pack` your subgraph and `compose` your router.
+This process links your subgraph with the router, ensuring a cohesive GraphQL architecture.
 
 ## Integration into your CI/CD pipeline
 
@@ -172,7 +172,7 @@ dotnet tool install HotChocolate.Fusion.CommandLine
 
 ### 1. Pack the subgraph
 
-All changes to the gateway originate from a subgraph. Once the subgraph is ready to be deployed, you need to pack it. Packing a subgraph will create a subgraph package file that contains the schema, the extensions and the configuration of the subgraph.
+All changes to the router originate from a subgraph. Once the subgraph is ready to be deployed, you need to pack it. Packing a subgraph will create a subgraph package file that contains the schema, the extensions and the configuration of the subgraph.
 
 To easily access the newest schema and extensions, you can use the `schema export` command from the [Command Line Extension](../../hotchocolate/server/command-line.md). This command exports your current schema into a specified output file.
 
@@ -258,7 +258,7 @@ Now it's time to deploy your subgraph to your infrastructure
 
 ### 8. Commit the deployment
 
-To complete the deployment, you need to commit the deployment. This will notify Nitro that you are done with the deployment and that the next deployment can start. Nitro will also notify your gateway that the deployment is finished and that it can pull the latest configuration.
+To complete the deployment, you need to commit the deployment. This will notify Nitro that you are done with the deployment and that the next deployment can start. Nitro will also notify your router that the deployment is finished and that it can pull the latest configuration.
 
 You can commit the deployment by calling:
 

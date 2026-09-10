@@ -1,10 +1,10 @@
 ---
 title: Migrate Hot Chocolate Fusion from 16.6 to 16.7
-description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: adopt the router-branded configuration APIs, the graphql-router template, and the graph.far archive name."
+description: "Migration guide for Hot Chocolate Fusion v16.6 to v16.7: adopt the router-branded configuration APIs, the graphql-router template, and the packaging/type-system compatibility exceptions."
 ---
 
 > [!NOTE]
-> 16.7 rebrands the Fusion gateway to the Fusion router. The gateway-named registration methods keep working and are marked `[Obsolete]`, so a 16.6 solution compiles with deprecation warnings. `BuildGatewayAsync` is the only removal.
+> 16.7 rebrands the Fusion gateway to the Fusion router. Registration and builder extension methods keep their gateway-named overloads, marked `[Obsolete]`, so a 16.6 solution compiles unchanged with deprecation warnings. Packaging, Fusion type-system, and low-level setup APIs rename directly with no compatibility alias, and `BuildGatewayAsync` leaves the public surface. A project that treats obsolete warnings as errors needs source changes before it builds.
 
 # Update the packages
 
@@ -19,7 +19,7 @@ Update every Hot Chocolate Fusion package to 16.7:
 
 # Deprecations
 
-The gateway-named registration methods forward to their router-named replacements and are marked `[Obsolete]`. Rename the calls when you update.
+The gateway-named registration and builder extension methods keep their complete published signatures and forward to their router-named replacements. Rename the calls when you update; leaving them as-is still compiles, with an obsolete warning.
 
 ## AddGraphQLGateway renamed to AddGraphQLRouter
 
@@ -29,7 +29,7 @@ On the host application builder:
  builder
 -    .AddGraphQLGateway()
 +    .AddGraphQLRouter()
-     .AddFileSystemConfiguration("./graph.far");
+     .AddFileSystemConfiguration("./gateway.far");
 ```
 
 ## AddGraphQLGatewayServer renamed to AddGraphQLRouter
@@ -52,15 +52,27 @@ On the service collection:
 +    .AddGraphQLRouterCore();
 ```
 
-All three methods still return `IFusionGatewayBuilder`, so chained configuration calls compile unchanged.
+The three router-named methods return `IFusionRouterBuilder`. The gateway-named methods they replace keep returning `IFusionGatewayBuilder`, which `IFusionRouterBuilder` extends. Existing builder extension methods, including third-party ones written against `IFusionGatewayBuilder`, apply to both builder types, so a chained configuration call compiles unchanged whichever entry point you use.
+
+## NodeResolution.Gateway renamed to NodeResolution.Router
+
+```diff
+ var settings = new GraphQLCompositionSettings
+ {
+-    NodeResolution = NodeResolution.Gateway
++    NodeResolution = NodeResolution.Router
+ };
+```
+
+`NodeResolution.Gateway` is now an obsolete alias with the same underlying value as `NodeResolution.Router` (`SourceSchema` keeps value `1`). The `--node-resolution` CLI option and the `node-resolution` composition setting still accept `gateway` alongside `router`.
 
 # Breaking changes
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
-## BuildGatewayAsync removed
+## BuildGatewayAsync is no longer public
 
-`BuildGatewayAsync` built a service provider from the service collection and resolved the router executor. It is no longer part of the public API. Resolve the executor through `IRequestExecutorProvider`:
+`BuildGatewayAsync` built a service provider from the service collection and resolved the router executor. In 16.7, it and its `BuildRouterAsync` replacement are internal. If you called `BuildGatewayAsync` directly, resolve the executor through `IRequestExecutorProvider` instead:
 
 ```diff
 -var executor = await services.BuildGatewayAsync(cancellationToken);
@@ -70,26 +82,19 @@ Things that have been removed or had a change in behavior that may cause your co
 +    .GetExecutorAsync(cancellationToken: cancellationToken);
 ```
 
-# Behavioral breaking changes
+## Packaging, type-system, and low-level setup APIs rename without a compatibility alias
 
-## Default archive name is graph.far
+The rename treats packaging internals, the Fusion execution type system, and the raw setup plumbing beneath the builder as non-user-facing, so these rename directly instead of keeping an obsolete alias:
 
-The composed Fusion archive defaults to `graph.far` instead of `gateway.far`:
+| 16.6                                                      | 16.7                              |
+| --------------------------------------------------------- | --------------------------------- |
+| `GatewayConfiguration`                                    | `RouterConfiguration`             |
+| `SupportedGatewayFormats`                                 | `SupportedRouterFormats`          |
+| `TryGetGatewayConfigurationAsync`                         | `TryGetRouterConfigurationAsync`  |
+| `isGatewayField` constructor parameter / `IsGatewayField` | `isRouterField` / `IsRouterField` |
+| `FusionGatewaySetup`                                      | `FusionRouterSetup`               |
 
-- `WithNitroComposition` in `HotChocolate.Fusion.Aspire` writes `graph.far` unless `outputFileName` is passed.
-- `nitro fusion compose` writes `graph.far` when `--archive` points to a directory.
-- `nitro fusion download` writes `graph.far` unless `--output-file` is passed.
-
-A router that loads the archive by its old default name no longer finds it after the next composition. Update the file system configuration to the new name, or pass the old name explicitly to the composition:
-
-```diff
- builder
-     .AddGraphQLRouter()
--    .AddFileSystemConfiguration("./gateway.far");
-+    .AddFileSystemConfiguration("./graph.far");
-```
-
-The deprecated `WithGraphQLSchemaComposition` keeps the `gateway.far` default.
+Code that references these names directly, which is uncommon outside of Fusion's own packaging and execution internals, needs a source update. Ordinary builder configuration calls are unaffected, and the persisted archive contents these APIs read and write are unchanged: the JSON property is still `supportedGatewayFormats`, and the execution schema directive is still `fusion__gateway_field`.
 
 # Noteworthy changes
 
@@ -102,4 +107,30 @@ The `graphql-gateway` template in the `HotChocolate.Templates` package is now `g
 +dotnet new graphql-router
 ```
 
-A new project scaffolds `AddGraphQLRouter()` and loads `./graph.far`.
+A new project scaffolds `AddGraphQLRouter()` and loads `./gateway.far`, the same default the `graphql-gateway` template used.
+
+## Archive default stays gateway.far
+
+The composed Fusion archive still defaults to `gateway.far` in 16.7:
+
+- `WithNitroComposition` in `HotChocolate.Fusion.Aspire` writes `gateway.far` unless you pass `outputFileName`.
+- `nitro fusion compose` writes `gateway.far` when `--archive` points to a directory.
+- `nitro fusion download` writes `gateway.far` unless you pass `--output-file`.
+- Legacy `.fgp` downloads keep the `gateway.fgp` extension.
+
+Changing the default to `graph.far` is planned for a future release and is not part of 16.7. If you want to adopt the new name early, pass the file name explicitly wherever you compose, download, or load the archive:
+
+```diff
+ builder
+     .AddGraphQLRouter()
+-    .AddFileSystemConfiguration("./gateway.far");
++    .AddFileSystemConfiguration("./graph.far");
+```
+
+## CLI and settings inputs keep accepting gateway
+
+`--node-resolution` and `nitro fusion settings set node-resolution` accept `router`, `gateway`, and `source-schema`. `gateway` is a legacy alias for `router` and keeps working until 17; prefer `router` in new scripts. Nitro API creation accepts `--kind router` alongside the existing `--kind gateway` value; both map to the same backend API kind, and the GraphQL identifiers Nitro sends over the wire are unchanged.
+
+# Version 17
+
+The gateway-named registration and builder extension methods, the `IFusionGatewayBuilder` interface, the `NodeResolution.Gateway` alias, and the legacy `gateway` CLI and settings input are all retained through 16.x and planned for removal in 17, together with the `graph.far` archive-default change described above. None of that removal happens in 16.7.

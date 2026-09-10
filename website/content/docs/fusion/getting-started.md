@@ -688,7 +688,7 @@ From the `fusion-getting-started` directory, run:
 
 ```bash
 mkdir Router
-nitro fusion compose -f Products/schema.graphqls -f Reviews/schema.graphqls -a Router/graph.far
+nitro fusion compose -f Products/schema.graphqls -f Reviews/schema.graphqls -a Router/gateway.far
 ```
 
 If composition succeeds, you will see output similar to:
@@ -696,10 +696,10 @@ If composition succeeds, you will see output similar to:
 ```text
 Validating source schemas...
 Merging schemas...
-Fusion archive created: graph.far
+Fusion archive created: gateway.far
 ```
 
-The exact output may vary by Nitro CLI version. Confirm that `Router/graph.far` was created. This file contains the composed router configuration, and the router loads it directly.
+The exact output may vary by Nitro CLI version. Confirm that `Router/gateway.far` was created. This file contains the composed router configuration, and the router loads it directly.
 
 ## What Happens During Composition
 
@@ -757,10 +757,10 @@ The router runs on port 5000. The subgraphs run on ports 5001 (Products) and 500
 
 ## Verify the Fusion Archive
 
-The composition step already wrote `graph.far` into the `Router` directory (`-a Router/graph.far`). Verify that the file exists before continuing:
+The composition step already wrote `gateway.far` into the `Router` directory (`-a Router/gateway.far`). Verify that the file exists before continuing:
 
 ```bash
-ls Router/graph.far
+ls Router/gateway.far
 ```
 
 ## Configure the Router
@@ -775,7 +775,7 @@ builder.Services
 
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true);
 
 var app = builder.Build();
@@ -788,7 +788,7 @@ Three things to notice:
 
 - **`AddHttpClient("fusion")`** registers a named HTTP client called `"fusion"`. The router uses this client to send requests to the subgraphs. The name `"fusion"` is the default HTTP client name that Fusion uses when no explicit `clientName` is specified in the subgraph's `schema-settings.json`.
 - **`AddGraphQLRouter()`** registers the Fusion router services. This is what makes this project a router rather than a regular GraphQL server.
-- **`AddFileSystemConfiguration("./graph.far")`** tells the router to load its composed configuration from a local file. In production, you would typically use `.AddNitro()` to download the configuration from the Nitro cloud, but for local development the file system approach is simpler.
+- **`AddFileSystemConfiguration("./gateway.far")`** tells the router to load its composed configuration from a local file. In production, you would typically use `.AddNitro()` to download the configuration from the Nitro cloud, but for local development the file system approach is simpler.
 - **`ModifyRequestOptions(o => o.CollectOperationPlanTelemetry = true)`** enables operation-plan telemetry. This is off by default.
 
 ## Start Everything
@@ -850,7 +850,7 @@ You should see the same product data as when you queried the Products subgraph d
 
 Your router now:
 
-- Loads the composed configuration from the `graph.far` file
+- Loads the composed configuration from the `gateway.far` file
 - Exposes the unified composite schema on port 5000
 - Routes queries to the Products and Reviews subgraphs as needed
 - Acts as the single entry point for clients, so they never talk to the subgraphs directly

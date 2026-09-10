@@ -40,13 +40,13 @@ The parameters changed as well. In 16.5 the method took the output file name fir
 public static IResourceBuilder<T> WithNitroComposition<T>(
     this IResourceBuilder<T> builder,
     bool disableValidation = false,
-    string outputFileName = "graph.far")
+    string outputFileName = "gateway.far")
     where T : IResourceWithEndpoints;
 
 public static IResourceBuilder<T> WithNitroComposition<T>(
     this IResourceBuilder<T> builder,
     GraphQLCompositionSettings settings,
-    string outputFileName = "graph.far")
+    string outputFileName = "gateway.far")
     where T : IResourceWithEndpoints;
 ```
 

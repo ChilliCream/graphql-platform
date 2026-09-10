@@ -701,7 +701,7 @@ The old `IObservable<GatewayConfiguration>` source has been replaced by the new 
 
 ```diff
 -gatewayBuilder.ConfigureFromFile("gateway.fgp");
-+gatewayBuilder.AddFileSystemConfiguration("./graph.far");
++gatewayBuilder.AddFileSystemConfiguration("./gateway.far");
 ```
 
 The `watchFileForUpdates` parameter is gone — file watching is the default behavior of the file-system configuration provider.

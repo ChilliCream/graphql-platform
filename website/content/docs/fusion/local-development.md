@@ -122,7 +122,7 @@ Four things to notice:
 
 - **`AddNitroComposition()`** registers the composition orchestrator with the Aspire eventing system. Call this once on the application builder.
 - **`WithGraphQLHttpEndpoint()`** declares the GraphQL route of a subgraph and the path its source schema is downloaded from. The orchestrator waits for the subgraph to start, then fetches the source schema over HTTP.
-- **`WithNitroComposition()`** marks the router as needing composition. The orchestrator discovers all referenced subgraphs, extracts their schemas, composes them, and writes a `graph.far` file to the router project directory.
+- **`WithNitroComposition()`** marks the router as needing composition. The orchestrator discovers all referenced subgraphs, extracts their schemas, composes them, and writes a `gateway.far` file to the router project directory.
 - **`WithReference()`** is standard Aspire. It tells the orchestrator which subgraphs to include in composition for this router.
 
 In a TypeScript AppHost, the same extension methods surface camelCased, optional parameters are gathered into a single options object, and every chained call is awaited.
@@ -241,7 +241,7 @@ Before the orchestrator starts a router process that carries an API id:
 4. Each source schema that only the downloaded configuration carries is external. The router reaches it at its `devUrl`, or at its `url` when no `devUrl` is defined. Composition logs a warning for every external source schema without a `devUrl`, because a deployed URL is often not reachable from a developer machine. A subgraph that runs in the local AppHost but has no allocated HTTP endpoint at composition time cannot receive an injected URL either, so it is treated like an external schema for URL resolution, which is why such a resource can also trigger the missing-devUrl warning. See [`transports.http.devUrl`](./cli.md#transports-http-devurl).
 5. The composed archive is written to the router project directory as usual. The router console then reports which fusion configuration it composed against, when that configuration was downloaded, and which external source schemas it carries together with the URLs they resolved to.
 
-The downloaded configuration is the only base the composition builds on. What a previous composition wrote to `graph.far` is never an input again, so a source schema that was removed or renamed upstream also disappears from your next run.
+The downloaded configuration is the only base the composition builds on. What a previous composition wrote to `gateway.far` is never an input again, so a source schema that was removed or renamed upstream also disappears from your next run.
 
 Variable substitution follows the same split as the URL resolution. The settings of the subgraphs you run resolve against the `Aspire` environment in `schema-settings.json`, while the settings that the downloaded configuration carries resolve against the stage name you passed to `AddNitroComposition`.
 
@@ -298,7 +298,7 @@ The page carries toggles for global object identification and for removing unref
 
 Settings apply at publish time. The banner on the page states that changes take effect from the next publish onward, and only when publishing with the `nitro-fusion-publish` GitHub Action, the `NitroFusionPublish` Azure DevOps task, or the `nitro fusion publish` CLI command. A stage keeps the fusion configuration it already carries until that next publish, so changing a setting does not alter what a bound AppHost downloads in the meantime.
 
-The output file name defaults to `graph.far`. You can change it if needed:
+The output file name defaults to `gateway.far`. You can change it if needed:
 
 <LanguageTabs>
 <CSharp>

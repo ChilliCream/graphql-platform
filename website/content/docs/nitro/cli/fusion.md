@@ -103,7 +103,7 @@ nitro fusion publish \
   --api-id "<api-id>" \
   --stage "dev" \
   --tag "v1" \
-  --archive ./graph.far
+  --archive ./gateway.far
 ```
 
 # Advanced: multi-step publish
@@ -225,7 +225,7 @@ Validate a pre-composed archive:
 nitro fusion validate \
   --api-id "<api-id>" \
   --stage "dev" \
-  --archive ./graph.far
+  --archive ./gateway.far
 ```
 
 # `nitro fusion download`
@@ -256,7 +256,7 @@ Download the live `dev` configuration:
 nitro fusion download \
   --api-id "<api-id>" \
   --stage "dev" \
-  --output-file ./graph.far
+  --output-file ./gateway.far
 ```
 
 # `nitro fusion compose`
@@ -282,7 +282,7 @@ nitro fusion compose \
 | `-e, --env, --environment <environment>`                                      |                            | Name of the environment used for value substitution in `schema-settings.json` files.                                                                                      |
 | `--cache-control-merge-behavior <ignore\|include\|include-private>`           |                            | Choose how `@cacheControl` directives are merged.                                                                                                                         |
 | `--enable-global-object-identification`                                       |                            | Add the `Query.node` field for global object identification.                                                                                                              |
-| `--node-resolution <gateway\|source-schema>`                                  |                            | Choose whether `Query.node` identifiers are resolved by the gateway or a source schema.                                                                                   |
+| `--node-resolution <router\|gateway\|source-schema>`                          |                            | Choose whether `Query.node` identifiers are resolved by the router or a source schema (`gateway` is a legacy alias for `router`).                                         |
 | `--tag-merge-behavior <ignore\|include\|include-private>`                     |                            | Choose how `@tag` directives are merged.                                                                                                                                  |
 | `--shareable-field-runtime-type-routing <common-runtime-types\|source-local>` |                            | Choose how runtime types are routed for Apollo Federation shareable abstract fields.                                                                                      |
 | `--allow-non-resolvable-interface-objects`                                    |                            | Allow Apollo Federation interface objects without a resolvable key.                                                                                                       |
@@ -308,7 +308,7 @@ Compose a router from two source schemas:
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive ./graph.far \
+  --archive ./gateway.far \
   --env "dev"
 ```
 
@@ -321,13 +321,13 @@ nitro fusion compose \
   --source-schema-url https://reviews.example.com/graphql \
   --source-schema-settings-file ./reviews/schema-settings.json \
   --source-schema-file ./inventory/schema.graphqls \
-  --archive ./graph.far
+  --archive ./gateway.far
 ```
 
 After a successful composition, Nitro prints:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/graph.far'.
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
 ```
 
 Auto-discover source schemas from a working directory:
@@ -335,14 +335,14 @@ Auto-discover source schemas from a working directory:
 ```shell
 nitro fusion compose \
   --working-directory ./subgraphs \
-  --archive ./graph.far
+  --archive ./gateway.far
 ```
 
 Remove a source schema and recompose:
 
 ```shell
 nitro fusion compose \
-  --archive ./graph.far \
+  --archive ./gateway.far \
   --remove-source-schema reviews
 ```
 
@@ -350,7 +350,7 @@ Replace or rename a source schema (drop the old, add the new):
 
 ```shell
 nitro fusion compose \
-  --archive ./graph.far \
+  --archive ./gateway.far \
   --remove-source-schema reviews \
   --source-schema-file ./reviews-v2/schema.graphqls
 ```
@@ -382,16 +382,16 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> \
 
 ## Available Settings
 
-| Setting                                  | Values                                 | Description                                                         |
-| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------- |
-| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key.            |
-| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | Choose how `@cacheControl` directives are merged.                   |
-| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields and types by tag.                                    |
-| `global-object-identification`           | `true`, `false`                        | Enable global object identification through `Query.node`.           |
-| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics.                        |
-| `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` identifiers.                       |
-| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields. |
-| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | Choose how `@tag` directives are merged.                            |
+| Setting                                  | Values                                 | Description                                                                              |
+| ---------------------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key.                                 |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | Choose how `@cacheControl` directives are merged.                                        |
+| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields and types by tag.                                                         |
+| `global-object-identification`           | `true`, `false`                        | Enable global object identification through `Query.node`.                                |
+| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics.                                             |
+| `node-resolution`                        | `router`, `gateway`, `source-schema`   | Choose who resolves `Query.node` identifiers (`gateway` is a legacy alias for `router`). |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields.                      |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | Choose how `@tag` directives are merged.                                                 |
 
 ## Examples
 
@@ -399,7 +399,7 @@ Enable global object identification on an archive:
 
 ```shell
 nitro fusion settings set global-object-identification "true" \
-  --archive ./graph.far \
+  --archive ./gateway.far \
   --env "dev"
 ```
 
@@ -428,9 +428,9 @@ nitro fusion source-schema init [options]
 | `--name <name>`                         |                | Name that identifies the source schema in the composite schema. Required for a new file.      |
 | `-f, --source-schema-file <path>`       |                | Source schema file (`.graphqls`), or a directory containing one, that the settings belong to. |
 | `--settings-file <path>`                |                | Write the settings to this path instead of deriving it from the schema file.                  |
-| `--url <url>`                           |                | URL the router uses to reach the source schema. Required for a new file.                     |
+| `--url <url>`                           |                | URL the router uses to reach the source schema. Required for a new file.                      |
 | `--dev-url <url>`                       |                | URL a local development environment uses to reach the source schema.                          |
-| `--client-name <name>`                  |                | Name of the HTTP client the router uses to reach the source schema.                          |
+| `--client-name <name>`                  |                | Name of the HTTP client the router uses to reach the source schema.                           |
 | `--api-id <id>`                         | `NITRO_API_ID` | Nitro Cloud API identifier, written to `extensions.nitro.apiId`.                              |
 | `--kind <kind>`                         |                | `generic`, `hot-chocolate`, or `apollo-federation`. See below.                                |
 | `--apollo-federation-version <version>` |                | `1.0` or `2.0`. Requires `--kind apollo-federation`.                                          |
@@ -523,8 +523,8 @@ nitro fusion run "<archive-file>"
 
 ## Options
 
-| Option              | Description                          |
-| ------------------- | ------------------------------------ |
+| Option              | Description                         |
+| ------------------- | ----------------------------------- |
 | `-p, --port <port>` | The port the router will listen on. |
 
 ## Examples
@@ -532,5 +532,5 @@ nitro fusion run "<archive-file>"
 Run a router on port 5000:
 
 ```shell
-nitro fusion run ./graph.far --port 5000
+nitro fusion run ./gateway.far --port 5000
 ```

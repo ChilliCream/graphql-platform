@@ -51,13 +51,13 @@ nitro fusion compose \
   --source-schema-url https://reviews.example.com/graphql \
   --source-schema-settings-file ./reviews/schema-settings.json \
   --source-schema-file ./inventory/schema.graphqls \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 After a successful composition, Nitro prints:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/graph.far'.
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
 ```
 
 The URL option controls where Nitro acquires the schema during composition. The paired settings file still controls how the router reaches the source at runtime. These URLs can differ.
@@ -140,13 +140,13 @@ Compose Apollo Federation subgraphs the same way you compose GraphQL Federation 
 nitro fusion compose \
   --source-schema-file ./accounts/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 After a successful composition, Nitro prints:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/graph.far'.
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
 ```
 
 You can list Apollo Federation and GraphQL Federation source schema files in the same command. Composition produces a single `.far` archive that contains the composed schema. If a subgraph uses an Apollo Federation feature that Fusion does not yet support, composition fails with a specific error code (see [Current Limitations](#current-limitations)).
@@ -189,20 +189,20 @@ nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
   --shareable-field-runtime-type-routing common-runtime-types \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 After a successful composition, Nitro prints the archive path:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/graph.far'.
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
 ```
 
 To change the policy in an existing archive, run:
 
 ```bash
 nitro fusion settings set shareable-field-runtime-type-routing common-runtime-types \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 Nitro reports `Composed new configuration.` after it recomposes the archive. With Aspire, set `GraphQLCompositionSettings.ShareableFieldRuntimeTypeRouting` to `ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes`. See [Composition Settings](../local-development.md#composition-settings).
@@ -257,20 +257,20 @@ nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
   --allow-non-resolvable-interface-objects \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 After a successful composition, Nitro prints:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/graph.far'.
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
 ```
 
 To enable the option in an existing archive, run:
 
 ```bash
 nitro fusion settings set allow-non-resolvable-interface-objects true \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 Nitro reports `Composed new configuration.` after it recomposes the archive.
@@ -297,10 +297,10 @@ If your Apollo Federation subgraphs implement the Relay `node` field (a `Query.n
 
 Choose how the router resolves `node(id:)` when you compose the router archive. Fusion records the mode in the execution schema, so every compatible router that loads the archive uses the same behavior.
 
-| CLI value       | Execution-schema value | Behavior                                                                                                                                                                                                                                                                                      |
-| --------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gateway`       | `GATEWAY`              | The router decodes the ID, determines the object type, and routes the lookup to the source schema that owns that type. This is the default.                                                                                                                                                   |
-| `source-schema` | `SOURCE_SCHEMA`        | The router forwards the opaque ID to a source schema with a public root `Query.node(id: ID!): Node` lookup. That source schema determines the object type and can resolve the concrete `Node` implementations that it declares. Use this mode when the router cannot decode your identifiers. |
+| CLI value                          | Execution-schema value | Behavior                                                                                                                                                                                                                                                                                      |
+| ---------------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `router` (legacy alias: `gateway`) | `GATEWAY`              | The router decodes the ID, determines the object type, and routes the lookup to the source schema that owns that type. This is the default.                                                                                                                                                   |
+| `source-schema`                    | `SOURCE_SCHEMA`        | The router forwards the opaque ID to a source schema with a public root `Query.node(id: ID!): Node` lookup. That source schema determines the object type and can resolve the concrete `Node` implementations that it declares. Use this mode when the router cannot decode your identifiers. |
 
 To use source-schema resolution, enable Global Object Identification and select the mode in the compose command:
 
@@ -308,7 +308,7 @@ To use source-schema resolution, enable Global Object Identification and select 
 nitro fusion compose \
   --source-schema-file ./accounts/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive graph.far \
+  --archive gateway.far \
   --enable-global-object-identification \
   --node-resolution source-schema
 ```
@@ -317,10 +317,10 @@ To update an existing archive, enable Global Object Identification before changi
 
 ```bash
 nitro fusion settings set global-object-identification true \
-  --archive graph.far
+  --archive gateway.far
 
 nitro fusion settings set node-resolution source-schema \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 For the settings command reference, see [nitro fusion settings set](../cli.md#nitro-fusion-settings-set). If you compose through Aspire, set `EnableGlobalObjectIdentification` to `true` and `NodeResolution` to `NodeResolution.SourceSchema` in `GraphQLCompositionSettings`. See [Composition settings](../local-development.md#composition-settings).
@@ -330,7 +330,7 @@ For the settings command reference, see [nitro fusion settings set](../cli.md#ni
 After a successful composition, Nitro prints the archive path:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/graph.far'.
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
 ```
 
 The generated execution schema should also contain:

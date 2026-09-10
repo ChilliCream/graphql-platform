@@ -1,11 +1,11 @@
 ---
 title: api Command
-description: "Manage Nitro APIs from the CLI with the `nitro api` commands: create service, gateway, or collection APIs in a workspace, list them, and inspect details."
+description: "Manage Nitro APIs from the CLI with the `nitro api` commands: create service, router, or collection APIs in a workspace, list them, and inspect details."
 ---
 
 The `nitro api` commands manage APIs in a workspace.
 
-Each API has a kind that determines how it behaves: `service` for a single GraphQL service, `gateway` for a federated gateway, or `collection` for grouping related APIs together.
+Each API has a kind that determines how it behaves: `service` for a single GraphQL service, `router` for a federated router (`gateway` is a legacy alias), or `collection` for grouping related APIs together.
 
 All `api` commands require authentication. Run `nitro login` first or pass `--api-key` (see [Global Options](./global-options.md)).
 
@@ -21,12 +21,12 @@ nitro api create \
 
 ## Options
 
-| Option                          | Env                  | Description                                                                                     |
-| ------------------------------- | -------------------- | ----------------------------------------------------------------------------------------------- |
-| `--name <name>`                 | `NITRO_API_NAME`     | The name of the API. Required.                                                                  |
-| `--path <path>`                 | `NITRO_API_PATH`     | The path to the API. Must start with `/`. Required.                                             |
-| `--workspace-id <workspace-id>` | `NITRO_WORKSPACE_ID` | ID of the workspace to create the API in. Falls back to the workspace from the current session. |
-| `--kind <kind>`                 | `NITRO_API_KIND`     | The kind of the API. One of `collection`, `gateway`, `service`.                                 |
+| Option                          | Env                  | Description                                                                                               |
+| ------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------- |
+| `--name <name>`                 | `NITRO_API_NAME`     | The name of the API. Required.                                                                            |
+| `--path <path>`                 | `NITRO_API_PATH`     | The path to the API. Must start with `/`. Required.                                                       |
+| `--workspace-id <workspace-id>` | `NITRO_WORKSPACE_ID` | ID of the workspace to create the API in. Falls back to the workspace from the current session.           |
+| `--kind <kind>`                 | `NITRO_API_KIND`     | The kind of the API. One of `collection`, `router`, `service` (`gateway` is a legacy alias for `router`). |
 
 ## Examples
 
@@ -45,13 +45,13 @@ nitro api create \
   --workspace-id "<workspace-id>"
 ```
 
-Create a gateway API:
+Create a router API:
 
 ```shell
 nitro api create \
   --name "<name>" \
   --path "/products/catalog" \
-  --kind gateway
+  --kind router
 ```
 
 # `nitro api list`

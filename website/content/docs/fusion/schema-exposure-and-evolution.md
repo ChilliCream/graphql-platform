@@ -131,12 +131,12 @@ For a deeper look at internal vs. public lookups, composite keys, and the node p
 
 These directives serve different purposes. `@inaccessible` hides data from clients while keeping it available across subgraphs. `@internal` keeps lookups local to one subgraph so they can vary freely without merge conflicts.
 
-| Behavior                          | `@inaccessible`                        | `@internal`                         |
-| --------------------------------- | -------------------------------------- | ----------------------------------- |
-| Visible to clients                | No                                     | No                                  |
-| Participates in merging           | Yes                                    | No                                  |
-| Can conflict across subgraphs     | Yes (types must be compatible)         | No                                  |
-| Usable in `@require` dependencies | Yes                                    | No                                  |
+| Behavior                          | `@inaccessible`                        | `@internal`                        |
+| --------------------------------- | -------------------------------------- | ---------------------------------- |
+| Visible to clients                | No                                     | No                                 |
+| Participates in merging           | Yes                                    | No                                 |
+| Can conflict across subgraphs     | Yes (types must be compatible)         | No                                 |
+| Usable in `@require` dependencies | Yes                                    | No                                 |
 | Primary use case                  | Internal data shared between subgraphs | Lookup entry points for the router |
 
 Use `@inaccessible` when the field carries data that other subgraphs need but clients should not see. Use `@internal` on lookups that exist only for router entity resolution.
@@ -220,7 +220,7 @@ builder
 ```csharp filename="Router/Program.cs"
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .ModifyOptions(o => o.EnableObjectDeprecation = true);
 ```
 
@@ -343,7 +343,7 @@ builder
 ```csharp filename="Router/Program.cs"
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .ModifyOptions(o => o.EnableOptInFeatures = true);
 ```
 
