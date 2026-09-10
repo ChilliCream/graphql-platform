@@ -37,7 +37,7 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
 
             Example:
               nitro fusion settings set global-object-identification "true" \
-                --archive ./graph.far \
+                --archive ./gateway.far \
                 --env "dev"
             """);
     }
@@ -339,34 +339,57 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
 
         result.AssertError(
             """
-            Expected one of the following values for setting 'node-resolution': gateway, source-schema
+            Expected one of the following values for setting 'node-resolution': router, gateway, source-schema
             """);
     }
 
-    [Fact]
-    public async Task Execute_Should_ReturnSuccess_When_NodeResolutionIsGateway()
+    [Theory]
+    [InlineData("router", "Gateway", InteractionMode.Interactive)]
+    [InlineData("gateway", "Gateway", InteractionMode.Interactive)]
+    [InlineData("source-schema", "SourceSchema", InteractionMode.Interactive)]
+    [InlineData("router", "Gateway", InteractionMode.NonInteractive)]
+    [InlineData("gateway", "Gateway", InteractionMode.NonInteractive)]
+    [InlineData("source-schema", "SourceSchema", InteractionMode.NonInteractive)]
+    [InlineData("router", "Gateway", InteractionMode.JsonOutput)]
+    [InlineData("gateway", "Gateway", InteractionMode.JsonOutput)]
+    [InlineData("source-schema", "SourceSchema", InteractionMode.JsonOutput)]
+    public async Task Execute_Should_PreserveSerializedSettings_When_NodeResolutionIsProvided(
+        string value,
+        string persistedValue,
+        InteractionMode mode)
     {
+        SetupInteractionMode(mode);
         var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        File.Copy(
-            Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"),
-            archiveFile);
-        SetupFile(archiveFile, new MemoryStream(File.ReadAllBytes(archiveFile)));
+        SetupFile("schema.graphqls", "type Query { field: String }");
+        SetupFile("schema-settings.json",
+            """{ "name": "Test", "transports": { "http": { "url": "http://localhost/graphql" } } }""");
 
         try
         {
+            var compose = await ExecuteCommandAsync(
+                "fusion", "compose", "--source-schema-file", "schema.graphqls",
+                "--enable-global-object-identification", "--node-resolution",
+                value == "source-schema" ? "router" : "source-schema",
+                "--archive", archiveFile);
+            compose.AssertSuccess();
+            SetupFile(archiveFile, new MemoryStream(File.ReadAllBytes(archiveFile)));
+
             var result = await ExecuteCommandAsync(
                 "fusion",
                 "settings",
                 "set",
                 "node-resolution",
-                "gateway",
+                value,
                 "--archive",
                 archiveFile);
 
-            Assert.True(
-                result.ExitCode == 0,
-                $"Standard output:{Environment.NewLine}{result.StdOut}{Environment.NewLine}"
-                + $"Standard error:{Environment.NewLine}{result.StdErr}");
+            result.AssertSuccess();
+            using var archive = FusionArchive.Open(archiveFile);
+            using var settings = await archive.GetCompositionSettingsAsync(
+                TestContext.Current.CancellationToken);
+            Snapshot.Create(persistedValue)
+                .Add(settings, "Composition settings")
+                .MatchMarkdownSnapshot();
         }
         finally
         {

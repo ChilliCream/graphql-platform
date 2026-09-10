@@ -29,7 +29,7 @@ public sealed class FusionRunCommandTests(NitroCommandFixture fixture) : FusionC
               -?, -h, --help     Show help and usage information
 
             Example:
-              nitro fusion run ./graph.far --port 5000
+              nitro fusion run ./gateway.far --port 5000
             """);
     }
 

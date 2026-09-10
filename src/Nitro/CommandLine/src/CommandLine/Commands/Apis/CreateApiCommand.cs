@@ -25,7 +25,7 @@ internal sealed class CreateApiCommand : Command
 
         this.AddExamples(
             """
-            api create --name "my-api"
+            api create --name "my-api" --kind router
             """);
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
@@ -123,7 +123,8 @@ internal sealed class CreateApiCommand : Command
         {
             "collection" => ApiKind.Collection,
             "service" => ApiKind.Service,
-            "gateway" => ApiKind.Gateway,
+            // TODO [17]: Remove the legacy gateway input alias. Keep the backend kind unchanged.
+            "router" or "gateway" => ApiKind.Gateway,
             _ => null
         };
     }

@@ -1,9 +1,24 @@
+using System.CommandLine;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion;
+using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Tests.Console;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
+using Spectre.Console;
+using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
+public sealed class FusionDownloadCommandTests : FusionCommandTestBase
 {
+    private readonly NitroCommandFixture _fixture;
+
+    public FusionDownloadCommandTests(NitroCommandFixture fixture) : base(fixture)
+    {
+        _fixture = fixture;
+    }
+
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
@@ -36,7 +51,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
               nitro fusion download \
                 --api-id "<api-id>" \
                 --stage "dev" \
-                --output-file ./graph.far
+                --output-file ./gateway.far
             """);
     }
 
@@ -120,6 +135,109 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
     }
 
     #endregion
+
+    [Theory]
+    [InlineData("2.0.0", "far", null, false, InteractionMode.Interactive)]
+    [InlineData("1.0.0", "fgp", null, false, InteractionMode.Interactive)]
+    [InlineData("2.0.0", "far", null, false, InteractionMode.NonInteractive)]
+    [InlineData("1.0.0", "fgp", null, false, InteractionMode.NonInteractive)]
+    [InlineData("2.0.0", "far", null, false, InteractionMode.JsonOutput)]
+    [InlineData("1.0.0", "fgp", null, false, InteractionMode.JsonOutput)]
+    [InlineData("2.0.0", "far", "graph.far", false, InteractionMode.NonInteractive)]
+    [InlineData("1.0.0", "fgp", "custom.fgp", false, InteractionMode.NonInteractive)]
+    [InlineData("2.0.0", "far", "graph.far", true, InteractionMode.NonInteractive)]
+    [InlineData("1.0.0", "fgp", "custom.fgp", true, InteractionMode.NonInteractive)]
+    public async Task Download_Should_WriteExpectedFile_When_OutputPathIsProvidedOrOmitted(
+        string version,
+        string format,
+        string? outputFile,
+        bool fromEnvironment,
+        InteractionMode mode)
+    {
+        var directory = Directory.CreateTempSubdirectory();
+        var expectedFilename = outputFile ?? "gateway." + format;
+        var expectedPath = Path.Combine(directory.FullName, expectedFilename);
+        var archiveBytes = await File.ReadAllBytesAsync(
+            Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway." + format),
+            TestContext.Current.CancellationToken);
+        SetupFusionConfigurationDownload(version, format);
+
+        // Forward file operations to disk, with a per-test working directory.
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.GetCurrentDirectory()).Returns(directory.FullName);
+        fileSystem.Setup(x => x.FileExists(It.IsAny<string>())).Returns(File.Exists);
+        fileSystem.Setup(x => x.DeleteFile(It.IsAny<string>())).Callback<string>(File.Delete);
+        fileSystem.Setup(x => x.CreateFile(It.IsAny<string>())).Returns((string path) => File.Create(path));
+        var environment = new Mock<IEnvironmentVariableProvider>();
+        var arguments = new List<string>
+        {
+            "fusion", "download", "--api-id", ApiId, "--stage", Stage,
+            "--api-key", "default-api-key"
+        };
+
+        if (version == "1.0.0")
+        {
+            arguments.AddRange(["--version", version]);
+        }
+
+        if (fromEnvironment)
+        {
+            environment.Setup(x => x.GetEnvironmentVariable("NITRO_OUTPUT_FILE"))
+                .Returns(expectedPath);
+        }
+        else if (outputFile is not null)
+        {
+            arguments.AddRange(["--output-file", outputFile]);
+        }
+
+        if (mode is InteractionMode.JsonOutput)
+        {
+            arguments.AddRange(["--output", "json"]);
+        }
+
+        await using var stdout = new StringWriter();
+        await using var stderr = new StringWriter();
+        var outConsole = new TestConsole();
+        outConsole.Profile.Out = new AnsiConsoleOutput(stdout);
+        // Avoid line wrapping based on the machine-specific temporary directory length.
+        outConsole.Profile.Width = 1024;
+        outConsole.Profile.Capabilities.Interactive = mode is not InteractionMode.NonInteractive;
+        var errConsole = new TestConsole();
+        errConsole.Profile.Out = new AnsiConsoleOutput(stderr);
+        var services = new ServiceCollection();
+        services.AddSingleton(fileSystem.Object);
+        services.AddSingleton(environment.Object);
+        services.AddSingleton(_sessionServiceMock.Object);
+        services.AddSingleton(FusionConfigurationClientMock.Object);
+        services.AddSingleton<NitroClientContext>();
+        services.AddSingleton<INitroConsole>(new NitroConsole(
+            outConsole, errConsole, environment.Object, new SnapshotActivitySinkFactory()));
+        services.AddNitroServices();
+        await using var provider = services.BuildServiceProvider();
+
+        try
+        {
+            await File.WriteAllTextAsync(expectedPath, "previous archive", TestContext.Current.CancellationToken);
+
+            var exitCode = await _fixture.RootCommand.ExecuteAsync(
+                arguments,
+                provider,
+                new InvocationConfiguration { Output = stdout, Error = stderr },
+                TestContext.Current.CancellationToken);
+
+            Snapshot.Create($"{expectedFilename}-{mode}")
+                .Add(exitCode, "Exit code")
+                .Add(stdout.ToString().TrimEnd().Replace(directory.FullName, "<working-directory>"), "Standard output")
+                .Add(stderr.ToString().TrimEnd(), "Standard error")
+                .Add(Directory.GetFiles(directory.FullName).Select(Path.GetFileName).Order(), "Files")
+                .MatchMarkdownSnapshot();
+            Assert.Equal(archiveBytes, await File.ReadAllBytesAsync(expectedPath, TestContext.Current.CancellationToken));
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
 
     [Fact]
     public async Task DownloadFarFile_ReturnsSuccess()

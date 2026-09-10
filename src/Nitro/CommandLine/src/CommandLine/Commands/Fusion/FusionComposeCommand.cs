@@ -52,7 +52,7 @@ internal sealed class FusionComposeCommand : Command
               --source-schema-file ./products/schema.graphqls \
               --source-schema-url https://reviews.example.com/graphql \
               --source-schema-settings-file ./reviews/schema-settings.json \
-              --archive ./graph.far \
+              --archive ./gateway.far \
               --env "dev"
             """);
 
@@ -171,7 +171,8 @@ internal sealed class FusionComposeCommand : Command
 
         if (fileSystem.DirectoryExists(archiveFile))
         {
-            archiveFile = Path.Combine(archiveFile, "graph.far");
+            // TODO [17]: Change the default archive filename to graph.far.
+            archiveFile = Path.Combine(archiveFile, "gateway.far");
         }
         else if (!Path.IsPathRooted(archiveFile))
         {

@@ -4,9 +4,10 @@ internal sealed class ApiKindOption : Option<string>
 {
     public ApiKindOption() : base("--kind")
     {
-        Description = "The kind of the API";
+        Description = "The kind of the API (gateway is a legacy alias for router)";
         Required = false;
-        this.AcceptOnlyFromAmong("collection", "service", "gateway");
+        // TODO [17]: Remove the legacy gateway input alias.
+        this.AcceptOnlyFromAmong("collection", "service", "router", "gateway");
         this.DefaultFromEnvironmentValue(EnvironmentVariables.ApiKind);
     }
 }
