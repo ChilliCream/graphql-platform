@@ -335,7 +335,7 @@ export function HeroBoard() {
             cx={240 + i * 20}
             cy="268"
             r="4"
-            fill={i < 3 ? LAMP_ON : LAMP_OFF}
+            fill={i < REST_CALL.targets.length ? LAMP_ON : LAMP_OFF}
           />
         ))}
         <text
