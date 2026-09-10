@@ -280,34 +280,31 @@ export function HarbourHero() {
 
         {/* The fleet */}
         {FLEET.map(({ ship, x, y, delay }) => (
-          <g
-            key={ship.name}
-            className="hbr-a-bob"
-            style={{ animationDelay: `${delay}s` }}
-            transform={`translate(${x} ${y})`}
-          >
-            <Hull kind={ship.kind} length={ship.length} />
-            <line
-              className="hbr-a-wake"
-              x1={ship.length + 8}
-              y1={12}
-              x2={ship.length + 116}
-              y2={12}
-              stroke={DUSK.shimmer}
-              strokeWidth={2}
-              strokeDasharray="10 14"
-              opacity="0.5"
-            />
-            <text
-              x={0}
-              y={34}
-              fill={DUSK.ink}
-              fontSize={13}
-              style={LABEL}
-              opacity="0.85"
-            >
-              {ship.name.toUpperCase()}
-            </text>
+          <g key={ship.name} transform={`translate(${x} ${y})`}>
+            <g className="hbr-a-bob" style={{ animationDelay: `${delay}s` }}>
+              <Hull kind={ship.kind} length={ship.length} />
+              <line
+                className="hbr-a-wake"
+                x1={ship.length + 8}
+                y1={12}
+                x2={ship.length + 116}
+                y2={12}
+                stroke={DUSK.shimmer}
+                strokeWidth={2}
+                strokeDasharray="10 14"
+                opacity="0.5"
+              />
+              <text
+                x={0}
+                y={34}
+                fill={DUSK.ink}
+                fontSize={13}
+                style={LABEL}
+                opacity="0.85"
+              >
+                {ship.name.toUpperCase()}
+              </text>
+            </g>
           </g>
         ))}
       </svg>
