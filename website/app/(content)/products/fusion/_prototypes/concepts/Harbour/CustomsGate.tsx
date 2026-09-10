@@ -62,12 +62,7 @@ export function CustomsGate() {
       data-run={run ? "true" : "false"}
     >
       <style>{CSS}</style>
-      <svg
-        viewBox="0 0 640 480"
-        className="h-full w-full"
-        role="img"
-        aria-label="Five source schemas pass the customs check; a conflicting manifest drops the barrier and stops the build."
-      >
+      <svg viewBox="0 0 640 480" className="h-full w-full" aria-hidden="true">
         <rect width="640" height="480" fill={DUSK.skyTop} />
 
         <text x="16" y="44" fill={DUSK.ink} fontSize={10} style={LABEL}>

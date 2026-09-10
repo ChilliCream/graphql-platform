@@ -78,12 +78,7 @@ export function ManifestPier() {
       data-run={run ? "true" : "false"}
     >
       <style>{CSS}</style>
-      <svg
-        viewBox="0 0 640 480"
-        className="h-full w-full"
-        role="img"
-        aria-label="One query is loaded as containers from four warehouses onto the single ship at the pier."
-      >
+      <svg viewBox="0 0 640 480" className="h-full w-full" aria-hidden="true">
         <rect width="640" height="480" fill={DUSK.skyTop} />
         <rect x="0" y="372" width="640" height="108" fill={DUSK.waterDeep} />
 

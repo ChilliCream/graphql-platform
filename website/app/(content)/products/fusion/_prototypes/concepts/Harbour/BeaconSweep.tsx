@@ -62,12 +62,7 @@ export function BeaconSweep() {
       data-run={run ? "true" : "false"}
     >
       <style>{CSS}</style>
-      <svg
-        viewBox="0 0 640 360"
-        className="h-full w-full"
-        role="img"
-        aria-label="A harbour beacon sweeping berths that report latency, throughput and error rate for the gateway and each subgraph."
-      >
+      <svg viewBox="0 0 640 360" className="h-full w-full" aria-hidden="true">
         <rect width="640" height="360" fill={DUSK.skyTop} />
 
         {/* Beacon and its sweep, behind the readouts */}
