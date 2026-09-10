@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
 
+import { Band } from "@/src/components/Band";
+import { ButtonRow } from "@/src/components/ButtonRow";
 import { ContentSection } from "@/src/components/ContentSection";
 import { Section } from "@/src/components/Section";
+import { SectionHeading } from "@/src/components/SectionHeading";
+import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Link } from "@/src/design-system/Link";
 
 const FEDERATION_HREF = "/platform/graphql-federation";
@@ -135,5 +139,25 @@ export function ClientSafetySection() {
         <Link href="/products/nitro#schema">schema governance in Nitro</Link>
       </InPractice>
     </ProseSection>
+  );
+}
+
+export function NitroCta() {
+  return (
+    <div id="nitro" className="scroll-mt-24">
+      <Band className="py-16" skin="accent" layout="centered">
+        <SectionHeading
+          align="center"
+          title="Know what a schema change does to real clients."
+          description="Nitro validates every schema change against the operations your registered clients actually run, and its Fusion dashboard reports latency, throughput and error rate for the gateway and for each subgraph behind it."
+        />
+        <ButtonRow align="center" className="mt-9">
+          <SolidButton href="https://nitro.chillicream.com">
+            Start Nitro for Free
+          </SolidButton>
+          <OutlineButton href="/products/nitro">Meet Nitro</OutlineButton>
+        </ButtonRow>
+      </Band>
+    </div>
   );
 }
