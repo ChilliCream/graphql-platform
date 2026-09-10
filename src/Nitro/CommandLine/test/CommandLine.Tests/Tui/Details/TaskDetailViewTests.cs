@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Details;
-using ChilliCream.Nitro.CommandLine.Tui.Input;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -229,6 +228,28 @@ public sealed class TaskDetailViewTests
 
         // assert
         Assert.Contains("not found", text);
+    }
+
+    [Theory]
+    [InlineData(true, '┏')]
+    [InlineData(false, '╭')]
+    public async Task Render_Should_UseTheSharedFocusLanguage_ForTheSidebarFrame(bool focused, char expectedCorner)
+    {
+        // arrange: the sidebar's "Details" header is constant text, so its
+        // corner glyph unambiguously tells focused (Heavy) from unfocused
+        // (Rounded) apart, per the shared PaneBorders rule.
+        var view = await CreateViewAsync();
+        var console = new TestConsole().Width(110).Height(12);
+
+        // act
+        console.Write(view.Render(110, 12, focused));
+
+        // assert
+        var textIndex = console.Output.IndexOf("Details", StringComparison.Ordinal);
+        Assert.True(textIndex >= 0, "Expected the sidebar's Details header to render.");
+        var corner = console.Output.LastIndexOfAny(['┏', '╭'], textIndex);
+        Assert.True(corner >= 0, "Expected a frame corner before the Details header.");
+        Assert.Equal(expectedCorner, console.Output[corner]);
     }
 
     private static async Task<TaskDetailView> CreateViewAsync(FakeTaskStore? store = null, string taskId = "t-1")

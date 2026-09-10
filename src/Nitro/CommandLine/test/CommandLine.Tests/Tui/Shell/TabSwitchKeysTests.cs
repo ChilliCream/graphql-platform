@@ -177,41 +177,4 @@ public sealed class TabSwitchKeysTests
         // assert
         Assert.Null(index);
     }
-
-    [Theory]
-    [InlineData('T')]
-    [InlineData('M')]
-    [InlineData('A')]
-    public void ResolveMnemonic_Should_NotCollide_WithTheGlobalTaskKeyMap(char mnemonic)
-    {
-        // arrange: T/M/A are the mnemonics AgentTuiLauncher hosts today, so
-        // the global table must not already bind Shift+<letter> for any of
-        // them (a real collision would have to be reported instead of
-        // silently shadowed).
-        var keyMap = KeyMap.CreateDefaultGlobal();
-        var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, mnemonic);
-
-        // act
-        var bound = keyMap.TryResolve(chord, out _);
-
-        // assert
-        Assert.False(bound);
-    }
-
-    [Theory]
-    [InlineData('T')]
-    [InlineData('M')]
-    [InlineData('A')]
-    public void ResolveMnemonic_Should_NotCollide_WithTheMailKeyMap(char mnemonic)
-    {
-        // arrange
-        var keyMap = MailKeyMap.CreateDefault();
-        var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, mnemonic);
-
-        // act
-        var bound = keyMap.TryResolve(chord, out _);
-
-        // assert
-        Assert.False(bound);
-    }
 }

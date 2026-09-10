@@ -12,36 +12,29 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 internal sealed class TuiTab
 {
     private readonly Stack<ITuiMode> _modeStack = new();
-    private readonly Func<string> _titleFactory;
 
     public TuiTab(string title, char mnemonic, ITuiMode rootMode, KeyDispatcher dispatcher)
-        : this(() => title, mnemonic, rootMode, dispatcher)
     {
-        ArgumentNullException.ThrowIfNull(title);
-    }
-
-    public TuiTab(Func<string> titleFactory, char mnemonic, ITuiMode rootMode, KeyDispatcher dispatcher)
-    {
-        _titleFactory = titleFactory ?? throw new ArgumentNullException(nameof(titleFactory));
+        Title = title;
         Mnemonic = mnemonic;
-        RootMode = rootMode ?? throw new ArgumentNullException(nameof(rootMode));
-        Dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        RootMode = rootMode;
+        Dispatcher = dispatcher;
         ActiveMode = rootMode;
     }
 
     /// <summary>
-    /// The tab's current display title, evaluated fresh on every access so a
-    /// live badge (for example an unread count) stays current.
+    /// The tab's display title. A live count shown next to it (for example the
+    /// Mail tab's unread count) comes from <see cref="RootMode"/>'s
+    /// <see cref="ITuiMode.TabBadgeCount"/>.
     /// </summary>
-    public string Title => _titleFactory();
+    public string Title { get; }
 
     /// <summary>
     /// The letter this tab jumps to on <c>Shift+&lt;letter&gt;</c> (see
     /// <see cref="TuiShell"/>'s mnemonic resolution), and the letter
     /// bracketed in the tab strip's rendering of <see cref="Title"/>. Given
-    /// explicitly rather than derived from <see cref="Title"/> so a live
-    /// title (for example the Mail tab's unread badge suffix) never shifts
-    /// which letter is the mnemonic.
+    /// explicitly rather than derived from <see cref="Title"/> so it need not
+    /// be the title's first letter (for example the Memory tab's <c>e</c>).
     /// </summary>
     public char Mnemonic { get; }
 
@@ -87,6 +80,16 @@ internal sealed class TuiTab
     /// tab is already at its root).
     /// </summary>
     public bool PopMode(int width, int height)
+        => PopModeCore(width, height, enterMode: true);
+
+    /// <summary>
+    /// Pops and resizes the previously suspended mode without entering it again.
+    /// Returns <see langword="false"/> without effect when the stack is empty.
+    /// </summary>
+    public bool ResumeSuspendedMode(int width, int height)
+        => PopModeCore(width, height, enterMode: false);
+
+    private bool PopModeCore(int width, int height, bool enterMode)
     {
         if (_modeStack.Count == 0)
         {
@@ -95,7 +98,12 @@ internal sealed class TuiTab
 
         ActiveMode = _modeStack.Pop();
         ActiveMode.OnResize(width, height);
-        ActiveMode.OnEnter();
+
+        if (enterMode)
+        {
+            ActiveMode.OnEnter();
+        }
+
         return true;
     }
 

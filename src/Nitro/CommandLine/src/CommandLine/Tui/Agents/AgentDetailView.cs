@@ -90,8 +90,8 @@ internal sealed class AgentDetailView
 
         return new Panel(content)
         {
-            Header = new PanelHeader(BuildHeader()),
-            Border = BoxBorder.Rounded,
+            Header = new PanelHeader(PaneBorders.HeaderText(BuildHeader(), focused)),
+            Border = PaneBorders.For(focused),
             BorderStyle = ThemeTokens.GetStyle(borderToken),
             Width = safeWidth,
             Height = Math.Max(1, height)

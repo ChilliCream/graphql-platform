@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Details;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
+using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 using Spectre.Console.Rendering;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -408,8 +409,8 @@ internal sealed class SearchMode : ITuiMode
 
         return new Panel(content)
         {
-            Header = new PanelHeader("Results"),
-            Border = BoxBorder.Rounded,
+            Header = new PanelHeader(PaneBorders.HeaderText("Results", focused)),
+            Border = PaneBorders.For(focused),
             BorderStyle = ThemeTokens.GetStyle(borderToken)
         };
     }
@@ -424,8 +425,8 @@ internal sealed class SearchMode : ITuiMode
 
             return new Panel(new Markup(Markup.Escape("No task selected.")))
             {
-                Header = new PanelHeader("Detail"),
-                Border = BoxBorder.Rounded,
+                Header = new PanelHeader(PaneBorders.HeaderText("Detail", focused)),
+                Border = PaneBorders.For(focused),
                 BorderStyle = ThemeTokens.GetStyle(borderToken)
             };
         }

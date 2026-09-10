@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 using Spectre.Console;
+using Spectre.Console.Rendering;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Widgets;
@@ -246,4 +247,130 @@ public sealed class TaskBadgeTests
         Assert.Null(exception);
         Assert.Contains("P7", console.Output);
     }
+
+    [Fact]
+    public void Render_Should_TruncateIdWithEllipsis_When_FixedSegmentsAloneOverflow()
+    {
+        // act: a 20-char id alone (with type and priority) already exceeds
+        // maxWidth 14, so the title is dropped and the id is truncated.
+        var line = TaskBadge.Render(
+            id: "fusion-demo-yt-ezu.1",
+            title: "Some title",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: 14);
+
+        // assert
+        var plain = PlainCellLength(line);
+        Assert.True(plain <= 14, $"Expected width <= 14 but was {plain}.");
+        Assert.DoesNotContain("Some title", line);
+        Assert.EndsWith("…", Markup.Remove(line));
+    }
+
+    [Theory]
+    [InlineData(6)]
+    [InlineData(1)]
+    public void Render_Should_StayWithinMaxWidth_When_ExtremelyNarrow(int maxWidth)
+    {
+        // act
+        var line = TaskBadge.Render(
+            id: "fusion-demo-yt-ezu.1",
+            title: "Some title that is quite long",
+            status: TaskStates.Blocked,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: maxWidth);
+
+        // assert
+        Assert.False(string.IsNullOrEmpty(line));
+        Assert.True(
+            PlainCellLength(line) <= maxWidth,
+            $"Expected width <= {maxWidth} but was {PlainCellLength(line)} ('{Markup.Remove(line)}').");
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Render_Should_NeverExceedMaxWidth_When_SweepingAcrossNarrowWidths(bool selected)
+    {
+        // arrange: a long id and a long title so every degradation step
+        // (title truncation, title drop, id truncation, priority/type drop)
+        // gets exercised somewhere across the sweep.
+        for (var maxWidth = 1; maxWidth <= 60; maxWidth++)
+        {
+            // act
+            var line = TaskBadge.Render(
+                id: "fusion-demo-yt-ezu.1",
+                title: "A rather long title that will not fit in a narrow column",
+                status: TaskStates.Blocked,
+                priority: TaskPriorities.Critical,
+                type: TaskTypes.Feature,
+                selected: selected,
+                maxWidth: maxWidth);
+
+            // assert
+            var plain = Markup.Remove(line);
+            var width = PlainCellLength(line);
+            Assert.True(
+                width <= maxWidth,
+                $"maxWidth {maxWidth}: expected width <= {maxWidth} but was {width} ('{plain}').");
+        }
+    }
+
+    [Fact]
+    public void Render_Should_NotSplitWideGrapheme_When_TitleIsCjkOrEmoji()
+    {
+        // act
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "中文標題😀更多文字",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: 20);
+
+        // assert
+        var width = PlainCellLength(line);
+        Assert.True(width <= 20, $"Expected width <= 20 but was {width}.");
+    }
+
+    [Fact]
+    public void Render_Should_DropTitleAndSeparatingSpace_When_TitleBudgetBelowTwoCells()
+    {
+        // arrange: id fits with type and priority, leaving exactly 1 cell of
+        // title budget, which rule (b) says must drop the title entirely
+        // rather than render a lone ellipsis. The fixed width is derived
+        // from the same pieces Render composes (prefix, glyph, bracketed
+        // type, priority, id, one separator each) rather than hard-coded,
+        // so it stays correct if any glyph's display width changes.
+        const string id = "T-1";
+        var fixedWidthWithoutTitle =
+            new Segment("  ").CellCount()
+            + new Segment(TaskGlyphs.Status(TaskStates.Open)).CellCount() + 1
+            + new Segment(TaskGlyphs.TypeCode(TaskTypes.Task)).CellCount() + 2 + 1
+            + new Segment(TaskPriorities.Format(TaskPriorities.Medium)).CellCount() + 1
+            + new Segment(id).CellCount();
+        var maxWidth = fixedWidthWithoutTitle + 1;
+
+        // act
+        var line = TaskBadge.Render(
+            id: id,
+            title: "Anything",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: maxWidth);
+
+        // assert
+        Assert.DoesNotContain("Anything", line);
+        Assert.DoesNotContain("…", Markup.Remove(line));
+        Assert.EndsWith(id, Markup.Remove(line));
+    }
+
+    private static int PlainCellLength(string line) => new Segment(Markup.Remove(line)).CellCount();
 }

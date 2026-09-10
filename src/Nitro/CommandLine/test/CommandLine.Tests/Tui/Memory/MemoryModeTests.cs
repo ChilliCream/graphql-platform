@@ -409,6 +409,29 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
+    public void Render_Should_DrawAHeavyDetailFrame_When_DetailPaneIsFocused()
+    {
+        // arrange: PaneBorders' shared focus language - Heavy when focused,
+        // Rounded otherwise - applies to the memory Detail pane too. With no
+        // record selected the header is the constant text "Detail".
+        var mode = CreateMode();
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+        Assert.Equal(MemoryFocus.Detail, mode.State.Focus);
+        var console = new TestConsole().Width(100);
+
+        // act
+        console.Write(mode.Render(100, 24));
+
+        // assert
+        var textIndex = console.Output.IndexOf("Detail", StringComparison.Ordinal);
+        Assert.True(textIndex >= 0, "Expected the Detail header to render.");
+        var corner = console.Output.LastIndexOfAny(['┏', '╭'], textIndex);
+        Assert.True(corner >= 0, "Expected a frame corner before the Detail header.");
+        Assert.Equal('┏', console.Output[corner]);
+    }
+
+    [Fact]
     public void Render_Should_NotThrow_When_WidthOrHeightIsZero()
     {
         // arrange

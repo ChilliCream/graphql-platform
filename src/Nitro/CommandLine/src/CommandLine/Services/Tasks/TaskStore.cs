@@ -402,6 +402,22 @@ internal sealed class TaskStore(
         return labels.ToList();
     }
 
+    public async Task<IReadOnlyList<TaskLabels>> GetTaskLabelsAsync(
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        var rows = await connection.QueryAsync<TaskLabelRow>(
+            new CommandDefinition(
+                "SELECT task_id AS TaskId, label AS Label FROM labels ORDER BY task_id, label",
+                cancellationToken: cancellationToken));
+
+        return rows
+            .GroupBy(t => t.TaskId, StringComparer.Ordinal)
+            .Select(t => new TaskLabels(t.Key, t.Select(label => label.Label).ToArray()))
+            .ToArray();
+    }
+
     public async Task<IReadOnlyList<TaskLabelCount>> GetLabelCountsAsync(
         CancellationToken cancellationToken)
     {

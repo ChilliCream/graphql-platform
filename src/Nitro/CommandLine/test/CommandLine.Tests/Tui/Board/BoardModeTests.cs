@@ -2,7 +2,9 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
+using ChilliCream.Nitro.CommandLine.Tui.Theming;
 using Microsoft.Extensions.Time.Testing;
+using Spectre.Console;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -319,6 +321,88 @@ public sealed class BoardModeTests
     }
 
     [Fact]
+    public void Render_Should_ApplyLegibleClosedStyle_ToClosedFrameAndTitle_When_Unfocused()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        var console = new TestConsole()
+            .Colors(ColorSystem.TrueColor)
+            .EmitAnsiSequences()
+            .Width(150)
+            .Height(20);
+
+        // act
+        console.Write(mode.Render(150, 20));
+
+        // assert
+        var style = ThemeTokens.GetStyle("board.column.status.closed");
+        var styleConsole = new TestConsole()
+            .Colors(ColorSystem.TrueColor)
+            .EmitAnsiSequences()
+            .Width(1)
+            .Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        var ansiIndex = console.Output.IndexOf(ansiPrefix, StringComparison.Ordinal);
+        var textIndex = console.Output.IndexOf("Closed (0)", StringComparison.Ordinal);
+        var runStart = ansiIndex + ansiPrefix.Length;
+
+        Assert.Equal(Color.Grey84, style.Foreground);
+        Assert.Equal(Decoration.None, style.Decoration);
+        Assert.True(
+            ansiIndex >= 0 && console.Output[ansiIndex + ansiPrefix.Length] == '╭',
+            "Expected the Closed style to begin at its frame.");
+        Assert.True(textIndex > ansiIndex, "Expected the Closed title to follow its styled frame.");
+        Assert.Equal(-1, console.Output.IndexOf('\u001b', runStart, textIndex - runStart));
+    }
+
+    [Fact]
+    public void Render_Should_DrawAHeavyFrame_And_BoldTitle_ForTheFocusedColumn()
+    {
+        // arrange: OnEnter leaves FocusedColumnIndex at 0, the "Blocked"
+        // column in BoardView.Default.
+        var store = new FakeTaskStore();
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        var console = new TestConsole()
+            .Colors(ColorSystem.TrueColor)
+            .EmitAnsiSequences()
+            .Width(150)
+            .Height(20);
+
+        // act
+        console.Write(mode.Render(150, 20));
+
+        // assert: the focused column's own accent style, unbolded, begins
+        // right at its frame's top-left corner, and that corner is the
+        // Heavy glyph, not Rounded.
+        var style = ThemeTokens.GetStyle("board.column.status.blocked.focused");
+        var styleConsole = new TestConsole()
+            .Colors(ColorSystem.TrueColor)
+            .EmitAnsiSequences()
+            .Width(1)
+            .Height(1);
+        styleConsole.Write(new Markup("x", style));
+        var ansiPrefix = styleConsole.Output[..styleConsole.Output.IndexOf('x')];
+        var ansiIndex = console.Output.IndexOf(ansiPrefix, StringComparison.Ordinal);
+
+        Assert.Equal(Decoration.None, style.Decoration);
+        Assert.True(
+            ansiIndex >= 0 && console.Output[ansiIndex + ansiPrefix.Length] == '┏',
+            "Expected the focused Blocked column to draw a heavy frame.");
+
+        // assert: the title text itself carries the bold SGR code the
+        // unbolded border style above does not.
+        var titleIndex = console.Output.IndexOf("Blocked (0)", StringComparison.Ordinal);
+        var boldOnIndex = console.Output.IndexOf("[1;", ansiIndex, StringComparison.Ordinal);
+        Assert.True(
+            boldOnIndex >= 0 && boldOnIndex < titleIndex,
+            "Expected the focused column's header title to be bold.");
+    }
+
+    [Fact]
     public void Render_Should_NotThrow_When_WidthOrHeightIsZero()
     {
         // arrange
@@ -550,10 +634,11 @@ public sealed class BoardModeTests
         // act
         console.Write(mode.Render(80, 24));
 
-        // assert
+        // assert: maximize shows only the focused column, so its bottom
+        // border is the Heavy glyph, not Rounded.
         var lines = TrimTrailingNewline(console.Output.Split('\n'));
         Assert.Equal(24, lines.Length);
-        Assert.Contains('╰', lines[^1]);
+        Assert.Contains('┗', lines[^1]);
     }
 
     [Fact]
@@ -574,12 +659,77 @@ public sealed class BoardModeTests
         // share, an uneven split of 12 and 11, so the first column's bottom
         // border sits at row 11, row 12 is the blank separator, and the
         // second column's bottom border reaches the last requested row, no
-        // blank gap left over below it.
+        // blank gap left over below it. The first column ("Open") is the
+        // focused one by default, so its bottom border is the Heavy glyph;
+        // the second ("Closed") stays Rounded.
         var lines = TrimTrailingNewline(console.Output.Split('\n'));
         Assert.Equal(24, lines.Length);
-        Assert.Contains('╰', lines[11]);
+        Assert.Contains('┗', lines[11]);
         Assert.Equal(string.Empty, lines[12]);
         Assert.Contains('╰', lines[^1]);
+    }
+
+    [Fact]
+    public void Render_Should_KeepEveryColumnFrameIntact_When_LongIdsAtNarrowWidth()
+    {
+        // arrange: BoardView.Default's five columns squeezed into a narrow
+        // total width, each holding a task whose id is longer than the
+        // column could ever show in full - the exact shape of the reported
+        // bug (a row wrapping onto a line the panel never budgeted for).
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("blocked-task-with-a-very-long-identifier", status: TaskStates.Open));
+        store.Blocked["blocked-task-with-a-very-long-identifier"] = ["blocker-1"];
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "deferred-task-with-a-very-long-identifier", status: TaskStates.Deferred));
+        store.Tasks.Add(TaskItemBuilder.Create("ready-task-with-a-very-long-identifier", status: TaskStates.Open));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "in-progress-task-with-a-very-long-identifier", status: TaskStates.InProgress));
+        store.Tasks.Add(TaskItemBuilder.Create(
+            "closed-task-with-a-very-long-identifier", status: TaskStates.Closed, closedAt: Now.AddDays(-1)));
+        var mode = CreateMode(store, BoardView.Default);
+        mode.OnEnter();
+        const int width = 120;
+        const int height = 20;
+        var console = new TestConsole().Width(width).Height(height);
+
+        // act
+        console.Write(mode.Render(width, height));
+
+        // assert: the grid fills exactly the requested height, every
+        // column's bottom border reaches the last row (no row silently ate
+        // an extra line folding an overlong id out of the panel), and no
+        // output row overruns the console's width.
+        var lines = TrimTrailingNewline(console.Output.Split('\n'));
+        Assert.Equal(height, lines.Length);
+        Assert.Contains('╰', lines[^1]);
+        Assert.All(lines, line => Assert.True(
+            line.Length <= width, $"Expected row width <= {width} but was {line.Length}: '{line}'"));
+
+        // assert: each of the five 24-cell-wide panels carries exactly one
+        // non-blank interior row (the single task row, truncated to fit)
+        // rather than folding the overlong id onto a second interior row
+        // that eats into the panel's budgeted height.
+        const int columnWidth = 24;
+        for (var i = 0; i < 5; i++)
+        {
+            var start = i * columnWidth + 1;
+            var nonBlankInteriorRows = 0;
+            for (var r = 1; r < height - 1; r++)
+            {
+                var interior = lines[r].Substring(start, columnWidth - 2);
+                if (!string.IsNullOrWhiteSpace(interior))
+                {
+                    nonBlankInteriorRows++;
+                }
+            }
+
+            Assert.True(
+                nonBlankInteriorRows == 1,
+                $"Expected exactly one non-blank interior row in panel {i} but found {nonBlankInteriorRows}");
+
+            var taskRow = lines[1].Substring(start, columnWidth - 2);
+            Assert.EndsWith("…", taskRow.TrimEnd());
+        }
     }
 
     /// <summary>

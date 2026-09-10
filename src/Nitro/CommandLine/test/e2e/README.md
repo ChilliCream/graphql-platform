@@ -109,7 +109,9 @@ diffs under `out/report/` for CI. Exit codes: `0` all PASS, `1` any FAIL/NEW
 missing.
 
 Requirements: `docker`, `sqlite3`, and the .NET SDK. `ttyd`, `ffmpeg`, and the
-fonts are baked into the pinned container.
+fonts are baked into the pinned container. The recording container always runs
+as `linux/amd64` (the published binary is linux-x64); on arm64 hosts (e.g.
+Apple Silicon) this runs under emulation, so recording is slower.
 
 ## What makes it deterministic
 

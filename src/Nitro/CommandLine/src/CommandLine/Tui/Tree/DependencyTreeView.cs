@@ -230,7 +230,7 @@ internal sealed class DependencyTreeView : ITuiMode
         return new Panel(lines.Count == 0 ? new Markup(string.Empty) : new Rows(lines))
         {
             Header = new PanelHeader(BuildTitle(headerBudget)),
-            Border = BoxBorder.Rounded,
+            Border = PaneBorders.For(focused: false),
             BorderStyle = ThemeTokens.GetStyle("board.column.border.focused")
         };
     }

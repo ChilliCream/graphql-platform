@@ -388,7 +388,7 @@ public sealed class DependencyTreeViewTests
     [InlineData(64, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa > z · blocking · depends on")]
     [InlineData(44, "aaaaaaaa…aaa > z · blocking · depends on")]
     [InlineData(24, "aaa…> z · depends on")]
-    [InlineData(10, "aaa… z")]
+    [InlineData(10, "aa… z")]
     public void Render_Should_DegradeBreadcrumbHeader_When_PanelIsNarrow(int width, string expectedHeader)
     {
         // arrange: a two-id breadcrumb (a pushed root plus the current root)
@@ -421,6 +421,25 @@ public sealed class DependencyTreeViewTests
         // panel.Header.Text, since Spectre may still re-truncate a header
         // that does not fit the panel's actual (content-driven) width.
         Assert.Contains(expectedHeader, console.Lines[0]);
+    }
+
+    [Fact]
+    public void Render_Should_AlwaysUseARoundedBorder()
+    {
+        // arrange: this view is the tree mode's only pane - it never loses
+        // focus to a sibling pane - so it deliberately keeps the plain
+        // Rounded box from PaneBorders' shared focus language rather than
+        // the Heavy one; only its accent color marks it as the active view.
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("a"));
+        var view = new DependencyTreeView(store, "a");
+        view.OnEnter();
+
+        // act
+        var panel = Assert.IsType<Panel>(view.Render(80, 10));
+
+        // assert
+        Assert.Equal(BoxBorder.Rounded, panel.Border);
     }
 
     [Fact]

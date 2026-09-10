@@ -48,6 +48,30 @@ public sealed class MailDetailViewTests
         Assert.Contains("Hello there.", console.Output);
     }
 
+    [Theory]
+    [InlineData(true, '┏')]
+    [InlineData(false, '╭')]
+    public async Task Render_Should_UseTheSharedFocusLanguage_ForTheFrame(bool focused, char expectedCorner)
+    {
+        // arrange: the header carries the message subject, so its corner
+        // glyph unambiguously tells focused (Heavy) from unfocused (Rounded)
+        // apart, per the shared PaneBorders rule.
+        var store = new FakeMailStore();
+        var state = await CreateStateWithMessageAsync(store);
+        var view = new MailDetailView();
+        var console = new TestConsole().Width(80).Height(20);
+
+        // act
+        console.Write(view.Render(state, 80, 20, focused));
+
+        // assert
+        var textIndex = console.Output.IndexOf("Status update", StringComparison.Ordinal);
+        Assert.True(textIndex >= 0, "Expected the header subject to render.");
+        var corner = console.Output.LastIndexOfAny(['┏', '╭'], textIndex);
+        Assert.True(corner >= 0, "Expected a frame corner before the header text.");
+        Assert.Equal(expectedCorner, console.Output[corner]);
+    }
+
     [Fact]
     public async Task Render_Should_ShowNoMessageSelected_When_MessagesListIsEmptyButLoaded()
     {

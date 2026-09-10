@@ -209,10 +209,13 @@ internal sealed class BoardMode : ITuiMode
 
         // Panel header title inherits the same accent color as its border,
         // per column, rather than the global focused-border override
-        // ColumnPane computes for itself.
-        var borderStyle = column.Definition.ResolveBorderStyle(focused);
-        panel.BorderStyle = borderStyle;
-        panel.Header = panel.Header!.SetStyle(borderStyle);
+        // ColumnPane computes for itself - Spectre paints a panel's header
+        // through the panel's own BorderStyle, so reassigning BorderStyle
+        // alone re-colors the header title too. The border box (Heavy when
+        // focused, Rounded otherwise) and the header's bold-on-focus markup
+        // are already right from ColumnPane.Render and untouched by the
+        // column's own accent color.
+        panel.BorderStyle = column.Definition.ResolveBorderStyle(focused);
 
         panel.Width = safeWidth;
         panel.Height = Math.Max(1, panelHeight);

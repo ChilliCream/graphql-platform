@@ -28,6 +28,12 @@ internal sealed class FakeTaskStore : ITaskStore
     public Task<IReadOnlyList<string>> GetLabelsAsync(string taskId, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<string>>(Labels.GetValueOrDefault(taskId) ?? []);
 
+    public Task<IReadOnlyList<TaskLabels>> GetTaskLabelsAsync(CancellationToken cancellationToken)
+        => Task.FromResult<IReadOnlyList<TaskLabels>>(
+            Labels.OrderBy(t => t.Key, StringComparer.Ordinal)
+                .Select(t => new TaskLabels(t.Key, t.Value.Order(StringComparer.Ordinal).ToArray()))
+                .ToArray());
+
     public Task<IReadOnlyList<TaskDependencyDetail>> GetDependenciesAsync(
         string taskId, CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<TaskDependencyDetail>>(

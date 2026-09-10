@@ -27,6 +27,8 @@ internal sealed class FakeTuiMode : ITuiMode
 
     public string? SelectedTaskId { get; set; }
 
+    public string? FooterStatus { get; set; }
+
     public List<string> SelectTaskCalls { get; } = [];
 
     public void OnEnter() => EnterCalled = true;

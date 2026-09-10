@@ -9,8 +9,8 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 /// straight to whichever hosted tab's <see cref="TuiTab.Mnemonic"/> matches.
 /// None of these collide with <see cref="KeyMap.CreateDefaultGlobal"/>,
 /// <c>MailKeyMap.CreateDefault</c>, or <c>MemoryKeyMap.CreateDefault</c>
-/// (none of the three bind Shift+T, Shift+M, Shift+A, or Shift+E, the
-/// mnemonics <c>AgentTuiLauncher</c> hosts today; a future mnemonic must be
+/// (none of the three bind Shift+T, Shift+M, Shift+A, Shift+E, or Shift+G,
+/// the mnemonics <c>AgentTuiLauncher</c> hosts today; a future mnemonic must be
 /// checked against every hosted tab's own key table the same way before it
 /// is added). Checked ahead of the active tab's own dispatch, and never
 /// reached while any shell-level or mode-level overlay is capturing input.

@@ -158,8 +158,8 @@ internal sealed class TaskDetailView
 
         return new Panel(content)
         {
-            Header = new PanelHeader("Details"),
-            Border = BoxBorder.Rounded,
+            Header = new PanelHeader(PaneBorders.HeaderText("Details", focused)),
+            Border = PaneBorders.For(focused),
             BorderStyle = ThemeTokens.GetStyle(borderToken),
             Width = safeWidth,
             Height = Math.Max(1, height)
@@ -184,8 +184,8 @@ internal sealed class TaskDetailView
 
         return new Panel(content)
         {
-            Header = new PanelHeader(BuildBodyHeader()),
-            Border = BoxBorder.Rounded,
+            Header = new PanelHeader(PaneBorders.HeaderText(BuildBodyHeader(), focused)),
+            Border = PaneBorders.For(focused),
             BorderStyle = ThemeTokens.GetStyle(borderToken),
             Width = safeWidth,
             Height = Math.Max(1, height)

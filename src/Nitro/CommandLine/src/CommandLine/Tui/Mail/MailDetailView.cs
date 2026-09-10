@@ -38,7 +38,7 @@ internal sealed class MailDetailView
     /// The <see cref="Render"/> default when no client lookup is given,
     /// resolving every name to no attribution.
     /// </summary>
-    private static readonly IReadOnlyDictionary<string, string> EmptyClients =
+    private static readonly IReadOnlyDictionary<string, string> s_emptyClients =
         new Dictionary<string, string>();
 
     private readonly Viewport _bodyViewport = new(0, 0);
@@ -96,7 +96,7 @@ internal sealed class MailDetailView
         var safeWidth = Math.Max(1, width);
         var interiorWidth = Math.Max(1, safeWidth - PanelChromeWidth);
         var interiorHeight = Math.Max(1, height - PanelChromeHeight);
-        var clients = clientsByName ?? EmptyClients;
+        var clients = clientsByName ?? s_emptyClients;
 
         var lines = state.ViewMode == MailViewMode.Thread
             ? BuildThreadLines(state, interiorWidth, clients)
@@ -110,8 +110,8 @@ internal sealed class MailDetailView
 
         return new Panel(content)
         {
-            Header = new PanelHeader(BuildHeader(state)),
-            Border = BoxBorder.Rounded,
+            Header = new PanelHeader(PaneBorders.HeaderText(BuildHeader(state), focused)),
+            Border = PaneBorders.For(focused),
             BorderStyle = ThemeTokens.GetStyle(borderToken),
             Width = safeWidth,
             Height = Math.Max(1, height)
@@ -122,8 +122,8 @@ internal sealed class MailDetailView
 
     /// <summary>
     /// A styled header line via the <c>detail.section.header</c> token, the
-    /// same token <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentDetailBody"/>
-    /// and <see cref="Details.TaskDetailBody"/> use for their section
+    /// same token <see cref="Agents.AgentDetailBody"/>
+    /// and <see cref="TaskDetailBody"/> use for their section
     /// headers: the per-thread-message <c>"sender - date"</c> line here.
     /// </summary>
     private static TaskDetailBodyLine SectionHeaderLine(string text)

@@ -63,9 +63,12 @@ internal sealed record ColumnDefinition
     public string? BorderToken { get; init; }
 
     /// <summary>
-    /// Resolves this column's border and header style: its own accent token,
-    /// brightened when <paramref name="focused"/> is true, or the default
-    /// neutral border tokens when no accent is assigned.
+    /// Resolves this column's border and header style: its own accent
+    /// token's focused or unfocused variant, or the default neutral border
+    /// tokens when no accent is assigned. Focus is shown by the pane's box
+    /// weight and header boldness (see <see cref="Widgets.PaneBorders"/>),
+    /// not by this style, which stays the same accent color either way
+    /// except where a status token's own focused variant differs.
     /// </summary>
     public Style ResolveBorderStyle(bool focused)
     {

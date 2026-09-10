@@ -369,6 +369,47 @@ public sealed class SearchModeTests
     }
 
     [Fact]
+    public void Render_Should_DrawAHeavyResultsFrame_When_ListIsFocused()
+    {
+        // arrange: PaneBorders' shared focus language - Heavy when focused,
+        // Rounded otherwise - applies to the Results list pane too.
+        var mode = new SearchMode(new FakeTaskStore());
+        mode.Handle(new TuiMessage.OpenSelected());
+        Assert.Equal(SearchFocus.List, mode.Focus);
+        var console = new TestConsole().Width(100);
+
+        // act
+        console.Write(mode.Render(100, 24));
+
+        // assert
+        var textIndex = console.Output.IndexOf("Results", StringComparison.Ordinal);
+        Assert.True(textIndex >= 0, "Expected the Results header to render.");
+        var corner = console.Output.LastIndexOfAny(['┏', '╭'], textIndex);
+        Assert.True(corner >= 0, "Expected a frame corner before the Results header.");
+        Assert.Equal('┏', console.Output[corner]);
+    }
+
+    [Fact]
+    public void Render_Should_DrawARoundedResultsFrame_When_ListIsNotFocused()
+    {
+        // arrange: focus defaults to Input, so the Results list pane is
+        // unfocused.
+        var mode = new SearchMode(new FakeTaskStore());
+        Assert.Equal(SearchFocus.Input, mode.Focus);
+        var console = new TestConsole().Width(100);
+
+        // act
+        console.Write(mode.Render(100, 24));
+
+        // assert
+        var textIndex = console.Output.IndexOf("Results", StringComparison.Ordinal);
+        Assert.True(textIndex >= 0, "Expected the Results header to render.");
+        var corner = console.Output.LastIndexOfAny(['┏', '╭'], textIndex);
+        Assert.True(corner >= 0, "Expected a frame corner before the Results header.");
+        Assert.Equal('╭', console.Output[corner]);
+    }
+
+    [Fact]
     public async Task Render_Should_ShowSelectedTaskDetail_Instead_Of_Placeholder()
     {
         // arrange
