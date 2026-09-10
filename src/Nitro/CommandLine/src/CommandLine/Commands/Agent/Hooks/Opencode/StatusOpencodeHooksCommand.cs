@@ -54,7 +54,7 @@ internal sealed class StatusOpencodeHooksCommand : Command
         {
             console.WriteLine(session.FormatLine());
 
-            if (session.Reachability == OpencodeSessionReachability.Unreachable)
+            if (session.EndpointKind == AgentSessionEndpointKind.None)
             {
                 console.MarkupLine(OpencodeEndpointGuidance.SessionRemedy.AsWarning());
             }
@@ -173,36 +173,67 @@ internal sealed class StatusOpencodeHooksCommand : Command
         }
 
         /// <summary>
-        /// <see cref="OpencodeSessionReachability.Unreachable"/> when no
+        /// <see cref="OpencodeSessionReachability.NoEndpoint"/> when no
         /// trusted endpoint was ever registered (the unproven placeholder,
-        /// see hc-10-w61.1) or the last recorded ping failed;
-        /// <see cref="OpencodeSessionReachability.Reachable"/> only when the
-        /// last recorded ping succeeded; <see
-        /// cref="OpencodeSessionReachability.Unknown"/> when an endpoint is
-        /// registered but has never been pinged yet. Derived entirely from
-        /// what was already recorded - this performs no live network probe
-        /// of its own.
+        /// see hc-10-w61.1) - this session was never pinged, so there is no
+        /// "last ping" to report on. For a session with a registered
+        /// endpoint, only what the last recorded ping actually says:
+        /// <see cref="OpencodeSessionReachability.ReachableAtLastPing"/> for
+        /// <see cref="AgentPingResult.Ok"/>,
+        /// <see cref="OpencodeSessionReachability.UnreachableAtLastPing"/>
+        /// for <see cref="AgentPingResult.EndpointGone"/> (the client's own
+        /// recorded verdict), and
+        /// <see cref="OpencodeSessionReachability.Unknown"/> for every other
+        /// outcome - never pinged yet, a timeout, a transport error, a
+        /// capacity drop, or an unsupported endpoint kind. None of those
+        /// remaining outcomes says the endpoint is unreachable, only that
+        /// this one attempt did not confirm it either way. Derived entirely
+        /// from what was already recorded - this performs no live network
+        /// probe of its own.
         /// </summary>
         private static string ComputeReachability(AgentSessionRecord session)
         {
             if (session.EndpointKind == AgentSessionEndpointKind.None)
             {
-                return OpencodeSessionReachability.Unreachable;
+                return OpencodeSessionReachability.NoEndpoint;
             }
 
             return session.LastPingResult switch
             {
-                null => OpencodeSessionReachability.Unknown,
-                AgentPingResult.Ok => OpencodeSessionReachability.Reachable,
-                _ => OpencodeSessionReachability.Unreachable
+                AgentPingResult.Ok => OpencodeSessionReachability.ReachableAtLastPing,
+                AgentPingResult.EndpointGone => OpencodeSessionReachability.UnreachableAtLastPing,
+                _ => OpencodeSessionReachability.Unknown
             };
         }
     }
 
+    /// <summary>
+    /// What <see cref="OpencodeSessionStatus.Reachability"/> can say. None of
+    /// these is a "working" or "healthy" verdict, and a failed last ping
+    /// never by itself implies pushes will not arrive - only
+    /// <see cref="AgentSessionEndpointKind.None"/> does (see
+    /// <see cref="OpencodeEndpointGuidance.SessionRemedy"/>).
+    /// </summary>
     internal static class OpencodeSessionReachability
     {
-        public const string Reachable = "reachable";
-        public const string Unreachable = "unreachable";
+        /// <summary>No endpoint was ever registered; never pinged.</summary>
+        public const string NoEndpoint = "unreachable";
+
+        /// <summary>The last recorded ping to a registered endpoint was accepted.</summary>
+        public const string ReachableAtLastPing = "reachable at last ping";
+
+        /// <summary>
+        /// The last recorded ping to a registered endpoint found it gone -
+        /// the client's own recorded verdict, not a freshly re-checked one.
+        /// </summary>
+        public const string UnreachableAtLastPing = "unreachable at last ping";
+
+        /// <summary>
+        /// A registered endpoint whose last recorded ping outcome does not
+        /// say whether it is reachable: never pinged, a timeout, a
+        /// transport error, a capacity drop, or an unsupported endpoint
+        /// kind.
+        /// </summary>
         public const string Unknown = "unknown";
     }
 }

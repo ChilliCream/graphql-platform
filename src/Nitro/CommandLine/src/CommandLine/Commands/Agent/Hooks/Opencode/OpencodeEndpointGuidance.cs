@@ -26,9 +26,13 @@ internal static class OpencodeEndpointGuidance
         + "with an explicit " + RemedyFlags + " flag.";
 
     /// <summary>
-    /// Printed by <c>status</c> next to a session whose endpoint is either
-    /// the unproven placeholder (<c>endpoint_kind = 'none'</c>) or whose
-    /// last recorded ping failed.
+    /// Printed by <c>status</c> next to a session whose endpoint is the
+    /// unproven placeholder (<c>endpoint_kind = 'none'</c>) - the only case
+    /// Nitro can say for certain that a push has nowhere to go. A session
+    /// with a registered endpoint never gets this line, no matter what its
+    /// last recorded ping says: a failed ping is one recorded attempt, not
+    /// proof the endpoint cannot be reached (see
+    /// <c>StatusOpencodeHooksCommand.OpencodeSessionReachability</c>).
     /// </summary>
     public const string SessionRemedy =
         "Pushes will not arrive for this session: start opencode with an explicit "

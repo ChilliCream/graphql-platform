@@ -124,9 +124,36 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
         // assert
         Assert.Contains("session-reachable", result.StdOut, StringComparison.Ordinal);
         Assert.Contains("opencode-server http://127.0.0.1:51000", result.StdOut, StringComparison.Ordinal);
-        Assert.Contains("reachable", result.StdOut, StringComparison.Ordinal);
+        Assert.Contains("; reachable at last ping;", result.StdOut, StringComparison.Ordinal);
         Assert.Contains("last ping accepted", result.StdOut, StringComparison.Ordinal);
         Assert.DoesNotContain("Pushes will not arrive", result.StdOut, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_Should_NotNameRemedy_When_BoundEndpointLastPingFailed()
+    {
+        // arrange
+        SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
+        await InsertAliveSessionRowAsync(
+            FixedHost,
+            "session-bound-ping-failed",
+            "maya",
+            harness: AgentSessionHarness.Opencode,
+            endpointKind: AgentSessionEndpointKind.OpencodeServer,
+            endpointAddr: "http://127.0.0.1:51000",
+            lastPingResult: AgentPingResult.Error,
+            lastPingDetail: "connection reset");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "status", "--scope", "project");
+
+        // assert
+        Assert.Contains("session-bound-ping-failed", result.StdOut, StringComparison.Ordinal);
+        Assert.Contains("last ping: error", result.StdOut, StringComparison.Ordinal);
+        Assert.DoesNotContain("Pushes will not arrive", result.StdOut, StringComparison.Ordinal);
+        Assert.DoesNotContain("--port", result.StdOut, StringComparison.Ordinal);
     }
 
     [Fact]
