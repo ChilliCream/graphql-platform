@@ -296,6 +296,8 @@ internal static partial class TestHelper
             .. Net90.References.All,
 #elif NET10_0
             .. Net100.References.All,
+#elif NET11_0
+            .. Net110.References.All,
 #endif
             MetadataReference.CreateFromFile(typeof(ITypeSystemMember).Assembly.Location),
             MetadataReference.CreateFromFile(typeof(RequestDelegate).Assembly.Location),

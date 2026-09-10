@@ -68,7 +68,7 @@ namespace TestNamespace
             HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
                 extension.Context,
                 descriptor,
-                null,
+                typeof(global::TestNamespace.Query),
                 new global::HotChocolate.Types.QueryTypeAttribute());
             configuration.ConfigurationsAreApplied = true;
 
@@ -85,6 +85,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::TestNamespace.User), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::TestNamespace.User);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
@@ -121,6 +122,11 @@ namespace TestNamespace
                         fieldDescriptor,
                         configuration.Member,
                         new global::HotChocolate.Types.Composite.LookupAttribute());
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetUserById_id(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 
@@ -136,10 +142,11 @@ namespace TestNamespace
         private sealed class __Resolvers
         {
             private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetUserById_id;
+            private readonly global::HotChocolate.Internal.ArgumentKind _binding_GetUserById_id_kind;
 
             public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
-                _binding_GetUserById_id = bindingResolver.GetBinding(CreateParameterDescriptor_GetUserById_id());
+                _binding_GetUserById_id = bindingResolver.GetBinding(CreateParameterDescriptor_GetUserById_id(), out _binding_GetUserById_id_kind);
             }
 
             public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetUserById_id()
@@ -154,11 +161,19 @@ namespace TestNamespace
 
             private global::System.Threading.Tasks.ValueTask GetUserById(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
-                var args0 = new global::System.Collections.Generic.List<int>(contexts.Length);
+                var args0_arguments = _binding_GetUserById_id_kind is global::HotChocolate.Internal.ArgumentKind.Argument
+                    ? new global::System.Collections.Generic.List<int>(contexts.Length)
+                    : null;
+                var args0 = args0_arguments is null
+                    ? _binding_GetUserById_id.Execute<global::System.Collections.Generic.List<int>>(contexts[0])
+                    : (global::System.Collections.Generic.List<int>)(object)args0_arguments;
 
                 for (var i = 0; i < contexts.Length; i++)
                 {
-                    args0.Add(contexts[i].ArgumentValue<int>("id"));
+                    if (args0_arguments is not null)
+                    {
+                        args0_arguments.Add(contexts[i].ArgumentValue<int>("id"));
+                    }
                 }
 
                 var result = global::TestNamespace.Query.GetUserById(args0);

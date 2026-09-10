@@ -42,6 +42,7 @@ namespace TestNamespace
 
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.Pagination.ProductConnectionType>), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.PageConnection<global::TestNamespace.Product>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
@@ -84,6 +85,11 @@ namespace TestNamespace
                         fieldDescriptor,
                         configuration.Member,
                         new global::HotChocolate.Types.UseConnectionAttribute());
+
+                    bindingResolver.ApplyConfiguration(
+                        context.Resolvers.CreateParameterDescriptor_GetProductsAsync_context(),
+                        fieldDescriptor);
+
                     configuration.ConfigurationsAreApplied = true;
                     fieldDescriptor.CreateConfiguration();
 
@@ -99,10 +105,15 @@ namespace TestNamespace
         private sealed class __Resolvers
         {
             private readonly global::HotChocolate.Internal.IParameterBinding _binding_GetProductsAsync_context;
+            private readonly global::HotChocolate.Internal.ArgumentKind _binding_GetProductsAsync_context_kind;
 
             public __Resolvers(global::HotChocolate.Resolvers.ParameterBindingResolver bindingResolver)
             {
-                _binding_GetProductsAsync_context = bindingResolver.GetBinding(CreateParameterDescriptor_GetProductsAsync_context());
+                _binding_GetProductsAsync_context = bindingResolver.GetBinding(CreateParameterDescriptor_GetProductsAsync_context(), out _binding_GetProductsAsync_context_kind);
+                if (_binding_GetProductsAsync_context_kind is global::HotChocolate.Internal.ArgumentKind.Argument)
+                {
+                    throw new global::System.InvalidOperationException("Batch resolver parameter 'context' must be a list type (List<T>, IReadOnlyList<T>, T[], or ImmutableArray<T>). Got: TestNamespace.ProductContext.");
+                }
             }
 
             public global::HotChocolate.Internal.ParameterDescriptor CreateParameterDescriptor_GetProductsAsync_context()
@@ -152,12 +163,21 @@ namespace TestNamespace
                         EnableRelativeCursors = args1_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
                         NullOrdering = args1_options.NullOrdering
                     };
-                var args2 = _binding_GetProductsAsync_context.Execute<global::TestNamespace.ProductContext>(contexts[0]);
+                var args2_arguments = _binding_GetProductsAsync_context_kind is global::HotChocolate.Internal.ArgumentKind.Argument
+                    ? new global::System.Collections.Generic.List<global::TestNamespace.ProductContext>(contexts.Length)
+                    : null;
+                var args2 = args2_arguments is null
+                    ? _binding_GetProductsAsync_context.Execute<global::TestNamespace.ProductContext>(contexts[0])
+                    : (global::TestNamespace.ProductContext)(object)args2_arguments;
                 var args3 = contexts[0].RequestAborted;
 
                 for (var i = 0; i < contexts.Length; i++)
                 {
                     args0.Add(contexts[i].Parent<global::TestNamespace.Brand>());
+                    if (args2_arguments is not null)
+                    {
+                        args2_arguments.Add(contexts[i].ArgumentValue<global::TestNamespace.ProductContext>("context"));
+                    }
                 }
 
                 var result = await global::TestNamespace.BrandNode.GetProductsAsync(args0, args1, args2, args3);
@@ -262,6 +282,7 @@ namespace HotChocolate.Types.Pagination
                     configuration.Description = GetDescription("A list of edges.", false, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.Pagination.ProductEdgeType>>), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::HotChocolate.Types.Pagination.PageEdge<global::TestNamespace.Product>>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionEdgesFieldFlags();
@@ -284,6 +305,7 @@ namespace HotChocolate.Types.Pagination
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product"))));
                     configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::TestNamespace.Product>);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionNodesFieldFlags();
@@ -306,6 +328,7 @@ namespace HotChocolate.Types.Pagination
                         typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.Pagination.PageInfo), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__HotChocolate_Types_Pagination_PageInfo")));
                     configuration.ResultType = typeof(global::HotChocolate.Types.Pagination.PageInfo);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -323,10 +346,9 @@ namespace HotChocolate.Types.Pagination
                     var naming = field.Context.Naming;
 
                     configuration.Description = GetDescription("Identifies the total count of items in the connection.", false, field.Context.Options.UseXmlDocumentation);
-                    configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                        typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
-                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
-                    configuration.ResultType = typeof(int);
+                    configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.IntType>), HotChocolate.Types.TypeContext.Output);
+                    configuration.ResultType = typeof(int?);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetConnectionTotalCountFieldFlags();
@@ -438,6 +460,7 @@ namespace HotChocolate.Types.Pagination
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")));
                     configuration.ResultType = typeof(global::TestNamespace.Product);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
@@ -459,6 +482,7 @@ namespace HotChocolate.Types.Pagination
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
                     configuration.ResultType = typeof(string);
+                    configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
 
