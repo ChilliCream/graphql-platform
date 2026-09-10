@@ -195,9 +195,12 @@ Fusion ships five broker integrations that you can plug in and configure:
 - **Amazon SQS** (with optional SNS fan-out)
 - **Redis**
 
+> [!NOTE]
+> The code below reflects this release. Fusion 16.7 renames `AddGraphQLGateway()` to `AddGraphQLRouter()`, keeping the call above working with an obsolete warning. See the [16.6 to 16.7 migration guide](../docs/fusion/migration/migrate-from-16-6-to-16-7.md).
+
 ```csharp
 builder
-    .AddGraphQLRouter()
+    .AddGraphQLGateway()
     .AddNatsEventStreamBroker(options =>
     {
         options.Url = "nats://localhost:4222";

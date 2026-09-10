@@ -225,7 +225,7 @@ In Fusion, composition is a local build step you run on your machine or in CI:
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 This produces a `.far` (Fusion Archive) file. The archive contains the composed schema and subgraph metadata. You can inspect what composition produced, run it locally, and validate it in CI before deployment.
@@ -243,7 +243,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far");
+    .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
 app.MapGraphQL();
@@ -541,7 +541,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Register the Fusion router
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far");
+    .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
 app.MapGraphQL();
@@ -588,7 +588,7 @@ builder.Services
 
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far");
+    .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
 app.UseHeaderPropagation();
@@ -604,7 +604,7 @@ Compose your subgraph schemas into a router archive:
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 Then start the router:
@@ -691,7 +691,7 @@ rover supergraph compose --config ./supergraph-config.yaml --output supergraph.g
 nitro fusion compose \
   --source-schema-file ./products/schema.graphqls \
   --source-schema-file ./reviews/schema.graphqls \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 ### Example GitHub Actions Workflow
@@ -758,7 +758,7 @@ Apollo Federation has a strong concept of entity "ownership": one subgraph is th
 In the Apollo workflow, composition typically happens in GraphOS when you publish a subgraph. In Fusion, composition is a command you run locally or in CI:
 
 ```bash
-nitro fusion compose --archive graph.far
+nitro fusion compose --archive gateway.far
 ```
 
 You can run this on your machine, see the output, inspect errors, and fix them before pushing. There is no cloud service in the loop unless you choose to use Nitro cloud.

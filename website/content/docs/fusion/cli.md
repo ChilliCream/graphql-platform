@@ -44,16 +44,16 @@ nitro --version
 
 # Commands Overview
 
-| Command        | Purpose                                         | Cloud |
-| -------------- | ----------------------------------------------- | ----- |
-| `compose`      | Compose source schemas into a Fusion archive    | No    |
-| `download`     | Download router configuration from Nitro Cloud  | Yes   |
-| `migrate`      | Migrate v1 to v2 configuration files            | No    |
-| `publish`      | Publish a Fusion configuration to a stage       | Yes   |
-| `run`          | Start a local Fusion router                     | No    |
-| `settings set` | Configure composition settings in an archive    | No    |
-| `upload`       | Upload a source schema for later composition    | Yes   |
-| `validate`     | Validate a schema against a stage               | Yes   |
+| Command        | Purpose                                        | Cloud |
+| -------------- | ---------------------------------------------- | ----- |
+| `compose`      | Compose source schemas into a Fusion archive   | No    |
+| `download`     | Download router configuration from Nitro Cloud | Yes   |
+| `migrate`      | Migrate v1 to v2 configuration files           | No    |
+| `publish`      | Publish a Fusion configuration to a stage      | Yes   |
+| `run`          | Start a local Fusion router                    | No    |
+| `settings set` | Configure composition settings in an archive   | No    |
+| `upload`       | Upload a source schema for later composition   | Yes   |
+| `validate`     | Validate a schema against a stage              | Yes   |
 
 # Cloud Authentication Options
 
@@ -77,21 +77,21 @@ nitro fusion compose [options]
 
 ## Options
 
-| Option                                                                        | Description                                                                         | Default                                                      |
-| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `--source-schema-file <path>` (alias: `-f`)                                   | Path to a local source schema file or directory. Can be repeated.                   | Auto-discovers `*.graphql`/`*.graphqls` in working directory |
-| `--source-schema-url <url>`                                                   | URL from which to download a source schema. Can be repeated.                        | --                                                           |
-| `--source-schema-settings-file <path>`                                        | Settings file for the corresponding URL occurrence. Can be repeated.                | --                                                           |
-| `--archive <path>` (alias: `-a`)                                              | Output path for the Fusion archive                                                  | `./graph.far`                                               |
-| `--environment <name>` (alias: `--env`, `-e`)                                 | Environment name for variable substitution                                          | `ASPNETCORE_ENVIRONMENT` or `Development`                    |
-| `--enable-global-object-identification`                                       | Enable Relay-style global object identification                                     | `false`                                                      |
-| `--node-resolution <gateway\|source-schema>`                                  | Choose who resolves `Query.node` identifiers                                        | `gateway`                                                    |
-| `--shareable-field-runtime-type-routing <source-local\|common-runtime-types>` | Choose how type-conditioned selections are routed for Apollo shareable abstractions | `source-local`                                               |
-| `--allow-non-resolvable-interface-objects`                                    | Allow Apollo interface objects without a resolvable key                             | `false`                                                      |
-| `--include-satisfiability-paths`                                              | Include satisfiability diagnostic paths                                             | `false`                                                      |
-| `--watch`                                                                     | Recompose on file or paired remote-settings changes                                 | `false`                                                      |
-| `--exclude-by-tag <tag>`                                                      | Exclude fields/types by tag. Can be repeated.                                       | --                                                           |
-| `--working-directory <path>` (alias: `-w`)                                    | Working directory for resolving paths                                               | Current directory                                            |
+| Option                                                                        | Description                                                                             | Default                                                      |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `--source-schema-file <path>` (alias: `-f`)                                   | Path to a local source schema file or directory. Can be repeated.                       | Auto-discovers `*.graphql`/`*.graphqls` in working directory |
+| `--source-schema-url <url>`                                                   | URL from which to download a source schema. Can be repeated.                            | --                                                           |
+| `--source-schema-settings-file <path>`                                        | Settings file for the corresponding URL occurrence. Can be repeated.                    | --                                                           |
+| `--archive <path>` (alias: `-a`)                                              | Output path for the Fusion archive                                                      | `./gateway.far`                                              |
+| `--environment <name>` (alias: `--env`, `-e`)                                 | Environment name for variable substitution                                              | `ASPNETCORE_ENVIRONMENT` or `Development`                    |
+| `--enable-global-object-identification`                                       | Enable Relay-style global object identification                                         | `false`                                                      |
+| `--node-resolution <router\|gateway\|source-schema>`                          | Choose who resolves `Query.node` identifiers (`gateway` is a legacy alias for `router`) | `router`                                                     |
+| `--shareable-field-runtime-type-routing <source-local\|common-runtime-types>` | Choose how type-conditioned selections are routed for Apollo shareable abstractions     | `source-local`                                               |
+| `--allow-non-resolvable-interface-objects`                                    | Allow Apollo interface objects without a resolvable key                                 | `false`                                                      |
+| `--include-satisfiability-paths`                                              | Include satisfiability diagnostic paths                                                 | `false`                                                      |
+| `--watch`                                                                     | Recompose on file or paired remote-settings changes                                     | `false`                                                      |
+| `--exclude-by-tag <tag>`                                                      | Exclude fields/types by tag. Can be repeated.                                           | --                                                           |
+| `--working-directory <path>` (alias: `-w`)                                    | Working directory for resolving paths                                                   | Current directory                                            |
 
 Each local `.graphql` or `.graphqls` file must have a companion `-settings.json` file. For example, `schema.graphqls` requires `schema-settings.json`. Local files do not use `--source-schema-settings-file`.
 
@@ -99,7 +99,7 @@ For remote schemas, repeat `--source-schema-url` and `--source-schema-settings-f
 
 If no local file, remote URL, or source removal is specified, the CLI scans the working directory for all `.graphql` and `.graphqls` files.
 
-When an archive has no stored setting, composition uses `gateway` for node resolution and `source-local` for shareable-field runtime type routing. If you recompose an existing archive without the corresponding flag, Nitro preserves the stored value. See [Shareable Abstract Field Routing](./connectors/apollofederation.md#shareable-abstract-field-routing) for the routing behavior.
+When an archive has no stored setting, composition uses `router` for node resolution and `source-local` for shareable-field runtime type routing. If you recompose an existing archive without the corresponding flag, Nitro preserves the stored value. See [Shareable Abstract Field Routing](./connectors/apollofederation.md#shareable-abstract-field-routing) for the routing behavior.
 
 ## Examples
 
@@ -109,7 +109,7 @@ Compose from specific files:
 nitro fusion compose \
   --source-schema-file ./Products/schema.graphqls \
   --source-schema-file ./Reviews/schema.graphqls \
-  --archive graph.far \
+  --archive gateway.far \
   --environment Development \
   --enable-global-object-identification
 ```
@@ -123,19 +123,19 @@ nitro fusion compose \
   --source-schema-url https://reviews.example.com/graphql \
   --source-schema-settings-file ./Reviews/schema-settings.json \
   --source-schema-file ./Inventory/schema.graphqls \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 After a successful composition, Nitro prints:
 
 ```text
-✅ Composite schema written to '/absolute/path/to/graph.far'.
+✅ Composite schema written to '/absolute/path/to/gateway.far'.
 ```
 
 Auto-discover and compose all schemas in the current directory:
 
 ```shell
-nitro fusion compose --archive graph.far
+nitro fusion compose --archive gateway.far
 ```
 
 Watch mode for local development:
@@ -152,7 +152,7 @@ Exclude fields tagged as experimental or internal:
 nitro fusion compose \
   --exclude-by-tag experimental \
   --exclude-by-tag internal-only \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 # nitro fusion download
@@ -171,7 +171,7 @@ nitro fusion download [options]
 | ---------------------- | ------------------ | ---------------------- |
 | `--api-id <id>`        | The API identifier | `NITRO_API_ID` env var |
 | `--stage <name>`       | The stage name     | `NITRO_STAGE` env var  |
-| `--output-file <path>` | Output file path   | `./graph.far`         |
+| `--output-file <path>` | Output file path   | `./gateway.far`        |
 
 ## Examples
 
@@ -179,7 +179,7 @@ nitro fusion download [options]
 nitro fusion download \
   --api-id QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg== \
   --stage production \
-  --output-file graph.far
+  --output-file gateway.far
 ```
 
 # nitro fusion migrate
@@ -251,7 +251,7 @@ nitro fusion publish [options]
 
 ```shell
 nitro fusion publish \
-  --archive graph.far \
+  --archive gateway.far \
   --tag v1.0.0 \
   --stage production \
   --api-id QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==
@@ -324,7 +324,7 @@ Validate the configuration before committing.
 | `--archive <path>` (alias: `-a`) | Fusion archive to validate | --                             |
 
 ```shell
-nitro fusion publish validate --archive graph.far
+nitro fusion publish validate --archive gateway.far
 ```
 
 ### nitro fusion publish commit
@@ -337,7 +337,7 @@ Finalize the deployment.
 | `--archive <path>` (alias: `-a`) | Fusion archive to deploy | --                             |
 
 ```shell
-nitro fusion publish commit --archive graph.far
+nitro fusion publish commit --archive gateway.far
 ```
 
 ### nitro fusion publish cancel
@@ -387,13 +387,13 @@ The router auto-opens a browser with the Nitro IDE. CORS is enabled, and `GraphQ
 Start a router on a specific port:
 
 ```shell
-nitro fusion run graph.far --port 5000
+nitro fusion run gateway.far --port 5000
 ```
 
 Start a router on a random port:
 
 ```shell
-nitro fusion run graph.far
+nitro fusion run gateway.far
 ```
 
 # nitro fusion settings set
@@ -415,31 +415,31 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
 ## Available Settings
 
-| Setting                                  | Values                                 | Description                                                        |
-| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
-| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key            |
-| `global-object-identification`           | `true`, `false`                        | Enable Relay-style node queries                                    |
-| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics                        |
-| `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` IDs                               |
-| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields |
-| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                            |
-| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                     |
-| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields/types by tag                                        |
+| Setting                                  | Values                                 | Description                                                                     |
+| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------- |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key                         |
+| `global-object-identification`           | `true`, `false`                        | Enable Relay-style node queries                                                 |
+| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics                                     |
+| `node-resolution`                        | `router`, `gateway`, `source-schema`   | Choose who resolves `Query.node` IDs (`gateway` is a legacy alias for `router`) |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields              |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                                         |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                                  |
+| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields/types by tag                                                     |
 
 ## Examples
 
 Enable source-schema node resolution on an existing archive:
 
 ```shell
-nitro fusion settings set global-object-identification true --archive graph.far
-nitro fusion settings set node-resolution source-schema --archive graph.far
+nitro fusion settings set global-object-identification true --archive gateway.far
+nitro fusion settings set node-resolution source-schema --archive gateway.far
 ```
 
 Use common-runtime-types routing on an existing archive:
 
 ```shell
 nitro fusion settings set shareable-field-runtime-type-routing common-runtime-types \
-  --archive graph.far
+  --archive gateway.far
 ```
 
 For the behavior of each routing value, see [Shareable Abstract Field Routing](./connectors/apollofederation.md#shareable-abstract-field-routing).
@@ -447,13 +447,13 @@ For the behavior of each routing value, see [Shareable Abstract Field Routing](.
 Configure cache control merging:
 
 ```shell
-nitro fusion settings set cache-control-merge-behavior include --archive graph.far
+nitro fusion settings set cache-control-merge-behavior include --archive gateway.far
 ```
 
 Exclude tagged fields:
 
 ```shell
-nitro fusion settings set exclude-by-tag experimental,internal-only --archive graph.far
+nitro fusion settings set exclude-by-tag experimental,internal-only --archive gateway.far
 ```
 
 # nitro fusion upload
@@ -530,7 +530,7 @@ Validate from an archive:
 
 ```shell
 nitro fusion validate \
-  --archive graph.far \
+  --archive gateway.far \
   --stage production \
   --api-id QXBpCmcwMTk5MGUzNDVlMWU3MjMyYjc2MjYxYzFiNjRkMGQzYg==
 ```

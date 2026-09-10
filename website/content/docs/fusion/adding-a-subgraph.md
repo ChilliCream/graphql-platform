@@ -253,21 +253,21 @@ nitro fusion compose \
   -s Products/schema.graphqls \
   -s Reviews/schema.graphqls \
   -s Shipping/schema.graphqls \
-  -a graph.far
+  -a gateway.far
 ```
 
-If composition succeeds, copy the updated `graph.far` to your router project directory:
+If composition succeeds, copy the updated `gateway.far` to your router project directory:
 
 ```bash
-cp graph.far Router/graph.far
+cp gateway.far Router/gateway.far
 ```
 
-If you already have a composed `graph.far` with the Products and Reviews subgraphs, you can add the new subgraph to the existing archive:
+If you already have a composed `gateway.far` with the Products and Reviews subgraphs, you can add the new subgraph to the existing archive:
 
 ```bash
 nitro fusion compose \
   -s Shipping/schema.graphqls \
-  -a graph.far
+  -a gateway.far
 ```
 
 # Test Cross-Subgraph Queries

@@ -28,7 +28,7 @@ builder.Services.AddAuthorization();
 
 builder.Services
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far");
+    .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
 

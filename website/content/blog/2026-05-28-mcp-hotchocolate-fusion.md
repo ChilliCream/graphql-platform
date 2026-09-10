@@ -81,6 +81,9 @@ If you prefer environment variables, set `NITRO_API_ID`, `NITRO_API_KEY`, and `N
 
 The Fusion story is the same shape. Different packages, same two calls:
 
+> [!NOTE]
+> The code below reflects this release. Fusion 16.7 renames `AddGraphQLGateway()` to `AddGraphQLRouter()`, keeping the call above working with an obsolete warning. See the [16.6 to 16.7 migration guide](../docs/fusion/migration/migrate-from-16-6-to-16-7.md).
+
 ```bash
 dotnet add package HotChocolate.Fusion.Adapters.Mcp
 dotnet add package ChilliCream.Nitro
@@ -100,7 +103,7 @@ builder.Services
     .AddDefaults();
 
 builder
-    .AddGraphQLRouter()
+    .AddGraphQLGateway()
     .AddMcp();
 
 var app = builder.Build();

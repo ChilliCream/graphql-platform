@@ -13,17 +13,17 @@ This guide is self-contained. You can complete the migration by following the st
 
 If you have worked with Schema Stitching, you already understand the core idea: multiple GraphQL services combined into one schema. Fusion keeps that idea but changes how it works under the hood. Here is how the concepts translate:
 
-| Schema Stitching                                               | Fusion                                             | What Changed                                                                                                                               |
-| -------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Remote schemas (`AddRemoteSchema()`)                           | Subgraphs (source schemas)                         | Each remote schema becomes its own standalone ASP.NET Core project with HotChocolate. No stitching middleware needed.                      |
-| Stitching gateway (`AddGraphQLServer()` + `AddRemoteSchema()`) | Fusion router (`AddGraphQLRouter()`)               | The router is stateless. No custom resolvers, no delegation logic, no type extensions in the router project.                               |
-| Schema extensions (`.graphql` extension files)                 | Entity stubs with `[ObjectType<T>]`                | Instead of writing SDL extension files with `@delegate` directives, you define C# types in the subgraph that extends the entity.           |
+| Schema Stitching                                               | Fusion                                             | What Changed                                                                                                                              |
+| -------------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Remote schemas (`AddRemoteSchema()`)                           | Subgraphs (source schemas)                         | Each remote schema becomes its own standalone ASP.NET Core project with HotChocolate. No stitching middleware needed.                     |
+| Stitching gateway (`AddGraphQLServer()` + `AddRemoteSchema()`) | Fusion router (`AddGraphQLRouter()`)               | The router is stateless. No custom resolvers, no delegation logic, no type extensions in the router project.                              |
+| Schema extensions (`.graphql` extension files)                 | Entity stubs with `[ObjectType<T>]`                | Instead of writing SDL extension files with `@delegate` directives, you define C# types in the subgraph that extends the entity.          |
 | Delegating resolvers (`@delegate` directive)                   | Lookups (`[Lookup]` attribute)                     | The router handles cross-subgraph resolution automatically. You declare a lookup field in each subgraph; composition wires them together. |
-| `@delegate(path: "...")` field references                      | `[Require]` attribute                              | When a field needs data from another subgraph, you declare the dependency as a method parameter with `[Require]`.                          |
-| Auto-stitching / runtime schema merging                        | Build-time composition (`nitro fusion compose`)    | Schemas are merged offline by the Nitro CLI, producing a static configuration file. Conflicts are caught before deployment.                |
-| `PublishSchemaDefinition()` + Redis                            | `schema export` + `nitro fusion upload`            | Schema distribution uses the Nitro CLI or Aspire instead of Redis pub/sub.                                                                 |
-| `RenameType()` / `RenameField()` / `IgnoreType()`              | Composition rules + `[Internal]` / `@inaccessible` | Type conflicts are resolved by composition rules. Fields you want to hide use `[Internal]` on lookups or `@inaccessible` on types.         |
-| `SchemaDefinition` / `SchemaExtension`                         | `schema.graphqls` + `schema-settings.json`         | Exported automatically by the subgraph on startup. You do not write these by hand.                                                         |
+| `@delegate(path: "...")` field references                      | `[Require]` attribute                              | When a field needs data from another subgraph, you declare the dependency as a method parameter with `[Require]`.                         |
+| Auto-stitching / runtime schema merging                        | Build-time composition (`nitro fusion compose`)    | Schemas are merged offline by the Nitro CLI, producing a static configuration file. Conflicts are caught before deployment.               |
+| `PublishSchemaDefinition()` + Redis                            | `schema export` + `nitro fusion upload`            | Schema distribution uses the Nitro CLI or Aspire instead of Redis pub/sub.                                                                |
+| `RenameType()` / `RenameField()` / `IgnoreType()`              | Composition rules + `[Internal]` / `@inaccessible` | Type conflicts are resolved by composition rules. Fields you want to hide use `[Internal]` on lookups or `@inaccessible` on types.        |
+| `SchemaDefinition` / `SchemaExtension`                         | `schema.graphqls` + `schema-settings.json`         | Exported automatically by the subgraph on startup. You do not write these by hand.                                                        |
 
 ## What Changes Architecturally
 
@@ -304,7 +304,7 @@ builder.Services.AddHeaderPropagation(c =>
 
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far");
+    .AddFileSystemConfiguration("./gateway.far");
 
 var app = builder.Build();
 app.UseHeaderPropagation();
@@ -315,7 +315,7 @@ app.Run();
 Key changes:
 
 - **`AddGraphQLRouter()`** replaces `AddGraphQLServer()` + `AddRemoteSchema()`. The router does not know about individual subgraphs -- it reads the composed configuration.
-- **`.AddFileSystemConfiguration("./graph.far")`** loads the composed Fusion archive. This file is produced by `nitro fusion compose` (see Step 4). Alternatively, use `.AddNitro()` to download the configuration from ChilliCream's cloud platform.
+- **`.AddFileSystemConfiguration("./gateway.far")`** loads the composed Fusion archive. This file is produced by `nitro fusion compose` (see Step 4). Alternatively, use `.AddNitro()` to download the configuration from ChilliCream's cloud platform.
 - **No type extensions, no `@delegate`, no remote schema registration.** The router is pure routing infrastructure.
 - **Header propagation** is configured through standard ASP.NET Core middleware. The named HTTP client `"fusion"` is what the router uses to call subgraphs. You add `AddHeaderPropagation()` on it to forward headers like `Authorization` to subgraphs.
 
@@ -352,11 +352,11 @@ Then compose all subgraphs into a Fusion archive:
 nitro fusion compose \
   --source-schema-file ./src/Products/schema.graphqls \
   --source-schema-file ./src/Inventory/schema.graphqls \
-  --archive ./src/Router/graph.far \
+  --archive ./src/Router/gateway.far \
   --environment development
 ```
 
-If composition succeeds, you get a `graph.far` file that the router loads at startup. If it fails, you get error messages telling you exactly which types or fields conflict and how to fix them.
+If composition succeeds, you get a `gateway.far` file that the router loads at startup. If it fails, you get error messages telling you exactly which types or fields conflict and how to fix them.
 
 During development, you can use watch mode to recompose automatically when schema files change:
 
@@ -364,7 +364,7 @@ During development, you can use watch mode to recompose automatically when schem
 nitro fusion compose \
   --source-schema-file ./src/Products/schema.graphqls \
   --source-schema-file ./src/Inventory/schema.graphqls \
-  --archive ./src/Router/graph.far \
+  --archive ./src/Router/gateway.far \
   --environment development \
   --watch
 ```
@@ -525,7 +525,7 @@ Alternatively, for a simpler setup without Nitro cloud:
 1. Export schemas from all subgraphs.
 2. Run `nitro fusion compose` locally or in CI to produce a `.far` file.
 3. Deploy the `.far` file alongside the router.
-4. The router loads the `.far` file on startup via `.AddFileSystemConfiguration("./graph.far")`.
+4. The router loads the `.far` file on startup via `.AddFileSystemConfiguration("./gateway.far")`.
 
 For a full CI/CD pipeline reference, see [Deployment and CI/CD](../deployment-and-ci-cd.md).
 

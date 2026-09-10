@@ -497,16 +497,19 @@ Start by installing the latest `16.x.x` version of **all** of the `HotChocolate.
 
 Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
 
-### AddFusionGatewayServer renamed to AddGraphQLRouter
+### AddFusionGatewayServer renamed to AddGraphQLGatewayServer
 
 The entry point that adds a Fusion router to the service collection has been renamed and now lives in the `Microsoft.Extensions.DependencyInjection` namespace.
 
 ```diff
 -builder.Services.AddFusionGatewayServer();
-+builder.Services.AddGraphQLRouter();
++builder.Services.AddGraphQLGatewayServer();
 ```
 
-The builder type returned by `AddGraphQLRouter` is now `IFusionGatewayBuilder` instead of the concrete `FusionGatewayBuilder`. All of the configuration extension methods now hang off this interface.
+The builder type returned by `AddGraphQLGatewayServer` is now `IFusionGatewayBuilder` instead of the concrete `FusionGatewayBuilder`. All of the configuration extension methods now hang off this interface.
+
+> [!NOTE]
+> Fusion 16.7 renames `AddGraphQLGatewayServer()` to `AddGraphQLRouter()`, which returns `IFusionRouterBuilder`; the gateway-named method keeps working with an obsolete warning. See the [16.6 to 16.7 migration guide](./migrate-from-16-6-to-16-7.md).
 
 ### CoreBuilder is gone — methods now hang off IFusionGatewayBuilder directly
 
@@ -581,7 +584,7 @@ Both document and operation plan cache are now configured on the router builder 
 -builder.Services.AddOperationCache(capacity: 100);
 
 builder.Services
-    .AddGraphQLRouter()
+    .AddGraphQLGatewayServer()
 +    .ModifyOptions(o =>
 +    {
 +        o.OperationDocumentCacheSize = 200;
@@ -599,7 +602,7 @@ Document hash providers are no longer registered through the `IServiceCollection
 -builder.Services.AddSha256DocumentHashProvider();
 
 builder.Services
-    .AddGraphQLRouter()
+    .AddGraphQLGatewayServer()
 +    .AddSha256DocumentHashProvider();
 ```
 
@@ -701,7 +704,7 @@ The old `IObservable<GatewayConfiguration>` source has been replaced by the new 
 
 ```diff
 -gatewayBuilder.ConfigureFromFile("gateway.fgp");
-+gatewayBuilder.AddFileSystemConfiguration("./graph.far");
++gatewayBuilder.AddFileSystemConfiguration("./gateway.far");
 ```
 
 The `watchFileForUpdates` parameter is gone — file watching is the default behavior of the file-system configuration provider.
@@ -756,7 +759,7 @@ builder.Services
     })
     .AddDefaults();
 
-builder.Services.AddGraphQLRouter();
+builder.Services.AddGraphQLGatewayServer();
 ```
 
 ### Diagnostic listener API redesigned
@@ -862,7 +865,7 @@ To access application services within schema services like diagnostic event list
 
 ```diff
 builder.Services.AddSingleton<MyService>();
-builder.Services.AddGraphQLRouter()
+builder.Services.AddGraphQLGatewayServer()
 +   .AddApplicationService<MyService>()
 
     // either
@@ -877,7 +880,7 @@ Sometimes the registration of required services is not as obvious. For example, 
 
 ```diff
 builder.Services.AddLogging();
-builder.Services.AddGraphQLRouter()
+builder.Services.AddGraphQLGatewayServer()
 +   .AddApplicationService<ILogger<MyLoggingDiagnosticEventListener>>()
 
     // either

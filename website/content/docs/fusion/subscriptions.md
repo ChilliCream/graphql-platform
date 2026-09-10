@@ -241,7 +241,7 @@ builder.Services
 
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddNatsEventStreamBroker(options =>
     {
         options.Url = "nats://localhost:4222";
@@ -260,7 +260,7 @@ Install the `HotChocolate.Fusion.Subscriptions.Kafka` package and register the b
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddKafkaEventStreamBroker(options =>
     {
         options.BootstrapServers = "localhost:9092";
@@ -298,7 +298,7 @@ Authenticate with a connection string:
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddAzureEventHubsEventStreamBroker(options =>
     {
         options.ConnectionString = "<event-hubs-connection-string>";
@@ -312,7 +312,7 @@ Or with a fully qualified namespace and a token credential. When you set
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddAzureEventHubsEventStreamBroker(options =>
     {
         options.FullyQualifiedNamespace = "my-namespace.servicebus.windows.net";
@@ -354,7 +354,7 @@ need:
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddAmazonSqsEventStreamBroker(options =>
     {
         options.Region = "us-east-1";
@@ -367,7 +367,7 @@ LocalStack or other SQS-compatible endpoint:
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddAmazonSqsEventStreamBroker(options =>
     {
         options.ServiceUrl = "http://localhost:4566";
@@ -384,7 +384,7 @@ Fusion topic:
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddAmazonSqsEventStreamBroker(options =>
     {
         options.Region = "us-east-1";
@@ -415,7 +415,7 @@ Each subscribed topic is treated as a Redis Pub/Sub channel name:
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddRedisEventStreamBroker(options =>
     {
         options.Configuration = "localhost:6379";
@@ -430,7 +430,7 @@ existing `ConnectionMultiplexer` that the broker shares but does not dispose:
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddRedisEventStreamBroker(options =>
     {
         options.ConnectionMultiplexer = ConnectionMultiplexer.Connect("localhost:6379");
@@ -448,7 +448,7 @@ To run more than one broker, give each a name and select one per field with the
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddNatsEventStreamBroker("nats", o => o.Url = "nats://localhost:4222")
     .AddKafkaEventStreamBroker("kafka", o => o.BootstrapServers = "localhost:9092");
 ```
@@ -681,7 +681,7 @@ For NATS, enable JetStream when registering the broker:
 ```csharp
 builder
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("./graph.far")
+    .AddFileSystemConfiguration("./gateway.far")
     .AddNatsEventStreamBroker(options =>
     {
         options.Url = "nats://localhost:4222";

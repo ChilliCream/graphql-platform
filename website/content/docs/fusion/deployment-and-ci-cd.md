@@ -296,13 +296,13 @@ jobs:
 
 Nitro is the supported path. It handles the schema registry, server-side composition, breaking-change detection, persisted operation tracking, and atomic rollout to subscribed routers. If you can use Nitro, use it.
 
-If you can't, you compose locally, ship the resulting archive to durable storage yourself, and load it on the router. The local compose step produces a `graph.far`:
+If you can't, you compose locally, ship the resulting archive to durable storage yourself, and load it on the router. The local compose step produces a `gateway.far`:
 
 ```bash
 nitro fusion compose \
   --source-schema-file ./src/SubgraphA/schema.graphqls \
   --source-schema-file ./src/SubgraphB/schema.graphqls \
-  --archive ./graph.far
+  --archive ./gateway.far
 ```
 
 The router loads the archive from disk:
@@ -310,7 +310,7 @@ The router loads the archive from disk:
 ```csharp
 builder.Services
     .AddGraphQLRouter()
-    .AddFileSystemConfiguration("graph.far");
+    .AddFileSystemConfiguration("gateway.far");
 ```
 
 If the archive lives in object storage, a container registry, or a custom source, implement `IFusionConfigurationProvider` and register it through `AddConfigurationProvider`:
