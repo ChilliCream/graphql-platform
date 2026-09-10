@@ -9,11 +9,12 @@ internal sealed class NodeResolutionOption : Option<NodeResolution?>
     public NodeResolutionOption()
         : base(OptionName)
     {
-        Description = "Choose whether Query.node identifiers are resolved by the gateway or a source schema";
-        AcceptOnlyFromAmong("gateway", "source-schema");
+        Description = "Choose whether Query.node identifiers are resolved by the router or a source schema (gateway is a legacy alias for router)";
+        // TODO [17]: Remove the legacy gateway input alias.
+        AcceptOnlyFromAmong("router", "gateway", "source-schema");
         CustomParser = result => result.Tokens.Single().Value switch
         {
-            "gateway" => NodeResolution.Router,
+            "router" or "gateway" => NodeResolution.Router,
             "source-schema" => NodeResolution.SourceSchema,
             _ => null
         };

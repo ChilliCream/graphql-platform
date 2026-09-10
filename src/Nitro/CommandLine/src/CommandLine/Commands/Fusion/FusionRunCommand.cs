@@ -29,7 +29,7 @@ internal class FusionRunCommand : Command
         Arguments.Add(Opt<FusionRunArchiveArgument>.Instance);
         Options.Add(Opt<FusionRunPortOption>.Instance);
 
-        this.AddExamples("fusion run ./graph.far --port 5000");
+        this.AddExamples("fusion run ./gateway.far --port 5000");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }

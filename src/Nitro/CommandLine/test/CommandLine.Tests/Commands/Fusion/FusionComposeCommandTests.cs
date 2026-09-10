@@ -46,7 +46,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               -e, --env, --environment <environment>                                      The name of the environment used for value substitution in the schema-settings.json files
               --cache-control-merge-behavior <ignore|include|include-private>             Choose how @cacheControl directives are merged
               --enable-global-object-identification                                       Add the 'Query.node' field for global object identification
-              --node-resolution <gateway|source-schema>                                   Choose whether Query.node identifiers are resolved by the gateway or a source schema
+              --node-resolution <gateway|router|source-schema>                            Choose whether Query.node identifiers are resolved by the router or a source schema (gateway is a legacy alias for router)
               --tag-merge-behavior <ignore|include|include-private>                       Choose how @tag directives are merged
               --shareable-field-runtime-type-routing <common-runtime-types|source-local>  Choose how runtime types are routed for Apollo Federation shareable abstract fields
               --allow-non-resolvable-interface-objects                                    Allow Apollo Federation interface objects without a resolvable key
@@ -63,9 +63,9 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
             Example:
               nitro fusion compose \
                 --source-schema-file ./products/schema.graphqls \
-              --source-schema-url https://reviews.example.com/graphql \
-              --source-schema-settings-file ./reviews/schema-settings.json \
-                --archive ./graph.far \
+                --source-schema-url https://reviews.example.com/graphql \
+                --source-schema-settings-file ./reviews/schema-settings.json \
+                --archive ./gateway.far \
                 --env "dev"
             """);
     }
@@ -1021,9 +1021,22 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
             .GetBoolean());
     }
 
-    [Fact]
-    public async Task Compose_Should_EmitExecutionMetadata_When_SourceSchemaNodeResolution()
+    [Theory]
+    [InlineData("router", "Gateway", InteractionMode.Interactive)]
+    [InlineData("gateway", "Gateway", InteractionMode.Interactive)]
+    [InlineData("source-schema", "SourceSchema", InteractionMode.Interactive)]
+    [InlineData("router", "Gateway", InteractionMode.NonInteractive)]
+    [InlineData("gateway", "Gateway", InteractionMode.NonInteractive)]
+    [InlineData("source-schema", "SourceSchema", InteractionMode.NonInteractive)]
+    [InlineData("router", "Gateway", InteractionMode.JsonOutput)]
+    [InlineData("gateway", "Gateway", InteractionMode.JsonOutput)]
+    [InlineData("source-schema", "SourceSchema", InteractionMode.JsonOutput)]
+    public async Task Compose_Should_PreserveExecutionMetadata_When_NodeResolutionIsProvided(
+        string value,
+        string persistedValue,
+        InteractionMode mode)
     {
+        SetupInteractionMode(mode);
         var archiveFileName = CreateTempFile();
         SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
         SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
@@ -1039,12 +1052,55 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
             archiveFileName,
             "--enable-global-object-identification",
             "--node-resolution",
-            "source-schema");
+            value);
 
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess();
         using var archive = FusionArchive.Open(archiveFileName);
+        using var settings = await archive.GetCompositionSettingsAsync(
+            TestContext.Current.CancellationToken);
         var schema = await GetFusionSchemaAsync(archive);
-        Assert.Contains("nodeResolution: SOURCE_SCHEMA", schema);
+        Snapshot.Create(persistedValue)
+            .Add(settings, "Composition settings")
+            .Add(schema, "Execution schema")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Theory]
+    [InlineData(null, "gateway.far")]
+    [InlineData(".", "gateway.far")]
+    [InlineData("graph.far", "graph.far")]
+    [InlineData("custom.far", "custom.far")]
+    public async Task Compose_Should_WriteExpectedFilename_When_ArchivePathIsProvidedOrOmitted(
+        string? archivePath,
+        string expectedFilename)
+    {
+        var directory = CreateTempFile();
+        Directory.CreateDirectory(directory);
+        SetupDirectory(directory);
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
+        var arguments = new List<string>
+        {
+            "fusion", "compose",
+            "--working-directory", directory,
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls")
+        };
+
+        if (archivePath is not null)
+        {
+            arguments.AddRange(["--archive", archivePath == "." ? directory : archivePath]);
+        }
+
+        var result = await ExecuteCommandAsync(arguments.ToArray());
+
+        result.AssertSuccess();
+        Assert.Equal([expectedFilename], Directory.GetFiles(directory).Select(Path.GetFileName));
+        using var archive = FusionArchive.Open(Path.Combine(directory, expectedFilename));
+        var schema = await GetFusionSchemaAsync(archive);
+        schema.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
     }
 
     [Fact]
@@ -1078,6 +1134,23 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         Assert.Contains(
             "shareableFieldRuntimeTypeRouting: COMMON_RUNTIME_TYPES",
             schema);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Compose_Should_RejectInvalidNodeResolution_When_ValueIsUnknown(InteractionMode mode)
+    {
+        SetupInteractionMode(mode);
+
+        var result = await ExecuteCommandAsync("fusion", "compose", "--node-resolution", "invalid-value");
+
+        Snapshot.Create()
+            .Add(result.ExitCode, "Exit code")
+            .Add(result.StdOut.Replace(result.ExecutableName, "nitro"), "Standard output")
+            .Add(result.StdErr, "Standard error")
+            .MatchMarkdownSnapshot();
     }
 
     [Fact]

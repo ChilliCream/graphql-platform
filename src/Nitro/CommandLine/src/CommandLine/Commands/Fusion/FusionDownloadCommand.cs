@@ -32,7 +32,7 @@ internal sealed class FusionDownloadCommand : Command
             fusion download \
               --api-id "<api-id>" \
               --stage "dev" \
-              --output-file ./graph.far
+              --output-file ./gateway.far
             """);
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
@@ -60,7 +60,8 @@ internal sealed class FusionDownloadCommand : Command
 
         if (string.IsNullOrEmpty(outputFile))
         {
-            outputFile = "graph." + archiveFormat;
+            // TODO [17]: Change only the .far default to graph.far. Keep gateway.fgp for legacy downloads.
+            outputFile = "gateway." + archiveFormat;
         }
 
         if (!Path.IsPathRooted(outputFile))

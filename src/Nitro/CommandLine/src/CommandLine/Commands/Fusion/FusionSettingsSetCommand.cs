@@ -31,7 +31,7 @@ internal sealed class FusionSettingsSetCommand : Command
         this.AddExamples(
             """
             fusion settings set global-object-identification "true" \
-              --archive ./graph.far \
+              --archive ./gateway.far \
               --env "dev"
             """);
 
@@ -108,11 +108,12 @@ internal sealed class FusionSettingsSetCommand : Command
             case FusionSettingsNameArgument.NodeResolution:
                 compositionSettings.Merger.NodeResolution = settingValue switch
                 {
-                    "gateway" => NodeResolution.Router,
+                    // TODO [17]: Remove the legacy gateway input alias.
+                    "router" or "gateway" => NodeResolution.Router,
                     "source-schema" => NodeResolution.SourceSchema,
                     _ => throw new ExitException(
                         $"Expected one of the following values for setting '{settingName}': "
-                        + "gateway, source-schema")
+                        + "router, gateway, source-schema")
                 };
                 break;
 

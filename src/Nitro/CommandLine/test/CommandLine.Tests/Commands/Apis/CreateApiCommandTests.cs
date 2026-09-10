@@ -24,17 +24,17 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
               nitro api create [options]
 
             Options:
-              --path <path>                        The path to the API [env: NITRO_API_PATH]
-              --name <name>                        The name of the API [env: NITRO_API_NAME]
-              --workspace-id <workspace-id>        The ID of the workspace [env: NITRO_WORKSPACE_ID]
-              --kind <collection|gateway|service>  The kind of the API [env: NITRO_API_KIND]
-              --cloud-url <cloud-url>              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
-              --api-key <api-key>                  The API key or PAT used for authentication [env: NITRO_API_KEY]
-              --output <json>                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                       Show help and usage information
+              --path <path>                               The path to the API [env: NITRO_API_PATH]
+              --name <name>                               The name of the API [env: NITRO_API_NAME]
+              --workspace-id <workspace-id>               The ID of the workspace [env: NITRO_WORKSPACE_ID]
+              --kind <collection|gateway|router|service>  The kind of the API (gateway is a legacy alias for router) [env: NITRO_API_KIND]
+              --cloud-url <cloud-url>                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>                         The API key or PAT used for authentication [env: NITRO_API_KEY]
+              --output <json>                             The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                              Show help and usage information
 
             Example:
-              nitro api create --name "my-api"
+              nitro api create --name "my-api" --kind router
             """);
     }
 
@@ -430,18 +430,33 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
             """);
     }
 
-    [Fact]
-    public async Task Create_Should_ReturnSuccess_When_KindIsGateway()
+    [Theory]
+    [InlineData("router", false, InteractionMode.Interactive)]
+    [InlineData("gateway", false, InteractionMode.Interactive)]
+    [InlineData("router", false, InteractionMode.NonInteractive)]
+    [InlineData("gateway", false, InteractionMode.NonInteractive)]
+    [InlineData("router", false, InteractionMode.JsonOutput)]
+    [InlineData("gateway", false, InteractionMode.JsonOutput)]
+    [InlineData("router", true, InteractionMode.Interactive)]
+    [InlineData("gateway", true, InteractionMode.Interactive)]
+    [InlineData("router", true, InteractionMode.NonInteractive)]
+    [InlineData("gateway", true, InteractionMode.NonInteractive)]
+    [InlineData("router", true, InteractionMode.JsonOutput)]
+    [InlineData("gateway", true, InteractionMode.JsonOutput)]
+    public async Task Create_Should_PreserveBackendKind_When_RouterAliasIsProvided(
+        string kind,
+        bool fromEnvironment,
+        InteractionMode mode)
     {
-        // arrange
+        SetupInteractionMode(mode);
         SetupCreateApiMutation(
             WorkspaceId,
             ApiName,
             expectedPath: ["products"],
             kind: ApiKind.Gateway);
 
-        // act
-        var result = await ExecuteCommandAsync(
+        var arguments = new List<string>
+        {
             "api",
             "create",
             "--workspace-id",
@@ -449,31 +464,31 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
             "--name",
             ApiName,
             "--path",
-            "/products",
-            "--kind",
-            "gateway");
+            "/products"
+        };
 
-        // assert
-        result.AssertSuccess(
-            """
-            Creating API 'my-api'
-            └── ✓ Created API 'my-api'.
+        if (fromEnvironment)
+        {
+            SetupEnvironmentVariable(EnvironmentVariables.ApiKind, kind);
+        }
+        else
+        {
+            // The explicit alias must also take precedence over the environment default.
+            SetupEnvironmentVariable(EnvironmentVariables.ApiKind, "service");
+            arguments.AddRange(["--kind", kind]);
+        }
 
-            {
-              "id": "api-1",
-              "name": "my-api",
-              "path": "products/catalog",
-              "workspace": {
-                "name": "Workspace"
-              },
-              "apiDetailPromptSettings": {
-                "apiDetailPromptSchemaRegistry": {
-                  "treatDangerousAsBreaking": true,
-                  "allowBreakingSchemaChanges": false
-                }
-              }
-            }
-            """);
+        var result = await ExecuteCommandAsync(arguments.ToArray());
+
+        var request = Assert.Single(ApisClientMock.Invocations);
+        var wireKind = new ApiKindSerializer().Format(request.Arguments[3]);
+        Snapshot.Create(mode.ToString())
+            .Add(result.ExitCode, "Exit code")
+            .Add(result.StdOut, "Standard output")
+            .Add(result.StdErr, "Standard error")
+            .Add(request.Arguments[3], "Backend kind")
+            .Add(wireKind, "GraphQL kind")
+            .MatchMarkdownSnapshot();
     }
 
     [Theory]
@@ -496,6 +511,25 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
         // assert
         result.AssertError(
             $"The path '{path}' is invalid. It must start with '/'.");
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Create_Should_RejectInvalidKind_When_KindIsNotAnApiKind(InteractionMode mode)
+    {
+        SetupInteractionMode(mode);
+
+        var result = await ExecuteCommandAsync(
+            "api", "create", "--workspace-id", WorkspaceId,
+            "--name", ApiName, "--path", "/products", "--kind", "source-schema");
+
+        Snapshot.Create()
+            .Add(result.ExitCode, "Exit code")
+            .Add(result.StdOut.Replace(result.ExecutableName, "nitro"), "Standard output")
+            .Add(result.StdErr, "Standard error")
+            .MatchMarkdownSnapshot();
     }
 
     [Fact]
