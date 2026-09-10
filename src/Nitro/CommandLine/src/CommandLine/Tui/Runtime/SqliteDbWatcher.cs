@@ -71,6 +71,13 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
         // delete of it (which never grows past that baseline) stays silent. See
         // the type-level remarks.
         var lastWalSize = GetFileSize(walPath);
+
+        // The main file's own reconciliation baseline: a write landing in the
+        // enable gap moves its mtime (and usually its length) the same way an
+        // ordinary post-enable write does, per the type-level remarks. Captured
+        // alongside lastWalSize, before OnBaselineCaptured fires, so a test can
+        // land a write deterministically inside the gap.
+        var (lastMainWriteTimeUtc, lastMainLength) = GetFileState(_databasePath);
         var mainDatabaseChanged = false;
         var walChanged = false;
 
@@ -135,13 +142,19 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
             // A write landing between the pre-enable baseline above and the
             // watcher actually raising events would otherwise fire no event
             // while the baseline already contains its growth, losing it for
-            // good. Reading the -wal size again now and comparing it to that
-            // same pre-enable baseline closes the window. Whichever path
-            // notices first wins, and a duplicate DataChangedEvent is
-            // harmless since consumers treat it as "re-read", not as a delta.
+            // good. Re-reading the main file's state and the -wal size now and
+            // comparing them to that same pre-enable baseline closes the
+            // window for both files. Whichever path notices first wins, and a
+            // duplicate DataChangedEvent is harmless since consumers treat it
+            // as "re-read", not as a delta.
+            var reconciledMainState = GetFileState(_databasePath);
             var reconciledWalSize = GetFileSize(walPath);
 
-            if (reconciledWalSize > lastWalSize)
+            var mainFileChanged =
+                reconciledMainState.LastWriteTimeUtc != lastMainWriteTimeUtc
+                || reconciledMainState.Length != lastMainLength;
+
+            if (mainFileChanged || reconciledWalSize > lastWalSize)
             {
                 lastWalSize = reconciledWalSize;
                 writer.TryWrite(new TuiEvent.DataChangedEvent());
@@ -179,6 +192,24 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
         catch (IOException)
         {
             return 0;
+        }
+    }
+
+    /// <summary>
+    /// Returns the last write time (UTC) and length of the file at
+    /// <paramref name="path"/>, or the default state when it does not exist or
+    /// cannot be read, the same as <see cref="GetFileSize"/>.
+    /// </summary>
+    private static (DateTime LastWriteTimeUtc, long Length) GetFileState(string path)
+    {
+        try
+        {
+            var info = new FileInfo(path);
+            return info.Exists ? (info.LastWriteTimeUtc, info.Length) : (DateTime.MinValue, 0);
+        }
+        catch (IOException)
+        {
+            return (DateTime.MinValue, 0);
         }
     }
 }
