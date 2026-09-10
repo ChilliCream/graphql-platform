@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Configuration;
 
+#pragma warning disable CS0618 // Shared configuration also supports legacy-only builders.
+
 /// <summary>
 /// Provides helpers to configure core configuration properties.
 /// </summary>
@@ -13,16 +15,17 @@ public static class FusionSetupUtilities
     /// </summary>
     public static Version Version { get; } = new(2, 0, 0, 0);
 
-    public static IFusionGatewayBuilder Configure(
-        IFusionGatewayBuilder builder,
-        Action<FusionGatewaySetup> configure)
+    public static TBuilder Configure<TBuilder>(
+        TBuilder builder,
+        Action<FusionRouterSetup> configure)
+        where TBuilder : IFusionGatewayBuilder
     {
         builder.Services.Configure(builder.Name, configure);
         return builder;
     }
 
     /// <summary>
-    /// Sets the schema environment properties for the gateway.
+    /// Sets the schema environment properties for the router.
     /// </summary>
     /// <param name="builder">
     /// The builder to configure.
@@ -49,10 +52,10 @@ public static class FusionSetupUtilities
     }
 
     /// <summary>
-    /// Clears the pipeline of the <see cref="IFusionGatewayBuilder"/>.
+    /// Clears the pipeline of the router builder.
     /// </summary>
     /// <param name="builder">
-    /// The <see cref="IFusionGatewayBuilder"/> to clear the pipeline of.
+    /// The builder to clear the pipeline of.
     /// </param>
     public static void ClearPipeline(IFusionGatewayBuilder builder)
     {

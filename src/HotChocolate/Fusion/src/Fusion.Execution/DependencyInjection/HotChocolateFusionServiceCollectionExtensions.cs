@@ -18,8 +18,8 @@ public static class HotChocolateFusionServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="name">The name of the GraphQL schema, <c>null</c> for the default schema.</param>
-    /// <returns>The <see cref="IFusionGatewayBuilder"/> for configuration chaining.</returns>
-    public static IFusionGatewayBuilder AddGraphQLRouterCore(
+    /// <returns>The <see cref="IFusionRouterBuilder"/> for configuration chaining.</returns>
+    public static IFusionRouterBuilder AddGraphQLRouterCore(
         this IServiceCollection services,
         string? name = null)
     {
@@ -43,6 +43,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="name">The name of the GraphQL schema, <c>null</c> for the default schema.</param>
     /// <returns>The <see cref="IFusionGatewayBuilder"/> for configuration chaining.</returns>
+    // TODO [17]: Remove the legacy registration entry point.
     [Obsolete("Use AddGraphQLRouterCore() instead.")]
     public static IFusionGatewayBuilder AddGraphQLGateway(
         this IServiceCollection services,
@@ -95,7 +96,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
     {
         services.TryAddSingleton(
             static sp => new FusionRequestExecutorManager(
-                sp.GetRequiredService<IOptionsMonitor<FusionGatewaySetup>>(),
+                sp.GetRequiredService<IOptionsMonitor<FusionRouterSetup>>(),
                 sp));
         services.TryAddSingleton<IRequestExecutorProvider>(
             static sp => sp.GetRequiredService<FusionRequestExecutorManager>());
@@ -115,7 +116,7 @@ public static class HotChocolateFusionServiceCollectionExtensions
                 sp.GetServices<ISourceSchemaClientFactory>().ToArray()));
     }
 
-    private static DefaultFusionGatewayBuilder CreateBuilder(
+    private static DefaultFusionRouterBuilder CreateBuilder(
         IServiceCollection services,
         string name)
     {
@@ -127,14 +128,14 @@ public static class HotChocolateFusionServiceCollectionExtensions
             services.AddSingleton(new SchemaName(name));
         }
 
-        var builder = new DefaultFusionGatewayBuilder(services, name);
+        var builder = new DefaultFusionRouterBuilder(services, name);
         builder.AddDocumentCache();
         builder.AddOperationPlanContextPool();
         builder.UseDefaultPipeline();
         return builder;
     }
 
-    private static void AddOperationPlanContextPool(this IFusionGatewayBuilder builder)
+    private static void AddOperationPlanContextPool(this IFusionRouterBuilder builder)
         => builder.ConfigureSchemaServices(
             static (_, s) => s.TryAddSingleton(
                 sp => new OperationPlanContextPool(
@@ -144,13 +145,13 @@ public static class HotChocolateFusionServiceCollectionExtensions
                     levels: [64, 128, 256, 512, 1024, 2048, 4096],
                     trimInterval: TimeSpan.FromMinutes(2))));
 
-    private static IFusionGatewayBuilder AddDocumentCache(this IFusionGatewayBuilder builder)
+    private static IFusionRouterBuilder AddDocumentCache(this IFusionRouterBuilder builder)
     {
         builder.Services.TryAddKeyedSingleton<IDocumentCache>(
             builder.Name,
             static (sp, schemaName) =>
             {
-                var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<FusionGatewaySetup>>();
+                var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<FusionRouterSetup>>();
                 // The keyed-service key is non-nullable 'object' on net11.0 but nullable
                 // 'object?' on net8.0-net10.0, where the cast still needs the suppression.
 #if NET11_0_OR_GREATER

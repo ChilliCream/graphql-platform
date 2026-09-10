@@ -25,6 +25,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// If your <typeparamref name="T"/> needs to access application services you need to
     /// make the services available in the schema services via <see cref="AddApplicationService"/>.
     /// </remarks>
+    [Obsolete("Use AddDiagnosticEventListener on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddDiagnosticEventListener<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder)
@@ -90,6 +91,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <see cref="ExecutionServiceProviderExtensions.GetRootServiceProvider(IServiceProvider)"/>
     /// to access the application services from within the schema service provider.
     /// </remarks>
+    [Obsolete("Use AddDiagnosticEventListener on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddDiagnosticEventListener<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder,

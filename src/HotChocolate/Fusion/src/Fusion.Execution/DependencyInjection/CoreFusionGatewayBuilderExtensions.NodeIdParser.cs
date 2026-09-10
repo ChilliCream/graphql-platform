@@ -19,6 +19,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
+    [Obsolete("Use AddNodeIdParser on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddNodeIdParser<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder)

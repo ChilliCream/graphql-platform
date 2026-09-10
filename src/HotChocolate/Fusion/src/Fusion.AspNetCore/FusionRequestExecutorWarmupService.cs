@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Microsoft.Extensions.DependencyInjection;
 
 internal sealed class FusionRequestExecutorWarmupService(
-    IOptionsMonitor<FusionGatewaySetup> optionsMonitor,
+    IOptionsMonitor<FusionRouterSetup> optionsMonitor,
     IRequestExecutorProvider provider) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)

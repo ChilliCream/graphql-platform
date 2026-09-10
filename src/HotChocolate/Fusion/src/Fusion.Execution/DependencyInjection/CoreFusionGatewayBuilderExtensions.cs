@@ -6,8 +6,11 @@ using HotChocolate.Language;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+// TODO [17]: Move the shared implementations to the router extensions and remove this legacy surface.
+[Obsolete("Use CoreFusionRouterBuilderExtensions instead.")]
 public static partial class CoreFusionGatewayBuilderExtensions
 {
+    [Obsolete("Use ConfigureSchemaFeatures on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ConfigureSchemaFeatures(
         this IFusionGatewayBuilder builder,
         Action<IServiceProvider, IFeatureCollection> configure)
@@ -20,6 +23,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             setup => setup.SchemaFeaturesModifiers.Add(configure));
     }
 
+    [Obsolete("Use ConfigureSchemaServices on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ConfigureSchemaServices(
         this IFusionGatewayBuilder builder,
         Action<IServiceProvider, IServiceCollection> configure)
@@ -32,6 +36,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             setup => setup.SchemaServiceModifiers.Add(configure));
     }
 
+    [Obsolete("Use AddConfigurationProvider on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddConfigurationProvider(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, IFusionConfigurationProvider> configure)
@@ -44,6 +49,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             setup => setup.DocumentProvider = configure);
     }
 
+    [Obsolete("Use AddFileSystemConfiguration on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddFileSystemConfiguration(
         this IFusionGatewayBuilder builder,
         string fileName)
@@ -58,6 +64,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
                     fileName));
     }
 
+    [Obsolete("Use AddInMemoryConfiguration on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddInMemoryConfiguration(
         this IFusionGatewayBuilder builder,
         DocumentNode schemaDocument,
@@ -74,6 +81,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
                     schemaSettings));
     }
 
+    [Obsolete("Use AddOperationPlannerInterceptor on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddOperationPlannerInterceptor(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, IOperationPlannerInterceptor> factory)

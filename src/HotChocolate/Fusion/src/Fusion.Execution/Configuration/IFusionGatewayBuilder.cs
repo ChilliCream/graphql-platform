@@ -5,6 +5,8 @@ namespace HotChocolate.Fusion.Configuration;
 /// <summary>
 /// Represents a builder for a Fusion gateway.
 /// </summary>
+// TODO [17]: Remove the legacy builder interface.
+[Obsolete("Use IFusionRouterBuilder instead.")]
 public interface IFusionGatewayBuilder
 {
     /// <summary>

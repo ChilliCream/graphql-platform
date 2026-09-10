@@ -38,7 +38,7 @@ internal sealed class FusionRequestExecutorManager
 {
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _semaphoreBySchema = new();
     private readonly ConcurrentDictionary<string, RequestExecutorRegistration> _registry = [];
-    private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
+    private readonly IOptionsMonitor<FusionRouterSetup> _optionsMonitor;
     private readonly EventObservable _events = new();
     private readonly IServiceProvider _applicationServices;
 
@@ -46,7 +46,7 @@ internal sealed class FusionRequestExecutorManager
     private ulong _version;
 
     public FusionRequestExecutorManager(
-        IOptionsMonitor<FusionGatewaySetup> optionsMonitor,
+        IOptionsMonitor<FusionRouterSetup> optionsMonitor,
         IServiceProvider applicationServices)
     {
         ArgumentNullException.ThrowIfNull(optionsMonitor);
@@ -238,7 +238,7 @@ internal sealed class FusionRequestExecutorManager
         return (await documentPromise.Task.ConfigureAwait(false), documentProvider);
     }
 
-    public static FusionOptions CreateOptions(FusionGatewaySetup setup)
+    public static FusionOptions CreateOptions(FusionRouterSetup setup)
     {
         var options = new FusionOptions();
 
@@ -252,7 +252,7 @@ internal sealed class FusionRequestExecutorManager
         return options;
     }
 
-    private static FusionRequestOptions CreateRequestOptions(FusionGatewaySetup setup)
+    private static FusionRequestOptions CreateRequestOptions(FusionRouterSetup setup)
     {
         var options = new FusionRequestOptions();
 
@@ -266,7 +266,7 @@ internal sealed class FusionRequestExecutorManager
         return options;
     }
 
-    private static OperationPlannerOptions CreatePlannerOptions(FusionGatewaySetup setup, FusionOptions options)
+    private static OperationPlannerOptions CreatePlannerOptions(FusionRouterSetup setup, FusionOptions options)
     {
         var plannerOptions = new OperationPlannerOptions
         {
@@ -283,7 +283,7 @@ internal sealed class FusionRequestExecutorManager
         return plannerOptions;
     }
 
-    private static ParserOptions CreateParserOptions(FusionGatewaySetup setup)
+    private static ParserOptions CreateParserOptions(FusionRouterSetup setup)
     {
         var options = new FusionParserOptions();
 
@@ -303,7 +303,7 @@ internal sealed class FusionRequestExecutorManager
     }
 
     private FeatureCollection CreateSchemaFeatures(
-        FusionGatewaySetup setup,
+        FusionRouterSetup setup,
         FusionOptions options,
         FusionRequestOptions requestOptions,
         ParserOptions parserOptions)
@@ -358,7 +358,7 @@ internal sealed class FusionRequestExecutorManager
 
     private ServiceProvider CreateSchemaServices(
         FusionConfiguration configuration,
-        FusionGatewaySetup setup,
+        FusionRouterSetup setup,
         FusionOptions options,
         FusionRequestOptions requestOptions,
         OperationPlannerOptions plannerOptions)
@@ -386,7 +386,7 @@ internal sealed class FusionRequestExecutorManager
 
     private void AddCoreServices(
         JsonElement settings,
-        FusionGatewaySetup setup,
+        FusionRouterSetup setup,
         IServiceCollection services,
         FusionOptions options,
         FusionRequestOptions requestOptions)
@@ -477,7 +477,7 @@ internal sealed class FusionRequestExecutorManager
     }
 
     private void AddDocumentValidator(
-        FusionGatewaySetup setup,
+        FusionRouterSetup setup,
         IServiceCollection services)
     {
         var builder =
@@ -526,7 +526,7 @@ internal sealed class FusionRequestExecutorManager
     }
 
     private RequestDelegate CreatePipeline(
-        FusionGatewaySetup setup,
+        FusionRouterSetup setup,
         ISchemaDefinition schema,
         IServiceProvider schemaServices,
         FusionRequestOptions requestOptions)
@@ -845,7 +845,7 @@ internal sealed class FusionRequestExecutorManager
 
     private sealed class SchemaConfigurationInterceptor(
         IServiceProvider applicationServices,
-        FusionGatewaySetup setup,
+        FusionRouterSetup setup,
         JsonElement settings)
         : CompositeTypeInterceptor
     {
@@ -867,7 +867,7 @@ internal sealed class FusionRequestExecutorManager
         private SourceSchemaClientConfigurations CreateClientConfigurations(
             CompositeSchemaBuilderContext context,
             FusionSchemaDefinition schema,
-            FusionGatewaySetup setup,
+            FusionRouterSetup setup,
             JsonElement settings)
         {
             var configurations = new List<ISourceSchemaClientConfiguration>();
@@ -930,7 +930,7 @@ internal sealed class FusionRequestExecutorManager
         private bool TryClaimSourceSchema(
             FusionSchemaDefinition schema,
             JsonProperty sourceSchema,
-            FusionGatewaySetup setup,
+            FusionRouterSetup setup,
             [NotNullWhen(true)] out ISourceSchemaClientConfiguration[]? configurations)
         {
             foreach (var parser in setup.SourceSchemaClientConfigurationParsers)

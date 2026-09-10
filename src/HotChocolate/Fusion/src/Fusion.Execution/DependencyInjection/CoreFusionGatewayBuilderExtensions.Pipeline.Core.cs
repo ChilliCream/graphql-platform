@@ -5,6 +5,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class CoreFusionGatewayBuilderExtensions
 {
+    [Obsolete("Use UseRequest on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder UseRequest(
         this IFusionGatewayBuilder builder,
         Func<RequestDelegate, RequestDelegate> middleware,
@@ -65,6 +66,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             });
     }
 
+    [Obsolete("Use UseRequest on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder UseRequest(
         this IFusionGatewayBuilder builder,
         RequestMiddleware middleware,
@@ -125,6 +127,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             });
     }
 
+    [Obsolete("Use UseRequest on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder UseRequest(
         this IFusionGatewayBuilder builder,
         RequestMiddlewareConfiguration configuration,

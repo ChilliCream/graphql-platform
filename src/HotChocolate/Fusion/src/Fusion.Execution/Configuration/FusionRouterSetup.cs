@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Configuration;
 
-public sealed class FusionGatewaySetup
+public sealed class FusionRouterSetup
 {
     public Func<IServiceProvider, IFusionConfigurationProvider>? DocumentProvider { get; set; }
 

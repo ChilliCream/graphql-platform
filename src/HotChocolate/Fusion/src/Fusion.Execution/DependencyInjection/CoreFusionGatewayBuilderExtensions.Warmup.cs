@@ -33,6 +33,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
     /// is for the application services.
     /// </remarks>
+    [Obsolete("Use AddWarmupTask on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddWarmupTask(
         this IFusionGatewayBuilder builder,
         Func<IRequestExecutor, CancellationToken, Task> warmupFunc,
@@ -70,6 +71,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
     /// is for the application services.
     /// </remarks>
+    [Obsolete("Use AddWarmupTask on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddWarmupTask(
         this IFusionGatewayBuilder builder,
         IRequestExecutorWarmupTask warmupTask,
@@ -116,6 +118,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
     /// is for the application services.
     /// </remarks>
+    [Obsolete("Use AddWarmupTask on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddWarmupTask<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder,
@@ -170,6 +173,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
     /// is for the application services.
     /// </remarks>
+    [Obsolete("Use AddWarmupTask on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddWarmupTask<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder,

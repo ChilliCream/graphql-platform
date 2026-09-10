@@ -6,6 +6,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class CoreFusionGatewayBuilderExtensions
 {
+    [Obsolete("Use AddMD5DocumentHashProvider on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddMD5DocumentHashProvider(
         this IFusionGatewayBuilder builder,
         HashFormat format = HashFormat.Base64)
@@ -17,6 +18,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         });
     }
 
+    [Obsolete("Use AddSha1DocumentHashProvider on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddSha1DocumentHashProvider(
         this IFusionGatewayBuilder builder,
         HashFormat format = HashFormat.Base64)
@@ -28,6 +30,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         });
     }
 
+    [Obsolete("Use AddSha256DocumentHashProvider on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddSha256DocumentHashProvider(
         this IFusionGatewayBuilder builder,
         HashFormat format = HashFormat.Base64)

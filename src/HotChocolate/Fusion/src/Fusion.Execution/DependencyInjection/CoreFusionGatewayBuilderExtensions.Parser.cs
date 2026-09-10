@@ -5,6 +5,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class CoreFusionGatewayBuilderExtensions
 {
+    [Obsolete("Use ModifyParserOptions on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ModifyParserOptions(
         this IFusionGatewayBuilder builder,
         Action<FusionParserOptions> configure)

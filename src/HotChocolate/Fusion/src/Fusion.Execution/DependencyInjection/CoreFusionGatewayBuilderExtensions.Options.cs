@@ -16,6 +16,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="builder">The gateway builder.</param>
     /// <param name="configure">A delegate that configures the options.</param>
     /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
+    [Obsolete("Use ModifyOptions on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ModifyOptions(
         this IFusionGatewayBuilder builder,
         Action<FusionOptions> configure)
@@ -35,6 +36,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="builder">The gateway builder.</param>
     /// <param name="configure">A delegate that configures the request options.</param>
     /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
+    [Obsolete("Use ModifyRequestOptions on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ModifyRequestOptions(
         this IFusionGatewayBuilder builder,
         Action<FusionRequestOptions> configure)
@@ -54,6 +56,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="builder">The gateway builder.</param>
     /// <param name="configure">A delegate that configures the planner options.</param>
     /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
+    [Obsolete("Use ModifyPlannerOptions on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ModifyPlannerOptions(
         this IFusionGatewayBuilder builder,
         Action<OperationPlannerOptions> configure)

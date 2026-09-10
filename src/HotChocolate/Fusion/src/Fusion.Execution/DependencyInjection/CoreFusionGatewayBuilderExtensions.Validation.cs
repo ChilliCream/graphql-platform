@@ -8,6 +8,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static partial class CoreFusionGatewayBuilderExtensions
 {
+    [Obsolete("Use AddValidationVisitor on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddValidationVisitor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder,
         bool isCacheable = true)
@@ -17,6 +18,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return ConfigureValidation(builder, (_, b) => b.AddVisitor<T>(isCacheable: isCacheable));
     }
 
+    [Obsolete("Use AddValidationVisitor on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddValidationVisitor<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, ValidationOptions, T> factory,
@@ -31,6 +33,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             (_, b) => b.AddVisitor(factory, isCacheable: isCacheable));
     }
 
+    [Obsolete("Use AddValidationRule on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddValidationRule<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder)
         where T : class, IDocumentValidatorRule, new()
@@ -39,6 +42,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return ConfigureValidation(builder, (_, b) => b.AddRule<T>());
     }
 
+    [Obsolete("Use AddValidationRule on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddValidationRule<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, ValidationOptions, T> factory)
@@ -50,6 +54,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return ConfigureValidation(builder, (_, b) => b.AddRule(factory));
     }
 
+    [Obsolete("Use AddMaxExecutionDepthRule on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddMaxExecutionDepthRule(
         this IFusionGatewayBuilder builder,
         int maxAllowedExecutionDepth,
@@ -69,6 +74,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    [Obsolete("Use DisableIntrospection on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder DisableIntrospection(
         this IFusionGatewayBuilder builder,
         bool disable = true)
@@ -80,6 +86,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             (_, b) => b.ModifyOptions(o => o.DisableIntrospection = disable));
     }
 
+    [Obsolete("Use DisableIntrospection on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder DisableIntrospection(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, ValidationOptions, bool> disable)
@@ -92,6 +99,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             (s, b) => b.ModifyOptions(o => o.DisableIntrospection = disable(s, o)));
     }
 
+    [Obsolete("Use SetMaxAllowedValidationErrors on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder SetMaxAllowedValidationErrors(
         this IFusionGatewayBuilder builder,
         int maxAllowedValidationErrors)
@@ -105,6 +113,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    [Obsolete("Use SetMaxAllowedLocationsPerValidationError on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder SetMaxAllowedLocationsPerValidationError(
         this IFusionGatewayBuilder builder,
         int maxLocationsPerError)
@@ -118,6 +127,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    [Obsolete("Use SetIntrospectionAllowedDepth on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder SetIntrospectionAllowedDepth(
         this IFusionGatewayBuilder builder,
         ushort maxAllowedOfTypeDepth,
@@ -136,6 +146,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    [Obsolete("Use SetMaxAllowedFieldMergeComparisons on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder SetMaxAllowedFieldMergeComparisons(
         this IFusionGatewayBuilder builder,
         int maxAllowedFieldMergeComparisons)
@@ -149,6 +160,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    [Obsolete("Use AddMaxAllowedFieldCycleDepthRule on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddMaxAllowedFieldCycleDepthRule(
         this IFusionGatewayBuilder builder,
         ushort? defaultCycleLimit = 3,
@@ -167,6 +179,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    [Obsolete("Use RemoveMaxAllowedFieldCycleDepthRule on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder RemoveMaxAllowedFieldCycleDepthRule(
         this IFusionGatewayBuilder builder)
     {
@@ -176,6 +189,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    [Obsolete("Use ConfigureValidation on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ConfigureValidation(
         this IFusionGatewayBuilder builder,
         Action<IServiceProvider, DocumentValidatorBuilder> configure)

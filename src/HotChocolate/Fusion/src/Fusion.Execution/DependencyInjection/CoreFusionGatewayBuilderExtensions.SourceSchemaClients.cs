@@ -52,6 +52,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
+    [Obsolete("Use AddHttpClientConfiguration on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddHttpClientConfiguration(
         this IFusionGatewayBuilder builder,
         string name,
@@ -125,6 +126,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
+    [Obsolete("Use AddHttpClientConfiguration on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddHttpClientConfiguration(
         this IFusionGatewayBuilder builder,
         string name,
@@ -174,6 +176,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
+    [Obsolete("Use AddHttpClientConfiguration on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddHttpClientConfiguration(
         this IFusionGatewayBuilder builder,
         HttpSourceSchemaClientConfiguration configuration)
@@ -196,6 +199,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <returns>
     /// The fusion gateway builder.
     /// </returns>
+    [Obsolete("Use AddHttpClientConfiguration on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddHttpClientConfiguration(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, HttpSourceSchemaClientConfiguration> create)

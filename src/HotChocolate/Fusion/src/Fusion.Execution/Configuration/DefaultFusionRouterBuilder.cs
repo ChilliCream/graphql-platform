@@ -2,9 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Configuration;
 
-internal sealed class DefaultFusionGatewayBuilder : IFusionGatewayBuilder
+internal sealed class DefaultFusionRouterBuilder : IFusionRouterBuilder
 {
-    public DefaultFusionGatewayBuilder(IServiceCollection services, string name)
+    public DefaultFusionRouterBuilder(IServiceCollection services, string name)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrEmpty(name);

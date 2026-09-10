@@ -13,6 +13,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <typeparam name="TService">
     /// The type of service.
     /// </typeparam>
+    [Obsolete("Use AddApplicationService on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddApplicationService<TService>(
         this IFusionGatewayBuilder builder)
         where TService : class
@@ -21,6 +22,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             static (sp, sc) => sc.AddSingleton(sp.GetRequiredService<TService>()));
     }
 
+    [Obsolete("Use BuildRequestExecutorAsync on IFusionRouterBuilder instead.")]
     public static ValueTask<IRequestExecutor> BuildRequestExecutorAsync(
             this IFusionGatewayBuilder builder,
             string? schemaName = null,

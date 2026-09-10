@@ -21,6 +21,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <returns>
     /// Returns the <see cref="IFusionGatewayBuilder"/> so that configuration can be chained.
     /// </returns>
+    [Obsolete("Use AddErrorFilter on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddErrorFilter(
         this IFusionGatewayBuilder builder,
         Func<IError, IError> errorFilter)
@@ -49,6 +50,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// If your <typeparamref name="T"/> needs to access application services you need to
     /// make the services available in the schema services via <see cref="AddApplicationService"/>.
     /// </remarks>
+    [Obsolete("Use AddErrorFilter on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddErrorFilter<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder)
         where T : class, IErrorFilter
@@ -83,6 +85,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <see cref="ExecutionServiceProviderExtensions.GetRootServiceProvider(IServiceProvider)"/>
     /// to access the application services from within the schema service provider.
     /// </remarks>
+    [Obsolete("Use AddErrorFilter on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddErrorFilter<T>(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, T> factory)
