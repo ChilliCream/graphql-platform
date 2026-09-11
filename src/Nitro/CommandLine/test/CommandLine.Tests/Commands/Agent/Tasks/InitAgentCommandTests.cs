@@ -478,6 +478,148 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
+    /// Regression for a prefix bug found in review: the fresh-init prefix
+    /// read/write went through ITaskStore's cwd-resolved config methods,
+    /// which connect to the nearest board at or above the current
+    /// directory, not the just-resolved --database-path directory. A value
+    /// that is not itself the current directory exposed the bug (fails
+    /// against 4ba4d527fe with exit=1, stderr "No agent workspace found.
+    /// Run `nitro agent init` first.", because no board exists above the
+    /// cwd here).
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_SubdirectoryValue_CreatesBoardAtThatDirectory()
+    {
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./sub/.nitro");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.nitro/agents'.
+            ✓ Task ID prefix set to 'sub'.
+            """);
+        var databasePath = AgentWorkspace.GetDatabasePath(
+            Path.Combine(WorkingDirectory, "sub", ".nitro", "agents"));
+        Assert.True(File.Exists(databasePath));
+        Assert.Equal("sub", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'", databasePath));
+    }
+
+    /// <summary>
+    /// Same regression as <see cref="DatabasePathOption_SubdirectoryValue_CreatesBoardAtThatDirectory"/>,
+    /// with an absolute value outside the working directory entirely (fails
+    /// against 4ba4d527fe the same way: exit=1, "No agent workspace found.
+    /// Run `nitro agent init` first.").
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_AbsoluteValueOutsideWorkingDirectory_CreatesBoardAtThatDirectory()
+    {
+        // arrange
+        var externalRoot = Directory.CreateTempSubdirectory("nitro-database-path-test");
+
+        try
+        {
+            var nitroDirectory = Path.Combine(externalRoot.FullName, "other-project", ".nitro");
+
+            // act
+            var result = await ExecuteCommandAsync("agent", "init", "--database-path", nitroDirectory);
+
+            // assert
+            result.AssertSuccess(
+                """
+                ✓ Initialized agent workspace at '.nitro/agents'.
+                ✓ Task ID prefix set to 'other-project'.
+                """);
+            var databasePath = AgentWorkspace.GetDatabasePath(Path.Combine(nitroDirectory, "agents"));
+            Assert.True(File.Exists(databasePath));
+            Assert.Equal("other-project", await QueryScalarAsync(
+                "SELECT value FROM config WHERE key = 'prefix'", databasePath));
+        }
+        finally
+        {
+            externalRoot.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// The upgrade branch has the same cwd-coupled bug (reads the prefix
+    /// with store.GetPrefixAsync(), no directory): with no board at the cwd
+    /// this fails against 4ba4d527fe too, because the schema upgrade runs
+    /// against the nested board but the prefix readback then throws "No
+    /// agent workspace found" against the (nonexistent) cwd board - a
+    /// partially applied upgrade reported as a failure.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_Upgrade_UsesNestedBoardOwnPrefix()
+    {
+        // arrange
+        var workspaceDirectory = Path.Combine(WorkingDirectory, "sub", ".nitro", "agents");
+        await SeedV3WorkspaceAsync("legacy-nested", workspaceDirectory);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./sub/.nitro");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            ✓ Upgraded agent workspace schema at '.nitro/agents' to v{AgentDatabase.CurrentVersion}.
+            """);
+        var databasePath = AgentWorkspace.GetDatabasePath(workspaceDirectory);
+        Assert.Equal(
+            AgentDatabase.CurrentVersion.ToString(), await QueryScalarAsync("PRAGMA user_version;", databasePath));
+        Assert.Equal("legacy-nested", await QueryScalarAsync(
+            "SELECT value FROM config WHERE key = 'prefix'", databasePath));
+    }
+
+    [Fact]
+    public async Task DatabasePathOption_AlreadyInitialized_ReturnsError()
+    {
+        // arrange
+        var firstResult = await ExecuteCommandAsync("agent", "init", "--database-path", "./sub/.nitro");
+        Assert.Equal(0, firstResult.ExitCode);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./sub/.nitro");
+
+        // assert
+        result.AssertError(
+            """
+            Already initialized at '.nitro/agents'. Use --force to reinitialize.
+            """);
+    }
+
+    /// <summary>
+    /// --force reinitializes THAT board only: a separate board at the cwd
+    /// itself is left untouched, which would catch a fix that accidentally
+    /// routed the prefix write back through ITaskStore's cwd-resolved
+    /// config methods.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_Force_ReinitializesOnlyTheFlaggedBoard()
+    {
+        // arrange
+        var nestedInitResult = await ExecuteCommandAsync("agent", "init", "--database-path", "./sub/.nitro");
+        Assert.Equal(0, nestedInitResult.ExitCode);
+        await InitWorkspaceAsync();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "init", "--force", "--database-path", "./sub/.nitro", "--prefix", "forced");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.nitro/agents'.
+            ✓ Task ID prefix set to 'forced'.
+            """);
+        var nestedDatabasePath = AgentWorkspace.GetDatabasePath(
+            Path.Combine(WorkingDirectory, "sub", ".nitro", "agents"));
+        Assert.Equal("forced", await QueryScalarAsync(
+            "SELECT value FROM config WHERE key = 'prefix'", nestedDatabasePath));
+        Assert.Equal("acme", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'"));
+    }
+
+    /// <summary>
     /// Creates a fully initialized, current-schema board at the given
     /// prefix directly in the directory above <see cref="WorkingDirectory"/>,
     /// bypassing the CLI so the test's own working directory is untouched.

@@ -149,7 +149,9 @@ internal sealed class InitAgentCommand : Command
             {
             }
 
-            var upgradedPrefix = await store.GetPrefixAsync(cancellationToken);
+            var upgradedPrefix =
+                await ReadPrefixConfigAsync(database, workspaceDirectory, cancellationToken)
+                    ?? AgentWorkspace.FallbackPrefix;
 
             return WriteUpgradeResult(
                 console,
@@ -194,21 +196,24 @@ internal sealed class InitAgentCommand : Command
             await store.EnsureWorkspaceAsync(workspaceDirectory, cancellationToken);
             createdDatabase = true;
 
+            // Read/write the prefix against workspaceDirectory directly
+            // rather than through ITaskStore's cwd-resolved config methods:
+            // --database-path may name a directory the current directory
+            // does not resolve to via AgentWorkspace.Find (e.g. a nested
+            // board below a parent board), and the store's own config API
+            // would silently read and write the wrong board in that case.
             if (explicitPrefix is not null)
             {
                 prefix = AgentWorkspace.NormalizePrefix(explicitPrefix);
-                await store.SetConfigAsync("prefix", prefix, cancellationToken);
             }
             else
             {
-                var migratedPrefix = await store.GetConfigAsync("prefix", cancellationToken);
+                var migratedPrefix =
+                    await ReadPrefixConfigAsync(database, workspaceDirectory, cancellationToken);
                 prefix = migratedPrefix ?? directoryDefaultPrefix;
-
-                if (migratedPrefix is null)
-                {
-                    await store.SetConfigAsync("prefix", prefix, cancellationToken);
-                }
             }
+
+            await store.InitializeWorkspaceAsync(workspaceDirectory, prefix, cancellationToken);
         }
         catch
         {
@@ -268,6 +273,28 @@ internal sealed class InitAgentCommand : Command
         var workspaceDirectory = Path.Combine(nitroDirectory, AgentWorkspace.AgentsDirectoryName);
 
         return new WorkspaceLocation(projectDirectory, projectDirectory, workspaceDirectory);
+    }
+
+    /// <summary>
+    /// Reads the 'prefix' config row directly from the database at
+    /// <paramref name="workspaceDirectory"/>, bypassing <see
+    /// cref="ITaskStore"/>'s config methods, which connect via the
+    /// cwd-resolved nearest board (<see cref="AgentWorkspace.Find"/>) rather
+    /// than the workspace directory this command just resolved. That
+    /// distinction only matters for <c>--database-path</c>, whose value need
+    /// not be the current directory or above it. Returns <see langword="null"/>
+    /// when no prefix row exists yet.
+    /// </summary>
+    private static async Task<string?> ReadPrefixConfigAsync(
+        AgentDatabase database,
+        string workspaceDirectory,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
+
+        return await connection.QueryFirstOrDefaultAsync<string>(
+            "SELECT value FROM config WHERE key = @key",
+            new { key = "prefix", cancellationToken });
     }
 
     /// <summary>
