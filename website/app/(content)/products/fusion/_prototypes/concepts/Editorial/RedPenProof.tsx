@@ -1,7 +1,15 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { drawStyle, fadeStyle, HAND, MARKER, NOTES, PAPER } from "./palette";
+import {
+  drawStyle,
+  fadeStyle,
+  FONT,
+  HAND,
+  MARKER,
+  NOTES,
+  PAPER,
+} from "./palette";
 import { Folio, PaperGround, Wobble } from "./Sketch";
 
 /**
@@ -12,6 +20,10 @@ import { Folio, PaperGround, Wobble } from "./Sketch";
  * out, writes the conflict in the margin and stops the build.
  *
  * Rest state: the proof marked up, the conflict struck and the stamp in place.
+ *
+ * Every line is lettered in `FONT` units, so the smallest one still reads at
+ * the site's 11px label on a 375px screen; the rows, the margin and the stamp
+ * are spaced for that lettering.
  */
 
 const CSS = `
@@ -35,9 +47,9 @@ const CSS = `
 }
 `;
 
-const ROW_TOP = 96;
-const ROW_H = 46;
-const ROW_GAP = 12;
+const ROW_TOP = 92;
+const ROW_H = 56;
+const ROW_GAP = 10;
 const TICK_X = 470;
 
 /** The field every source schema declares, and the one that disagrees. */
@@ -66,7 +78,13 @@ export function RedPenProof() {
         <Folio x={20} y={26}>
           Fig. 3 - the proof, marked up
         </Folio>
-        <text x={20} y={62} fill={PAPER.ink} fontSize={22} style={MARKER}>
+        <text
+          x={20}
+          y={62}
+          fill={PAPER.ink}
+          fontSize={FONT.heading}
+          style={MARKER}
+        >
           composition, the one build step
         </text>
         <Folio x={TICK_X} y={80}>
@@ -93,16 +111,16 @@ export function RedPenProof() {
                 x={22}
                 y={y + 24}
                 fill={PAPER.ink}
-                fontSize={17}
+                fontSize={FONT.caption}
                 style={HAND}
               >
                 {note.name}
               </text>
               <text
                 x={22}
-                y={y + 42}
+                y={y + 48}
                 fill={PAPER.inkSoft}
-                fontSize={13}
+                fontSize={FONT.label}
                 style={HAND}
               >
                 {`${note.language} · ${note.specLabel}`}
@@ -111,7 +129,7 @@ export function RedPenProof() {
                 x={262}
                 y={y + 34}
                 fill={conflicted ? PAPER.red : PAPER.inkSoft}
-                fontSize={16}
+                fontSize={FONT.label}
                 style={HAND}
               >
                 {conflicted ? CONFLICT_FIELD : FIELD}
@@ -142,7 +160,7 @@ export function RedPenProof() {
           <path
             className="ed-pen-draw"
             style={drawStyle(120, 5.4)}
-            d={`M256 ${rowY(conflictRow) + 30} C 292 ${rowY(conflictRow) + 24}, 330 ${rowY(conflictRow) + 34}, 362 ${rowY(conflictRow) + 28}`}
+            d={`M256 ${rowY(conflictRow) + 30} C 300 ${rowY(conflictRow) + 24}, 350 ${rowY(conflictRow) + 34}, 400 ${rowY(conflictRow) + 28}`}
             fill="none"
             stroke={PAPER.red}
             strokeWidth={3}
@@ -152,7 +170,7 @@ export function RedPenProof() {
           <path
             className="ed-pen-draw"
             style={drawStyle(320, 5.7)}
-            d={`M250 ${rowY(conflictRow) + 8} C 340 ${rowY(conflictRow) - 4}, 390 ${rowY(conflictRow) + 20}, 366 ${rowY(conflictRow) + 40} C 330 ${rowY(conflictRow) + 56}, 262 ${rowY(conflictRow) + 52}, 250 ${rowY(conflictRow) + 30}`}
+            d={`M250 ${rowY(conflictRow) + 10} C 350 ${rowY(conflictRow) - 2}, 412 ${rowY(conflictRow) + 22}, 392 ${rowY(conflictRow) + 44} C 344 ${rowY(conflictRow) + 58}, 262 ${rowY(conflictRow) + 54}, 250 ${rowY(conflictRow) + 30}`}
             fill="none"
             stroke={PAPER.red}
             strokeWidth={2}
@@ -163,7 +181,7 @@ export function RedPenProof() {
           <path
             className="ed-pen-draw"
             style={drawStyle(120, 6.1)}
-            d={`M382 ${rowY(conflictRow) + 24} C 412 ${rowY(conflictRow) + 16}, 440 ${rowY(conflictRow) + 12}, 466 ${rowY(conflictRow) + 6}`}
+            d={`M408 ${rowY(conflictRow) + 24} C 430 ${rowY(conflictRow) + 20}, 448 ${rowY(conflictRow) + 18}, 466 ${rowY(conflictRow) + 14}`}
             fill="none"
             stroke={PAPER.red}
             strokeWidth={2}
@@ -173,18 +191,18 @@ export function RedPenProof() {
           <g className="ed-pen-in" style={fadeStyle(6.4)}>
             <text
               x={TICK_X}
-              y={rowY(conflictRow) - 4}
+              y={rowY(conflictRow) + 22}
               fill={PAPER.red}
-              fontSize={16}
+              fontSize={FONT.label}
               style={HAND}
             >
               type
             </text>
             <text
               x={TICK_X}
-              y={rowY(conflictRow) + 14}
+              y={rowY(conflictRow) + 46}
               fill={PAPER.red}
-              fontSize={16}
+              fontSize={FONT.label}
               style={HAND}
             >
               conflict
@@ -196,9 +214,9 @@ export function RedPenProof() {
         <g className="ed-pen-stamp">
           <rect
             x={196}
-            y={392}
+            y={416}
             width={256}
-            height={62}
+            height={56}
             fill="none"
             stroke={PAPER.red}
             strokeWidth={4}
@@ -207,20 +225,32 @@ export function RedPenProof() {
           />
           <text
             x={324}
-            y={432}
+            y={454}
             textAnchor="middle"
             fill={PAPER.red}
-            fontSize={28}
+            fontSize={FONT.heading}
             style={MARKER}
             opacity={0.9}
           >
             build stopped
           </text>
         </g>
-        <text x={22} y={432} fill={PAPER.pencil} fontSize={15} style={HAND}>
+        <text
+          x={22}
+          y={438}
+          fill={PAPER.pencil}
+          fontSize={FONT.label}
+          style={HAND}
+        >
           nothing
         </text>
-        <text x={22} y={452} fill={PAPER.pencil} fontSize={15} style={HAND}>
+        <text
+          x={22}
+          y={462}
+          fill={PAPER.pencil}
+          fontSize={FONT.label}
+          style={HAND}
+        >
           deploys
         </text>
       </svg>
