@@ -19,7 +19,7 @@ internal interface IOpencodeHookHandler
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Reserves unread mail for a later idle delivery when appropriate.
+    /// Refreshes the session heartbeat; any idle push is claimed out of band by ActorWakeDispatcher.
     /// </summary>
     Task<OpencodeHookOutcome> HandleSessionIdleAsync(
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
