@@ -113,7 +113,8 @@ public sealed class NotifierTests
             var gateCoordinator = new SessionGateCoordinator(gates, leases);
             var queueClient = new FakeCodexQueueClient();
             var executor = new PingSessionExecutor(
-                mail, queueClient, new NoopClaudePeerClient(), sessions, leases, timeProvider);
+                mail, queueClient, new NoopClaudePeerClient(), sessions, leases, timeProvider,
+                new NoopOpencodeServerClient());
             var dispatcher = new ActorWakeDispatcher(
                 batches,
                 sessions,
@@ -161,38 +162,4 @@ public sealed class NotifierTests
             tempRoot.Delete(recursive: true);
         }
     }
-}
-
-internal sealed class FakeActorWakeDispatcher : IActorWakeDispatcher
-{
-    public List<string> DispatchedActors { get; } = [];
-
-    public List<DateTimeOffset> ReceivedDeadlines { get; } = [];
-
-    public string? ThrowingActor { get; set; }
-
-    public Task<ActorWakeReceipt?> DispatchAsync(
-        string actor, DateTimeOffset deadline, CancellationToken cancellationToken)
-    {
-        DispatchedActors.Add(actor);
-        ReceivedDeadlines.Add(deadline);
-
-        if (actor == ThrowingActor)
-        {
-            throw new InvalidOperationException($"Simulated dispatch failure for '{actor}'.");
-        }
-
-        return Task.FromResult<ActorWakeReceipt?>(new ActorWakeReceipt(actor, MailWakeTargetStatus.Delivered, []));
-    }
-}
-
-/// <summary>
-/// Never reached by the codex-thread end-to-end smoke test, but required to
-/// satisfy <see cref="PingSessionExecutor"/>'s constructor.
-/// </summary>
-internal sealed class NoopClaudePeerClient : IClaudePeerClient
-{
-    public Task<ClaudePeerSendOutcome> SendAsync(
-        string sessionId, string message, CancellationToken cancellationToken)
-        => Task.FromResult(ClaudePeerSendOutcome.Ok);
 }

@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Opencode;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -46,6 +47,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
         services.TryAddSingleton<IPingLeaseStore, PingLeaseStore>();
         services.TryAddSingleton<IClaudePeerClient, ClaudePeerClient>();
+        services.TryAddSingleton<IOpencodeServerClient, OpencodeServerClient>();
         services.TryAddSingleton<IPingSessionExecutor, PingSessionExecutor>();
         services.TryAddSingleton<IMailWakeBatchStore, MailWakeBatchStore>();
         services.TryAddSingleton<ISessionPingGateStore, SessionPingGateStore>();
@@ -62,6 +64,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexQueueClient, CodexQueueClient>();
         services.TryAddSingleton<ICodexForeignNotifyRunner, CodexForeignNotifyRunner>();
         services.TryAddSingleton<ICodexHookHandler, CodexHookHandler>();
+        services.TryAddSingleton<IOpencodeHookHandler, OpencodeHookHandler>();
         services.TryAddSingleton<IClaudeSessionActivityReader, ClaudeSessionActivityReader>();
         services.TryAddSingleton<ILaunchDescriptorResolver, LaunchDescriptorResolver>();
         services.TryAddSingleton<IClaudeSettingsPathResolver, ClaudeSettingsPathResolver>();
@@ -70,6 +73,10 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexPathResolver, CodexPathResolver>();
         services.TryAddSingleton<ICodexHooksSidecarStore, CodexHooksSidecarStore>();
         services.TryAddSingleton<ICodexHooksInstallerService, CodexHooksInstallerService>();
+        services.TryAddSingleton<IOpencodePathResolver, OpencodePathResolver>();
+        services.TryAddSingleton<IOpencodeHooksSidecarStore, OpencodeHooksSidecarStore>();
+        services.TryAddSingleton<IOpencodeHooksInstallerService, OpencodeHooksInstallerService>();
+        services.TryAddSingleton<IOpencodeVersionResolver, OpencodeVersionResolver>();
         services.TryAddSingleton<ITaskStore, TaskStore>();
         services.TryAddSingleton<IMailStore, MailStore>();
         services.TryAddSingleton<IMemoryStore, MemoryStore>();

@@ -21,6 +21,9 @@ public sealed class PingSessionExecutorTests : IDisposable
     private const string SessionId = "session-1";
     private const string Actor = "codex-worker";
     private const string ThreadId = "thread-1";
+    private const string OpencodeSessionId = "opencode-session-1";
+    private const string OpencodeActor = "opencode-worker";
+    private const string OpencodeServerUrl = "http://127.0.0.1:4096";
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
@@ -33,7 +36,9 @@ public sealed class PingSessionExecutorTests : IDisposable
     private readonly PingLeaseStore _leases;
     private readonly FakeCodexQueueClient _queueClient;
     private readonly FakeClaudePeerClient _claudePeerClient;
+    private readonly FakeOpencodeServerClient _opencodeClient;
     private readonly AgentSessionGeneration _generation;
+    private readonly AgentSessionGeneration _opencodeGeneration;
 
     public PingSessionExecutorTests()
     {
@@ -55,7 +60,9 @@ public sealed class PingSessionExecutorTests : IDisposable
         _leases = new PingLeaseStore(_fileSystem, _database);
         _queueClient = new FakeCodexQueueClient();
         _claudePeerClient = new FakeClaudePeerClient();
+        _opencodeClient = new FakeOpencodeServerClient();
         _generation = new AgentSessionGeneration(Harness, SessionId, "host-1");
+        _opencodeGeneration = new AgentSessionGeneration(AgentSessionHarness.Opencode, OpencodeSessionId, "host-1");
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
@@ -183,7 +190,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         // assert
         Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var call = Assert.Single(_claudePeerClient.Calls);
-                Assert.Equal(SessionId, call.SessionId);
+        Assert.Equal(SessionId, call.SessionId);
         Assert.Contains("1 unread nitro message.", call.Message);
         Assert.Contains("nitro agent mail inbox --actor", call.Message);
         Assert.DoesNotContain(message.Id, call.Message);
@@ -375,7 +382,8 @@ public sealed class PingSessionExecutorTests : IDisposable
             _claudePeerClient,
             _sessions,
             _leases,
-            _timeProvider);
+            _timeProvider,
+            _opencodeClient);
 
         // act
         var outcome = await executor.ExecuteCodexThreadAsync(
@@ -416,7 +424,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     }
 
     private PingSessionExecutor CreateExecutor()
-        => new(_mail, _queueClient, _claudePeerClient, _sessions, _leases, _timeProvider);
+        => new(_mail, _queueClient, _claudePeerClient, _sessions, _leases, _timeProvider, _opencodeClient);
 
     /// <summary>
     /// A deadline generous enough that a test's own real-time transport work
@@ -436,48 +444,216 @@ public sealed class PingSessionExecutorTests : IDisposable
             envActor: Actor, cancellationToken);
     }
 
+    private async Task InitializeOpencodeSessionAsync(string? secret, CancellationToken cancellationToken)
+    {
+        await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+        }
+
+        await _sessions.StartAsync(
+            _opencodeGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.OpencodeServer,
+            OpencodeServerUrl, secret, envActor: OpencodeActor, cancellationToken);
+    }
+
     /// <summary>
     /// Claims the cooldown to obtain a fresh attempt id conditioning the
     /// eventual result write, mirroring what the notifier does before
     /// spawning (or, here, directly invoking) the executor.
     /// </summary>
-    private async Task<string> ClaimAttemptAsync(CancellationToken cancellationToken)
+    private Task<string> ClaimAttemptAsync(CancellationToken cancellationToken)
+        => ClaimAttemptAsync(_generation, cancellationToken);
+
+    private async Task<string> ClaimAttemptAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
     {
-        var session = await _sessions.FindByGenerationAsync(_generation, cancellationToken);
+        var session = await _sessions.FindByGenerationAsync(generation, cancellationToken);
         var attemptId = $"attempt-{Guid.NewGuid():N}";
         await _sessions.TryClaimPingCooldownAsync(
             session!, attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(60), cancellationToken);
         return attemptId;
     }
-}
 
-/// <summary>
-/// Never returns, so a caller racing it against its own timeout always
-/// observes the timeout side of that race.
-/// </summary>
-internal sealed class NeverCompletingCodexQueueClient : ICodexQueueClient
-{
-    public async Task<CodexQueueResult> QueueAsync(string threadId, string message, CancellationToken cancellationToken)
+    [Fact]
+    public async Task ExecuteOpencodeServerAsync_Should_PushThePrefixedDigestAndRecordOk_When_UnreadMailExists()
     {
-        await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken);
-        return CodexQueueResult.Ok;
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeOpencodeSessionAsync("s3cret", cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [OpencodeActor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteOpencodeServerAsync(
+            AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, "s3cret",
+            attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Ok, outcome.Result);
+        var call = Assert.Single(_opencodeClient.PushCalls);
+        Assert.Equal((OpencodeServerUrl, OpencodeSessionId, "s3cret"), (call.ServerUrl, call.SessionId, call.Secret));
+        Assert.StartsWith(OpencodeHookProtocol.PushedPromptPrefix, call.Text, StringComparison.Ordinal);
+        Assert.Contains("1 unread nitro message.", call.Text);
     }
-}
 
-internal sealed record FakeClaudePeerCall(string SessionId, string Message);
-
-internal sealed class FakeClaudePeerClient : IClaudePeerClient
-{
-    public List<FakeClaudePeerCall> Calls { get; } = [];
-
-    public ClaudePeerSendOutcome NextOutcome { get; set; } = ClaudePeerSendOutcome.Ok;
-
-    public Task<ClaudePeerSendOutcome> SendAsync(
-        string sessionId,
-        string message,
-        CancellationToken cancellationToken)
+    [Fact]
+    public async Task ExecuteOpencodeServerAsync_Should_PingWithoutPushing_When_NoUnreadMailExists()
     {
-        Calls.Add(new FakeClaudePeerCall(sessionId, message));
-        return Task.FromResult(NextOutcome);
+        // arrange: the mail that triggered this attempt was already read by
+        // the time it ran, so this is a health-only ping, not a delivery.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeOpencodeSessionAsync(secret: null, cancellationToken);
+        var attemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteOpencodeServerAsync(
+            AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
+            attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Ok, outcome.Result);
+        var call = Assert.Single(_opencodeClient.PingCalls);
+        Assert.Equal(OpencodeServerUrl, call.ServerUrl);
+        Assert.Equal(OpencodeSessionId, call.SessionId);
+        Assert.Empty(_opencodeClient.PushCalls);
+    }
+
+    [Fact]
+    public async Task ExecuteOpencodeServerAsync_Should_RecordEndpointGone_When_ThePingSignalsAMissingOrStaleEndpoint()
+    {
+        // arrange: no unread mail, and the stored endpoint no longer answers
+        // - the missing/stale endpoint row case.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeOpencodeSessionAsync(secret: null, cancellationToken);
+        var attemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        _opencodeClient.NextPingResult = AgentPingResult.EndpointGone;
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteOpencodeServerAsync(
+            AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
+            attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.EndpointGone, outcome.Result);
+        var row = await _sessions.FindByGenerationAsync(_opencodeGeneration, cancellationToken);
+        Assert.Equal(AgentPingResult.EndpointGone, row!.LastPingResult);
+    }
+
+    [Fact]
+    public async Task ExecuteOpencodeServerAsync_Should_RecordEndpointGone_When_ThePushSignalsAMissingOrStaleEndpoint()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeOpencodeSessionAsync(secret: null, cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [OpencodeActor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        _opencodeClient.NextPushResult = AgentPingResult.EndpointGone;
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteOpencodeServerAsync(
+            AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
+            attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.EndpointGone, outcome.Result);
+        Assert.Equal(PingAttemptReason.EndpointGone, outcome.Reason);
+    }
+
+    [Fact]
+    public async Task ExecuteOpencodeServerAsync_Should_RecordTimeout_When_ThePushSignalsATimeout()
+    {
+        // arrange: proves the ok/timeout/error result vocabulary maps
+        // through unchanged for the opencode transport too.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeOpencodeSessionAsync(secret: null, cancellationToken);
+        await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [OpencodeActor] },
+            cancellationToken);
+        var attemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        _opencodeClient.NextPushResult = AgentPingResult.Timeout;
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteOpencodeServerAsync(
+            AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
+            attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert
+        Assert.Equal(AgentPingResult.Timeout, outcome.Result);
+        Assert.True(outcome.Retryable);
+    }
+
+    [Fact]
+    public async Task ExecuteOpencodeServerAsync_Should_RewriteTheRow_When_TheHealthOnlyPingRepeatsThePriorOutcome()
+    {
+        // arrange: an earlier health-only ping already recorded ok/health-only.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeOpencodeSessionAsync(secret: null, cancellationToken);
+        var firstAttemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
+        var firstSlot = await _leases.TryAcquireAsync(
+            firstAttemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+        await executor.ExecuteOpencodeServerAsync(
+            AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
+            firstAttemptId, firstSlot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // act: a fresh claim (which nulls the row's result/detail, the same
+        // as any new attempt's claim does) followed by a health-only ping
+        // that reports the same outcome as before.
+        _timeProvider.Advance(TimeSpan.FromSeconds(61));
+        var secondAttemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
+        var secondSlot = await _leases.TryAcquireAsync(
+            secondAttemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var outcome = await executor.ExecuteOpencodeServerAsync(
+            AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
+            secondAttemptId, secondSlot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert: the outcome reports the repeated health-only result, and
+        // the row is rewritten to that same outcome rather than left nulled
+        // by the claim.
+        Assert.Equal(AgentPingResult.Ok, outcome.Result);
+        var row = await _sessions.FindByGenerationAsync(_opencodeGeneration, cancellationToken);
+        Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
+        Assert.Equal(PingSessionExecutor.HealthOnlyDetail, row.LastPingDetail);
+    }
+
+    [Fact]
+    public async Task ExecuteOpencodeServerAsync_Should_WriteTheRow_When_TheHealthOnlyPingFirstReachesItsOkState()
+    {
+        // arrange: no known previous state (a fresh row's first ping ever).
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeOpencodeSessionAsync(secret: null, cancellationToken);
+        var attemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+
+        // act
+        var outcome = await executor.ExecuteOpencodeServerAsync(
+            AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
+            attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert: the first health-only ping always writes, since there is
+        // no prior recorded state to compare it against.
+        Assert.Equal(AgentPingResult.Ok, outcome.Result);
+        var row = await _sessions.FindByGenerationAsync(_opencodeGeneration, cancellationToken);
+        Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
+        Assert.Equal(PingSessionExecutor.HealthOnlyDetail, row.LastPingDetail);
     }
 }

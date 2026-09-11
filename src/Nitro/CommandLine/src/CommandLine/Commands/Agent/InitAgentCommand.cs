@@ -236,10 +236,37 @@ internal sealed class InitAgentCommand : Command
 
         // Only a .nitro/agents workspace migrates; a workspace already
         // inside a git common directory (this repository's, or an outer
-        // repository's in a nested-repo setup) stays where it is.
+        // repository's in a nested-repo setup) stays where it is. It may
+        // still be on a stale schema though: the connect error tells the
+        // user to run `nitro agent init` "to migrate it", so --migrate must
+        // upgrade an in-place workspace rather than just reporting nothing
+        // to do, or that instruction is a dead end.
         if (!AgentWorkspace.IsFallbackLayout(sourceDirectory))
         {
-            console.OkLine($"Workspace already at '{sourceDisplay}'; nothing to migrate.");
+            var existingVersion = await database.ReadVersionAsync(sourceDirectory, cancellationToken);
+
+            if (existingVersion == AgentDatabase.CurrentVersion)
+            {
+                console.OkLine($"Workspace already at '{sourceDisplay}'; nothing to migrate.");
+
+                return WriteMigrateResult(
+                    console, resultHolder, sourceDirectory, sourceDirectory);
+            }
+
+            // Let InitializeAsync validate the version itself: it rejects a
+            // newer or otherwise unsupported version by throwing, so this
+            // never reports success for a database it did not actually
+            // upgrade.
+            await using (await database.InitializeAsync(sourceDirectory, cancellationToken))
+            {
+            }
+
+            if (console.IsHumanReadable)
+            {
+                console.OkLine(
+                    "Upgraded agent workspace schema at "
+                    + $"'{sourceDisplay}' to v{AgentDatabase.CurrentVersion}.");
+            }
 
             return WriteMigrateResult(
                 console, resultHolder, sourceDirectory, sourceDirectory);

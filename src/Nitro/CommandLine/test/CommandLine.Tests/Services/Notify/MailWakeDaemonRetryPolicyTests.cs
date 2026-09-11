@@ -48,6 +48,7 @@ public sealed class MailWakeDaemonRetryPolicyTests
     [InlineData("busy", true)]
     [InlineData("capacity-dropped", true)]
     [InlineData("access-denied", true)]
+    [InlineData("idle-not-armed", true)]
     [InlineData("no-endpoint", false)]
     [InlineData("session-gone", false)]
     [InlineData("unsupported", false)]

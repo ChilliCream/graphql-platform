@@ -37,6 +37,29 @@ internal interface IAgentSessionRegistry
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Upserts a session with its endpoint credential. Implementations that
+    /// do not store endpoint credentials preserve the existing session
+    /// lifecycle and ignore <paramref name="endpointSecret"/>.
+    /// </summary>
+    Task<AgentSessionRecord> StartAsync(
+        AgentSessionGeneration generation,
+        string cwd,
+        string workspacePath,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret,
+        string? envActor,
+        CancellationToken cancellationToken)
+        => StartAsync(
+            generation,
+            cwd,
+            workspacePath,
+            endpointKind,
+            endpointAddr,
+            envActor,
+            cancellationToken);
+
+    /// <summary>
     /// Applies the claim state machine to the row matching
     /// <paramref name="generation"/> exactly (harness, session id, and host
     /// all predicate the row lookup, so a stale generation matches
@@ -269,4 +292,38 @@ internal interface IAgentSessionRegistry
         string result,
         string? detail,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Arms the announcement-pending marker for the row matching <paramref
+    /// name="generation"/> exactly, so the next successful <see
+    /// cref="ClaimAnnouncementAsync"/> call announces the actor once. A
+    /// generation that matches no row is a no-op.
+    /// </summary>
+    Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Atomically claims the announcement-pending marker for the row
+    /// matching <paramref name="generation"/> exactly: true only the first
+    /// call after <see cref="ArmAnnouncementAsync"/> last armed it, false on
+    /// every later call or when no row matches.
+    /// </summary>
+    Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Arms the idle-push marker for the row matching <paramref
+    /// name="generation"/> exactly, so the next successful <see
+    /// cref="ClaimIdlePushAsync"/> call is allowed to push once. A
+    /// generation that matches no row is a no-op.
+    /// </summary>
+    Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Atomically claims the idle-push marker for the row matching
+    /// <paramref name="generation"/> exactly: true only when <see
+    /// cref="RearmIdlePushAsync"/> armed it since the last successful claim
+    /// (suppressing every idle transition after the first until an
+    /// ordinary, non-pushed prompt rearms it again), false when no row
+    /// matches.
+    /// </summary>
+    Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken);
 }

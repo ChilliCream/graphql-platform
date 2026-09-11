@@ -34,3 +34,5 @@ items:
     title: stage
   - path: workspace
     title: workspace
+  - path: agent-hooks
+    title: agent hooks

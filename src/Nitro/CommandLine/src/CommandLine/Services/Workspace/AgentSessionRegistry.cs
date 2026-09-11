@@ -21,7 +21,7 @@ internal sealed class AgentSessionRegistry(
     /// </summary>
     private static readonly TimeSpan s_staleAfter = TimeSpan.FromHours(24);
 
-    public async Task<AgentSessionRecord> StartAsync(
+    public Task<AgentSessionRecord> StartAsync(
         AgentSessionGeneration generation,
         string cwd,
         string workspacePath,
@@ -29,9 +29,29 @@ internal sealed class AgentSessionRegistry(
         string endpointAddr,
         string? envActor,
         CancellationToken cancellationToken)
+        => StartAsync(
+            generation,
+            cwd,
+            workspacePath,
+            endpointKind,
+            endpointAddr,
+            endpointSecret: null,
+            envActor: envActor,
+            cancellationToken: cancellationToken);
+
+    public async Task<AgentSessionRecord> StartAsync(
+        AgentSessionGeneration generation,
+        string cwd,
+        string workspacePath,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret,
+        string? envActor,
+        CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow();
-        var (normalizedEndpointKind, normalizedEndpointAddr) = NormalizeEndpoint(endpointKind, endpointAddr);
+        var (normalizedEndpointKind, normalizedEndpointAddr, normalizedEndpointSecret) =
+            NormalizeEndpoint(generation.Harness, endpointKind, endpointAddr, endpointSecret);
 
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = connection.BeginTransaction(deferred: false);
@@ -42,7 +62,8 @@ internal sealed class AgentSessionRegistry(
 
         if (generation.Harness is AgentSessionHarness.ClaudeCode
             or AgentSessionHarness.Codex
-            or AgentSessionHarness.Copilot)
+            or AgentSessionHarness.Copilot
+            or AgentSessionHarness.Opencode)
         {
             var identity = await EnsureCodingIdentityWithinTransactionAsync(
                 connection, transaction, generation, now, envActor, cancellationToken);
@@ -78,11 +99,11 @@ internal sealed class AgentSessionRegistry(
                 """
                 INSERT INTO agent_sessions (
                     harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, endpoint_secret, started_at, last_beat_at,
                     block_budget_used, role
                 ) VALUES (
                     @harness, @sessionId, @agentName, @bindingKind, @host,
-                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @now, @now, 0, @role
+                    @cwd, @workspacePath, @endpointKind, @endpointAddr, @endpointSecret, @now, @now, 0, @role
                 );
                 """,
                 new
@@ -96,6 +117,7 @@ internal sealed class AgentSessionRegistry(
                     workspacePath,
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
+                    endpointSecret = normalizedEndpointSecret,
                     now,
                     role = identityRole,
                     cancellationToken
@@ -119,7 +141,7 @@ internal sealed class AgentSessionRegistry(
                         now,
                         harness = generation.Harness,
                         sessionId = generation.SessionId,
-                                host = generation.Host,
+                        host = generation.Host,
                         cancellationToken
                     },
                     transaction);
@@ -139,7 +161,7 @@ internal sealed class AgentSessionRegistry(
                         now,
                         harness = generation.Harness,
                         sessionId = generation.SessionId,
-                                host = generation.Host,
+                        host = generation.Host,
                         cancellationToken
                     },
                     transaction);
@@ -181,6 +203,7 @@ internal sealed class AgentSessionRegistry(
                     workspace_path = @workspacePath,
                     endpoint_kind = @endpointKind,
                     endpoint_addr = @endpointAddr,
+                    endpoint_secret = @endpointSecret,
                     started_at = @now,
                     last_beat_at = @now,
                     block_budget_used = 0,
@@ -204,6 +227,7 @@ internal sealed class AgentSessionRegistry(
                     workspacePath,
                     endpointKind = normalizedEndpointKind,
                     endpointAddr = normalizedEndpointAddr,
+                    endpointSecret = normalizedEndpointSecret,
                     now,
                     role = identityRole,
                     oldHost = existing.Host,
@@ -1195,6 +1219,99 @@ internal sealed class AgentSessionRegistry(
         return rowsAffected > 0;
     }
 
+    public Task ArmAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => SetSessionFlagAsync(generation, "announcement_pending", value: true, cancellationToken);
+
+    public Task<bool> ClaimAnnouncementAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => ClaimSessionFlagAsync(generation, "announcement_pending", cancellationToken);
+
+    public Task<bool> IsAnnouncementPendingAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => PeekSessionFlagAsync(generation, "announcement_pending", cancellationToken);
+
+    public Task RearmIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => SetSessionFlagAsync(generation, "idle_push_armed", value: true, cancellationToken);
+
+    public Task<bool> ClaimIdlePushAsync(AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => ClaimSessionFlagAsync(generation, "idle_push_armed", cancellationToken);
+
+    /// <summary>
+    /// Sets a boolean <c>agent_sessions</c> column named literally by
+    /// <paramref name="column"/> for the row matching <paramref
+    /// name="generation"/> exactly. <paramref name="column"/> is always one
+    /// of this file's own hard-coded column names, never caller input, so
+    /// interpolating it into the command text carries no injection risk.
+    /// </summary>
+    private async Task SetSessionFlagAsync(
+        AgentSessionGeneration generation, string column, bool value, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"UPDATE agent_sessions SET {column} = @value "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + "AND host = @host";
+        command.Parameters.AddWithValue("@value", value ? 1 : 0);
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Atomically clears a boolean <c>agent_sessions</c> column named
+    /// literally by <paramref name="column"/> for the row matching
+    /// <paramref name="generation"/> exactly, only when it is currently set:
+    /// the single UPDATE's WHERE clause is the claim, so a racing caller can
+    /// never both observe the column set. Returns whether this call was the
+    /// one that cleared it. <paramref name="column"/> is always one of this
+    /// file's own hard-coded column names, never caller input.
+    /// </summary>
+    private async Task<bool> ClaimSessionFlagAsync(
+        AgentSessionGeneration generation, string column, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"UPDATE agent_sessions SET {column} = 0 "
+            + "WHERE harness = @harness AND session_id = @sessionId "
+            + $"AND host = @host AND {column} = 1";
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return rowsAffected > 0;
+    }
+
+    /// <summary>
+    /// Reads a boolean <c>agent_sessions</c> column named literally by
+    /// <paramref name="column"/> for the row matching <paramref
+    /// name="generation"/> exactly, without changing it. False when no row
+    /// matches. <paramref name="column"/> is always one of this file's own
+    /// hard-coded column names, never caller input.
+    /// </summary>
+    private async Task<bool> PeekSessionFlagAsync(
+        AgentSessionGeneration generation, string column, CancellationToken cancellationToken)
+    {
+        await using var connection = await ConnectAsync(cancellationToken);
+
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            $"SELECT {column} FROM agent_sessions "
+            + "WHERE harness = @harness AND session_id = @sessionId AND host = @host";
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("@host", generation.Host);
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+
+        return result is not null && (long)result != 0;
+    }
+
     private async Task<string> ResolveHostAsync(CancellationToken cancellationToken)
         => await instanceIdProvider.GetIdAsync(globalConfigDirectoryProvider.GetDirectory(), cancellationToken);
 
@@ -1219,14 +1336,25 @@ internal sealed class AgentSessionRegistry(
     /// <see cref="EndpointAddress"/> enforces; the table's cross-column
     /// CHECK requires the two to agree.
     /// </summary>
-    private static (string Kind, string Addr) NormalizeEndpoint(string endpointKind, string endpointAddr)
+    private static (string Kind, string Addr, string? Secret) NormalizeEndpoint(
+        string harness,
+        string endpointKind,
+        string endpointAddr,
+        string? endpointSecret)
     {
-        if (endpointKind == AgentSessionEndpointKind.None || !EndpointAddress.IsValid(endpointAddr))
+        if (endpointKind == AgentSessionEndpointKind.OpencodeServer)
         {
-            return (AgentSessionEndpointKind.None, string.Empty);
+            return EndpointAddress.IsValidOpencodeServerUrl(endpointAddr)
+                ? (endpointKind, endpointAddr, harness == AgentSessionHarness.Opencode ? endpointSecret : null)
+                : (AgentSessionEndpointKind.None, string.Empty, null);
         }
 
-        return (endpointKind, endpointAddr);
+        if (endpointKind == AgentSessionEndpointKind.None || !EndpointAddress.IsValid(endpointAddr))
+        {
+            return (AgentSessionEndpointKind.None, string.Empty, null);
+        }
+
+        return (endpointKind, endpointAddr, null);
     }
 
     private async Task<SqliteConnection> ConnectAsync(CancellationToken cancellationToken)
@@ -1252,6 +1380,7 @@ internal sealed class AgentSessionRegistry(
         public required string WorkspacePath { get; init; }
         public required string EndpointKind { get; init; }
         public required string EndpointAddr { get; init; }
+        public string? EndpointSecret { get; init; }
         public required string StartedAt { get; init; }
         public required string LastBeatAt { get; init; }
         public required int BlockBudgetUsed { get; init; }
@@ -1280,6 +1409,9 @@ internal sealed class AgentSessionRegistry(
             WorkspacePath = reader.GetString(reader.GetOrdinal("WorkspacePath")),
             EndpointKind = reader.GetString(reader.GetOrdinal("EndpointKind")),
             EndpointAddr = reader.GetString(reader.GetOrdinal("EndpointAddr")),
+            EndpointSecret = reader.IsDBNull(reader.GetOrdinal("EndpointSecret"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("EndpointSecret")),
             StartedAt = reader.GetString(reader.GetOrdinal("StartedAt")),
             LastBeatAt = reader.GetString(reader.GetOrdinal("LastBeatAt")),
             BlockBudgetUsed = reader.GetInt32(reader.GetOrdinal("BlockBudgetUsed")),
@@ -1310,6 +1442,7 @@ internal sealed class AgentSessionRegistry(
             WorkspacePath = WorkspacePath,
             EndpointKind = EndpointKind,
             EndpointAddr = EndpointAddr,
+            EndpointSecret = EndpointSecret,
             StartedAt = DateTimeOffset.Parse(StartedAt, CultureInfo.InvariantCulture),
             LastBeatAt = DateTimeOffset.Parse(LastBeatAt, CultureInfo.InvariantCulture),
             BlockBudgetUsed = BlockBudgetUsed,

@@ -10,8 +10,18 @@ internal sealed class PingSessionExecutor(
     IClaudePeerClient claudePeerClient,
     IAgentSessionRegistry sessionRegistry,
     IPingLeaseStore leaseStore,
-    TimeProvider timeProvider) : IPingSessionExecutor
+    TimeProvider timeProvider,
+    IOpencodeServerClient opencodeServerClient) : IPingSessionExecutor
 {
+    /// <summary>
+    /// The <see cref="PingAttemptOutcome.Detail"/> value written when
+    /// <see cref="ExecuteOpencodeServerAsync"/> found no unread mail left to
+    /// push and issued a plain health ping instead. Lets a caller tell a
+    /// health check apart from a delivered digest push even though both
+    /// report <see cref="PingAttemptReason.Ok"/>.
+    /// </summary>
+    internal const string HealthOnlyDetail = "health-only";
+
     public Task<PingAttemptOutcome> ExecuteCodexThreadAsync(
         string harness,
         string sessionId,
@@ -28,7 +38,9 @@ internal sealed class PingSessionExecutor(
             attemptId,
             slot,
             deadline,
-            async (digest, token) => MapQueueResult(await queueClient.QueueAsync(endpointAddr, digest, token)),
+            async (digest, token) => digest is null
+                ? new TransportOutcome(PingAttemptReason.Ok, null)
+                : MapQueueResult(await queueClient.QueueAsync(endpointAddr, digest, token)),
             cancellationToken);
 
     public Task<PingAttemptOutcome> ExecuteClaudePeerAsync(
@@ -46,10 +58,56 @@ internal sealed class PingSessionExecutor(
             attemptId,
             slot,
             deadline,
-            async (digest, token) => MapClaudePeerResult(
-                await claudePeerClient.SendAsync(sessionId, digest, token)),
+            async (digest, token) => digest is null
+                ? new TransportOutcome(PingAttemptReason.Ok, null)
+                : MapClaudePeerResult(await claudePeerClient.SendAsync(sessionId, digest, token)),
             cancellationToken);
 
+    public Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
+        string harness,
+        string sessionId,
+        string actorName,
+        string endpointAddr,
+        string? endpointSecret,
+        string attemptId,
+        int slot,
+        DateTimeOffset deadline,
+        CancellationToken cancellationToken)
+        => ExecuteAsync(
+            harness,
+            sessionId,
+            actorName,
+            attemptId,
+            slot,
+            deadline,
+            async (digest, token) =>
+            {
+                if (digest is not null)
+                {
+                    return MapOpencodeResult(
+                        await opencodeServerClient.PushMessageAsync(
+                            endpointAddr,
+                            sessionId,
+                            OpencodeHookProtocol.PushedPromptPrefix + digest,
+                            endpointSecret,
+                            token));
+                }
+
+                var pingOutcome = MapOpencodeResult(
+                    await opencodeServerClient.PingAsync(endpointAddr, sessionId, endpointSecret, token));
+
+                return pingOutcome with { Detail = HealthOnlyDetail };
+            },
+            cancellationToken);
+
+    /// <summary>
+    /// Shared attempt shape for every endpoint kind: clamps the deadline,
+    /// builds the digest, invokes <paramref name="sendAsync"/> with it (null
+    /// when no unread mail remains, letting the caller decide whether that
+    /// still requires a transport call, as the opencode health ping does),
+    /// and always writes the outcome and releases the lease, however the
+    /// attempt ends.
+    /// </summary>
     private async Task<PingAttemptOutcome> ExecuteAsync(
         string harness,
         string sessionId,
@@ -57,7 +115,7 @@ internal sealed class PingSessionExecutor(
         string attemptId,
         int slot,
         DateTimeOffset deadline,
-        Func<string, CancellationToken, Task<TransportOutcome>> sendAsync,
+        Func<string?, CancellationToken, Task<TransportOutcome>> sendAsync,
         CancellationToken cancellationToken)
     {
         var remaining = ClampRemaining(deadline);
@@ -95,15 +153,6 @@ internal sealed class PingSessionExecutor(
             {
                 return await WriteResultAsync(
                     harness, sessionId, attemptId, PingAttemptReason.Timeout, null);
-            }
-
-            if (digest is null)
-            {
-                // The unread mail that triggered this ping was already read
-                // by the time the attempt actually ran (a benign race, not
-                // a failure): nothing left to say, so this is a success
-                // with no transport call.
-                return await WriteResultAsync(harness, sessionId, attemptId, PingAttemptReason.Ok, null);
             }
 
             TransportOutcome transportOutcome;
@@ -233,6 +282,22 @@ internal sealed class PingSessionExecutor(
         // other nonzero exit; the subprocess's raw stderr never reaches
         // this layer, so there is no detail to attach.
         _ => new TransportOutcome(PingAttemptReason.TransportError, null)
+    };
+
+    /// <summary>
+    /// Maps one <see cref="IOpencodeServerClient"/> result string (the
+    /// <c>agent_sessions.last_ping_result</c> vocabulary it reuses) to a
+    /// <see cref="TransportOutcome"/>: <see cref="AgentPingResult.Ok"/> and
+    /// <see cref="AgentPingResult.Timeout"/> map directly, everything else
+    /// (including <see cref="AgentPingResult.EndpointGone"/>) collapses to
+    /// <see cref="PingAttemptReason.EndpointGone"/>, since that is the only
+    /// failure shape the client itself ever returns.
+    /// </summary>
+    private static TransportOutcome MapOpencodeResult(string result) => result switch
+    {
+        AgentPingResult.Ok => new TransportOutcome(PingAttemptReason.Ok, null),
+        AgentPingResult.Timeout => new TransportOutcome(PingAttemptReason.Timeout, null),
+        _ => new TransportOutcome(PingAttemptReason.EndpointGone, null)
     };
 
     private static TransportOutcome MapClaudePeerResult(ClaudePeerSendOutcome outcome) => new(
