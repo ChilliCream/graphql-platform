@@ -13,6 +13,8 @@ import { MONO, SPINNER, TERM } from "./palette";
  * the same terminal at 1200px and at 320px - the type shrinks with the pane
  * instead of the line wrapping or spilling out of the scene. Everything inside
  * a pane is laid out in `ch` and `em`, which scale with that one font size.
+ * Both font sizes bottom out at 11px, the site's floor for small labels, so a
+ * narrow pane clips its longest lines rather than printing unreadable type.
  *
  * Motion is switched by `data-run`: when it is `false` (off-screen, hidden
  * tab, or reduced motion) every animation in the pane is dropped and the
@@ -59,7 +61,7 @@ export function Pane({ title, meta, run, children }: PaneProps) {
           background: TERM.pane,
           color: TERM.text,
           fontFamily: MONO,
-          fontSize: "clamp(6px, 2.4cqw, 15px)",
+          fontSize: "clamp(11px, 2.4cqw, 15px)",
           lineHeight: 1.5,
         }}
       >
@@ -68,7 +70,7 @@ export function Pane({ title, meta, run, children }: PaneProps) {
           style={{
             borderBottom: `1px solid ${TERM.rule}`,
             color: TERM.dim,
-            fontSize: "0.86em",
+            fontSize: "clamp(11px, 2.06cqw, 13px)",
             letterSpacing: "0.08em",
             padding: "0.9em 1.2em",
             whiteSpace: "pre",
