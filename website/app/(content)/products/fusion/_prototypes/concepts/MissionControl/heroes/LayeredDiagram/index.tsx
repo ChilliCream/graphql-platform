@@ -281,7 +281,7 @@ export default function LayeredDiagram() {
                 {request.operation}
               </span>
               <span
-                className="truncate font-mono"
+                className="font-mono"
                 style={{
                   color: MC.dim,
                   fontSize: TYPE.label,
@@ -293,7 +293,7 @@ export default function LayeredDiagram() {
             </div>
 
             <p
-              className="mt-1.5 truncate font-mono"
+              className="mt-1.5 font-mono"
               style={{
                 color: MC.dim,
                 fontSize: TYPE.label,
