@@ -33,16 +33,18 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
               nitro agent init [options]
 
             Options:
-              --prefix <prefix>  The task ID prefix (defaults to the current directory name)
-              --force            Reinitialize an existing agent workspace
-              --migrate          Move an existing .nitro/agents workspace into the repository's .git/nitro directory
-              --output <json>    The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help     Show help and usage information
+              --prefix <prefix>                The task ID prefix (defaults to the current directory name)
+              --force                          Reinitialize an existing agent workspace
+              --migrate                        Move an existing .nitro/agents workspace into the repository's .git/nitro directory
+              --database-path <database-path>  Create the workspace in this .nitro directory instead of the nearest existing one
+              --output <json>                  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                   Show help and usage information
 
             Example:
               nitro agent init
               nitro agent init --prefix "app"
               nitro agent init --migrate
+              nitro agent init --database-path "./.nitro"
             """);
     }
 
@@ -370,6 +372,128 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(1, result.ExitCode);
         Assert.Contains("'--migrate' cannot be combined with '--force' or '--prefix'.", result.StdErr);
+    }
+
+    [Fact]
+    public async Task Migrate_CannotCombineWithDatabasePath()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync(
+            "agent", "init", "--migrate", "--database-path", "./.nitro");
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("'--migrate' cannot be combined with '--database-path'.", result.StdErr);
+    }
+
+    /// <summary>
+    /// The user ruling behind this option: --database-path lets init create
+    /// a board below an existing parent board, which nearest-board
+    /// resolution would otherwise hijack (ResolveForInit finds the parent's
+    /// board first and reports "Already initialized" against it).
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_ParentHasInitializedBoard_CreatesNestedBoard()
+    {
+        // arrange
+        var parentWorkspaceDirectory = await InitParentWorkspaceAsync("parent");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./.nitro");
+
+        // assert: the nested board is created, and the parent's board is
+        // left completely untouched.
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.nitro/agents'.
+            ✓ Task ID prefix set to 'acme'.
+            """);
+        Assert.True(File.Exists(DatabasePath));
+        Assert.Equal("acme", await QueryScalarAsync("SELECT value FROM config WHERE key = 'prefix'"));
+        Assert.Equal("parent", await QueryScalarAsync(
+            "SELECT value FROM config WHERE key = 'prefix'",
+            AgentWorkspace.GetDatabasePath(parentWorkspaceDirectory)));
+        Assert.Equal("0", await QueryScalarAsync(
+            "SELECT COUNT(*) FROM tasks", AgentWorkspace.GetDatabasePath(parentWorkspaceDirectory)));
+    }
+
+    /// <summary>
+    /// Proves the "no flag after init" promise: once --database-path has
+    /// created the nested board, plain nearest-board resolution (used by
+    /// every other command) finds it before the parent's, because it is
+    /// nearer.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_LaterCommandsWithoutFlag_UseNestedBoard()
+    {
+        // arrange
+        var parentWorkspaceDirectory = await InitParentWorkspaceAsync("parent");
+        var initResult = await ExecuteCommandAsync("agent", "init", "--database-path", "./.nitro");
+        Assert.Equal(0, initResult.ExitCode);
+
+        // act
+        var taskId = await CreateTaskAsync("Nested board task");
+
+        // assert
+        Assert.Equal("1", await QueryScalarAsync($"SELECT COUNT(*) FROM tasks WHERE id = '{taskId}'"));
+        Assert.Equal("0", await QueryScalarAsync(
+            "SELECT COUNT(*) FROM tasks", AgentWorkspace.GetDatabasePath(parentWorkspaceDirectory)));
+    }
+
+    [Fact]
+    public async Task DatabasePathOption_BareNitroDirectoryInParent_DoesNotHijackInit()
+    {
+        // arrange: an empty leftover .nitro/agents directory in the parent,
+        // no database.
+        var parentFallback = Path.Combine(
+            Path.GetDirectoryName(WorkingDirectory)!, ".nitro", "agents");
+        Directory.CreateDirectory(parentFallback);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./.nitro");
+
+        // assert
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.nitro/agents'.
+            ✓ Task ID prefix set to 'acme'.
+            """);
+        Assert.True(File.Exists(DatabasePath));
+        Assert.False(File.Exists(Path.Combine(parentFallback, "agents.db")));
+    }
+
+    [Theory]
+    [InlineData("./boards")]
+    [InlineData("./.nitro/agents")]
+    public async Task DatabasePathOption_LastSegmentNotNitro_ErrorsAndCreatesNothing(string value)
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", value);
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("'--database-path' must name a '.nitro' directory", result.StdErr);
+        Assert.False(Directory.Exists(Path.Combine(WorkingDirectory, ".nitro")));
+        Assert.False(Directory.Exists(Path.Combine(WorkingDirectory, "boards")));
+    }
+
+    /// <summary>
+    /// Creates a fully initialized, current-schema board at the given
+    /// prefix directly in the directory above <see cref="WorkingDirectory"/>,
+    /// bypassing the CLI so the test's own working directory is untouched.
+    /// Returns the created workspace directory.
+    /// </summary>
+    private async Task<string> InitParentWorkspaceAsync(string prefix)
+    {
+        var parentDirectory = Path.GetDirectoryName(WorkingDirectory)!;
+        var parentWorkspaceDirectory = AgentWorkspace.GetDirectory(parentDirectory);
+        Directory.CreateDirectory(parentWorkspaceDirectory);
+        var store = new TaskStore(new TestFileSystem(parentDirectory), FakeTime, new AgentDatabase());
+
+        await store.InitializeWorkspaceAsync(
+            parentWorkspaceDirectory, prefix, TestContext.Current.CancellationToken);
+
+        return parentWorkspaceDirectory;
     }
 
     [Fact]

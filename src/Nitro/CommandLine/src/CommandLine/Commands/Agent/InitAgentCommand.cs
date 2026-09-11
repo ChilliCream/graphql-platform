@@ -28,6 +28,7 @@ internal sealed class InitAgentCommand : Command
         Options.Add(Opt<AgentPrefixOption>.Instance);
         Options.Add(Opt<ForceReinitializeAgentOption>.Instance);
         Options.Add(Opt<MigrateAgentOption>.Instance);
+        Options.Add(Opt<AgentDatabasePathOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         Validators.Add(result =>
@@ -38,9 +39,19 @@ internal sealed class InitAgentCommand : Command
             {
                 result.AddError("'--migrate' cannot be combined with '--force' or '--prefix'.");
             }
+
+            if (result.GetValue(Opt<MigrateAgentOption>.Instance)
+                && result.GetValue(Opt<AgentDatabasePathOption>.Instance) is not null)
+            {
+                result.AddError("'--migrate' cannot be combined with '--database-path'.");
+            }
         });
 
-        this.AddExamples("agent init", "agent init --prefix \"app\"", "agent init --migrate");
+        this.AddExamples(
+            "agent init",
+            "agent init --prefix \"app\"",
+            "agent init --migrate",
+            "agent init --database-path \"./.nitro\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -65,20 +76,42 @@ internal sealed class InitAgentCommand : Command
                 console, fileSystem, resultHolder, database, currentDirectory, cancellationToken);
         }
 
-        // Location resolution: an initialized workspace anywhere above wins
-        // (a .nitro/agents database before the repository's .git/nitro at
-        // each level); else, per level, an existing bare .nitro/agents
-        // directory (a fresh clone may carry committed memory markdown with
-        // no database yet) or the repository's .git/nitro; else a fresh
-        // .nitro/agents under the current directory.
-        var location = AgentWorkspace.ResolveForInit(fileSystem, currentDirectory);
+        var databasePathOption = parseResult.GetValue(Opt<AgentDatabasePathOption>.Instance);
+
+        WorkspaceLocation location;
+
+        if (databasePathOption is not null)
+        {
+            // --database-path names a .nitro directory explicitly, so
+            // resolution never walks up looking for a nearer board: the
+            // workspace is created right there, at <path>/agents, the
+            // standard fallback layout later commands find with no flag.
+            location = ResolveForDatabasePathOption(databasePathOption, currentDirectory);
+        }
+        else
+        {
+            // Location resolution: an initialized workspace anywhere above
+            // wins (a .nitro/agents database before the repository's
+            // .git/nitro at each level); else, per level, an existing bare
+            // .nitro/agents directory (a fresh clone may carry committed
+            // memory markdown with no database yet) or the repository's
+            // .git/nitro; else a fresh .nitro/agents under the current
+            // directory.
+            location = AgentWorkspace.ResolveForInit(fileSystem, currentDirectory);
+        }
 
         var workspaceDirectory = location.WorkspaceDirectory;
         var projectDirectory = location.ProjectDirectory;
         var displayPath = AgentWorkspace.GetDisplayPath(workspaceDirectory);
         var isFallbackLayout = AgentWorkspace.IsFallbackLayout(workspaceDirectory);
 
-        var gitWorkspace = AgentWorkspace.FindGitWorkspace(fileSystem, currentDirectory);
+        // A board placed with --database-path was put there on purpose; the
+        // migrate hint (which would move it into .git/nitro) never applies
+        // to it, even when a git repository is present, so the lookup is
+        // skipped entirely for it.
+        var gitWorkspace = databasePathOption is null
+            ? AgentWorkspace.FindGitWorkspace(fileSystem, currentDirectory)
+            : null;
         var migrateAvailable = isFallbackLayout && gitWorkspace is not null;
 
         var databasePath = AgentWorkspace.GetDatabasePath(workspaceDirectory);
@@ -206,6 +239,35 @@ internal sealed class InitAgentCommand : Command
         }
 
         return WriteJsonResult(console, resultHolder, workspaceDirectory, prefix);
+    }
+
+    /// <summary>
+    /// Resolves the workspace location for <c>--database-path</c>: the value
+    /// names a <c>.nitro</c> directory, relative to <paramref
+    /// name="currentDirectory"/> or absolute, and the workspace is created at
+    /// <c>&lt;value&gt;/agents</c> (the standard fallback layout), with the
+    /// project directory set to the parent of the named <c>.nitro</c>
+    /// directory. Rejects a value whose last path segment is not
+    /// <c>.nitro</c>.
+    /// </summary>
+    private static WorkspaceLocation ResolveForDatabasePathOption(
+        string databasePathOptionValue,
+        string currentDirectory)
+    {
+        var nitroDirectory = Path.TrimEndingDirectorySeparator(
+            Path.GetFullPath(databasePathOptionValue, currentDirectory));
+
+        if (Path.GetFileName(nitroDirectory) != AgentWorkspace.RootDirectoryName)
+        {
+            throw new ExitException(
+                "'--database-path' must name a "
+                    + $"'{AgentWorkspace.RootDirectoryName}' directory, got '{databasePathOptionValue}'.");
+        }
+
+        var projectDirectory = Path.GetDirectoryName(nitroDirectory) ?? nitroDirectory;
+        var workspaceDirectory = Path.Combine(nitroDirectory, AgentWorkspace.AgentsDirectoryName);
+
+        return new WorkspaceLocation(projectDirectory, projectDirectory, workspaceDirectory);
     }
 
     /// <summary>
