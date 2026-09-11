@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -90,6 +92,52 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                 }");
             using var result = await client.GetAsync(request, s_url, TestContext.Current.CancellationToken);
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Post_PersistedOperationEndpoint_GetHeroName_Default()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateInstrumentedServer();
+            using var client = server.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000");
+
+            // act
+            using var content = new StringContent("{ }", Encoding.UTF8, "application/json");
+            using var response = await client.PostAsync(
+                "/graphql/persisted/a73defcdf38e5891e91b9ba532cf4c36/GetHeroName",
+                content,
+                TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Get_PersistedOperationEndpoint_GetHeroName_Default()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server = CreateInstrumentedServer();
+            using var client = server.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000");
+            client.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/graphql-response+json"));
+
+            // act
+            using var response = await client.GetAsync(
+                "/graphql/persisted/a73defcdf38e5891e91b9ba532cf4c36/GetHeroName",
+                TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
