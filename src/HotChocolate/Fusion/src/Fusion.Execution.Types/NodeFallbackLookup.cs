@@ -23,7 +23,7 @@ internal sealed class NodeFallbackLookup : INeedsCompletion
         => _schemaByType.TryGetValue(typeName, out schemaName);
 
     /// <summary>
-    /// Tries to determine any source schema that owns a node lookup, used when the gateway
+    /// Tries to determine any source schema that owns a node lookup, used when the router
     /// forwards the node field without interpreting the identifier.
     /// </summary>
     public bool TryGetAnyNodeLookupSchema([NotNullWhen(true)] out string? schemaName)

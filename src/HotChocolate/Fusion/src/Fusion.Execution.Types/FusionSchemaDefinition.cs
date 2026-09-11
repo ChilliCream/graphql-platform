@@ -140,7 +140,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     public FusionDirectiveDefinitionCollection DirectiveDefinitions { get; }
 
     /// <summary>
-    /// Gets how the gateway resolves the <c>Query.node</c> field.
+    /// Gets how the router resolves the <c>Query.node</c> field.
     /// </summary>
     public NodeResolution NodeResolution { get; }
 

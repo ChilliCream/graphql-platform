@@ -14,7 +14,7 @@ public interface ISourceComplexType : ISourceMember
     /// </summary>
     /// <value>
     /// The lookup definitions that enable entity resolution for this complex type from
-    /// this specific source schema. These are used by the fusion gateway to determine
+    /// this specific source schema. These are used by the fusion router to determine
     /// how to fetch entity data during query execution.
     /// </value>
     ImmutableArray<Lookup> Lookups { get; }

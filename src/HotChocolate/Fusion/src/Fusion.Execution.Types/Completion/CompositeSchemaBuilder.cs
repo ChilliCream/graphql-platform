@@ -161,8 +161,8 @@ internal static class CompositeSchemaBuilder
             }
         }
 
-        // Register the @defer directive so the gateway's validation accepts it.
-        // The gateway manages @defer itself (it does not pass it to subgraphs).
+        // Register the @defer directive so the router's validation accepts it.
+        // The router manages @defer itself (it does not pass it to subgraphs).
         if (options.EnableDefer && !directiveDefinitions.ContainsKey(Defer.Name))
         {
             var deferDirectiveNode = new DirectiveDefinitionNode(
