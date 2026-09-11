@@ -745,7 +745,7 @@ public class SelectionTypeShapeBenchmark
         var pool = new NoOpObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>();
         var compiler = new OperationCompiler(schema, pool);
 
-        return compiler.Compile("bench", "bench", operationDefinition);
+        return compiler.Compile("bench", "bench", "bench", operationDefinition);
     }
 
     /// <summary>

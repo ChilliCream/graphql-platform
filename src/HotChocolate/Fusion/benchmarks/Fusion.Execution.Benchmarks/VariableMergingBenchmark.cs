@@ -101,6 +101,7 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
         _operation = operationCompiler.Compile(
             OperationId,
             OperationId,
+            OperationId,
             operationDefinition);
 
         // The "source" store mints VariableValues entries that the snapshot
