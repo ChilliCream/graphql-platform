@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { BP, PARTS } from "./palette";
+import { BP, FONT, PARTS } from "./palette";
 import { DUR, draw, fade, Sheet } from "./Sheet";
 
 /**
@@ -33,9 +33,9 @@ const MAIN: readonly Dial[] = [
     reading: "42 ms",
     value: 0.34,
     drift: 0.06,
-    cx: 78,
-    cy: 84,
-    r: 34,
+    cx: 84,
+    cy: 88,
+    r: 32,
   },
   {
     id: "throughput",
@@ -43,9 +43,9 @@ const MAIN: readonly Dial[] = [
     reading: "18.4k / min",
     value: 0.62,
     drift: 0.05,
-    cx: 202,
-    cy: 84,
-    r: 34,
+    cx: 240,
+    cy: 88,
+    r: 32,
   },
   {
     id: "errors",
@@ -53,9 +53,9 @@ const MAIN: readonly Dial[] = [
     reading: "0.04 %",
     value: 0.09,
     drift: 0.03,
-    cx: 326,
-    cy: 84,
-    r: 34,
+    cx: 396,
+    cy: 88,
+    r: 32,
   },
 ];
 
@@ -65,9 +65,9 @@ const SUB: readonly Dial[] = PARTS.slice(0, 4).map((part, i) => ({
   reading: part.no,
   value: 0.3 + i * 0.12,
   drift: 0.07,
-  cx: 62 + i * 112,
-  cy: 196,
-  r: 17,
+  cx: 66 + i * 112,
+  cy: 214,
+  r: 13,
 }));
 
 const DIALS = [...MAIN, ...SUB];
@@ -131,7 +131,7 @@ function DialFace({ dial, index, detail }: DialFaceProps) {
         {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
           <path
             key={tick}
-            d={`M${point(dial.cx, dial.cy, dial.r - 6, angle(tick))}L${point(
+            d={`M${point(dial.cx, dial.cy, dial.r - dial.r / 5, angle(tick))}L${point(
               dial.cx,
               dial.cy,
               dial.r,
@@ -142,14 +142,14 @@ function DialFace({ dial, index, detail }: DialFaceProps) {
             strokeWidth={0.9}
           />
         ))}
-        <circle cx={dial.cx} cy={dial.cy} r={2} fill={BP.dim} />
+        <circle cx={dial.cx} cy={dial.cy} r={2.4} fill={BP.dim} />
         {detail ? (
           <text
             className="bp-t-cyan"
             x={dial.cx}
-            y={dial.cy + dial.r + 16}
+            y={dial.cy + dial.r + 22}
             textAnchor="middle"
-            fontSize={8.5}
+            fontSize={FONT.label}
           >
             {dial.reading}
           </text>
@@ -157,9 +157,9 @@ function DialFace({ dial, index, detail }: DialFaceProps) {
         <text
           className="bp-t-dim"
           x={dial.cx}
-          y={dial.cy + dial.r + (detail ? 29 : 14)}
+          y={dial.cy + dial.r + (detail ? 42 : 22)}
           textAnchor="middle"
-          fontSize={detail ? 6.5 : 6}
+          fontSize={FONT.label}
         >
           {dial.label}
         </text>
@@ -167,7 +167,7 @@ function DialFace({ dial, index, detail }: DialFaceProps) {
       <path
         className={`bp-g-needle${index}`}
         style={{ transformOrigin: `${dial.cx}px ${dial.cy}px` }}
-        d={`M${dial.cx} ${dial.cy}V${dial.cy - dial.r + 8}`}
+        d={`M${dial.cx} ${dial.cy}V${dial.cy - dial.r + dial.r / 5}`}
         fill="none"
         stroke={BP.dim}
         strokeWidth={1.4}
@@ -188,13 +188,18 @@ export function GaugeSchedule() {
       run={active && !reduced}
     >
       <svg
-        viewBox="0 0 480 240"
+        viewBox="0 0 480 276"
         preserveAspectRatio="xMidYMid meet"
         className="absolute inset-0 h-full w-full"
       >
         <style>{CSS}</style>
 
-        <text className="bp-g-head bp-t-dim" x={14} y={16} fontSize={6.5}>
+        <text
+          className="bp-g-head bp-t-dim"
+          x={14}
+          y={22}
+          fontSize={FONT.label}
+        >
           ASSY-100 GATEWAY · READINGS
         </text>
 
@@ -204,13 +209,18 @@ export function GaugeSchedule() {
 
         <path
           className="bp-g-rule"
-          d="M14 158h452"
+          d="M14 176h452"
           pathLength={1}
           fill="none"
           stroke={BP.inkFaint}
           strokeWidth={0.9}
         />
-        <text className="bp-g-head bp-t-dim" x={14} y={172} fontSize={6.5}>
+        <text
+          className="bp-g-head bp-t-dim"
+          x={14}
+          y={196}
+          fontSize={FONT.label}
+        >
           EACH SUBGRAPH BEHIND IT
         </text>
 
@@ -225,12 +235,11 @@ export function GaugeSchedule() {
 
         <text
           className="bp-g-note bp-t-dim"
-          x={466}
-          y={16}
-          textAnchor="end"
-          fontSize={6.2}
+          x={14}
+          y={270}
+          fontSize={FONT.label}
         >
-          SCHEMA CHANGES CHECKED AGAINST PUBLISHED OPERATIONS
+          CHECKED AGAINST PUBLISHED OPERATIONS
         </text>
       </svg>
     </Sheet>
