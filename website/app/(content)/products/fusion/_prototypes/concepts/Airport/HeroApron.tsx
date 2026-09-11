@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 
+import { TYPE } from "../../brand";
 import { anim, useElementMotion } from "./hooks";
 import { AP, CLIENTS, GATES } from "./palette";
 
@@ -11,6 +12,12 @@ import { AP, CLIENTS, GATES } from "./palette";
  * gates that stand for the source schemas, while the tower beacon turns. At
  * rest the aircraft park where the layout reads as one runway serving every
  * gate.
+ *
+ * The apron fills the hero with `slice` rather than shrinking to fit it: a
+ * 1200-unit apron letterboxed into a 375px screen would render its lettering
+ * at about 4px, while filling the hero keeps the scale at or above 1x there,
+ * so the smallest sign (`TYPE.caption`) stays above the 11px floor and the
+ * viewport simply shows less of the apron.
  */
 
 const W = 1200;
@@ -52,7 +59,7 @@ function Plane({ tail, scale, color }: PlaneProps) {
         y="-11"
         fill={AP.ink}
         fontFamily={AP.mono}
-        fontSize="11"
+        fontSize={TYPE.caption}
         textAnchor="end"
         opacity="0.7"
       >
@@ -80,7 +87,7 @@ export function HeroApron() {
       <rect width={W} height="300" fill="url(#ap-hero-sky)" />
       <defs>
         <linearGradient id="ap-hero-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#0d1a2a" />
+          <stop offset="0%" stopColor={AP.sky} />
           <stop offset="100%" stopColor={AP.bg} />
         </linearGradient>
       </defs>
@@ -104,7 +111,7 @@ export function HeroApron() {
               y="176"
               fill={AP.amber}
               fontFamily={AP.mono}
-              fontSize="14"
+              fontSize={TYPE.h6}
               textAnchor="middle"
             >
               {gate.stand} {gate.name}
@@ -114,7 +121,7 @@ export function HeroApron() {
               y="197"
               fill={AP.dim}
               fontFamily={AP.mono}
-              fontSize="10"
+              fontSize={TYPE.caption}
               textAnchor="middle"
               letterSpacing="0.12em"
             >
@@ -159,7 +166,7 @@ export function HeroApron() {
           y="222"
           fill={AP.approach}
           fontFamily={AP.mono}
-          fontSize="11"
+          fontSize={TYPE.caption}
           textAnchor="middle"
         >
           TOWER
@@ -178,13 +185,7 @@ export function HeroApron() {
       </g>
 
       {/* Taxiway with its lit centre line. */}
-      <rect
-        x="0"
-        y={TAXI_Y - 24}
-        width={W}
-        height="48"
-        fill="rgba(255,255,255,0.035)"
-      />
+      <rect x="0" y={TAXI_Y - 24} width={W} height="48" fill={AP.wash} />
       <line
         x1="0"
         y1={TAXI_Y}
@@ -197,13 +198,7 @@ export function HeroApron() {
       />
 
       {/* The one runway every client lands on. */}
-      <rect
-        x="0"
-        y={RUNWAY_Y - 34}
-        width={W}
-        height="68"
-        fill="rgba(255,255,255,0.06)"
-      />
+      <rect x="0" y={RUNWAY_Y - 34} width={W} height="68" fill={AP.deck} />
       <line
         x1="40"
         y1={RUNWAY_Y}
@@ -218,7 +213,7 @@ export function HeroApron() {
         y={RUNWAY_Y - 44}
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="12"
+        fontSize={TYPE.h6}
         letterSpacing="0.24em"
       >
         RUNWAY 01 · ONE ENDPOINT

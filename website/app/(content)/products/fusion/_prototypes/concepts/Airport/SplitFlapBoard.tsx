@@ -63,19 +63,11 @@ export function SplitFlapBoard() {
   return (
     <div
       ref={ref}
-      className="w-full rounded-xl border p-3 sm:p-4"
-      style={{
-        background: "rgba(6,10,15,0.92)",
-        borderColor: AP.panelEdge,
-        fontFamily: AP.mono,
-      }}
+      className="border-cc-card-border bg-cc-card-bg w-full rounded-xl border p-3 font-mono sm:p-4"
     >
       <style>{KEYFRAMES}</style>
 
-      <div
-        className="mb-3 flex items-center justify-between border-b pb-2 text-[10px] tracking-[0.24em]"
-        style={{ borderColor: AP.panelEdge, color: AP.dim }}
-      >
+      <div className="border-cc-card-border text-cc-ink-dim mb-3 flex items-center justify-between border-b pb-2 text-[10px] tracking-[0.24em]">
         <span>DEPARTURES</span>
         <span className="flex items-center gap-2">
           <span
@@ -92,10 +84,7 @@ export function SplitFlapBoard() {
         </span>
       </div>
 
-      <div
-        className="mb-1 grid grid-cols-[3.2rem_1fr_5.4rem] gap-2 text-[9px] tracking-[0.18em] sm:grid-cols-[3.6rem_1fr_6rem_8.5rem]"
-        style={{ color: AP.dim }}
-      >
+      <div className="text-cc-ink-dim mb-1 grid grid-cols-[3.2rem_1fr_5.4rem] gap-2 text-[10px] tracking-[0.18em] sm:grid-cols-[3.6rem_1fr_6rem_8.5rem]">
         <span>DEP</span>
         <span>SOURCE SCHEMA</span>
         <span className="hidden sm:block">SPEC</span>
@@ -112,27 +101,27 @@ export function SplitFlapBoard() {
             <div
               key={gate.name}
               className="grid grid-cols-[3.2rem_1fr_5.4rem] items-center gap-2 rounded-md px-1.5 py-1.5 text-[11px] sm:grid-cols-[3.6rem_1fr_6rem_8.5rem] sm:text-xs"
-              style={{ background: "rgba(255,255,255,0.03)" }}
+              style={{ background: AP.wash }}
             >
               <Flap value={DEPARTS[i]} running={running} color={AP.dim} />
               <span className="flex min-w-0 items-baseline gap-2">
                 <span className="truncate" style={{ color: AP.amber }}>
                   {gate.name}
                 </span>
-                <span className="text-[9px]" style={{ color: AP.dim }}>
+                <span className="text-cc-ink-dim text-[10px]">
                   {gate.stand} · {gate.language}
                 </span>
               </span>
               <Flap
                 value={specMark(gate.spec)}
                 running={running}
-                className="hidden text-[9px] sm:block"
+                className="hidden text-[10px] sm:block"
                 color={AP.ink}
               />
               <Flap
                 value={status}
                 running={running}
-                className="text-[9px] sm:text-[10px]"
+                className="text-[10px] sm:text-[11px]"
                 color={boarded ? AP.taxi : AP.amber}
               />
             </div>
@@ -141,21 +130,16 @@ export function SplitFlapBoard() {
 
         <div
           className="grid grid-cols-[3.2rem_1fr_5.4rem] items-center gap-2 rounded-md px-1.5 py-1.5 text-[11px] sm:grid-cols-[3.6rem_1fr_6rem_8.5rem] sm:text-xs"
-          style={{ background: "rgba(255,255,255,0.03)" }}
+          style={{ background: AP.wash }}
         >
-          <span className="text-[9px]" style={{ color: AP.dim }}>
-            GND
-          </span>
-          <span className="truncate text-[11px]" style={{ color: AP.ink }}>
+          <span className="text-cc-ink-dim text-[10px]">GND</span>
+          <span className="text-cc-heading truncate text-[11px]">
             Payments · Inventory
           </span>
-          <span
-            className="hidden text-[9px] sm:block"
-            style={{ color: AP.dim }}
-          >
+          <span className="text-cc-ink-dim hidden text-[10px] sm:block">
             OPENAPI · GRPC
           </span>
-          <span className="text-[9px]" style={{ color: AP.taxi }}>
+          <span className="text-[10px]" style={{ color: AP.taxi }}>
             SAME BOARD
           </span>
         </div>
