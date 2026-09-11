@@ -3,26 +3,38 @@
  * station roster every visual in this folder draws from, so the wall map, the
  * patch bay, the checklist and the flight recorder name the same subgraphs,
  * languages and specifications.
+ *
+ * The palette is a mapping of ops-room role -> site token: every entry is a
+ * `CC.*` token, a `BRAND.*` accent (mixed with opacity where the scene needs a
+ * wash) or `FONTS.mono`, so the concept carries no colour of its own.
  */
 
+import { BRAND, CC, FONTS } from "../../brand";
+
 export const MC = {
-  /** Ops-room backdrop, darker than the site surface. */
-  bg: "#050a12",
-  panel: "rgba(10,18,32,0.86)",
-  panelEdge: "rgba(150,200,225,0.16)",
-  grid: "rgba(120,190,220,0.09)",
-  line: "rgba(140,190,215,0.3)",
-  ink: "#cbdae6",
-  dim: "#728a9e",
+  /** Ops-room floor: the page background, so a scene never darkens the page. */
+  bg: CC.bg,
+  /** Console plates: the site surface, lifted so a panel reads on the floor. */
+  panel: `color-mix(in srgb, ${CC.surface} 92%, ${CC.heading})`,
+  /** Plate edges and rules: the site's card border. */
+  panelEdge: CC.cardBorder,
+  /** Wall-map grid: the brand cyan at a wash. */
+  grid: `color-mix(in srgb, ${BRAND.cyan} 9%, transparent)`,
+  /** Plotted lines, unlit links and rings: the brand slate at a wash. */
+  line: `color-mix(in srgb, ${BRAND.slate} 45%, transparent)`,
+  /** Plate lettering: the brightest ink on the site. */
+  ink: CC.heading,
+  /** Secondary lettering under it. */
+  dim: CC.inkDim,
   /** Radar phosphor: sweep, lit stations, healthy telemetry. */
-  phosphor: "#4fe0bd",
+  phosphor: BRAND.teal,
   /** Tracked traffic: client signals and query blips. */
-  signal: "#16b9e4",
+  signal: BRAND.cyan,
   /** Caution: risky change, held countdown. */
-  amber: "#f0b429",
+  amber: BRAND.amber,
   /** Abort: composition conflict, breaking change. */
-  alert: "#ff6b6b",
-  mono: "ui-monospace, SFMono-Regular, Menlo, monospace",
+  alert: BRAND.coral,
+  mono: FONTS.mono,
 } as const;
 
 export type StationSpec = "GraphQL Federation" | "Apollo Federation";
