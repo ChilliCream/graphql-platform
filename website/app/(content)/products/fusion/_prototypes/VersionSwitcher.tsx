@@ -24,7 +24,7 @@ interface VersionSwitcherProps {
 /**
  * Floating pill bar, fixed to the bottom of the viewport on every Fusion
  * prototype page: prev/next arrows plus a popover that lists the production
- * page and all ten concept versions. Hidden from print.
+ * page and every registered concept version. Hidden from print.
  *
  * Concept tasks do not render this directly - `PrototypeShell` does.
  */
