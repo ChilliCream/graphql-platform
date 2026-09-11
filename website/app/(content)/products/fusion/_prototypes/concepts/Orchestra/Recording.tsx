@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
 import { ENGRAVE, LISTENERS, STAGE } from "./palette";
 
@@ -77,7 +78,7 @@ export function Recording() {
         x={PART_X}
         y={28}
         fill={STAGE.ink}
-        fontSize={10}
+        fontSize={TYPE.label}
         letterSpacing={1.6}
         fontFamily={ENGRAVE}
       >
@@ -126,7 +127,7 @@ export function Recording() {
                 y={100}
                 textAnchor="middle"
                 fill={STAGE.clash}
-                fontSize={9}
+                fontSize={TYPE.label}
                 letterSpacing={1}
                 fontFamily={ENGRAVE}
                 className={moving ? "rc-gap" : undefined}
@@ -166,8 +167,8 @@ export function Recording() {
           x={PART_X + 38}
           y={147}
           fill={STAGE.heading}
-          fontSize={10}
-          letterSpacing={1.2}
+          fontSize={TYPE.label}
+          letterSpacing={1}
           fontFamily={ENGRAVE}
         >
           SOURCE SCHEMAS STILL COMPOSE · BUILD GREEN
@@ -178,7 +179,7 @@ export function Recording() {
         x={PART_X}
         y={REC_Y - 18}
         fill={STAGE.ink}
-        fontSize={10}
+        fontSize={TYPE.label}
         letterSpacing={1.6}
         fontFamily={ENGRAVE}
       >
@@ -194,7 +195,7 @@ export function Recording() {
               x={PART_X}
               y={y + 4}
               fill={STAGE.heading}
-              fontSize={11}
+              fontSize={TYPE.label}
               fontFamily={ENGRAVE}
             >
               {listener}
@@ -267,7 +268,7 @@ export function Recording() {
         x={W - 244}
         y={150}
         fill={STAGE.heading}
-        fontSize={11}
+        fontSize={TYPE.label}
         letterSpacing={1.4}
         fontFamily={ENGRAVE}
       >
@@ -297,7 +298,7 @@ export function Recording() {
               x={W - 226}
               y={173 + i * 26}
               fill={chosen ? verdict.hue : STAGE.ink}
-              fontSize={10}
+              fontSize={TYPE.label}
               letterSpacing={1.2}
               fontFamily={ENGRAVE}
             >
@@ -310,7 +311,7 @@ export function Recording() {
         x={W - 244}
         y={236}
         fill={STAGE.ink}
-        fontSize={9}
+        fontSize={TYPE.label}
         letterSpacing={1.1}
         fontFamily={ENGRAVE}
       >
