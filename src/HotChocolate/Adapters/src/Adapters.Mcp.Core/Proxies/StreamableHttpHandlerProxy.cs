@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using ModelContextProtocol.AspNetCore;
 
 namespace HotChocolate.Adapters.Mcp.Proxies;
 
@@ -13,9 +12,6 @@ internal sealed class StreamableHttpHandlerProxy
         _mcpRequestExecutor = mcpRequestExecutor;
     }
 
-    public HttpServerTransportOptions HttpServerTransportOptions
-        => _mcpRequestExecutor.GetOrCreateSession().StreamableHttpHandler.HttpServerTransportOptions;
-
     public async Task HandlePostRequestAsync(HttpContext context)
     {
         var session = await _mcpRequestExecutor.GetOrCreateSessionAsync(context.RequestAborted);
@@ -25,12 +21,31 @@ internal sealed class StreamableHttpHandlerProxy
     public async Task HandleGetRequestAsync(HttpContext context)
     {
         var session = await _mcpRequestExecutor.GetOrCreateSessionAsync(context.RequestAborted);
+
+        if (IsStateless(session))
+        {
+            context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
+
+            return;
+        }
+
         await session.StreamableHttpHandler.HandleGetRequestAsync(context);
     }
 
     public async Task HandleDeleteRequestAsync(HttpContext context)
     {
         var session = await _mcpRequestExecutor.GetOrCreateSessionAsync(context.RequestAborted);
+
+        if (IsStateless(session))
+        {
+            context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
+
+            return;
+        }
+
         await session.StreamableHttpHandler.HandleDeleteRequestAsync(context);
     }
+
+    private static bool IsStateless(McpExecutorSession session)
+        => session.StreamableHttpHandler.HttpServerTransportOptions.Stateless;
 }
