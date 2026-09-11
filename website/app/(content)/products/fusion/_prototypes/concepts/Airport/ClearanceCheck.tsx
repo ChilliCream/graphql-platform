@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useCycle, useSceneMotion } from "./hooks";
 import { AP, GATES } from "./palette";
 
@@ -17,6 +18,8 @@ const PHASES = 7;
 const REST = 0;
 const BEAT = 1400;
 const ROWS = GATES.slice(0, 4);
+/** The clearance stamp, wide enough for its verdict at the `TYPE.label` floor. */
+const STAMP = { x: 392, y: 96, w: 240, h: 112 } as const;
 /** Shipping is the plan that fails validation. */
 const CONFLICT = 3;
 
@@ -55,7 +58,7 @@ export function ClearanceCheck() {
         y="40"
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         letterSpacing="0.22em"
       >
         COMPOSITION · FLIGHT PLAN VALIDATION
@@ -65,7 +68,7 @@ export function ClearanceCheck() {
         y="62"
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.14em"
       >
         BUILD STEP · NOTHING INSTALLED ON BOARD
@@ -92,31 +95,31 @@ export function ClearanceCheck() {
             <circle cx="44" cy={y + 22} r="5" fill={color} />
             <text
               x="60"
-              y={y + 19}
+              y={y + 18}
               fill={AP.ink}
               fontFamily={AP.mono}
-              fontSize="12"
+              fontSize={TYPE.caption}
             >
               {gate.name} · {gate.language}
             </text>
             <text
               x="60"
-              y={y + 35}
+              y={y + 36}
               fill={AP.dim}
               fontFamily={AP.mono}
-              fontSize="8"
-              letterSpacing="0.1em"
+              fontSize={TYPE.label}
+              letterSpacing="0.02em"
             >
               KEYS AND LOOKUPS DECLARED IN ITS OWN SCHEMA
             </text>
             <text
               x="364"
-              y={y + 27}
+              y={y + 18}
               fill={color}
               fontFamily={AP.mono}
-              fontSize="9"
+              fontSize={TYPE.label}
               textAnchor="end"
-              letterSpacing="0.14em"
+              letterSpacing="0.1em"
               style={{ transition: "fill 400ms ease" }}
             >
               {bad ? "TYPE CONFLICT" : done ? "VALIDATED" : "PENDING"}
@@ -130,8 +133,8 @@ export function ClearanceCheck() {
         y={rowY(ROWS.length) + 14}
         fill={grounded ? AP.stop : AP.dim}
         fontFamily={AP.mono}
-        fontSize="9"
-        letterSpacing="0.12em"
+        fontSize={TYPE.label}
+        letterSpacing="0.02em"
         style={{ transition: "fill 400ms ease" }}
       >
         {grounded
@@ -141,10 +144,10 @@ export function ClearanceCheck() {
 
       {/* The clearance stamp on the plan. */}
       <rect
-        x="404"
-        y="96"
-        width="212"
-        height="112"
+        x={STAMP.x}
+        y={STAMP.y}
+        width={STAMP.w}
+        height={STAMP.h}
         rx="9"
         fill={AP.panel}
         stroke={grounded ? AP.stop : cleared ? AP.taxi : AP.panelEdge}
@@ -152,11 +155,11 @@ export function ClearanceCheck() {
       />
       <text
         key={grounded ? "grounded" : cleared ? "cleared" : "checking"}
-        x="510"
+        x={STAMP.x + STAMP.w / 2}
         y="152"
         fill={grounded ? AP.stop : cleared ? AP.taxi : AP.dim}
         fontFamily={AP.mono}
-        fontSize="20"
+        fontSize={TYPE.h5}
         textAnchor="middle"
         letterSpacing="0.16em"
         style={{
@@ -168,13 +171,13 @@ export function ClearanceCheck() {
         {grounded ? "GROUNDED" : cleared ? "CLEARED" : "CHECKING"}
       </text>
       <text
-        x="510"
-        y="178"
+        x={STAMP.x + STAMP.w / 2}
+        y="180"
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         textAnchor="middle"
-        letterSpacing="0.14em"
+        letterSpacing="0.04em"
       >
         {grounded
           ? "PIPELINE FAILS, NOT THE GATEWAY"
@@ -202,7 +205,7 @@ export function ClearanceCheck() {
         y="318"
         fill={grounded ? AP.stop : AP.taxi}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         textAnchor="middle"
         letterSpacing="0.14em"
         style={{ transition: "fill 400ms ease" }}
