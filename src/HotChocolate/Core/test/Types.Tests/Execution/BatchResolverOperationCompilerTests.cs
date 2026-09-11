@@ -10,6 +10,68 @@ namespace HotChocolate.Execution;
 
 public class BatchResolverOperationCompilerTests
 {
+    public static TheoryData<bool, bool, string, string, int> CompositeDirectiveLocations()
+    {
+        var data = new TheoryData<bool, bool, string, string, int>();
+        foreach (var list in new[] { false, true })
+        {
+            foreach (var batchOnly in new[] { false, true })
+            {
+                data.Add(list, batchOnly, "direct", "{ item @mark { id } }", 8);
+                data.Add(list, batchOnly, "inline", "{ item { id }...{item @mark { id } } }", 23);
+                data.Add(list, batchOnly, "named", "{item { id } ...F} fragment F on Query{item @mark { id } }", 45);
+                data.Add(list, batchOnly, "multiple", "{ item @mark @other { id } }", 8);
+            }
+        }
+
+        return data;
+    }
+
+    [Theory]
+    [MemberData(nameof(CompositeDirectiveLocations))]
+    public void OperationCompiler_Should_PreserveDirectiveLocation_When_RejectingCompositeBatchSelection(
+        bool list,
+        bool batchOnly,
+        string placement,
+        string operation,
+        int column)
+    {
+        // arrange
+        var itemType = new ObjectType(d => d.Name("Item").Field("id").Resolve(1));
+        var schema = SchemaBuilder.New()
+            .AddType(itemType)
+            .AddDirectiveType(new DirectiveType(d =>
+            {
+                d.Name("mark").Location(DirectiveLocation.Field);
+                if (batchOnly)
+                {
+                    d.UseBatch((BatchFieldDelegate next, Directive _) => next);
+                }
+                else
+                {
+                    d.Use((FieldDelegate next, Directive _) => next);
+                }
+            }))
+            .AddDirectiveType(new DirectiveType(d => d.Name("other").Location(DirectiveLocation.Field)))
+            .AddQueryType(d => d.Name("Query").Field("item")
+                .Type(list ? new ListTypeNode(new NamedTypeNode("Item")) : new NamedTypeNode("Item"))
+                .ResolveBatch(contexts => new ValueTask<IReadOnlyList<ResolverResult>>(
+                    contexts.Select(_ => ResolverResult.Ok(null)).ToArray())))
+            .Create();
+        var document = Utf8GraphQLParser.Parse(operation);
+
+        // act
+        var exception = Assert.Throws<GraphQLException>(() =>
+            OperationCompiler.Compile("test", document, schema));
+
+        // assert
+        var error = Assert.Single(exception.Errors);
+        Assert.Equal(new Location(1, column), Assert.Single(error.Locations!));
+        new Snapshot(postFix: placement)
+            .Add(exception.Errors, "Compilation errors")
+            .MatchMarkdownSnapshot();
+    }
+
     [Theory]
     [InlineData("regular", false)]
     [InlineData("batch", false)]
