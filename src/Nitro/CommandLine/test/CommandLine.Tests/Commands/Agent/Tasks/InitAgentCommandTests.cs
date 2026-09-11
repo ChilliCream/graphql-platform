@@ -418,6 +418,33 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
+    /// A board placed with --database-path was put there on purpose: the
+    /// user chose that location deliberately, and moving it into
+    /// '.git/nitro' would collide with the repository's own board there.
+    /// The migrate hint (printed for an ordinary fallback board whenever a
+    /// git repository exists, see
+    /// <see cref="PlainInit_Upgrade_PrintsMigrateHint_When_GitRepositoryExists"/>)
+    /// must never appear for a --database-path board, even though the same
+    /// git repository is present here.
+    /// </summary>
+    [Fact]
+    public async Task DatabasePathOption_GitRepositoryExists_DoesNotPrintMigrateHint()
+    {
+        // arrange
+        Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./.nitro");
+
+        // assert: no blank line and migrate hint after the base lines.
+        result.AssertSuccess(
+            """
+            ✓ Initialized agent workspace at '.nitro/agents'.
+            ✓ Task ID prefix set to 'acme'.
+            """);
+    }
+
+    /// <summary>
     /// Proves the "no flag after init" promise: once --database-path has
     /// created the nested board, plain nearest-board resolution (used by
     /// every other command) finds it before the parent's, because it is
