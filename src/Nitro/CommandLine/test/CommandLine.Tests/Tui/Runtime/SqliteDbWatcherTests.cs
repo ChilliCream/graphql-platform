@@ -445,14 +445,42 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
+        var acting = 0;
         var tickCount = 0;
+        var notifications = 0;
+        var notificationsAtFirstTick = -1;
         var watcher = new SqliteDbWatcher(databasePath, s_burstDebounce)
         {
-            // Counts debounce cycles so the tail assertion below can tell a
-            // legitimate extra cycle (notification delivery split the burst)
-            // from a real coalescing defect (an event published without a
-            // matching cycle) instead of just widening the wait.
-            OnDebounceTick = () => Interlocked.Increment(ref tickCount)
+            // Fires once per debounce cycle. Arrange/SettleAsync activity is
+            // excluded via the "acting" flag (set only once the act phase
+            // begins below) so a startup tick cannot silently grant the act
+            // phase a free extra event. While acting, counts cycles and, on
+            // the first act-phase cycle, snapshots how many notifications had
+            // been observed by then -- the boundary the tail assertion below
+            // measures "late" (post-first-cycle) notifications from.
+            OnDebounceTick = () =>
+            {
+                if (Volatile.Read(ref acting) == 0)
+                {
+                    return;
+                }
+
+                Interlocked.Increment(ref tickCount);
+                Interlocked.CompareExchange(ref notificationsAtFirstTick, Volatile.Read(ref notifications), -1);
+            },
+            // Fires once per raw file system notification for the database or
+            // -wal file, before debounce coalesces it. While acting, counts
+            // notifications so the tail assertion can tell a legitimate
+            // notification that arrived after the first debounce cycle
+            // (accounts for an extra publish) from a coalescing defect (an
+            // extra publish with no such notification to account for it).
+            OnNotificationObserved = () =>
+            {
+                if (Volatile.Read(ref acting) != 0)
+                {
+                    Interlocked.Increment(ref notifications);
+                }
+            }
         };
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
@@ -460,6 +488,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
         // act
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
         await SettleAsync(channel, testToken);
+        Volatile.Write(ref acting, 1);
 
         // A burst of writes to the db file within one debounce window resets
         // the same timer rather than each scheduling its own event. Issued
@@ -474,18 +503,17 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         var first = await ReadOneAsync(channel.Reader, testToken);
 
-        // No further event should follow once the burst settles. This is
-        // bd-hai's mechanism: notification delivery jitter under load can
-        // split one burst's events into two debounce cycles further apart
+        // This is bd-hai's mechanism: notification delivery jitter under load
+        // can split one burst's events into two debounce cycles further apart
         // than the writes themselves, which is a legitimate extra publish,
         // not a coalescing defect. Rather than widen this wait to tolerate
         // it (which would make the assertion blind to a real double-emit),
         // keep the original fixed wait and instead compare what was
-        // published against how many debounce cycles actually ran: an extra
-        // cycle from split delivery still coalesces one write into one
-        // event per cycle and so satisfies the inequality below, while a
-        // real coalescing bug (an event published without a matching cycle)
-        // still violates it.
+        // published against how many notifications actually arrived after
+        // the first debounce cycle fired: an extra publish is allowed only
+        // when a file system notification was delivered after that first
+        // cycle, so legitimate split delivery passes while any publish with
+        // no notification to account for it fails.
         await Task.Delay(s_burstDebounce * 2, testToken);
         cts.Cancel();
         await runTask;
@@ -497,11 +525,13 @@ public sealed class SqliteDbWatcherTests : IDisposable
             extraEvents++;
         }
 
+        var lateNotifications = Volatile.Read(ref notifications) - Math.Max(notificationsAtFirstTick, 0);
+
         // assert
         Assert.IsType<TuiEvent.DataChangedEvent>(first);
         Assert.True(
-            1 + extraEvents <= Volatile.Read(ref tickCount),
-            $"published {1 + extraEvents} events for {tickCount} debounce cycles");
+            extraEvents <= lateNotifications,
+            $"published {1 + extraEvents} events for {tickCount} debounce cycles with {lateNotifications} notifications delivered after the first cycle");
     }
 
     [Fact]

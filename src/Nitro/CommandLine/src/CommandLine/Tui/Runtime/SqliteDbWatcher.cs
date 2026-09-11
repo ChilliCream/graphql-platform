@@ -48,6 +48,19 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     internal Action? OnDebounceTick { get; init; }
 
     /// <summary>
+    /// Invoked synchronously in <c>OnEvent</c>, immediately after the debounce
+    /// timer is (re)armed for a raw file system notification on the database
+    /// or <c>-wal</c> file. Test-only seam: together with
+    /// <see cref="OnDebounceTick"/> it lets a test tell a notification that
+    /// arrived after the previous debounce cycle already fired (legitimate
+    /// split delivery, which still produces a matching cycle for its own
+    /// event) from a coalescing defect (an event published with no
+    /// notification to account for it). Production behaviour is unchanged;
+    /// the hook is a no-op unless a caller sets it.
+    /// </summary>
+    internal Action? OnNotificationObserved { get; init; }
+
+    /// <summary>
     /// Watches the database file until <paramref name="cancellationToken"/> is
     /// cancelled. When the parent directory does not exist or the file system does
     /// not support watching it, this returns without writing anything, so the
@@ -135,11 +148,13 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
             {
                 mainDatabaseChanged = true;
                 timer.Change(_debounce, Timeout.InfiniteTimeSpan);
+                OnNotificationObserved?.Invoke();
             }
             else if (e.Name == walFileName)
             {
                 walChanged = true;
                 timer.Change(_debounce, Timeout.InfiniteTimeSpan);
+                OnNotificationObserved?.Invoke();
             }
         }
 
