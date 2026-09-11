@@ -8,31 +8,55 @@
  * subgraph is a planet on its orbit (language = planet colour, specification =
  * ring style), a client is a probe launching from the rim, and an OpenAPI or
  * gRPC source is a moon captured into the same system.
+ *
+ * The palette is a mapping of sky role -> site token: every entry is a `CC.*`
+ * token, a `BRAND.*` accent (mixed with `color-mix` where the sky needs a wash)
+ * or `FONTS.mono`, so the concept carries no colour and no face of its own.
  */
 
+import { BRAND, CC, FONTS } from "../../brand";
+
 export const CN = {
-  /** Deep-sky backdrop, darker than the site surface. */
-  bg: "#04070f",
-  panel: "rgba(9,14,28,0.82)",
-  panelEdge: "rgba(150,175,235,0.16)",
-  /** Orbit lines and faint sky grid. */
-  orbit: "rgba(160,185,240,0.28)",
-  orbitFaint: "rgba(160,185,240,0.12)",
-  ink: "#d7dff4",
-  dim: "#7d8aad",
-  /** The star at the centre: the gateway. */
-  star: "#ffe7b4",
-  starCore: "#fffdf6",
-  /** A query in flight. */
-  beam: "#7fd6ff",
+  /** Deep-sky backdrop: the page background, so a scene never darkens the page. */
+  bg: CC.bg,
+  /** The glow the star casts over the sky: the surface with a cyan cast. */
+  sky: `color-mix(in srgb, ${BRAND.cyan} 10%, ${CC.surface})`,
+  /** Plates and log panels: the site's card surface. */
+  panel: CC.cardBg,
+  /** Plate edges: the site's card border. */
+  panelEdge: CC.cardBorder,
+  /** Orbit lines and faint sky grid: the brand slate at a wash. */
+  orbit: `color-mix(in srgb, ${BRAND.slate} 45%, transparent)`,
+  orbitFaint: `color-mix(in srgb, ${BRAND.slate} 20%, transparent)`,
+  /** Sky lettering: the brightest ink on the site. */
+  ink: CC.heading,
+  /** Secondary lettering under it. */
+  dim: CC.inkDim,
+  /** The star at the centre - the gateway - as the brand amber burning white. */
+  star: `color-mix(in srgb, ${BRAND.amber} 55%, ${CC.white})`,
+  starCore: `color-mix(in srgb, ${BRAND.amber} 12%, ${CC.white})`,
+  /** A query in flight: the brand cyan. */
+  beam: BRAND.cyan,
   /** Validated, safe. */
-  clear: "#5ce0b4",
+  clear: CC.success,
   /** Risky, held. */
-  caution: "#f2c14e",
+  caution: CC.warning,
   /** Collision, breaking, halted. */
-  alert: "#ff7a7a",
-  mono: "ui-monospace, SFMono-Regular, Menlo, monospace",
+  alert: CC.danger,
+  mono: FONTS.mono,
 } as const;
+
+/**
+ * The language a source schema's server is written in, as the brand accent its
+ * planet is drawn with; the set is the brand accents, never a new hue.
+ */
+export const LANGUAGE_COLOUR: Readonly<Record<string, string>> = {
+  "JS/TS": BRAND.amber,
+  Java: BRAND.coral,
+  Go: BRAND.cyan,
+  Ruby: BRAND.violet,
+  "C#": BRAND.green,
+};
 
 export type PlanetSpec = "GraphQL Federation" | "Apollo Federation";
 
@@ -59,7 +83,7 @@ export const PLANETS: readonly Planet[] = [
     name: "Catalog",
     language: "JS/TS",
     spec: "GraphQL Federation",
-    colour: "#e8c766",
+    colour: LANGUAGE_COLOUR["JS/TS"],
     radius: 92,
     angle: -34,
     period: 34,
@@ -68,7 +92,7 @@ export const PLANETS: readonly Planet[] = [
     name: "Billing",
     language: "Java",
     spec: "Apollo Federation",
-    colour: "#e58a6a",
+    colour: LANGUAGE_COLOUR["Java"],
     radius: 132,
     angle: 128,
     period: 48,
@@ -77,7 +101,7 @@ export const PLANETS: readonly Planet[] = [
     name: "Ordering",
     language: "Go",
     spec: "GraphQL Federation",
-    colour: "#6fd0ef",
+    colour: LANGUAGE_COLOUR["Go"],
     radius: 172,
     angle: 24,
     period: 62,
@@ -86,7 +110,7 @@ export const PLANETS: readonly Planet[] = [
     name: "Shipping",
     language: "Ruby",
     spec: "Apollo Federation",
-    colour: "#e277a6",
+    colour: LANGUAGE_COLOUR["Ruby"],
     radius: 212,
     angle: 196,
     period: 78,
@@ -95,7 +119,7 @@ export const PLANETS: readonly Planet[] = [
     name: "Accounts",
     language: "C#",
     spec: "GraphQL Federation",
-    colour: "#8fdcae",
+    colour: LANGUAGE_COLOUR["C#"],
     radius: 252,
     angle: 78,
     period: 96,

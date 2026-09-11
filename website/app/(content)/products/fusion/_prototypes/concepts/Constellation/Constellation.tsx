@@ -3,8 +3,10 @@ import type { ReactElement, ReactNode } from "react";
 
 import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { Link } from "@/src/design-system/Link";
 
+import { CC } from "../../brand";
 import { Scene } from "../../Primitives";
 import type { CopyLink, CopySection } from "../../copy";
 import { HERO, NITRO_BAND, SECTIONS } from "../../copy";
@@ -24,16 +26,21 @@ import { StarField } from "./StarField";
  * parallax starfield, each text block sits beside the observation that proves
  * its claim, and the page closes on the observatory's sky survey. All words
  * come from `../../copy`.
+ *
+ * The sky is built out of the site's own grid, type scale and tokens: the page
+ * keeps `bg-cc-bg`, every band is the shared `max-w-6xl` container on the
+ * site's vertical rhythm, and the night sky stays inside the bounded scene
+ * boxes and the hero scrim.
  */
 
-const PLATE_CLASS = "overflow-hidden rounded-2xl border";
+const PLATE_CLASS =
+  "border-cc-card-border bg-cc-card-bg overflow-hidden rounded-2xl border";
 
-const plateStyle = {
-  background: CN.panel,
-  borderColor: CN.panelEdge,
-} as const;
+/** Hero scrim: the page background itself, so the copy sits on the page colour. */
+const scrim = (percent: number) =>
+  `color-mix(in srgb, ${CC.bg} ${percent}%, transparent)`;
 
-const monoStyle = { fontFamily: CN.mono } as const;
+const HERO_SCRIM = `radial-gradient(125% 85% at 8% 50%, ${scrim(96)} 0%, ${scrim(86)} 40%, ${scrim(15)} 76%)`;
 
 /** Re-links the phrases the production page links, leaving the words untouched. */
 function withLinks(text: string, links: readonly CopyLink[]): ReactNode {
@@ -65,7 +72,7 @@ function InPractice({ links }: InPracticeProps) {
   if (links.length === 0) return null;
 
   return (
-    <p className="text-cc-ink-dim text-sm">
+    <p className="text-cc-ink-dim text-caption">
       In practice:{" "}
       {links.map((link, i) => (
         <Fragment key={link.href}>
@@ -94,19 +101,16 @@ interface OrbitLabelProps {
 /** The orbit marker that numbers a block, drawn as a ring around its index. */
 function OrbitLabel({ index, children }: OrbitLabelProps) {
   return (
-    <p
-      className="mb-4 flex items-center gap-3 text-[10px] tracking-[0.3em] uppercase"
-      style={{ ...monoStyle, color: CN.dim }}
-    >
+    <Eyebrow size="2xs" className="mb-4 flex items-center gap-3">
       <span
         aria-hidden="true"
-        className="inline-flex h-7 w-7 items-center justify-center rounded-full border"
-        style={{ borderColor: CN.orbit, color: CN.star }}
+        className="border-cc-card-border inline-flex h-7 w-7 items-center justify-center rounded-full border"
+        style={{ color: CN.star }}
       >
         {String(index).padStart(2, "0")}
       </span>
       {children}
-    </p>
+    </Eyebrow>
   );
 }
 
@@ -121,54 +125,50 @@ function Observation({ index, section, visual }: ObservationProps) {
   const flip = index % 2 === 0;
 
   return (
-    <PageSection maxWidth="6xl" className="py-16 sm:py-24">
-      <div id={section.id} className="grid items-center gap-10 lg:grid-cols-2">
-        <div className={flip ? "lg:order-2" : undefined}>
-          <OrbitLabel index={index}>{`Orbit ${index}`}</OrbitLabel>
-          <h2 className="text-cc-heading text-h3 font-heading mb-5">
-            {section.title}
-          </h2>
-          <div className="text-cc-ink-dim space-y-4 text-base">
-            {section.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{withLinks(paragraph, section.links)}</p>
-            ))}
-            <InPractice links={section.inPractice} />
+    <section className="border-cc-card-border border-t">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:px-12 sm:py-28">
+        <div
+          id={section.id}
+          className="grid items-center gap-10 lg:grid-cols-2"
+        >
+          <div className={flip ? "lg:order-2" : undefined}>
+            <OrbitLabel index={index}>{`Orbit ${index}`}</OrbitLabel>
+            <h2 className="text-cc-heading font-heading text-h4 sm:text-h3 mb-5">
+              {section.title}
+            </h2>
+            <div className="text-cc-ink text-body space-y-4">
+              {section.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{withLinks(paragraph, section.links)}</p>
+              ))}
+              <InPractice links={section.inPractice} />
+            </div>
+          </div>
+
+          <div className={`${PLATE_CLASS} ${flip ? "lg:order-1" : ""}`.trim()}>
+            <Scene ratio="16 / 11">{visual}</Scene>
           </div>
         </div>
-
-        <div
-          className={`${PLATE_CLASS} ${flip ? "lg:order-1" : ""}`.trim()}
-          style={plateStyle}
-        >
-          <Scene ratio="16 / 11">{visual}</Scene>
-        </div>
       </div>
-    </PageSection>
+    </section>
   );
 }
 
 export function Constellation() {
   return (
-    <div style={{ background: CN.bg }}>
+    <div className="bg-cc-bg">
       <section className="relative flex min-h-[88svh] items-center overflow-hidden">
         <StarField />
         <div
           aria-hidden="true"
           className="absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(125% 85% at 8% 50%, rgba(4,7,15,0.96) 0%, rgba(4,7,15,0.86) 40%, rgba(4,7,15,0.15) 76%)",
-          }}
+          style={{ background: HERO_SCRIM }}
         />
-        <PageSection maxWidth="6xl" className="relative py-24">
+        <PageSection maxWidth="7xl" className="relative w-full py-20 sm:py-28">
           <div className="max-w-xl">
-            <p
-              className="mb-5 text-[11px] tracking-[0.3em] uppercase"
-              style={{ ...monoStyle, color: CN.star }}
-            >
+            <Eyebrow color="accent" className="mb-5">
               {HERO.eyebrow}
-            </p>
-            <h1 className="text-cc-heading text-hero font-heading mb-6">
+            </Eyebrow>
+            <h1 className="text-cc-heading font-heading text-h2 sm:text-h1 mb-6">
               {HERO.title}
             </h1>
             <p className="text-cc-prose lead mb-8">{HERO.teaser}</p>
@@ -193,38 +193,36 @@ export function Constellation() {
         />
       ))}
 
-      <PageSection maxWidth="6xl" className="pb-24">
-        <div
-          id={NITRO_BAND.id}
-          className={`${PLATE_CLASS} p-8 sm:p-10`}
-          style={plateStyle}
-        >
-          <div className="grid items-center gap-8 lg:grid-cols-2">
-            <div>
-              <OrbitLabel index={SECTIONS.length + 1}>Observatory</OrbitLabel>
-              <h2 className="text-cc-heading text-h4 font-heading mb-4">
-                {NITRO_BAND.title}
-              </h2>
-              <p className="text-cc-ink-dim mb-6 text-base">
-                {NITRO_BAND.description}
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <SolidButton href={NITRO_BAND.buttons[0].href}>
-                  {NITRO_BAND.buttons[0].label}
-                </SolidButton>
-                <OutlineButton href={NITRO_BAND.buttons[1].href}>
-                  {NITRO_BAND.buttons[1].label}
-                </OutlineButton>
+      <section className="border-cc-card-border border-t">
+        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-12 sm:py-28">
+          <div id={NITRO_BAND.id} className={`${PLATE_CLASS} p-8 sm:p-10`}>
+            <div className="grid items-center gap-8 lg:grid-cols-2">
+              <div>
+                <OrbitLabel index={SECTIONS.length + 1}>Observatory</OrbitLabel>
+                <h2 className="text-cc-heading font-heading text-h4 mb-4">
+                  {NITRO_BAND.title}
+                </h2>
+                <p className="text-cc-ink text-body mb-6">
+                  {NITRO_BAND.description}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <SolidButton href={NITRO_BAND.buttons[0].href}>
+                    {NITRO_BAND.buttons[0].label}
+                  </SolidButton>
+                  <OutlineButton href={NITRO_BAND.buttons[1].href}>
+                    {NITRO_BAND.buttons[1].label}
+                  </OutlineButton>
+                </div>
               </div>
-            </div>
-            <div className={`${PLATE_CLASS}`} style={plateStyle}>
-              <Scene ratio="16 / 6">
-                <SkySurvey />
-              </Scene>
+              <div className={PLATE_CLASS}>
+                <Scene ratio="16 / 6">
+                  <SkySurvey />
+                </Scene>
+              </div>
             </div>
           </div>
         </div>
-      </PageSection>
+      </section>
     </div>
   );
 }
