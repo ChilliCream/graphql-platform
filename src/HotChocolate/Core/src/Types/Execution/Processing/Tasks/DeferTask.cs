@@ -58,7 +58,6 @@ internal sealed class DeferTask : ExecutionTask
 
             // we register our deferred tasks for execution ...
             deferContext.Scheduler.Register(bufferedTasks.AsSpan(0, i));
-            deferContext.Scheduler.DispatchPendingBatches();
         }
         finally
         {

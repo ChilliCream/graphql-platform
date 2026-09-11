@@ -8,6 +8,7 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class WorkScheduler
 {
+    private bool _isStartingParallelWork;
     private readonly Dictionary<SelectionPath, int> _activePaths = [];
 
     // Only entries for the same compiled selection occurrence and defer usage share a batch.
@@ -50,19 +51,6 @@ internal sealed partial class WorkScheduler
         }
     }
 
-    /// <summary>
-    /// Dispatches pending batches whose ancestor paths have completed.
-    /// </summary>
-    internal void DispatchPendingBatches()
-    {
-        AssertNotPooled();
-
-        lock (_sync)
-        {
-            TryDispatchPendingBatchesUnsafe();
-        }
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void IncrementPathCountUnsafe(SelectionPath path)
     {
@@ -100,7 +88,8 @@ internal sealed partial class WorkScheduler
 
         foreach (var (key, batchTask) in _pendingBatches)
         {
-            if (!CanDispatchBatchUnsafe(key.Selection.FieldSelectionPath))
+            if ((_isStartingParallelWork && key.Defer is not null)
+                || !CanDispatchBatchUnsafe(key.Selection.FieldSelectionPath))
             {
                 continue;
             }

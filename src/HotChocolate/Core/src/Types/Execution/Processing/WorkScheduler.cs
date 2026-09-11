@@ -42,6 +42,11 @@ internal sealed partial class WorkScheduler
             work.Push(task);
             RegisterBranchTaskUnsafe(task.BranchId);
 
+            if (task is Tasks.DeferTask { IsSerial: false })
+            {
+                _isStartingParallelWork = true;
+            }
+
             if (task is Tasks.ResolverTask { IsSerial: false } rt)
             {
                 IncrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
@@ -76,6 +81,11 @@ internal sealed partial class WorkScheduler
                 }
 
                 RegisterBranchTaskUnsafe(task.BranchId);
+
+                if (task is Tasks.DeferTask { IsSerial: false })
+                {
+                    _isStartingParallelWork = true;
+                }
 
                 if (task is Tasks.ResolverTask { IsSerial: false } rt)
                 {

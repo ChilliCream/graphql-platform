@@ -29,6 +29,11 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
         }
         finally
         {
+            lock (_sync)
+            {
+                _isStartingParallelWork = false;
+            }
+
             _buffer.AsSpan().Clear();
         }
     }
@@ -158,6 +163,9 @@ RESTART:
 
             if (isParallel)
             {
+                // Deferred producers register before awaiting their branches. Keep the
+                // registration barrier across buffers until the parallel queue is drained.
+                _isStartingParallelWork = true;
                 // The default behavior for tasks is that they can be executed in parallel.
                 // We will always try to dequeue multiple tasks at once so that we avoid having
                 // many lock interactions.
@@ -174,6 +182,8 @@ RESTART:
             }
             else
             {
+                _isStartingParallelWork = false;
+
                 // For serial work we dequeue one task at a time.
                 // Parallel work is always preferred, so we take a single serial task and see if
                 // this results in more parallel work.
@@ -182,6 +192,12 @@ RESTART:
                     size = 1;
                     buffer[0] = task;
                 }
+            }
+
+            if (size == 0)
+            {
+                _isStartingParallelWork = false;
+                TryDispatchPendingBatchesUnsafe();
             }
         }
 

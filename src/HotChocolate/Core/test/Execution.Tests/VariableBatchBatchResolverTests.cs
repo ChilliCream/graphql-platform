@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -7,6 +9,119 @@ namespace HotChocolate.Execution;
 
 public class VariableBatchBatchResolverTests
 {
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task DeferredBatch_Should_RegisterAllProducers_When_VariableSetsShareSelection(
+        bool exceedsBuffer,
+        bool reportError)
+    {
+        // arrange
+        var count = exceedsBuffer ? Environment.ProcessorCount * 2 + 1 : 2;
+        var sizes = new ConcurrentQueue<int>();
+        var arguments = new ConcurrentQueue<int>();
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Field("productById")
+                .Argument("id", a => a.Type<NonNullType<IntType>>())
+                .Type<ObjectType<BatchProduct>>()
+                .ResolveBatch(contexts =>
+                {
+                    sizes.Enqueue(contexts.Count);
+                    return new ValueTask<IReadOnlyList<ResolverResult>>(contexts.Select(context =>
+                    {
+                        var id = context.ArgumentValue<int>("id");
+                        arguments.Enqueue(id);
+                        if (reportError && id == 2)
+                        {
+                            context.ReportError("Product 2 failed.");
+                        }
+
+                        return ResolverResult.Ok(new BatchProduct(id, $"Product {id}"));
+                    }).ToArray());
+                }))
+            .ModifyOptions(o => o.EnableDefer = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = await executor.ExecuteAsync(OperationRequestBuilder.New()
+            .SetDocument("query($id:Int!){ ... @defer { productById(id:$id){name} } }")
+            .SetVariableValues(Enumerable.Range(1, count)
+                .Select(id => (IReadOnlyDictionary<string, object?>)
+                    new Dictionary<string, object?> { ["id"] = id }).ToList())
+            .Build(), cancellationToken: TestContext.Current.CancellationToken);
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        var outcomes = await Task.WhenAll(batch.Results.Select(ReadDeferredSetAsync));
+
+        // assert
+        Assert.Equal(new[] { count }, sizes.ToArray());
+        Assert.Equal(Enumerable.Range(1, count), arguments.Order());
+        Assert.Equal(Enumerable.Range(1, count).Select(id => new DeferredSet(
+            id - 1,
+            $"Product {id}",
+            reportError && id == 2 ? "Product 2 failed." : "")), outcomes);
+        if (!exceedsBuffer)
+        {
+            new Snapshot(postFix: reportError.ToString())
+                .Add(outcomes, "Per-set payloads and errors")
+                .Add(arguments.Order().ToArray(), "Per-set arguments")
+                .Add(sizes.ToArray(), "Invocations")
+                .MatchMarkdownSnapshot();
+        }
+    }
+
+    private static async Task<DeferredSet> ReadDeferredSetAsync(IExecutionResult result)
+    {
+        var index = -1;
+        var name = "";
+        var errors = new List<string>();
+        await foreach (var response in ((ResponseStream)result).ReadResultsAsync())
+        {
+            await using (response)
+            {
+                using var document = JsonDocument.Parse(response.ToJson());
+                Visit(document.RootElement);
+            }
+        }
+
+        return new DeferredSet(index, name, string.Join(";", errors));
+
+        void Visit(JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in element.EnumerateObject())
+                {
+                    switch (property.Name)
+                    {
+                        case "variableIndex":
+                            index = property.Value.GetInt32();
+                            break;
+                        case "name":
+                            name = property.Value.GetString()!;
+                            break;
+                        case "message":
+                            errors.Add(property.Value.GetString()!);
+                            break;
+                        default:
+                            Visit(property.Value);
+                            break;
+                    }
+                }
+            }
+            else if (element.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in element.EnumerateArray())
+                {
+                    Visit(item);
+                }
+            }
+        }
+    }
+
+    private sealed record DeferredSet(int VariableIndex, string Name, string Errors);
+
     [Theory]
     [InlineData("none", 0)]
     [InlineData("null", 1)]
