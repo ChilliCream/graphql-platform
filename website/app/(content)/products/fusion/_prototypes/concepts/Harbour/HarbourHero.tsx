@@ -1,12 +1,16 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { DUSK, LABEL, SHIPS } from "./palette";
+import { DUSK, HERO_FONT, LABEL, SHIPS } from "./palette";
 
 /**
- * Hero backdrop: a flat-vector harbour at dusk. The water shimmers, the
- * harbour master's tower sweeps its beam across the bay, and the ships of the
- * four clients ride at anchor in front of the lit warehouses on the quay.
+ * Hero scene: a flat-vector harbour at dusk. The water shimmers, the harbour
+ * master's tower sweeps its beam across the bay, and the ships of the four
+ * clients ride at anchor in front of the lit warehouses on the quay.
+ *
+ * The scene is drawn 1200 units wide inside its bounded stage, so a ship's
+ * name is set at `HERO_FONT.label` - the unit size that renders at the site's
+ * 11px label on a 375px screen.
  *
  * Rest state (reduced motion, or before hydration): the same harbour, still.
  */
@@ -62,23 +66,23 @@ interface HullProps {
 /** Flat hull silhouette; each client gets a different profile. */
 function Hull({ kind, length }: HullProps) {
   const l = length;
-  const deck = kind === "speedboat" ? 8 : kind === "drone" ? 6 : 14;
+  const deck = kind === "speedboat" ? 16 : kind === "drone" ? 12 : 26;
 
   return (
     <g>
       <path
-        d={`M0 0 H${l} L${l - 14} ${deck + 10} H12 Z`}
+        d={`M0 0 H${l} L${l - 26} ${deck + 18} H22 Z`}
         fill={DUSK.hull}
         opacity={0.92}
       />
       {kind === "liner" && (
         <>
-          <rect x={22} y={-22} width={l - 52} height={22} fill={DUSK.hull} />
+          <rect x={40} y={-40} width={l - 96} height={40} fill={DUSK.hull} />
           <rect
             x={l * 0.44}
-            y={-40}
-            width={20}
-            height={18}
+            y={-72}
+            width={36}
+            height={32}
             fill={DUSK.hull}
             opacity={0.8}
           />
@@ -86,12 +90,12 @@ function Hull({ kind, length }: HullProps) {
       )}
       {kind === "freighter" && (
         <>
-          <rect x={10} y={-16} width={l * 0.6} height={16} fill={DUSK.lamp} />
+          <rect x={18} y={-30} width={l * 0.6} height={30} fill={DUSK.lamp} />
           <rect
             x={l * 0.68}
-            y={-30}
-            width={26}
-            height={30}
+            y={-54}
+            width={46}
+            height={54}
             fill={DUSK.hull}
             opacity={0.85}
           />
@@ -100,9 +104,9 @@ function Hull({ kind, length }: HullProps) {
       {kind === "speedboat" && (
         <rect
           x={l * 0.3}
-          y={-14}
+          y={-26}
           width={l * 0.4}
-          height={14}
+          height={26}
           fill={DUSK.hull}
           opacity={0.85}
         />
@@ -111,23 +115,28 @@ function Hull({ kind, length }: HullProps) {
         <>
           <rect
             x={l * 0.34}
-            y={-10}
+            y={-18}
             width={l * 0.3}
-            height={10}
+            height={18}
             fill={DUSK.accent}
           />
-          <circle cx={l / 2} cy={-20} r={4} fill={DUSK.accent} />
+          <circle cx={l / 2} cy={-36} r={7} fill={DUSK.accent} />
         </>
       )}
     </g>
   );
 }
 
+/**
+ * Two ranks of anchored ships: the far rank rides between the pier and the
+ * open water, the near rank in the foreground, so every name is set clear of
+ * the hull next to it.
+ */
 const FLEET = [
-  { ship: SHIPS[0], x: 296, y: 556, delay: 0 },
-  { ship: SHIPS[1], x: 690, y: 502, delay: 1.6 },
-  { ship: SHIPS[2], x: 852, y: 622, delay: 0.8 },
-  { ship: SHIPS[3], x: 1024, y: 470, delay: 2.4 },
+  { ship: SHIPS[1], x: 430, y: 470, delay: 1.6 },
+  { ship: SHIPS[3], x: 880, y: 470, delay: 2.4 },
+  { ship: SHIPS[0], x: 60, y: 600, delay: 0 },
+  { ship: SHIPS[2], x: 560, y: 600, delay: 0.8 },
 ];
 
 export function HarbourHero() {
@@ -141,12 +150,7 @@ export function HarbourHero() {
       data-run={run ? "true" : "false"}
     >
       <style>{CSS}</style>
-      <svg
-        viewBox="0 0 1200 700"
-        preserveAspectRatio="xMidYMid slice"
-        className="h-full w-full"
-        aria-hidden="true"
-      >
+      <svg viewBox="0 0 1200 700" className="h-full w-full" aria-hidden="true">
         <defs>
           <linearGradient id="hbr-sky" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={DUSK.skyTop} />
@@ -285,22 +289,23 @@ export function HarbourHero() {
               <Hull kind={ship.kind} length={ship.length} />
               <line
                 className="hbr-a-wake"
-                x1={ship.length + 8}
-                y1={12}
-                x2={ship.length + 116}
-                y2={12}
+                x1={ship.length + 12}
+                y1={22}
+                x2={ship.length + 148}
+                y2={22}
                 stroke={DUSK.shimmer}
-                strokeWidth={2}
-                strokeDasharray="10 14"
+                strokeWidth={3}
+                strokeDasharray="14 18"
                 opacity="0.5"
               />
               <text
-                x={0}
-                y={34}
+                x={ship.length / 2}
+                y={56 + HERO_FONT.label}
+                textAnchor="middle"
                 fill={DUSK.ink}
-                fontSize={13}
+                fontSize={HERO_FONT.label}
                 style={LABEL}
-                opacity="0.85"
+                opacity="0.9"
               >
                 {ship.name.toUpperCase()}
               </text>

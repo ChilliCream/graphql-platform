@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { DUSK, LABEL, WAREHOUSES } from "./palette";
+import { DUSK, FONT, LABEL, WAREHOUSES } from "./palette";
 
 /**
  * "What is Fusion?": one manifest, one pier, one ship. The four lines of the
@@ -37,8 +37,9 @@ const CSS = `
 }
 `;
 
-const DOOR_Y = 96;
+const DOOR_Y = 120;
 const DECK_Y = 322;
+const CRATE_W = 60;
 
 const CARGO = [
   { color: DUSK.accent, field: "product" },
@@ -50,18 +51,18 @@ const CARGO = [
 /** Warehouse doors along the quay, evenly spaced across the viewBox. */
 const DOORS = WAREHOUSES.map((w, i) => ({
   warehouse: w,
-  x: 20 + i * 124,
-  w: 104,
+  x: 12 + i * 126,
+  w: 110,
 }));
 
 /** Deck slots on the one ship; container i is loaded into slot i. */
-const SLOTS = CARGO.map((_, i) => ({ x: 232 + i * 52 }));
+const SLOTS = CARGO.map((_, i) => ({ x: 252 + i * 72 }));
 
 function cargoStyle(index: number): CSSProperties {
   const door = DOORS[index];
   const slot = SLOTS[index];
   return {
-    "--dx": `${door.x + door.w / 2 - 22 - slot.x}px`,
+    "--dx": `${door.x + door.w / 2 - CRATE_W / 2 - slot.x}px`,
     "--dy": `${DOOR_Y - DECK_Y}px`,
     animationDelay: `${index * 0.45}s`,
   } as CSSProperties;
@@ -83,36 +84,36 @@ export function ManifestPier() {
         <rect x="0" y="372" width="640" height="108" fill={DUSK.waterDeep} />
 
         {/* Quay with one warehouse per subgraph */}
-        <rect x="0" y="96" width="640" height="14" fill={DUSK.quay} />
+        <rect x="0" y="120" width="640" height="16" fill={DUSK.quay} />
         {DOORS.map(({ warehouse, x, w }, i) => (
           <g key={warehouse.name}>
             <path
-              d={`M${x} 40 L${x + w / 2} 18 L${x + w} 40 Z`}
+              d={`M${x} 56 L${x + w / 2} 28 L${x + w} 56 Z`}
               fill={DUSK.quayTop}
             />
             <rect
               x={x}
-              y={40}
+              y={56}
               width={w}
-              height={56}
+              height={64}
               fill={DUSK.quay}
               stroke={DUSK.edge}
             />
             <text
               x={x + w / 2}
-              y={66}
+              y={86}
               textAnchor="middle"
               fill={DUSK.heading}
-              fontSize={14}
+              fontSize={FONT.label}
             >
               {warehouse.name}
             </text>
             <text
               x={x + w / 2}
-              y={84}
+              y={112}
               textAnchor="middle"
               fill={DUSK.ink}
-              fontSize={10}
+              fontSize={FONT.label}
               style={LABEL}
             >
               {warehouse.language}
@@ -121,8 +122,8 @@ export function ManifestPier() {
               <line
                 className="hbr-p-cable"
                 x1={x + w / 2}
-                y1={110}
-                x2={SLOTS[i].x + 22}
+                y1={136}
+                x2={SLOTS[i].x + CRATE_W / 2}
                 y2={DECK_Y}
                 stroke={CARGO[i].color}
                 strokeWidth={1.5}
@@ -136,15 +137,21 @@ export function ManifestPier() {
         {/* The manifest: one query, four lines */}
         <g>
           <rect
-            x="18"
+            x="16"
             y="176"
-            width="176"
-            height="128"
+            width="216"
+            height="140"
             rx="10"
             fill={DUSK.quay}
             stroke={DUSK.edge}
           />
-          <text x="34" y="200" fill={DUSK.ink} fontSize={10} style={LABEL}>
+          <text
+            x="34"
+            y="206"
+            fill={DUSK.ink}
+            fontSize={FONT.label}
+            style={LABEL}
+          >
             ONE QUERY
           </text>
           {CARGO.map((c, i) => (
@@ -155,17 +162,17 @@ export function ManifestPier() {
             >
               <rect
                 x={34}
-                y={212 + i * 22}
-                width={10}
-                height={10}
-                rx={2}
+                y={222 + i * 28}
+                width={14}
+                height={14}
+                rx={3}
                 fill={c.color}
               />
               <text
-                x={52}
-                y={221 + i * 22}
+                x={60}
+                y={234 + i * 28}
                 fill={DUSK.heading}
-                fontSize={12}
+                fontSize={FONT.label}
                 style={LABEL}
               >
                 {c.field}
@@ -185,7 +192,13 @@ export function ManifestPier() {
         />
         <rect x="212" y="362" width="8" height="26" fill={DUSK.quay} />
         <rect x="576" y="362" width="8" height="26" fill={DUSK.quay} />
-        <text x="206" y="404" fill={DUSK.ink} fontSize={10} style={LABEL}>
+        <text
+          x="206"
+          y="416"
+          fill={DUSK.ink}
+          fontSize={FONT.label}
+          style={LABEL}
+        >
           ONE PIER
         </text>
 
@@ -201,7 +214,7 @@ export function ManifestPier() {
               <rect
                 x={SLOTS[i].x}
                 y={DECK_Y}
-                width={44}
+                width={CRATE_W}
                 height={30}
                 rx={3}
                 fill={c.color}
@@ -210,7 +223,7 @@ export function ManifestPier() {
               <rect
                 x={SLOTS[i].x}
                 y={DECK_Y}
-                width={44}
+                width={CRATE_W}
                 height={30}
                 rx={3}
                 fill="none"
@@ -219,13 +232,13 @@ export function ManifestPier() {
               />
             </g>
           ))}
-          <rect x="452" y="330" width="26" height="22" fill={DUSK.hull} />
+          <rect x="212" y="330" width="30" height="22" fill={DUSK.hull} />
           <text
             x="596"
-            y="346"
+            y="344"
             textAnchor="end"
             fill={DUSK.ink}
-            fontSize={10}
+            fontSize={FONT.label}
             style={LABEL}
           >
             ONE RESPONSE
