@@ -240,7 +240,7 @@ public class ObjectFieldDescriptor
                     definition.ResolverMember ?? definition.Member,
                     _parameterInfos,
                     definition.GetParameterExpressionBuilders(),
-                    IsBatchResolver());
+                    Configuration.IsBatchResolver);
 
                 FieldDescriptorUtilities.DiscoverParentRequirements(_parameterInfos, Configuration);
             }
@@ -598,9 +598,6 @@ public class ObjectFieldDescriptor
         Configuration.SetFieldRequirements(requires, Configuration.SourceType);
         return this;
     }
-
-    private bool IsBatchResolver()
-        => (Configuration.Flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver;
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>

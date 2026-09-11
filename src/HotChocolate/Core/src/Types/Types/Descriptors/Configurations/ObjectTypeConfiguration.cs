@@ -250,7 +250,7 @@ public class ObjectTypeConfiguration
             if (field.Member is MethodInfo p && p.GetParameters() is { Length: > 0 } parameters)
             {
                 var parent = parameters.FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute), true));
-                if (parent is not null && !IsParentCompatible(parent.ParameterType, target.RuntimeType, field.Flags))
+                if (parent is not null && !IsParentCompatible(parent.ParameterType, target.RuntimeType, field.IsBatchResolver))
                 {
                     continue;
                 }
@@ -303,7 +303,7 @@ public class ObjectTypeConfiguration
         }
     }
 
-    private static bool IsParentCompatible(Type parentType, Type targetType, CoreFieldFlags flags)
+    private static bool IsParentCompatible(Type parentType, Type targetType, bool isBatchResolver)
     {
         if (parentType.IsAssignableFrom(targetType)
             || targetType.IsAssignableFrom(parentType))
@@ -312,7 +312,7 @@ public class ObjectTypeConfiguration
         }
 
         // For batch resolvers, the parent parameter is a list of the target type.
-        if ((flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver)
+        if (isBatchResolver)
         {
             var elementType = Resolvers.BatchResolverCompiler.GetListElementType(parentType);
             if (elementType is not null

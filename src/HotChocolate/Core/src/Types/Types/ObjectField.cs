@@ -151,6 +151,7 @@ public sealed class ObjectField : OutputField
     {
         var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
         var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
+        var batchMiddlewareDefinitions = definition.GetBatchMiddlewareDefinitions();
         var options = context.DescriptorContext.Options;
         var isMutation = ((RegisteredType)context).IsMutationType ?? false;
 
@@ -168,6 +169,7 @@ public sealed class ObjectField : OutputField
         if (Directives.Count > 0)
         {
             List<FieldMiddlewareConfiguration>? middlewareDefinitions = null;
+            List<BatchFieldMiddlewareConfiguration>? batchDefinitions = null;
 
             for (var i = Directives.Count - 1; i >= 0; i--)
             {
@@ -179,11 +181,23 @@ public sealed class ObjectField : OutputField
                         0,
                         new FieldMiddlewareConfiguration(next => m(next, directive)));
                 }
+
+                if (directive.Type.BatchMiddleware is { } bm)
+                {
+                    (batchDefinitions ??= batchMiddlewareDefinitions.ToList()).Insert(
+                        0,
+                        new BatchFieldMiddlewareConfiguration(next => bm(next, directive)));
+                }
             }
 
             if (middlewareDefinitions is not null)
             {
                 fieldMiddlewareDefinitions = middlewareDefinitions;
+            }
+
+            if (batchDefinitions is not null)
+            {
+                batchMiddlewareDefinitions = batchDefinitions;
             }
         }
 
@@ -241,7 +255,7 @@ public sealed class ObjectField : OutputField
         {
             BatchPartitionKeyResolver = definition.BatchPartitionKeyResolver;
             BatchResolver = CompileBatchPipeline(
-                definition.GetBatchMiddlewareDefinitions(),
+                batchMiddlewareDefinitions,
                 definition.GetResultConverters(),
                 definition.BatchResolver);
         }

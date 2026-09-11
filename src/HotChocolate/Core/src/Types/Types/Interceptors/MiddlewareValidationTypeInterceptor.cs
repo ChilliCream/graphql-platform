@@ -2,17 +2,12 @@ using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
+using static HotChocolate.Utilities.MiddlewareNames;
 
 namespace HotChocolate.Types.Interceptors;
 
 internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 {
-    private const string UseDbContext = "UseDbContext";
-    private const string UsePaging = "UsePaging";
-    private const string UseProjection = "UseProjection";
-    private const string UseFiltering = "UseFiltering";
-    private const string UseSorting = "UseSorting";
-
     private readonly HashSet<string> _names = [];
 
     public override void OnAfterCompleteType(
@@ -144,44 +139,11 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
 
         foreach (var definition in middlewareDefinitions)
         {
-            if (definition.Key is not null)
+            if (GetDisplayName(definition.Key) is { } name)
             {
-                switch (definition.Key)
-                {
-                    case WellKnownMiddleware.DbContext:
-                        other = false;
-                        PrintNext();
-                        sb.Append(UseDbContext);
-                        break;
-
-                    case WellKnownMiddleware.Paging:
-                        other = false;
-                        PrintNext();
-                        sb.Append(UsePaging);
-                        break;
-
-                    case WellKnownMiddleware.Projection:
-                        other = false;
-                        PrintNext();
-                        sb.Append(UseProjection);
-                        break;
-
-                    case WellKnownMiddleware.Filtering:
-                        other = false;
-                        PrintNext();
-                        sb.Append(UseFiltering);
-                        break;
-
-                    case WellKnownMiddleware.Sorting:
-                        other = false;
-                        PrintNext();
-                        sb.Append(UseSorting);
-                        break;
-
-                    default:
-                        PrintOther();
-                        break;
-                }
+                other = false;
+                PrintNext();
+                sb.Append(name);
             }
             else
             {

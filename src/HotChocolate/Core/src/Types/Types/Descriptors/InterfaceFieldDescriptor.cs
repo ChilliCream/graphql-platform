@@ -97,16 +97,13 @@ public class InterfaceFieldDescriptor
                 definition.ResolverMember ?? definition.Member,
                 _parameterInfos,
                 definition.GetParameterExpressionBuilders(),
-                IsBatchResolver());
+                Configuration.IsBatchResolver);
 
             FieldDescriptorUtilities.DiscoverParentRequirements(_parameterInfos, Configuration);
 
             _argumentsInitialized = true;
         }
     }
-
-    private bool IsBatchResolver()
-        => (Configuration.Flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver;
 
     public new IInterfaceFieldDescriptor Name(string name)
     {
