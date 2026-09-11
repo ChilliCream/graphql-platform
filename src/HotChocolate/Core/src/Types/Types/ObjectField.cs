@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -41,6 +42,8 @@ public sealed class ObjectField : OutputField
         SubscribeResolver = original.SubscribeResolver;
         ResultPostProcessor = original.ResultPostProcessor;
         PureResolver = original.PureResolver;
+        BatchResolver = original.BatchResolver;
+        BatchPartitionKeyResolver = original.BatchPartitionKeyResolver;
         DependencyInjectionScope = original.DependencyInjectionScope;
         Middleware = original.Middleware;
         Flags = original.Flags;
@@ -103,6 +106,8 @@ public sealed class ObjectField : OutputField
     /// </summary>
     public BatchFieldDelegate? BatchResolver { get; private set; }
 
+    internal BatchPartitionKeyResolver? BatchPartitionKeyResolver { get; private set; }
+
     /// <summary>
     /// Gets the result post-processor.
     /// </summary>
@@ -146,6 +151,7 @@ public sealed class ObjectField : OutputField
     {
         var isIntrospectionField = IsIntrospectionField || DeclaringType.IsIntrospectionType();
         var fieldMiddlewareDefinitions = definition.GetMiddlewareDefinitions();
+        var batchMiddlewareDefinitions = definition.GetBatchMiddlewareDefinitions();
         var options = context.DescriptorContext.Options;
         var isMutation = ((RegisteredType)context).IsMutationType ?? false;
 
@@ -163,6 +169,7 @@ public sealed class ObjectField : OutputField
         if (Directives.Count > 0)
         {
             List<FieldMiddlewareConfiguration>? middlewareDefinitions = null;
+            List<BatchFieldMiddlewareConfiguration>? batchDefinitions = null;
 
             for (var i = Directives.Count - 1; i >= 0; i--)
             {
@@ -174,11 +181,23 @@ public sealed class ObjectField : OutputField
                         0,
                         new FieldMiddlewareConfiguration(next => m(next, directive)));
                 }
+
+                if (directive.Type.BatchMiddleware is { } bm)
+                {
+                    (batchDefinitions ??= batchMiddlewareDefinitions.ToList()).Insert(
+                        0,
+                        new BatchFieldMiddlewareConfiguration(next => bm(next, directive)));
+                }
             }
 
             if (middlewareDefinitions is not null)
             {
                 fieldMiddlewareDefinitions = middlewareDefinitions;
+            }
+
+            if (batchDefinitions is not null)
+            {
+                batchMiddlewareDefinitions = batchDefinitions;
             }
         }
 
@@ -189,7 +208,7 @@ public sealed class ObjectField : OutputField
         var resolvers = definition.Resolvers;
         Resolver = resolvers.Resolver;
 
-        if (resolvers.PureResolver is not null)
+        if (definition.BatchResolver is null && resolvers.PureResolver is not null)
         {
             Flags |= CoreFieldFlags.HasPureResolver;
 
@@ -208,7 +227,7 @@ public sealed class ObjectField : OutputField
             IsParallelExecutable = true;
         }
 
-        var middleware = FieldMiddlewareCompiler.Compile(
+        var middleware = definition.BatchResolver is not null ? null : FieldMiddlewareCompiler.Compile(
             context.GlobalComponents,
             fieldMiddlewareDefinitions,
             definition.GetResultConverters(),
@@ -234,8 +253,10 @@ public sealed class ObjectField : OutputField
         // Compile the batch resolver pipeline if a batch resolver is configured.
         if (definition.BatchResolver is not null)
         {
+            BatchPartitionKeyResolver = definition.BatchPartitionKeyResolver;
             BatchResolver = CompileBatchPipeline(
-                definition.GetBatchMiddlewareDefinitions(),
+                batchMiddlewareDefinitions,
+                definition.GetResultConverters(),
                 definition.BatchResolver);
         }
 
@@ -274,14 +295,49 @@ public sealed class ObjectField : OutputField
 
     private static BatchFieldDelegate CompileBatchPipeline(
         IReadOnlyList<BatchFieldMiddlewareConfiguration> middlewareComponents,
+        IReadOnlyList<ResultFormatterConfiguration> resultFormatters,
         BatchFieldDelegate batchResolver)
     {
-        if (middlewareComponents is not { Count: > 0 })
+        if (FieldMiddlewareCompiler.CompileResultFormatter(resultFormatters) is { } formatter)
         {
-            return batchResolver;
+            var resolver = batchResolver;
+            batchResolver = async contexts =>
+            {
+                await resolver(contexts).ConfigureAwait(false);
+
+                foreach (var context in contexts)
+                {
+                    context.Result = formatter(context, context.Result);
+                }
+            };
         }
 
-        var next = batchResolver;
+        BatchFieldDelegate next = contexts =>
+        {
+            ImmutableArray<IMiddlewareContext>.Builder? survivors = null;
+
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                if (contexts[i].IsResultModified || contexts[i].HasErrors)
+                {
+                    if (survivors is null)
+                    {
+                        survivors = ImmutableArray.CreateBuilder<IMiddlewareContext>(contexts.Length - 1);
+                        for (var j = 0; j < i; j++)
+                        {
+                            survivors.Add(contexts[j]);
+                        }
+                    }
+                }
+                else
+                {
+                    survivors?.Add(contexts[i]);
+                }
+            }
+
+            var dispatch = survivors?.ToImmutable() ?? contexts;
+            return dispatch.IsDefaultOrEmpty ? ValueTask.CompletedTask : batchResolver(dispatch);
+        };
 
         for (var i = middlewareComponents.Count - 1; i >= 0; i--)
         {

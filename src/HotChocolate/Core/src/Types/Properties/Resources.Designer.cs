@@ -422,5 +422,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("VariableCoercionHelper_CoerceVariableValues_VariablesMustBeObject", resourceCulture);
             }
         }
+
+        internal static string ThrowHelper_DirectiveNotSupportedOnBatchSelection {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DirectiveNotSupportedOnBatchSelection", resourceCulture);
+            }
+        }
     }
 }

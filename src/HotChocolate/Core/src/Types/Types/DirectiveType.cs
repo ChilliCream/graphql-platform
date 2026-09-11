@@ -109,6 +109,11 @@ public partial class DirectiveType
     public DirectiveMiddleware? Middleware { get; private set; }
 
     /// <summary>
+    /// Gets the directive batch middleware, or <c>null</c> when none is configured.
+    /// </summary>
+    public BatchDirectiveMiddleware? BatchMiddleware { get; private set; }
+
+    /// <summary>
     /// <para>Defines that this directive can be used in executable GraphQL documents.</para>
     /// <para>
     /// In order to be executable a directive must at least be valid

@@ -42,7 +42,12 @@ internal sealed partial class WorkScheduler
             work.Push(task);
             RegisterBranchTaskUnsafe(task.BranchId);
 
-            if (task is Tasks.ResolverTask rt)
+            if (task is Tasks.DeferTask { IsSerial: false })
+            {
+                _isStartingParallelWork = true;
+            }
+
+            if (task is Tasks.ResolverTask { IsSerial: false } rt)
             {
                 IncrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
             }
@@ -77,7 +82,12 @@ internal sealed partial class WorkScheduler
 
                 RegisterBranchTaskUnsafe(task.BranchId);
 
-                if (task is Tasks.ResolverTask rt)
+                if (task is Tasks.DeferTask { IsSerial: false })
+                {
+                    _isStartingParallelWork = true;
+                }
+
+                if (task is Tasks.ResolverTask { IsSerial: false } rt)
                 {
                     IncrementPathCountUnsafe(rt.Selection.FieldSelectionPath);
                 }
@@ -106,13 +116,14 @@ internal sealed partial class WorkScheduler
             case Tasks.ResolverTask resolverTask:
                 CompleteBranchTask(task.BranchId);
 
-                if (work.Complete())
+                lock (_sync)
                 {
-                    lock (_sync)
+                    if (work.Complete())
                     {
                         _completed.Add(resolverTask.Id);
-                        DecrementPathCountUnsafe(resolverTask.FieldSelectionPath);
                     }
+
+                    DecrementPathCountUnsafe(resolverTask.FieldSelectionPath);
                 }
                 break;
 
@@ -127,8 +138,9 @@ internal sealed partial class WorkScheduler
                     if (work.Complete())
                     {
                         _completed.Add(task.Id);
-                        DecrementPathCountUnsafe(batchResolverTask.FieldSelectionPath);
                     }
+
+                    DecrementPathCountUnsafe(batchResolverTask.FieldSelectionPath);
                 }
                 break;
 

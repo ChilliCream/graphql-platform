@@ -10,9 +10,18 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
     /// <summary>
     /// Execute the work.
     /// </summary>
-    public async Task ExecuteAsync1()
+    public async Task ExecuteAsync()
     {
         AssertNotPooled();
+
+        // Flush any batch entries that were registered while the root selection set
+        // was being enqueued. Root batches have no ancestor task whose completion
+        // would trigger DecrementPathCountUnsafe, so the engine self-kicks here
+        // before entering the work loop.
+        lock (_sync)
+        {
+            TryDispatchPendingBatchesUnsafe();
+        }
 
         try
         {
@@ -20,6 +29,11 @@ internal sealed partial class WorkScheduler : IObserver<BatchDispatchEventArgs>
         }
         finally
         {
+            lock (_sync)
+            {
+                _isStartingParallelWork = false;
+            }
+
             _buffer.AsSpan().Clear();
         }
     }
@@ -73,6 +87,15 @@ RESTART:
                     }
                     else
                     {
+                        // Serial resolver paths are active only while their step is running.
+                        if (first is Tasks.ResolverTask resolverTask)
+                        {
+                            lock (_sync)
+                            {
+                                IncrementPathCountUnsafe(resolverTask.FieldSelectionPath);
+                            }
+                        }
+
                         first.BeginExecute(_ct);
                         await WaitForTask(first.Id).ConfigureAwait(false);
                         buffer[0] = null;
@@ -140,6 +163,9 @@ RESTART:
 
             if (isParallel)
             {
+                // Deferred producers register before awaiting their branches. Keep the
+                // registration barrier across buffers until the parallel queue is drained.
+                _isStartingParallelWork = true;
                 // The default behavior for tasks is that they can be executed in parallel.
                 // We will always try to dequeue multiple tasks at once so that we avoid having
                 // many lock interactions.
@@ -156,6 +182,8 @@ RESTART:
             }
             else
             {
+                _isStartingParallelWork = false;
+
                 // For serial work we dequeue one task at a time.
                 // Parallel work is always preferred, so we take a single serial task and see if
                 // this results in more parallel work.
@@ -164,6 +192,12 @@ RESTART:
                     size = 1;
                     buffer[0] = task;
                 }
+            }
+
+            if (size == 0)
+            {
+                _isStartingParallelWork = false;
+                TryDispatchPendingBatchesUnsafe();
             }
         }
 
@@ -219,6 +253,23 @@ RESTART:
         }
 
         var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
+
+        if (!hasWork
+            && !_work.HasRunningTasks
+            && !_serial.HasRunningTasks
+            && _pendingBatches.Count > 0)
+        {
+            foreach (var (_, batchTask) in _pendingBatches)
+            {
+                batchTask.Id = Interlocked.Increment(ref _nextId);
+                batchTask.IsRegistered = true;
+                _work.Push(batchTask);
+            }
+
+            _pendingBatches.Clear();
+            _signal.Set();
+            return;
+        }
 
         if (isWaitingForTaskCompletion)
         {

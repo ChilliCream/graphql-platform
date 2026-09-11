@@ -36,6 +36,11 @@ public sealed class LookupReturnsListTypeAnalyzer : DiagnosticAnalyzer
             return;
         }
 
+        if (HasBatchResolverAttribute(methodSymbol))
+        {
+            return;
+        }
+
         var returnType = context.Compilation.IsTaskOrValueTask(methodSymbol.ReturnType, out var innerType)
             ? innerType
             : methodSymbol.ReturnType;
@@ -85,6 +90,19 @@ public sealed class LookupReturnsListTypeAnalyzer : DiagnosticAnalyzer
 
     private static bool IsListType(ITypeSymbol typeSymbol)
         => typeSymbol is IArrayTypeSymbol || typeSymbol.IsListType(out _);
+
+    private static bool HasBatchResolverAttribute(IMethodSymbol methodSymbol)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == WellKnownAttributes.BatchResolverAttribute)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static bool HasLookupAttribute(
         SyntaxNodeAnalysisContext context,

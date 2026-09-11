@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Helpers;
@@ -247,7 +248,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         fieldName);
                 }
 
-                if (resolver.Kind is ResolverKind.ConnectionResolver)
+                if (resolver.IsConnectionResolver)
                 {
                     Writer.WriteIndentedLine(
                         ".AddPagingArguments()");
@@ -347,7 +348,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         WriteFieldFlags(resolver);
 
-        if (resolver.Kind is ResolverKind.ConnectionResolver)
+        if (resolver.IsConnectionResolver)
         {
             Writer.WriteIndentedLine(
                 "var pagingOptions = global::{0}.GetPagingOptions(field.Context, null);",
@@ -500,7 +501,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         if (resolver.DescriptorAttributes.Length > 0
             || resolver.IsNodeResolver
-            || resolver.Kind is ResolverKind.ConnectionResolver)
+            || resolver.IsConnectionResolver)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine("configuration.Member = context.ThisType.GetMethod(");
@@ -548,7 +549,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             }
         }
 
-        var needsUseConnection = resolver.Kind is ResolverKind.ConnectionResolver
+        var needsUseConnection = resolver.IsConnectionResolver
             && !resolver.DescriptorAttributes.Any(a =>
                 a.AttributeClass?.ToDisplayString() == WellKnownAttributes.UseConnectionAttribute);
 
@@ -663,7 +664,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             Writer.WriteIndentedLine("configuration.SetBatchResolverFlags();");
         }
 
-        if (resolver.Kind is ResolverKind.ConnectionResolver)
+        if (resolver.IsConnectionResolver)
         {
             Writer.WriteIndentedLine("configuration.SetConnectionFlags();");
         }
@@ -1253,6 +1254,10 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             i);
                         break;
 
+                    case ResolverParameterKind.PagingArguments:
+                        WritePagingArguments(i, "contexts[0]");
+                        break;
+
                     case ResolverParameterKind.ClaimsPrincipal:
                         Writer.WriteIndentedLine(
                             "var args{0} = contexts[0].GetGlobalState<global::{1}>(\"ClaimsPrincipal\");",
@@ -1384,7 +1389,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                 if (parameter.Kind is ResolverParameterKind.Parent
                     or ResolverParameterKind.Argument
-                    or ResolverParameterKind.Unknown)
+                    || (parameter.Kind is ResolverParameterKind.Unknown
+                        && TryGetListElementType(parameter.Type, out _)))
                 {
                     hasBatchedParams = true;
                     break;
@@ -1517,17 +1523,142 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
     private static string GetListElementType(ITypeSymbol type)
     {
+        if (TryGetListElementType(type, out var elementType))
+        {
+            return elementType;
+        }
+
+        return type.ToFullyQualified();
+    }
+
+    private static bool TryGetListElementType(
+        ITypeSymbol type,
+        [NotNullWhen(true)] out string? elementType)
+    {
         if (type is IArrayTypeSymbol arrayType)
         {
-            return arrayType.ElementType.ToFullyQualified();
+            elementType = arrayType.ElementType.ToFullyQualified();
+            return true;
         }
 
         if (type is INamedTypeSymbol { IsGenericType: true } namedType)
         {
-            return namedType.TypeArguments[0].ToFullyQualified();
+            var typeDefinition = namedType.ConstructUnboundGenericType().ToDisplayString();
+
+            if (WellKnownTypes.SupportedListInterfaces.Contains(typeDefinition)
+                || typeDefinition.Equals(
+                    WellKnownTypes.EnumerableDefinition,
+                    StringComparison.Ordinal))
+            {
+                elementType = namedType.TypeArguments[0].ToFullyQualified();
+                return true;
+            }
+
+            foreach (var interfaceType in namedType.AllInterfaces)
+            {
+                if (!interfaceType.IsGenericType)
+                {
+                    continue;
+                }
+
+                var interfaceTypeDefinition = interfaceType.ConstructUnboundGenericType().ToDisplayString();
+                if (WellKnownTypes.SupportedListInterfaces.Contains(interfaceTypeDefinition))
+                {
+                    elementType = interfaceType.TypeArguments[0].ToFullyQualified();
+                    return true;
+                }
+            }
         }
 
-        return type.ToFullyQualified();
+        elementType = null;
+        return false;
+    }
+
+    private void WritePagingArguments(int i, string context)
+    {
+        Writer.WriteIndentedLine(
+            "var args{0}_options = global::{1}.GetPagingOptions({2}.Schema, {2}.Selection.Field);",
+            i,
+            WellKnownTypes.PagingHelper,
+            context);
+        Writer.WriteIndentedLine(
+            "var args{0}_flags = global::{1}.GetConnectionFlags({2});",
+            i,
+            WellKnownTypes.ConnectionFlagsHelper,
+            context);
+        Writer.WriteIndentedLine("var args{0}_first = {1}.ArgumentValue<int?>(\"first\");", i, context);
+        Writer.WriteIndentedLine("var args{0}_after = {1}.ArgumentValue<string?>(\"after\");", i, context);
+        Writer.WriteIndentedLine("int? args{0}_last = null;", i);
+        Writer.WriteIndentedLine("string? args{0}_before = null;", i);
+        Writer.WriteIndentedLine("bool args{0}_includeTotalCount = false;", i);
+        Writer.WriteLine();
+        Writer.WriteIndentedLine(
+            "if(args{0}_options.AllowBackwardPagination ?? global::{1}.AllowBackwardPagination)",
+            i,
+            WellKnownTypes.PagingDefaults);
+        Writer.WriteIndentedLine("{");
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine("args{0}_last = {1}.ArgumentValue<int?>(\"last\");", i, context);
+            Writer.WriteIndentedLine("args{0}_before = {1}.ArgumentValue<string?>(\"before\");", i, context);
+        }
+
+        Writer.WriteIndentedLine("}");
+
+        Writer.WriteLine();
+        Writer.WriteIndentedLine("if(args{0}_first is null && args{0}_last is null)", i);
+        Writer.WriteIndentedLine("{");
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine(
+                "args{0}_first = args{0}_options.DefaultPageSize ?? global::{1}.DefaultPageSize;",
+                i,
+                WellKnownTypes.PagingDefaults);
+        }
+
+        Writer.WriteIndentedLine("}");
+
+        Writer.WriteLine();
+        Writer.WriteIndentedLine(
+            "if(args{0}_options.IncludeTotalCount ?? global::{1}.IncludeTotalCount)",
+            i,
+            WellKnownTypes.PagingDefaults);
+        Writer.WriteIndentedLine("{");
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine(
+                "args{0}_includeTotalCount = args{0}_flags.HasFlag(global::{1}.TotalCount);",
+                i,
+                WellKnownTypes.ConnectionFlags);
+        }
+
+        Writer.WriteIndentedLine("}");
+        Writer.WriteLine();
+        Writer.WriteIndentedLine(
+            "var args{0} = new global::{1}(",
+            i,
+            WellKnownTypes.PagingArguments);
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine("args{0}_first,", i);
+            Writer.WriteIndentedLine("args{0}_after,", i);
+            Writer.WriteIndentedLine("args{0}_last,", i);
+            Writer.WriteIndentedLine("args{0}_before,", i);
+            Writer.WriteIndentedLine("args{0}_includeTotalCount)", i);
+            Writer.WriteIndentedLine("{");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine(
+                    "EnableRelativeCursors = args{0}_flags.HasFlag(global::{1}.RelativeCursor),",
+                    i,
+                    WellKnownTypes.ConnectionFlags);
+                Writer.WriteIndentedLine(
+                    "NullOrdering = args{0}_options.NullOrdering",
+                    i);
+            }
+
+            Writer.WriteIndentedLine("};");
+        }
     }
 
     private static bool IsSupportedBatchParameterType(ITypeSymbol type)

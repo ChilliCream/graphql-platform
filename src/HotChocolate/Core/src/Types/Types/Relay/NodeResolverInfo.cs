@@ -9,7 +9,9 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeResolverInfo(
     ObjectField? resolverField,
-    FieldDelegate pipeline)
+    FieldDelegate pipeline,
+    BatchFieldDelegate? batchPipeline = null,
+    BatchPartitionKeyResolver? batchPartitionKey = null)
 {
     /// <summary>
     /// Gets the ID argument for a query field that doubles as node resolver.
@@ -21,6 +23,21 @@ internal sealed class NodeResolverInfo(
     /// Gets the node resolver pipeline.
     /// </summary>
     public FieldDelegate Pipeline { get; } = pipeline;
+
+    /// <summary>
+    /// Gets the node resolver batch pipeline.
+    /// </summary>
+    public BatchFieldDelegate? BatchPipeline { get; } = batchPipeline;
+
+    /// <summary>
+    /// Gets the resolver that computes the inner partition key for this node resolver,
+    /// or <c>null</c> if the source field has no partitioner. The node field composes
+    /// this key into its engine partition key, while the nodes field uses it to
+    /// sub-partition the per-type groups it dispatches.
+    /// The resolver receives the node or nodes field's context, not the source field's
+    /// context, so it must only read state that is present there.
+    /// </summary>
+    public BatchPartitionKeyResolver? BatchPartitionKey { get; } = batchPartitionKey;
 
     /// <summary>
     /// Gets the query field from which we inferred the node resolver.

@@ -198,6 +198,12 @@ type DeclaringTypeProbe {
   id: String!
 }
 
+type FormatterProduct {
+  externalId: ID!
+  relatedIds: [ID!]!
+  id: Int!
+}
+
 "A connection to a list of items."
 type IntConnection {
   "Information to aid in pagination."

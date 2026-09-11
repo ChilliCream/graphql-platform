@@ -377,7 +377,7 @@ public sealed class InlineFragmentOperationRewriter(
         if (directives.Count == 1)
         {
             var directive = directives[0];
-            var newDirective = new DirectiveNode(directive.Name.Value, RewriteArguments(directive.Arguments));
+            var newDirective = directive.WithArguments(RewriteArguments(directive.Arguments));
             return ImmutableArray<DirectiveNode>.Empty.Add(newDirective);
         }
 
@@ -385,7 +385,7 @@ public sealed class InlineFragmentOperationRewriter(
         for (var i = 0; i < buffer.Length; i++)
         {
             var directive = directives[i];
-            buffer[i] = new DirectiveNode(directive.Name.Value, RewriteArguments(directive.Arguments));
+            buffer[i] = directive.WithArguments(RewriteArguments(directive.Arguments));
         }
 
         return ImmutableArray.Create(buffer);

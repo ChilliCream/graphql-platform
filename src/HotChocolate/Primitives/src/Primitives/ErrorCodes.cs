@@ -49,6 +49,8 @@ public static class ErrorCodes
         public const string DataLoaderKeyedServiceAttributeIgnored = "HC0131";
         public const string DataLoaderKeyedServiceOnConstructorParameter = "HC0132";
         public const string DataLoaderKeyedServiceKeyNotDeterminable = "HC0133";
+        public const string BatchResolverOnMutationField = "HC0137";
+        public const string BatchResolverMiddlewareNotSupported = "HC0138";
     }
 
     public static class Authentication
@@ -152,6 +154,11 @@ public static class ErrorCodes
         /// The request tried to fetch to many nodes at once.
         /// </summary>
         public const string FetchedToManyNodesAtOnce = "HC0076";
+
+        /// <summary>
+        /// An executable directive that declares middleware was applied to a selection that is resolved by a batch resolver.
+        /// </summary>
+        public const string DirectiveNotSupportedOnBatchSelection = "HC0136";
     }
 
     /// <summary>
@@ -271,6 +278,16 @@ public static class ErrorCodes
         public const string DuplicateTypeName = "HC0065";
         public const string DuplicateMutationErrorTypeName = "HC0066";
         public const string DuplicateFieldNames = "HC0121";
+
+        /// <summary>
+        /// A field resolved by a batch resolver declares a middleware that only supports the per-parent resolver pipeline.
+        /// </summary>
+        public const string BatchResolverMiddlewareNotSupported = "HC0134";
+
+        /// <summary>
+        /// A batch resolver was declared on a top-level mutation field.
+        /// </summary>
+        public const string BatchResolverOnMutationField = "HC0135";
 
         /// <summary>
         /// The middleware order of a field pipeline is incorrect.

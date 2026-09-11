@@ -1,7 +1,13 @@
+using System.Buffers;
+using System.Buffers.Binary;
+using System.IO.Hashing;
+using System.Runtime.CompilerServices;
+using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -9,6 +15,7 @@ using HotChocolate.Utilities;
 using static HotChocolate.Properties.TypeResources;
 using static HotChocolate.Types.Relay.NodeConstants;
 using static HotChocolate.Types.Relay.NodeFieldResolvers;
+using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Types.Relay;
 
@@ -17,6 +24,8 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
 {
+    private const int MaxStackallocTypeNameSize = 256;
+
     private ITypeCompletionContext? _queryContext;
     private ObjectTypeConfiguration? _queryTypeConfig;
     private TypeReference _nodeType = null!;
@@ -154,19 +163,9 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             {
                 new ArgumentConfiguration(Id, Relay_NodeField_Id_Description, id)
             },
-            MiddlewareConfigurations =
-            {
-                new FieldMiddlewareConfiguration(_ =>
-                {
-                    INodeIdSerializer? serializer = null;
-                    return async context =>
-                    {
-                        serializer ??= serializerAccessor.Serializer;
-                        await ResolveSingleNodeAsync(context, serializer).ConfigureAwait(false);
-                    };
-                })
-            },
-            Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodeField
+            BatchResolver = contexts => ResolveNodeBatchAsync(contexts, serializerAccessor),
+            BatchPartitionKeyResolver = NodePartitioner(serializerAccessor),
+            Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodeField | CoreFieldFlags.BatchResolver
         };
 
         if (markNodeFieldAsLookup)
@@ -213,19 +212,9 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             {
                 new ArgumentConfiguration(Ids, Relay_NodesField_Ids_Description, ids)
             },
-            MiddlewareConfigurations =
-            {
-                new FieldMiddlewareConfiguration(_ =>
-                {
-                    INodeIdSerializer? serializer = null;
-                    return async context =>
-                    {
-                        serializer ??= serializerAccessor.Serializer;
-                        await ResolveManyNodeAsync(context, serializer, maxAllowedNodes).ConfigureAwait(false);
-                    };
-                })
-            },
-            Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodesField
+            BatchResolver = contexts =>
+                ResolveNodesBatchAsync(contexts, serializerAccessor, maxAllowedNodes),
+            Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodesField | CoreFieldFlags.BatchResolver
         };
 
         if (markNodeFieldShareable)
@@ -244,5 +233,70 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         field.TouchFeatures();
 
         fields.Insert(index, field);
+    }
+
+    private static BatchPartitionKeyResolver NodePartitioner(
+        INodeIdSerializerAccessor serializerAccessor)
+    {
+        INodeIdSerializer? serializer = null;
+        return context =>
+        {
+            serializer ??= serializerAccessor.Serializer;
+
+            var deserializedId = ResolveOrParseNodeId(context, serializer);
+            var typeName = deserializedId.TypeName;
+
+            var innerKey = 0UL;
+            if (context.Schema.Types.TryGetType<ObjectType>(typeName, out var type)
+                && type.Features.Get<NodeTypeFeature>() is { NodeResolver.BatchPartitionKey: { } inner })
+            {
+                innerKey = inner(context);
+            }
+
+            return ComposePartitionKey(innerKey, typeName);
+        };
+    }
+
+    private static NodeId ResolveOrParseNodeId(
+        IMiddlewareContext context,
+        INodeIdSerializer serializer)
+    {
+        if (context.LocalContextData.TryGetValue(IdValue, out var cached) && cached is NodeId cachedId)
+        {
+            return cachedId;
+        }
+
+        // A malformed id or a non-string id literal throws here, which the engine isolates to
+        // this context so it cannot poison its sibling contexts in the same batch. The argument
+        // read stays inside this path so an incompatible literal surfaces the same isolated error.
+        var literal = context.ArgumentLiteral<StringValueNode>(Id);
+        var deserializedId = serializer.Parse(literal.Value, Unsafe.As<Schema>(context.Schema));
+        context.SetLocalState(IdValue, deserializedId);
+        return deserializedId;
+    }
+
+    private static ulong ComposePartitionKey(ulong innerKey, string typeName)
+    {
+        var typeBytes = Encoding.UTF8.GetByteCount(typeName);
+        var length = sizeof(ulong) + typeBytes;
+        byte[]? rented = null;
+        Span<byte> buffer = length <= MaxStackallocTypeNameSize
+            ? stackalloc byte[length]
+            : rented = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            BinaryPrimitives.WriteUInt64LittleEndian(buffer, innerKey);
+            Encoding.UTF8.GetBytes(typeName, buffer[sizeof(ulong)..]);
+
+            return XxHash64.HashToUInt64(buffer[..length]);
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
     }
 }

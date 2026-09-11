@@ -65,7 +65,7 @@ public class ObjectFieldDescriptor
                 if (m.IsDefined(typeof(BatchResolverAttribute)))
                 {
                     Configuration.SetBatchResolverFlags();
-                    var elementType = BatchResolverCompiler.GetListElementType(m.ReturnType)
+                    var elementType = BatchResolverCompiler.GetResultElementType(m.ReturnType)
                         ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
                     Configuration.ResultType = elementType;
                     Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Output);
@@ -124,7 +124,7 @@ public class ObjectFieldDescriptor
                     if (m.IsDefined(typeof(BatchResolverAttribute)))
                     {
                         Configuration.SetBatchResolverFlags();
-                        var elementType = BatchResolverCompiler.GetListElementType(m.ReturnType)
+                        var elementType = BatchResolverCompiler.GetResultElementType(m.ReturnType)
                             ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
                         Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Output);
                         Configuration.ResultType = elementType;
@@ -240,7 +240,7 @@ public class ObjectFieldDescriptor
                     definition.ResolverMember ?? definition.Member,
                     _parameterInfos,
                     definition.GetParameterExpressionBuilders(),
-                    IsBatchResolver());
+                    Configuration.IsBatchResolver);
 
                 FieldDescriptorUtilities.DiscoverParentRequirements(_parameterInfos, Configuration);
             }
@@ -462,6 +462,7 @@ public class ObjectFieldDescriptor
     public IObjectFieldDescriptor ResolveBatch(BatchResolverDelegate batchResolver)
     {
         ArgumentNullException.ThrowIfNull(batchResolver);
+        Configuration.SetBatchResolverFlags();
 
         Configuration.BatchResolver =
             async contexts =>
@@ -528,7 +529,7 @@ public class ObjectFieldDescriptor
                 nameof(propertyOrMethod));
         }
 
-        var elementType = BatchResolverCompiler.GetListElementType(method.ReturnType)
+        var elementType = BatchResolverCompiler.GetResultElementType(method.ReturnType)
             ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(method);
 
         Configuration.SetBatchResolverFlags();
@@ -597,9 +598,6 @@ public class ObjectFieldDescriptor
         Configuration.SetFieldRequirements(requires, Configuration.SourceType);
         return this;
     }
-
-    private bool IsBatchResolver()
-        => (Configuration.Flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver;
 
     /// <summary>
     /// Creates a new instance of <see cref="ObjectFieldDescriptor"/>

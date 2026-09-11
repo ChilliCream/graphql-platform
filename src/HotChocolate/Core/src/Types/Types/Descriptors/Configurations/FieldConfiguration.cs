@@ -12,6 +12,9 @@ public abstract class FieldConfiguration
     private string? _deprecationReason;
     private CoreFieldFlags _flags = CoreFieldFlags.None;
 
+    internal bool IsBatchResolver
+        => (Flags & CoreFieldFlags.BatchResolver) == CoreFieldFlags.BatchResolver;
+
     /// <summary>
     /// Gets the internal field flags from this field.
     /// </summary>

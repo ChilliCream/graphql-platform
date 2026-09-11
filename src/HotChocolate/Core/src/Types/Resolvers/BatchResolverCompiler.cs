@@ -3,6 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
+using HotChocolate.Types;
+using HotChocolate.Utilities;
 using static System.Linq.Expressions.Expression;
 
 namespace HotChocolate.Resolvers;
@@ -74,7 +76,7 @@ internal static class BatchResolverCompiler
         var variables = new List<ParameterExpression>();
         var preLoopStatements = new List<Expression>();
         var loopBodyStatements = new List<Expression>();
-        var postLoopStatements = new List<Expression>();
+        ParameterExpression? selectionContext = null;
 
         // Loop variable: int i
         var indexVar = Variable(typeof(int), "i");
@@ -86,7 +88,7 @@ internal static class BatchResolverCompiler
             typeof(IMiddlewareContext));
 
         // Build parameter expressions.
-        var parameterVariables = new ParameterExpression[parameters.Length];
+        var parameterVariables = new Expression[parameters.Length];
 
         for (var i = 0; i < parameters.Length; i++)
         {
@@ -103,7 +105,7 @@ internal static class BatchResolverCompiler
                         CreateListCollector(contextsParam, contextAtIndex, param, ctx =>
                             Call(ctx, s_parent.MakeGenericMethod(GetListElementType(param.ParameterType)!)));
 
-                    parameterVariables[i] = listVar;
+                    parameterVariables[i] = ConvertList(listVar, param.ParameterType);
                     variables.Add(listVar);
                     preLoopStatements.Add(listInit);
                     loopBodyStatements.Add(addExpr);
@@ -120,7 +122,7 @@ internal static class BatchResolverCompiler
                         CreateListCollector(contextsParam, contextAtIndex, param, ctx =>
                             Call(ctx, s_argumentValue.MakeGenericMethod(elementType), Constant(argName)));
 
-                    parameterVariables[i] = listVar;
+                    parameterVariables[i] = ConvertList(listVar, param.ParameterType);
                     variables.Add(listVar);
                     preLoopStatements.Add(listInit);
                     loopBodyStatements.Add(addExpr);
@@ -128,12 +130,37 @@ internal static class BatchResolverCompiler
                 }
 
                 default:
-                    // Singular: inject from contexts[0].
+                    // Singular selection parameters share the partition's include conditions.
+                    var isSelected = param.GetCustomAttribute<IsSelectedAttribute>();
+                    Expression? bindingContext = null;
+
+                    if (isSelected is not null
+                        || kind is ArgumentKind.Selection or ArgumentKind.Custom
+                        || param.ParameterType == typeof(IResolverContext))
+                    {
+                        if (selectionContext is null)
+                        {
+                            selectionContext = Variable(typeof(IResolverContext), "selectionContext");
+                            variables.Add(selectionContext);
+                            preLoopStatements.Add(Assign(
+                                selectionContext,
+                                Call(
+                                    typeof(ResolverContextExtensions),
+                                    nameof(ResolverContextExtensions.CreateBatchSelectionContext),
+                                    Type.EmptyTypes,
+                                    contextsParam)));
+                        }
+
+                        bindingContext = selectionContext;
+                    }
+
                     var paramVar = Variable(param.ParameterType, $"p{i}_{param.Name}");
                     parameterVariables[i] = paramVar;
                     variables.Add(paramVar);
                     preLoopStatements.Add(
-                        Assign(paramVar, BuildFirstContextValue(contextsParam, param, builder)));
+                        Assign(paramVar, isSelected is null
+                            ? BuildFirstContextValue(contextsParam, param, builder, bindingContext)
+                            : BuildIsSelectedValue(selectionContext!, isSelected)));
                     break;
             }
         }
@@ -198,9 +225,7 @@ internal static class BatchResolverCompiler
     {
         var paramType = parameter.ParameterType;
         var elementType = GetListElementType(paramType)
-            ?? throw new InvalidOperationException(
-                $"Batch resolver parameter '{parameter.Name}' must be a list type "
-                + $"(List<T>, IReadOnlyList<T>, T[], or ImmutableArray<T>). Got: {paramType}.");
+            ?? throw ThrowHelper.BatchResolver_ArgumentMustBeList(parameter);
 
         var listType = typeof(List<>).MakeGenericType(elementType);
         var listCtor = listType.GetConstructor([typeof(int)])!;
@@ -211,6 +236,28 @@ internal static class BatchResolverCompiler
         var addExpr = Call(listVar, addMethod, valueFactory(contextAtIndex));
 
         return (listVar, listInit, addExpr);
+    }
+
+    private static Expression ConvertList(ParameterExpression list, Type type)
+    {
+        if (type.IsArray)
+        {
+            return Call(
+                list,
+                typeof(List<>).MakeGenericType(type.GetElementType()!)
+                    .GetMethod(nameof(List<object>.ToArray))!);
+        }
+
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ImmutableArray<>))
+        {
+            return Call(
+                typeof(ImmutableArray),
+                nameof(ImmutableArray.ToImmutableArray),
+                type.GetGenericArguments(),
+                list);
+        }
+
+        return list;
     }
 
     private static BatchFieldDelegate CompileAsync(
@@ -290,25 +337,32 @@ internal static class BatchResolverCompiler
 
         if (result is System.Collections.IList list)
         {
+            var count = list.Count;
+
+            if (count != contexts.Length)
+            {
+                throw ThrowHelper.BatchResolver_ResultCountMismatch(contexts.Length, count);
+            }
+
             for (var i = 0; i < contexts.Length; i++)
             {
-                contexts[i].Result = i < list.Count ? list[i] : null;
+                contexts[i].Result = list[i];
             }
         }
         else
         {
-            throw new InvalidOperationException(
-                $"Batch resolver must return a list type. Got: {result.GetType()}.");
+            throw ThrowHelper.BatchResolver_ResultMustBeList(result.GetType());
         }
     }
 
     /// <summary>
-    /// Gets a value from the first context using the existing expression builder.
+    /// Gets a singular parameter value from its binding context.
     /// </summary>
     private static Expression BuildFirstContextValue(
         ParameterExpression contextsParam,
         ParameterInfo parameter,
-        IParameterExpressionBuilder builder)
+        IParameterExpressionBuilder builder,
+        Expression? bindingContext)
     {
         var contextParam = Parameter(typeof(IResolverContext), "ctx");
         var buildContext = new ParameterExpressionBuilderContext(
@@ -322,7 +376,29 @@ internal static class BatchResolverCompiler
             Call(contextsParam, s_contextsItem, Constant(0)),
             typeof(IResolverContext));
 
-        return new ParameterReplacer(contextParam, firstContext).Visit(expr);
+        return new ParameterReplacer(contextParam, bindingContext ?? firstContext).Visit(expr);
+    }
+
+    private static Expression BuildIsSelectedValue(Expression context, IsSelectedAttribute attribute)
+    {
+        Func<IResolverContext, bool> evaluate;
+
+        if (attribute.Fields is not null)
+        {
+            evaluate = ctx =>
+            {
+                var selected = new IsSelectedContext(ctx.Schema, ctx.Select());
+                IsSelectedVisitor.Instance.Visit(attribute.Fields, selected);
+                return selected.AllSelected;
+            };
+        }
+        else
+        {
+            var names = new HashSet<string>(attribute.FieldNames);
+            evaluate = ctx => ctx.Select().IsSelected(names);
+        }
+
+        return Invoke(Constant(evaluate), context);
     }
 
     /// <summary>
@@ -388,6 +464,7 @@ internal static class BatchResolverCompiler
             if (def == typeof(List<>)
                 || def == typeof(IReadOnlyList<>)
                 || def == typeof(IList<>)
+                || def == typeof(IEnumerable<>)
                 || def == typeof(ImmutableArray<>))
             {
                 return type.GetGenericArguments()[0];
@@ -395,6 +472,19 @@ internal static class BatchResolverCompiler
         }
 
         return null;
+    }
+
+    internal static Type? GetResultElementType(Type type)
+    {
+        var (unwrapped, _) = UnwrapAsyncType(type);
+
+        if (unwrapped.IsGenericType
+            && unwrapped.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+        {
+            return null;
+        }
+
+        return GetListElementType(unwrapped);
     }
 
     private sealed class ParameterReplacer(ParameterExpression from, Expression to) : ExpressionVisitor
