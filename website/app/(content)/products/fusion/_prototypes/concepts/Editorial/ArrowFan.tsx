@@ -212,7 +212,7 @@ export function ArrowFan() {
         </text>
         <text
           x={HUB.x}
-          y={HUB.y + HUB.r + 30}
+          y={HUB.y - HUB.r - 14}
           textAnchor="middle"
           fill={PAPER.pencil}
           fontSize={FONT.label}
