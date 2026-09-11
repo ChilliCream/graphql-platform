@@ -215,7 +215,7 @@ internal sealed class BatchResolverTask : IResolverTask
             {
                 var context = Unsafe.As<MiddlewareContext>(contexts[i]);
 
-                if (TryCoerceArguments(context, cancellationToken))
+                if (TryCoerceArguments(_entries[i].OperationContext, context, cancellationToken))
                 {
                     survivors?.Add(context);
                     continue;
@@ -268,7 +268,10 @@ internal sealed class BatchResolverTask : IResolverTask
         return false;
     }
 
-    private bool TryCoerceArguments(MiddlewareContext context, CancellationToken cancellationToken)
+    private bool TryCoerceArguments(
+        OperationContext operationContext,
+        MiddlewareContext context,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -294,24 +297,59 @@ internal sealed class BatchResolverTask : IResolverTask
 
             var args = _argumentMapPool.Get();
             _rentedArgs.Add(args);
-            arguments.CoerceArguments(context.Variables, args);
             context.Arguments = args;
 
             // Runtime argument values are coerced before dispatch and retained for resolver access.
             foreach (var definition in arguments.ArgumentValues)
             {
-                var argument = args[definition.Name];
-                if (!argument.IsFullyCoerced)
+                if (definition.IsFullyCoerced)
                 {
-                    var value = context.ArgumentValue<object?>(argument.Name);
-                    args[argument.Name] = new ArgumentValue(
-                        argument,
-                        argument.Kind ?? ValueKind.Unknown,
-                        true,
-                        argument.IsDefaultValue,
-                        value,
-                        argument.ValueLiteral!);
+                    args.Add(definition.Name, definition);
+                    continue;
                 }
+
+                var literal = VariableRewriter.Rewrite(
+                    definition.ValueLiteral!,
+                    definition.Type,
+                    definition.DefaultValue,
+                    context.Variables);
+
+                object? value;
+                try
+                {
+                    value = operationContext.InputParser.ParseLiteral(literal, definition, typeof(object));
+                }
+                catch (LeafCoercionException ex)
+                {
+                    if (!cancellationToken.IsCancellationRequested)
+                    {
+                        var error = ex.Errors[0].WithPath(context.Path);
+                        if (error.Locations is not { Count: > 0 }
+                            && definition.ValueLiteral?.Location is { } location)
+                        {
+                            error = error.WithLocations([new Location(location.Line, location.Column)]);
+                        }
+
+                        context.ReportError(error);
+                    }
+
+                    return false;
+                }
+
+                if (value is IOptional optional)
+                {
+                    value = optional.Value;
+                }
+
+                args.Add(
+                    definition.Name,
+                    new ArgumentValue(
+                        definition,
+                        literal.TryGetValueKind(out var kind) ? kind : ValueKind.Unknown,
+                        true,
+                        definition.IsDefaultValue,
+                        value,
+                        literal));
             }
 
             return true;
