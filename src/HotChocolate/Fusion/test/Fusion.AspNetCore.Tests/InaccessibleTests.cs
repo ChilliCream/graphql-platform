@@ -1059,6 +1059,7 @@ public class InaccessibleTests : FusionTestBase
 
         // assert
         Assert.False(HasQueryField(sdl, "node"));
+        Assert.False(HasQueryField(sdl, "nodes"));
         sdl.MatchSnapshot(extension: ".graphql");
     }
 
@@ -1080,6 +1081,7 @@ public class InaccessibleTests : FusionTestBase
 
         // assert
         Assert.False(HasQueryField(sdl, "node"));
+        Assert.False(HasQueryField(sdl, "nodes"));
         sdl.MatchSnapshot(extension: ".graphql");
     }
 
