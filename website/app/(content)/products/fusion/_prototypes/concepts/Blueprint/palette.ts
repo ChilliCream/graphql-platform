@@ -49,15 +49,25 @@ export const DRAFT = FONTS.mono;
 const SCENE_BOX_PX = 335;
 
 /**
+ * What is left of that width for the drawing once the sheet frame and its
+ * margins are taken off, at the narrow-screen chrome `Sheet` switches to.
+ */
+const DRAWN_PX = SCENE_BOX_PX - 11;
+
+/**
  * A size from the site type scale as viewBox units, for a plate drawn in a
- * viewBox `viewBoxWidth` units wide. A plate fills the container width on a
- * phone, so one unit renders at `SCENE_BOX_PX / viewBoxWidth` pixels.
+ * viewBox `viewBoxWidth` units wide. Every plate's viewBox is proportioned to
+ * its drawn area, so the drawing is width-bound and one unit renders at
+ * `DRAWN_PX / viewBoxWidth` pixels on a 375px screen.
  */
 export function svgFont(px: number, viewBoxWidth: number): number {
-  return Math.ceil((px * viewBoxWidth) / SCENE_BOX_PX);
+  return Math.ceil((px * viewBoxWidth) / DRAWN_PX);
 }
 
-/** Every plate is drafted in a viewBox this many units wide. */
+/**
+ * Every plate is drafted in a viewBox this many units wide; only the height
+ * changes with the plate's ratio, so one lettering scale serves all six.
+ */
 export const SHEET_W = 480;
 
 /** Lettering sizes inside a plate, in viewBox units. */

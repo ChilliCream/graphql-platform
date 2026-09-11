@@ -53,7 +53,7 @@ const PLATES: readonly Plate[] = [
     sheet: "SHEET 101",
     subject: "Query resolution",
     Visual: DimensionChain,
-    ratio: "16 / 9",
+    ratio: "3 / 2",
     label:
       "One query from one client drawn as a dimension chain: the gateway takes one measurement off each subgraph and closes the chain with a single overall dimension, one response off one endpoint.",
   },
@@ -288,7 +288,7 @@ export function Blueprint() {
             </div>
 
             <PlateFrame
-              ratio="4 / 3"
+              ratio="8 / 7"
               label="The general arrangement drawing of the Fusion gateway: the main assembly in the middle, five GraphQL sub-assemblies and two bought-in sources ballooned around it, lifting into an exploded view that turns on the table before it settles back together."
             >
               <HeroAssembly />
@@ -334,7 +334,7 @@ export function Blueprint() {
             </div>
 
             <PlateFrame
-              ratio="2 / 1"
+              ratio="3 / 2"
               label="An instrumentation schedule: three dials read the gateway's latency, throughput and error rate, and a smaller dial reads each subgraph behind it."
             >
               <GaugeSchedule />
