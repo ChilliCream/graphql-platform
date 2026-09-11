@@ -34,12 +34,21 @@
     <ProjectReference Include="..\..\src\Fusion.Connectors.InMemory\HotChocolate.Fusion.Connectors.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
     <ProjectReference Include="..\..\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Subscriptions.NATS\HotChocolate.Fusion.Subscriptions.NATS.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Subscriptions.Kafka\HotChocolate.Fusion.Subscriptions.Kafka.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Subscriptions.Redis\HotChocolate.Fusion.Subscriptions.Redis.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Subscriptions.AmazonSqs\HotChocolate.Fusion.Subscriptions.AmazonSqs.csproj" />
+    <ProjectReference Include="..\..\src\Fusion.Subscriptions.AzureEventHubs\HotChocolate.Fusion.Subscriptions.AzureEventHubs.csproj" />
+    <ProjectReference Include="..\..\..\Adapters\src\Fusion.Adapters.Mcp\HotChocolate.Fusion.Adapters.Mcp.csproj" />
+    <ProjectReference Include="..\..\..\Adapters\src\Fusion.Adapters.OpenApi\HotChocolate.Fusion.Adapters.OpenApi.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\AspNetCore\HotChocolate.AspNetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies.Net100" Condition="'$(TargetFramework)' == 'net10.0'" />
     <PackageReference Include="Basic.Reference.Assemblies.Net110" Condition="'$(TargetFramework)' == 'net11.0'" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
   </ItemGroup>
 
   <ItemGroup>

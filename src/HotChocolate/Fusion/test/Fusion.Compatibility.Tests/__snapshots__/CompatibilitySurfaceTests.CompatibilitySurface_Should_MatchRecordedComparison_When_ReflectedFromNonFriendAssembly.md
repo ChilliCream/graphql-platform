@@ -9,6 +9,8 @@
         "LegacyMethodCount": 66,
         "RouterMethodCount": 66,
         "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
         "Signatures": [
           "AddApplicationService<1>(): hasRouterTwin=True",
           "AddConfigurationProvider<0>(Func`2): hasRouterTwin=True",
@@ -83,6 +85,8 @@
         "LegacyMethodCount": 3,
         "RouterMethodCount": 3,
         "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
         "Signatures": [
           "AddCacheControl<0>(): hasRouterTwin=True",
           "ModifyCacheControlOptions<0>(Action`1): hasRouterTwin=True",
@@ -94,6 +98,8 @@
         "LegacyMethodCount": 2,
         "RouterMethodCount": 2,
         "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
         "Signatures": [
           "AddInstrumentation<0>(Action`1): hasRouterTwin=True",
           "AddInstrumentation<0>(Action`2): hasRouterTwin=True"
@@ -104,6 +110,8 @@
         "LegacyMethodCount": 3,
         "RouterMethodCount": 3,
         "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
         "Signatures": [
           "AddInMemorySchema<0>(IRequestExecutorBuilder): hasRouterTwin=True",
           "AddInMemorySchema<0>(String): hasRouterTwin=True",
@@ -115,6 +123,8 @@
         "LegacyMethodCount": 9,
         "RouterMethodCount": 9,
         "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
         "Signatures": [
           "AddHttpRequestInterceptor<1>(): hasRouterTwin=True",
           "AddHttpRequestInterceptor<0>(Func`2): hasRouterTwin=True",
@@ -125,6 +135,95 @@
           "AddSocketSessionInterceptor<1>(): hasRouterTwin=True",
           "AddSocketSessionInterceptor<1>(Func`2): hasRouterTwin=True",
           "ModifyServerOptions<0>(Action`1): hasRouterTwin=True"
+        ]
+      },
+      {
+        "Name": "NATS",
+        "LegacyMethodCount": 2,
+        "RouterMethodCount": 2,
+        "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
+        "Signatures": [
+          "AddNatsEventStreamBroker<0>(Action`1): hasRouterTwin=True",
+          "AddNatsEventStreamBroker<0>(String, Action`1): hasRouterTwin=True"
+        ]
+      },
+      {
+        "Name": "Kafka",
+        "LegacyMethodCount": 2,
+        "RouterMethodCount": 2,
+        "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
+        "Signatures": [
+          "AddKafkaEventStreamBroker<0>(Action`1): hasRouterTwin=True",
+          "AddKafkaEventStreamBroker<0>(String, Action`1): hasRouterTwin=True"
+        ]
+      },
+      {
+        "Name": "Redis",
+        "LegacyMethodCount": 2,
+        "RouterMethodCount": 2,
+        "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
+        "Signatures": [
+          "AddRedisEventStreamBroker<0>(Action`1): hasRouterTwin=True",
+          "AddRedisEventStreamBroker<0>(String, Action`1): hasRouterTwin=True"
+        ]
+      },
+      {
+        "Name": "AmazonSqs",
+        "LegacyMethodCount": 2,
+        "RouterMethodCount": 2,
+        "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
+        "Signatures": [
+          "AddAmazonSqsEventStreamBroker<0>(Action`1): hasRouterTwin=True",
+          "AddAmazonSqsEventStreamBroker<0>(String, Action`1): hasRouterTwin=True"
+        ]
+      },
+      {
+        "Name": "AzureEventHubs",
+        "LegacyMethodCount": 2,
+        "RouterMethodCount": 2,
+        "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
+        "Signatures": [
+          "AddAzureEventHubsEventStreamBroker<0>(Action`1): hasRouterTwin=True",
+          "AddAzureEventHubsEventStreamBroker<0>(String, Action`1): hasRouterTwin=True"
+        ]
+      },
+      {
+        "Name": "Mcp",
+        "LegacyMethodCount": 5,
+        "RouterMethodCount": 5,
+        "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
+        "Signatures": [
+          "AddMcp<0>(Action`1, Action`1, Func`2): hasRouterTwin=True",
+          "AddMcpStorage<0>(IMcpStorage): hasRouterTwin=True",
+          "AddMcpStorage<1>(): hasRouterTwin=True",
+          "AddMcpStorage<0>(Func`2): hasRouterTwin=True",
+          "ModifyMcpToolOptions<0>(Action`1): hasRouterTwin=True"
+        ]
+      },
+      {
+        "Name": "OpenApi",
+        "LegacyMethodCount": 4,
+        "RouterMethodCount": 4,
+        "AllLegacySignaturesHaveRouterTwin": true,
+        "AllLegacyObsoleteOnGatewayBuilder": true,
+        "AllRouterCleanOnRouterBuilder": true,
+        "Signatures": [
+          "AddOpenApi<0>(Func`2): hasRouterTwin=True",
+          "AddOpenApiDefinitionStorage<0>(IOpenApiDefinitionStorage): hasRouterTwin=True",
+          "AddOpenApiDefinitionStorage<1>(): hasRouterTwin=True",
+          "AddOpenApiDefinitionStorage<0>(Func`2): hasRouterTwin=True"
         ]
       }
     ],
@@ -137,12 +236,13 @@
   "Excluded": {
     "Packaging": {
       "GatewayConfigurationTypeRemoved": true,
-      "RouterConfigurationExists": true,
       "TryGetRouterConfigurationAsyncExists": true,
-      "GetSupportedRouterFormatsAsyncExists": true
+      "TryGetGatewayConfigurationAsyncRemoved": true,
+      "GetSupportedRouterFormatsAsyncExists": true,
+      "GetSupportedGatewayFormatsAsyncRemoved": true,
+      "SupportedGatewayFormatsRemoved": true
     },
     "Setup": {
-      "FusionRouterSetupExists": true,
       "FusionGatewaySetupTypeRemoved": true
     },
     "ExecutionTypes": {

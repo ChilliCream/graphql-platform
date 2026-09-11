@@ -1,7 +1,7 @@
-using System.Reflection;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Options;
+using HotChocolate.Fusion.Subscriptions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -173,68 +173,175 @@ public sealed class RuntimeBridgeTests
         Assert.Equal(["router-provider-schema"], routerNames);
     }
 
+    // The obsolete/router-clean shape of each family is proved once, structurally, by
+    // CompatibilitySurfaceTests; the two tests below are registration-only proofs that the
+    // five broker families and the two adapter families actually flow through the router
+    // chain, a legacy gateway call and a legacy-only third-party builder, without a real broker
+    // or resolving anything beyond public DI/options APIs.
     [Fact]
-    public void LegacyExtensionFamilies_Should_BeObsoleteWithNameMatchingRouterEquivalents_When_ReflectedFromNonFriendAssembly()
+    public void BrokerFamilies_Should_RegisterKeyedProvider_When_UsingRouterChainAndLegacyOnlyBuilder()
     {
         // arrange
-#pragma warning disable CS0618 // Reflecting over the obsolete legacy family types themselves.
-        var families = new (Type Legacy, Type Router)[]
-        {
-            (typeof(CoreFusionGatewayBuilderExtensions), typeof(CoreFusionRouterBuilderExtensions)),
-            (typeof(FusionCachingGatewayBuilderExtensions), typeof(FusionCachingRouterBuilderExtensions)),
-            (typeof(DiagnosticsFusionGatewayBuilderExtensions), typeof(DiagnosticsFusionRouterBuilderExtensions)),
-            (typeof(InMemoryFusionGatewayBuilderExtensions), typeof(InMemoryFusionRouterBuilderExtensions)),
-            (typeof(AspNetCoreFusionGatewayBuilderExtensions), typeof(AspNetCoreFusionRouterBuilderExtensions))
-        };
+#pragma warning disable CS0618 // Intentional legacy declaring-class static calls under proof.
+        (string Name, Action<IFusionRouterBuilder> AddToRouter, Action<CustomLegacyBuilder> AddToLegacyBuilder)[] families =
+        [
+            (
+                "NATS",
+                b => b.AddNatsEventStreamBroker(name: "broker"),
+                b => NatsEventStreamBrokerServiceCollectionExtensions.AddNatsEventStreamBroker(b, name: "broker")),
+            (
+                "Kafka",
+                b => b.AddKafkaEventStreamBroker(name: "broker"),
+                b => KafkaEventStreamBrokerServiceCollectionExtensions.AddKafkaEventStreamBroker(b, name: "broker")),
+            (
+                "Redis",
+                b => b.AddRedisEventStreamBroker(name: "broker"),
+                b => RedisEventStreamBrokerServiceCollectionExtensions.AddRedisEventStreamBroker(b, name: "broker")),
+            (
+                "AmazonSqs",
+                b => b.AddAmazonSqsEventStreamBroker(name: "broker"),
+                b => AmazonSqsEventStreamBrokerServiceCollectionExtensions.AddAmazonSqsEventStreamBroker(b, name: "broker")),
+            (
+                "AzureEventHubs",
+                b => b.AddAzureEventHubsEventStreamBroker(name: "broker"),
+                b => AzureEventHubsEventStreamBrokerServiceCollectionExtensions.AddAzureEventHubsEventStreamBroker(b, name: "broker"))
+        ];
 #pragma warning restore CS0618
 
         // act
-        var report = families.Select(DescribeFamily).ToArray();
+        var report = families.Select(family =>
+        {
+            var routerServices = new ServiceCollection();
+            var router = routerServices.AddGraphQLRouterCore($"{family.Name}-router-schema");
+            family.AddToRouter(router);
+
+            var legacyServices = new ServiceCollection();
+            var legacyBuilder = new CustomLegacyBuilder($"{family.Name}-legacy-schema", legacyServices);
+            family.AddToLegacyBuilder(legacyBuilder);
+
+            return new
+            {
+                family.Name,
+                RouterProviderRegistered = IsBrokerProviderRegistered(routerServices),
+                LegacyOnlyBuilderProviderRegistered = IsBrokerProviderRegistered(legacyServices)
+            };
+        }).ToArray();
 
         // assert
         report.MatchInlineSnapshot(
             """
             [
-              "CoreFusionGatewayBuilderExtensions: legacyMethodCount=66, namesMatchRouter=True, allLegacyObsoleteOnGatewayBuilder=True, allRouterCleanOnRouterBuilder=True",
-              "FusionCachingGatewayBuilderExtensions: legacyMethodCount=3, namesMatchRouter=True, allLegacyObsoleteOnGatewayBuilder=True, allRouterCleanOnRouterBuilder=True",
-              "DiagnosticsFusionGatewayBuilderExtensions: legacyMethodCount=2, namesMatchRouter=True, allLegacyObsoleteOnGatewayBuilder=True, allRouterCleanOnRouterBuilder=True",
-              "InMemoryFusionGatewayBuilderExtensions: legacyMethodCount=3, namesMatchRouter=True, allLegacyObsoleteOnGatewayBuilder=True, allRouterCleanOnRouterBuilder=True",
-              "AspNetCoreFusionGatewayBuilderExtensions: legacyMethodCount=9, namesMatchRouter=True, allLegacyObsoleteOnGatewayBuilder=True, allRouterCleanOnRouterBuilder=True"
+              {
+                "Name": "NATS",
+                "RouterProviderRegistered": true,
+                "LegacyOnlyBuilderProviderRegistered": true
+              },
+              {
+                "Name": "Kafka",
+                "RouterProviderRegistered": true,
+                "LegacyOnlyBuilderProviderRegistered": true
+              },
+              {
+                "Name": "Redis",
+                "RouterProviderRegistered": true,
+                "LegacyOnlyBuilderProviderRegistered": true
+              },
+              {
+                "Name": "AmazonSqs",
+                "RouterProviderRegistered": true,
+                "LegacyOnlyBuilderProviderRegistered": true
+              },
+              {
+                "Name": "AzureEventHubs",
+                "RouterProviderRegistered": true,
+                "LegacyOnlyBuilderProviderRegistered": true
+              }
             ]
             """);
     }
 
-#pragma warning disable CS0618 // Reflecting over the obsolete IFusionGatewayBuilder type itself.
-    private static string DescribeFamily((Type Legacy, Type Router) family)
+    private static bool IsBrokerProviderRegistered(IServiceCollection services)
+        => services.Any(d =>
+            d.ServiceType == typeof(IEventStreamBrokerProvider) && Equals(d.ServiceKey, "broker"));
+
+    [Fact]
+    public void AdapterFamilies_Should_PreserveReceiverIdentityAndModifierCount_When_UsingRouterChain_LegacyGatewayCall_And_LegacyOnlyBuilder()
     {
-        var legacyMethods = family.Legacy
-            .GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => !m.IsSpecialName)
-            .OrderBy(m => m.Name)
-            .ToArray();
-        var routerMethods = family.Router
-            .GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => !m.IsSpecialName)
-            .OrderBy(m => m.Name)
-            .ToArray();
-
-        var namesMatchRouter = legacyMethods.Select(m => m.Name)
-            .SequenceEqual(routerMethods.Select(m => m.Name));
-
-        var allLegacyObsoleteOnGatewayBuilder = legacyMethods.Length > 0 && legacyMethods.All(m =>
-            m.GetParameters()[0].ParameterType == typeof(IFusionGatewayBuilder)
-            && m.GetCustomAttribute<ObsoleteAttribute>() is not null);
-
-        var allRouterCleanOnRouterBuilder = routerMethods.Length > 0 && routerMethods.All(m =>
-            m.GetParameters()[0].ParameterType == typeof(IFusionRouterBuilder)
-            && m.GetCustomAttribute<ObsoleteAttribute>() is null);
-
-        return $"{family.Legacy.Name}: legacyMethodCount={legacyMethods.Length}, "
-            + $"namesMatchRouter={namesMatchRouter}, "
-            + $"allLegacyObsoleteOnGatewayBuilder={allLegacyObsoleteOnGatewayBuilder}, "
-            + $"allRouterCleanOnRouterBuilder={allRouterCleanOnRouterBuilder}";
-    }
+        // arrange
+#pragma warning disable CS0618 // Intentional legacy declaring-class static calls under proof.
+        (string Name, Func<IFusionRouterBuilder, IFusionRouterBuilder> AddToRouter, Func<IFusionGatewayBuilder, IFusionGatewayBuilder> AddToGatewayBuilder)[] families =
+        [
+            ("Mcp", b => b.AddMcp(), b => FusionGatewayBuilderExtensions.AddMcp(b)),
+            ("OpenApi", b => b.AddOpenApi(), b => OpenApiFusionGatewayBuilderExtensions.AddOpenApi(b))
+        ];
 #pragma warning restore CS0618
+
+        // act
+        var report = families.Select(family =>
+        {
+            var routerServices = new ServiceCollection();
+            var router = routerServices.AddGraphQLRouterCore($"{family.Name}-router-schema");
+            var routerResult = family.AddToRouter(router);
+
+            var legacyServices = new ServiceCollection();
+#pragma warning disable CS0618 // Intentional legacy static call under proof.
+            var legacy = legacyServices.AddGraphQLGateway($"{family.Name}-legacy-schema");
+#pragma warning restore CS0618
+            var legacyResult = family.AddToGatewayBuilder(legacy);
+
+            var customServices = new ServiceCollection();
+#pragma warning disable CS0618 // Models a third-party legacy-only builder under proof.
+            var custom = new CustomLegacyBuilder($"{family.Name}-custom-schema", customServices);
+#pragma warning restore CS0618
+            var customResult = family.AddToGatewayBuilder(custom);
+
+            using var routerProvider = routerServices.BuildServiceProvider();
+            using var legacyProvider = legacyServices.BuildServiceProvider();
+            using var customProvider = customServices.BuildServiceProvider();
+
+            return new
+            {
+                family.Name,
+                RouterIsOriginalReceiver = ReferenceEquals(router, routerResult),
+                LegacyIsOriginalReceiver = ReferenceEquals(legacy, legacyResult),
+                CustomIsOriginalReceiver = ReferenceEquals(custom, customResult),
+                RouterModifierCount = GetSchemaServiceModifierCount(routerProvider, $"{family.Name}-router-schema"),
+                LegacyModifierCount = GetSchemaServiceModifierCount(legacyProvider, $"{family.Name}-legacy-schema"),
+                CustomModifierCount = GetSchemaServiceModifierCount(customProvider, $"{family.Name}-custom-schema")
+            };
+        }).ToArray();
+
+        // assert
+        report.MatchInlineSnapshot(
+            """
+            [
+              {
+                "Name": "Mcp",
+                "RouterIsOriginalReceiver": true,
+                "LegacyIsOriginalReceiver": true,
+                "CustomIsOriginalReceiver": true,
+                "RouterModifierCount": 4,
+                "LegacyModifierCount": 4,
+                "CustomModifierCount": 2
+              },
+              {
+                "Name": "OpenApi",
+                "RouterIsOriginalReceiver": true,
+                "LegacyIsOriginalReceiver": true,
+                "CustomIsOriginalReceiver": true,
+                "RouterModifierCount": 4,
+                "LegacyModifierCount": 4,
+                "CustomModifierCount": 2
+              }
+            ]
+            """);
+    }
+
+    private static int GetSchemaServiceModifierCount(ServiceProvider provider, string schemaName)
+        => provider.GetRequiredService<IOptionsMonitor<FusionRouterSetup>>()
+            .Get(schemaName)
+            .SchemaServiceModifiers
+            .Count;
 }
 
 // Models a third-party legacy-only builder and extension, both written against the old,

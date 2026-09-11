@@ -12,16 +12,27 @@ access:
 - `IServiceCollection.AddGraphQLGateway` and `IServiceCollection.AddGraphQLGatewayServer`.
 - `IHostApplicationBuilder.AddGraphQLGateway`.
 - `IFusionGatewayBuilder` and its router counterpart, `IFusionRouterBuilder`.
-- The five legacy extension families (Core, Caching, Diagnostics, InMemory, AspNetCore) and their
-  router-named twins: same method names, same normalized signatures, the legacy methods marked
-  obsolete on `IFusionGatewayBuilder`, the router methods clean on `IFusionRouterBuilder`.
+- Twelve legacy extension families and their router-named twins: same method names, same
+  normalized signatures, the legacy methods marked obsolete on `IFusionGatewayBuilder`, the
+  router methods clean on `IFusionRouterBuilder`: Core, Caching, Diagnostics, InMemory,
+  AspNetCore, the five event stream broker families (NATS, Kafka, Redis, AmazonSqs,
+  AzureEventHubs), and the two adapter families (MCP, OpenAPI). The broker and adapter families
+  are proven registration-only, through the keyed `IEventStreamBrokerProvider` descriptor and the
+  `IOptionsMonitor<FusionRouterSetup>` schema-service-modifier count, never against a real broker.
 - Declaring-class static calls against the legacy extension classes, not just extension-method
   call syntax.
 - A custom, legacy-only builder that implements `IFusionGatewayBuilder` alone, flowing through
   both a legacy extension and a third-party-shaped extension written against the old interface.
 - Third-party extensions written against `IFusionGatewayBuilder`.
+- A representative query execution proof: a router configured only through the public
+  `IFusionRouterBuilder` surface (`AddInMemoryConfiguration` with a hand-authored composed
+  document, `AddHttpClientConfiguration`) resolves a real `IRequestExecutor` through the public
+  `IRequestExecutorProvider.GetExecutorAsync` entry point and executes a query against a real
+  source schema hosted on its own `TestServer`.
 - The pinned 16.6.4 binary baseline: an unchanged, compiled 16.6.4 consumer, executed against the
-  current product assemblies (see `Baseline/artifacts/PROVENANCE.md`).
+  current product assemblies (see `Baseline/artifacts/PROVENANCE.md`). This baseline predates the
+  broker and adapter families, so it does not exercise them; only the source- and runtime-level
+  proofs above cover those two families.
 
 ## Excluded from the promise (approved direct breaks)
 

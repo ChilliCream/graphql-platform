@@ -41,8 +41,8 @@ public sealed class SourceCompatibilityTests
         Assert.Empty(errors);
         Assert.Empty(unexpectedNonErrorIds);
         Assert.True(
-            obsoleteCount >= 8,
-            $"expected at least 8 CS0618 diagnostics from the legacy gateway call sites, got {obsoleteCount}.");
+            obsoleteCount >= 15,
+            $"expected at least 15 CS0618 diagnostics from the legacy gateway call sites, got {obsoleteCount}.");
     }
 
     [Fact]
@@ -84,6 +84,15 @@ public sealed class SourceCompatibilityTests
         _ = typeof(FusionCachingRouterBuilderExtensions).Assembly; // HotChocolate.Fusion.Caching
         _ = typeof(IServiceCollection).Assembly; // Microsoft.Extensions.DependencyInjection.Abstractions
         _ = typeof(IHostApplicationBuilder).Assembly; // Microsoft.Extensions.Hosting.Abstractions
+        _ = typeof(NatsEventStreamBrokerServiceCollectionExtensions).Assembly; // HotChocolate.Fusion.Subscriptions.NATS
+        _ = typeof(KafkaEventStreamBrokerServiceCollectionExtensions).Assembly; // HotChocolate.Fusion.Subscriptions.Kafka
+        _ = typeof(RedisEventStreamBrokerServiceCollectionExtensions).Assembly; // HotChocolate.Fusion.Subscriptions.Redis
+        _ = typeof(AmazonSqsEventStreamBrokerServiceCollectionExtensions).Assembly; // HotChocolate.Fusion.Subscriptions.AmazonSqs
+        _ = typeof(AzureEventHubsEventStreamBrokerServiceCollectionExtensions).Assembly; // HotChocolate.Fusion.Subscriptions.AzureEventHubs
+#pragma warning disable CS0618 // Force-loading the obsolete legacy adapter extension classes.
+        _ = typeof(FusionGatewayBuilderExtensions).Assembly; // HotChocolate.Fusion.Adapters.Mcp
+        _ = typeof(OpenApiFusionGatewayBuilderExtensions).Assembly; // HotChocolate.Fusion.Adapters.OpenApi
+#pragma warning restore CS0618
 
         var loaded = AppDomain.CurrentDomain.GetAssemblies()
             .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
@@ -91,11 +100,7 @@ public sealed class SourceCompatibilityTests
 
         MetadataReference[] bcl =
         [
-#if NET8_0
-            .. Net80.References.All,
-#elif NET9_0
-            .. Net90.References.All,
-#elif NET10_0
+#if NET10_0
             .. Net100.References.All,
 #elif NET11_0
             .. Net110.References.All,
@@ -136,6 +141,16 @@ public sealed class SourceCompatibilityTests
                 var custom = new CustomBuilder("custom-schema", services);
                 var afterCustomCacheControl = FusionCachingGatewayBuilderExtensions.AddCacheControl(custom);
                 ThirdParty.Configure(afterCustomCacheControl);
+
+                // Declaring-class static calls of every broker and adapter legacy overload on
+                // the same custom, legacy-only IFusionGatewayBuilder implementation.
+                NatsEventStreamBrokerServiceCollectionExtensions.AddNatsEventStreamBroker(custom, name: "broker");
+                KafkaEventStreamBrokerServiceCollectionExtensions.AddKafkaEventStreamBroker(custom, name: "broker");
+                RedisEventStreamBrokerServiceCollectionExtensions.AddRedisEventStreamBroker(custom, name: "broker");
+                AmazonSqsEventStreamBrokerServiceCollectionExtensions.AddAmazonSqsEventStreamBroker(custom, name: "broker");
+                AzureEventHubsEventStreamBrokerServiceCollectionExtensions.AddAzureEventHubsEventStreamBroker(custom, name: "broker");
+                FusionGatewayBuilderExtensions.AddMcp(custom);
+                OpenApiFusionGatewayBuilderExtensions.AddOpenApi(custom);
 
                 // IHostApplicationBuilder registration entry point.
                 hostBuilder.AddGraphQLGateway(
@@ -185,6 +200,14 @@ public sealed class SourceCompatibilityTests
 
                 IFusionRouterBuilder afterCacheControl = server.AddCacheControl();
                 IFusionRouterBuilder afterQueryCache = afterCacheControl.UseQueryCache();
+
+                IFusionRouterBuilder afterNats = afterQueryCache.AddNatsEventStreamBroker(name: "broker");
+                IFusionRouterBuilder afterKafka = afterNats.AddKafkaEventStreamBroker(name: "broker");
+                IFusionRouterBuilder afterRedis = afterKafka.AddRedisEventStreamBroker(name: "broker");
+                IFusionRouterBuilder afterAmazonSqs = afterRedis.AddAmazonSqsEventStreamBroker(name: "broker");
+                IFusionRouterBuilder afterAzureEventHubs = afterAmazonSqs.AddAzureEventHubsEventStreamBroker(name: "broker");
+                IFusionRouterBuilder afterMcp = afterAzureEventHubs.AddMcp();
+                IFusionRouterBuilder afterOpenApi = afterMcp.AddOpenApi();
 
                 IFusionRouterBuilder hostRouter = hostBuilder.AddGraphQLRouter(
                     name: "host-schema",

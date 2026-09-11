@@ -25,7 +25,16 @@ public sealed class CompatibilitySurfaceTests
             ("Caching", typeof(FusionCachingGatewayBuilderExtensions), typeof(FusionCachingRouterBuilderExtensions)),
             ("Diagnostics", typeof(DiagnosticsFusionGatewayBuilderExtensions), typeof(DiagnosticsFusionRouterBuilderExtensions)),
             ("InMemory", typeof(InMemoryFusionGatewayBuilderExtensions), typeof(InMemoryFusionRouterBuilderExtensions)),
-            ("AspNetCore", typeof(AspNetCoreFusionGatewayBuilderExtensions), typeof(AspNetCoreFusionRouterBuilderExtensions))
+            ("AspNetCore", typeof(AspNetCoreFusionGatewayBuilderExtensions), typeof(AspNetCoreFusionRouterBuilderExtensions)),
+            // Each broker family lives in a single static class, with the legacy and router
+            // overloads distinguished only by the builder type of their first parameter.
+            ("NATS", typeof(NatsEventStreamBrokerServiceCollectionExtensions), typeof(NatsEventStreamBrokerServiceCollectionExtensions)),
+            ("Kafka", typeof(KafkaEventStreamBrokerServiceCollectionExtensions), typeof(KafkaEventStreamBrokerServiceCollectionExtensions)),
+            ("Redis", typeof(RedisEventStreamBrokerServiceCollectionExtensions), typeof(RedisEventStreamBrokerServiceCollectionExtensions)),
+            ("AmazonSqs", typeof(AmazonSqsEventStreamBrokerServiceCollectionExtensions), typeof(AmazonSqsEventStreamBrokerServiceCollectionExtensions)),
+            ("AzureEventHubs", typeof(AzureEventHubsEventStreamBrokerServiceCollectionExtensions), typeof(AzureEventHubsEventStreamBrokerServiceCollectionExtensions)),
+            ("Mcp", typeof(FusionGatewayBuilderExtensions), typeof(FusionRouterBuilderExtensions)),
+            ("OpenApi", typeof(OpenApiFusionGatewayBuilderExtensions), typeof(OpenApiFusionRouterBuilderExtensions))
         };
 #pragma warning restore CS0618
 
@@ -68,17 +77,24 @@ public sealed class CompatibilitySurfaceTests
             {
                 GatewayConfigurationTypeRemoved =
                     packagingAssembly.GetType("HotChocolate.Fusion.Packaging.GatewayConfiguration") is null,
-                RouterConfigurationExists = typeof(RouterConfiguration) is not null,
                 TryGetRouterConfigurationAsyncExists = typeof(FusionArchive)
                     .GetMethod("TryGetRouterConfigurationAsync", BindingFlags.Public | BindingFlags.Instance)
                     is not null,
+                TryGetGatewayConfigurationAsyncRemoved = typeof(FusionArchive)
+                    .GetMethod("TryGetGatewayConfigurationAsync", BindingFlags.Public | BindingFlags.Instance)
+                    is null,
                 GetSupportedRouterFormatsAsyncExists = typeof(FusionArchive)
                     .GetMethod("GetSupportedRouterFormatsAsync", BindingFlags.Public | BindingFlags.Instance)
-                    is not null
+                    is not null,
+                GetSupportedGatewayFormatsAsyncRemoved = typeof(FusionArchive)
+                    .GetMethod("GetSupportedGatewayFormatsAsync", BindingFlags.Public | BindingFlags.Instance)
+                    is null,
+                SupportedGatewayFormatsRemoved = typeof(ArchiveMetadata)
+                    .GetProperty("SupportedGatewayFormats", BindingFlags.Public | BindingFlags.Instance)
+                    is null
             },
             Setup = new
             {
-                FusionRouterSetupExists = typeof(FusionRouterSetup) is not null,
                 FusionGatewaySetupTypeRemoved =
                     configurationAssembly.GetType("HotChocolate.Fusion.Configuration.FusionGatewaySetup") is null
             },
@@ -97,8 +113,12 @@ public sealed class CompatibilitySurfaceTests
 
     private static object DescribeFamily((string Name, Type Legacy, Type Router) family)
     {
-        var legacyMethods = GetExtensionMethods(family.Legacy);
-        var routerMethods = GetExtensionMethods(family.Router);
+        // Legacy and router overloads are told apart by the builder type of their first
+        // parameter, not by declaring type: broker families keep both on one static class.
+#pragma warning disable CS0618 // Reflecting over the obsolete IFusionGatewayBuilder type itself.
+        var legacyMethods = GetExtensionMethods(family.Legacy, typeof(IFusionGatewayBuilder));
+#pragma warning restore CS0618
+        var routerMethods = GetExtensionMethods(family.Router, typeof(IFusionRouterBuilder));
         var routerSignatures = routerMethods
             .Select(NormalizeSignature)
             .ToHashSet(StringComparer.Ordinal);
@@ -117,16 +137,26 @@ public sealed class CompatibilitySurfaceTests
             LegacyMethodCount = legacyMethods.Length,
             RouterMethodCount = routerMethods.Length,
             AllLegacySignaturesHaveRouterTwin = legacyMethods.All(m => routerSignatures.Contains(NormalizeSignature(m))),
+            AllLegacyObsoleteOnGatewayBuilder = legacyMethods.Length > 0
+                && legacyMethods.All(m => m.GetCustomAttribute<ObsoleteAttribute>() is not null),
+            AllRouterCleanOnRouterBuilder = routerMethods.Length > 0
+                && routerMethods.All(m => m.GetCustomAttribute<ObsoleteAttribute>() is null),
             Signatures = signatures
         };
     }
 
-    private static MethodInfo[] GetExtensionMethods(Type declaringType)
+    private static MethodInfo[] GetExtensionMethods(Type declaringType, Type firstParameterType)
         => declaringType
             .GetMethods(BindingFlags.Public | BindingFlags.Static)
-            .Where(m => !m.IsSpecialName)
+            .Where(m => !m.IsSpecialName && HasFirstParameter(m, firstParameterType))
             .OrderBy(m => m.Name, StringComparer.Ordinal)
             .ToArray();
+
+    private static bool HasFirstParameter(MethodInfo method, Type parameterType)
+    {
+        var parameters = method.GetParameters();
+        return parameters.Length > 0 && parameters[0].ParameterType == parameterType;
+    }
 
     private static string NormalizeSignature(MethodInfo method)
     {
