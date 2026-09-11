@@ -10,6 +10,7 @@ import {
   GATEWAY,
   KEYFRAMES,
   LANES,
+  NOW_COL,
   REST_STEP,
   SCROLL_MS,
   SEQ_MS,
@@ -32,9 +33,12 @@ import { LanePlate, SequenceBlock } from "./parts";
  * parallel - the dashed returns come back to the gateway lane one after
  * another, and one merged response arrow goes back up to the client. The
  * strip carries the four columns twice and scrolls one full set leftwards per
- * sequence, the way a trace viewer does, so every column crosses the visible
- * box in turn and the wrap lands on its identical twin at the identical
- * phase - the loop is seamless.
+ * sequence, the way a trace viewer does. Each hop draws itself at the moment
+ * its own place on the strip crosses the now-line - one column in from the
+ * left edge of the diagram box, which is the box's right edge at base and 75%
+ * / 60% of the way across from `sm` / `lg` up - so the strip right of that
+ * line is the not-yet-happened future and stays blank, and the wrap lands on
+ * the identical twin column at the identical phase: the loop is seamless.
  *
  * Sizing: the diagram is DOM text on a fixed lane pitch, not a scaled SVG, so
  * every label renders at its own px size (11px floor) at any viewport width;
@@ -53,7 +57,9 @@ export default function SequenceLanes() {
   const ref = useRef<HTMLDivElement>(null);
   const running = useElementMotion(ref);
   const step = useCycle(running, SEQUENCES.length, SCROLL_MS, REST_STEP);
-  const inFlight = SEQUENCES[step];
+  // The column crossing the now-line during this step, not the one entering
+  // the strip: that is the sequence the panel and the client plate name.
+  const inFlight = SEQUENCES[(step + NOW_COL) % SEQUENCES.length];
 
   return (
     <div

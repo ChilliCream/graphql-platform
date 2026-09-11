@@ -138,12 +138,33 @@ export const SEQUENCES: readonly Sequence[] = [
 /** One column of the trace scrolls past per `SCROLL_MS`; a sequence spans four. */
 export const SCROLL_MS = 2200;
 export const SEQ_MS = SCROLL_MS * SEQUENCES.length;
-/** The still frame names the web app's completed trace. */
-export const REST_STEP = 0;
 
 /**
- * Where each hop sits in its column, as a fraction of the column: x is time,
- * so a hop's animation delay is its own fraction of the sequence.
+ * The now-line: the column, counted in from the left edge of the diagram box,
+ * that a hop is drawn on as its own point of the strip crosses it.
+ */
+export const NOW_COL = 1;
+
+/**
+ * Delay of a hop sitting at column fraction `fraction`: a hop in column `i`
+ * reaches x = NOW_COL * colW at t = columnDelay + fraction * SCROLL_MS +
+ * (1 - NOW_COL / SEQUENCES.length) * SEQ_MS, because the strip moves four
+ * columns per `SEQ_MS` while a sequence spans one column - so hops are spaced
+ * by `SCROLL_MS`, not by `SEQ_MS`.
+ */
+export const hopDelay = (fraction: number) =>
+  fraction * SCROLL_MS + (1 - NOW_COL / SEQUENCES.length) * SEQ_MS;
+
+/**
+ * The still frame names the web app's completed trace: `REST_STEP` is chosen
+ * so that `(REST_STEP + NOW_COL) % SEQUENCES.length === 0`.
+ */
+export const REST_STEP = 3;
+
+/**
+ * Where each hop sits in its column, as a fraction of the column width: x is
+ * time, so a hop's animation delay is `hopDelay` of that fraction - the moment
+ * its place on the strip reaches the now-line.
  */
 export const T = {
   request: 0.08,
@@ -167,21 +188,21 @@ export const KEYFRAMES = `
 @keyframes mc-seq-scroll { to { transform: translateX(-50%); } }
 @keyframes mc-seq-draw {
   0% { transform: scaleY(0); opacity: 0; }
-  2% { opacity: 1; }
-  10% { transform: scaleY(1); }
-  90% { transform: scaleY(1); opacity: 1; }
-  100% { transform: scaleY(1); opacity: 0; }
+  1% { opacity: 1; }
+  4% { transform: scaleY(1); }
+  65% { transform: scaleY(1); opacity: 1; }
+  70%, 100% { transform: scaleY(1); opacity: 0; }
 }
 @keyframes mc-seq-head {
-  0%, 9% { opacity: 0; }
-  12%, 90% { opacity: 1; }
-  100% { opacity: 0; }
+  0%, 3% { opacity: 0; }
+  4%, 65% { opacity: 1; }
+  70%, 100% { opacity: 0; }
 }
 @keyframes mc-seq-fill {
   0% { transform: scaleX(0); opacity: 0; }
-  2% { opacity: 1; }
-  16% { transform: scaleX(1); }
-  90% { transform: scaleX(1); opacity: 1; }
-  100% { transform: scaleX(1); opacity: 0; }
+  1% { opacity: 1; }
+  8% { transform: scaleX(1); }
+  65% { transform: scaleX(1); opacity: 1; }
+  70%, 100% { transform: scaleX(1); opacity: 0; }
 }
 `;

@@ -9,6 +9,7 @@ import {
   SEQ_MS,
   SPEC_ACCENT,
   T,
+  hopDelay,
   laneTop,
   returnAt,
   wash,
@@ -200,7 +201,7 @@ export function SequenceBlock({
   running,
 }: SequenceBlockProps) {
   const { client, targets } = sequence;
-  const at = (fraction: number) => delayMs + fraction * SEQ_MS;
+  const at = (fraction: number) => delayMs + hopDelay(fraction);
 
   return (
     <div className="relative h-full w-1/8 shrink-0">
