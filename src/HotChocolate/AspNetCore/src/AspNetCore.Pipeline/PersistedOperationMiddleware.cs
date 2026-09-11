@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Net;
+using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Utilities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -145,64 +146,67 @@ internal static class PersistedOperationMiddleware
         var ct = context.RequestAborted;
         var executorSession = await executorProxy.GetOrCreateSessionAsync(ct);
 
-        // first, we validate the accept-headers.
-        var validationResult = MiddlewareHelper.ValidateAcceptContentType(context, executorSession);
-        var acceptMediaTypes = validationResult.AcceptMediaTypes;
-
-        if (!validationResult.IsValid)
+        using (executorSession.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGet))
         {
-            statusCode = validationResult.StatusCode.Value;
-            result = validationResult.Error;
-            goto HANDLE_RESULT;
-        }
+            // first, we validate the accept-headers.
+            var validationResult = MiddlewareHelper.ValidateAcceptContentType(context, executorSession);
+            var acceptMediaTypes = validationResult.AcceptMediaTypes;
 
-        // validate if the operation name is required.
-        if (requireOperationName && string.IsNullOrWhiteSpace(operationName))
-        {
-            statusCode = HttpStatusCode.BadRequest;
-            result = ErrorHelper.OperationNameRequired();
-            goto HANDLE_RESULT;
-        }
+            if (!validationResult.IsValid)
+            {
+                statusCode = validationResult.StatusCode.Value;
+                result = validationResult.Error;
+                goto HANDLE_RESULT;
+            }
 
-        // next, we parse the GraphQL request.
-        var parserResult =
-            MiddlewareHelper.ParseVariablesAndExtensionsFromParams(
-                operationId,
-                operationName,
-                context,
-                executorSession);
+            // validate if the operation name is required.
+            if (requireOperationName && string.IsNullOrWhiteSpace(operationName))
+            {
+                statusCode = HttpStatusCode.BadRequest;
+                result = ErrorHelper.OperationNameRequired();
+                goto HANDLE_RESULT;
+            }
 
-        if (!parserResult.IsValid)
-        {
-            statusCode = parserResult.StatusCode.Value;
-            result = parserResult.Error;
-            goto HANDLE_RESULT;
-        }
+            // next, we parse the GraphQL request.
+            var parserResult =
+                MiddlewareHelper.ParseVariablesAndExtensionsFromParams(
+                    operationId,
+                    operationName,
+                    context,
+                    executorSession);
 
-        // before we can execute the request, we need to determine the request flags.
-        var request = parserResult.Request!;
-        var requestFlags =
-            MiddlewareHelper.DetermineHttpGetRequestFlags(
-                validationResult.RequestFlags,
-                options);
+            if (!parserResult.IsValid)
+            {
+                statusCode = parserResult.StatusCode.Value;
+                result = parserResult.Error;
+                goto HANDLE_RESULT;
+            }
 
-        // next, we will execute the request.
-        var executionResult =
-            await MiddlewareHelper.ExecuteRequestAsync(
-                request,
-                requestFlags,
-                context,
-                executorSession);
-        statusCode = executionResult.StatusCode;
-        result = executionResult.Result;
+            // before we can execute the request, we need to determine the request flags.
+            var request = parserResult.Request!;
+            var requestFlags =
+                MiddlewareHelper.DetermineHttpGetRequestFlags(
+                    validationResult.RequestFlags,
+                    options);
+
+            // next, we will execute the request.
+            var executionResult =
+                await MiddlewareHelper.ExecuteRequestAsync(
+                    request,
+                    requestFlags,
+                    context,
+                    executorSession);
+            statusCode = executionResult.StatusCode;
+            result = executionResult.Result;
 
 HANDLE_RESULT:
-        await MiddlewareHelper.WriteResultAsync(
-            result!,
-            acceptMediaTypes,
-            statusCode,
-            context,
-            executorSession);
+            await MiddlewareHelper.WriteResultAsync(
+                result!,
+                acceptMediaTypes,
+                statusCode,
+                context,
+                executorSession);
+        }
     }
 
     private static async Task ExecutePostRequestAsync(
@@ -217,57 +221,60 @@ HANDLE_RESULT:
         var ct = context.RequestAborted;
         var executorSession = await executorProxy.GetOrCreateSessionAsync(ct);
 
-        // first, we validate the accept-headers.
-        var validationResult = MiddlewareHelper.ValidateAcceptContentType(context, executorSession);
-
-        var acceptMediaTypes = validationResult.AcceptMediaTypes;
-
-        if (!validationResult.IsValid)
+        using (executorSession.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpPost))
         {
-            statusCode = validationResult.StatusCode.Value;
-            result = validationResult.Error;
-            goto HANDLE_RESULT;
-        }
+            // first, we validate the accept-headers.
+            var validationResult = MiddlewareHelper.ValidateAcceptContentType(context, executorSession);
 
-        // validate if the operation name is required.
-        if (requireOperationName && string.IsNullOrWhiteSpace(operationName))
-        {
-            statusCode = HttpStatusCode.BadRequest;
-            result = ErrorHelper.OperationNameRequired();
-            goto HANDLE_RESULT;
-        }
+            var acceptMediaTypes = validationResult.AcceptMediaTypes;
 
-        // next, we parse the GraphQL request.
-        var parserResult =
-            await MiddlewareHelper.ParseSingleRequestFromBodyAsync(
-                operationId,
-                operationName,
-                context,
-                executorSession);
+            if (!validationResult.IsValid)
+            {
+                statusCode = validationResult.StatusCode.Value;
+                result = validationResult.Error;
+                goto HANDLE_RESULT;
+            }
 
-        if (!parserResult.IsValid)
-        {
-            statusCode = parserResult.StatusCode.Value;
-            result = parserResult.Error;
-            goto HANDLE_RESULT;
-        }
+            // validate if the operation name is required.
+            if (requireOperationName && string.IsNullOrWhiteSpace(operationName))
+            {
+                statusCode = HttpStatusCode.BadRequest;
+                result = ErrorHelper.OperationNameRequired();
+                goto HANDLE_RESULT;
+            }
 
-        // after successfully parsing the request, we now will attempt to execute the request.
-        var executionResult =
-            await MiddlewareHelper.ExecuteRequestAsync(
-                parserResult.Request!,
-                validationResult.RequestFlags,
-                context,
-                executorSession);
-        statusCode = executionResult.StatusCode;
-        result = executionResult.Result;
+            // next, we parse the GraphQL request.
+            var parserResult =
+                await MiddlewareHelper.ParseSingleRequestFromBodyAsync(
+                    operationId,
+                    operationName,
+                    context,
+                    executorSession);
+
+            if (!parserResult.IsValid)
+            {
+                statusCode = parserResult.StatusCode.Value;
+                result = parserResult.Error;
+                goto HANDLE_RESULT;
+            }
+
+            // after successfully parsing the request, we now will attempt to execute the request.
+            var executionResult =
+                await MiddlewareHelper.ExecuteRequestAsync(
+                    parserResult.Request!,
+                    validationResult.RequestFlags,
+                    context,
+                    executorSession);
+            statusCode = executionResult.StatusCode;
+            result = executionResult.Result;
 
 HANDLE_RESULT:
-        await MiddlewareHelper.WriteResultAsync(
-            result!,
-            acceptMediaTypes,
-            statusCode,
-            context,
-            executorSession);
+            await MiddlewareHelper.WriteResultAsync(
+                result!,
+                acceptMediaTypes,
+                statusCode,
+                context,
+                executorSession);
+        }
     }
 }
