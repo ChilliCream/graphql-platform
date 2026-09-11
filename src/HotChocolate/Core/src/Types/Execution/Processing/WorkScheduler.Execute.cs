@@ -229,6 +229,23 @@ RESTART:
 
         var hasWork = !_work.IsEmpty || !_serial.IsEmpty;
 
+        if (!hasWork
+            && !_work.HasRunningTasks
+            && !_serial.HasRunningTasks
+            && _pendingBatches.Count > 0)
+        {
+            foreach (var (_, batchTask) in _pendingBatches)
+            {
+                batchTask.Id = Interlocked.Increment(ref _nextId);
+                batchTask.IsRegistered = true;
+                _work.Push(batchTask);
+            }
+
+            _pendingBatches.Clear();
+            _signal.Set();
+            return;
+        }
+
         if (isWaitingForTaskCompletion)
         {
             _signal.Reset();

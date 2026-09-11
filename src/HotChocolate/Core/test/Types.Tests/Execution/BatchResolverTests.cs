@@ -1,3 +1,5 @@
+using System.Text.Json.Nodes;
+using GreenDonut;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -1579,8 +1581,6 @@ public class BatchResolverTests
     public async Task BatchResolver_Should_Complete_When_Parent_Resolver_Is_Async()
     {
         // arrange
-        // The schema is built before the request so the build time is outside the
-        // hang-guard window.
         var executor =
             await new ServiceCollection()
                 .AddGraphQL()
@@ -1597,7 +1597,7 @@ public class BatchResolverTests
                         .Type<ListType<ObjectType<Child>>>()
                         .Resolve(async ctx =>
                         {
-                            await Task.Delay(25);
+                            await Task.Delay(25, ctx.RequestAborted);
                             var parent = ctx.Parent<Parent>();
                             return new List<Child>
                             {
@@ -1627,10 +1627,6 @@ public class BatchResolverTests
                 .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        // A CancellationToken passed to ExecuteAsync does not unblock the hang. The work loop
-        // checks the token, but the scheduler pause awaits its signal without a cancellation
-        // registration and so never observes it, so the guard must be WaitAsync at the test
-        // level. See https://github.com/ChilliCream/graphql-platform/issues/9892.
         var resultTask = executor.ExecuteAsync(
             "{ parents { children { id computed } } }",
             TestContext.Current.CancellationToken);
@@ -1672,6 +1668,583 @@ public class BatchResolverTests
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_Async_Parents_Are_Nested_Three_Levels()
+    {
+        // arrange
+        var batchSizes = new List<int>();
+        var executor = await CreateAsyncParentBuilder(2)
+            .AddObjectType<Child>(d =>
+            {
+                d.Field("grandchildren")
+                    .Type<ListType<ObjectType<GrandChild>>>()
+                    .Resolve(async ctx =>
+                    {
+                        await Task.Delay(25, ctx.RequestAborted);
+                        var child = ctx.Parent<Child>();
+                        return new List<GrandChild> { new(child.Id * 10 + 1), new(child.Id * 10 + 2) };
+                    });
+            })
+            .AddObjectType<GrandChild>(d =>
+            {
+                d.Field(c => c.Id);
+                d.Field("computed").Type<StringType>().ResolveBatch(contexts =>
+                {
+                    batchSizes.Add(contexts.Count);
+                    return new ValueTask<IReadOnlyList<ResolverResult>>(
+                        contexts.Select(c => ResolverResult.Ok($"g{c.Parent<GrandChild>().Id}")).ToArray());
+                });
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+                "{ parents { children { grandchildren { id computed } } } }",
+                TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot().Add(result, "Result").Add(batchSizes, "Batch sizes").MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_There_Are_Fifty_Async_Parents()
+    {
+        // arrange
+        var batchSizes = new List<int>();
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("parents")
+                .Type<ListType<ObjectType<Parent>>>()
+                .Resolve(Enumerable.Range(1, 50).Select(i => new Parent(i)).ToList()))
+            .AddObjectType<Parent>(d => d.Field("children")
+                .Type<ListType<ObjectType<Child>>>()
+                .Resolve(async ctx =>
+                {
+                    await Task.Delay(ctx.Parent<Parent>().Id % 29 + 1, ctx.RequestAborted);
+                    return new List<Child> { new(ctx.Parent<Parent>().Id) };
+                }))
+            .AddObjectType<Child>(d =>
+            {
+                d.Field(c => c.Id);
+                d.Field("computed").Type<StringType>().ResolveBatch(contexts =>
+                {
+                    batchSizes.Add(contexts.Count);
+                    return ComputeChildrenAsync(contexts);
+                });
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ parents { children { id computed } } }",
+                TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot().Add(result, "Result").Add(batchSizes, "Batch sizes").MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_Parent_List_Itself_Is_Async()
+    {
+        // arrange
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("parents")
+                .Type<ListType<ObjectType<Parent>>>()
+                .Resolve(async ctx =>
+                {
+                    await Task.Delay(25, ctx.RequestAborted);
+                    return new List<Parent> { new(1), new(2) };
+                }))
+            .AddObjectType<Parent>(ConfigureAsyncChildren)
+            .AddObjectType<Child>(ConfigureComputedChild)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ parents { children { id computed } } }",
+                TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_Single_Async_Parent_Has_Slow_Sibling_Root_Field()
+    {
+        // arrange
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("parent").Type<ObjectType<Parent>>().Resolve(new Parent(1));
+                ConfigureSlowSibling(d);
+            })
+            .AddObjectType<Parent>(ConfigureAsyncChildren)
+            .AddObjectType<Child>(ConfigureComputedChild)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ parent { children { id computed } } slow }",
+                TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_Async_Children_Are_Under_Defer()
+    {
+        // arrange
+        var executor = await CreateAsyncParentBuilder(2)
+            .AddObjectType<Child>(ConfigureComputedChild)
+            .ModifyOptions(o => o.EnableDefer = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+                "{ parents { id ... @defer { children { id computed } } } }",
+                TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        var (payloads, hasNext) = await DrainBatchResultsAsync(result)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        var snapshot = new Snapshot().Add(hasNext, "Stream continuation");
+        // Deferred siblings can complete in either order.
+        foreach (var payload in payloads.OrderBy(p => p["incremental"]?[0]?["id"]?.GetValue<string>(),
+            StringComparer.Ordinal))
+        {
+            snapshot.Add(payload.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }),
+                "Payload", "json");
+        }
+
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_One_Async_Parent_Resolver_Throws()
+    {
+        // arrange
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("parents")
+                .Type<ListType<ObjectType<Parent>>>()
+                .Resolve(new List<Parent> { new(1), new(2) }))
+            .AddObjectType<Parent>(d =>
+            {
+                d.Field(p => p.Id);
+                d.Field("children").Type<ListType<ObjectType<Child>>>().Resolve(async ctx =>
+                {
+                    var parent = ctx.Parent<Parent>();
+                    await Task.Delay(parent.Id == 2 ? 10 : 100, ctx.RequestAborted);
+                    if (parent.Id == 2)
+                    {
+                        throw new InvalidOperationException("boom");
+                    }
+
+                    return CreateChildren(parent.Id);
+                });
+            })
+            .AddObjectType<Child>(ConfigureComputedChild)
+            .ModifyRequestOptions(o => o.IncludeExceptionDetails = false)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ parents { id children { id computed } } }",
+                TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_Parents_And_Batch_Resolver_Await_DataLoaders()
+    {
+        // arrange
+        var batchSizes = new List<int>();
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddDataLoader<ChildrenByParentDataLoader>()
+            .AddDataLoader<ChildNameDataLoader>()
+            .AddQueryType(d => d.Name("Query").Field("parents")
+                .Type<ListType<ObjectType<Parent>>>()
+                .Resolve(new List<Parent> { new(1), new(2), new(3) }))
+            .AddObjectType<Parent>(d => d.Field("children")
+                .Type<ListType<ObjectType<Child>>>()
+                .Resolve(async ctx => await ctx.DataLoader<ChildrenByParentDataLoader>()
+                    .LoadRequiredAsync(ctx.Parent<Parent>().Id, ctx.RequestAborted)))
+            .AddObjectType<Child>(d =>
+            {
+                d.Field(c => c.Id);
+                d.Field("computed").Type<StringType>().ResolveBatch(async contexts =>
+                {
+                    batchSizes.Add(contexts.Count);
+                    var names = await contexts[0].DataLoader<ChildNameDataLoader>()
+                        .LoadRequiredAsync(contexts.Select(c => c.Parent<Child>().Id).ToArray(),
+                            contexts[0].RequestAborted);
+                    return names.Select(name => ResolverResult.Ok(name)).ToArray();
+                });
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ parents { children { id computed } } }",
+                TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot().Add(result, "Result").Add(batchSizes, "Batch sizes").MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_Two_Sibling_Batch_Fields_Are_Under_Async_Parents()
+    {
+        // arrange
+        var batchSizesA = new List<int>();
+        var batchSizesB = new List<int>();
+        var executor = await CreateAsyncParentBuilder(2)
+            .AddObjectType<Child>(d =>
+            {
+                d.Field(c => c.Id);
+                d.Field("computedA").Type<StringType>().ResolveBatch(contexts =>
+                {
+                    batchSizesA.Add(contexts.Count);
+                    return ComputeChildrenAsync(contexts, "a");
+                });
+                d.Field("computedB").Type<StringType>().ResolveBatch(async contexts =>
+                {
+                    batchSizesB.Add(contexts.Count);
+                    await Task.Delay(25, contexts[0].RequestAborted);
+                    return await ComputeChildrenAsync(contexts, "b");
+                });
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ parents { children { id computedA computedB } } }",
+                TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot().Add(result, "Result").Add(batchSizesA, "Batch A sizes")
+            .Add(batchSizesB, "Batch B sizes").MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_Batch_Result_Has_Batch_Field_And_Slow_Sibling_Runs()
+    {
+        // arrange
+        var childrenBatchSizes = new List<int>();
+        var computedBatchSizes = new List<int>();
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("parents").Type<ListType<ObjectType<Parent>>>()
+                    .Resolve(new List<Parent> { new(1), new(2) });
+                ConfigureSlowSibling(d);
+            })
+            .AddObjectType<Parent>(d => d.Field("children")
+                .Type<ListType<ObjectType<Child>>>()
+                .ResolveBatch(async contexts =>
+                {
+                    childrenBatchSizes.Add(contexts.Count);
+                    await Task.Delay(25, contexts[0].RequestAborted);
+                    return contexts.Select(c => ResolverResult.Ok(CreateChildren(c.Parent<Parent>().Id)))
+                        .ToArray();
+                }))
+            .AddObjectType<Child>(d =>
+            {
+                d.Field(c => c.Id);
+                d.Field("computed").Type<StringType>().ResolveBatch(contexts =>
+                {
+                    computedBatchSizes.Add(contexts.Count);
+                    return ComputeChildrenAsync(contexts);
+                });
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ parents { children { id computed } } slow }",
+                TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot().Add(result, "Result").Add(childrenBatchSizes, "Children batch sizes")
+            .Add(computedBatchSizes, "Computed batch sizes").MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_Sync_Parent_List_Has_Batch_Field_And_Slow_Sibling_Runs()
+    {
+        // arrange
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("children").Type<ListType<ObjectType<Child>>>()
+                    .Resolve(new List<Child> { new(1), new(2) });
+                ConfigureSlowSibling(d);
+            })
+            .AddObjectType<Child>(ConfigureComputedChild)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ children { id computed } slow }",
+                TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "children": [
+                  {
+                    "id": 1,
+                    "computed": "c1"
+                  },
+                  {
+                    "id": 2,
+                    "computed": "c2"
+                  }
+                ],
+                "slow": "slow"
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Batch_Should_Complete_When_Serial_Mutation_Parents_Have_Async_Children(bool aliasSameField)
+    {
+        // arrange
+        var batchSizes = new List<int>();
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("ping").Resolve("pong"))
+            .AddMutationType(d =>
+            {
+                d.Name("Mutation");
+                foreach (var name in new[] { "createParent", "cloneParent" })
+                {
+                    d.Field(name).Argument("id", a => a.Type<NonNullType<IntType>>())
+                        .Type<ObjectType<Parent>>().Resolve(async ctx =>
+                        {
+                            await Task.Delay(10, ctx.RequestAborted);
+                            return new Parent(ctx.ArgumentValue<int>("id"));
+                        });
+                }
+            })
+            .AddObjectType<Parent>(ConfigureAsyncChildren)
+            .AddObjectType<Child>(d =>
+            {
+                d.Field(c => c.Id);
+                d.Field("computed").Type<StringType>().ResolveBatch(contexts =>
+                {
+                    batchSizes.Add(contexts.Count);
+                    return ComputeChildrenAsync(contexts);
+                });
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var secondField = aliasSameField ? "createParent" : "cloneParent";
+
+        // act
+        var result = await executor.ExecuteAsync(
+                $$"""
+                mutation {
+                  a: createParent(id: 1) { id children { id computed } }
+                  b: {{secondField}}(id: 2) { id children { id computed } }
+                }
+                """, TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot(postFix: aliasSameField.ToString()).Add(result, "Result").Add(batchSizes, "Batch sizes")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Execution_Should_Not_Hang_When_Request_Is_Cancelled_While_Async_Children_Run()
+    {
+        // arrange
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("parents")
+                .Type<ListType<ObjectType<Parent>>>()
+                .Resolve(new List<Parent> { new(1), new(2) }))
+            .AddObjectType<Parent>(d => d.Field("children")
+                .Type<ListType<ObjectType<Child>>>().Resolve(async ctx =>
+                {
+                    var parent = ctx.Parent<Parent>();
+                    await Task.Delay(parent.Id == 1 ? 10 : 2000, ctx.RequestAborted);
+                    return CreateChildren(parent.Id);
+                }))
+            .AddObjectType<Child>(ConfigureComputedChild)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        cts.CancelAfter(200);
+
+        // act
+        var result = await executor.ExecuteAsync("{ parents { children { id computed } } }", cts.Token)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The GraphQL request execution was canceled.",
+                  "extensions": {
+                    "code": "HC0049"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_Root_Batch_Field_Has_Sibling()
+    {
+        // arrange
+        var executor = await CreateRootBatchBuilder()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ computed ping }", TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "computed": "root",
+                "ping": "pong"
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Batch_Should_Complete_When_Root_Batch_Field_Is_Only_Selection()
+    {
+        // arrange
+        var executor = await CreateRootBatchBuilder()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ computed }", TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "computed": "root"
+              }
+            }
+            """);
+    }
+
+    private static Configuration.IRequestExecutorBuilder CreateRootBatchBuilder()
+        => new ServiceCollection().AddGraphQL().AddQueryType(d =>
+        {
+            d.Name("Query");
+            d.Field("ping").Resolve("pong");
+            d.Field("computed").Type<StringType>().ResolveBatch(contexts =>
+                new ValueTask<IReadOnlyList<ResolverResult>>(
+                    contexts.Select(_ => ResolverResult.Ok("root")).ToArray()));
+        });
+
+    private static Configuration.IRequestExecutorBuilder CreateAsyncParentBuilder(int count)
+        => new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("parents")
+                .Type<ListType<ObjectType<Parent>>>()
+                .Resolve(Enumerable.Range(1, count).Select(i => new Parent(i)).ToList()))
+            .AddObjectType<Parent>(ConfigureAsyncChildren);
+
+    private static void ConfigureAsyncChildren(IObjectTypeDescriptor<Parent> descriptor)
+    {
+        descriptor.Field(p => p.Id);
+        descriptor.Field("children").Type<ListType<ObjectType<Child>>>().Resolve(async ctx =>
+        {
+            await Task.Delay(25, ctx.RequestAborted);
+            return CreateChildren(ctx.Parent<Parent>().Id);
+        });
+    }
+
+    private static void ConfigureComputedChild(IObjectTypeDescriptor<Child> descriptor)
+    {
+        descriptor.Field(c => c.Id);
+        descriptor.Field("computed").Type<StringType>().ResolveBatch(ComputeChildrenAsync);
+    }
+
+    private static void ConfigureSlowSibling(IObjectTypeDescriptor descriptor)
+    {
+        descriptor.Field("slow").Type<StringType>().Resolve(async ctx =>
+        {
+            await Task.Delay(300, ctx.RequestAborted);
+            return "slow";
+        });
+    }
+
+    private static List<Child> CreateChildren(int parentId)
+        => [new(parentId * 10 + 1), new(parentId * 10 + 2)];
+
+    private static ValueTask<IReadOnlyList<ResolverResult>> ComputeChildrenAsync(
+        IReadOnlyList<IResolverContext> contexts)
+        => ComputeChildrenAsync(contexts, "c");
+
+    private static ValueTask<IReadOnlyList<ResolverResult>> ComputeChildrenAsync(
+        IReadOnlyList<IResolverContext> contexts, string prefix)
+        => new(contexts.Select(c => ResolverResult.Ok($"{prefix}{c.Parent<Child>().Id}")).ToArray());
+
+    private static async Task<(List<JsonObject> Payloads, List<bool> HasNext)> DrainBatchResultsAsync(
+        IExecutionResult result)
+    {
+        var payloads = new List<JsonObject>();
+        var hasNext = new List<bool>();
+        await using var stream = result.ExpectResponseStream();
+        await foreach (var payload in stream.ReadResultsAsync()
+            .WithCancellation(TestContext.Current.CancellationToken))
+        {
+            var node = JsonNode.Parse(payload.ToJson())!.AsObject();
+            hasNext.Add(node["hasNext"]!.GetValue<bool>());
+            node.Remove("hasNext");
+            payloads.Add(node);
+        }
+
+        return (payloads, hasNext);
+    }
+
+    public record GrandChild(int Id);
+
+    public class ChildrenByParentDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
+        : BatchDataLoader<int, List<Child>>(batchScheduler, options)
+    {
+        protected override async Task<IReadOnlyDictionary<int, List<Child>>> LoadBatchAsync(
+            IReadOnlyList<int> keys, CancellationToken cancellationToken)
+        {
+            await Task.Delay(10, cancellationToken);
+            return keys.ToDictionary(k => k, CreateChildren);
+        }
+    }
+
+    public class ChildNameDataLoader(IBatchScheduler batchScheduler, DataLoaderOptions options)
+        : BatchDataLoader<int, string>(batchScheduler, options)
+    {
+        protected override async Task<IReadOnlyDictionary<int, string>> LoadBatchAsync(
+            IReadOnlyList<int> keys, CancellationToken cancellationToken)
+        {
+            await Task.Delay(10, cancellationToken);
+            return keys.ToDictionary(k => k, k => $"name{k}");
+        }
     }
 
     public interface IUser
