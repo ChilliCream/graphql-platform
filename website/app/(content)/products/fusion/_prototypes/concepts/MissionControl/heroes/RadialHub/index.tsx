@@ -1,13 +1,45 @@
 "use client";
 
 import { useRef } from "react";
-import type { CSSProperties, ReactNode } from "react";
 
 import { Eyebrow } from "@/src/design-system/Eyebrow";
 
-import { TYPE } from "../../../brand";
-import { useElementMotion } from "../hooks";
-import { MC, SOURCES, STATIONS, specTag } from "../palette";
+import { anim, useCycle, useElementMotion } from "../../hooks";
+import { MC, SOURCES, STATIONS, specTag } from "../../palette";
+import {
+  APOLLO_FED,
+  C,
+  CLIENT_EDGE,
+  CLIENT_NODES,
+  FAN_OUT,
+  FLIGHTS,
+  GQL_FED,
+  HUB_EDGE,
+  KEYFRAMES,
+  LANGUAGE,
+  MERGE,
+  META_SIZE,
+  NAME_SIZE,
+  REQUEST,
+  RESPONSE,
+  REST_STEP,
+  RETURN,
+  R_CLIENT,
+  R_HUB,
+  R_SOURCE,
+  R_SUB,
+  SOURCE_ANGLES,
+  SOURCE_LANGUAGE,
+  SPEC_COLOR,
+  STEP_MS,
+  SUB_ANGLES,
+  SUB_EDGE,
+  VIEW,
+  arc,
+  place,
+  spoke,
+} from "./board";
+import { Light, Plate } from "./parts";
 
 /**
  * Hero visual: the radial hub. The Fusion gateway is the centre of the board,
@@ -23,128 +55,17 @@ import { MC, SOURCES, STATIONS, specTag } from "../palette";
  * The SVG below them is square (`1000 x 1000` in a square box), so rings and
  * spokes scale uniformly and carry no lettering of their own.
  */
-
-/** Square SVG board: rings and spokes only, ten user units per hub percent. */
-const VIEW = 1000;
-const C = VIEW / 2;
-
-/** Ring radii, in percent of the hub square. */
-const R_HUB = 15;
-const R_SUB = 32;
-const R_SOURCE = 40;
-const R_CLIENT = 46;
-
-/** Type sizes: `TYPE.label` is the floor, the hub grows the rest with the box. */
-const NAME_SIZE = `clamp(${TYPE.label}px, 1.35svh, 15px)`;
-const META_SIZE = `clamp(${TYPE.label}px, 1.1svh, 13px)`;
-
-const GQL_FED = "GraphQL Federation";
-const APOLLO_FED = "Apollo Federation";
-
-/** Specification -> ring tint, so the two specs read as arcs of one circle. */
-const SPEC_COLOR: Record<string, string> = {
-  [GQL_FED]: MC.phosphor,
-  [APOLLO_FED]: MC.signal,
-};
-
-/**
- * `CLIENTS` in `../palette` names the three clients the wall map plots; this
- * hero has to show four with the shape of each spelled out, so its roster is
- * local (see `./README.md`).
- */
-const CLIENT_NODES = [
-  { name: "Web app", note: "Browser", angle: -130 },
-  { name: "Mobile app", note: "Native", angle: -50 },
-  { name: "Partner API", note: "Server side", angle: 50 },
-  { name: "AI agent", note: "Tool calls", angle: 130 },
-] as const;
-
-/**
- * `STATIONS` carries the cramped ops-room language tag ("JS/TS"); the plates
- * here have the room to name the language in full.
- */
-const LANGUAGE: Record<string, string> = {
-  Catalog: "TypeScript",
-  Billing: "Java",
-  Ordering: "Go",
-  Shipping: "Ruby",
-  Accounts: "C#",
-};
-
-/** Subgraph ring: one node per `STATIONS` entry, 72 degrees apart. */
-const SUB_ANGLES = [-90, -18, 54, 126, 198];
-
-/** The satellites sit in the ring gaps to the right and left of the centre. */
-const SOURCE_ANGLES = [18, 162];
-
-/** `SOURCES` names the feed; the language it is written in stays local. */
-const SOURCE_LANGUAGE: Record<string, string> = {
-  OpenAPI: "Python",
-  gRPC: "Go",
-};
-
-const rad = (deg: number) => (deg * Math.PI) / 180;
-const cos = (deg: number) => Math.cos(rad(deg));
-const sin = (deg: number) => Math.sin(rad(deg));
-
-/** Places a DOM node on a ring, in percentages of the hub square. */
-function place(angle: number, r: number): CSSProperties {
-  return {
-    left: `${(50 + r * cos(angle)).toFixed(3)}%`,
-    top: `${(50 + r * sin(angle)).toFixed(3)}%`,
-    transform: "translate(-50%, -50%)",
-  };
-}
-
-/** Ring arc between two angles, in SVG user units. */
-function arc(from: number, to: number, r: number): string {
-  const x0 = C + r * cos(from);
-  const y0 = C + r * sin(from);
-  const x1 = C + r * cos(to);
-  const y1 = C + r * sin(to);
-  return `M${x0.toFixed(2)} ${y0.toFixed(2)}A${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
-}
-
-/** Spoke from the rim of the gateway disc to the rim of a node. */
-function spoke(angle: number, r: number, inset: number): string {
-  const from = R_HUB * 10 + 10;
-  const to = r * 10 - inset;
-  return `M${(C + from * cos(angle)).toFixed(2)} ${(C + from * sin(angle)).toFixed(2)}L${(C + to * cos(angle)).toFixed(2)} ${(C + to * sin(angle)).toFixed(2)}`;
-}
-
-interface PlateProps {
-  /** Ring placement, from `place`. */
-  readonly style: CSSProperties;
-  readonly children: ReactNode;
-  /** Edge colour: the specification tint for a subgraph, the signal for a client. */
-  readonly tone: string;
-}
-
-function Plate({ style, children, tone }: PlateProps) {
-  return (
-    <div
-      className="absolute rounded-md border px-2 py-1 text-center"
-      style={{
-        ...style,
-        background: MC.panel,
-        borderColor: tone,
-        fontFamily: MC.mono,
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
 export default function RadialHub() {
   const ref = useRef<HTMLDivElement>(null);
   const running = useElementMotion(ref);
+  const step = useCycle(running, FLIGHTS.length, STEP_MS, REST_STEP);
+  const flight = FLIGHTS[step];
+  const client = CLIENT_NODES[flight.client];
+  const targets: readonly number[] = flight.targets;
 
   return (
     <div ref={ref} className="absolute inset-0" aria-hidden="true">
+      <style>{KEYFRAMES}</style>
       <div
         className="absolute inset-0"
         style={{
@@ -161,23 +82,42 @@ export default function RadialHub() {
             viewBox={`0 0 ${VIEW} ${VIEW}`}
             className="absolute inset-0 h-full w-full"
           >
-            <circle
-              cx={C}
-              cy={C}
-              r={R_CLIENT * 10}
-              fill="none"
-              stroke={MC.line}
-              strokeOpacity="0.4"
-              strokeDasharray="2 14"
-            />
-            <circle
-              cx={C}
-              cy={C}
-              r={R_SOURCE * 10}
-              fill="none"
-              stroke={MC.line}
-              strokeOpacity="0.22"
-            />
+            <g
+              style={{
+                transformBox: "view-box",
+                transformOrigin: `${C}px ${C}px`,
+                animation: anim(running, "rh-spin 140s linear infinite"),
+                transform: running ? undefined : "rotate(-12deg)",
+              }}
+            >
+              <circle
+                cx={C}
+                cy={C}
+                r={R_CLIENT * 10}
+                fill="none"
+                stroke={MC.line}
+                strokeOpacity="0.4"
+                strokeDasharray="2 14"
+              />
+            </g>
+            <g
+              style={{
+                transformBox: "view-box",
+                transformOrigin: `${C}px ${C}px`,
+                animation: anim(running, "rh-spin-back 100s linear infinite"),
+                transform: running ? undefined : "rotate(8deg)",
+              }}
+            >
+              <circle
+                cx={C}
+                cy={C}
+                r={R_SOURCE * 10}
+                fill="none"
+                stroke={MC.line}
+                strokeOpacity="0.22"
+                strokeDasharray="18 10"
+              />
+            </g>
 
             {STATIONS.map((station, i) => (
               <path
@@ -196,7 +136,11 @@ export default function RadialHub() {
                 key={`spoke-${station.name}`}
                 d={spoke(SUB_ANGLES[i], R_SUB, 62)}
                 stroke={SPEC_COLOR[station.spec]}
-                strokeOpacity="0.45"
+                style={{
+                  strokeOpacity: targets.includes(i) ? 0.85 : 0.25,
+                  strokeWidth: targets.includes(i) ? 2 : 1,
+                  transition: "stroke-opacity 400ms, stroke-width 400ms",
+                }}
               />
             ))}
             {SOURCES.map((source, i) => (
@@ -208,14 +152,84 @@ export default function RadialHub() {
                 strokeDasharray="5 7"
               />
             ))}
-            {CLIENT_NODES.map((client) => (
+            {CLIENT_NODES.map((node) => (
               <path
-                key={`spoke-${client.name}`}
-                d={spoke(client.angle, R_CLIENT, 50)}
+                key={`spoke-${node.name}`}
+                d={spoke(node.angle, R_CLIENT, 50)}
                 stroke={MC.signal}
-                strokeOpacity="0.35"
+                style={{
+                  strokeOpacity: node.name === client.name ? 0.8 : 0.2,
+                  strokeWidth: node.name === client.name ? 2 : 1,
+                  transition: "stroke-opacity 400ms, stroke-width 400ms",
+                }}
               />
             ))}
+
+            <g key={step}>
+              <Light
+                angle={client.angle}
+                from={CLIENT_EDGE}
+                to={HUB_EDGE}
+                color={MC.signal}
+                delay={REQUEST.delay}
+                duration={REQUEST.duration}
+                rest={0.5}
+                running={running}
+              />
+              {targets.map((target, i) => (
+                <Light
+                  key={`out-${STATIONS[target].name}`}
+                  angle={SUB_ANGLES[target]}
+                  from={HUB_EDGE}
+                  to={SUB_EDGE}
+                  color={MC.signal}
+                  delay={FAN_OUT.delay + i * FAN_OUT.stagger}
+                  duration={FAN_OUT.duration}
+                  rest={0.5}
+                  running={running}
+                />
+              ))}
+              {targets.map((target) => (
+                <Light
+                  key={`back-${STATIONS[target].name}`}
+                  angle={SUB_ANGLES[target]}
+                  from={SUB_EDGE}
+                  to={HUB_EDGE}
+                  color={SPEC_COLOR[STATIONS[target].spec]}
+                  delay={RETURN.delay}
+                  duration={RETURN.duration}
+                  rest={false}
+                  running={running}
+                />
+              ))}
+              <Light
+                angle={client.angle}
+                from={HUB_EDGE}
+                to={CLIENT_EDGE}
+                color={MC.phosphor}
+                delay={RESPONSE.delay}
+                duration={RESPONSE.duration}
+                rest={false}
+                running={running}
+              />
+              <circle
+                cx={C}
+                cy={C}
+                r={R_HUB * 10}
+                fill="none"
+                stroke={MC.phosphor}
+                strokeWidth="3"
+                style={{
+                  transformBox: "view-box",
+                  transformOrigin: `${C}px ${C}px`,
+                  animation: anim(
+                    running,
+                    `rh-merge ${MERGE.duration}ms ease-out ${MERGE.delay}ms both`,
+                  ),
+                  opacity: running ? undefined : 0,
+                }}
+              />
+            </g>
           </svg>
 
           <div
@@ -247,7 +261,8 @@ export default function RadialHub() {
             <Plate
               key={station.name}
               style={place(SUB_ANGLES[i], R_SUB)}
-              tone={`color-mix(in srgb, ${SPEC_COLOR[station.spec]} 55%, transparent)`}
+              tone={SPEC_COLOR[station.spec]}
+              active={targets.includes(i)}
             >
               <span
                 className="block"
@@ -300,23 +315,24 @@ export default function RadialHub() {
             </Plate>
           ))}
 
-          {CLIENT_NODES.map((client) => (
+          {CLIENT_NODES.map((node) => (
             <Plate
-              key={client.name}
-              style={place(client.angle, R_CLIENT)}
-              tone={`color-mix(in srgb, ${MC.signal} 45%, transparent)`}
+              key={node.name}
+              style={place(node.angle, R_CLIENT)}
+              tone={MC.signal}
+              active={node.name === client.name}
             >
               <span
                 className="block"
                 style={{ color: MC.ink, fontSize: NAME_SIZE }}
               >
-                {client.name}
+                {node.name}
               </span>
               <span
                 className="block"
                 style={{ color: MC.dim, fontSize: META_SIZE }}
               >
-                {client.note}
+                {node.note}
               </span>
             </Plate>
           ))}
@@ -350,10 +366,12 @@ export default function RadialHub() {
           style={{
             fontFamily: MC.mono,
             fontSize: META_SIZE,
-            color: running ? MC.phosphor : MC.dim,
+            color: MC.phosphor,
           }}
         >
-          resting
+          {`${client.name} → ${targets
+            .map((target) => STATIONS[target].name)
+            .join(" + ")} → 1 response`}
         </p>
       </div>
     </div>
