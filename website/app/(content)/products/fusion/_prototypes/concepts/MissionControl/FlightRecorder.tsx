@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useCycle, useSceneMotion } from "./hooks";
 import { MC } from "./palette";
 
@@ -12,6 +13,8 @@ import { MC } from "./palette";
 
 const W = 640;
 const H = 440;
+/** The scene box mirrors the viewBox, so the recorder never letterboxes. */
+export const FLIGHT_RECORDER_RATIO = `${W} / ${H}`;
 /** 0 arms the tape; the last phase is the rest frame: every replay classified. */
 const PHASES = 7;
 const REST = PHASES - 1;
@@ -124,7 +127,7 @@ export function FlightRecorder() {
         y={30}
         fill={MC.ink}
         fontFamily={MC.mono}
-        fontSize="11"
+        fontSize={TYPE.label}
         letterSpacing="0.16em"
         textAnchor="middle"
       >
@@ -135,7 +138,7 @@ export function FlightRecorder() {
         y={78}
         fill={MC.phosphor}
         fontFamily={MC.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         letterSpacing="0.16em"
         textAnchor="middle"
       >
@@ -156,7 +159,7 @@ export function FlightRecorder() {
         y={DECK.y + 24}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.16em"
       >
         NITRO REPLAY · OPERATIONS PUBLISHED BY REGISTERED CLIENTS
@@ -185,7 +188,7 @@ export function FlightRecorder() {
               y={y}
               fill={done ? MC.ink : MC.dim}
               fontFamily={MC.mono}
-              fontSize="11"
+              fontSize={TYPE.label}
               style={{ transition: "fill 400ms ease" }}
             >
               {`${replay.client}  ${replay.operation}`}
@@ -195,7 +198,7 @@ export function FlightRecorder() {
               y={y + 15}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize="9"
+              fontSize={TYPE.label}
               letterSpacing="0.1em"
             >
               {replay.detail}
@@ -205,7 +208,7 @@ export function FlightRecorder() {
               y={y + 4}
               fill={color}
               fontFamily={MC.mono}
-              fontSize="11"
+              fontSize={TYPE.label}
               letterSpacing="0.16em"
               textAnchor="end"
               style={{
@@ -238,7 +241,7 @@ export function FlightRecorder() {
         y={H - 31}
         fill={blocked ? MC.alert : MC.dim}
         fontFamily={MC.mono}
-        fontSize="11"
+        fontSize={TYPE.label}
         letterSpacing="0.18em"
         textAnchor="middle"
         style={{ transition: "fill 400ms ease" }}
