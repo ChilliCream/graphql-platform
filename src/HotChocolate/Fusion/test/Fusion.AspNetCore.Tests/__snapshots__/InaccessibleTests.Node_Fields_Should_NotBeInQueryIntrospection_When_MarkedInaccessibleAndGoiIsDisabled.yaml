@@ -1,4 +1,4 @@
-title: Node_Fields_Should_NotBeInQueryIntrospection_When_MarkedInaccessible
+title: Node_Fields_Should_NotBeInQueryIntrospection_When_MarkedInaccessibleAndGoiIsDisabled
 request:
   document: |
     {

@@ -235,10 +235,10 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             options => options.EnableGlobalObjectIdentification = true);
     }
 
-    // The node field is inaccessible in the only source schema. The canonical gateway node
-    // field carries the merged inaccessible marker, the GOI-shaped nodes field is dropped.
+    // The node field is inaccessible in the only source schema. The canonical gateway node field
+    // stays accessible, since it belongs to the gateway, the GOI-shaped nodes field is dropped.
     [Fact]
-    public void Merge_Should_MarkNodeFieldInaccessible_When_TheOnlySourceSchemaMarksItInaccessible()
+    public void Merge_Should_NotMarkNodeFieldInaccessible_When_TheOnlySourceSchemaMarksItInaccessible()
     {
         AssertMatches(
             [
@@ -264,7 +264,7 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             }
 
             type Query @fusion__type(schema: A) {
-              node(id: ID!): Node @fusion__gateway_field @fusion__inaccessible
+              node(id: ID!): Node @fusion__gateway_field
             }
 
             type Product implements Node
@@ -289,10 +289,10 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             options => options.EnableGlobalObjectIdentification = true);
     }
 
-    // The node field is inaccessible in one source schema and accessible in another. The
-    // existing merge semantics apply: inaccessible if any source schema marks it inaccessible.
+    // The node field is inaccessible in one source schema and accessible in another. The canonical
+    // gateway node field stays accessible, since it belongs to the gateway.
     [Fact]
-    public void Merge_Should_MarkNodeFieldInaccessible_When_OneOfTwoSourceSchemasMarksItInaccessible()
+    public void Merge_Should_NotMarkNodeFieldInaccessible_When_OneOfTwoSourceSchemasMarksItInaccessible()
     {
         AssertMatches(
             [
@@ -331,7 +331,7 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             }
 
             type Query @fusion__type(schema: A) @fusion__type(schema: B) {
-              node(id: ID!): Node @fusion__gateway_field @fusion__inaccessible
+              node(id: ID!): Node @fusion__gateway_field
             }
 
             type Product implements Node

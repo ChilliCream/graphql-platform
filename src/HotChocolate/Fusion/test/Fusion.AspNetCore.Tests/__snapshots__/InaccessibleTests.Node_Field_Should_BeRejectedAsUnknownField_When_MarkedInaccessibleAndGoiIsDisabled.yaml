@@ -1,0 +1,76 @@
+title: Node_Field_Should_BeRejectedAsUnknownField_When_MarkedInaccessibleAndGoiIsDisabled
+request:
+  document: |
+    {
+      node(id: "UmV2aWV3OjE=") {
+        __typename
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "The field \u0060node\u0060 does not exist on the type \u0060Query\u0060.",
+          "locations": [
+            {
+              "line": 2,
+              "column": 3
+            }
+          ],
+          "extensions": {
+            "type": "Query",
+            "field": "node",
+            "responseName": "node",
+            "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        "Fetches an object given its ID."
+        node("ID of the object." id: ID!): Node @lookup @shareable @inaccessible
+        "Lookup nodes by a list of IDs."
+        nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @inaccessible
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+      }
+
+      "The node interface is implemented by entities that have a global unique identifier."
+      interface Node {
+        id: ID!
+      }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        "Fetches an object given its ID."
+        node("ID of the object." id: ID!): Node @lookup @shareable @inaccessible
+        "Lookup nodes by a list of IDs."
+        nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @inaccessible
+        publisher: String!
+      }
+
+      type Review implements Node {
+        id: ID!
+        stars: Int!
+      }
+
+      "The node interface is implemented by entities that have a global unique identifier."
+      interface Node {
+        id: ID!
+      }

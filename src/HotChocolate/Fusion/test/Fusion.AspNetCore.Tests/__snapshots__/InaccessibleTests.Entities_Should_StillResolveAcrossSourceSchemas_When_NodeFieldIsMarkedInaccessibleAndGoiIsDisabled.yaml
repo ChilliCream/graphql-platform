@@ -1,4 +1,4 @@
-title: Entities_Should_StillResolveAcrossSourceSchemas_When_NodeFieldIsMarkedInaccessible
+title: Entities_Should_StillResolveAcrossSourceSchemas_When_NodeFieldIsMarkedInaccessibleAndGoiIsDisabled
 request:
   document: |
     {

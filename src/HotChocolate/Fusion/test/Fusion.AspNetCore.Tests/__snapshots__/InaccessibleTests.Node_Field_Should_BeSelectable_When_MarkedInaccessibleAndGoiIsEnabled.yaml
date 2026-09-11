@@ -1,4 +1,4 @@
-title: Node_Field_Should_BeRejectedAsUnknownField_When_MarkedInaccessible
+title: Node_Field_Should_BeSelectable_When_MarkedInaccessibleAndGoiIsEnabled
 request:
   document: |
     {
@@ -9,23 +9,11 @@ request:
 response:
   body: |
     {
-      "errors": [
-        {
-          "message": "The field \u0060node\u0060 does not exist on the type \u0060Query\u0060.",
-          "locations": [
-            {
-              "line": 2,
-              "column": 3
-            }
-          ],
-          "extensions": {
-            "type": "Query",
-            "field": "node",
-            "responseName": "node",
-            "specifiedBy": "https://spec.graphql.org/September2025/#sec-Field-Selections"
-          }
+      "data": {
+        "node": {
+          "__typename": "Review"
         }
-      ]
+      }
     }
 sourceSchemas:
   - name: a
@@ -51,6 +39,25 @@ sourceSchemas:
       interface Node {
         id: ID!
       }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_deb478b6_2 {
+              node(id: "UmV2aWV3OjE=") {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Review"
+                  }
+                }
+              }
   - name: b
     schema: |
       schema {
@@ -74,3 +81,30 @@ sourceSchemas:
       interface Node {
         id: ID!
       }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node(id: "UmV2aWV3OjE=") {
+            __typename
+          }
+        }
+      hash: deb478b6850400c66a260dc42341d399
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "UmV2aWV3OjE="
+      responseName: node
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_deb478b6_2 {
+          node(id: "UmV2aWV3OjE=") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1
