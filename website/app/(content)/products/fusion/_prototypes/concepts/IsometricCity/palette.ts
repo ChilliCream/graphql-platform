@@ -99,6 +99,7 @@ export const SCENE_W = 640;
 export const SCENE_H = 480;
 /** The traffic-desk scene is drawn wider, at 16:9. */
 export const METER_W = 720;
+export const METER_H = 405;
 
 /** SVG text sizes inside a block scene, in viewBox units. */
 export const FONT = {

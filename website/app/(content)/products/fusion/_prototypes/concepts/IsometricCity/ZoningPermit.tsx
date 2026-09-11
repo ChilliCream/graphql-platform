@@ -1,7 +1,18 @@
 "use client";
 
+import { FONTS } from "../../brand";
 import { useCityCycle, useCityMotion } from "./hooks";
-import { CITY, LABEL, box, iso, poly, tile } from "./palette";
+import {
+  CITY,
+  FONT,
+  LABEL,
+  SCENE_H,
+  SCENE_W,
+  box,
+  iso,
+  poly,
+  tile,
+} from "./palette";
 
 /**
  * "Any GraphQL server, no plugin": the zoning inspection. Five buildings in
@@ -14,14 +25,23 @@ import { CITY, LABEL, box, iso, poly, tile } from "./palette";
  * Rest state: the refused permit - the conflict row flagged, the stamp reading
  * BUILD STOPPED and the boom down - so the still frame says a conflict fails
  * the pipeline instead of the gateway.
+ *
+ * Every line is set in `FONT` units, so the smallest one still reads at the
+ * site's 11px label on a 375px screen. At that size a building carries one
+ * sign - its name and its language - the blocks stand four and a half cells
+ * apart, and the inspector's board runs the full width under the city.
  */
 
 const PHASES = 6;
 const REST = 5;
 const BEAT = 1500;
 
-const ORIGIN = "translate(212, 128)";
+const ORIGIN = "translate(239, 90)";
 const SIZE = 2.2;
+/** Cells between two blocks in the same row: the signage pitch. */
+const PITCH = 4.6;
+/** The inspector's board: a full-width panel under the city. */
+const BOARD = { x: 20, y: 320, w: SCENE_W - 40, h: 150 } as const;
 
 interface Standing {
   readonly name: string;
@@ -32,15 +52,15 @@ interface Standing {
 
 /** The buildings already open: an ordinary server each, no plugin bolted on. */
 const STANDING: readonly Standing[] = [
-  { name: "Catalog", language: "JS/TS", cell: [0, 0], height: 54 },
-  { name: "Billing", language: "Java", cell: [3.2, 0], height: 44 },
-  { name: "Ordering", language: "Go", cell: [6.4, 0], height: 50 },
+  { name: "Catalog", language: "JS/TS", cell: [0, 0], height: 46 },
+  { name: "Billing", language: "Java", cell: [PITCH, 0], height: 44 },
+  { name: "Ordering", language: "Go", cell: [2 * PITCH, 0], height: 50 },
   { name: "Shipping", language: "Ruby", cell: [0, 3.6], height: 42 },
-  { name: "Accounts", language: "Python", cell: [3.2, 3.6], height: 48 },
+  { name: "Accounts", language: "Python", cell: [PITCH, 3.6], height: 48 },
 ];
 
 /** The lot under inspection, still fenced off. */
-const LOT: readonly [number, number] = [6.4, 3.6];
+const LOT: readonly [number, number] = [2 * PITCH, 3.6];
 const LOT_BOX = box(LOT[0] + 0.3, LOT[1] + 0.3, 1.6, 1.6, 34);
 
 interface Check {
@@ -70,36 +90,36 @@ function CheckRow({ check, phase, y }: CheckRowProps) {
   return (
     <g opacity={reached ? 1 : 0.4}>
       <rect
-        x={22}
-        y={y - 12}
-        width={14}
-        height={14}
-        rx={3}
+        x={44}
+        y={y - 18}
+        width={22}
+        height={22}
+        rx={4}
         fill="none"
         stroke={colour}
-        strokeWidth={1.5}
+        strokeWidth={2}
       />
       {reached ? (
         <path
           d={
             check.fails
-              ? `M25 ${y - 9} L33 ${y - 1} M33 ${y - 9} L25 ${y - 1}`
-              : `M25 ${y - 5} L28 ${y - 2} L34 ${y - 10}`
+              ? `M49 ${y - 13} L61 ${y - 1} M61 ${y - 13} L49 ${y - 1}`
+              : `M49 ${y - 8} L54 ${y - 3} L62 ${y - 15}`
           }
           fill="none"
           stroke={colour}
-          strokeWidth={2}
+          strokeWidth={2.5}
         />
       ) : null}
-      <text x={48} y={y} fill={CITY.heading} fontSize={12}>
+      <text x={80} y={y} fill={CITY.heading} fontSize={FONT.label}>
         {check.label}
       </text>
       <text
-        x={168}
+        x={BOARD.x + BOARD.w - 24}
         y={y}
         textAnchor="end"
         fill={colour}
-        fontSize={10}
+        fontSize={FONT.label}
         style={LABEL}
       >
         {check.detail}
@@ -129,22 +149,13 @@ function OpenBuilding({ building }: OpenBuildingProps) {
       <polygon points={faces.top} fill={CITY.blockTop} stroke={CITY.edge} />
       <text
         x={rx}
-        y={ry + 4}
+        y={ry + 6}
         textAnchor="middle"
         fill={CITY.heading}
-        fontSize={12}
-      >
-        {building.name}
-      </text>
-      <text
-        x={rx}
-        y={ry + 19}
-        textAnchor="middle"
-        fill={CITY.ink}
-        fontSize={10}
+        fontSize={FONT.label}
         style={LABEL}
       >
-        {building.language}
+        {`${building.name} · ${building.language}`}
       </text>
     </g>
   );
@@ -158,16 +169,34 @@ export function ZoningPermit() {
 
   return (
     <div className="ic-zone absolute inset-0" data-run={run ? "true" : "false"}>
-      <svg viewBox="0 0 640 480" className="h-full w-full" aria-hidden="true">
-        <rect width="640" height="480" fill={CITY.sky} />
+      <svg
+        viewBox={`0 0 ${SCENE_W} ${SCENE_H}`}
+        className="h-full w-full"
+        aria-hidden="true"
+      >
+        <rect width={SCENE_W} height={SCENE_H} fill={CITY.sky} />
+
+        {/* What the inspection is really saying, over the city */}
+        <text
+          x={SCENE_W / 2}
+          y={34}
+          textAnchor="middle"
+          fill={CITY.ink}
+          fontSize={FONT.label}
+          style={LABEL}
+        >
+          {refused
+            ? "THE PIPELINE FAILS, NOT THE GATEWAY"
+            : "CHECKING SOURCE SCHEMAS"}
+        </text>
 
         <g transform={ORIGIN}>
           <polygon
-            points={tile(-1, -1, 11, 8)}
+            points={tile(-1, -1, 12.4, 8)}
             fill={CITY.ground}
             stroke={CITY.edge}
           />
-          <polygon points={tile(-1, 3.1, 11, 0.4)} fill={CITY.road} />
+          <polygon points={tile(-1, 2.8, 12.4, 0.6)} fill={CITY.road} />
 
           {STANDING.map((building) => (
             <OpenBuilding key={building.name} building={building} />
@@ -200,10 +229,10 @@ export function ZoningPermit() {
           />
           <text
             x={LOT_BOX.roof[0]}
-            y={LOT_BOX.roof[1] + 4}
+            y={LOT_BOX.roof[1] + 6}
             textAnchor="middle"
             fill={refused ? CITY.stop : CITY.warn}
-            fontSize={10}
+            fontSize={FONT.label}
             style={LABEL}
           >
             {refused ? "NOT OPENED" : "IN REVIEW"}
@@ -222,39 +251,14 @@ export function ZoningPermit() {
           <circle cx={boomX} cy={boomY} r={4} fill={CITY.ink} />
         </g>
 
-        {/* The inspector's board: the composition step in the build */}
-        <g transform="translate(24, 300)">
-          <rect
-            width="200"
-            height="150"
-            rx="10"
-            fill={CITY.plazaLeft}
-            stroke={CITY.edge}
-          />
-          <text x={22} y={30} fill={CITY.ink} fontSize={10} style={LABEL}>
-            ZONING INSPECTION
-          </text>
-          <text x={22} y={50} fill={CITY.heading} fontSize={12}>
-            composition
-          </text>
-          {CHECKS.map((check, i) => (
-            <CheckRow
-              key={check.label}
-              check={check}
-              phase={phase}
-              y={82 + i * 24}
-            />
-          ))}
-        </g>
-
         {/* The stamp that lands once the inspection is done */}
-        <g transform="translate(236, 372)" opacity={refused ? 1 : 0.25}>
+        <g transform="translate(30, 236)" opacity={refused ? 1 : 0.25}>
           <polygon
             points={poly([
               [0, 0],
-              [150, 0],
-              [150, 44],
-              [0, 44],
+              [250, 0],
+              [250, 54],
+              [0, 54],
             ])}
             fill="none"
             stroke={refused ? CITY.stop : CITY.ink}
@@ -262,10 +266,10 @@ export function ZoningPermit() {
             transform="rotate(-6)"
           />
           <text
-            x={16}
-            y={30}
+            x={18}
+            y={36}
             fill={refused ? CITY.stop : CITY.ink}
-            fontSize={16}
+            fontSize={FONT.label}
             style={LABEL}
             transform="rotate(-6)"
           >
@@ -273,11 +277,42 @@ export function ZoningPermit() {
           </text>
         </g>
 
-        <text x={236} y={442} fill={CITY.ink} fontSize={11} style={LABEL}>
-          {refused
-            ? "THE PIPELINE FAILS, NOT THE GATEWAY"
-            : "CHECKING SOURCE SCHEMAS"}
-        </text>
+        {/* The inspector's board: the composition step in the build */}
+        <g transform={`translate(${BOARD.x}, ${BOARD.y})`}>
+          <rect
+            width={BOARD.w}
+            height={BOARD.h}
+            rx="10"
+            fill={CITY.plazaLeft}
+            stroke={CITY.edge}
+          />
+          <text
+            x={24}
+            y={30}
+            fill={CITY.ink}
+            fontSize={FONT.label}
+            style={LABEL}
+          >
+            ZONING INSPECTION
+          </text>
+          <text
+            x={317}
+            y={30}
+            fill={CITY.heading}
+            fontFamily={FONTS.heading}
+            fontSize={FONT.caption}
+          >
+            composition
+          </text>
+          {CHECKS.map((check, i) => (
+            <CheckRow
+              key={check.label}
+              check={check}
+              phase={phase}
+              y={70 + i * 32}
+            />
+          ))}
+        </g>
       </svg>
     </div>
   );
