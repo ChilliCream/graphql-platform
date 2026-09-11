@@ -265,7 +265,7 @@ public class ArchiveCompatibilityTests : IDisposable
 
         using var sha256 = SHA256.Create();
         var hash = await sha256.ComputeHashAsync(legacy, TestContext.Current.CancellationToken);
-        return Convert.ToHexStringLower(hash);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
     private static async Task<SignatureVerificationResult> VerifySignatureAsync(FusionArchive archive, string certPath)
