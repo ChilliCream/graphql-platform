@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useCycle, useSceneMotion } from "./hooks";
 import { AP } from "./palette";
 
@@ -73,12 +74,18 @@ export function BoardingCheck() {
         y="58"
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.2em"
       >
         SCHEMA CHANGE · ORDERING SUBGRAPH
       </text>
-      <text x="42" y="82" fill={AP.ink} fontFamily={AP.mono} fontSize="13">
+      <text
+        x="42"
+        y="82"
+        fill={AP.ink}
+        fontFamily={AP.mono}
+        fontSize={TYPE.caption}
+      >
         - Order.trackingUrl
       </text>
       <text
@@ -86,17 +93,17 @@ export function BoardingCheck() {
         y="104"
         fill={AP.taxi}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.14em"
       >
         COMPOSITION: SOURCE SCHEMAS STILL COMPOSE · BUILD GREEN
       </text>
       <text
         x={W - 42}
-        y="104"
+        y="58"
         fill={AP.approach}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         textAnchor="end"
         letterSpacing="0.18em"
         style={{
@@ -111,7 +118,7 @@ export function BoardingCheck() {
         y="150"
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.18em"
       >
         REGISTERED CLIENT · PUBLISHED OPERATION · VERDICT
@@ -131,7 +138,7 @@ export function BoardingCheck() {
               width={W - 48}
               height="46"
               rx="7"
-              fill="rgba(255,255,255,0.035)"
+              fill={AP.wash}
               stroke={lit ? color : AP.panelEdge}
               strokeOpacity={lit ? 0.6 : 1}
               style={{ transition: "stroke 400ms ease" }}
@@ -142,7 +149,7 @@ export function BoardingCheck() {
               y={y + 20}
               fill={AP.ink}
               fontFamily={AP.mono}
-              fontSize="12"
+              fontSize={TYPE.caption}
             >
               {booking.client}
             </text>
@@ -151,7 +158,7 @@ export function BoardingCheck() {
               y={y + 36}
               fill={AP.dim}
               fontFamily={AP.mono}
-              fontSize="9"
+              fontSize={TYPE.label}
               letterSpacing="0.1em"
             >
               {booking.operation}
@@ -161,7 +168,7 @@ export function BoardingCheck() {
               y={y + 29}
               fill={AP.dim}
               fontFamily={AP.mono}
-              fontSize="9"
+              fontSize={TYPE.label}
               letterSpacing="0.1em"
             >
               {booking.verdict === "SAFE"
@@ -174,7 +181,7 @@ export function BoardingCheck() {
               y={y + 29}
               fill={color}
               fontFamily={AP.mono}
-              fontSize="11"
+              fontSize={TYPE.caption}
               textAnchor="end"
               letterSpacing="0.16em"
               style={{
@@ -194,7 +201,7 @@ export function BoardingCheck() {
         y="422"
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.14em"
       >
         BEFORE THE CHANGE IS MERGED · NOT IN THE HANDS OF A CLIENT
