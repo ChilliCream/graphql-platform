@@ -118,7 +118,7 @@ export function Sheet({
             repeating-linear-gradient(90deg, ${BP.gridMajor} 0 1px, transparent 1px 100%) 0 0 / 12.5% 100%,
             repeating-linear-gradient(0deg, ${BP.grid} 0 1px, transparent 1px 100%) 0 0 / 100% 2.5%,
             repeating-linear-gradient(90deg, ${BP.grid} 0 1px, transparent 1px 100%) 0 0 / 2.5% 100%,
-            ${BP.plate}`,
+            ${BP.paper}`,
           color: BP.ink,
           fontFamily: DRAFT,
           fontSize: "clamp(11px, 3.2cqw, 14px)",
