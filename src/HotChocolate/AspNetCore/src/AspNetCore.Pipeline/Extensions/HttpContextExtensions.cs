@@ -54,12 +54,13 @@ internal static class HttpContextExtensions
 
         var span = context.Request.ContentType.AsSpan();
 
-        if (span.StartsWith(ContentType.JsonSpan()))
+        // Media types are case-insensitive per RFC 9110, section 8.3.1.
+        if (span.StartsWith(ContentType.JsonSpan(), StringComparison.OrdinalIgnoreCase))
         {
             return RequestContentType.Json;
         }
 
-        if (span.StartsWith(ContentType.MultiPartFormSpan()))
+        if (span.StartsWith(ContentType.MultiPartFormSpan(), StringComparison.OrdinalIgnoreCase))
         {
             return RequestContentType.Form;
         }

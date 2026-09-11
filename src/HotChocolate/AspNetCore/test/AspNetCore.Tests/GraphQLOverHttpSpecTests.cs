@@ -572,6 +572,40 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Contains("onError", body, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Theory]
+    [InlineData("application/json")]
+    [InlineData("Application/Json")]
+    [InlineData("APPLICATION/JSON")]
+    [InlineData("application/json; charset=utf-8")]
+    [InlineData("Application/JSON; CharSet=UTF-8")]
+    public async Task Post_Should_ExecuteRequest_When_ContentTypeCasingVaries(string contentType)
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent("""{"query":"{ __typename }"}""");
+        request.Content.Headers.Remove("Content-Type");
+        request.Content.Headers.TryAddWithoutValidation("Content-Type", contentType);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: OK
+                -------------------------->
+                {"data":{"__typename":"Query"}}
+                """);
+    }
+
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
     {
         var server = CreateStarWarsServer(
