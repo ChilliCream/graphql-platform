@@ -1204,10 +1204,14 @@ public class BatchResolverTests
             """);
     }
 
-    [Fact]
-    public async Task BatchResolver_Interface_Inherited_By_ObjectType()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task BatchResolver_Should_InheritResolver_When_DeclaredOnInterface(int asyncKind)
     {
-        var result =
+        // arrange
+        var executor =
             await new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(d =>
@@ -1225,12 +1229,24 @@ public class BatchResolverTests
                 .AddInterfaceType<IUser>(d =>
                 {
                     d.Field(u => u.Name);
-                    d.Field("greeting")
-                        .ResolveBatchWith<UserExtensions>(
-                            t => t.GetGreeting(default!));
+                    if (asyncKind == 0)
+                    {
+                        d.Field("greeting").ResolveBatchWith<UserExtensions>(t => t.GetGreeting(default!));
+                    }
+                    else if (asyncKind == 1)
+                    {
+                        d.Field("greeting").ResolveBatchWith<AsyncInterfaceUserExtensions>(t => t.GetTaskGreeting(default!));
+                    }
+                    else
+                    {
+                        d.Field("greeting").ResolveBatchWith<AsyncInterfaceUserExtensions>(t => t.GetValueTaskGreeting(default!));
+                    }
                 })
                 .AddObjectType<User>(d => d.Implements<InterfaceType<IUser>>())
-                .ExecuteRequestAsync(
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await using var response = await executor.ExecuteAsync(
                     """
                     {
                         users {
@@ -1241,7 +1257,8 @@ public class BatchResolverTests
                     """,
                     cancellationToken: TestContext.Current.CancellationToken);
 
-        result.MatchInlineSnapshot(
+        // assert
+        response.MatchInlineSnapshot(
             """
             {
               "data": {
@@ -1262,6 +1279,21 @@ public class BatchResolverTests
               }
             }
             """);
+    }
+
+    public class AsyncInterfaceUserExtensions
+    {
+        public async Task<string[]> GetTaskGreeting([Parent] IUser[] users)
+        {
+            await Task.Yield();
+            return users.Select(u => $"Hello, {u.Name}!").ToArray();
+        }
+
+        public async ValueTask<List<string>> GetValueTaskGreeting([Parent] IReadOnlyList<IUser> users)
+        {
+            await Task.Yield();
+            return users.Select(u => $"Hello, {u.Name}!").ToList();
+        }
     }
 
     [Fact]

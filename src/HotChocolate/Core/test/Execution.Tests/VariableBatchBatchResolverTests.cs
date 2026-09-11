@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text;
 using System.Text.Json;
 using CookieCrumble;
 using HotChocolate.Resolvers;
@@ -9,6 +10,167 @@ namespace HotChocolate.Execution;
 
 public class VariableBatchBatchResolverTests
 {
+    [Theory]
+    [InlineData(false, 0, false)]
+    [InlineData(true, 0, false)]
+    [InlineData(false, 64, false)]
+    [InlineData(true, 64, false)]
+    [InlineData(false, 128, false)]
+    [InlineData(true, 128, false)]
+    [InlineData(false, 128, true)]
+    [InlineData(true, 128, true)]
+    public async Task BatchSelection_Should_UnionIncludedMembers_When_ConditionsDiffer(
+        bool attributes,
+        int padding,
+        bool partition)
+    {
+        // arrange
+        var log = new SelectionLog();
+        var builder = new ServiceCollection().AddSingleton(log).AddGraphQL();
+
+        if (attributes)
+        {
+            builder.AddQueryType<SelectionQuery>(d => ObserveFlags(d.Field(
+                t => t.GetProduct(default!, default!, default!, false, false, false, false, default!))));
+        }
+        else
+        {
+            builder.AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("noop").Resolve("unused");
+                d.Field("product").ResolveBatchWith(
+                    typeof(SelectionQuery).GetMethod(nameof(SelectionQuery.GetProduct))!);
+                ObserveFlags(d.Field("product"));
+            });
+        }
+
+        var executor = await builder.BuildRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var document = new StringBuilder("query($id:Int!,$skip:Boolean!,$take:Boolean!,$excluded:Boolean!");
+
+        for (var i = 0; i < padding; i++)
+        {
+            document.Append($",$p{i}:Boolean!");
+        }
+
+        document.Append(") {");
+
+        for (var i = 0; i < padding; i++)
+        {
+            document.Append($" p{i}:noop @include(if:$p{i})");
+        }
+
+        document.Append(" product(id:$id) @skip(if:$skip) { id left @include(if:$take) right @skip(if:$take) excluded @include(if:$excluded) } }");
+        var sets = new List<IReadOnlyDictionary<string, object?>>();
+
+        for (var id = 1; id <= 3; id++)
+        {
+            var variables = new Dictionary<string, object?>
+            {
+                ["id"] = id,
+                ["skip"] = id == 3,
+                ["take"] = id == 2,
+                ["excluded"] = id == 3
+            };
+
+            for (var i = 0; i < padding; i++)
+            {
+                variables[$"p{i}"] = false;
+            }
+
+            sets.Add(variables);
+        }
+
+        // act
+        await using var result = await executor.ExecuteAsync(OperationRequestBuilder.New()
+            .SetDocument(document.ToString())
+            .SetVariableValues(sets)
+            .Build(), cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        new Snapshot(postFix: $"{attributes}_{padding}{(partition ? "_Partitioned" : "")}")
+            .Add(batch.Results[0], "Set 0")
+            .Add(batch.Results[1], "Set 1")
+            .Add(batch.Results[2], "Skipped set")
+            .Add(log.Invocations, "Union binding")
+            .MatchMarkdownSnapshot();
+        Assert.Equal(partition ? new[] { 1, 1 } : [2], log.Invocations.Select(t => t.Ids.Count));
+        Assert.Equal(partition ? new[] { true, true } : [true], log.FlagsUnchanged);
+        Assert.Equal(partition ? new[] { true, true } : [true], log.ExternalBindingMatches);
+
+        void ObserveFlags(IObjectFieldDescriptor descriptor)
+        {
+            if (partition)
+            {
+                descriptor.Extend().Configuration.BatchPartitionKeyResolver =
+                    context => (ulong)context.ArgumentValue<int>("id");
+            }
+
+            descriptor.UseBatch(next => async contexts =>
+            {
+                var before = contexts.Select(c => new[] { c.IncludeConditionFlags.Word0 }
+                    .Concat(c.IncludeConditionFlags.Overflow ?? []).ToArray()).ToArray();
+                var binding = ResolverContextExtensions.CreateBatchSelectionContext(contexts);
+                log.ExternalBindingMatches.Add(new[] { "left", "right", "excluded" }.All(name =>
+                    binding.Select().IsSelected(name) == contexts.Any(c => c.Select().IsSelected(name))));
+                await next(contexts);
+                log.FlagsUnchanged.Add(contexts.Select((c, i) => new[] { c.IncludeConditionFlags.Word0 }
+                    .Concat(c.IncludeConditionFlags.Overflow ?? []).SequenceEqual(before[i])).All(t => t));
+            });
+        }
+    }
+
+    public sealed class SelectionLog
+    {
+        public List<SelectionObservation> Invocations { get; } = [];
+        public List<bool> FlagsUnchanged { get; } = [];
+        public List<bool> ExternalBindingMatches { get; } = [];
+    }
+
+    public sealed record SelectionObservation(
+        IReadOnlyList<int> Ids,
+        bool Left,
+        bool Right,
+        bool Excluded,
+        bool SelectLeft,
+        bool SelectRight,
+        bool SelectExcluded,
+        bool Pattern,
+        bool SameSelection);
+
+    public class SelectionQuery
+    {
+        public string GetNoop() => "unused";
+
+        [BatchResolver]
+        public List<SelectionProduct> GetProduct(
+            List<int> id,
+            IResolverContext context,
+            ISelection selection,
+            [IsSelected("left")] bool left,
+            [IsSelected("right")] bool right,
+            [IsSelected("excluded")] bool excluded,
+            [IsSelected("left right")] bool both,
+            [Service] SelectionLog log)
+        {
+            log.Invocations.Add(new SelectionObservation(
+                id,
+                left,
+                right,
+                excluded,
+                context.Select().IsSelected("left"),
+                context.Select("right").Count == 1,
+                context.Select().IsSelected("excluded"),
+                both,
+                ReferenceEquals(selection, context.Selection)));
+            return id.Select(i => new SelectionProduct(i, left ? "left" : "missing", right ? "right" : "missing", "excluded")).ToList();
+        }
+    }
+
+    public record SelectionProduct(int Id, string Left, string Right, string Excluded);
+
     [Theory]
     [InlineData(false, false)]
     [InlineData(false, true)]

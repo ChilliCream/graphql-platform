@@ -307,7 +307,7 @@ public class InterfaceFieldDescriptor
                 nameof(propertyOrMethod));
         }
 
-        var elementType = BatchResolverCompiler.GetListElementType(method.ReturnType)
+        var elementType = BatchResolverCompiler.GetResultElementType(method.ReturnType)
             ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(method);
 
         Configuration.Flags |= CoreFieldFlags.BatchResolver;

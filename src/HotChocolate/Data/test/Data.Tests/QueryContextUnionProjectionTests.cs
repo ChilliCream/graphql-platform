@@ -5,12 +5,143 @@ using GreenDonut;
 using GreenDonut.Data;
 using HotChocolate.Types.Pagination;
 using System.Collections.Immutable;
+using System.Text;
+using CookieCrumble;
+using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data;
 
 public class QueryContextUnionProjectionTests
 {
+    [Theory]
+    [InlineData(false, 0)]
+    [InlineData(true, 0)]
+    [InlineData(false, 128)]
+    [InlineData(true, 128)]
+    public async Task QueryContext_Should_ProjectUnion_When_BatchMembersHaveOppositeConditions(
+        bool attributes,
+        int padding)
+    {
+        // arrange
+        var log = new BatchProjectionLog();
+        var builder = new ServiceCollection().AddSingleton(log).AddGraphQL().AddQueryContext();
+
+        if (attributes)
+        {
+            builder.AddQueryType<BatchProjectionQuery>();
+        }
+        else
+        {
+            builder.AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("noop").Resolve("unused");
+                d.Field("product").ResolveBatchWith(
+                    typeof(BatchProjectionQuery).GetMethod(nameof(BatchProjectionQuery.GetProduct))!);
+            });
+        }
+
+        var executor = await builder.BuildRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var document = new StringBuilder("query($id:Int!,$take:Boolean!,$skip:Boolean!,$excluded:Boolean!");
+
+        for (var i = 0; i < padding; i++)
+        {
+            document.Append($",$p{i}:Boolean!");
+        }
+
+        document.Append(") {");
+
+        for (var i = 0; i < padding; i++)
+        {
+            document.Append($" p{i}:noop @include(if:$p{i})");
+        }
+
+        document.Append(" product(id:$id) @skip(if:$skip) { id left @include(if:$take) right @skip(if:$take) excluded @include(if:$excluded) } }");
+        var sets = new List<IReadOnlyDictionary<string, object?>>();
+
+        for (var id = 1; id <= 3; id++)
+        {
+            var variables = new Dictionary<string, object?>
+            {
+                ["id"] = id,
+                ["take"] = id == 2,
+                ["skip"] = id == 3,
+                ["excluded"] = id == 3
+            };
+
+            for (var i = 0; i < padding; i++)
+            {
+                variables[$"p{i}"] = false;
+            }
+
+            sets.Add(variables);
+        }
+
+        // act
+        await using var result = await executor.ExecuteAsync(OperationRequestBuilder.New()
+            .SetDocument(document.ToString()).SetVariableValues(sets).Build(),
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        new Snapshot(postFix: $"{attributes}_{padding}")
+            .Add(batch.Results[0], "Set 0")
+            .Add(batch.Results[1], "Set 1")
+            .Add(batch.Results[2], "Skipped set")
+            .Add(log.Sizes, "Batch sizes")
+            .Add(log.Projected, "Projected before completion")
+            .MatchMarkdownSnapshot();
+        Assert.Equal(new[] { 2 }, log.Sizes);
+        Assert.Equal(new[] { "1:left:right:", "2:left:right:" }, log.Projected);
+        Assert.Equal(new[] { true }, log.SelectionMatches);
+    }
+
+    public sealed class BatchProjectionLog
+    {
+        public List<int> Sizes { get; } = [];
+        public List<string> Projected { get; } = [];
+        public List<bool> SelectionMatches { get; } = [];
+    }
+
+    public sealed class BatchProjectionProduct
+    {
+        public int Id { get; set; }
+        public string? Left { get; set; }
+        public string? Right { get; set; }
+        public string? Excluded { get; set; }
+    }
+
+    public class BatchProjectionQuery
+    {
+        public string GetNoop() => "unused";
+
+        [BatchResolver]
+        public List<BatchProjectionProduct> GetProduct(
+            List<int> id,
+            QueryContext<BatchProjectionProduct> query,
+            ISelection selection,
+            IResolverContext context,
+            [Service] BatchProjectionLog log)
+        {
+            log.Sizes.Add(id.Count);
+            var source = id.Select(i => new BatchProjectionProduct
+            {
+                Id = i,
+                Left = "left",
+                Right = "right",
+                Excluded = "excluded"
+            }).AsQueryable();
+            var projected = source.With(query).ToList();
+            log.Projected.AddRange(projected.Select(p => $"{p.Id}:{p.Left}:{p.Right}:{p.Excluded}"));
+            var selected = source.Select(selection.AsSelector<BatchProjectionProduct>(context.IncludeConditionFlags));
+            log.SelectionMatches.Add(selected.AsEnumerable()
+                .Select(p => $"{p.Id}:{p.Left}:{p.Right}:{p.Excluded}").SequenceEqual(log.Projected));
+            return projected;
+        }
+    }
+
     [Fact]
     public async Task AsSelector_With_Single_Union_Field_Projects_Data()
     {
