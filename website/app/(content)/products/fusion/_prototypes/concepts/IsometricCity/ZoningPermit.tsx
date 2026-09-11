@@ -115,7 +115,7 @@ function CheckRow({ check, phase, y }: CheckRowProps) {
         {check.label}
       </text>
       <text
-        x={BOARD.x + BOARD.w - 24}
+        x={BOARD.w - 24}
         y={y}
         textAnchor="end"
         fill={colour}
