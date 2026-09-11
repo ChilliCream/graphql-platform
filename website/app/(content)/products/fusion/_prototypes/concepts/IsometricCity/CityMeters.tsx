@@ -53,7 +53,7 @@ const SIZE = 1.8;
 /** The desk: a full-width panel under the plan. */
 const DESK = { x: 10, y: 110, w: METER_W - 20, h: METER_H - 120 } as const;
 /** Left edge of the three meter columns, and their pitch. */
-const COLUMN = { x: 190, pitch: 170, w: 150 } as const;
+const COLUMN = { x: 165, pitch: 178, w: 150 } as const;
 const PLAZA = box(2.2, 2.2, 2, 2, 32);
 const PLAZA_DOOR = iso(3.2, 4.2);
 
@@ -118,7 +118,7 @@ function MeterRow({ label, meters, swing, y, gateway }: MeterRowProps) {
   return (
     <g>
       <text
-        x={34}
+        x={24}
         y={y + 4}
         fill={gateway ? CITY.heading : CITY.ink}
         fontFamily={FONTS.heading}
