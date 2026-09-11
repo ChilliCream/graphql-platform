@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
 import { DESKS, ENGRAVE, STAGE } from "./palette";
 
@@ -73,7 +74,7 @@ export function Rehearsal() {
         x={24}
         y={28}
         fill={STAGE.ink}
-        fontSize={10}
+        fontSize={TYPE.label}
         letterSpacing={1.6}
         fontFamily={ENGRAVE}
       >
@@ -105,7 +106,7 @@ export function Rehearsal() {
               x={x + 14}
               y={74}
               fill={STAGE.heading}
-              fontSize={12}
+              fontSize={TYPE.caption}
               fontFamily={ENGRAVE}
             >
               {desk.name}
@@ -114,7 +115,7 @@ export function Rehearsal() {
               x={x + 14}
               y={90}
               fill={STAGE.ink}
-              fontSize={9}
+              fontSize={TYPE.label}
               letterSpacing={1.1}
               fontFamily={ENGRAVE}
             >
@@ -124,7 +125,7 @@ export function Rehearsal() {
               x={x + 14}
               y={110}
               fill={STAGE.ink}
-              fontSize={9}
+              fontSize={TYPE.label}
               letterSpacing={1.1}
               fontFamily={ENGRAVE}
             >
@@ -134,7 +135,7 @@ export function Rehearsal() {
               x={x + 14}
               y={126}
               fill={STAGE.safe}
-              fontSize={9}
+              fontSize={TYPE.label}
               letterSpacing={1.1}
               fontFamily={ENGRAVE}
             >
@@ -148,7 +149,7 @@ export function Rehearsal() {
         x={24}
         y={188}
         fill={STAGE.heading}
-        fontSize={12}
+        fontSize={TYPE.caption}
         letterSpacing={1.4}
         fontFamily={ENGRAVE}
       >
@@ -158,7 +159,7 @@ export function Rehearsal() {
         x={24}
         y={206}
         fill={STAGE.ink}
-        fontSize={9}
+        fontSize={TYPE.label}
         letterSpacing={1.2}
         fontFamily={ENGRAVE}
       >
@@ -270,7 +271,7 @@ export function Rehearsal() {
           x={64}
           y={H - 37}
           fill={STAGE.heading}
-          fontSize={11}
+          fontSize={TYPE.caption}
           letterSpacing={1.2}
           fontFamily={ENGRAVE}
         >
@@ -283,7 +284,7 @@ export function Rehearsal() {
           x={64}
           y={H - 37}
           fill={STAGE.clash}
-          fontSize={11}
+          fontSize={TYPE.caption}
           letterSpacing={1.2}
           fontFamily={ENGRAVE}
         >
