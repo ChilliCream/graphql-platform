@@ -1,7 +1,15 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { drawStyle, fadeStyle, HAND, MARKER, NOTES, PAPER } from "./palette";
+import {
+  drawStyle,
+  fadeStyle,
+  FONT,
+  HAND,
+  MARKER,
+  NOTES,
+  PAPER,
+} from "./palette";
 import { Folio, PaperGround, Wobble } from "./Sketch";
 
 /**
@@ -11,6 +19,10 @@ import { Folio, PaperGround, Wobble } from "./Sketch";
  * every schema change is read against the operations clients have published.
  *
  * Rest state: every chart plotted and the highlighter in place.
+ *
+ * Every line is lettered in `FONT` units, so the smallest one still reads at
+ * the site's 11px label on a 375px screen; the name column, the three metric
+ * columns and the note under them are spaced for that lettering.
  */
 
 const CSS = `
@@ -34,17 +46,19 @@ const CSS = `
 }
 `;
 
-const ROW_TOP = 86;
-const ROW_H = 36;
-const CHART_W = 108;
+/** The gateway row is read first and carries a line of its own. */
+const GATEWAY_Y = 100;
+const ROW_TOP = 144;
+const ROW_H = 34;
+const CHART_W = 110;
 const CHART_H = 26;
-const COLUMNS = [244, 380, 516];
+const COLUMNS = [240, 380, 520];
 const METRICS = ["latency", "throughput", "error rate"];
 
 /** Gateway first, then the subgraphs it calls. */
 const ROWS = ["Gateway", ...NOTES.map((note) => note.name)];
 
-const rowY = (i: number) => ROW_TOP + i * ROW_H;
+const rowY = (i: number) => (i === 0 ? GATEWAY_Y : ROW_TOP + (i - 1) * ROW_H);
 
 /**
  * Deterministic plot: the same eight readings every render, so the server and
@@ -84,14 +98,27 @@ export function MarginNotes() {
         <Folio x={20} y={26}>
           Fig. 5 - margin notes
         </Folio>
-        <text x={20} y={58} fill={PAPER.ink} fontSize={20} style={MARKER}>
+        <text
+          x={20}
+          y={58}
+          fill={PAPER.ink}
+          fontSize={FONT.caption}
+          style={MARKER}
+        >
           the gateway, and each subgraph behind it
         </text>
 
         {COLUMNS.map((x, i) => (
-          <Folio key={METRICS[i]} x={x} y={78}>
+          <text
+            key={METRICS[i]}
+            x={x}
+            y={86}
+            fill={PAPER.pencil}
+            fontSize={FONT.label}
+            style={HAND}
+          >
             {METRICS[i]}
-          </Folio>
+          </text>
         ))}
 
         {/* The highlighter someone left over the gateway row */}
@@ -100,7 +127,7 @@ export function MarginNotes() {
           x={16}
           y={rowY(0) - 6}
           width={604}
-          height={32}
+          height={46}
           fill={PAPER.highlight}
         />
 
@@ -110,7 +137,7 @@ export function MarginNotes() {
               x={20}
               y={rowY(row) + 16}
               fill={row === 0 ? PAPER.ink : PAPER.inkSoft}
-              fontSize={row === 0 ? 18 : 16}
+              fontSize={FONT.caption}
               style={HAND}
             >
               {name}
@@ -120,17 +147,17 @@ export function MarginNotes() {
                 x={140}
                 y={rowY(row) + 16}
                 fill={PAPER.pencil}
-                fontSize={12}
+                fontSize={FONT.label}
                 style={HAND}
               >
                 {NOTES[row - 1].language}
               </text>
             ) : (
               <text
-                x={140}
-                y={rowY(row) + 16}
+                x={20}
+                y={rowY(row) + 34}
                 fill={PAPER.pencil}
-                fontSize={12}
+                fontSize={FONT.label}
                 style={HAND}
               >
                 composite schema
@@ -170,15 +197,30 @@ export function MarginNotes() {
           <path
             className="ed-note-draw"
             style={drawStyle(560, 2.2)}
-            d="M20 306 C 180 312, 420 300, 620 308"
+            d="M20 308 C 180 314, 420 302, 620 310"
             fill="none"
             stroke={PAPER.pencil}
             strokeWidth={1.6}
             strokeLinecap="round"
             filter="url(#ed-note-wob)"
           />
-          <text x={20} y={334} fill={PAPER.pencil} fontSize={16} style={HAND}>
-            every schema change read against the operations clients published
+          <text
+            x={20}
+            y={332}
+            fill={PAPER.pencil}
+            fontSize={FONT.label}
+            style={HAND}
+          >
+            every schema change read against
+          </text>
+          <text
+            x={20}
+            y={352}
+            fill={PAPER.pencil}
+            fontSize={FONT.label}
+            style={HAND}
+          >
+            the operations clients published
           </text>
         </g>
       </svg>
