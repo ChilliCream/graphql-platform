@@ -139,10 +139,10 @@ public sealed class SqliteDbWatcherTests : IDisposable
         // change counter and lengthens the file, so this covers the enable gap
         // and the length signal together, unlike
         // RunAsync_Should_PublishDataChangedEvent_When_MainFileChangeCounterAdvances_WithMtimeAndLengthUnchanged
-        // below (which forces length and mtime equal to isolate the
+        // (which forces length and mtime equal to isolate the
         // change-counter term alone), and unlike
         // RunAsync_Should_PublishDataChangedEvent_When_MainFileReplaced_WithSameChangeCounter_ButDifferentLength
-        // above (which keeps the change counter equal to isolate the
+        // (which keeps the change counter equal to isolate the
         // length/mtime terms from an unrelated counter difference).
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
