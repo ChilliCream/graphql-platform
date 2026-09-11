@@ -85,9 +85,6 @@ public class BatchResolverReproTests
     public async Task BatchResolver_Should_Encode_GlobalId_When_IdApplied()
     {
         // arrange
-        // REPRO: result formatters (the [ID]/.ID() global-id encoder is registered as a
-        // ResultFormatterConfiguration) are skipped on batch fields, so the raw internal
-        // value leaks instead of the opaque global id.
         var product1 = Convert.ToBase64String("Product:1"u8);
         var product2 = Convert.ToBase64String("Product:2"u8);
 
@@ -109,6 +106,7 @@ public class BatchResolverReproTests
                 })
                 .AddObjectType<ReproProduct>(d =>
                 {
+                    d.Field(p => p.Id).ID("Product");
                     d.Field(p => p.Name);
                     d.Field("externalId")
                         .Type<IntType>()

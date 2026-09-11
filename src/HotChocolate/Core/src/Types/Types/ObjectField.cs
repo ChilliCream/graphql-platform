@@ -242,6 +242,7 @@ public sealed class ObjectField : OutputField
             BatchPartitionKeyResolver = definition.BatchPartitionKeyResolver;
             BatchResolver = CompileBatchPipeline(
                 definition.GetBatchMiddlewareDefinitions(),
+                definition.GetResultConverters(),
                 definition.BatchResolver);
         }
 
@@ -280,8 +281,23 @@ public sealed class ObjectField : OutputField
 
     private static BatchFieldDelegate CompileBatchPipeline(
         IReadOnlyList<BatchFieldMiddlewareConfiguration> middlewareComponents,
+        IReadOnlyList<ResultFormatterConfiguration> resultFormatters,
         BatchFieldDelegate batchResolver)
     {
+        if (FieldMiddlewareCompiler.CompileResultFormatter(resultFormatters) is { } formatter)
+        {
+            var resolver = batchResolver;
+            batchResolver = async contexts =>
+            {
+                await resolver(contexts).ConfigureAwait(false);
+
+                foreach (var context in contexts)
+                {
+                    context.Result = formatter(context, context.Result);
+                }
+            };
+        }
+
         BatchFieldDelegate next = contexts =>
         {
             ImmutableArray<IMiddlewareContext>.Builder? survivors = null;

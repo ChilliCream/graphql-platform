@@ -273,6 +273,12 @@ type FavoriteBooksEdge {
   node: Book!
 }
 
+type FormatterProduct {
+  externalId: ID! @cost(weight: "10")
+  relatedIds: [ID!]! @cost(weight: "10")
+  id: Int!
+}
+
 "A connection to a list of items."
 type IntsConnection {
   "Information to aid in pagination."

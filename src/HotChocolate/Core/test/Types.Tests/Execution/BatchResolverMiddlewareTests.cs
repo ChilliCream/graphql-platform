@@ -11,6 +11,142 @@ namespace HotChocolate.Execution;
 
 public class BatchResolverMiddlewareTests
 {
+    [Theory]
+    [InlineData("none")]
+    [InlineData("value")]
+    [InlineData("null")]
+    [InlineData("error")]
+    [InlineData("all")]
+    [InlineData("noNext")]
+    public async Task BatchResolver_Should_MatchFormatterOrderAndAfterNext_When_ContextsShortCircuit(string mode)
+    {
+        // arrange
+        var snapshot = new Snapshot(postFix: mode);
+        var results = new List<IExecutionResult>();
+        foreach (var batch in new[] { false, true })
+        {
+            var formatted = new List<string>();
+            var dispatched = new List<int>();
+            var after = new List<string>();
+            var executor = await new ServiceCollection().AddGraphQL()
+                .AddQueryType(d => d.Field("users").Type<ListType<ObjectType<BatchUser>>>()
+                    .Resolve(new[] { new BatchUser(1, "Alice"), new(2, "Bob"), new(3, "Charlie") }))
+                .AddObjectType<BatchUser>(d =>
+                {
+                    var field = d.Field("value").Type<StringType>();
+                    var formatters = field.Extend().Configuration.FormatterConfigurations;
+                    foreach (var marker in new[] { "A", "B", "B" })
+                    {
+                        formatters.Add(new ResultFormatterConfiguration((context, value) =>
+                        {
+                            formatted.Add($"{context.Parent<BatchUser>().Id}:{marker}");
+                            return $"{marker}({value})";
+                        }, isRepeatable: false, key: marker));
+                    }
+
+                    if (batch)
+                    {
+                        field.UseBatch(next => async contexts =>
+                        {
+                            foreach (var context in contexts)
+                            {
+                                ShortCircuit(context);
+                            }
+
+                            if (mode != "noNext")
+                            {
+                                await next(contexts);
+                            }
+
+                            foreach (var context in contexts)
+                            {
+                                AfterNext(context);
+                            }
+                        });
+                        field.Extend().Configuration.BatchResolver = async contexts =>
+                        {
+                            await Task.Yield();
+                            foreach (var context in contexts)
+                            {
+                                context.Result = Resolve(context);
+                            }
+                        };
+                    }
+                    else
+                    {
+                        field.Use(next => async context =>
+                        {
+                            ShortCircuit(context);
+                            if (mode != "noNext" && !context.IsResultModified && !context.HasErrors)
+                            {
+                                await next(context);
+                            }
+
+                            AfterNext(context);
+                        }).Resolve(context => Resolve(context));
+                    }
+                })
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+            // act
+            var result = await executor.ExecuteAsync("{ users { value } }",
+                cancellationToken: TestContext.Current.CancellationToken)
+                .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+            results.Add(result);
+
+            // assert
+            snapshot.Add(result, batch ? "Batch result" : "Regular result")
+                .Add(dispatched.Order().ToArray(), batch ? "Batch dispatched" : "Regular dispatched")
+                .Add(formatted.OrderBy(t => t[0]).ToArray(), batch ? "Batch formatters" : "Regular formatters")
+                .Add(after.Order().ToArray(), batch ? "Batch after next" : "Regular after next");
+
+            void ShortCircuit(IMiddlewareContext context)
+            {
+                if (mode is "all" or "noNext" || context.Parent<BatchUser>().Id == 2)
+                {
+                    switch (mode)
+                    {
+                        case "value":
+                        case "all":
+                        case "noNext":
+                            context.Result = "cached";
+                            break;
+                        case "null":
+                            context.Result = null;
+                            break;
+                        case "error":
+                            context.ReportError("blocked");
+                            break;
+                    }
+                }
+            }
+
+            string Resolve(IResolverContext context)
+            {
+                var user = context.Parent<BatchUser>();
+                dispatched.Add(user.Id);
+                return user.Name;
+            }
+
+            void AfterNext(IMiddlewareContext context)
+            {
+                after.Add($"{context.Parent<BatchUser>().Id}:{context.Result ?? "null"}");
+            }
+        }
+
+        try
+        {
+            snapshot.MatchMarkdownSnapshot();
+        }
+        finally
+        {
+            foreach (var result in results)
+            {
+                await result.DisposeAsync();
+            }
+        }
+    }
+
     [Fact]
     public async Task BatchResolver_Should_ExcludeCompiledArgumentErrors_When_ScalarRejectsLiteral()
     {
