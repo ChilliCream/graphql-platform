@@ -262,6 +262,12 @@ public interface IReadOnlySchemaOptions
     bool ApplyShareableToNodeFields { get; }
 
     /// <summary>
+    /// Applies the @inaccessible directive to the `node(id)` and `nodes(id)`
+    /// field when Global Object Identification is turned on.
+    /// </summary>
+    bool ApplyInaccessibleToNodeFields { get; }
+
+    /// <summary>
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.
     /// </summary>
     bool ApplySerializeAsToScalars { get; }
