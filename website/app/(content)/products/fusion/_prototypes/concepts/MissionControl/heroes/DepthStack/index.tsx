@@ -6,14 +6,18 @@ import type { CSSProperties, ReactNode } from "react";
 import { FONTS, TYPE } from "../../../../brand";
 import { useCycle, useElementMotion } from "../../hooks";
 import { MC, specTag } from "../../palette";
+import type { Tilt } from "./motion";
+import { Beam, KEYFRAMES, LEGS, Traveller, usePointerTilt } from "./motion";
 import type { Spot, Stage } from "./scene";
 import {
+  at,
   CLIENT_CARDS,
   NARROW,
   PLANS,
   PLATES,
   SOURCE_CARDS,
   SPEC_ACCENT,
+  targetPoint,
   WIDE,
 } from "./scene";
 
@@ -120,13 +124,17 @@ function Line({ size, color, spaced, children }: LineProps) {
 interface StageViewProps {
   readonly stage: Stage;
   readonly step: number;
+  readonly running: boolean;
+  readonly tilt: Tilt;
 }
 
 /** One layout of the scene: the three planes inside their own perspective. */
-function StageView({ stage, step }: StageViewProps) {
+function StageView({ stage, step, running, tilt }: StageViewProps) {
   const wide = stage.variant === "wide";
   const plan = PLANS[step];
   const client = CLIENT_CARDS[step];
+  const gateway = at(stage.gateway, 0);
+  const onAir = at(stage.clients[step], stage.clientZ);
 
   return (
     <div
@@ -142,7 +150,8 @@ function StageView({ stage, step }: StageViewProps) {
           position: "absolute",
           inset: 0,
           transformStyle: "preserve-3d",
-          transform: `rotateX(${stage.tilt}deg)`,
+          transform: `rotateX(${stage.tilt + tilt.x}deg) rotateY(${tilt.y}deg)`,
+          transition: "transform 260ms ease-out",
         }}
       >
         <div
@@ -159,6 +168,36 @@ function StageView({ stage, step }: StageViewProps) {
             backgroundSize: "56px 56px",
           }}
         />
+
+        {CLIENT_CARDS.map((card, i) => (
+          <Beam
+            key={`link-${card.name}`}
+            from={at(stage.clients[i], stage.clientZ)}
+            to={gateway}
+            color={MC.signal}
+            lit={i === step}
+          />
+        ))}
+
+        {PLATES.map((plate, i) => (
+          <Beam
+            key={`link-${plate.name}`}
+            from={gateway}
+            to={at(stage.plates[i], stage.backZ)}
+            color={MC.phosphor}
+            lit={plan.includes(plate.name)}
+          />
+        ))}
+
+        {SOURCE_CARDS.map((source, i) => (
+          <Beam
+            key={`link-${source.name}`}
+            from={gateway}
+            to={at(stage.sources[i], stage.backZ)}
+            color={MC.phosphor}
+            lit={plan.includes(source.name)}
+          />
+        ))}
 
         {PLATES.map((plate, i) => {
           const lit = plan.includes(plate.name);
@@ -273,23 +312,73 @@ function StageView({ stage, step }: StageViewProps) {
             </Line>
           </Panel>
         ))}
+
+        <Traveller
+          key={`request-${step}`}
+          from={onAir}
+          to={gateway}
+          color={MC.signal}
+          leg={LEGS.request}
+          rest={0.5}
+          running={running}
+          periodMs={PERIOD}
+        />
+        {plan.map((name) => (
+          <Traveller
+            key={`fan-out-${step}-${name}`}
+            from={gateway}
+            to={targetPoint(stage, name)}
+            color={MC.signal}
+            leg={LEGS.fanOut}
+            rest={0.62}
+            running={running}
+            periodMs={PERIOD}
+          />
+        ))}
+        {plan.map((name) => (
+          <Traveller
+            key={`collect-${step}-${name}`}
+            from={targetPoint(stage, name)}
+            to={gateway}
+            color={MC.phosphor}
+            leg={LEGS.collect}
+            rest={0.7}
+            running={running}
+            periodMs={PERIOD}
+          />
+        ))}
+        <Traveller
+          key={`answer-${step}`}
+          from={gateway}
+          to={onAir}
+          color={MC.phosphor}
+          leg={LEGS.answer}
+          rest={0.24}
+          running={running}
+          periodMs={PERIOD}
+        />
       </div>
     </div>
   );
 }
 
+/** The narrow stack stays square on; only the wide one follows the pointer. */
+const LEVEL = { x: 0, y: 0 } as const;
+
 export default function DepthStack() {
   const ref = useRef<HTMLDivElement>(null);
   const running = useElementMotion(ref);
   const step = useCycle(running, CLIENT_CARDS.length, PERIOD, REST_STEP);
+  const tilt = usePointerTilt(running, WIDE.swing);
 
   return (
     <div ref={ref} className="absolute inset-0" aria-hidden="true">
+      <style>{KEYFRAMES}</style>
       <div className="pointer-events-none absolute inset-0 md:hidden">
-        <StageView stage={NARROW} step={step} />
+        <StageView stage={NARROW} step={step} running={running} tilt={LEVEL} />
       </div>
       <div className="pointer-events-none absolute inset-0 hidden md:block lg:left-[26%]">
-        <StageView stage={WIDE} step={step} />
+        <StageView stage={WIDE} step={step} running={running} tilt={tilt} />
       </div>
     </div>
   );

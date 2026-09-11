@@ -203,7 +203,11 @@ export function at(spot: Spot, z: number): P3 {
   return { x: spot.x, y: spot.y, z };
 }
 
-/** The back-plane point a query plan entry names, plate or source. */
+/**
+ * The back-plane point a query plan entry names, plate or source. Every name
+ * in `PLANS` is one of the two rosters above; an unknown one falls back to the
+ * first source rather than dropping the dot out of the scene.
+ */
 export function targetPoint(stage: Stage, name: string): P3 {
   const plate = PLATES.findIndex((entry) => entry.name === name);
   if (plate >= 0) return at(stage.plates[plate], stage.backZ);
