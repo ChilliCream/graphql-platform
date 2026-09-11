@@ -525,10 +525,17 @@ public sealed class SqliteDbWatcherTests : IDisposable
             extraEvents++;
         }
 
-        var lateNotifications = Volatile.Read(ref notifications) - Math.Max(notificationsAtFirstTick, 0);
+        var notificationsAtFirstTickSnapshot = Volatile.Read(ref notificationsAtFirstTick);
 
         // assert
         Assert.IsType<TuiEvent.DataChangedEvent>(first);
+        Assert.True(
+            notificationsAtFirstTickSnapshot >= 0,
+            "no act-phase debounce cycle was observed, so the tail assertion has no boundary to "
+            + "measure late notifications from and cannot discriminate a coalescing defect");
+
+        var lateNotifications = Volatile.Read(ref notifications) - notificationsAtFirstTickSnapshot;
+
         Assert.True(
             extraEvents <= lateNotifications,
             $"published {1 + extraEvents} events for {tickCount} debounce cycles with {lateNotifications} notifications delivered after the first cycle");
