@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { useCycle, useSceneMotion } from "./hooks";
 import { CN, PLANETS, orbitPoint } from "./palette";
 
@@ -114,7 +115,7 @@ export function GravityCheck() {
           x={STAR.x}
           y={STAR.y - 22}
           fill={CN.dim}
-          fontSize="11"
+          fontSize={TYPE.label}
           textAnchor="middle"
           style={{ fontFamily: CN.mono, letterSpacing: "0.14em" }}
         >
@@ -156,7 +157,7 @@ export function GravityCheck() {
                 x={at.x}
                 y={below ? at.y + 26 : at.y - 20}
                 fill={offending ? CN.alert : CN.ink}
-                fontSize="12"
+                fontSize={TYPE.caption}
                 textAnchor="middle"
                 style={{ fontFamily: CN.mono, letterSpacing: "0.08em" }}
               >
@@ -166,7 +167,7 @@ export function GravityCheck() {
                 x={at.x}
                 y={below ? at.y + 40 : at.y - 6}
                 fill={cleared ? CN.clear : CN.dim}
-                fontSize="10"
+                fontSize={TYPE.label}
                 textAnchor="middle"
                 style={{ fontFamily: CN.mono, letterSpacing: "0.14em" }}
               >
@@ -180,7 +181,7 @@ export function GravityCheck() {
           x={20}
           y={30}
           fill={CN.dim}
-          fontSize="11"
+          fontSize={TYPE.label}
           style={{ fontFamily: CN.mono, letterSpacing: "0.12em" }}
         >
           ORDINARY GRAPHQL SERVERS · NO PLUGIN ATTACHED
@@ -190,7 +191,7 @@ export function GravityCheck() {
           x={20}
           y={VIEW_H - 20}
           fill={conflict ? CN.alert : CN.clear}
-          fontSize="11"
+          fontSize={TYPE.label}
           style={{
             fontFamily: CN.mono,
             letterSpacing: "0.12em",
