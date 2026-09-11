@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useSceneMotion } from "./hooks";
 import { AP, GATES } from "./palette";
 
@@ -40,7 +41,7 @@ export function ApronMeters() {
         y="34"
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         letterSpacing="0.22em"
       >
         GATEWAY · ON-TIME PERFORMANCE
@@ -74,7 +75,7 @@ export function ApronMeters() {
               y="80"
               fill={AP.dim}
               fontFamily={AP.mono}
-              fontSize="9"
+              fontSize={TYPE.label}
               letterSpacing="0.14em"
             >
               {meter.label}
@@ -84,7 +85,7 @@ export function ApronMeters() {
               y="108"
               fill={meter.color}
               fontFamily={AP.mono}
-              fontSize="18"
+              fontSize={TYPE.h5}
             >
               {meter.value}
             </text>
@@ -94,7 +95,7 @@ export function ApronMeters() {
               width="144"
               height="6"
               rx="3"
-              fill="rgba(255,255,255,0.08)"
+              fill={AP.deck}
             />
             <rect
               x={x + 16}
@@ -121,7 +122,7 @@ export function ApronMeters() {
         y="182"
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.18em"
       >
         PER GATE · SUBGRAPH BEHIND THE GATEWAY
@@ -137,7 +138,7 @@ export function ApronMeters() {
               y={y + 12}
               fill={AP.ink}
               fontFamily={AP.mono}
-              fontSize="10"
+              fontSize={TYPE.caption}
             >
               {gate.stand} {gate.name}
             </text>
@@ -146,7 +147,7 @@ export function ApronMeters() {
               y={y + 12}
               fill={AP.dim}
               fontFamily={AP.mono}
-              fontSize="8"
+              fontSize={TYPE.label}
               letterSpacing="0.1em"
             >
               {gate.language}
@@ -157,7 +158,7 @@ export function ApronMeters() {
               width={W - 240}
               height="10"
               rx="5"
-              fill="rgba(255,255,255,0.07)"
+              fill={AP.deck}
             />
             <rect
               x="196"
