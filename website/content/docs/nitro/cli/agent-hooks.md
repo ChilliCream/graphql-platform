@@ -195,6 +195,7 @@ nitro agent hooks opencode uninstall --scope project
 
 # Caveats
 
+- **Pushes only flow while the board is open.** The wake loop that delivers idle pushes runs inside `nitro agent`'s board TUI; there is no separate daemon or autostart. Closing the board stops pushes until it is reopened.
 - **No hard turn gate.** Unlike Claude Code's `Stop`-hook block and Codex's notify-driven queue, Opencode has no mechanism to hold a turn open. Instead, a session that goes idle with unread mail gets a soft push: Nitro delivers a follow-up prompt to the Opencode server directly, prefixed with a marker the shim strips before treating the turn as Nitro's own. Mail that arrives while that pushed turn is still in flight is delivered on the next human prompt, not the next idle transition.
 - **Fail-open shim.** If `nitro` is missing, not on `PATH`, or times out, the generated plugin swallows the failure and returns nothing to Opencode. A teammate without Nitro installed sees no error and no behavior change.
 - **Gitignore project-scope installs that are local only.** A project-scope plugin at `.opencode/plugin/nitro-hooks.js` is normally committed so the whole team gets it. Add it to `.gitignore` when the install is local-only, not a team convention.
