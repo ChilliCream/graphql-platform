@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
 
+// TODO [17]: Remove the legacy extension surface after the 16.x compatibility window.
+[Obsolete("Use OpenApiFusionRouterBuilderExtensions instead.")]
 public static class OpenApiFusionGatewayBuilderExtensions
 {
     /// <summary>
@@ -29,6 +31,7 @@ public static class OpenApiFusionGatewayBuilderExtensions
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
     /// is for the application services.
     /// </remarks>
+    [Obsolete("Use AddOpenApi on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddOpenApi(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, bool>? skipIf = null)
@@ -79,6 +82,7 @@ public static class OpenApiFusionGatewayBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="storage"/> is <c>null</c>.
     /// </exception>
+    [Obsolete("Use AddOpenApiDefinitionStorage on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddOpenApiDefinitionStorage(
         this IFusionGatewayBuilder builder,
         IOpenApiDefinitionStorage storage)
@@ -111,6 +115,7 @@ public static class OpenApiFusionGatewayBuilderExtensions
     /// <remarks>
     /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the application services.
     /// </remarks>
+    [Obsolete("Use AddOpenApiDefinitionStorage on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddOpenApiDefinitionStorage<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder)
@@ -147,6 +152,7 @@ public static class OpenApiFusionGatewayBuilderExtensions
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
     /// is for the application services.
     /// </remarks>
+    [Obsolete("Use AddOpenApiDefinitionStorage on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddOpenApiDefinitionStorage(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, IOpenApiDefinitionStorage> factory)

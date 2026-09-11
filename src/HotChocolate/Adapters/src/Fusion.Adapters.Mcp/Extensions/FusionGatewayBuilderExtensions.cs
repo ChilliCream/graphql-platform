@@ -15,8 +15,11 @@ namespace Microsoft.Extensions.DependencyInjection;
 [RequiresUnreferencedCode(
     "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
+// TODO [17]: Remove the legacy extension surface after the 16.x compatibility window.
+[Obsolete("Use FusionRouterBuilderExtensions instead.")]
 public static class FusionGatewayBuilderExtensions
 {
+    [Obsolete("Use AddMcp on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddMcp(
         this IFusionGatewayBuilder builder,
         Action<McpServerOptions>? configureServerOptions = null,
@@ -57,6 +60,7 @@ public static class FusionGatewayBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="configure"/> is <c>null</c>.
     /// </exception>
+    [Obsolete("Use ModifyMcpToolOptions on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder ModifyMcpToolOptions(
         this IFusionGatewayBuilder builder,
         Action<McpToolOptions> configure)
@@ -87,6 +91,7 @@ public static class FusionGatewayBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// The <paramref name="storage"/> is <c>null</c>.
     /// </exception>
+    [Obsolete("Use AddMcpStorage on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddMcpStorage(
         this IFusionGatewayBuilder builder,
         IMcpStorage storage)
@@ -119,6 +124,7 @@ public static class FusionGatewayBuilderExtensions
     /// <remarks>
     /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the application services.
     /// </remarks>
+    [Obsolete("Use AddMcpStorage on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddMcpStorage<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IFusionGatewayBuilder builder)
@@ -155,6 +161,7 @@ public static class FusionGatewayBuilderExtensions
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
     /// is for the application services.
     /// </remarks>
+    [Obsolete("Use AddMcpStorage on IFusionRouterBuilder instead.")]
     public static IFusionGatewayBuilder AddMcpStorage(
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, IMcpStorage> factory)
