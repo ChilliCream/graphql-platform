@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useCycle, useSceneMotion } from "./hooks";
 import { MC, SOURCES, STATIONS, specTag } from "./palette";
 import type { StationSpec } from "./palette";
@@ -13,6 +14,8 @@ import type { StationSpec } from "./palette";
 
 const W = 640;
 const H = 460;
+/** The scene box mirrors the viewBox, so the patch bay never letterboxes. */
+export const SPEC_PATCHBAY_RATIO = `${W} / ${H}`;
 /** 0 is the rest frame: every channel patched, nothing being moved. */
 const PHASES = 6;
 const REST = 0;
@@ -71,7 +74,7 @@ export function SpecPatchbay() {
         y={24}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         letterSpacing="0.2em"
       >
         SOURCE SCHEMA CHANNELS
@@ -118,7 +121,7 @@ export function SpecPatchbay() {
               y={y + 17}
               fill={MC.ink}
               fontFamily={MC.mono}
-              fontSize="12"
+              fontSize={TYPE.caption}
               letterSpacing="0.12em"
             >
               {channel.name.toUpperCase()}
@@ -128,19 +131,19 @@ export function SpecPatchbay() {
               y={y + 31}
               fill={active && repatched ? MC.phosphor : MC.dim}
               fontFamily={MC.mono}
-              fontSize="9"
-              letterSpacing="0.14em"
+              fontSize={TYPE.label}
+              letterSpacing="0.06em"
               style={{ transition: "fill 400ms ease" }}
             >
               {tag}
             </text>
             <text
               x={STRIP.x + STRIP.w - 10}
-              y={y + 24}
+              y={y + 17}
               fill={active ? MC.phosphor : MC.dim}
               fontFamily={MC.mono}
-              fontSize="9"
-              letterSpacing="0.14em"
+              fontSize={TYPE.label}
+              letterSpacing="0.06em"
               textAnchor="end"
               style={{ transition: "fill 400ms ease" }}
             >
@@ -184,7 +187,7 @@ export function SpecPatchbay() {
         y={BUS.y + 40}
         fill={MC.ink}
         fontFamily={MC.mono}
-        fontSize="13"
+        fontSize={TYPE.caption}
         letterSpacing="0.16em"
         textAnchor="middle"
       >
@@ -195,7 +198,7 @@ export function SpecPatchbay() {
         y={BUS.y + 60}
         fill={MC.ink}
         fontFamily={MC.mono}
-        fontSize="13"
+        fontSize={TYPE.caption}
         letterSpacing="0.16em"
         textAnchor="middle"
       >
@@ -206,7 +209,7 @@ export function SpecPatchbay() {
         y={BUS.y + 92}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.16em"
         textAnchor="middle"
       >
@@ -223,7 +226,7 @@ export function SpecPatchbay() {
           y={BUS.y + 142 + i * 24}
           fill={MC.dim}
           fontFamily={MC.mono}
-          fontSize="9"
+          fontSize={TYPE.label}
           letterSpacing="0.16em"
           textAnchor="middle"
         >
@@ -235,8 +238,8 @@ export function SpecPatchbay() {
         y={BUS.y + BUS.h - 22}
         fill={MC.phosphor}
         fontFamily={MC.mono}
-        fontSize="9"
-        letterSpacing="0.14em"
+        fontSize={TYPE.label}
+        letterSpacing="0.06em"
         textAnchor="middle"
       >
         {repatched ? "NO CUTOVER NEEDED" : "COMPOSED IN THE BUILD"}
