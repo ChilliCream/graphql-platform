@@ -6,6 +6,7 @@ import {
   drawStyle,
   fadeStyle,
   HAND,
+  HERO_FONT,
   MARKER,
   NOTES,
   PAPER,
@@ -18,6 +19,10 @@ import { Folio, PaperGround, StickyNote, Wobble } from "./Sketch";
  * subgraph sticky notes below, and finally the annotations in the margin.
  *
  * Rest state (reduced motion, or before hydration): the finished drawing.
+ *
+ * The cover is lettered in `HERO_FONT` units: the drawing is painted with
+ * `slice` into a band at least 88svh tall, so its smallest label still reads at
+ * the site's 11px on the shortest phone the site sizes for.
  */
 
 const CSS = `
@@ -60,7 +65,7 @@ const PINS = [
   { x: 946, y: 452, tilt: -2 },
 ];
 
-const NOTE_W = 176;
+const NOTE_W = 192;
 const NOTE_H = 84;
 
 interface DoodleProps {
@@ -211,7 +216,7 @@ export function HeroSketch() {
               y={62}
               textAnchor="middle"
               fill={PAPER.inkSoft}
-              fontSize={16}
+              fontSize={HERO_FONT.label}
               style={HAND}
             >
               {CLIENTS[i].name}
@@ -247,10 +252,10 @@ export function HeroSketch() {
           className="ed-hero-fade"
           style={{ ...MARKER, ...fadeStyle(0.9) }}
           x={HUB.x}
-          y={HUB.y + 6}
+          y={HUB.y + 4}
           textAnchor="middle"
           fill={PAPER.ink}
-          fontSize={30}
+          fontSize={HERO_FONT.display}
         >
           gateway
         </text>
@@ -258,10 +263,10 @@ export function HeroSketch() {
           className="ed-hero-fade"
           style={{ ...HAND, ...fadeStyle(1.05) }}
           x={HUB.x}
-          y={HUB.y + 32}
+          y={HUB.y + 30}
           textAnchor="middle"
           fill={PAPER.inkSoft}
-          fontSize={15}
+          fontSize={HERO_FONT.label}
         >
           one endpoint
         </text>
@@ -282,6 +287,8 @@ export function HeroSketch() {
               stock={NOTES[i].stock}
               name={NOTES[i].name}
               caption={`${NOTES[i].language} · ${NOTES[i].specLabel}`}
+              nameSize={HERO_FONT.caption}
+              captionSize={HERO_FONT.label}
             />
           </g>
         ))}
@@ -301,7 +308,7 @@ export function HeroSketch() {
             y={624}
             textAnchor="middle"
             fill={PAPER.pencil}
-            fontSize={19}
+            fontSize={HERO_FONT.caption}
             style={HAND}
           >
             source schemas, one per team
@@ -323,12 +330,18 @@ export function HeroSketch() {
             strokeWidth={2}
             strokeLinecap="round"
           />
-          <text x={926} y={272} fill={PAPER.red} fontSize={19} style={HAND}>
+          <text
+            x={926}
+            y={272}
+            fill={PAPER.red}
+            fontSize={HERO_FONT.caption}
+            style={HAND}
+          >
             composite schema
           </text>
         </g>
 
-        <Folio x={60} y={48}>
+        <Folio x={60} y={48} size={HERO_FONT.label}>
           Fusion, drawn from the margin up
         </Folio>
       </svg>
