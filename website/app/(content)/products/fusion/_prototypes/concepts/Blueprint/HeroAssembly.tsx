@@ -203,7 +203,7 @@ export function HeroAssembly() {
       title="General arrangement"
       no="DWG-100"
       rev="C"
-      field={ASSEMBLY.note.toUpperCase()}
+      field="1:1"
       run={active && !reduced}
     >
       <svg
