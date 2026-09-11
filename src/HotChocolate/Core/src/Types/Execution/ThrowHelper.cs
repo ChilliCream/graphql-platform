@@ -6,6 +6,20 @@ namespace HotChocolate.Execution;
 
 internal static class ThrowHelper
 {
+    public static GraphQLException DirectiveNotSupportedOnBatchSelection(
+        ObjectField field,
+        DirectiveNode directive)
+        => new(ErrorBuilder.New()
+            .SetMessage(
+                ThrowHelper_DirectiveNotSupportedOnBatchSelection,
+                directive.Name.Value,
+                field.Name,
+                field.DeclaringType.Name)
+            .SetCode(ErrorCodes.Execution.DirectiveNotSupportedOnBatchSelection)
+            .SetCoordinate(field.Coordinate)
+            .AddLocation(directive)
+            .Build());
+
     public static InvalidOperationException SelectionSet_NotFullyInitialized()
         => new InvalidOperationException("The selection set is not fully initialized.");
 
