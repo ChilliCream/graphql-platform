@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useSceneMotion } from "./hooks";
 import { CN, PLANETS, PROBES } from "./palette";
 
@@ -66,7 +67,7 @@ export function SkySurvey() {
           x={20}
           y={30}
           fill={CN.dim}
-          fontSize="11"
+          fontSize={TYPE.label}
           style={{ fontFamily: CN.mono, letterSpacing: "0.16em" }}
         >
           {`SKY SURVEY · LATENCY · THROUGHPUT · ERROR RATE · ${PROBES.length} REGISTERED PROBES`}
@@ -113,7 +114,7 @@ export function SkySurvey() {
               x={c * COL_W + 16}
               y={BASE_Y + 26}
               fill={CN.ink}
-              fontSize="11"
+              fontSize={TYPE.label}
               style={{ fontFamily: CN.mono, letterSpacing: "0.08em" }}
             >
               {column.label}
