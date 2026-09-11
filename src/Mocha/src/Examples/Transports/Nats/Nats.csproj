@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\..\Mocha.Transport.Nats\Mocha.Transport.Nats.csproj" />
+    <ProjectReference Include="..\..\..\Mocha.Hosting\Mocha.Hosting.csproj" />
+  </ItemGroup>
+</Project>
