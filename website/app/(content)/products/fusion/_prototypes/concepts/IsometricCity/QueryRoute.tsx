@@ -2,8 +2,20 @@
 
 import type { CSSProperties } from "react";
 
+import { FONTS } from "../../brand";
 import { useCityMotion } from "./hooks";
-import { CITY, LABEL, box, iso, poly, rightQuad, tile } from "./palette";
+import {
+  CITY,
+  FONT,
+  LABEL,
+  SCENE_H,
+  SCENE_W,
+  box,
+  iso,
+  poly,
+  rightQuad,
+  tile,
+} from "./palette";
 
 /**
  * "What is Fusion?": one route across the map. A vehicle stops at the plaza's
@@ -14,6 +26,10 @@ import { CITY, LABEL, box, iso, poly, rightQuad, tile } from "./palette";
  * Rest state: the whole route is drawn, every stop is lit and the vehicle
  * waits at the door, so the still frame already says "one query, four
  * buildings, one answer".
+ *
+ * Every sign is set in `FONT` units, so the smallest one still renders at the
+ * site's 11px label on a 375px screen; the caption sits under the map rather
+ * than beside the door, where it no longer fits at that size.
  */
 
 const CSS = `
@@ -37,7 +53,7 @@ const CSS = `
 }
 `;
 
-const ORIGIN = "translate(320, 112)";
+const ORIGIN = "translate(330, 112)";
 const SIZE = 2.6;
 const PLAZA = box(3.2, 3.2, SIZE, SIZE, 34);
 
@@ -139,19 +155,20 @@ function StopBlock({ stop, index }: StopBlockProps) {
       <polygon points={faces.top} fill={CITY.blockTop} stroke={CITY.edge} />
       <text
         x={rx}
-        y={ry - 12}
+        y={ry - 18}
         textAnchor="middle"
         fill={CITY.heading}
-        fontSize={14}
+        fontFamily={FONTS.heading}
+        fontSize={FONT.caption}
       >
         {stop.name}
       </text>
       <text
         x={rx}
-        y={ry + 4}
+        y={ry + 18}
         textAnchor="middle"
         fill={CITY.ink}
-        fontSize={10}
+        fontSize={FONT.label}
         style={LABEL}
       >
         {`${stop.language} · ${stop.field}`}
@@ -177,8 +194,12 @@ export function QueryRoute() {
       data-run={run ? "true" : "false"}
     >
       <style>{CSS + CAR_CSS}</style>
-      <svg viewBox="0 0 640 480" className="h-full w-full" aria-hidden="true">
-        <rect width="640" height="480" fill={CITY.sky} />
+      <svg
+        viewBox={`0 0 ${SCENE_W} ${SCENE_H}`}
+        className="h-full w-full"
+        aria-hidden="true"
+      >
+        <rect width={SCENE_W} height={SCENE_H} fill={CITY.sky} />
 
         <g transform={ORIGIN}>
           <polygon
@@ -224,10 +245,11 @@ export function QueryRoute() {
           />
           <text
             x={PLAZA.roof[0]}
-            y={PLAZA.roof[1] - 10}
+            y={PLAZA.roof[1] - 14}
             textAnchor="middle"
             fill={CITY.heading}
-            fontSize={14}
+            fontFamily={FONTS.heading}
+            fontSize={FONT.caption}
           >
             Gateway
           </text>
@@ -257,17 +279,18 @@ export function QueryRoute() {
               opacity="0.9"
             />
           </g>
-
-          <text
-            x={DOOR[0] + 46}
-            y={DOOR[1] + 26}
-            fill={CITY.ink}
-            fontSize={10}
-            style={LABEL}
-          >
-            ONE QUERY IN · ONE RESPONSE OUT
-          </text>
         </g>
+
+        <text
+          x={SCENE_W / 2}
+          y={SCENE_H - 18}
+          textAnchor="middle"
+          fill={CITY.ink}
+          fontSize={FONT.label}
+          style={LABEL}
+        >
+          ONE QUERY IN · ONE RESPONSE OUT
+        </text>
       </svg>
     </div>
   );
