@@ -1,28 +1,44 @@
 /**
- * Airport concept (prototype v5): the night-apron palette and the gate roster
+ * Airport concept (prototype v5): the shared apron palette and the gate roster
  * every visual in this folder draws from, so the departures board, the flight
  * plan, the gate markings, the clearance strip and the boarding check name the
  * same subgraphs, languages and specifications.
+ *
+ * The palette is a mapping of apron role -> site token: every entry is a
+ * `CC.*` token, a `BRAND.*` accent (mixed with opacity where the scene needs a
+ * wash) or `FONTS.mono`, so the concept carries no colour of its own.
  */
 
+import { BRAND, CC, FONTS } from "../../brand";
+
 export const AP = {
-  /** Apron at night, darker than the site surface. */
-  bg: "#080d13",
-  panel: "rgba(14,21,30,0.9)",
-  panelEdge: "rgba(180,205,230,0.16)",
-  /** Painted apron markings and taxiway edges. */
-  paint: "rgba(200,220,240,0.22)",
-  ink: "#d7e2ee",
-  dim: "#7d90a5",
-  /** Split-flap glyphs and gate signage. */
-  amber: "#ffb020",
-  /** Taxiway centre line, cleared plans, healthy gates. */
-  taxi: "#3ddc97",
-  /** Approach and runway lights, tracked aircraft. */
-  approach: "#5cc8ff",
-  /** Grounded plan, breaking change. */
-  stop: "#ff6b6b",
-  mono: "ui-monospace, SFMono-Regular, Menlo, monospace",
+  /** The apron itself: the page background, so a scene never darkens the page. */
+  bg: CC.bg,
+  /** Terminal plates and gate signs: the site surface, lifted to read on the apron. */
+  panel: `color-mix(in srgb, ${CC.surface} 92%, ${CC.heading})`,
+  /** Plate edges and sign frames: the site's card border. */
+  panelEdge: CC.cardBorder,
+  /** Painted apron markings and taxiway edges: the brand slate at a wash. */
+  paint: `color-mix(in srgb, ${BRAND.slate} 45%, transparent)`,
+  /** Faint light fill: board rows, sign plates, meter tracks. */
+  wash: `color-mix(in srgb, ${CC.heading} 4%, transparent)`,
+  /** The lit asphalt of the taxiway and the one runway. */
+  deck: `color-mix(in srgb, ${CC.heading} 7%, transparent)`,
+  /** Night sky over the concourse: the page colour with a cyan cast. */
+  sky: `color-mix(in srgb, ${BRAND.cyan} 12%, ${CC.bg})`,
+  /** Sign lettering: the brightest ink on the site. */
+  ink: CC.heading,
+  /** Secondary lettering under it. */
+  dim: CC.inkDim,
+  /** Split-flap glyphs and gate signage: the brand amber. */
+  amber: BRAND.amber,
+  /** Taxiway centre line, cleared plans, healthy gates: the brand teal. */
+  taxi: BRAND.teal,
+  /** Approach and runway lights, tracked aircraft: the brand cyan. */
+  approach: BRAND.cyan,
+  /** Grounded plan, breaking change: the brand coral. */
+  stop: BRAND.coral,
+  mono: FONTS.mono,
 } as const;
 
 export type GateSpec = "GraphQL Federation" | "Apollo Federation";

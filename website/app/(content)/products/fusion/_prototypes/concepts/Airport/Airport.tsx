@@ -3,8 +3,10 @@ import type { ReactElement, ReactNode } from "react";
 
 import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { Link } from "@/src/design-system/Link";
 
+import { CC } from "../../brand";
 import { Scene } from "../../Primitives";
 import type { CopyLink, CopySection } from "../../copy";
 import { HERO, NITRO_BAND, SECTIONS } from "../../copy";
@@ -14,7 +16,6 @@ import { ClearanceCheck } from "./ClearanceCheck";
 import { FlightPlan } from "./FlightPlan";
 import { GateMarkings } from "./GateMarkings";
 import { HeroApron } from "./HeroApron";
-import { AP } from "./palette";
 import { SplitFlapBoard } from "./SplitFlapBoard";
 
 /**
@@ -24,16 +25,20 @@ import { SplitFlapBoard } from "./SplitFlapBoard";
  * the one runway. The hero is the apron under a split-flap departures board,
  * each text block sits beside the stand that demonstrates it, and the page
  * closes on the on-time meters. All words come from `../../copy`.
+ *
+ * The airport is built out of the site's own grid, type scale and tokens: the
+ * page keeps `bg-cc-bg`, every band is the shared `max-w-6xl` container on the
+ * site's vertical rhythm, and the night apron stays inside the bounded scene
+ * boxes and the hero scrim.
  */
 
-const PANEL_CLASS = "rounded-xl border overflow-hidden";
+const PANEL_CLASS = "border-cc-card-border bg-cc-card-bg rounded-xl border";
 
-const panelStyle = {
-  background: AP.panel,
-  borderColor: AP.panelEdge,
-} as const;
+/** Hero scrim: the page background itself, so the copy sits on the page colour. */
+const scrim = (percent: number) =>
+  `color-mix(in srgb, ${CC.bg} ${percent}%, transparent)`;
 
-const monoStyle = { fontFamily: AP.mono } as const;
+const HERO_SCRIM = `linear-gradient(180deg, ${scrim(92)} 0%, ${scrim(70)} 45%, ${scrim(95)} 100%)`;
 
 /** Re-links the phrases the production page links, leaving the words untouched. */
 function withLinks(text: string, links: readonly CopyLink[]): ReactNode {
@@ -65,7 +70,7 @@ function InPractice({ links }: InPracticeProps) {
   if (links.length === 0) return null;
 
   return (
-    <p className="text-cc-ink-dim text-sm">
+    <p className="text-cc-ink-dim text-caption">
       In practice:{" "}
       {links.map((link, i) => (
         <Fragment key={link.href}>
@@ -100,60 +105,55 @@ function StandRow({ index, section, visual }: StandRowProps) {
   const flip = index % 2 === 1;
 
   return (
-    <PageSection maxWidth="6xl" className="py-16 sm:py-24">
-      <div id={section.id} className="grid items-center gap-10 lg:grid-cols-2">
-        <div className={flip ? "lg:order-2" : undefined}>
-          <p
-            className="mb-3 text-[10px] tracking-[0.28em]"
-            style={{ ...monoStyle, color: AP.amber }}
+    <section className="border-cc-card-border border-t">
+      <div className="mx-auto max-w-6xl px-5 py-20 sm:px-12 sm:py-28">
+        <div
+          id={section.id}
+          className="grid items-center gap-10 lg:grid-cols-2"
+        >
+          <div className={flip ? "lg:order-2" : undefined}>
+            <Eyebrow color="ink-dim" size="2xs" className="mb-3">
+              {`Gate ${STANDS[index] ?? String(index + 1)}`}
+            </Eyebrow>
+            <h2 className="text-cc-heading font-heading text-h4 sm:text-h3 mb-5">
+              {section.title}
+            </h2>
+            <div className="text-cc-ink text-body space-y-4">
+              {section.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{withLinks(paragraph, section.links)}</p>
+              ))}
+              <InPractice links={section.inPractice} />
+            </div>
+          </div>
+
+          <div
+            className={`${PANEL_CLASS} overflow-hidden ${flip ? "lg:order-1" : ""}`.trim()}
           >
-            {`GATE ${STANDS[index] ?? String(index + 1)}`}
-          </p>
-          <h2 className="text-cc-heading text-h3 font-heading mb-5">
-            {section.title}
-          </h2>
-          <div className="text-cc-ink-dim space-y-4 text-base">
-            {section.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{withLinks(paragraph, section.links)}</p>
-            ))}
-            <InPractice links={section.inPractice} />
+            <Scene ratio="16 / 11">{visual}</Scene>
           </div>
         </div>
-
-        <div
-          className={`${PANEL_CLASS} ${flip ? "lg:order-1" : ""}`.trim()}
-          style={panelStyle}
-        >
-          <Scene ratio="16 / 11">{visual}</Scene>
-        </div>
       </div>
-    </PageSection>
+    </section>
   );
 }
 
 export function Airport() {
   return (
-    <div style={{ background: AP.bg }}>
+    <div className="bg-cc-bg">
       <section className="relative flex min-h-[88svh] items-center overflow-hidden">
         <HeroApron />
         <div
           aria-hidden="true"
           className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(8,13,19,0.92) 0%, rgba(8,13,19,0.7) 45%, rgba(8,13,19,0.95) 100%)",
-          }}
+          style={{ background: HERO_SCRIM }}
         />
-        <PageSection maxWidth="6xl" className="relative py-20 sm:py-24">
+        <PageSection maxWidth="7xl" className="relative w-full py-20 sm:py-28">
           <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
             <div>
-              <p
-                className="mb-5 text-[11px] tracking-[0.28em] uppercase"
-                style={{ ...monoStyle, color: AP.amber }}
-              >
+              <Eyebrow color="accent" className="mb-5">
                 {HERO.eyebrow}
-              </p>
-              <h1 className="text-cc-heading text-hero font-heading mb-6">
+              </Eyebrow>
+              <h1 className="text-cc-heading font-heading text-h2 sm:text-h1 mb-6">
                 {HERO.title}
               </h1>
               <p className="text-cc-prose lead mb-8">{HERO.teaser}</p>
@@ -180,43 +180,38 @@ export function Airport() {
         />
       ))}
 
-      <PageSection maxWidth="6xl" className="pb-24">
-        <div
-          id={NITRO_BAND.id}
-          className={`${PANEL_CLASS} p-8 sm:p-10`}
-          style={panelStyle}
-        >
-          <div className="grid items-center gap-8 lg:grid-cols-2">
-            <div>
-              <p
-                className="mb-3 text-[10px] tracking-[0.28em]"
-                style={{ ...monoStyle, color: AP.amber }}
-              >
-                TOWER LOG
-              </p>
-              <h2 className="text-cc-heading text-h4 font-heading mb-4">
-                {NITRO_BAND.title}
-              </h2>
-              <p className="text-cc-ink-dim mb-6 text-base">
-                {NITRO_BAND.description}
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <SolidButton href={NITRO_BAND.buttons[0].href}>
-                  {NITRO_BAND.buttons[0].label}
-                </SolidButton>
-                <OutlineButton href={NITRO_BAND.buttons[1].href}>
-                  {NITRO_BAND.buttons[1].label}
-                </OutlineButton>
+      <section className="border-cc-card-border border-t">
+        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-12 sm:py-28">
+          <div id={NITRO_BAND.id} className={`${PANEL_CLASS} p-8 sm:p-10`}>
+            <div className="grid items-center gap-8 lg:grid-cols-2">
+              <div>
+                <Eyebrow color="ink-dim" size="2xs" className="mb-3">
+                  Tower log
+                </Eyebrow>
+                <h2 className="text-cc-heading font-heading text-h4 mb-4">
+                  {NITRO_BAND.title}
+                </h2>
+                <p className="text-cc-ink text-body mb-6">
+                  {NITRO_BAND.description}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <SolidButton href={NITRO_BAND.buttons[0].href}>
+                    {NITRO_BAND.buttons[0].label}
+                  </SolidButton>
+                  <OutlineButton href={NITRO_BAND.buttons[1].href}>
+                    {NITRO_BAND.buttons[1].label}
+                  </OutlineButton>
+                </div>
               </div>
-            </div>
-            <div className={PANEL_CLASS} style={panelStyle}>
-              <Scene ratio="16 / 9">
-                <ApronMeters />
-              </Scene>
+              <div className="border-cc-card-border overflow-hidden rounded-lg border">
+                <Scene ratio="16 / 9">
+                  <ApronMeters />
+                </Scene>
+              </div>
             </div>
           </div>
         </div>
-      </PageSection>
+      </section>
     </div>
   );
 }
