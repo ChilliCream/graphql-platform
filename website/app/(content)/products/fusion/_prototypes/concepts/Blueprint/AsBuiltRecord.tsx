@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { BP } from "./palette";
+import { BP, FONT } from "./palette";
 import { DUR, draw, fade, Sheet, stamp } from "./Sheet";
 
 /**
@@ -57,8 +57,11 @@ const VERDICT_CLASS: Record<Operation["verdict"], string> = {
   BREAKING: "bp-t-red",
 };
 
-const ROW_Y = 82;
-const ROW_PITCH = 40;
+const ROW_Y = 96;
+const ROW_PITCH = 46;
+/** The as-built record panel: its left edge and the x its fields end at. */
+const REC_X = 200;
+const REC_RIGHT = 460;
 
 const CSS = `
 ${fade("bp-a-head", 1)}
@@ -75,8 +78,8 @@ ${fade("bp-a-compare-head", 58)}
 @keyframes bp-a-scan{
 0%,58%{opacity:0;transform:none}
 60%{opacity:1;transform:none}
-74%{opacity:1;transform:translateY(150px)}
-76%,100%{opacity:0;transform:translateY(150px)}}
+74%{opacity:1;transform:translateY(176px)}
+76%,100%{opacity:0;transform:translateY(176px)}}
 ${OPERATIONS.map((_, i) => fade(`bp-a-verdict${i}`, 62 + i * 3.6)).join("\n")}
 ${fade("bp-a-summary", 82)}
 ${fade("bp-a-note", 88)}
@@ -94,84 +97,108 @@ export function AsBuiltRecord() {
       run={active && !reduced}
     >
       <svg
-        viewBox="0 0 480 360"
+        viewBox="0 0 480 318"
         preserveAspectRatio="xMidYMid meet"
         className="absolute inset-0 h-full w-full"
       >
         <style>{CSS}</style>
 
-        <text className="bp-a-head bp-t-dim" x={14} y={16} fontSize={6.5}>
-          REVISION E COMPARED WITH THE AS-BUILT RECORD
+        <text
+          className="bp-a-head bp-t-dim"
+          x={12}
+          y={22}
+          fontSize={FONT.label}
+        >
+          REVISION E · AS-BUILT RECORD
         </text>
 
         {/* The revision: a field taken off the drawing */}
         <path
           className="bp-a-rev"
-          d="M14 26h196v168h-196Z"
+          d="M12 32h174v180H12Z"
           pathLength={1}
           fill={BP.plate}
           stroke={BP.ink}
           strokeWidth={1.3}
         />
         <g className="bp-a-rev-label">
-          <text x={26} y={46} fontSize={8}>
-            REV E · CATALOG
+          <text x={18} y={56} fontSize={FONT.label}>
+            CATALOG
           </text>
-          <text className="bp-t-dim" x={26} y={72} fontSize={7}>
+          <text
+            className="bp-t-dim"
+            x={180}
+            y={56}
+            textAnchor="end"
+            fontSize={FONT.label}
+          >
+            REV E
+          </text>
+          <text className="bp-t-dim" x={18} y={84} fontSize={FONT.label}>
             type Product {"{"}
           </text>
-          <text className="bp-t-dim" x={26} y={88} fontSize={7}>
-            {"  id: ID!"}
+          <text className="bp-t-dim" x={30} y={106} fontSize={FONT.label}>
+            id: ID!
           </text>
-          <text className="bp-t-dim" x={26} y={104} fontSize={7}>
-            {"  name: String!"}
+          <text className="bp-t-dim" x={30} y={128} fontSize={FONT.label}>
+            name: String!
           </text>
         </g>
         <g className="bp-a-removed">
-          <text className="bp-t-red" x={26} y={126} fontSize={7}>
-            {"  price: Float!"}
+          <text className="bp-t-red" x={30} y={150} fontSize={FONT.label}>
+            price: Float!
           </text>
           <path
-            d="M26 123h96"
+            d="M30 144h150"
             fill="none"
             stroke={BP.redline}
             strokeWidth={1}
           />
-          <text className="bp-t-red" x={132} y={126} fontSize={6}>
+          <text className="bp-t-red" x={30} y={172} fontSize={FONT.label}>
             REMOVED
           </text>
-          <text className="bp-t-dim" x={26} y={146} fontSize={7}>
+          <text className="bp-t-dim" x={18} y={198} fontSize={FONT.label}>
             {"}"}
           </text>
         </g>
-        <g className="bp-a-pass" style={{ transformOrigin: "112px 172px" }}>
+        <g className="bp-a-pass" style={{ transformOrigin: "99px 240px" }}>
           <path
-            d="M26 158h172v28H26Z"
+            d="M12 224h174v32H12Z"
             fill="none"
             stroke={BP.ok}
             strokeWidth={1.2}
           />
           <text
             className="bp-t-ok"
-            x={112}
-            y={176}
+            x={99}
+            y={245}
             textAnchor="middle"
-            fontSize={7.5}
+            fontSize={FONT.label}
           >
-            COMPOSITION: PASS
+            COMPOSITION PASS
           </text>
         </g>
-        <text className="bp-a-note bp-t-dim" x={14} y={212} fontSize={6.2}>
-          THE SOURCE SCHEMAS STILL COMPOSE
+        <text
+          className="bp-a-note bp-t-dim"
+          x={12}
+          y={278}
+          fontSize={FONT.label}
+        >
+          STILL COMPOSES
         </text>
-        <text className="bp-a-note bp-t-dim" x={14} y={224} fontSize={6.2}>
-          THE BUILD STAYS GREEN
+        <text
+          className="bp-a-note bp-t-dim"
+          x={12}
+          y={300}
+          fontSize={FONT.label}
+        >
+          BUILD IS GREEN
         </text>
 
         {/* The comparison */}
         <path
           className="bp-a-compare"
-          d="M210 110h30"
+          d="M186 120h8"
           pathLength={1}
           fill="none"
           stroke={BP.dim}
@@ -179,34 +206,39 @@ export function AsBuiltRecord() {
         />
         <path
           className="bp-a-compare-head"
-          d="M240 110l-7 -2.6v5.2Z"
+          d="M200 120l-9-3.4v6.8Z"
           fill={BP.dim}
         />
 
         {/* The as-built record */}
         <path
           className="bp-a-record"
-          d="M240 26h226v268H240Z"
+          d={`M${REC_X} 32h270v258H${REC_X}Z`}
           pathLength={1}
           fill={BP.plate}
           stroke={BP.ink}
           strokeWidth={1.3}
         />
         <g className="bp-a-record-label">
-          <text x={254} y={46} fontSize={8}>
+          <text x={REC_X + 14} y={56} fontSize={FONT.label}>
             AS-BUILT RECORD
           </text>
           <text
             className="bp-t-dim"
-            x={452}
-            y={46}
+            x={REC_RIGHT}
+            y={56}
             textAnchor="end"
-            fontSize={6}
+            fontSize={FONT.label}
           >
             NITRO
           </text>
-          <text className="bp-t-dim" x={254} y={62} fontSize={6}>
-            PUBLISHED OPERATIONS · REGISTERED CLIENTS
+          <text
+            className="bp-t-dim"
+            x={REC_X + 14}
+            y={78}
+            fontSize={FONT.label}
+          >
+            PUBLISHED OPERATIONS
           </text>
         </g>
 
@@ -217,24 +249,38 @@ export function AsBuiltRecord() {
             <g key={operation.name}>
               <g className={`bp-a-op${i}`}>
                 <path
-                  d={`M254 ${y}h198`}
+                  d={`M${REC_X + 14} ${y}h246`}
                   fill="none"
                   stroke={BP.inkFaint}
                   strokeWidth={0.8}
                 />
-                <text x={254} y={y + 16} fontSize={7.5}>
+                <text x={REC_X + 14} y={y + 20} fontSize={FONT.label}>
                   {operation.name}
                 </text>
-                <text className="bp-t-dim" x={254} y={y + 28} fontSize={6}>
-                  {`${operation.client} · ${operation.note}`}
+                <text
+                  className="bp-t-dim"
+                  x={REC_X + 14}
+                  y={y + 40}
+                  fontSize={FONT.label}
+                >
+                  {operation.note}
+                </text>
+                <text
+                  className="bp-t-dim"
+                  x={REC_RIGHT}
+                  y={y + 40}
+                  textAnchor="end"
+                  fontSize={FONT.label}
+                >
+                  {operation.client}
                 </text>
               </g>
               <text
                 className={`bp-a-verdict${i} ${VERDICT_CLASS[operation.verdict]}`}
-                x={452}
+                x={REC_RIGHT}
                 y={y + 20}
                 textAnchor="end"
-                fontSize={7.5}
+                fontSize={FONT.label}
               >
                 {operation.verdict}
               </text>
@@ -244,18 +290,29 @@ export function AsBuiltRecord() {
 
         {/* The sweep across the record */}
         <g className="bp-a-scan">
-          <path d="M246 76h214" fill="none" stroke={BP.dim} strokeWidth={1.2} />
-          <text className="bp-t-cyan" x={246} y={70} fontSize={6}>
+          <path
+            d={`M${REC_X + 6} 88h258`}
+            fill="none"
+            stroke={BP.dim}
+            strokeWidth={1.2}
+          />
+          <text
+            className="bp-t-cyan"
+            x={REC_X + 6}
+            y={80}
+            fontSize={FONT.label}
+          >
             CHECKING
           </text>
         </g>
 
-        <text className="bp-a-summary bp-t-dim" x={254} y={282} fontSize={6.2}>
-          1 BREAKING · 1 RISKY · 2 SAFE · BEFORE THE MERGE
-        </text>
-
-        <text className="bp-a-note bp-t-dim" x={240} y={318} fontSize={6.2}>
-          FLAGGED BEFORE THE MERGE · NOT AFTER THE DEPLOY
+        <text
+          className="bp-a-summary bp-t-dim"
+          x={12}
+          y={314}
+          fontSize={FONT.label}
+        >
+          1 BREAKING · 1 RISKY · 2 SAFE
         </text>
       </svg>
     </Sheet>
