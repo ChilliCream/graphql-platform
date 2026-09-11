@@ -302,6 +302,8 @@ internal sealed partial class SourceSchemaMerger
         }
     }
 
+    // The canonical node field belongs to the gateway, so @inaccessible on a source schema's node
+    // field does not hide it when global object identification is enabled.
     private void AddNodeField(MutableSchemaDefinition mergedSchema)
     {
         if (_options.EnableGlobalObjectIdentification
