@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useCycle, useSceneMotion } from "./hooks";
 import { AP, GATES } from "./palette";
 
@@ -14,6 +15,9 @@ const W = 640;
 const H = 440;
 const TOWER = { x: 258, y: 150, w: 124, h: 92 } as const;
 const LEGS = GATES.slice(0, 3);
+/** Gate plates, wide enough for their labels at the `TYPE.label` floor. */
+const GATE_X = 488;
+const GATE_W = 144;
 const PHASES = 6;
 const REST = 0;
 const BEAT = 1500;
@@ -61,7 +65,7 @@ export function FlightPlan() {
           y="180"
           fill={AP.ink}
           fontFamily={AP.mono}
-          fontSize="13"
+          fontSize={TYPE.caption}
           textAnchor="middle"
         >
           Web client
@@ -71,7 +75,7 @@ export function FlightPlan() {
           y="202"
           fill={AP.dim}
           fontFamily={AP.mono}
-          fontSize="10"
+          fontSize={TYPE.label}
           textAnchor="middle"
           letterSpacing="0.14em"
         >
@@ -82,7 +86,7 @@ export function FlightPlan() {
           y="224"
           fill={AP.approach}
           fontFamily={AP.mono}
-          fontSize="10"
+          fontSize={TYPE.label}
           textAnchor="middle"
           letterSpacing="0.14em"
         >
@@ -119,7 +123,7 @@ export function FlightPlan() {
         y={TOWER.y + 34}
         fill={AP.amber}
         fontFamily={AP.mono}
-        fontSize="14"
+        fontSize={TYPE.h6}
         textAnchor="middle"
       >
         TOWER
@@ -129,7 +133,7 @@ export function FlightPlan() {
         y={TOWER.y + 56}
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         textAnchor="middle"
         letterSpacing="0.12em"
       >
@@ -140,7 +144,7 @@ export function FlightPlan() {
         y={TOWER.y + 76}
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         textAnchor="middle"
         letterSpacing="0.12em"
       >
@@ -155,7 +159,7 @@ export function FlightPlan() {
         return (
           <g key={gate.name}>
             <path
-              d={`M${TOWER.x + TOWER.w} 196 C 470 196, 452 ${y + 26}, 500 ${y + 26}`}
+              d={`M${TOWER.x + TOWER.w} 196 C 470 196, 452 ${y + 26}, ${GATE_X} ${y + 26}`}
               stroke={lit ? AP.taxi : AP.paint}
               strokeWidth="2"
               strokeDasharray="12 12"
@@ -169,9 +173,9 @@ export function FlightPlan() {
               }}
             />
             <rect
-              x="500"
+              x={GATE_X}
               y={y}
-              width="124"
+              width={GATE_W}
               height="52"
               rx="8"
               fill={AP.panel}
@@ -179,20 +183,20 @@ export function FlightPlan() {
               style={{ transition: "stroke 400ms ease" }}
             />
             <text
-              x="512"
+              x={GATE_X + 12}
               y={y + 22}
               fill={AP.ink}
               fontFamily={AP.mono}
-              fontSize="12"
+              fontSize={TYPE.caption}
             >
               {gate.stand} {gate.name}
             </text>
             <text
-              x="512"
+              x={GATE_X + 12}
               y={y + 40}
               fill={AP.dim}
               fontFamily={AP.mono}
-              fontSize="9"
+              fontSize={TYPE.label}
               letterSpacing="0.12em"
             >
               SUBGRAPH · {gate.language}
@@ -216,7 +220,7 @@ export function FlightPlan() {
         y="374"
         fill={departed ? AP.taxi : AP.dim}
         fontFamily={AP.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         letterSpacing="0.2em"
         style={{ transition: "fill 400ms ease" }}
       >

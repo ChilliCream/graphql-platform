@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useCycle, useSceneMotion } from "./hooks";
 import { AP, GATES, GROUND_SOURCES, specMark } from "./palette";
 
@@ -15,6 +16,10 @@ import { AP, GATES, GROUND_SOURCES, specMark } from "./palette";
 const W = 640;
 const H = 440;
 const CONCOURSE = { x: 28, y: 34, w: W - 56, h: 46 } as const;
+/** Gate signs, sized so every marking reads at the `TYPE.label` floor. */
+const SIGN = { y: 150, w: 138, h: 112, pitch: 148 } as const;
+/** Ground vehicles, wide enough for the cargo they carry. */
+const TRUCK = { y: 330, w: 150, h: 46 } as const;
 const STANDS = GATES.slice(0, 4);
 /** Shipping is the gate whose marking is repainted. */
 const REMARKED = 3;
@@ -35,7 +40,7 @@ const KEYFRAMES = `
 }
 `;
 
-const standX = (i: number) => 28 + i * 150;
+const standX = (i: number) => 26 + i * SIGN.pitch;
 
 export function GateMarkings() {
   const running = useSceneMotion();
@@ -64,7 +69,7 @@ export function GateMarkings() {
         y={CONCOURSE.y + 28}
         fill={AP.amber}
         fontFamily={AP.mono}
-        fontSize="12"
+        fontSize={TYPE.caption}
         textAnchor="middle"
         letterSpacing="0.2em"
       >
@@ -82,7 +87,7 @@ export function GateMarkings() {
         return (
           <g key={gate.name}>
             <path
-              d={`M${x + 66} 152 L${x + 66} ${CONCOURSE.y + CONCOURSE.h}`}
+              d={`M${x + SIGN.w / 2} ${SIGN.y} L${x + SIGN.w / 2} ${CONCOURSE.y + CONCOURSE.h}`}
               stroke={AP.taxi}
               strokeWidth="2"
               strokeDasharray="11 11"
@@ -96,51 +101,61 @@ export function GateMarkings() {
             />
             <rect
               x={x}
-              y="152"
-              width="132"
-              height="96"
+              y={SIGN.y}
+              width={SIGN.w}
+              height={SIGN.h}
               rx="9"
               fill={AP.panel}
               stroke={active ? AP.amber : AP.panelEdge}
               style={{ transition: "stroke 400ms ease" }}
             />
             <text
-              x={x + 12}
-              y="176"
+              x={x + 10}
+              y={SIGN.y + 24}
               fill={AP.amber}
               fontFamily={AP.mono}
-              fontSize="12"
+              fontSize={TYPE.caption}
             >
               {gate.stand} {gate.name}
             </text>
             <text
-              x={x + 12}
-              y="196"
+              x={x + 10}
+              y={SIGN.y + 44}
               fill={AP.dim}
               fontFamily={AP.mono}
-              fontSize="9"
+              fontSize={TYPE.label}
               letterSpacing="0.12em"
             >
-              {gate.language} · SOURCE SCHEMA
+              {gate.language}
+            </text>
+            <text
+              x={x + 10}
+              y={SIGN.y + 62}
+              fill={AP.dim}
+              fontFamily={AP.mono}
+              fontSize={TYPE.label}
+              letterSpacing="0.12em"
+            >
+              SOURCE SCHEMA
             </text>
             <rect
-              x={x + 12}
-              y="208"
-              width="108"
-              height="26"
+              x={x + 10}
+              y={SIGN.y + 72}
+              width={SIGN.w - 20}
+              height="28"
               rx="5"
-              fill="rgba(255,255,255,0.05)"
+              fill={AP.wash}
               stroke={AP.panelEdge}
             />
             <text
               key={mark}
-              x={x + 66}
-              y="225"
+              x={x + SIGN.w / 2}
+              y={SIGN.y + 91}
               fill={AP.ink}
               fontFamily={AP.mono}
-              fontSize="9"
+              fontSize={TYPE.label}
               textAnchor="middle"
-              letterSpacing="0.14em"
+              letterSpacing="0.1em"
               style={{
                 transformBox: "fill-box",
                 transformOrigin: "top center",
@@ -150,11 +165,11 @@ export function GateMarkings() {
               {mark}
             </text>
             <text
-              x={x + 66}
-              y="266"
+              x={x + SIGN.w / 2}
+              y={SIGN.y + 130}
               fill={AP.taxi}
               fontFamily={AP.mono}
-              fontSize="9"
+              fontSize={TYPE.label}
               textAnchor="middle"
               letterSpacing="0.14em"
             >
@@ -180,7 +195,7 @@ export function GateMarkings() {
         return (
           <g key={source.name}>
             <path
-              d={`M${x + 60} 330 L${x + 60} 258`}
+              d={`M${x + TRUCK.w / 2} ${TRUCK.y} L${x + TRUCK.w / 2} ${SIGN.y + SIGN.h + 30}`}
               stroke={AP.taxi}
               strokeWidth="2"
               strokeDasharray="9 9"
@@ -200,10 +215,10 @@ export function GateMarkings() {
                 ),
               }}
             >
-              <g transform={`translate(${x} 330)`}>
+              <g transform={`translate(${x} ${TRUCK.y})`}>
                 <rect
-                  width="120"
-                  height="46"
+                  width={TRUCK.w}
+                  height={TRUCK.h}
                   rx="7"
                   fill={AP.panel}
                   stroke={AP.panelEdge}
@@ -214,22 +229,27 @@ export function GateMarkings() {
                   y="20"
                   fill={AP.ink}
                   fontFamily={AP.mono}
-                  fontSize="11"
+                  fontSize={TYPE.caption}
                 >
                   {source.name}
                 </text>
                 <text
                   x="12"
-                  y="36"
+                  y="38"
                   fill={AP.dim}
                   fontFamily={AP.mono}
-                  fontSize="8"
+                  fontSize={TYPE.label}
                   letterSpacing="0.12em"
                 >
                   {source.cargo}
                 </text>
-                <circle cx="26" cy="50" r="5" fill={AP.dim} />
-                <circle cx="96" cy="50" r="5" fill={AP.dim} />
+                <circle cx="30" cy={TRUCK.h + 4} r="5" fill={AP.dim} />
+                <circle
+                  cx={TRUCK.w - 24}
+                  cy={TRUCK.h + 4}
+                  r="5"
+                  fill={AP.dim}
+                />
               </g>
             </g>
           </g>
@@ -240,7 +260,7 @@ export function GateMarkings() {
         y="418"
         fill={AP.dim}
         fontFamily={AP.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         textAnchor="end"
         letterSpacing="0.16em"
       >
