@@ -208,44 +208,44 @@ public class SelectionTypeShapeBenchmark
             switch (type.Kind)
             {
                 case TypeKind.List:
+                {
+                    // TryCompleteList lines 923-930: per-invocation element shape
+                    // derivation through the file-local ElementType extension.
+                    var elementType = ElementTypeProduct(type);
+                    var elementTypeKind = elementType.Kind;
+                    var isNonNull = elementTypeKind is TypeKind.NonNull;
+
+                    if (isNonNull)
                     {
-                        // TryCompleteList lines 923-930: per-invocation element shape
-                        // derivation through the file-local ElementType extension.
-                        var elementType = ElementTypeProduct(type);
-                        var elementTypeKind = elementType.Kind;
-                        var isNonNull = elementTypeKind is TypeKind.NonNull;
-
-                        if (isNonNull)
-                        {
-                            elementTypeKind =
-                                Unsafe.As<IType, NonNullType>(ref elementType).NullableType.Kind;
-                        }
-
-                        checksum += (int)elementTypeKind
-                            + (isNonNull ? ElementNonNullMarker : ElementNullableMarker)
-                            + RuntimeHelpers.GetHashCode(elementType);
-                        break;
+                        elementTypeKind =
+                            Unsafe.As<IType, NonNullType>(ref elementType).NullableType.Kind;
                     }
+
+                    checksum += (int)elementTypeKind
+                        + (isNonNull ? ElementNonNullMarker : ElementNullableMarker)
+                        + RuntimeHelpers.GetHashCode(elementType);
+                    break;
+                }
 
                 case TypeKind.Object:
-                    {
-                        // TryCompleteObjectValue(Selection, IType, ...) lines 1088-1089.
-                        var namedType = type.NamedType();
-                        var objectType =
-                            Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
-                        checksum += RuntimeHelpers.GetHashCode(objectType);
-                        break;
-                    }
+                {
+                    // TryCompleteObjectValue(Selection, IType, ...) lines 1088-1089.
+                    var namedType = type.NamedType();
+                    var objectType =
+                        Unsafe.As<ITypeDefinition, IObjectTypeDefinition>(ref namedType);
+                    checksum += RuntimeHelpers.GetHashCode(objectType);
+                    break;
+                }
 
                 case TypeKind.Interface or TypeKind.Union:
-                    {
-                        // TryCompleteAbstractValue enters GetType, whose line 1276 walks
-                        // type.NamedType(). The __typename resolution that follows is
-                        // identical in both variants and factored out.
-                        var namedType = type.NamedType();
-                        checksum += RuntimeHelpers.GetHashCode(namedType);
-                        break;
-                    }
+                {
+                    // TryCompleteAbstractValue enters GetType, whose line 1276 walks
+                    // type.NamedType(). The __typename resolution that follows is
+                    // identical in both variants and factored out.
+                    var namedType = type.NamedType();
+                    checksum += RuntimeHelpers.GetHashCode(namedType);
+                    break;
+                }
 
                 case TypeKind.Scalar:
                     // Line 900: target.SetLeafValue(source) is identical in both
