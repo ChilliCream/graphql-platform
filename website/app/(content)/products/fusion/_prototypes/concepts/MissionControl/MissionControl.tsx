@@ -27,6 +27,9 @@ import { WallMap } from "./WallMap";
  * block sits next to the console panel that demonstrates it, and the page
  * closes on the Nitro flight recorder. All words come from `../../copy`.
  *
+ * The hero visual is the one swappable part: the `hero` prop replaces it and
+ * nothing else, which is how the v11..v15 branches differ from v1.
+ *
  * The room is built out of the site's own grid, type scale and tokens: the
  * page keeps `bg-cc-bg`, every band is the shared `max-w-6xl` container on the
  * site's vertical rhythm, and the ops-room atmosphere stays inside the bounded
@@ -151,11 +154,21 @@ function ConsoleRow({ index, section, panel }: ConsoleRowProps) {
   );
 }
 
-export function MissionControl() {
+interface MissionControlProps {
+  /**
+   * Hero visual, rendered full-bleed behind the hero copy. Defaults to the
+   * wall map of concept v1; the v11..v15 branches pass their own hero from
+   * `./heroes` and keep the rest of the page identical (see
+   * `./heroes/README.md` for the contract a hero has to meet).
+   */
+  readonly hero?: ReactNode;
+}
+
+export function MissionControl({ hero = <WallMap /> }: MissionControlProps) {
   return (
     <div className="bg-cc-bg">
       <section className="relative flex min-h-[88svh] items-center overflow-hidden">
-        <WallMap />
+        {hero}
         <div
           aria-hidden="true"
           className="absolute inset-0"
