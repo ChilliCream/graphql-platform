@@ -606,6 +606,43 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 """);
     }
 
+    [Fact]
+    public async Task Get_Should_ReturnAllowHeader_When_OperationKindIsNotAllowed()
+    {
+        // arrange
+        var client = GetClient(Latest);
+        var query = Uri.EscapeDataString("mutation { __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri($"{s_url}?query={query}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["POST"], response.Content.Headers.Allow);
+    }
+
+    [Fact]
+    public async Task Post_Should_NotReturnAllowHeader_When_FormatterOverridesStatusCode()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer()
+                .AddHttpResponseFormatter<MethodNotAllowedResponseFormatter>());
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.Empty(response.Content.Headers.Allow);
+    }
+
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
     {
         var server = CreateStarWarsServer(
@@ -624,5 +661,14 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         {
             request.Headers.Add(HeaderNames.Accept, acceptHeader);
         }
+    }
+
+    private sealed class MethodNotAllowedResponseFormatter : DefaultHttpResponseFormatter
+    {
+        protected override HttpStatusCode OnDetermineStatusCode(
+            Execution.OperationResult result,
+            FormatInfo format,
+            HttpStatusCode? proposedStatusCode)
+            => MethodNotAllowed;
     }
 }
