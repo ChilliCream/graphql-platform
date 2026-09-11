@@ -22,6 +22,11 @@ interface PlateProps {
   readonly caption: string;
   readonly accent: string;
   readonly className?: string;
+  /**
+   * Extra classes for the header strip, so a plate whose title is not one of
+   * the labels the hero has to show can drop it on a narrow screen.
+   */
+  readonly headerClassName?: string;
   readonly children: ReactNode;
 }
 
@@ -31,6 +36,7 @@ export function Plate({
   caption,
   accent,
   className,
+  headerClassName,
   children,
 }: PlateProps) {
   return (
@@ -39,7 +45,7 @@ export function Plate({
       style={{ background: MC.panel, borderColor: MC.panelEdge }}
     >
       <div
-        className="flex items-baseline justify-between gap-3 border-b px-3 py-2"
+        className={`flex items-baseline justify-between gap-3 border-b px-3 py-2 ${headerClassName ?? ""}`}
         style={{ borderColor: MC.panelEdge }}
       >
         <span

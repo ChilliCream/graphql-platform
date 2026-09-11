@@ -29,8 +29,17 @@ import { Chip, ClientTabs, Plate, Rail } from "./parts";
  * document with its timing bar.
  *
  * Everything is DOM text at its declared px size, so the 11px label floor holds
- * at any viewport: nothing is scaled to fit, and a narrow screen drops the
- * request plate and stacks the other two instead of shrinking the lettering.
+ * at any viewport: nothing is scaled to fit, the narrow layout drops panels and
+ * relaxes rows instead of shrinking the lettering. Below lg the request plate is
+ * gone, the plan rows put the subgraph and its two chips on one wrapping line,
+ * and the response plate is the merged document plus the timing bar - the merged
+ * lines still appear one per phase, so the merge stays animated there. Budget at
+ * 375x667 with a 1.5 line height: tabs 59 (two rows) + 12 + gateway plate 304
+ * (38 header + 24 padding + 3 phase labels 49.5 + 8 group gaps + rows 29/47.5/
+ * 47.5/29/29 + 2 border) + 12 + response plate 197 (24 padding + merged box
+ * 137.5 + timing 33.5 + 2 border) = 584 against the 587 the hero's min-h-[88svh]
+ * gives. The column is pinned to the top below lg, so the only thing the 20px
+ * top inset can push out of a 667px-tall viewport is the foot of the timing bar.
  */
 
 /** Steps 0-3 type the query, 4-6 execute the plan, 7-8 merge, 9 rests. */
@@ -101,7 +110,7 @@ export default function QueryPlanTrace() {
       />
       <div className="absolute inset-0" style={{ background: GLOW }} />
 
-      <div className="absolute inset-0 flex items-center justify-center overflow-hidden px-4 lg:justify-end lg:pr-8 xl:pr-14">
+      <div className="absolute inset-0 flex items-start justify-center overflow-hidden px-4 pt-5 lg:items-center lg:justify-end lg:pt-0 lg:pr-8 xl:pr-14">
         <div className="flex flex-col gap-3">
           <ClientTabs activeIndex={clientIndex} />
 
@@ -185,28 +194,30 @@ export default function QueryPlanTrace() {
                             running={running}
                           />
                           <div className="flex flex-col gap-0.5 py-1">
-                            <span
-                              style={{
-                                color: lit ? MC.ink : MC.dim,
-                                fontFamily: MC.mono,
-                                fontSize: TYPE.caption,
-                                transition: "color 400ms",
-                              }}
-                            >
-                              {`${planStep.subgraph} · ${planStep.selection}`}
-                            </span>
-                            <span className="flex flex-wrap gap-1">
-                              <Chip
-                                label={planStep.language}
-                                tone={MC.amber}
-                                lit={lit}
-                              />
-                              <Chip
-                                label={planStep.spec}
-                                tone={specTone(planStep.spec)}
-                                lit={lit}
-                              />
-                            </span>
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 lg:flex-col lg:items-start">
+                              <span
+                                style={{
+                                  color: lit ? MC.ink : MC.dim,
+                                  fontFamily: MC.mono,
+                                  fontSize: TYPE.caption,
+                                  transition: "color 400ms",
+                                }}
+                              >
+                                {`${planStep.subgraph} · ${planStep.selection}`}
+                              </span>
+                              <span className="flex flex-wrap gap-1">
+                                <Chip
+                                  label={planStep.language}
+                                  tone={MC.amber}
+                                  lit={lit}
+                                />
+                                <Chip
+                                  label={planStep.spec}
+                                  tone={specTone(planStep.spec)}
+                                  lit={lit}
+                                />
+                              </span>
+                            </div>
                             {planStep.source && (
                               <span
                                 style={{
@@ -233,8 +244,9 @@ export default function QueryPlanTrace() {
               caption={merged ? "1 document" : `${PLAN_STEPS.length} fragments`}
               accent={merged ? MC.phosphor : MC.dim}
               className="w-[320px] sm:w-[344px] lg:w-[352px]"
+              headerClassName="hidden lg:flex"
             >
-              <div className="flex flex-col">
+              <div className="hidden flex-col lg:flex">
                 {PLAN_STEPS.map((planStep, i) => {
                   const back = phase > planStep.phase;
                   return (
