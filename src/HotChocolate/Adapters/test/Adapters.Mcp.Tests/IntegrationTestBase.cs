@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -684,6 +686,64 @@ public abstract class IntegrationTestBase
 
         // assert
         Assert.Equal("get_books_with_title1", Assert.Single(tools).Name);
+    }
+
+    [Fact]
+    public async Task GetRequest_StatelessTransport_ReturnsMethodNotAllowed()
+    {
+        // arrange
+        var server =
+            await CreateTestServerAsync(
+                new TestMcpStorage(),
+                configureMcpServer: b => b.WithHttpTransport(o => o.Stateless = true));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.GetAsync(
+            "/graphql/mcp",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal("POST", Assert.Single(response.Content.Headers.Allow));
+    }
+
+    [Fact]
+    public async Task DeleteRequest_StatelessTransport_ReturnsMethodNotAllowed()
+    {
+        // arrange
+        var server =
+            await CreateTestServerAsync(
+                new TestMcpStorage(),
+                configureMcpServer: b => b.WithHttpTransport(o => o.Stateless = true));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.DeleteAsync(
+            "/graphql/mcp",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal("POST", Assert.Single(response.Content.Headers.Allow));
+    }
+
+    [Fact]
+    public async Task GetRequest_StatefulTransportWithoutSessionId_ReturnsBadRequest()
+    {
+        // arrange
+        var server = await CreateTestServerAsync(new TestMcpStorage());
+        var client = server.CreateClient();
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("text/event-stream"));
+
+        // act
+        using var response = await client.GetAsync(
+            "/graphql/mcp",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
