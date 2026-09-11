@@ -484,17 +484,17 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     /// Node, with <c>Bun.spawn</c> stubbed to capture the
     /// <c>session-created</c> payload the shim sends to the hook process,
     /// driving the SAME template with a fresh-URL-every-read fake and a
-    /// stable-URL fake in one script so this test discriminates on its
-    /// own: a probe neutered to a constant fails one of the two assertions
-    /// below, instead of the fresh-URL fake alone passing for the wrong
-    /// reason against a constant <c>false</c>. Proven against the shim's
-    /// probe neutered to a constant false result (this test then fails
-    /// the second assertion: expects True, gets False) and to a constant
-    /// true result (fails the first assertion instead: expects False,
-    /// gets True).
+    /// stable-URL fake in one script so this test discriminates both
+    /// directions on its own: a probe neutered to a constant fails one of
+    /// the two assertions below, instead of the fresh-URL fake alone
+    /// passing for the wrong reason against a constant <c>false</c>.
+    /// Proven against the shim's probe neutered to a constant false result
+    /// (this test then fails the second assertion: expects True, gets
+    /// False) and to a constant true result (fails the first assertion
+    /// instead: expects False, gets True).
     /// </summary>
     [Fact]
-    public async Task Build_Should_ReportServerNotBound_When_TheServerUrlGetterReturnsAFreshUrlEachRead()
+    public async Task Build_Should_ReportServerBoundOnlyForTheStableUrlFake_When_DiscriminatingByServerUrlGetterIdentity()
     {
         // arrange
         var node = FindNode();
@@ -511,7 +511,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
 
         var ct = TestContext.Current.CancellationToken;
         var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
-        var scriptPath = Path.Combine(_tempRoot.FullName, "shim-server-not-bound.mjs");
+        var scriptPath = Path.Combine(_tempRoot.FullName, "shim-server-bound-discrimination.mjs");
         await File.WriteAllTextAsync(scriptPath, template + BuildServerBoundDiscriminationDriverScript(), ct);
 
         // act
@@ -559,7 +559,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         var ct = TestContext.Current.CancellationToken;
         var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
         var scriptPath = Path.Combine(_tempRoot.FullName, "shim-server-bound.mjs");
-        await File.WriteAllTextAsync(scriptPath, template + BuildServerBoundDriverScript(stableServerUrl: true), ct);
+        await File.WriteAllTextAsync(scriptPath, template + BuildServerBoundDriverScript(), ct);
 
         // act
         var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
@@ -628,13 +628,14 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     /// A driver appended to the generated shim module: stubs
     /// <c>Bun.spawn</c> to capture the <c>session-created</c> payload, then
     /// instantiates the plugin with an input whose <c>serverUrl</c> getter
-    /// either returns one stable <c>URL</c> object on every read
-    /// (<paramref name="stableServerUrl"/> true, mimicking a genuinely
-    /// bound opencode server) or a fresh placeholder <c>URL</c> object on
-    /// every read (false, mimicking the unbound-TUI placeholder), and
-    /// fires a <c>session.created</c> event.
+    /// returns the SAME stable <c>URL</c> object on every read - mimicking a
+    /// genuinely bound opencode server - and fires a <c>session.created</c>
+    /// event, so the payload's forwarded <c>serverUrl</c> can be checked
+    /// verbatim. The fresh-URL (unbound) side of the identity comparison is
+    /// covered separately by
+    /// <see cref="BuildServerBoundDiscriminationDriverScript"/>.
     /// </summary>
-    private static string BuildServerBoundDriverScript(bool stableServerUrl)
+    private static string BuildServerBoundDriverScript()
         => """
 
 
@@ -651,7 +652,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         const stableUrl = new URL("http://127.0.0.1:5123/");
         const pluginInput = {
           get serverUrl() {
-            return __STABLE__ ? stableUrl : new URL("http://localhost:4096");
+            return stableUrl;
           },
         };
 
@@ -664,8 +665,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
           serverBound: body.serverBound,
           serverUrl: body.serverUrl,
         }));
-        """
-            .Replace("__STABLE__", stableServerUrl ? "true" : "false", StringComparison.Ordinal);
+        """;
 
     /// <summary>
     /// A driver appended to the generated shim module: stubs

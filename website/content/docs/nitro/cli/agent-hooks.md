@@ -131,7 +131,7 @@ Same `--output` option as `install`.
 
 The Opencode integration is a single generated JavaScript plugin, `nitro-hooks.js`, that Opencode auto-loads from its plugin folder. The shim spawns `nitro agent hook opencode <event>` (`session-created`, `session-deleted`, `session-idle`, `chat-message`) as Opencode raises the matching `session.created`, `session.deleted`, `session.idle`, and `chat.message` events, and applies the parts the command returns to the current chat output. `session-idle` also fires on a `session.status` event whose `status.type` is `idle`, so either event shape triggers the same delivery.
 
-Nitro can only push a delivery to Opencode when it binds an HTTP server of its own: start it with an explicit `--port`, `--hostname`, or `--mdns` flag. A plain `opencode` TUI reaches its own server inside a Worker over postMessage RPC and binds nothing Nitro can push to; `install` and `status` both call this out.
+Nitro can only push a delivery to Opencode when it binds an HTTP server of its own: start it with an explicit `--port`, `--hostname`, or `--mdns` flag. A plain `opencode` TUI reaches its own server inside a Worker over postMessage RPC and binds nothing Nitro can push to; `install` states this requirement upfront, and `status` names it for any session it finds with no endpoint registered.
 
 ## `nitro agent hooks opencode install`
 

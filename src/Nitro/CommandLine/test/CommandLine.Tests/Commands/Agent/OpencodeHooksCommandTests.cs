@@ -189,9 +189,10 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
     public async Task ExecuteCommandAsync_Should_NameEndpointGoneWithoutClaimingUnreachable_When_LastPingWasEndpointGone()
     {
         // arrange
-        // A 404/401/500 answer is recorded as endpoint-gone (see PingSessionExecutor.MapOpencodeResult)
-        // even though it proves the server answered, so the wording must not claim the endpoint is
-        // unreachable.
+        // A non-2xx answer (401/404/500) and a connection failure both collapse to EndpointGone with no
+        // detail (see PingSessionExecutor.MapOpencodeResult / OpencodeServerClient) - the client returns
+        // only the bare result string, never the response's status or reason - so the wording must not
+        // claim the endpoint is unreachable, and there is no detail for the line to carry.
         SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
@@ -202,17 +203,17 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
             harness: AgentSessionHarness.Opencode,
             endpointKind: AgentSessionEndpointKind.OpencodeServer,
             endpointAddr: "http://127.0.0.1:51000",
-            lastPingResult: AgentPingResult.EndpointGone,
-            lastPingDetail: "404 Not Found");
+            lastPingResult: AgentPingResult.EndpointGone);
 
         // act
         var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "status", "--scope", "project");
 
         // assert
         Assert.Contains(
-            "; endpoint gone at last ping; last ping: endpoint gone (404 Not Found)",
+            "; endpoint gone at last ping; last ping: endpoint gone",
             result.StdOut,
             StringComparison.Ordinal);
+        Assert.DoesNotContain("last ping: endpoint gone (", result.StdOut, StringComparison.Ordinal);
         Assert.DoesNotContain("unreachable at last ping", result.StdOut, StringComparison.Ordinal);
         Assert.DoesNotContain("Pushes will not arrive", result.StdOut, StringComparison.Ordinal);
     }
