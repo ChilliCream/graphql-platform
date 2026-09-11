@@ -405,6 +405,72 @@ public class BatchResolverAuthorizationTests
             .MatchMarkdownSnapshot();
     }
 
+    [Theory]
+    [InlineData(ApplyPolicy.BeforeResolver, false)]
+    [InlineData(ApplyPolicy.BeforeResolver, true)]
+    [InlineData(ApplyPolicy.AfterResolver, false)]
+    [InlineData(ApplyPolicy.AfterResolver, true)]
+    public async Task Authorize_Should_EnforceCachedValuePolicy_When_ErrorWasAlreadyReported(
+        ApplyPolicy apply,
+        bool allowed)
+    {
+        // arrange
+        var calls = new List<int>();
+        var dispatches = new List<int[]>();
+        var observed = new List<int>();
+        var handler = new AuthHandler((context, _) =>
+        {
+            var id = context.Parent<Secret>().Id;
+            calls.Add(id);
+            return id == 1 && !allowed ? AuthorizeResult.NotAllowed : AuthorizeResult.Allowed;
+        }, (_, _) => AuthorizeResult.Allowed);
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddAuthorizationHandler(_ => handler)
+            .AddQueryType(d => d.Field("parents").Type<ListType<ObjectType<Secret>>>()
+                .Resolve(new[] { new Secret(1, "one"), new Secret(2, "two"), new Secret(3, "three") }))
+            .AddObjectType<Secret>(d =>
+            {
+                var field = d.Field("secured").Type<ObjectType<EntrySecret>>()
+                    .ResolveBatch(contexts =>
+                    {
+                        dispatches.Add(contexts.Select(c => c.Parent<Secret>().Id).ToArray());
+                        return new ValueTask<IReadOnlyList<ResolverResult>>(contexts
+                            .Select(c => ResolverResult.Ok(new EntrySecret(c.Parent<Secret>().Id)))
+                            .ToArray());
+                    });
+                field.Extend().Configuration.BatchMiddlewareConfigurations.Add(new(
+                    next => async contexts =>
+                    {
+                        foreach (var context in contexts)
+                        {
+                            if (context.Parent<Secret>().Id == 1)
+                            {
+                                context.ReportError("recoverable owned error");
+                                context.Result = new EntrySecret(101);
+                            }
+                        }
+
+                        await next(contexts);
+                        observed.Add(contexts.Length);
+                    }, key: WellKnownMiddleware.Authorization));
+            })
+            .AddObjectType<EntrySecret>(d => d.Authorize("READ", apply: apply))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = await executor.ExecuteAsync("{ parents { secured { id } } }",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(new[] { 1, 2, 3 }, calls);
+        new Snapshot(postFix: $"{apply}_{allowed}")
+            .Add(result, "Result")
+            .Add(calls, "Authorization calls")
+            .Add(dispatches, "Resolver dispatches")
+            .Add(observed, "After-next context counts")
+            .MatchMarkdownSnapshot();
+    }
+
     [Fact]
     public async Task Authorize_Should_IsolateDenial_When_VariableSetsShareSelection()
     {

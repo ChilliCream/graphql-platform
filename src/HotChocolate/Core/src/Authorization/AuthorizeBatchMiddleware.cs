@@ -29,7 +29,8 @@ internal sealed class AuthorizeBatchMiddleware(
                 {
                     foreach (var context in contexts)
                     {
-                        if (!context.HasErrors && context.Result is not IError and not IEnumerable<IError>)
+                        if ((!context.HasErrors || context.Result is not null)
+                            && context.Result is not IError and not IEnumerable<IError>)
                         {
                             await AuthorizeAsync(context).ConfigureAwait(false);
                         }
