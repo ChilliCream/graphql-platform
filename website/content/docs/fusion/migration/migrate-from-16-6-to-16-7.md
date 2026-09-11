@@ -54,6 +54,24 @@ On the service collection:
 
 The three router-named methods return `IFusionRouterBuilder`. The gateway-named methods they replace keep returning `IFusionGatewayBuilder`, which `IFusionRouterBuilder` extends. Existing builder extension methods, including third-party ones written against `IFusionGatewayBuilder`, apply to both builder types, so a chained configuration call compiles unchanged whichever entry point you use.
 
+## Builder extension compatibility across areas
+
+`IFusionGatewayBuilder` carries `[Obsolete("Use IFusionRouterBuilder instead.")]`, but it remains the base interface `IFusionRouterBuilder` extends through 16.7. Every area that ships fluent builder extensions keeps its existing gateway-named class as an obsolete forwarder next to a new router-named class with the same method names:
+
+| Area                                                            | Router-named class                         | Legacy class (obsolete)                     |
+| --------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------- |
+| Core (`HotChocolate.Fusion.Execution`)                          | `CoreFusionRouterBuilderExtensions`        | `CoreFusionGatewayBuilderExtensions`        |
+| ASP.NET Core (`HotChocolate.Fusion.AspNetCore`)                 | `AspNetCoreFusionRouterBuilderExtensions`  | `AspNetCoreFusionGatewayBuilderExtensions`  |
+| Cache control (`HotChocolate.Fusion.Caching`)                   | `FusionCachingRouterBuilderExtensions`     | `FusionCachingGatewayBuilderExtensions`     |
+| Diagnostics (`HotChocolate.Fusion.Diagnostics`)                 | `DiagnosticsFusionRouterBuilderExtensions` | `DiagnosticsFusionGatewayBuilderExtensions` |
+| In-memory connector (`HotChocolate.Fusion.Connectors.InMemory`) | `InMemoryFusionRouterBuilderExtensions`    | `InMemoryFusionGatewayBuilderExtensions`    |
+| MCP adapter (`HotChocolate.Fusion.Adapters.Mcp`)                | `FusionRouterBuilderExtensions`            | `FusionGatewayBuilderExtensions`            |
+| OpenAPI adapter (`HotChocolate.Fusion.Adapters.OpenApi`)        | `OpenApiFusionRouterBuilderExtensions`     | `OpenApiFusionGatewayBuilderExtensions`     |
+
+The event stream broker packages (`HotChocolate.Fusion.Subscriptions.Redis`, `.Kafka`, `.NATS`, `.AzureEventHubs`, and `.AmazonSqs`) keep a single declaring class per broker instead of splitting one: for example, `RedisEventStreamBrokerServiceCollectionExtensions` carries both the current `IFusionRouterBuilder` overload of `AddRedisEventStreamBroker` and an obsolete `IFusionGatewayBuilder` overload with the same name.
+
+A static call against a gateway-named class keeps its exact published signature, parameter names, and defaults, and compiles with an obsolete warning. A custom builder that implements only `IFusionGatewayBuilder` keeps working through those retained methods; it is not upgraded to `IFusionRouterBuilder` and must not be cast to it. A third-party extension method that still returns `IFusionGatewayBuilder` continues a legacy-typed chain through the retained methods, with the same expected obsolete warnings, rather than being required to return `IFusionRouterBuilder` before 17.
+
 ## NodeResolution.Gateway renamed to NodeResolution.Router
 
 ```diff
