@@ -51,13 +51,13 @@ query {
 
 | Term                 | Definition                                                                                                                                               |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Subgraph**         | An upstream service behind the Fusion router. A subgraph can be a GraphQL service, an OpenAPI-based REST service, or a gRPC service.                    |
+| **Subgraph**         | An upstream service behind the Fusion router. A subgraph can be a GraphQL service, an OpenAPI-based REST service, or a gRPC service.                     |
 | **Source schema**    | The contract document published by one subgraph (for example a GraphQL schema, OpenAPI document, or gRPC/protobuf definition).                           |
 | **Composite schema** | The unified, client-facing GraphQL schema produced during composition. Clients query this schema as if it were a single API.                             |
 | **Router**           | The public entry point for client requests. It receives queries against the composite schema, routes requests across subgraphs, and assembles responses. |
 | **Entity**           | A type with a stable key that can be referenced across GraphQL subgraphs. A subgraph can define an entity without resolving it locally.                  |
 | **Lookup**           | A Query field annotated with a `@lookup` directive that resolves an entity by key in that subgraph.                                                      |
-| **Composition**      | The offline step that validates source schemas and produces the composite schema and router configuration. Runs via the Nitro CLI or Aspire.            |
+| **Composition**      | The offline step that validates source schemas and produces the composite schema and router configuration. Runs via the Nitro CLI or Aspire.             |
 
 # When to Use Fusion
 
