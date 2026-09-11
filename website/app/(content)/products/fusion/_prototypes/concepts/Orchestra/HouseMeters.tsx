@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
 import { DESKS, ENGRAVE, STAGE } from "./palette";
 
@@ -53,7 +54,7 @@ export function HouseMeters() {
         x={20}
         y={28}
         fill={STAGE.ink}
-        fontSize={10}
+        fontSize={TYPE.label}
         letterSpacing={1.6}
         fontFamily={ENGRAVE}
       >
@@ -110,7 +111,7 @@ export function HouseMeters() {
               y={TRACK_TOP + TRACK_H + 22}
               textAnchor="middle"
               fill={STAGE.heading}
-              fontSize={11}
+              fontSize={TYPE.caption}
               fontFamily={ENGRAVE}
             >
               {channel.name}
@@ -120,7 +121,7 @@ export function HouseMeters() {
               y={TRACK_TOP + TRACK_H + 38}
               textAnchor="middle"
               fill={STAGE.ink}
-              fontSize={9}
+              fontSize={TYPE.label}
               letterSpacing={1.1}
               fontFamily={ENGRAVE}
             >
