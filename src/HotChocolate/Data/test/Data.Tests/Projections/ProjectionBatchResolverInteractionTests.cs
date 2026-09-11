@@ -29,7 +29,7 @@ public class ProjectionBatchResolverInteractionTests
                 {
                     widths.Add(contexts.Length);
                     var context = contexts[0];
-                    var error = ErrorBuilder.New().SetMessage("Entry error.").SetCode("ENTRY").Build();
+                    var error = TestErrorHelper.EntryError();
 
                     switch (state)
                     {
@@ -414,4 +414,10 @@ public class ProjectionBatchResolverInteractionTests
     }
 
     public record Product(string Name);
+}
+
+file static class TestErrorHelper
+{
+    public static IError EntryError()
+        => ErrorBuilder.New().SetMessage("Entry error.").SetCode("ENTRY").Build();
 }

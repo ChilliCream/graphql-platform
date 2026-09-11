@@ -38,7 +38,7 @@ public class SortingBatchResolverTests
 
                                 if (id == 1)
                                 {
-                                    throw new GraphQLException("Cannot sort this parent's products.");
+                                    throw TestThrowHelper.CannotSortParentProducts();
                                 }
 
                                 return query;
@@ -226,4 +226,10 @@ public class SortingBatchResolverTests
     public record Brand(int Id, string Name);
 
     public record Product(string Name);
+}
+
+file static class TestThrowHelper
+{
+    public static GraphQLException CannotSortParentProducts()
+        => new("Cannot sort this parent's products.");
 }
