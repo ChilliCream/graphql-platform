@@ -1,5 +1,4 @@
 using System.Reflection;
-using CookieCrumble;
 using HotChocolate.Execution;
 using HotChocolate.Types.Descriptors;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +14,7 @@ public class BatchResolverSchemaValidationTests
     {
         // arrange
         var builder = new ServiceCollection().AddGraphQL()
+            .ConfigureSchemaServices(s => s.AddSingleton<ValidationMiddlewareOptIn>())
             .ModifyOptions(o => o.ValidatePipelineOrder = validateOrder)
             .AddDirectiveType(new DirectiveType(d => d.Name("wrap")
                 .Location(DirectiveLocation.FieldDefinition)
@@ -92,13 +92,20 @@ public static partial class ValidationMutationType
     public static IReadOnlyList<string> GetValue() => ["value"];
 }
 
+public sealed class ValidationMiddlewareOptIn;
+
 public sealed class UseWrapAttribute : ObjectFieldDescriptorAttribute
 {
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo? member)
-        => descriptor.Use(next => next);
+    {
+        if (context.Services.GetService<ValidationMiddlewareOptIn>() is not null)
+        {
+            descriptor.Use(next => next);
+        }
+    }
 }
 
 public sealed class UseKeyedWrapAttribute : ObjectFieldDescriptorAttribute
@@ -107,7 +114,12 @@ public sealed class UseKeyedWrapAttribute : ObjectFieldDescriptorAttribute
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo? member)
-        => descriptor.Extend().Configuration.MiddlewareConfigurations.Add(new(next => next, key: "custom"));
+    {
+        if (context.Services.GetService<ValidationMiddlewareOptIn>() is not null)
+        {
+            descriptor.Extend().Configuration.MiddlewareConfigurations.Add(new(next => next, key: "custom"));
+        }
+    }
 }
 
 public sealed class UseDirectiveWrapAttribute : ObjectFieldDescriptorAttribute
@@ -116,5 +128,10 @@ public sealed class UseDirectiveWrapAttribute : ObjectFieldDescriptorAttribute
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
         MemberInfo? member)
-        => descriptor.Directive("wrap");
+    {
+        if (context.Services.GetService<ValidationMiddlewareOptIn>() is not null)
+        {
+            descriptor.Directive("wrap");
+        }
+    }
 }
