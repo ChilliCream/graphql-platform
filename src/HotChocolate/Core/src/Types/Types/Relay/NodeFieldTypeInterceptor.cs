@@ -22,11 +22,17 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     private TypeReference _nodeType = null!;
     private TypeReference _lookupRef = null!;
     private TypeReference _shareableRef = null!;
+    private TypeReference _inaccessibleRef = null!;
     private bool _registeredTypes;
     private GlobalObjectIdentificationOptions _options = null!;
     private IReadOnlySchemaOptions _schemaOptions = null!;
 
     internal override uint Position => uint.MaxValue - 100;
+
+    // node fields that are marked inaccessible are always marked shareable as well.
+    private bool MarkNodeFieldsShareable
+        => _schemaOptions.ApplyShareableToNodeFields
+            || _schemaOptions.ApplyInaccessibleToNodeFields;
 
     public override bool IsEnabled(IDescriptorContext context)
     {
@@ -44,6 +50,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         _nodeType = context.TypeInspector.GetTypeRef(typeof(NodeType));
         _lookupRef = context.TypeInspector.GetTypeRef(typeof(Lookup));
         _shareableRef = context.TypeInspector.GetTypeRef(typeof(Shareable));
+        _inaccessibleRef = context.TypeInspector.GetTypeRef(typeof(Inaccessible));
         _options = context.Features.GetRequired<NodeSchemaFeature>().Options;
         _schemaOptions = context.Options;
     }
@@ -60,9 +67,14 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 yield return _lookupRef;
             }
 
-            if (_options.MarkNodeFieldAsLookup || _schemaOptions.ApplyShareableToNodeFields)
+            if (_options.MarkNodeFieldAsLookup || MarkNodeFieldsShareable)
             {
                 yield return _shareableRef;
+            }
+
+            if (_schemaOptions.ApplyInaccessibleToNodeFields)
+            {
+                yield return _inaccessibleRef;
             }
 
             _registeredTypes = true;
@@ -95,6 +107,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 t.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName) && t.IsIntrospectionField);
             var index = _queryTypeConfig.Fields.IndexOf(typeNameField);
             var maxAllowedNodes = _options.MaxAllowedNodeBatchSize;
+            var markNodeFieldShareable = MarkNodeFieldsShareable;
+            var markNodeFieldInaccessible = _schemaOptions.ApplyInaccessibleToNodeFields;
 
             CreateNodeField(
                 typeInspector,
@@ -102,7 +116,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 _queryTypeConfig.Fields,
                 index + 1,
                 _options.MarkNodeFieldAsLookup,
-                _schemaOptions.ApplyShareableToNodeFields);
+                markNodeFieldShareable,
+                markNodeFieldInaccessible);
 
             if (_options.AddNodesField)
             {
@@ -112,7 +127,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                     _queryTypeConfig.Fields,
                     index + 2,
                     maxAllowedNodes,
-                    _schemaOptions.ApplyShareableToNodeFields);
+                    markNodeFieldShareable,
+                    markNodeFieldInaccessible);
             }
         }
     }
@@ -123,7 +139,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         IList<ObjectFieldConfiguration> fields,
         int index,
         bool markNodeFieldAsLookup,
-        bool markNodeFieldSharable)
+        bool markNodeFieldShareable,
+        bool markNodeFieldInaccessible)
     {
         var node = typeInspector.GetTypeRef(typeof(NodeType));
         var id = typeInspector.GetTypeRef(typeof(NonNullType<IdType>));
@@ -157,9 +174,14 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             field.AddDirective(Lookup.Instance, typeInspector);
         }
 
-        if (markNodeFieldSharable || markNodeFieldAsLookup)
+        if (markNodeFieldShareable || markNodeFieldAsLookup)
         {
             field.AddDirective(Shareable.Instance, typeInspector);
+        }
+
+        if (markNodeFieldInaccessible)
+        {
+            field.AddDirective(Inaccessible.Instance, typeInspector);
         }
 
         // In the projection interceptor we want to change the context data on this field
@@ -176,7 +198,8 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         IList<ObjectFieldConfiguration> fields,
         int index,
         int maxAllowedNodes,
-        bool markNodeFieldSharable)
+        bool markNodeFieldShareable,
+        bool markNodeFieldInaccessible)
     {
         var nodes = typeInspector.GetTypeRef(typeof(NonNullType<ListType<NodeType>>));
         var ids = typeInspector.GetTypeRef(typeof(NonNullType<ListType<NonNullType<IdType>>>));
@@ -205,9 +228,14 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodesField
         };
 
-        if (markNodeFieldSharable)
+        if (markNodeFieldShareable)
         {
             field.AddDirective(Shareable.Instance, typeInspector);
+        }
+
+        if (markNodeFieldInaccessible)
+        {
+            field.AddDirective(Inaccessible.Instance, typeInspector);
         }
 
         // In the projection interceptor we want to change the context data on this field

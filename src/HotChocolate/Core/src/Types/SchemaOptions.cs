@@ -201,6 +201,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToNodeFields"/>
     public bool ApplyShareableToNodeFields { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyInaccessibleToNodeFields"/>
+    public bool ApplyInaccessibleToNodeFields { get; set; }
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
     public bool ApplySerializeAsToScalars { get; set; }
 
@@ -253,6 +256,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             ApplyShareableToCollectionSegments = options.ApplyShareableToCollectionSegments,
             ApplyShareableToCollectionSegmentInfo = options.ApplyShareableToCollectionSegmentInfo,
             ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
+            ApplyInaccessibleToNodeFields = options.ApplyInaccessibleToNodeFields,
             ApplySerializeAsToScalars = options.ApplySerializeAsToScalars,
             InferKeysFromLookups = options.InferKeysFromLookups
         };

@@ -38,6 +38,7 @@
   "ApplyShareableToCollectionSegments": false,
   "ApplyShareableToCollectionSegmentInfo": false,
   "ApplyShareableToNodeFields": false,
+  "ApplyInaccessibleToNodeFields": false,
   "ApplySerializeAsToScalars": false,
   "InferKeysFromLookups": false
 }
