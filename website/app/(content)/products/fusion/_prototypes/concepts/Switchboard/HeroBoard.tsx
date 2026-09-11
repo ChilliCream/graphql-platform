@@ -4,6 +4,7 @@ import { useRef } from "react";
 
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
+import { TYPE } from "../../brand";
 import {
   BRASS,
   BRASS_DIM,
@@ -250,7 +251,7 @@ export function HeroBoard() {
           y="32"
           fill={BRASS}
           fontFamily={MONO}
-          fontSize="15"
+          fontSize={TYPE.h6}
           letterSpacing="4"
         >
           FUSION EXCHANGE
@@ -260,7 +261,7 @@ export function HeroBoard() {
           y="48"
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="9"
+          fontSize={TYPE.label}
           letterSpacing="2"
         >
           ONE COMPOSITE SCHEMA
@@ -277,19 +278,19 @@ export function HeroBoard() {
         />
         <text
           x="402"
-          y="30"
+          y="29"
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="7.5"
+          fontSize={TYPE.label}
         >
           ACTIVE
         </text>
         <text
           x="402"
-          y="42"
+          y="43"
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="7.5"
+          fontSize={TYPE.label}
         >
           CALLS
         </text>
@@ -312,7 +313,7 @@ export function HeroBoard() {
                   y={41 + i * DRUM_H}
                   fill={BRASS}
                   fontFamily={MONO}
-                  fontSize="19"
+                  fontSize={TYPE.h6}
                   textAnchor="middle"
                 >
                   {d}
@@ -336,7 +337,7 @@ export function HeroBoard() {
           y="184"
           fill={BRASS}
           fontFamily={MONO}
-          fontSize="14"
+          fontSize={TYPE.caption}
           letterSpacing="2"
           textAnchor="middle"
         >
@@ -344,20 +345,20 @@ export function HeroBoard() {
         </text>
         <text
           x="280"
-          y="202"
+          y="204"
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="8.5"
+          fontSize={TYPE.label}
           textAnchor="middle"
         >
           DISTRIBUTED
         </text>
         <text
           x="280"
-          y="213"
+          y="217"
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="8.5"
+          fontSize={TYPE.label}
           textAnchor="middle"
         >
           EXECUTOR
@@ -379,7 +380,7 @@ export function HeroBoard() {
           y="304"
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="8"
+          fontSize={TYPE.label}
           letterSpacing="1"
           textAnchor="middle"
         >
@@ -475,7 +476,7 @@ export function HeroBoard() {
               y={CALLER_Y[i] - 20}
               fill={BRASS_DIM}
               fontFamily={MONO}
-              fontSize="10"
+              fontSize={TYPE.label}
               letterSpacing="1.5"
               textAnchor="middle"
             >
@@ -505,7 +506,7 @@ export function HeroBoard() {
           y="362"
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="8"
+          fontSize={TYPE.label}
           letterSpacing="1"
         >
           VIA ADAPTER
@@ -528,7 +529,7 @@ export function HeroBoard() {
               y={RIGHT_Y[i] - 1}
               fill={BRASS}
               fontFamily={MONO}
-              fontSize="11"
+              fontSize={TYPE.label}
               letterSpacing="1"
             >
               {jack.name}
@@ -538,7 +539,7 @@ export function HeroBoard() {
               y={RIGHT_Y[i] + 11}
               fill={BRASS_FAINT}
               fontFamily={MONO}
-              fontSize="8"
+              fontSize={TYPE.labelTight}
             >
               {jack.tag}
             </text>

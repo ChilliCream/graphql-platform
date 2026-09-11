@@ -4,6 +4,7 @@ import { useRef } from "react";
 
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
+import { TYPE } from "../../brand";
 import {
   BRASS,
   BRASS_DIM,
@@ -163,7 +164,7 @@ export function PatchThrough() {
           y={TRUNK_Y - 22}
           fill={BRASS_DIM}
           fontFamily={MONO}
-          fontSize="10"
+          fontSize={TYPE.label}
           letterSpacing="1.5"
           textAnchor="middle"
         >
@@ -184,7 +185,7 @@ export function PatchThrough() {
           y={HUB.y + 26}
           fill={BRASS}
           fontFamily={MONO}
-          fontSize="12"
+          fontSize={TYPE.caption}
           letterSpacing="2"
           textAnchor="middle"
         >
@@ -195,7 +196,7 @@ export function PatchThrough() {
           y={HUB.y + 42}
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="7.5"
+          fontSize={TYPE.label}
           letterSpacing="1"
           textAnchor="middle"
         >
@@ -236,7 +237,7 @@ export function PatchThrough() {
             y={MERGE_Y + 12}
             fill={BRASS}
             fontFamily={MONO}
-            fontSize="7.5"
+            fontSize={TYPE.label}
             letterSpacing="1"
             textAnchor="middle"
           >
@@ -305,7 +306,7 @@ export function PatchThrough() {
               y={LINE_Y[i] + 3}
               fill={BRASS}
               fontFamily={MONO}
-              fontSize="11"
+              fontSize={TYPE.label}
               letterSpacing="1"
               style={{ opacity: REST_TARGETS.includes(i) ? 1 : 0.4 }}
             >
@@ -329,8 +330,7 @@ export function PatchThrough() {
             y={TRUNK_Y + 3}
             fill={BRASS}
             fontFamily={MONO}
-            fontSize="8"
-            letterSpacing="1"
+            fontSize={TYPE.labelTight}
             textAnchor="middle"
           >
             ONE QUERY
@@ -352,8 +352,7 @@ export function PatchThrough() {
             y={TRUNK_Y + 3}
             fill={BRASS_DIM}
             fontFamily={MONO}
-            fontSize="8"
-            letterSpacing="1"
+            fontSize={TYPE.labelTight}
             textAnchor="middle"
           >
             ONE RESPONSE
