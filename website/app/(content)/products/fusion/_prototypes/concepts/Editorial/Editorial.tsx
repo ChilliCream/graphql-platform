@@ -1,8 +1,9 @@
 import { Fragment } from "react";
-import type { ComponentType, CSSProperties, ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 
 import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { Link } from "@/src/design-system/Link";
 
 import type { CopyLink, CopySection } from "../../copy";
@@ -12,26 +13,25 @@ import { ArrowFan } from "./ArrowFan";
 import { HeroSketch } from "./HeroSketch";
 import { HighlighterOps } from "./HighlighterOps";
 import { MarginNotes } from "./MarginNotes";
-import { PAPER, PAPER_TOKENS } from "./palette";
+import { PAPER } from "./palette";
 import { RedPenProof } from "./RedPenProof";
 import { SpecStickies } from "./SpecStickies";
 
 /**
  * Fusion product page, concept v10: Editorial.
  *
- * The page is set as a printed magazine feature that someone has drawn all
- * over: oversized display type on warm stock, wide margins, a standfirst line
- * pulled out of each section's first paragraph, and a marker-drawn figure
+ * The page is set as a magazine feature that someone has drawn all over: a
+ * standfirst line pulled out of each section's first paragraph, a folio mark
+ * and a handwritten caption under every plate, and a marker-drawn figure
  * beside every text block that draws itself when it comes into view. The words
- * are the production page's, imported from `../../copy`; only the typography,
- * the marginalia and the six scenes belong to the concept.
+ * are the production page's, imported from `../../copy`; only the marginalia
+ * and the six scenes belong to the concept.
+ *
+ * The spread is set in the site's own chrome: the page ground stays
+ * `bg-cc-bg`, every band is a `PageSection` on the site's container and
+ * rhythm, headings and copy sit on the type scale, and the drawn plates are
+ * bounded scene boxes on `bg-cc-surface`.
  */
-
-const FOLIO_TYPE =
-  "font-mono text-[10px] tracking-[0.24em] uppercase text-cc-ink-dim";
-
-/** The concept prints on paper in either site theme, so it fixes its tokens. */
-const SHEET = PAPER_TOKENS as CSSProperties;
 
 interface Plate {
   readonly id: string;
@@ -137,7 +137,7 @@ function InPractice({ links }: InPracticeProps) {
   if (links.length === 0) return null;
 
   return (
-    <p className="text-cc-ink-dim mt-6 text-sm">
+    <p className="text-cc-ink-dim text-caption mt-6">
       In practice:{" "}
       {links.map((link, i) => (
         <Fragment key={link.href}>
@@ -160,22 +160,14 @@ function PlateFigure({ plate }: PlateFigureProps) {
 
   return (
     <figure className="m-0">
-      <div
-        className="overflow-hidden border"
-        style={{ borderColor: PAPER.sheetEdge }}
-      >
+      <div className="border-cc-card-border bg-cc-surface overflow-hidden border">
         <Scene ratio={plate.ratio} label={plate.label}>
           <Visual />
         </Scene>
       </div>
-      <figcaption
-        className="mt-3 flex gap-3 text-sm"
-        style={{ color: PAPER.pencil }}
-      >
-        <span className={FOLIO_TYPE}>{plate.folio}</span>
-        <span style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
-          {plate.caption}
-        </span>
+      <figcaption className="text-cc-ink-dim text-caption mt-3 flex items-baseline gap-3">
+        <Eyebrow as="span">{plate.folio}</Eyebrow>
+        <span>{plate.caption}</span>
       </figcaption>
     </figure>
   );
@@ -193,7 +185,7 @@ function Article({ plate, section, flipped }: ArticleProps) {
 
   return (
     <article id={section.id}>
-      <PageSection maxWidth="6xl" className="py-16 sm:py-24">
+      <PageSection maxWidth="6xl" className="py-20 sm:py-28">
         <div className="grid items-start gap-10 lg:grid-cols-12 lg:gap-16">
           <div
             className={flipped ? "lg:order-2 lg:col-span-5" : "lg:col-span-5"}
@@ -201,13 +193,10 @@ function Article({ plate, section, flipped }: ArticleProps) {
             <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-balance">
               {section.title}
             </h2>
-            <p
-              className="text-cc-heading mt-6 text-xl leading-snug sm:text-2xl"
-              style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-            >
+            <p className="text-cc-heading text-body sm:text-lead mt-6 leading-snug">
               {withLinks(lead, section.links)}
             </p>
-            <div className="text-cc-prose mt-5 space-y-4 text-base">
+            <div className="text-cc-prose text-body mt-5 space-y-4">
               {rest ? <p>{withLinks(rest, section.links)}</p> : null}
               {tail.map((paragraph) => (
                 <p key={paragraph.slice(0, 24)}>
@@ -229,28 +218,30 @@ function Article({ plate, section, flipped }: ArticleProps) {
   );
 }
 
-/** A hand-ruled divider between two articles. */
+/** The site's section rule between two articles, ruled over by hand. */
 function PenRule() {
   return (
-    <div aria-hidden="true" className="mx-auto max-w-6xl px-5 sm:px-12">
-      <svg viewBox="0 0 1000 12" className="h-3 w-full" role="presentation">
-        <path
-          d="M2 7 C 180 2, 320 11, 500 6 S 840 2, 998 7"
-          fill="none"
-          stroke={PAPER.ink}
-          strokeWidth={1.6}
-          strokeLinecap="round"
-          opacity={0.35}
-        />
-      </svg>
+    <div aria-hidden="true" className="border-cc-card-border border-t">
+      <div className="mx-auto max-w-6xl px-5 sm:px-12">
+        <svg viewBox="0 0 1000 12" className="h-3 w-full" role="presentation">
+          <path
+            d="M2 7 C 180 2, 320 11, 500 6 S 840 2, 998 7"
+            fill="none"
+            stroke={PAPER.pencil}
+            strokeWidth={1.6}
+            strokeLinecap="round"
+            opacity={0.5}
+          />
+        </svg>
+      </div>
     </div>
   );
 }
 
 export function Editorial() {
   return (
-    <div style={SHEET} className="bg-cc-bg text-cc-ink">
-      {/* Cover: the oversized headline over a gateway drawing itself */}
+    <div className="bg-cc-bg">
+      {/* Cover: the headline over a gateway drawing itself */}
       <section className="relative isolate flex min-h-[88svh] items-end overflow-hidden">
         <div className="absolute inset-0">
           <Scene className="h-full">
@@ -259,30 +250,20 @@ export function Editorial() {
         </div>
         <div
           aria-hidden="true"
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(to top, ${PAPER.sheet} 8%, rgba(244, 239, 227, 0.72) 46%, rgba(244, 239, 227, 0) 100%)`,
-          }}
+          className="from-cc-bg via-cc-bg/75 absolute inset-0 bg-gradient-to-t to-transparent"
         />
-        <PageSection maxWidth="6xl" className="relative pt-40 pb-20">
+        <PageSection maxWidth="7xl" className="relative pt-40 pb-20">
           <div className="flex items-center gap-4">
-            <span className={FOLIO_TYPE}>{HERO.eyebrow}</span>
-            <span
-              className="h-px flex-1"
-              style={{ backgroundColor: PAPER.pencil, opacity: 0.4 }}
-            />
-            <span className={`${FOLIO_TYPE} hidden sm:inline`}>Feature</span>
+            <Eyebrow as="span">{HERO.eyebrow}</Eyebrow>
+            <span className="bg-cc-ink-faint h-px flex-1" />
+            <Eyebrow as="span" className="hidden sm:inline">
+              Feature
+            </Eyebrow>
           </div>
-          <h1
-            className="font-heading text-cc-heading mt-6 leading-[0.86] font-bold"
-            style={{ fontSize: "clamp(4.5rem, 21vw, 15rem)" }}
-          >
+          <h1 className="font-heading text-cc-heading text-h2 sm:text-h1 mt-6">
             {HERO.title}
           </h1>
-          <p
-            className="text-cc-heading mt-8 max-w-3xl text-xl leading-snug sm:text-2xl"
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-          >
+          <p className="text-cc-heading text-body sm:text-lead mt-8 max-w-3xl leading-snug">
             {HERO.teaser}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
@@ -309,19 +290,15 @@ export function Editorial() {
       })}
 
       {/* Back page: the editor's own margin notes */}
-      <div
-        id={NITRO_BAND.id}
-        className="border-t"
-        style={{ borderColor: PAPER.sheetEdge }}
-      >
-        <PageSection maxWidth="6xl" className="py-16 sm:py-24">
+      <div id={NITRO_BAND.id} className="border-cc-card-border border-t">
+        <PageSection maxWidth="6xl" className="py-20 sm:py-28">
           <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-16">
             <div className="lg:col-span-5">
-              <p className={FOLIO_TYPE}>Margin notes</p>
+              <Eyebrow>Margin notes</Eyebrow>
               <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 mt-4 text-balance">
                 {NITRO_BAND.title}
               </h2>
-              <p className="text-cc-prose mt-6 text-base">
+              <p className="text-cc-prose text-body mt-6">
                 {NITRO_BAND.description}
               </p>
               <div className="mt-10 flex flex-wrap gap-4">
@@ -334,10 +311,7 @@ export function Editorial() {
               </div>
             </div>
             <div className="lg:col-span-7">
-              <div
-                className="overflow-hidden border"
-                style={{ borderColor: PAPER.sheetEdge }}
-              >
+              <div className="border-cc-card-border bg-cc-surface overflow-hidden border">
                 <Scene
                   ratio="16 / 9"
                   label="Hand-drawn margin charts of latency, throughput and error rate for the gateway and each subgraph behind it."
