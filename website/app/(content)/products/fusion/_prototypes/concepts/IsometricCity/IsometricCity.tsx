@@ -3,6 +3,7 @@ import type { ComponentType, ReactNode } from "react";
 
 import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { Link } from "@/src/design-system/Link";
 
 import type { CopyLink, CopySection } from "../../copy";
@@ -28,9 +29,6 @@ import { ZoningPermit } from "./ZoningPermit";
  * The words are the production page's, imported from `../../copy`; only the
  * layout, the block chrome and the five animated scenes belong to the concept.
  */
-
-const EYEBROW =
-  "text-cc-nav-label font-mono text-[10px] tracking-[0.24em] uppercase";
 
 interface Block {
   readonly id: string;
@@ -118,7 +116,7 @@ function InPractice({ links }: InPracticeProps) {
   if (links.length === 0) return null;
 
   return (
-    <p className="text-cc-ink-dim mt-6 text-sm">
+    <p className="text-cc-ink-dim text-caption mt-6">
       In practice:{" "}
       {links.map((link, i) => (
         <Fragment key={link.href}>
@@ -131,18 +129,18 @@ function InPractice({ links }: InPracticeProps) {
   );
 }
 
-/** The street between two blocks: a kerb, a centre line and a kerb. */
+/**
+ * The street between two blocks: the site's section rule, with the road's
+ * centre line painted on it.
+ */
 function Street() {
   return (
-    <div
-      aria-hidden="true"
-      className="mx-auto flex max-w-6xl items-center gap-2 px-5 sm:px-12"
-    >
-      <span className="bg-cc-card-border h-px flex-1" />
-      <span className="bg-cc-ink-faint h-px w-6" />
-      <span className="bg-cc-ink-faint h-px w-3" />
-      <span className="bg-cc-ink-faint h-px w-6" />
-      <span className="bg-cc-card-border h-px flex-1" />
+    <div aria-hidden="true" className="border-cc-card-border border-t">
+      <div className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-5 sm:px-12">
+        <span className="bg-cc-ink-faint -mt-px h-px w-6" />
+        <span className="bg-cc-ink-faint -mt-px h-px w-3" />
+        <span className="bg-cc-ink-faint -mt-px h-px w-6" />
+      </div>
     </div>
   );
 }
@@ -158,14 +156,14 @@ function CityBlockSection({ block, section, flipped }: CityBlockSectionProps) {
 
   return (
     <div id={section.id}>
-      <PageSection maxWidth="6xl" className="py-16 sm:py-24">
+      <PageSection maxWidth="6xl" className="py-20 sm:py-28">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div className={flipped ? "lg:order-2" : undefined}>
-            <p className={EYEBROW}>{block.marker}</p>
+            <Eyebrow>{block.marker}</Eyebrow>
             <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 mt-4 text-balance">
               {section.title}
             </h2>
-            <div className="text-cc-prose mt-6 space-y-4 text-base">
+            <div className="text-cc-prose text-body mt-6 space-y-4">
               {section.paragraphs.map((paragraph) => (
                 <p key={paragraph.slice(0, 24)}>
                   {withLinks(paragraph, section.links)}
@@ -202,12 +200,12 @@ export function IsometricCity() {
           aria-hidden="true"
           className="from-cc-bg via-cc-bg/75 absolute inset-0 bg-gradient-to-t to-transparent"
         />
-        <PageSection maxWidth="6xl" className="relative pt-40 pb-20">
-          <p className={EYEBROW}>{HERO.eyebrow}</p>
+        <PageSection maxWidth="7xl" className="relative pt-40 pb-20">
+          <Eyebrow>{HERO.eyebrow}</Eyebrow>
           <h1 className="font-heading text-cc-heading text-h2 sm:text-h1 mt-4">
             {HERO.title}
           </h1>
-          <p className="text-cc-prose mt-6 max-w-2xl text-lg sm:text-xl">
+          <p className="text-cc-prose text-body sm:text-lead mt-6 max-w-2xl">
             {HERO.teaser}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
@@ -227,7 +225,7 @@ export function IsometricCity() {
 
         return (
           <Fragment key={block.id}>
-            {i > 0 ? <Street /> : null}
+            <Street />
             <CityBlockSection
               block={block}
               section={section}
@@ -239,14 +237,14 @@ export function IsometricCity() {
 
       {/* Nitro band: the traffic desk over the city */}
       <div id={NITRO_BAND.id} className="border-cc-card-border border-t">
-        <PageSection maxWidth="6xl" className="py-16 sm:py-24">
+        <PageSection maxWidth="6xl" className="py-20 sm:py-28">
           <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
-              <p className={EYEBROW}>The traffic desk</p>
+              <Eyebrow>The traffic desk</Eyebrow>
               <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 mt-4 text-balance">
                 {NITRO_BAND.title}
               </h2>
-              <p className="text-cc-prose mt-6 text-base">
+              <p className="text-cc-prose text-body mt-6">
                 {NITRO_BAND.description}
               </p>
               <div className="mt-10 flex flex-wrap gap-4">

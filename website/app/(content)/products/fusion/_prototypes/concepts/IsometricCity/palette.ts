@@ -1,3 +1,5 @@
+import { BRAND, CC, FONTS, TYPE } from "../../brand";
+
 /**
  * Projection, palette and cast for the Isometric City concept (prototype v6).
  *
@@ -77,31 +79,101 @@ export function tile(gx: number, gy: number, sx = 1, sy = 1): string {
   ]);
 }
 
-/** City colours: a dusk-blue ground with warm windows and two signal colours. */
+/**
+ * Width of a scene box at a 375px viewport: the page gutters take 40px off
+ * the `max-w-6xl` container and the scene spans the full column below `lg`.
+ */
+const SCENE_BOX_PX = 335;
+
+/**
+ * A size from the site type scale as viewBox units, for a scene drawn in a
+ * viewBox `viewBoxWidth` units wide. The scene box is the full column width on
+ * a phone, so one unit renders at `SCENE_BOX_PX / viewBoxWidth` pixels.
+ */
+export function svgFont(px: number, viewBoxWidth: number): number {
+  return Math.ceil((px * viewBoxWidth) / SCENE_BOX_PX);
+}
+
+/** Every block scene is drawn 640 units wide. */
+export const SCENE_W = 640;
+/** The traffic-desk scene is drawn wider, at 16:9. */
+export const METER_W = 720;
+
+/** SVG text sizes inside a block scene, in viewBox units. */
+export const FONT = {
+  /** The floor: renders at `TYPE.label` (11px) on a 375px screen. */
+  label: svgFont(TYPE.label, SCENE_W),
+  /** Building signage: renders at `TYPE.caption` (14px). */
+  caption: svgFont(TYPE.caption, SCENE_W),
+} as const;
+
+/** The same two sizes inside the wider traffic-desk scene. */
+export const METER_FONT = {
+  label: svgFont(TYPE.label, METER_W),
+  caption: svgFont(TYPE.caption, METER_W),
+} as const;
+
+/**
+ * The hero is drawn 1200 x 700 and painted with `preserveAspectRatio` "slice"
+ * into a band at least `88svh` tall, so its scale is
+ * `max(boxWidth / 1200, boxHeight / 700)` and on a phone the height wins. The
+ * shortest viewport the site sizes for is 568px tall, where 88svh is 500px and
+ * the city renders at 500 / 700 of its unit size.
+ */
+const HERO_MIN_SCALE = 500 / 700;
+
+/** A size from the site type scale as hero viewBox units. */
+function heroFont(px: number): number {
+  return Math.ceil(px / HERO_MIN_SCALE);
+}
+
+/** SVG text sizes inside the hero city, in viewBox units. */
+export const HERO_FONT = {
+  /** The floor: renders at `TYPE.label` (11px) on the shortest phone. */
+  label: heroFont(TYPE.label),
+  /** Building signage. */
+  caption: heroFont(TYPE.caption),
+  /** The plaza's own sign. */
+  heading: heroFont(TYPE.h6),
+} as const;
+
+/**
+ * City roles mapped onto the site tokens: a dusk-blue ground mixed from the
+ * brand violet over `CC.surface`, warm windows on the brand amber, and the
+ * signal colours the rest of the site already uses. No role owns a colour of
+ * its own - every value here is a token, a brand accent, or a mix of the two.
+ */
 export const CITY = {
-  sky: "#0b1020",
-  skyLow: "#1b2440",
-  ground: "#131b30",
-  road: "#1d2740",
-  roadLine: "rgba(245, 241, 234, 0.30)",
-  plazaTop: "#2a3a5e",
-  plazaLeft: "#16203a",
-  plazaRight: "#1f2c4c",
-  blockTop: "#33456d",
-  blockLeft: "#18213a",
-  blockRight: "#243254",
-  facadeTop: "#3d4a5e",
-  facadeLeft: "#1d2431",
-  facadeRight: "#2a3444",
-  edge: "rgba(245, 241, 234, 0.16)",
-  window: "#f6c177",
-  windowDim: "rgba(246, 193, 119, 0.22)",
-  accent: "#16b9e4",
-  ok: "#5eead4",
-  stop: "#f87171",
-  warn: "#f2a15c",
-  ink: "#a1a3af",
-  heading: "#f5f0ea",
+  /** Night sky behind the city: the page background itself. */
+  sky: CC.bg,
+  /** The horizon the night sky fades into. */
+  skyLow: `color-mix(in srgb, ${BRAND.violet} 22%, ${CC.surface})`,
+  /** Daylight sky, top to bottom, for the hero's day-night wash. */
+  dawnTop: `color-mix(in srgb, ${BRAND.violet} 26%, ${CC.surface})`,
+  dawnMid: `color-mix(in srgb, ${BRAND.violet} 46%, ${CC.surface})`,
+  dawnLow: `color-mix(in srgb, ${BRAND.coral} 30%, ${CC.surface})`,
+  ground: `color-mix(in srgb, ${BRAND.violet} 12%, ${CC.surface})`,
+  road: `color-mix(in srgb, ${BRAND.violet} 20%, ${CC.surface})`,
+  roadLine: CC.cardBorderHover,
+  plazaTop: `color-mix(in srgb, ${BRAND.violet} 34%, ${CC.surface})`,
+  plazaLeft: `color-mix(in srgb, ${BRAND.violet} 10%, ${CC.surface})`,
+  plazaRight: `color-mix(in srgb, ${BRAND.violet} 22%, ${CC.surface})`,
+  blockTop: `color-mix(in srgb, ${BRAND.violet} 42%, ${CC.surface})`,
+  blockLeft: `color-mix(in srgb, ${BRAND.violet} 12%, ${CC.surface})`,
+  blockRight: `color-mix(in srgb, ${BRAND.violet} 26%, ${CC.surface})`,
+  /** The non-GraphQL facades on the same road: the same blocks, cooler. */
+  facadeTop: `color-mix(in srgb, ${BRAND.slate} 34%, ${CC.surface})`,
+  facadeLeft: `color-mix(in srgb, ${BRAND.slate} 10%, ${CC.surface})`,
+  facadeRight: `color-mix(in srgb, ${BRAND.slate} 20%, ${CC.surface})`,
+  edge: CC.inkFaint,
+  window: BRAND.amber,
+  windowDim: `color-mix(in srgb, ${BRAND.amber} 22%, transparent)`,
+  accent: CC.accent,
+  ok: BRAND.teal,
+  stop: CC.danger,
+  warn: CC.warning,
+  ink: CC.ink,
+  heading: CC.heading,
 } as const;
 
 export type BuildingSpec = "GraphQL Federation" | "Apollo Federation";
@@ -201,8 +273,7 @@ export const VEHICLES: readonly Vehicle[] = [
 
 /** Mono label styling shared by the SVG captions in every city scene. */
 export const LABEL = {
-  fontFamily:
-    "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace",
+  fontFamily: FONTS.mono,
   letterSpacing: "0.12em",
 } as const;
 
