@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Threading.Channels;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 
@@ -151,6 +152,71 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         // assert
         Assert.IsType<TuiEvent.DataChangedEvent>(received);
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_PublishDataChangedEvent_When_MainFileChangeCounterAdvances_WithMtimeAndLengthUnchanged()
+    {
+        // arrange: a real SQLite header so the watcher reads its file change
+        // counter (offset 24) instead of comparing mtime/length. The write
+        // landing in the enable gap keeps the same length and has its mtime
+        // reset back to the baseline value with File.SetLastWriteTimeUtc,
+        // reproducing the coarse mtime granularity some Linux file systems
+        // exhibit deterministically on every platform: two same-length writes
+        // landing within one tick can compare mtime-equal there, which an
+        // mtime/length-only compare would silently miss even though a real
+        // write transaction advanced the change counter.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllBytes(databasePath, CreateSqliteHeader(changeCounter: 1));
+        var baselineWriteTimeUtc = File.GetLastWriteTimeUtc(databasePath);
+        var watcher = new SqliteDbWatcher(databasePath, s_neverFiringDebounce)
+        {
+            OnBaselineCaptured = () =>
+            {
+                File.WriteAllBytes(databasePath, CreateSqliteHeader(changeCounter: 2));
+                File.SetLastWriteTimeUtc(databasePath, baselineWriteTimeUtc);
+            }
+        };
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        var received = await ReadOneAsync(channel.Reader, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.IsType<TuiEvent.DataChangedEvent>(received);
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_NotPublishDataChangedEvent_When_NothingWrittenAtStartup()
+    {
+        // arrange: no OnBaselineCaptured hook lands a write in the enable gap,
+        // and s_neverFiringDebounce keeps the event-driven path from firing
+        // within the bounded window either, so nothing at all should be
+        // published on startup silence. This guards the gap xd8's review
+        // found: forcing the reconciliation compare to unconditionally report
+        // "changed" still passed this class 14 of 14, because every other
+        // test's SettleAsync call drains a spurious startup event instead of
+        // asserting its absence.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllText(databasePath, "initial");
+        var watcher = new SqliteDbWatcher(databasePath, s_neverFiringDebounce);
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        await Task.Delay(s_settleDelay, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.False(channel.Reader.TryRead(out _));
     }
 
     [Fact]
@@ -480,5 +546,21 @@ public sealed class SqliteDbWatcherTests : IDisposable
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         cts.CancelAfter(s_testTimeout);
         return await reader.ReadAsync(cts.Token);
+    }
+
+    /// <summary>
+    /// Builds a minimal, exactly header-sized SQLite database file: the fixed
+    /// 16-byte magic string followed by zeroed header fields except the 4-byte
+    /// big-endian file change counter at offset 24, matching the layout
+    /// <c>SqliteDbWatcher</c> reads. Every returned buffer has the same
+    /// length, so two calls with different counters model a real same-length
+    /// write transaction.
+    /// </summary>
+    private static byte[] CreateSqliteHeader(uint changeCounter)
+    {
+        var header = new byte[100];
+        "SQLite format 3\0"u8.CopyTo(header);
+        BinaryPrimitives.WriteUInt32BigEndian(header.AsSpan(24, 4), changeCounter);
+        return header;
     }
 }
