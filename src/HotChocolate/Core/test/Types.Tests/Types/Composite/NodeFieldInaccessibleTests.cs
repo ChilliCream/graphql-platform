@@ -46,11 +46,8 @@ public static class NodeFieldInaccessibleTests
                 .AddGraphQL()
                 .AddQueryType<Query>()
                 .AddGlobalObjectIdentification()
-                .ModifyOptions(o =>
-                {
-                    o.ApplyShareableToNodeFields = false;
-                    o.ApplyInaccessibleToNodeFields = true;
-                })
+                .ModifyOptions(o => o.ApplyInaccessibleToNodeFields = true)
+                .ModifyOptions(o => o.ApplyShareableToNodeFields = false)
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // assert

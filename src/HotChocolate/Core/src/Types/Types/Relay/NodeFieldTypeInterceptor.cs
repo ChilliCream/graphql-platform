@@ -30,7 +30,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
     internal override uint Position => uint.MaxValue - 100;
 
     // node fields that are marked inaccessible are always marked shareable as well.
-    private bool ApplyShareableToNodeFields
+    private bool MarkNodeFieldsShareable
         => _schemaOptions.ApplyShareableToNodeFields
             || _schemaOptions.ApplyInaccessibleToNodeFields;
 
@@ -67,7 +67,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 yield return _lookupRef;
             }
 
-            if (_options.MarkNodeFieldAsLookup || ApplyShareableToNodeFields)
+            if (_options.MarkNodeFieldAsLookup || MarkNodeFieldsShareable)
             {
                 yield return _shareableRef;
             }
@@ -107,7 +107,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                 t.Name.EqualsOrdinal(IntrospectionFieldNames.TypeName) && t.IsIntrospectionField);
             var index = _queryTypeConfig.Fields.IndexOf(typeNameField);
             var maxAllowedNodes = _options.MaxAllowedNodeBatchSize;
-            var markNodeFieldShareable = ApplyShareableToNodeFields;
+            var markNodeFieldShareable = MarkNodeFieldsShareable;
             var markNodeFieldInaccessible = _schemaOptions.ApplyInaccessibleToNodeFields;
 
             CreateNodeField(
