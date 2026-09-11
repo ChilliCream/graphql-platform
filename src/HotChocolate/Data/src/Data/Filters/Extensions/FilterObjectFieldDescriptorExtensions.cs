@@ -186,12 +186,14 @@ public static class FilterObjectFieldDescriptorExtensions
         ITypeSystemMember? filterTypeInstance,
         string? scope)
     {
-        FieldMiddlewareConfiguration placeholder = new(_ => _ => default);
+        FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: WellKnownMiddleware.Filtering);
+        BatchFieldMiddlewareConfiguration batchPlaceholder = new(_ => _ => default, key: WellKnownMiddleware.Filtering);
 
         var argumentPlaceholder =
             "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
         descriptor.Extend().Configuration.MiddlewareConfigurations.Add(placeholder);
+        descriptor.Extend().Configuration.BatchMiddlewareConfigurations.Add(batchPlaceholder);
 
         descriptor
             .Extend()
@@ -244,6 +246,7 @@ public static class FilterObjectFieldDescriptorExtensions
                                     d,
                                     argumentTypeReference,
                                     placeholder,
+                                    batchPlaceholder,
                                     scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion,
@@ -354,6 +357,7 @@ public static class FilterObjectFieldDescriptorExtensions
         ObjectFieldConfiguration definition,
         TypeReference argumentTypeReference,
         FieldMiddlewareConfiguration placeholder,
+        BatchFieldMiddlewareConfiguration batchPlaceholder,
         string? scope)
     {
         var type = context.GetType<IFilterInputType>(argumentTypeReference);
@@ -363,10 +367,14 @@ public static class FilterObjectFieldDescriptorExtensions
         convention.ConfigureField(fieldDescriptor);
 
         var factory = s_factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
+        var builder = (IQueryBuilder)factory.Invoke(null, [convention])!;
+        var middleware = CreateDataMiddleware(builder);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Filtering);
+        var batchIndex = definition.BatchMiddlewareConfigurations.IndexOf(batchPlaceholder);
+        definition.BatchMiddlewareConfigurations[batchIndex] =
+            new(CreateBatchDataMiddleware(builder), key: WellKnownMiddleware.Filtering);
     }
 
     private static IQueryBuilder CreateMiddleware<TEntity>(IFilterConvention convention) =>

@@ -1,4 +1,7 @@
+using CookieCrumble;
+using HotChocolate.Data.Sorting.Expressions;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,12 +9,113 @@ namespace HotChocolate.Data.Sorting;
 
 public class SortingBatchResolverTests
 {
-    // REPRO (known break, issue: sorting middleware is dead on batch fields).
-    // [UseSorting] on a [BatchResolver] field adds the `order` argument but the compiled
-    // sort middleware sits in the regular pipeline that batch selections never execute, so
-    // the argument is coerced and silently ignored. A default user expects each parent's
-    // result list to be ordered. This fails today (source order is returned) and is the
-    // acceptance test for the fix.
+    [Fact]
+    public async Task UseSorting_Should_IsolateEntries_When_PostSortingActionFails()
+    {
+        // arrange
+        var batches = new List<int[]>();
+        var applied = new List<string>();
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddType(new ObjectType<Brand>(d => d.Field("products")
+                .Type<ListType<ObjectType<Product>>>()
+                .UseSorting<Product>()
+                .ResolveBatch(contexts =>
+                {
+                    batches.Add(contexts.Select(c => c.Parent<Brand>().Id).ToArray());
+                    var results = new ResolverResult[contexts.Count];
+
+                    for (var i = 0; i < contexts.Count; i++)
+                    {
+                        var context = contexts[i];
+                        var id = context.Parent<Brand>().Id;
+                        context.SetLocalState<PostSortingAction<IQueryable<Product>>>(
+                            QueryableSortProvider.PostSortingActionKey,
+                            (sorted, query) =>
+                            {
+                                applied.Add($"{id}:{sorted}");
+
+                                if (id == 1)
+                                {
+                                    throw new GraphQLException("Cannot sort this parent's products.");
+                                }
+
+                                return query;
+                            });
+                        results[i] = ResolverResult.Ok(new[] { new Product("P1"), new Product("P2") });
+                    }
+
+                    return new ValueTask<IReadOnlyList<ResolverResult>>(results);
+                })))
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ brands { products(order: { name: DESC }) { name } } }",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot()
+            .Add(result, "Result")
+            .Add(batches, "Resolver batches")
+            .Add(applied, "Per-entry sorting callbacks")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task UseSorting_Should_UsePerAliasOrder_When_OneParentHandlesSorting(bool handled)
+    {
+        // arrange
+        var batches = new List<int[]>();
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<Query>()
+            .AddType(new ObjectType<Brand>(d => d.Field("products")
+                .Type<ListType<ObjectType<Product>>>()
+                .UseSorting<Product>()
+                .ResolveBatch(contexts =>
+                {
+                    batches.Add(contexts.Select(c => c.Parent<Brand>().Id).ToArray());
+                    var results = new ResolverResult[contexts.Count];
+
+                    for (var i = 0; i < contexts.Count; i++)
+                    {
+                        if (handled && contexts[i].Parent<Brand>().Id == 1)
+                        {
+                            contexts[i].GetSortingContext()!.Handled(true);
+                        }
+
+                        results[i] = ResolverResult.Ok(new[] { new Product("P1"), new Product("P2") });
+                    }
+
+                    return new ValueTask<IReadOnlyList<ResolverResult>>(results);
+                })))
+            .AddSorting()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                brands {
+                    a: products(order: { name: ASC }) { name }
+                    b: products(order: { name: DESC }) { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot(postFix: handled.ToString())
+            .Add(result, "Result")
+            .Add(batches, "Resolver batches")
+            .MatchMarkdownSnapshot();
+    }
+
     [Fact]
     public async Task UseSorting_Should_Order_PerParentResults_When_FieldIsBatchResolver()
     {

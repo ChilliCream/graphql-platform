@@ -132,10 +132,13 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
         FieldMiddlewareConfiguration placeholder =
             new(_ => _ => default, key: WellKnownMiddleware.Projection);
+        BatchFieldMiddlewareConfiguration batchPlaceholder =
+            new(_ => _ => default, key: WellKnownMiddleware.Projection);
 
         var extension = descriptor.Extend();
 
         extension.Configuration.MiddlewareConfigurations.Add(placeholder);
+        extension.Configuration.BatchMiddlewareConfigurations.Add(batchPlaceholder);
         extension.Configuration.Flags |= CoreFieldFlags.UsesProjections;
 
         extension
@@ -159,7 +162,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
 
                     definition.Tasks.Add(
                         new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
-                            (c, d) => CompileMiddleware(selectionType, d, placeholder, c, scope),
+                            (c, d) => CompileMiddleware(selectionType, d, placeholder, batchPlaceholder, c, scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion));
                 });
@@ -171,6 +174,7 @@ public static class ProjectionObjectFieldDescriptorExtensions
         Type type,
         ObjectFieldConfiguration definition,
         FieldMiddlewareConfiguration placeholder,
+        BatchFieldMiddlewareConfiguration batchPlaceholder,
         ITypeCompletionContext context,
         string? scope)
     {
@@ -180,10 +184,14 @@ public static class ProjectionObjectFieldDescriptorExtensions
         definition.Flags |= CoreFieldFlags.HasProjectionMiddleware;
 
         var factory = s_factoryTemplate.MakeGenericMethod(type);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
+        var builder = (IQueryBuilder)factory.Invoke(null, [convention])!;
+        var middleware = CreateDataMiddleware(builder);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Projection);
+        var batchIndex = definition.BatchMiddlewareConfigurations.IndexOf(batchPlaceholder);
+        definition.BatchMiddlewareConfigurations[batchIndex] =
+            new(CreateBatchDataMiddleware(builder), key: WellKnownMiddleware.Projection);
     }
 
     private static IQueryBuilder CreateMiddleware<TEntity>(IProjectionConvention convention)

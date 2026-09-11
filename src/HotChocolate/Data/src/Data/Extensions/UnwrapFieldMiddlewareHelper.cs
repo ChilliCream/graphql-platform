@@ -5,6 +5,57 @@ namespace HotChocolate.Types;
 
 internal static class UnwrapFieldMiddlewareHelper
 {
+    internal static BatchFieldMiddleware CreateBatchDataMiddleware(IQueryBuilder builder)
+        => next => async contexts =>
+        {
+            foreach (var context in contexts)
+            {
+                if (HasErrorResult(context))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    builder.Prepare(context);
+                }
+                catch (Exception ex)
+                {
+                    context.ReportError(ex);
+                    context.Result = null;
+                }
+            }
+
+            await next(contexts).ConfigureAwait(false);
+
+            foreach (var context in contexts)
+            {
+                if (HasErrorResult(context))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    if (context.Result is IFieldResult fieldResult)
+                    {
+                        context.Result = fieldResult.Value;
+                    }
+
+                    builder.Apply(context);
+                }
+                catch (Exception ex)
+                {
+                    context.ReportError(ex);
+                    context.Result = null;
+                }
+            }
+        };
+
+    private static bool HasErrorResult(IMiddlewareContext context)
+        => context.Result is IError or IEnumerable<IError> or IFieldResult { IsError: true }
+            || (context.HasErrors && context.Result is null);
+
     internal static FieldMiddleware CreateDataMiddleware(IQueryBuilder builder)
         => next =>
         {
