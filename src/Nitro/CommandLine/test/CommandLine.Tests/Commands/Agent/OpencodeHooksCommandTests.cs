@@ -184,4 +184,95 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
             result.StdOut,
             StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_Should_NameEndpointGoneWithoutClaimingUnreachable_When_LastPingWasEndpointGone()
+    {
+        // arrange
+        // A 404/401/500 answer is recorded as endpoint-gone (see PingSessionExecutor.MapOpencodeResult)
+        // even though it proves the server answered, so the wording must not claim the endpoint is
+        // unreachable.
+        SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
+        await InsertAliveSessionRowAsync(
+            FixedHost,
+            "session-endpoint-gone",
+            "maya",
+            harness: AgentSessionHarness.Opencode,
+            endpointKind: AgentSessionEndpointKind.OpencodeServer,
+            endpointAddr: "http://127.0.0.1:51000",
+            lastPingResult: AgentPingResult.EndpointGone,
+            lastPingDetail: "404 Not Found");
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "status", "--scope", "project");
+
+        // assert
+        Assert.Contains(
+            "; endpoint gone at last ping; last ping: endpoint gone (404 Not Found)",
+            result.StdOut,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("unreachable at last ping", result.StdOut, StringComparison.Ordinal);
+        Assert.DoesNotContain("Pushes will not arrive", result.StdOut, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_Should_DescribeEndpointReporting_When_StatusHelpIsRequested()
+    {
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "status", "--help");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains("push endpoint and last ping", result.StdOut, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_Should_IncludeEndpointNoteField_When_InstallJsonOutputIsRequested()
+    {
+        // arrange
+        SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
+        await InitWorkspaceAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        Assert.Equal(
+            OpencodeEndpointGuidance.InstallNote,
+            document.RootElement.GetProperty("endpointNote").GetString());
+    }
+
+    [Fact]
+    public async Task ExecuteCommandAsync_Should_IncludeSessionFields_When_StatusJsonOutputIsRequested()
+    {
+        // arrange
+        SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");
+        await InsertAliveSessionRowAsync(
+            FixedHost,
+            "session-json",
+            "maya",
+            harness: AgentSessionHarness.Opencode,
+            endpointKind: AgentSessionEndpointKind.OpencodeServer,
+            endpointAddr: "http://127.0.0.1:51000",
+            lastPingResult: AgentPingResult.Ok,
+            lastPingDetail: "healthy");
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "hooks", "opencode", "status", "--scope", "project");
+
+        // assert
+        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        var session = Assert.Single(document.RootElement.GetProperty("sessions").EnumerateArray());
+        Assert.Equal("session-json", session.GetProperty("sessionId").GetString());
+        Assert.Equal("reachable at last ping", session.GetProperty("reachability").GetString());
+        Assert.Equal(AgentPingResult.Ok, session.GetProperty("lastPingResult").GetString());
+        Assert.Equal("healthy", session.GetProperty("lastPingDetail").GetString());
+    }
 }

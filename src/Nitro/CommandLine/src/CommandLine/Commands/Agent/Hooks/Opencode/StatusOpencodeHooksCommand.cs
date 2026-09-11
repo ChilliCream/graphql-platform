@@ -11,7 +11,8 @@ internal sealed class StatusOpencodeHooksCommand : Command
 {
     public StatusOpencodeHooksCommand() : base("status")
     {
-        Description = "Show whether Nitro's Opencode plugin is missing, current, or outdated.";
+        Description = "Show whether Nitro's Opencode plugin is missing, current, or outdated, and report "
+            + "what is known about each session's push endpoint and last ping.";
 
         Options.Add(Opt<OpencodeHookInstallScopeOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
@@ -180,9 +181,13 @@ internal sealed class StatusOpencodeHooksCommand : Command
         /// endpoint, only what the last recorded ping actually says:
         /// <see cref="OpencodeSessionReachability.ReachableAtLastPing"/> for
         /// <see cref="AgentPingResult.Ok"/>,
-        /// <see cref="OpencodeSessionReachability.UnreachableAtLastPing"/>
+        /// <see cref="OpencodeSessionReachability.EndpointGoneAtLastPing"/>
         /// for <see cref="AgentPingResult.EndpointGone"/> (the client's own
-        /// recorded verdict), and
+        /// recorded verdict - <c>PingSessionExecutor.MapOpencodeResult</c>
+        /// records this same value for a non-2xx answer, e.g. 401/404/500,
+        /// as for a genuinely unreachable endpoint, so this never claims the
+        /// endpoint itself is unreachable, only that the last recorded ping
+        /// did not come back accepted), and
         /// <see cref="OpencodeSessionReachability.Unknown"/> for every other
         /// outcome - never pinged yet, a timeout, a transport error, a
         /// capacity drop, or an unsupported endpoint kind. None of those
@@ -201,7 +206,7 @@ internal sealed class StatusOpencodeHooksCommand : Command
             return session.LastPingResult switch
             {
                 AgentPingResult.Ok => OpencodeSessionReachability.ReachableAtLastPing,
-                AgentPingResult.EndpointGone => OpencodeSessionReachability.UnreachableAtLastPing,
+                AgentPingResult.EndpointGone => OpencodeSessionReachability.EndpointGoneAtLastPing,
                 _ => OpencodeSessionReachability.Unknown
             };
         }
@@ -223,10 +228,16 @@ internal sealed class StatusOpencodeHooksCommand : Command
         public const string ReachableAtLastPing = "reachable at last ping";
 
         /// <summary>
-        /// The last recorded ping to a registered endpoint found it gone -
-        /// the client's own recorded verdict, not a freshly re-checked one.
+        /// The last recorded ping to a registered endpoint came back
+        /// <see cref="AgentPingResult.EndpointGone"/> - the client's own
+        /// recorded verdict, not a freshly re-checked one, and not proof the
+        /// endpoint itself is unreachable: <c>PingSessionExecutor</c>
+        /// records this same result for a non-2xx answer (401, 404, 500 -
+        /// the server responded) as for a connection failure, so this names
+        /// the recorded result rather than asserting reachability either
+        /// way.
         /// </summary>
-        public const string UnreachableAtLastPing = "unreachable at last ping";
+        public const string EndpointGoneAtLastPing = "endpoint gone at last ping";
 
         /// <summary>
         /// A registered endpoint whose last recorded ping outcome does not
