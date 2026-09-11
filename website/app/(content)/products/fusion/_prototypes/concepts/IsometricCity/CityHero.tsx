@@ -2,10 +2,12 @@
 
 import type { CSSProperties } from "react";
 
+import { FONTS } from "../../brand";
 import { useCityMotion } from "./hooks";
 import {
   BLOCKS,
   CITY,
+  HERO_FONT,
   LABEL,
   SOURCE_BLOCKS,
   VEHICLES,
@@ -25,6 +27,10 @@ import {
  *
  * Rest state (reduced motion, off-screen, or before hydration): the finished
  * city at dusk with every building standing and the vehicles at the plaza.
+ *
+ * The city is drawn 1200 x 700 and sliced into a band at least 88svh tall, so
+ * its signage is set in `HERO_FONT` units, which hold the site's 11px label
+ * floor even on the shortest phone.
  */
 
 const CSS = `
@@ -152,9 +158,9 @@ function CityBuilding({
           />
           <text
             x={rx + 30}
-            y={ry - 17}
+            y={ry - 15}
             fill={CITY.ink}
-            fontSize={11}
+            fontSize={HERO_FONT.label}
             style={LABEL}
           >
             {flag}
@@ -164,19 +170,20 @@ function CityBuilding({
 
       <text
         x={rx}
-        y={ry + 4}
+        y={ry + 8}
         textAnchor="middle"
         fill={CITY.heading}
-        fontSize={15}
+        fontFamily={FONTS.heading}
+        fontSize={HERO_FONT.caption}
       >
         {name}
       </text>
       <text
         x={rx}
-        y={ry + 20}
+        y={ry + 30}
         textAnchor="middle"
         fill={CITY.ink}
-        fontSize={11}
+        fontSize={HERO_FONT.label}
         style={LABEL}
       >
         {tag}
@@ -185,9 +192,12 @@ function CityBuilding({
   );
 }
 
-/** Vehicles roll in along the ring road and park at the plaza's one door. */
+/**
+ * Vehicles roll in along the ring road and queue at the plaza's one door, one
+ * tile apart so their names clear each other at the label size.
+ */
 const ARRIVALS = VEHICLES.map((vehicle, i) => {
-  const [x, y] = iso(6.4, 3.2 + i * 0.85);
+  const [x, y] = iso(6.4, 3.2 + i * 1.15);
   return {
     vehicle,
     x,
@@ -216,9 +226,9 @@ export function CityHero() {
             <stop offset="100%" stopColor={CITY.skyLow} />
           </linearGradient>
           <linearGradient id="ic-sky-day" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1d3358" />
-            <stop offset="60%" stopColor="#3c4a70" />
-            <stop offset="100%" stopColor="#7a5a63" />
+            <stop offset="0%" stopColor={CITY.dawnTop} />
+            <stop offset="60%" stopColor={CITY.dawnMid} />
+            <stop offset="100%" stopColor={CITY.dawnLow} />
           </linearGradient>
         </defs>
 
@@ -277,19 +287,20 @@ export function CityHero() {
             />
             <text
               x={PLAZA.roof[0]}
-              y={PLAZA.roof[1] - 26}
+              y={PLAZA.roof[1] - 28}
               textAnchor="middle"
               fill={CITY.heading}
-              fontSize={16}
+              fontFamily={FONTS.heading}
+              fontSize={HERO_FONT.heading}
             >
               Gateway
             </text>
             <text
               x={PLAZA.roof[0]}
-              y={PLAZA.roof[1] + 8}
+              y={PLAZA.roof[1] + 14}
               textAnchor="middle"
               fill={CITY.ink}
-              fontSize={11}
+              fontSize={HERO_FONT.label}
               style={LABEL}
             >
               ONE DOOR
@@ -347,11 +358,11 @@ export function CityHero() {
                 opacity="0.85"
               />
               <text
-                x={x - 8}
-                y={y + 4}
+                x={x - 10}
+                y={y + 6}
                 textAnchor="end"
                 fill={CITY.ink}
-                fontSize={11}
+                fontSize={HERO_FONT.label}
                 style={LABEL}
               >
                 {vehicle.name}
