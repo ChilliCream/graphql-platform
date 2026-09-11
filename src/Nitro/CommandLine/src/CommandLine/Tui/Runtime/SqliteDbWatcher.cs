@@ -34,17 +34,18 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     internal Action? OnBaselineCaptured { get; init; }
 
     /// <summary>
-    /// Invoked synchronously, once per raw file system notification the
-    /// underlying <see cref="FileSystemWatcher"/> delivers for the database
-    /// or <c>-wal</c> file, immediately as <c>OnEvent</c> handles it and
-    /// (re)arms the debounce timer. Test-only seam: nothing observable from
-    /// the published channel alone can tell a caller whether a debounce
-    /// cycle is still in flight, so a test that needs to wait out actual
-    /// notification quiescence (rather than a guessed fixed delay) hooks
-    /// this to learn exactly when the timer was last (re)armed. Production
-    /// behaviour is unchanged; the hook is a no-op unless a caller sets it.
+    /// Invoked synchronously as the first statement of <c>OnTick</c>, before
+    /// any <see cref="ChannelWriter{T}.TryWrite"/> the debounce cycle may go
+    /// on to make. Test-only seam: it fires once per debounce cycle
+    /// regardless of whether that cycle ends up publishing, so a test can
+    /// count debounce cycles and compare that count against the number of
+    /// events actually published, distinguishing a legitimate extra cycle
+    /// (caused by file system notification delivery splitting one burst
+    /// apart) from a real coalescing defect (an event published without a
+    /// matching cycle). Production behaviour is unchanged; the hook is a
+    /// no-op unless a caller sets it.
     /// </summary>
-    internal Action? OnNotificationObserved { get; init; }
+    internal Action? OnDebounceTick { get; init; }
 
     /// <summary>
     /// Watches the database file until <paramref name="cancellationToken"/> is
@@ -101,6 +102,8 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
 
         void OnTick(object? _)
         {
+            OnDebounceTick?.Invoke();
+
             if (mainDatabaseChanged)
             {
                 mainDatabaseChanged = false;
@@ -132,13 +135,11 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
             {
                 mainDatabaseChanged = true;
                 timer.Change(_debounce, Timeout.InfiniteTimeSpan);
-                OnNotificationObserved?.Invoke();
             }
             else if (e.Name == walFileName)
             {
                 walChanged = true;
                 timer.Change(_debounce, Timeout.InfiniteTimeSpan);
-                OnNotificationObserved?.Invoke();
             }
         }
 
