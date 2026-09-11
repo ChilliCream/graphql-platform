@@ -9,9 +9,11 @@ import { BP, DRAFT } from "./palette";
  * drawn on, plus the CSS helpers its scenes animate with.
  *
  * A sheet is a gridded blueprint field inside a drawn frame, closed by a title
- * block that carries the drawing title, its number and its revision. It sizes
- * its lettering in container query units, so the same plate is legible at
- * 1200px and at 320px instead of wrapping or spilling out of the scene.
+ * block that carries the drawing title, its number and its revision. Its
+ * lettering is sized in container query units off an 11px floor, and on a
+ * narrow sheet the frame pulls in and the title block drops its optional
+ * fields, so the drawing keeps its width instead of being squeezed below that
+ * floor by its own chrome.
  *
  * Motion is switched by `data-run`: when it is `false` (off-screen, hidden tab
  * or reduced motion) every animation inside the sheet is dropped, and the base
@@ -64,7 +66,12 @@ ${at + 2}%,100%{opacity:1;transform:none}}`;
 export const SHEET_CSS = `
 .bp-sheet[data-run="false"] *{animation:none!important}
 .bp-sheet text{fill:${BP.ink};font-family:${DRAFT};letter-spacing:0.08em}
-@container (max-width: 28rem){.bp-sheet .bp-tb-wide{display:none}}
+.bp-sheet .bp-frame{margin:1.4em}
+.bp-sheet .bp-tb{padding:0.6em 1em}
+@container (max-width: 28rem){
+.bp-sheet .bp-tb-wide{display:none}
+.bp-sheet .bp-frame{margin:0.4em}
+.bp-sheet .bp-tb{padding:0.35em 0.7em}}
 .bp-sheet .bp-t-dim{fill:${BP.inkDim}}
 .bp-sheet .bp-t-cyan{fill:${BP.dim}}
 .bp-sheet .bp-t-ok{fill:${BP.ok}}
@@ -118,7 +125,7 @@ export function Sheet({
         }}
       >
         <div
-          className="m-[1.4em] flex min-h-0 flex-1 flex-col"
+          className="bp-frame flex min-h-0 flex-1 flex-col"
           style={{ border: `1px solid ${BP.inkFaint}` }}
         >
           <div className="relative min-h-0 flex-1">{children}</div>
@@ -132,19 +139,19 @@ export function Sheet({
             }}
           >
             <div
-              className="bp-tb-wide shrink-0 px-[1em] py-[0.6em]"
+              className="bp-tb bp-tb-wide shrink-0"
               style={{ borderRight: `1px solid ${BP.inkFaint}` }}
             >
               <span style={{ color: BP.inkDim }}>CHILLICREAM</span>
             </div>
             <div
-              className="min-w-0 flex-1 overflow-hidden px-[1em] py-[0.6em]"
+              className="bp-tb min-w-0 flex-1 overflow-hidden"
               style={{ textOverflow: "ellipsis" }}
             >
               {title.toUpperCase()}
             </div>
             <div
-              className="shrink-0 px-[1em] py-[0.6em]"
+              className="bp-tb shrink-0"
               style={{
                 borderLeft: `1px solid ${BP.inkFaint}`,
                 color: BP.inkDim,
