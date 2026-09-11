@@ -639,6 +639,37 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
+    public static ISchemaError BatchResolver_MiddlewareNotSupported(
+        ObjectField field,
+        string middlewareName)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_BatchResolver_MiddlewareNotSupported,
+                field.Coordinate,
+                GetBatchResolverName(field),
+                middlewareName)
+            .SetCode(ErrorCodes.Schema.BatchResolverMiddlewareNotSupported)
+            .SetTypeSystemObject(field.DeclaringType)
+            .SetExtension("fieldCoordinate", field.Coordinate)
+            .SetExtension(nameof(middlewareName), middlewareName)
+            .Build();
+
+    public static ISchemaError BatchResolver_NotAllowedOnMutationField(ObjectField field)
+        => SchemaErrorBuilder.New()
+            .SetMessage(
+                ErrorHelper_BatchResolver_NotAllowedOnMutationField,
+                field.Coordinate,
+                GetBatchResolverName(field))
+            .SetCode(ErrorCodes.Schema.BatchResolverOnMutationField)
+            .SetTypeSystemObject(field.DeclaringType)
+            .SetExtension("fieldCoordinate", field.Coordinate)
+            .Build();
+
+    private static string GetBatchResolverName(ObjectField field)
+        => (field.ResolverMember ?? field.Member) is { } member
+            ? $"{member.DeclaringType?.FullName}.{member.Name}"
+            : field.Coordinate.ToString();
+
     public static ISchemaError MiddlewareOrderInvalid(
         SchemaCoordinate fieldCoordinate,
         TypeSystemObject type,

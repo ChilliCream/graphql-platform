@@ -289,11 +289,11 @@ public class BatchResolverMiddlewareTests
     }
 
     [Fact]
-    public async Task ResolveBatch_Should_IgnoreRegularPipeline_When_RegularResolverAlsoConfigured()
+    public async Task ResolveBatch_Should_RejectRegularMiddleware_When_RegularResolverAlsoConfigured()
     {
         // arrange
         var compiled = 0;
-        var executor = await new ServiceCollection().AddGraphQL()
+        var builder = new ServiceCollection().AddGraphQL()
             .AddQueryType(d => d.Field("value").Type<StringType>()
                 .Resolve("regular")
                 .Use(next =>
@@ -302,15 +302,15 @@ public class BatchResolverMiddlewareTests
                     return next;
                 })
                 .ResolveBatch(contexts => new ValueTask<IReadOnlyList<ResolverResult>>(
-                    contexts.Select(_ => ResolverResult.Ok("batch")).ToArray())))
-            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+                    contexts.Select(_ => ResolverResult.Ok("batch")).ToArray())));
 
         // act
-        await using var result = await executor.ExecuteAsync("{ value }",
-            cancellationToken: TestContext.Current.CancellationToken);
+        var exception = await Assert.ThrowsAsync<SchemaException>(async () =>
+            await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken));
 
         // assert
-        new Snapshot().Add(result, "Result").Add(compiled, "Regular middleware compilations")
+        new Snapshot().Add(exception.Errors.Select(BatchSchemaErrorSnapshot.Create), "Schema errors")
+            .Add(compiled, "Regular middleware compilations")
             .MatchMarkdownSnapshot();
     }
 

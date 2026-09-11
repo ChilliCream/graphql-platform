@@ -155,6 +155,26 @@ public sealed class ObjectField : OutputField
         var options = context.DescriptorContext.Options;
         var isMutation = ((RegisteredType)context).IsMutationType ?? false;
 
+        if (definition.BatchResolver is not null)
+        {
+            if (isMutation)
+            {
+                context.ReportError(BatchResolver_NotAllowedOnMutationField(this));
+            }
+
+            foreach (var component in fieldMiddlewareDefinitions)
+            {
+                if (!HasBatchCounterpart(component.Key))
+                {
+                    context.ReportError(BatchResolver_MiddlewareNotSupported(
+                        this,
+                        Utilities.MiddlewareNames.GetDisplayName(component.Key)
+                            ?? component.Key
+                            ?? "Use(...)"));
+                }
+            }
+        }
+
         if (definition.DependencyInjectionScope.HasValue)
         {
             DependencyInjectionScope = definition.DependencyInjectionScope.Value;
@@ -174,6 +194,15 @@ public sealed class ObjectField : OutputField
             for (var i = Directives.Count - 1; i >= 0; i--)
             {
                 var directive = Directives[i];
+
+                if (definition.BatchResolver is not null
+                    && directive.Type.Middleware is not null
+                    && directive.Type.BatchMiddleware is null)
+                {
+                    context.ReportError(BatchResolver_MiddlewareNotSupported(
+                        this,
+                        "@" + directive.Type.Name));
+                }
 
                 if (directive.Type.Middleware is { } m)
                 {
@@ -280,6 +309,22 @@ public sealed class ObjectField : OutputField
             => skipMiddleware
                 || (context.GlobalComponents.Count == 0
                     && fieldMiddlewareDefinitions.Count == 0);
+
+        bool HasBatchCounterpart(string? key)
+        {
+            if (key is not null)
+            {
+                foreach (var component in batchMiddlewareDefinitions)
+                {
+                    if (string.Equals(key, component.Key, StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         static Type GetResultType(ObjectFieldConfiguration definition, Type runtimeType)
         {

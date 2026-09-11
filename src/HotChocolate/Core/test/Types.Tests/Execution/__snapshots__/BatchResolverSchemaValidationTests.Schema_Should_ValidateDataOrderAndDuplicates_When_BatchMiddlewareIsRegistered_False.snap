@@ -1,0 +1,14 @@
+[
+  {
+    "Code": "HC0050",
+    "Message": "The middleware pipeline order for the field `Query.value` is invalid. Middleware order is important especially with data pipelines. The correct order of a data pipeline is as follows: UseDbContext -> UsePaging -> UseProjection -> UseFiltering -> UseSorting. You may omit any of these middleware or have other middleware in between but you need to abide by the overall order. Your order is: UseSorting -> UsePaging.",
+    "Extensions": {
+      "fieldCoordinate": {
+        "OfDirective": false,
+        "Name": "Query",
+        "MemberName": "value",
+        "ArgumentName": null
+      }
+    }
+  }
+]

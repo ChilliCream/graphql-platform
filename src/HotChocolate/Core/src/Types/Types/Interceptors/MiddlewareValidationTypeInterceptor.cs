@@ -26,6 +26,15 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
                         new SchemaCoordinate(completionContext.Type.Name, field.Name),
                         field.MiddlewareConfigurations);
                 }
+
+                var batchMiddleware = field.GetBatchMiddlewareDefinitions();
+                if (batchMiddleware.Count > 1)
+                {
+                    ValidatePipeline(
+                        completionContext.Type,
+                        new SchemaCoordinate(completionContext.Type.Name, field.Name),
+                        batchMiddleware);
+                }
             }
         }
     }
@@ -33,7 +42,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     private void ValidatePipeline(
         TypeSystemObject type,
         SchemaCoordinate fieldCoordinate,
-        IList<FieldMiddlewareConfiguration> middlewareDefinitions)
+        IEnumerable<IRepeatableConfiguration> middlewareDefinitions)
     {
         _names.Clear();
 
@@ -131,7 +140,7 @@ internal sealed class MiddlewareValidationTypeInterceptor : TypeInterceptor
     }
 
     private static string PrintPipeline(
-        IList<FieldMiddlewareConfiguration> middlewareDefinitions)
+        IEnumerable<IRepeatableConfiguration> middlewareDefinitions)
     {
         var sb = new StringBuilder();
         var next = false;

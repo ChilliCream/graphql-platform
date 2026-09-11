@@ -41,7 +41,12 @@ internal sealed class IsSelectedParameterExpressionBuilder
         var attribute = parameter.GetCustomAttribute<IsSelectedAttribute>()!;
 
         ApplyPatternConfiguration(attribute, descriptor);
-        ApplyMiddleware(attribute, parameter.Name!, descriptor);
+
+        var configuration = descriptor.Extend().Configuration;
+        if (!configuration.IsBatchResolver && configuration.BatchResolver is null)
+        {
+            ApplyMiddleware(attribute, parameter.Name!, descriptor);
+        }
     }
 
     public void ApplyConfiguration(ParameterDescriptor parameter, ObjectFieldDescriptor descriptor)

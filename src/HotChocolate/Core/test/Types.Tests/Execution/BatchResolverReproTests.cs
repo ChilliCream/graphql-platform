@@ -303,14 +303,10 @@ public class BatchResolverReproTests
     }
 
     [Fact]
-    public async Task Use_FieldMiddleware_Should_Apply_When_FieldIsBatchResolved()
+    public async Task Schema_Should_RejectFieldMiddleware_When_FieldIsBatchResolved()
     {
-        // act
-        // REPRO: descriptor .Use(...) field middleware on a batch field is dead code.
-        // The batch strategy never invokes the regular field pipeline, so the result is
-        // never rewritten. A default user expects the middleware to wrap the value.
-        var result =
-            await new ServiceCollection()
+        // arrange
+        var builder = new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(d =>
                 {
@@ -345,33 +341,14 @@ public class BatchResolverReproTests
 
                             return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                         });
-                })
-                .ExecuteRequestAsync(
-                    """
-                    {
-                        users {
-                            greeting
-                        }
-                    }
-                    """,
-                    cancellationToken: TestContext.Current.CancellationToken);
+                });
+
+        // act
+        var exception = await Assert.ThrowsAsync<SchemaException>(async () =>
+            await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken));
 
         // assert
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "users": [
-                  {
-                    "greeting": "wrapped(Hello, Alice!)"
-                  },
-                  {
-                    "greeting": "wrapped(Hello, Bob!)"
-                  }
-                ]
-              }
-            }
-            """);
+        exception.Errors.Select(BatchSchemaErrorSnapshot.Create).MatchSnapshot();
     }
 
     [Fact]
@@ -561,17 +538,12 @@ public class BatchResolverReproTests
     }
 
     [Fact]
-    public async Task BatchResolver_Should_Preserve_Serial_Order_When_MutationRootField()
+    public async Task Schema_Should_RejectBatchResolver_When_MutationRootField()
     {
         // arrange
-        // REPRO: a batch resolver on a mutation root field bypasses serial mutation
-        // execution. InferStrategy gives Batch precedence over Serial, so the batch field
-        // dispatches before its serial siblings regardless of document order.
         MutationLog.Entries.Clear();
 
-        // act
-        var result =
-            await new ServiceCollection()
+        var builder = new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(d => d.Name("Query").Field("noop").Resolve("noop"))
                 .AddMutationType(d =>
@@ -602,31 +574,15 @@ public class BatchResolverReproTests
 
                             return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                         });
-                })
-                .ExecuteRequestAsync(
-                    """
-                    mutation {
-                        a: appendLog(s: "1")
-                        b: batchAppendLog(s: "2")
-                        c: appendLog(s: "3")
-                    }
-                    """,
-                    cancellationToken: TestContext.Current.CancellationToken);
+                });
+
+        // act
+        var exception = await Assert.ThrowsAsync<SchemaException>(async () =>
+            await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken));
 
         // assert
-        // Per the GraphQL spec top-level mutation fields execute serially in document
-        // order, so the log must be [1, 2, 3]. Today the batch field runs first ([2, 1, 3]).
-        Assert.Equal(["1", "2", "3"], MutationLog.Entries);
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "a": "1",
-                "b": "2",
-                "c": "3"
-              }
-            }
-            """);
+        Assert.Empty(MutationLog.Entries);
+        exception.Errors.Select(BatchSchemaErrorSnapshot.Create).MatchSnapshot();
     }
 
     [Fact]

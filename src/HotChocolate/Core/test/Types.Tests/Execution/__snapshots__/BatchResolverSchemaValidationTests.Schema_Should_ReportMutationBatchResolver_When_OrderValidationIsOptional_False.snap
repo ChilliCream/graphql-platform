@@ -1,0 +1,14 @@
+[
+  {
+    "Code": "HC0135",
+    "Message": "The mutation field `Mutation.value` cannot be resolved by the batch resolver 'Mutation.value'. Top-level mutation fields execute serially, one field at a time, so there is never more than one parent to batch. Use a standard resolver instead.",
+    "Extensions": {
+      "fieldCoordinate": {
+        "OfDirective": false,
+        "Name": "Mutation",
+        "MemberName": "value",
+        "ArgumentName": null
+      }
+    }
+  }
+]
