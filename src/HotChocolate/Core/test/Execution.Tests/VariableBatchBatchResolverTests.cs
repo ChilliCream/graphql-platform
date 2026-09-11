@@ -1,59 +1,107 @@
-using System.Text.Json;
+using CookieCrumble;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
-// REPRO tests for the known break "variable batching coalesces batch fields across variable
-// sets and coerces every set's arguments with set 0's variables". All per-set OperationContexts
-// share the first set's WorkScheduler, so identical Selection/FieldSelectionPath instances
-// coalesce into ONE BatchResolverTask whose contexts coerce arguments through set 0's variables.
-// Sets 1..N-1 silently receive set 0's argument values. These tests assert each set gets its
-// own correct data and therefore fail today.
 public class VariableBatchBatchResolverTests
 {
-    [Fact]
-    public async Task VariableBatch_Should_Resolve_PerSet_Arguments_When_FieldIsBatchResolved()
+    [Theory]
+    [InlineData("none", 0)]
+    [InlineData("null", 1)]
+    [InlineData("null", 2)]
+    [InlineData("error", 2)]
+    [InlineData("throw", 0)]
+    [InlineData("partition", 0)]
+    [InlineData("partition", 1)]
+    [InlineData("partition", 2)]
+    public async Task VariableBatch_Should_Complete_In_Owning_Context_When_Batch_Entries_Succeed_Or_Fail(
+        string failure,
+        int failingId)
     {
         // arrange
-        var executor =
-            await new ServiceCollection()
-                .AddGraphQL()
-                .AddQueryType(d =>
-                {
-                    d.Name("Query");
-                    d.Field("productById")
-                        .Argument("id", a => a.Type<NonNullType<IntType>>())
-                        .Type<ObjectType<BatchProduct>>()
-                        .ResolveBatch(contexts =>
-                        {
-                            var results = new ResolverResult[contexts.Count];
+        var batchSizes = new List<int>();
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                var field = d.Field("productById")
+                    .Argument("id", a => a.Type<NonNullType<IntType>>())
+                    .Type<NonNullType<ObjectType<BatchProduct>>>()
+                    .ResolveBatch(contexts =>
+                    {
+                        batchSizes.Add(contexts.Count);
 
-                            for (var i = 0; i < contexts.Count; i++)
+                        if (failure == "throw")
+                        {
+                            throw new InvalidOperationException("Batch failed.");
+                        }
+
+                        var results = new ResolverResult[contexts.Count];
+
+                        for (var i = 0; i < contexts.Count; i++)
+                        {
+                            var id = contexts[i].ArgumentValue<int>("id");
+
+                            if (id == failingId)
                             {
-                                var id = contexts[i].ArgumentValue<int>("id");
+                                if (failure == "error")
+                                {
+                                    contexts[i].ReportError($"Product {id} failed.");
+                                }
+
+                                results[i] = ResolverResult.Ok(null);
+                            }
+                            else
+                            {
                                 results[i] = ResolverResult.Ok(new BatchProduct(id, $"Product {id}"));
                             }
+                        }
 
-                            return new ValueTask<IReadOnlyList<ResolverResult>>(results);
-                        });
-                })
-                .AddObjectType<BatchProduct>(d =>
+                        return new ValueTask<IReadOnlyList<ResolverResult>>(results);
+                    });
+
+                if (failure == "partition")
                 {
-                    d.Field(p => p.Id);
-                    d.Field(p => p.Name);
-                })
-                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+                    field.Extend().Configuration.BatchPartitionKeyResolver = context =>
+                    {
+                        var id = context.ArgumentValue<int>("id");
+
+                        if (id == failingId)
+                        {
+                            throw new InvalidOperationException($"Partition {id} failed.");
+                        }
+
+                        return (ulong)id;
+                    };
+                }
+            })
+            .AddObjectType<BatchProduct>(d =>
+            {
+                d.Field(p => p.Id);
+                d.Field(p => p.Name);
+                d.Field("argument")
+                    .Argument("id", a => a.Type<NonNullType<IntType>>())
+                    .Type<NonNullType<IntType>>()
+                    .Resolve(async context =>
+                    {
+                        await Task.Yield();
+                        return context.ArgumentValue<int>("id");
+                    });
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var result = await executor.ExecuteAsync(
+        await using var result = await executor.ExecuteAsync(
             OperationRequestBuilder.New()
                 .SetDocument(
                     """
                     query($id: Int!) {
                         productById(id: $id) {
                             name
+                            argument(id: $id)
                         }
                     }
                     """)
@@ -64,25 +112,15 @@ public class VariableBatchBatchResolverTests
                         new Dictionary<string, object?> { { "id", 2 } }
                     })
                 .Build(),
-                cancellationToken: TestContext.Current.CancellationToken);
+            cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        // Each variable set must execute with its own $id, so set 0 yields Product 1 and set 1
-        // yields Product 2. Today both results return Product 1 (set 0's coerced argument).
         var batch = Assert.IsType<OperationResultBatch>(result);
-        var names = batch.Results.Select(GetProductName).ToArray();
-        Assert.Equal(new[] { "Product 1", "Product 2" }, names);
-    }
-
-    private static string? GetProductName(IExecutionResult result)
-    {
-        var json = Assert.IsType<OperationResult>(result).ToJson();
-        using var document = JsonDocument.Parse(json);
-        return document.RootElement
-            .GetProperty("data")
-            .GetProperty("productById")
-            .GetProperty("name")
-            .GetString();
+        new Snapshot(postFix: $"{failure}_{failingId}")
+            .Add(batch.Results[0], "Set 0")
+            .Add(batch.Results[1], "Set 1")
+            .Add(batchSizes, "Batch sizes")
+            .MatchMarkdownSnapshot();
     }
 
     public record BatchProduct(int Id, string Name);

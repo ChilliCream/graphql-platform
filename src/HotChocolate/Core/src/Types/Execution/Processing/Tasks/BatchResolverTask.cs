@@ -28,7 +28,8 @@ internal sealed class BatchResolverTask : IResolverTask
     private readonly ObjectPool<Dictionary<string, ArgumentValue>> _argumentMapPool;
     private readonly HashSet<int> _branchIds = [];
     private ExecutionTaskStatus _completionStatus = ExecutionTaskStatus.Completed;
-    private OperationContext _operationContext = null!;
+    private WorkScheduler _scheduler = null!;
+    private IExecutionDiagnosticEvents _diagnosticEvents = null!;
     private ObjectField _field = null!;
     private SelectionPath _selectionPath = null!;
     private int _branchId;
@@ -64,9 +65,7 @@ internal sealed class BatchResolverTask : IResolverTask
     internal DeferUsage? DeferUsage { get; private set; }
 
     /// <inheritdoc />
-    public IExecutionTaskContext Context => _operationContext;
-
-    private IExecutionDiagnosticEvents DiagnosticEvents => _operationContext.DiagnosticEvents;
+    public IExecutionTaskContext Context => _entries[0].OperationContext;
 
     /// <summary>
     /// Gets the selection path this batch task is associated with.
@@ -112,13 +111,14 @@ internal sealed class BatchResolverTask : IResolverTask
     /// Called during value completion when a batch field is encountered.
     /// </summary>
     internal bool AddEntry(
+        OperationContext operationContext,
         object? parent,
         Selection selection,
         ResultElement resultValue,
         IImmutableDictionary<string, object?> scopedContextData,
         int branchId)
     {
-        _entries.Add(new BatchEntry(parent, selection, resultValue, scopedContextData, branchId));
+        _entries.Add(new BatchEntry(operationContext, parent, selection, resultValue, scopedContextData, branchId));
         return _branchIds.Add(branchId);
     }
 
@@ -128,7 +128,7 @@ internal sealed class BatchResolverTask : IResolverTask
 
         try
         {
-            using (DiagnosticEvents.ResolveFieldValue(contexts[0]))
+            using (_diagnosticEvents.ResolveFieldValue(contexts[0]))
             {
                 var success = await TryExecuteAsync(contexts, cancellationToken).ConfigureAwait(false);
                 CompleteValues(success, contexts, cancellationToken);
@@ -139,11 +139,11 @@ internal sealed class BatchResolverTask : IResolverTask
                         break;
 
                     case 1:
-                        _operationContext.Scheduler.Register(_taskBuffer[0]);
+                        _scheduler.Register(_taskBuffer[0]);
                         break;
 
                     default:
-                        _operationContext.Scheduler.Register(
+                        _scheduler.Register(
                             CollectionsMarshal.AsSpan(_taskBuffer));
                         break;
                 }
@@ -166,7 +166,7 @@ internal sealed class BatchResolverTask : IResolverTask
         }
         finally
         {
-            _operationContext.Scheduler.Complete(this);
+            _scheduler.Complete(this);
 
             for (var i = 0; i < contexts.Length; i++)
             {
@@ -287,10 +287,10 @@ internal sealed class BatchResolverTask : IResolverTask
             // we only use a single service scope for all contexts
             // as they all run in the same resolver.
             var first = Unsafe.As<MiddlewareContext>(contexts[0]);
-            var serviceScope = _operationContext.Services.CreateAsyncScope();
+            var serviceScope = first.RequestServices.CreateAsyncScope();
             first.Services = serviceScope.ServiceProvider;
             first.RegisterForCleanup(serviceScope.DisposeAsync);
-            _operationContext.ServiceScopeInitializer.Initialize(
+            _entries[0].OperationContext.ServiceScopeInitializer.Initialize(
                 first, first.RequestServices, first.Services);
 
             for (var i = 1; i < contexts.Length; i++)
@@ -329,7 +329,7 @@ internal sealed class BatchResolverTask : IResolverTask
 
             for (var i = 0; i < contexts.Length; i++)
             {
-                var key = TryPartition(partitioner, contexts[i], cancellationToken, out var faulted);
+                var key = TryPartition(partitioner, _entries[i].OperationContext, contexts[i], cancellationToken, out var faulted);
 
                 if (faulted)
                 {
@@ -446,6 +446,7 @@ internal sealed class BatchResolverTask : IResolverTask
     /// </summary>
     private ulong TryPartition(
         BatchPartitionKeyResolver partitioner,
+        OperationContext operationContext,
         IMiddlewareContext context,
         CancellationToken cancellationToken,
         out bool faulted)
@@ -478,7 +479,7 @@ internal sealed class BatchResolverTask : IResolverTask
                 middlewareContext.Result = null;
             }
 
-            CompleteValue(middlewareContext, success: true, cancellationToken);
+            CompleteValue(operationContext, middlewareContext, success: true, cancellationToken);
             return 0;
         }
     }
@@ -638,17 +639,19 @@ internal sealed class BatchResolverTask : IResolverTask
                 continue;
             }
 
-            CompleteValue(Unsafe.As<MiddlewareContext>(context), success, cancellationToken);
+            CompleteValue(_entries[i].OperationContext, Unsafe.As<MiddlewareContext>(context), success, cancellationToken);
         }
     }
 
     private void CompleteValue(
+        OperationContext operationContext,
         MiddlewareContext context,
         bool success,
         CancellationToken cancellationToken)
     {
         var resultValue = context.ResultValue;
         var result = context.Result;
+        var taskCount = _taskBuffer.Count;
 
         try
         {
@@ -657,7 +660,7 @@ internal sealed class BatchResolverTask : IResolverTask
             {
                 var completionContext =
                     new ValueCompletionContext(
-                        _operationContext,
+                        operationContext,
                         context,
                         _taskBuffer,
                         context.BranchId);
@@ -684,7 +687,7 @@ internal sealed class BatchResolverTask : IResolverTask
 
         if (resultValue is { IsNullable: false, IsNullOrInvalidated: true })
         {
-            if (_operationContext.PropagateNullValues)
+            if (operationContext.PropagateNullValues)
             {
                 PropagateNullValues(resultValue);
             }
@@ -694,8 +697,8 @@ internal sealed class BatchResolverTask : IResolverTask
             }
 
             _completionStatus = ExecutionTaskStatus.Faulted;
-            _operationContext.Result.AddNonNullViolation(context.Path);
-            _taskBuffer.Clear();
+            operationContext.Result.AddNonNullViolation(context.Path);
+            _taskBuffer.RemoveRange(taskCount, _taskBuffer.Count - taskCount);
         }
     }
 
@@ -707,7 +710,7 @@ internal sealed class BatchResolverTask : IResolverTask
         {
             var entry = _entries[i];
             var resolverTask =
-                _operationContext.CreateResolverTask(
+                entry.OperationContext.CreateResolverTask(
                     entry.Parent,
                     entry.Selection,
                     entry.ResultValue,
@@ -745,7 +748,8 @@ internal sealed class BatchResolverTask : IResolverTask
         int branchId,
         DeferUsage? deferUsage)
     {
-        _operationContext = operationContext;
+        _scheduler = operationContext.Scheduler;
+        _diagnosticEvents = operationContext.DiagnosticEvents;
         _field = field;
         _selectionPath = selectionPath;
         _branchId = branchId;
@@ -770,7 +774,8 @@ internal sealed class BatchResolverTask : IResolverTask
 
         _rentedArgs.Clear();
         _branchIds.Clear();
-        _operationContext = null!;
+        _scheduler = null!;
+        _diagnosticEvents = null!;
         _field = null!;
         _selectionPath = null!;
         _branchId = 0;
@@ -785,9 +790,10 @@ internal sealed class BatchResolverTask : IResolverTask
     }
 
     /// <summary>
-    /// Represents a single entry in the batch — one parent object and its result location.
+    /// Represents a parent object and its result location in the owning operation context.
     /// </summary>
     private readonly record struct BatchEntry(
+        OperationContext OperationContext,
         object? Parent,
         Selection Selection,
         ResultElement ResultValue,

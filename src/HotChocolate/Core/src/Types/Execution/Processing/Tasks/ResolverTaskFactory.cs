@@ -62,6 +62,7 @@ internal static class ResolverTaskFactory
                     if (selection.Strategy is SelectionExecutionStrategy.Batch)
                     {
                         scheduler.RegisterBatchEntry(
+                            operationContext,
                             selection,
                             parent,
                             field.Value,
@@ -118,6 +119,7 @@ internal static class ResolverTaskFactory
                     if (selection.Strategy is SelectionExecutionStrategy.Batch)
                     {
                         scheduler.RegisterBatchEntry(
+                            operationContext,
                             selection,
                             parent,
                             field.Value,
@@ -235,6 +237,7 @@ internal static class ResolverTaskFactory
                 else if (selection.Strategy is SelectionExecutionStrategy.Batch)
                 {
                     operationContext.Scheduler.RegisterBatchEntry(
+                        operationContext,
                         selection,
                         parent,
                         field.Value,
@@ -273,6 +276,7 @@ internal static class ResolverTaskFactory
                 else if (selection.Strategy is SelectionExecutionStrategy.Batch)
                 {
                     operationContext.Scheduler.RegisterBatchEntry(
+                        operationContext,
                         selection,
                         parent,
                         field.Value,

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using CookieCrumble;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
@@ -7,12 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
 
-// REPRO tests for the known break "batch field directly inside a @defer fragment faults at
-// runtime". ResolverTaskFactory routes deferred selections to a DeferTask before checking the
-// batch strategy, so the batch-only field hits the throwing empty resolver pipeline and the
-// deferred payload delivers an error instead of the field's data. The relay node/nodes fields
-// are batch-only on this branch and are hit the same way. These tests assert the post-fix
-// behavior (data delivered, no errors) and therefore fail today.
 public class BatchResolverDeferTests
 {
     [Fact]
@@ -111,6 +106,72 @@ public class BatchResolverDeferTests
         var (errors, data) = await DrainAsync(result);
         Assert.Empty(errors);
         Assert.Contains("\"name\":\"abc\"", data);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Defer_Should_Report_Error_In_Owning_Payload_When_Batch_Entry_Fails(bool reportError)
+    {
+        // arrange
+        var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Field("immediate").Resolve("ready");
+                d.Field("product")
+                    .Type<NonNullType<StringType>>()
+                    .ResolveBatch(async contexts =>
+                    {
+                        await release.Task.WaitAsync(TestContext.Current.CancellationToken);
+
+                        if (reportError)
+                        {
+                            contexts[0].ReportError("Deferred product failed.");
+                        }
+
+                        return new[] { ResolverResult.Ok(null) };
+                    });
+            })
+            .ModifyOptions(o => o.EnableDefer = true)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = await executor.ExecuteAsync(
+            "{ immediate ... @defer(label: \"product\") { product } }",
+            cancellationToken: TestContext.Current.CancellationToken);
+        var payloads = await DrainPayloadsAsync(result, release)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        var snapshot = new Snapshot(postFix: reportError.ToString());
+
+        foreach (var payload in payloads)
+        {
+            snapshot.Add(payload, "Payload", "json");
+        }
+
+        snapshot.MatchMarkdownSnapshot();
+    }
+
+    private static async Task<List<string>> DrainPayloadsAsync(
+        IExecutionResult result,
+        TaskCompletionSource release)
+    {
+        var payloads = new List<string>();
+        var stream = Assert.IsType<ResponseStream>(result);
+
+        await foreach (var response in stream.ReadResultsAsync())
+        {
+            await using (response)
+            {
+                payloads.Add(response.ToJson());
+                release.TrySetResult();
+            }
+        }
+
+        return payloads;
     }
 
     private static async Task<(List<string> errors, string data)> DrainAsync(IExecutionResult result)

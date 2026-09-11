@@ -17,6 +17,7 @@ internal sealed partial class WorkScheduler
     /// Registers work to be executed as part of a batch resolver task.
     /// </summary>
     public void RegisterBatchEntry(
+        OperationContext entryContext,
         Selection selection,
         object? parent,
         ResultElement resultValue,
@@ -42,10 +43,23 @@ internal sealed partial class WorkScheduler
                 IncrementPathCountUnsafe(selection.FieldSelectionPath);
             }
 
-            if (batchTask.AddEntry(parent, selection, resultValue, scopedContextData, branchId))
+            if (batchTask.AddEntry(entryContext, parent, selection, resultValue, scopedContextData, branchId))
             {
                 RegisterBranchTaskUnsafe(branchId);
             }
+        }
+    }
+
+    /// <summary>
+    /// Dispatches pending batches whose ancestor paths have completed.
+    /// </summary>
+    internal void DispatchPendingBatches()
+    {
+        AssertNotPooled();
+
+        lock (_sync)
+        {
+            TryDispatchPendingBatchesUnsafe();
         }
     }
 
