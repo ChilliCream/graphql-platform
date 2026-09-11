@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { drawStyle, fadeStyle, HAND, MARKER, PAPER } from "./palette";
+import { drawStyle, fadeStyle, FONT, HAND, MARKER, PAPER } from "./palette";
 import { Folio, PaperGround, Wobble } from "./Sketch";
 
 /**
@@ -12,6 +12,10 @@ import { Folio, PaperGround, Wobble } from "./Sketch";
  * breaking, next to the risky and safe ones.
  *
  * Rest state: the change ticked, every operation highlighted and judged.
+ *
+ * Every line is lettered in `FONT` units, so the smallest one still reads at
+ * the site's 11px label on a 375px screen; the two boxes and the operation
+ * rows are spaced for that lettering.
  */
 
 const CSS = `
@@ -78,6 +82,8 @@ const VERDICT_COLOR: Record<Operation["verdict"], string> = {
 const ROW_TOP = 250;
 const ROW_H = 60;
 const ROW_GAP = 14;
+/** The change on the left, what the change cannot see on the right. */
+const BOX = { left: 20, leftW: 320, right: 350, rightW: 270, h: 150 };
 
 const rowY = (i: number) => ROW_TOP + i * (ROW_H + ROW_GAP);
 
@@ -101,38 +107,56 @@ export function HighlighterOps() {
         </Folio>
 
         {/* The schema change, and the build that stays green */}
-        <g transform="translate(20 48)">
+        <g transform={`translate(${BOX.left} 48)`}>
           <rect
-            width={286}
-            height={150}
+            width={BOX.leftW}
+            height={BOX.h}
             fill={PAPER.sheet}
             stroke={PAPER.ink}
             strokeWidth={2}
             filter="url(#ed-hi-wob2)"
           />
-          <text x={18} y={36} fill={PAPER.ink} fontSize={19} style={MARKER}>
+          <text
+            x={18}
+            y={36}
+            fill={PAPER.ink}
+            fontSize={FONT.heading}
+            style={MARKER}
+          >
             schema change
           </text>
-          <text x={18} y={70} fill={PAPER.inkSoft} fontSize={16} style={HAND}>
+          <text
+            x={18}
+            y={70}
+            fill={PAPER.inkSoft}
+            fontSize={FONT.caption}
+            style={HAND}
+          >
             {REMOVED}
           </text>
           <path
             className="ed-hi-draw"
             style={drawStyle(150, 0.4)}
-            d="M14 64 C 60 60, 110 70, 168 64"
+            d="M14 64 C 70 60, 140 70, 214 64"
             fill="none"
             stroke={PAPER.red}
             strokeWidth={2.6}
             strokeLinecap="round"
             filter="url(#ed-hi-wob)"
           />
-          <text x={18} y={98} fill={PAPER.pencil} fontSize={15} style={HAND}>
+          <text
+            x={18}
+            y={98}
+            fill={PAPER.pencil}
+            fontSize={FONT.label}
+            style={HAND}
+          >
             field removed by the team
           </text>
           <g
             className="ed-hi-draw"
             style={drawStyle(46, 1.2)}
-            transform="translate(18 112)"
+            transform="translate(14 104)"
           >
             <path
               d="M0 10 l9 11 l19 -24"
@@ -143,35 +167,59 @@ export function HighlighterOps() {
               strokeLinejoin="round"
             />
           </g>
-          <text x={56} y={128} fill={PAPER.green} fontSize={16} style={HAND}>
+          <text
+            x={44}
+            y={124}
+            fill={PAPER.green}
+            fontSize={FONT.label}
+            style={HAND}
+          >
             composition still passes
           </text>
         </g>
 
         {/* What federation cannot see: who still asks for it */}
-        <g transform="translate(330 48)">
+        <g transform={`translate(${BOX.right} 48)`}>
           <rect
-            width={286}
-            height={150}
+            width={BOX.rightW}
+            height={BOX.h}
             fill={PAPER.sheet}
             stroke={PAPER.pencil}
             strokeWidth={1.8}
             strokeDasharray="8 8"
             filter="url(#ed-hi-wob2)"
           />
-          <text x={18} y={36} fill={PAPER.pencil} fontSize={19} style={MARKER}>
+          <text
+            x={18}
+            y={36}
+            fill={PAPER.pencil}
+            fontSize={FONT.heading}
+            style={MARKER}
+          >
             out of sight
           </text>
-          <text x={18} y={70} fill={PAPER.pencil} fontSize={15} style={HAND}>
-            a client the subgraph team
+          <text
+            x={18}
+            y={74}
+            fill={PAPER.pencil}
+            fontSize={FONT.label}
+            style={HAND}
+          >
+            a client the subgraph
           </text>
-          <text x={18} y={92} fill={PAPER.pencil} fontSize={15} style={HAND}>
-            never sees
+          <text
+            x={18}
+            y={98}
+            fill={PAPER.pencil}
+            fontSize={FONT.label}
+            style={HAND}
+          >
+            team never sees
           </text>
           <path
             className="ed-hi-draw"
             style={drawStyle(200, 1.8)}
-            d="M40 112 C 96 132, 180 128, 246 110"
+            d="M40 120 C 90 138, 170 134, 232 116"
             fill="none"
             stroke={PAPER.pencil}
             strokeWidth={2}
@@ -181,7 +229,7 @@ export function HighlighterOps() {
           <path
             className="ed-hi-in"
             style={fadeStyle(2.6)}
-            d="M246 110 l-16 -3 M246 110 l-11 11"
+            d="M232 116 l-16 -3 M232 116 l-11 11"
             fill="none"
             stroke={PAPER.pencil}
             strokeWidth={2}
@@ -189,7 +237,13 @@ export function HighlighterOps() {
           />
         </g>
 
-        <text x={20} y={230} fill={PAPER.ink} fontSize={20} style={MARKER}>
+        <text
+          x={20}
+          y={230}
+          fill={PAPER.ink}
+          fontSize={FONT.heading}
+          style={MARKER}
+        >
           operations real clients publish
         </text>
 
@@ -205,23 +259,23 @@ export function HighlighterOps() {
                 x={20}
                 y={y + 6}
                 width={430}
-                height={30}
+                height={34}
                 fill={PAPER.highlight}
               />
               <text
                 x={28}
-                y={y + 28}
+                y={y + 30}
                 fill={PAPER.ink}
-                fontSize={17}
+                fontSize={FONT.caption}
                 style={HAND}
               >
                 {`${op.client} · ${op.name}`}
               </text>
               <text
                 x={28}
-                y={y + 50}
+                y={y + 54}
                 fill={PAPER.inkSoft}
-                fontSize={13}
+                fontSize={FONT.label}
                 style={HAND}
               >
                 {`asks for ${op.asks}`}
@@ -231,7 +285,7 @@ export function HighlighterOps() {
                   x={472}
                   y={y + 34}
                   fill={VERDICT_COLOR[op.verdict]}
-                  fontSize={20}
+                  fontSize={FONT.caption}
                   style={HAND}
                 >
                   {op.verdict}
@@ -240,7 +294,7 @@ export function HighlighterOps() {
                   <path
                     className="ed-hi-draw"
                     style={drawStyle(140, 5.6)}
-                    d={`M468 ${y + 44} C 502 ${y + 50}, 548 ${y + 38}, 590 ${y + 46}`}
+                    d={`M468 ${y + 46} C 502 ${y + 52}, 548 ${y + 40}, 590 ${y + 48}`}
                     fill="none"
                     stroke={PAPER.red}
                     strokeWidth={2.4}
