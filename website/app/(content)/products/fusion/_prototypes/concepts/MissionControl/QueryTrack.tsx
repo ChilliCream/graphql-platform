@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { useCycle, useSceneMotion } from "./hooks";
 import { MC, specTag } from "./palette";
 
@@ -12,6 +13,8 @@ import { MC, specTag } from "./palette";
 
 const W = 640;
 const H = 440;
+/** The scene box mirrors the viewBox, so the console never letterboxes. */
+export const QUERY_TRACK_RATIO = `${W} / ${H}`;
 /** 0 arms the run, 5 is the rest frame: plan resolved, one response leaving. */
 const PHASES = 6;
 const REST = 5;
@@ -82,7 +85,7 @@ export function QueryTrack() {
         y={CLIENT.y - 22}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="11"
+        fontSize={TYPE.label}
         letterSpacing="0.16em"
       >
         MOBILE
@@ -92,7 +95,7 @@ export function QueryTrack() {
         y={CLIENT.y + 32}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         letterSpacing="0.14em"
       >
         ONE QUERY
@@ -113,7 +116,7 @@ export function QueryTrack() {
         y={GATE.y + 26}
         fill={MC.ink}
         fontFamily={MC.mono}
-        fontSize="12"
+        fontSize={TYPE.caption}
         letterSpacing="0.2em"
       >
         GATEWAY
@@ -123,8 +126,8 @@ export function QueryTrack() {
         y={GATE.y + 44}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="10"
-        letterSpacing="0.14em"
+        fontSize={TYPE.label}
+        letterSpacing="0.04em"
       >
         ONE ENDPOINT · QUERY PLAN
       </text>
@@ -139,7 +142,7 @@ export function QueryTrack() {
               y={y}
               fill={MC.ink}
               fontFamily={MC.mono}
-              fontSize="11"
+              fontSize={TYPE.label}
             >
               {row.field}
             </text>
@@ -148,7 +151,7 @@ export function QueryTrack() {
               y={y + 18}
               fill={resolved ? MC.phosphor : MC.dim}
               fontFamily={MC.mono}
-              fontSize="10"
+              fontSize={TYPE.label}
               letterSpacing="0.14em"
               style={{ transition: "fill 400ms ease" }}
             >
@@ -163,7 +166,7 @@ export function QueryTrack() {
         y={GATE.y + GATE.h - 18}
         fill={MC.phosphor}
         fontFamily={MC.mono}
-        fontSize="11"
+        fontSize={TYPE.label}
         letterSpacing="0.14em"
       >
         {`LATENCY ${latency} ms`}
@@ -197,7 +200,7 @@ export function QueryTrack() {
               y={y - 8}
               fill={MC.ink}
               fontFamily={MC.mono}
-              fontSize="12"
+              fontSize={TYPE.caption}
               letterSpacing="0.14em"
             >
               {row.station.toUpperCase()}
@@ -207,8 +210,8 @@ export function QueryTrack() {
               y={y + 10}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize="9"
-              letterSpacing="0.14em"
+              fontSize={TYPE.label}
+              letterSpacing="0.06em"
             >
               {`${row.language} · ${specTag(row.spec)}`}
             </text>
@@ -217,8 +220,8 @@ export function QueryTrack() {
               y={y + 24}
               fill={phase >= 4 ? MC.phosphor : MC.dim}
               fontFamily={MC.mono}
-              fontSize="9"
-              letterSpacing="0.14em"
+              fontSize={TYPE.label}
+              letterSpacing="0.02em"
               style={{ transition: "fill 400ms ease" }}
             >
               {phase >= 4 ? "PARTIAL RESULT RETURNED" : "SUBGRAPH STANDING BY"}
@@ -268,7 +271,7 @@ export function QueryTrack() {
         y={H - 16}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         letterSpacing="0.16em"
         textAnchor="end"
       >
