@@ -1,0 +1,93 @@
+title: Node_Fields_Should_NotBeInQueryIntrospection_When_MarkedInaccessible
+request:
+  document: |
+    {
+      __type(name: "Query") {
+        fields {
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__type": {
+          "fields": [
+            {
+              "name": "publisher"
+            },
+            {
+              "name": "reviews"
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        "Fetches an object given its ID."
+        node("ID of the object." id: ID!): Node @lookup @shareable @inaccessible
+        "Lookup nodes by a list of IDs."
+        nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @inaccessible
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+      }
+
+      "The node interface is implemented by entities that have a global unique identifier."
+      interface Node {
+        id: ID!
+      }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        "Fetches an object given its ID."
+        node("ID of the object." id: ID!): Node @lookup @shareable @inaccessible
+        "Lookup nodes by a list of IDs."
+        nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @inaccessible
+        publisher: String!
+      }
+
+      type Review implements Node {
+        id: ID!
+        stars: Int!
+      }
+
+      "The node interface is implemented by entities that have a global unique identifier."
+      interface Node {
+        id: ID!
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          __type(name: "Query") {
+            fields {
+              name
+            }
+          }
+        }
+      hash: 2921e62934c9bbf0ee044d65e143438c
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __type
+          fieldName: __type

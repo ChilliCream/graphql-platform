@@ -1,0 +1,185 @@
+title: Entities_Should_StillResolveAcrossSourceSchemas_When_NodeFieldIsMarkedInaccessible
+request:
+  document: |
+    {
+      reviews {
+        body
+        stars
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "reviews": [
+          {
+            "body": "A great read",
+            "stars": 5
+          },
+          {
+            "body": "Could not put it down",
+            "stars": 4
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        "Fetches an object given its ID."
+        node("ID of the object." id: ID!): Node @lookup @shareable @inaccessible
+        "Lookup nodes by a list of IDs."
+        nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @inaccessible
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+      }
+
+      "The node interface is implemented by entities that have a global unique identifier."
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_694dd11e_1 {
+              reviews {
+                body
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "reviews": [
+                    {
+                      "body": "A great read",
+                      "id": "UmV2aWV3OjE="
+                    },
+                    {
+                      "body": "Could not put it down",
+                      "id": "UmV2aWV3OjI="
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        "Fetches an object given its ID."
+        node("ID of the object." id: ID!): Node @lookup @shareable @inaccessible
+        "Lookup nodes by a list of IDs."
+        nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @inaccessible
+        publisher: String!
+      }
+
+      type Review implements Node {
+        id: ID!
+        stars: Int!
+      }
+
+      "The node interface is implemented by entities that have a global unique identifier."
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_694dd11e_2($__fusion_1_id: ID!) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Review {
+                  stars
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UmV2aWV3OjE="
+              },
+              {
+                "__fusion_1_id": "UmV2aWV3OjI="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Review",
+                    "stars": 5
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Review",
+                    "stars": 4
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          reviews {
+            body
+            stars
+            id @fusion__requirement
+          }
+        }
+      hash: 694dd11ee5c4f3a5c770e7fda7651c30
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_694dd11e_1 {
+          reviews {
+            body
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_694dd11e_2($__fusion_1_id: ID!) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Review {
+              stars
+            }
+          }
+        }
+      source: $.node<Review>
+      target: $.reviews
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

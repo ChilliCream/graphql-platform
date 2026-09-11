@@ -6,6 +6,7 @@ using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
+using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
@@ -912,6 +913,203 @@ public class InaccessibleTests : FusionTestBase
 
         // assert
         await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Node_Fields_Should_NotBeInQueryIntrospection_When_MarkedInaccessible()
+    {
+        // arrange
+        using var gateway = await CreateInaccessibleNodeFieldGatewayAsync(applyInaccessibleToNodeFields: true);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              __type(name: "Query") {
+                fields {
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Node_Field_Should_BeRejectedAsUnknownField_When_MarkedInaccessible()
+    {
+        // arrange
+        using var gateway = await CreateInaccessibleNodeFieldGatewayAsync(applyInaccessibleToNodeFields: true);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              node(id: "UmV2aWV3OjE=") {
+                __typename
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Entities_Should_StillResolveAcrossSourceSchemas_When_NodeFieldIsMarkedInaccessible()
+    {
+        // arrange
+        using var gateway = await CreateInaccessibleNodeFieldGatewayAsync(applyInaccessibleToNodeFields: true);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              reviews {
+                body
+                stars
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await AssertAndMatchSnapshotAsync(
+            gateway,
+            request,
+            result,
+            results =>
+            {
+                var response = Assert.Single(results);
+                Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+                Assert.Equal(
+                    """
+                    {"reviews":[{"body":"A great read","stars":5},{"body":"Could not put it down","stars":4}]}
+                    """,
+                    response.Data.GetRawText());
+            });
+    }
+
+    [Fact]
+    public async Task Node_Fields_Should_BeInQueryIntrospection_When_NotMarkedInaccessible()
+    {
+        // arrange
+        using var gateway = await CreateInaccessibleNodeFieldGatewayAsync(applyInaccessibleToNodeFields: false);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              __type(name: "Query") {
+                fields {
+                  name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    private Task<Gateway> CreateInaccessibleNodeFieldGatewayAsync(bool applyInaccessibleToNodeFields)
+    {
+        var server1 = CreateSourceSchema(
+            "a",
+            b => b
+                .AddQueryType<InaccessibleNodeField.SourceSchema1.Query>()
+                .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
+                .ModifyOptions(o => o.ApplyInaccessibleToNodeFields = applyInaccessibleToNodeFields));
+
+        var server2 = CreateSourceSchema(
+            "b",
+            b => b
+                .AddQueryType<InaccessibleNodeField.SourceSchema2.Query>()
+                .AddType<InaccessibleNodeField.SourceSchema2.Review>()
+                .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
+                .ModifyOptions(o => o.ApplyInaccessibleToNodeFields = applyInaccessibleToNodeFields));
+
+        return CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+    }
+
+    public static class InaccessibleNodeField
+    {
+        public static class SourceSchema1
+        {
+            public class Query
+            {
+                public IEnumerable<Review> GetReviews()
+                    => Review.All;
+            }
+
+            [Node]
+            public record Review(int Id, string Body)
+            {
+                internal static readonly Review[] All =
+                [
+                    new Review(1, "A great read"),
+                    new Review(2, "Could not put it down")
+                ];
+
+                public static Review? GetReview(int id)
+                    => All.FirstOrDefault(r => r.Id == id);
+            }
+        }
+
+        public static class SourceSchema2
+        {
+            public class Query
+            {
+                public string GetPublisher()
+                    => "ChilliCream";
+            }
+
+            [Node]
+            public record Review(int Id, int Stars)
+            {
+                internal static readonly Review[] All =
+                [
+                    new Review(1, 5),
+                    new Review(2, 4)
+                ];
+
+                public static Review? GetReview(int id)
+                    => All.FirstOrDefault(r => r.Id == id);
+            }
+        }
     }
 
     public static class InaccessibleField
