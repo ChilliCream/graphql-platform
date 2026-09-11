@@ -1041,7 +1041,81 @@ public class InaccessibleTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
-    private Task<Gateway> CreateInaccessibleNodeFieldGatewayAsync(bool applyInaccessibleToNodeFields)
+    [Fact]
+    public async Task Published_Schema_Should_NotHaveNodeField_When_NodeFieldIsMarkedInaccessible()
+    {
+        // arrange
+        using var gateway = await CreateInaccessibleNodeFieldGatewayAsync(
+            applyInaccessibleToNodeFields: true,
+            enableGlobalObjectIdentification: false);
+
+        // act
+        using var client = gateway.CreateClient();
+
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql/schema",
+            TestContext.Current.CancellationToken);
+        var sdl = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(HasQueryField(sdl, "node"));
+        sdl.MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public async Task Published_Schema_Should_NotHaveNodeField_When_NodeFieldIsMarkedInaccessibleAndGoiIsEnabled()
+    {
+        // arrange
+        using var gateway = await CreateInaccessibleNodeFieldGatewayAsync(
+            applyInaccessibleToNodeFields: true,
+            enableGlobalObjectIdentification: true);
+
+        // act
+        using var client = gateway.CreateClient();
+
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql/schema",
+            TestContext.Current.CancellationToken);
+        var sdl = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.False(HasQueryField(sdl, "node"));
+        sdl.MatchSnapshot(extension: ".graphql");
+    }
+
+    [Fact]
+    public async Task Published_Schema_Should_HaveNodeField_When_NodeFieldIsNotMarkedInaccessible()
+    {
+        // arrange
+        using var gateway = await CreateInaccessibleNodeFieldGatewayAsync(
+            applyInaccessibleToNodeFields: false,
+            enableGlobalObjectIdentification: true);
+
+        // act
+        using var client = gateway.CreateClient();
+
+        using var response = await client.GetAsync(
+            "http://localhost:5000/graphql/schema",
+            TestContext.Current.CancellationToken);
+        var sdl = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(HasQueryField(sdl, "node"));
+        sdl.MatchSnapshot(extension: ".graphql");
+    }
+
+    private static bool HasQueryField(string sdl, string fieldName)
+    {
+        var queryType = Utf8GraphQLParser.Parse(sdl).Definitions
+            .OfType<ObjectTypeDefinitionNode>()
+            .Single(t => t.Name.Value == "Query");
+
+        return queryType.Fields.Any(f => f.Name.Value == fieldName);
+    }
+
+    private Task<Gateway> CreateInaccessibleNodeFieldGatewayAsync(
+        bool applyInaccessibleToNodeFields,
+        bool enableGlobalObjectIdentification = true)
     {
         var server1 = CreateSourceSchema(
             "a",
@@ -1059,10 +1133,11 @@ public class InaccessibleTests : FusionTestBase
                 .ModifyOptions(o => o.ApplyInaccessibleToNodeFields = applyInaccessibleToNodeFields));
 
         return CreateCompositeSchemaAsync(
-        [
-            ("a", server1),
-            ("b", server2)
-        ]);
+            [
+                ("a", server1),
+                ("b", server2)
+            ],
+            enableGlobalObjectIdentification: enableGlobalObjectIdentification);
     }
 
     public static class InaccessibleNodeField
