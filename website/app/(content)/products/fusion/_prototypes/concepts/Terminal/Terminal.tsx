@@ -3,6 +3,7 @@ import type { ComponentType, ReactNode } from "react";
 
 import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { Link } from "@/src/design-system/Link";
 
 import type { CopyLink, CopySection } from "../../copy";
@@ -28,9 +29,6 @@ import { TerminalHero } from "./TerminalHero";
  * down the left, nothing else. The words are the production page's, imported
  * from `../../copy`.
  */
-
-const EYEBROW =
-  "text-cc-nav-label font-mono text-[10px] tracking-[0.24em] uppercase";
 
 interface Block {
   readonly id: string;
@@ -125,7 +123,7 @@ function InPractice({ links }: InPracticeProps) {
   if (links.length === 0) return null;
 
   return (
-    <p className="text-cc-ink-dim mt-6 text-sm">
+    <p className="text-cc-ink-dim text-caption mt-6">
       In practice:{" "}
       {links.map((link, i) => (
         <Fragment key={link.href}>
@@ -149,7 +147,7 @@ function Output({ block }: OutputProps) {
   return (
     <figure className="m-0">
       <figcaption
-        className="flex items-baseline gap-[1ch] pb-2 text-[11px]"
+        className="text-caption flex items-baseline gap-[1ch] pb-2"
         style={{ color: TERM.dim, fontFamily: MONO }}
       >
         <span style={{ color: TERM.prompt }}>$</span>
@@ -173,17 +171,17 @@ interface BlockSectionProps {
 function BlockSection({ block, section, flipped }: BlockSectionProps) {
   return (
     <div id={section.id}>
-      <PageSection maxWidth="6xl" className="py-14 sm:py-20">
+      <PageSection maxWidth="6xl" className="py-20 sm:py-28">
         <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
           <div className={flipped ? "lg:order-2" : undefined}>
-            <p className={EYEBROW}>
+            <Eyebrow size="2xs">
               {`${block.index} — `}
               {section.id}
-            </p>
+            </Eyebrow>
             <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 mt-4 text-balance">
               {section.title}
             </h2>
-            <div className="text-cc-prose mt-6 space-y-4 text-base">
+            <div className="text-cc-prose text-body mt-6 space-y-4">
               {section.paragraphs.map((paragraph) => (
                 <p key={paragraph.slice(0, 24)}>
                   {withLinks(paragraph, section.links)}
@@ -220,38 +218,39 @@ export function Terminal() {
   return (
     <div className="bg-cc-bg">
       {/* Hero: the session that composes the graph */}
-      <section className="flex min-h-[88svh] items-center">
-        <PageSection maxWidth="6xl" className="w-full py-20 sm:py-24">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
-            <div>
-              <p className={EYEBROW}>{HERO.eyebrow}</p>
-              <h1 className="font-heading text-cc-heading text-h1 sm:text-hero mt-5 tracking-tight">
-                {HERO.title}
-              </h1>
-              <p className="text-cc-prose mt-6 max-w-2xl text-lg sm:text-xl">
-                {HERO.teaser}
-              </p>
-              <div className="mt-10 flex flex-wrap gap-4">
-                <SolidButton href={HERO.buttons[0].href}>
-                  {HERO.buttons[0].label}
-                </SolidButton>
-                <OutlineButton href={HERO.buttons[1].href}>
-                  {HERO.buttons[1].label}
-                </OutlineButton>
-              </div>
-            </div>
-
-            <div className="border-cc-card-border overflow-hidden rounded-lg border">
-              <Scene
-                ratio="1 / 1"
-                label="A terminal session running fusion compose: five subgraph files and two non-GraphQL sources are read in and printed as one composite schema."
-              >
-                <TerminalHero />
-              </Scene>
+      <PageSection
+        maxWidth="7xl"
+        className="flex min-h-[88svh] flex-col justify-center py-20 sm:py-28"
+      >
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+          <div>
+            <Eyebrow size="2xs">{HERO.eyebrow}</Eyebrow>
+            <h1 className="font-heading text-cc-heading text-h2 sm:text-h1 mt-5 tracking-tight text-balance">
+              {HERO.title}
+            </h1>
+            <p className="text-cc-prose text-body sm:text-lead mt-6 max-w-2xl">
+              {HERO.teaser}
+            </p>
+            <div className="mt-10 flex flex-wrap gap-4">
+              <SolidButton href={HERO.buttons[0].href}>
+                {HERO.buttons[0].label}
+              </SolidButton>
+              <OutlineButton href={HERO.buttons[1].href}>
+                {HERO.buttons[1].label}
+              </OutlineButton>
             </div>
           </div>
-        </PageSection>
-      </section>
+
+          <div className="border-cc-card-border overflow-hidden rounded-lg border">
+            <Scene
+              ratio="1 / 1"
+              label="A terminal session running fusion compose: five subgraph files and two non-GraphQL sources are read in and printed as one composite schema."
+            >
+              <TerminalHero />
+            </Scene>
+          </div>
+        </div>
+      </PageSection>
 
       {BLOCKS.map((block, i) => {
         const section = SECTIONS.find((s) => s.id === block.id);
@@ -273,14 +272,14 @@ export function Terminal() {
 
       {/* Nitro band: the watch command left running */}
       <div id={NITRO_BAND.id}>
-        <PageSection maxWidth="6xl" className="py-14 sm:py-20">
+        <PageSection maxWidth="6xl" className="py-20 sm:py-28">
           <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
-              <p className={EYEBROW}>05 — nitro</p>
+              <Eyebrow size="2xs">05 — nitro</Eyebrow>
               <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 mt-4 text-balance">
                 {NITRO_BAND.title}
               </h2>
-              <p className="text-cc-prose mt-6 text-base">
+              <p className="text-cc-prose text-body mt-6">
                 {NITRO_BAND.description}
               </p>
               <div className="mt-10 flex flex-wrap gap-4">
