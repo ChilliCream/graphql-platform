@@ -4,6 +4,7 @@ import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
 import {
   drawStyle,
   fadeStyle,
+  FONT,
   HAND,
   MARKER,
   NOTES,
@@ -20,6 +21,10 @@ import { Folio, PaperGround, StickyNote, Wobble } from "./Sketch";
  * Shipping note walks from one column to the other and back, on its own.
  *
  * Rest state: both columns written up, the ghost slot outlined in pencil.
+ *
+ * Every line is lettered in `FONT` units, so the smallest one still reads at
+ * the site's 11px label on a 375px screen; the two columns, the ghost slot and
+ * the taped cards are spaced for that lettering.
  */
 
 const CSS = `
@@ -39,30 +44,32 @@ const CSS = `
 }
 @keyframes ed-spec-move {
   0%, 34% { transform: translate(0px, 0px); }
-  50%, 74% { transform: translate(-342px, 128px); }
+  50%, 74% { transform: translate(-306px, 144px); }
   90%, 100% { transform: translate(0px, 0px); }
 }
 `;
 
-const NOTE_W = 240;
-const NOTE_H = 56;
+const NOTE_W = 286;
+const NOTE_H = 64;
 const LEFT_X = 24;
-const RIGHT_X = 366;
-const SHEET = { x: 42, y: 336, w: 556, h: 126 };
+const RIGHT_X = 330;
+const SHEET = { x: 42, y: 362, w: 556, h: 108 };
+/** The taped index cards inside the sheet. */
+const CARD = { w: 248, h: 70, pitch: 268 };
 
 /** Left column: source schemas written to the GraphQL Federation spec. */
 const LEFT = [
   { note: NOTES[0], y: 72 },
-  { note: NOTES[2], y: 136 },
-  { note: NOTES[4], y: 200 },
+  { note: NOTES[2], y: 144 },
+  { note: NOTES[4], y: 216 },
 ];
 
 /** Right column: source schemas written to Apollo Federation. */
 const RIGHT = [{ note: NOTES[1], y: 72 }];
 
 /** The note that walks across, and the slot it walks into. */
-const MOVER = { note: NOTES[3], y: 136 };
-const GHOST = { x: LEFT_X, y: 264 };
+const MOVER = { note: NOTES[3], y: 144 };
+const GHOST = { x: LEFT_X, y: 288 };
 
 /** Stroke from a note down onto the composite sheet. */
 function feedPath(x: number, y: number): string {
@@ -90,26 +97,38 @@ export function SpecStickies() {
         </Folio>
 
         {/* Column headings, underlined by hand */}
-        <text x={LEFT_X} y={52} fill={PAPER.ink} fontSize={19} style={MARKER}>
+        <text
+          x={LEFT_X}
+          y={56}
+          fill={PAPER.ink}
+          fontSize={FONT.caption}
+          style={MARKER}
+        >
           GraphQL Federation
         </text>
         <path
           className="ed-spec-draw"
           style={drawStyle(250, 0.1)}
-          d={`M${LEFT_X} 60 C ${LEFT_X + 80} 65, ${LEFT_X + 170} 56, ${LEFT_X + 246} 62`}
+          d={`M${LEFT_X} 64 C ${LEFT_X + 80} 69, ${LEFT_X + 170} 60, ${LEFT_X + 246} 66`}
           fill="none"
           stroke={PAPER.ink}
           strokeWidth={2.2}
           strokeLinecap="round"
           filter="url(#ed-spec-wob)"
         />
-        <text x={RIGHT_X} y={52} fill={PAPER.ink} fontSize={19} style={MARKER}>
+        <text
+          x={RIGHT_X}
+          y={56}
+          fill={PAPER.ink}
+          fontSize={FONT.caption}
+          style={MARKER}
+        >
           Apollo Federation
         </text>
         <path
           className="ed-spec-draw"
           style={drawStyle(250, 0.3)}
-          d={`M${RIGHT_X} 60 C ${RIGHT_X + 80} 66, ${RIGHT_X + 168} 56, ${RIGHT_X + 240} 62`}
+          d={`M${RIGHT_X} 64 C ${RIGHT_X + 80} 70, ${RIGHT_X + 168} 60, ${RIGHT_X + 240} 66`}
           fill="none"
           stroke={PAPER.ink}
           strokeWidth={2.2}
@@ -131,9 +150,9 @@ export function SpecStickies() {
         />
         <text
           x={GHOST.x + 14}
-          y={GHOST.y + 34}
+          y={GHOST.y + 40}
           fill={PAPER.pencil}
-          fontSize={15}
+          fontSize={FONT.label}
           style={HAND}
         >
           moves across, no cutover
@@ -221,9 +240,9 @@ export function SpecStickies() {
         </g>
         <text
           x={SHEET.x + 20}
-          y={SHEET.y + 34}
+          y={SHEET.y + 28}
           fill={PAPER.ink}
-          fontSize={22}
+          fontSize={FONT.caption}
           style={MARKER}
         >
           composite schema
@@ -235,11 +254,11 @@ export function SpecStickies() {
             key={source.name}
             className="ed-spec-in"
             style={fadeStyle(1.6 + i * 0.3)}
-            transform={`translate(${SHEET.x + 20 + i * 268} ${SHEET.y + 48})`}
+            transform={`translate(${SHEET.x + 20 + i * CARD.pitch} ${SHEET.y + 36})`}
           >
             <rect
-              width={248}
-              height={62}
+              width={CARD.w}
+              height={CARD.h}
               fill={PAPER.sheet}
               stroke={PAPER.inkSoft}
               strokeWidth={1.6}
@@ -255,11 +274,32 @@ export function SpecStickies() {
               opacity={0.8}
               transform="rotate(-2 122 0)"
             />
-            <text x={16} y={26} fill={PAPER.ink} fontSize={16} style={HAND}>
+            <text
+              x={16}
+              y={26}
+              fill={PAPER.ink}
+              fontSize={FONT.caption}
+              style={HAND}
+            >
               {source.name}
             </text>
-            <text x={16} y={48} fill={PAPER.inkSoft} fontSize={13} style={HAND}>
-              {`${source.kind} document, same composition`}
+            <text
+              x={16}
+              y={48}
+              fill={PAPER.inkSoft}
+              fontSize={FONT.label}
+              style={HAND}
+            >
+              {`${source.kind} document,`}
+            </text>
+            <text
+              x={16}
+              y={66}
+              fill={PAPER.inkSoft}
+              fontSize={FONT.label}
+              style={HAND}
+            >
+              same composition
             </text>
           </g>
         ))}
