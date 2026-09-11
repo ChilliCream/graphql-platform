@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { useCycle, useSceneMotion } from "./hooks";
 import { CN, PLANETS } from "./palette";
 
@@ -58,7 +59,7 @@ export function ObservatoryLog() {
           x={24}
           y={40}
           fill={CN.dim}
-          fontSize="11"
+          fontSize={TYPE.label}
           style={{ fontFamily: CN.mono, letterSpacing: "0.16em" }}
         >
           OBSERVATORY LOG · WHICH PROBE RELIES ON WHICH PLANET
@@ -70,7 +71,7 @@ export function ObservatoryLog() {
           width={396}
           height={ROW_TOP - 56 + ROWS.length * ROW_H + 10}
           rx="10"
-          fill="rgba(12,18,36,0.7)"
+          fill={CN.panel}
           stroke={CN.panelEdge}
         />
 
@@ -78,7 +79,7 @@ export function ObservatoryLog() {
           x={36}
           y={92}
           fill={CN.ink}
-          fontSize="12"
+          fontSize={TYPE.label}
           style={{ fontFamily: CN.mono, letterSpacing: "0.1em" }}
         >
           schema change · Catalog removes stockLevel
@@ -108,7 +109,7 @@ export function ObservatoryLog() {
                 x={36}
                 y={y}
                 fill={CN.ink}
-                fontSize="12"
+                fontSize={TYPE.label}
                 style={{ fontFamily: CN.mono, letterSpacing: "0.08em" }}
               >
                 {`${row.probe} → ${row.operation}`}
@@ -117,7 +118,7 @@ export function ObservatoryLog() {
                 x={36}
                 y={y + 18}
                 fill={CN.dim}
-                fontSize="10"
+                fontSize={TYPE.label}
                 style={{ fontFamily: CN.mono, letterSpacing: "0.12em" }}
               >
                 PUBLISHED OPERATION
@@ -141,7 +142,7 @@ export function ObservatoryLog() {
                   x={348}
                   y={y}
                   fill={VERDICT_COLOUR[row.verdict]}
-                  fontSize="11"
+                  fontSize={TYPE.label}
                   textAnchor="middle"
                   style={{ fontFamily: CN.mono, letterSpacing: "0.14em" }}
                 >
@@ -169,7 +170,7 @@ export function ObservatoryLog() {
             x={528}
             y={320}
             fill={CN.clear}
-            fontSize="11"
+            fontSize={TYPE.label}
             textAnchor="middle"
             style={{ fontFamily: CN.mono, letterSpacing: "0.12em" }}
           >
@@ -179,7 +180,7 @@ export function ObservatoryLog() {
             x={528}
             y={352}
             fill={scanned >= ROWS.length ? CN.alert : CN.dim}
-            fontSize="11"
+            fontSize={TYPE.label}
             textAnchor="middle"
             style={{
               fontFamily: CN.mono,
@@ -193,7 +194,7 @@ export function ObservatoryLog() {
             x={528}
             y={372}
             fill={CN.dim}
-            fontSize="10"
+            fontSize={TYPE.label}
             textAnchor="middle"
             style={{ fontFamily: CN.mono, letterSpacing: "0.12em" }}
           >
@@ -238,7 +239,7 @@ export function ObservatoryLog() {
             x={STAR.x}
             y={STAR.y + 78}
             fill={CN.dim}
-            fontSize="10"
+            fontSize={TYPE.label}
             textAnchor="middle"
             style={{ fontFamily: CN.mono, letterSpacing: "0.14em" }}
           >
