@@ -96,6 +96,23 @@ internal static class BatchResolverCompiler
             var builder = getBuilder(param);
             var kind = builder.Kind;
 
+            if (builder is IBatchParameterExpressionBuilder batchBuilder)
+            {
+                var elementType = GetListElementType(param.ParameterType)
+                    ?? throw ThrowHelper.BatchResolver_ArgumentMustBeList(param);
+                var (listVar, listInit, addExpr) = CreateListCollector(
+                    contextsParam,
+                    contextAtIndex,
+                    param,
+                    ctx => batchBuilder.BuildElement(ctx, elementType));
+
+                parameterVariables[i] = ConvertList(listVar, param.ParameterType);
+                variables.Add(listVar);
+                preLoopStatements.Add(listInit);
+                loopBodyStatements.Add(addExpr);
+                continue;
+            }
+
             switch (kind)
             {
                 case ArgumentKind.Source:
@@ -492,4 +509,9 @@ internal static class BatchResolverCompiler
         protected override Expression VisitParameter(ParameterExpression node)
             => node == from ? to : base.VisitParameter(node);
     }
+}
+
+internal interface IBatchParameterExpressionBuilder : IParameterExpressionBuilder
+{
+    Expression BuildElement(Expression context, Type elementType);
 }

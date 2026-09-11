@@ -293,7 +293,7 @@ public sealed class ObjectField : OutputField
         }
     }
 
-    private static BatchFieldDelegate CompileBatchPipeline(
+    internal static BatchFieldDelegate CompileBatchPipeline(
         IReadOnlyList<BatchFieldMiddlewareConfiguration> middlewareComponents,
         IReadOnlyList<ResultFormatterConfiguration> resultFormatters,
         BatchFieldDelegate batchResolver)

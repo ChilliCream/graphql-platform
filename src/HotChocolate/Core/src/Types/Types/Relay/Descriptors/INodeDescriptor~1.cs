@@ -10,6 +10,26 @@ namespace HotChocolate.Types.Relay.Descriptors;
 public interface INodeDescriptor<TNode> : IDescriptor
 {
     /// <summary>
+    /// Specifies a batch resolver and returns the node's ID field descriptor.
+    /// </summary>
+    IObjectFieldDescriptor ResolveNodeBatch(BatchResolverDelegate batchResolver);
+
+    /// <summary>
+    /// Specifies a batch resolver receiving node IDs and returns the node's ID field descriptor.
+    /// </summary>
+    IObjectFieldDescriptor ResolveNodeBatch<TId>(BatchNodeResolverDelegate<TNode, TId> batchResolver);
+
+    /// <summary>
+    /// Specifies a batch resolver method and returns the node's ID field descriptor.
+    /// </summary>
+    IObjectFieldDescriptor ResolveNodeBatchWith<TResolver>(Expression<Func<TResolver, object?>> method);
+
+    /// <summary>
+    /// Specifies a batch resolver method and returns the node's ID field descriptor.
+    /// </summary>
+    IObjectFieldDescriptor ResolveNodeBatchWith(MethodInfo method);
+
+    /// <summary>
     /// Specifies the ID member of a node type-
     /// </summary>
     /// <param name="propertyOrMethod">

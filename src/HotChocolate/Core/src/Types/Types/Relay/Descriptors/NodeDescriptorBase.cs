@@ -19,6 +19,50 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
 
     protected abstract IObjectFieldDescriptor ConfigureNodeField();
 
+    /// <inheritdoc cref="INodeDescriptor.ResolveNodeBatch(BatchResolverDelegate)"/>
+    public IObjectFieldDescriptor ResolveNodeBatch(BatchResolverDelegate batchResolver)
+    {
+        ArgumentNullException.ThrowIfNull(batchResolver);
+        Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        ObjectFieldDescriptor.From(Context, Configuration.ResolverField).ResolveBatch(batchResolver);
+        Configuration.ResolverField.Resolver = null;
+        return ConfigureNodeField();
+    }
+
+    /// <inheritdoc cref="INodeDescriptor.ResolveNodeBatch{TId}"/>
+    public IObjectFieldDescriptor ResolveNodeBatch<TId>(BatchNodeResolverDelegate<object, TId> batchResolver)
+    {
+        ArgumentNullException.ThrowIfNull(batchResolver);
+        Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        BatchNodeResolverHelper.Configure(Configuration.ResolverField, batchResolver);
+        return ConfigureNodeField();
+    }
+
+    /// <inheritdoc cref="INodeDescriptor.ResolveNodeBatchWith{TResolver}"/>
+    public IObjectFieldDescriptor ResolveNodeBatchWith<TResolver>(Expression<Func<TResolver, object?>> method)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+        var member = method.ExtractMember();
+        var resolverField = Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        ObjectFieldDescriptor.From(Context, resolverField).ResolveBatchWith(method);
+        resolverField.Member = member;
+        resolverField.ResolverMember = null;
+        resolverField.BatchResolver = null;
+        return ConfigureNodeField();
+    }
+
+    /// <inheritdoc cref="INodeDescriptor.ResolveNodeBatchWith(MethodInfo)"/>
+    public IObjectFieldDescriptor ResolveNodeBatchWith(MethodInfo method)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+        var resolverField = Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        ObjectFieldDescriptor.From(Context, resolverField).ResolveBatchWith(method);
+        resolverField.Member = method;
+        resolverField.ResolverMember = null;
+        resolverField.BatchResolver = null;
+        return ConfigureNodeField();
+    }
+
     /// <summary>
     /// Specifies a delegate to resolve the node from its id.
     /// </summary>
@@ -77,6 +121,11 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
 
         if (member is MethodInfo m)
         {
+            if (m.IsDefined(typeof(BatchResolverAttribute)))
+            {
+                return ResolveNodeBatchWith(method);
+            }
+
             Configuration.ResolverField ??= new ObjectFieldConfiguration();
             Configuration.ResolverField.Member = m;
             Configuration.ResolverField.DeclaringType = m.ReflectedType ?? m.DeclaringType;
@@ -99,6 +148,11 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
     {
         ArgumentNullException.ThrowIfNull(method);
 
+        if (method.IsDefined(typeof(BatchResolverAttribute)))
+        {
+            return ResolveNodeBatchWith(method);
+        }
+
         Configuration.ResolverField ??= new ObjectFieldConfiguration();
         Configuration.ResolverField.Member = method;
         Configuration.ResolverField.DeclaringType = method.ReflectedType ?? method.DeclaringType;
@@ -116,6 +170,47 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
             ObjectFieldDescriptor
                 .From(descriptorContext, Configuration.ResolverField)
                 .CreateConfiguration();
+
+            if (Configuration.ResolverField.IsBatchResolver)
+            {
+                var resolverField = Configuration.ResolverField;
+                var batchResolver = resolverField.BatchResolver
+                    ?? Context.ResolverCompiler.CompileBatchResolve(
+                        (MethodInfo)resolverField.Member!,
+                        typeof(object),
+                        resolverField.ResolverType,
+                        parameterExpressionBuilders: [BatchNodeIdParameterExpressionBuilder.Instance]);
+                var batchPipeline = ObjectField.CompileBatchPipeline(
+                    resolverField.GetBatchMiddlewareDefinitions(),
+                    resolverField.GetResultConverters(),
+                    batchResolver);
+                var directiveDefs = resolverField.GetDirectives();
+
+                if (directiveDefs.Count > 0)
+                {
+                    var directives = DirectiveCollection.CreateAndComplete(
+                        context,
+                        DirectiveLocation.FieldDefinition,
+                        resolverField,
+                        directiveDefs);
+
+                    for (var i = directives.Count - 1; i >= 0; i--)
+                    {
+                        var directive = directives[i];
+                        if (directive.Type.BatchMiddleware is { } middleware)
+                        {
+                            batchPipeline = middleware(batchPipeline, directive);
+                        }
+                    }
+                }
+
+                definition.Features.GetOrSet<NodeTypeFeature>().NodeResolver = new NodeResolverInfo(
+                    null,
+                    null,
+                    batchPipeline,
+                    resolverField.BatchPartitionKeyResolver);
+                return;
+            }
 
             // after that all middleware should be available on the field definition, and we can
             // start compiling the resolver and the resolver pipeline.
@@ -159,7 +254,7 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                     }
                 }
 
-                definition.Features.GetOrSet<NodeTypeFeature>().NodeResolver = new NodeResolverInfo(null, pipeline!);
+                definition.Features.GetOrSet<NodeTypeFeature>().NodeResolver = new NodeResolverInfo(null, pipeline);
             }
         }
     }
@@ -189,5 +284,35 @@ public abstract class NodeDescriptorBase(IDescriptorContext context)
                         : null,
                 isRepeatable: false,
                 key: WellKnownMiddleware.GlobalId);
+    }
+}
+
+internal static class BatchNodeResolverHelper
+{
+    internal static void Configure<TNode, TId>(
+        ObjectFieldConfiguration configuration,
+        BatchNodeResolverDelegate<TNode, TId> batchResolver)
+    {
+        configuration.SetBatchResolverFlags();
+        configuration.Resolver = null;
+        configuration.BatchResolver = async contexts =>
+        {
+            var ids = new TId[contexts.Length];
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                ids[i] = (TId)contexts[i].LocalContextData[WellKnownContextData.InternalId]!;
+            }
+
+            var results = await batchResolver(contexts, ids).ConfigureAwait(false);
+            if (results.Count != contexts.Length)
+            {
+                throw ThrowHelper.BatchResolver_ResultCountMismatch(contexts.Length, results.Count);
+            }
+
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                contexts[i].Result = results[i];
+            }
+        };
     }
 }

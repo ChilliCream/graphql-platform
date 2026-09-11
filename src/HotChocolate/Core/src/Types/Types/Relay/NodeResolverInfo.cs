@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Relay;
 /// </summary>
 internal sealed class NodeResolverInfo(
     ObjectField? resolverField,
-    FieldDelegate pipeline,
+    FieldDelegate? pipeline,
     BatchFieldDelegate? batchPipeline = null,
     BatchPartitionKeyResolver? batchPartitionKey = null)
 {
@@ -20,9 +20,9 @@ internal sealed class NodeResolverInfo(
     public Argument? Id { get; } = resolverField?.Arguments[0];
 
     /// <summary>
-    /// Gets the node resolver pipeline.
+    /// Gets the regular node resolver pipeline, or null for a batch-only resolver.
     /// </summary>
-    public FieldDelegate Pipeline { get; } = pipeline;
+    public FieldDelegate? Pipeline { get; } = pipeline;
 
     /// <summary>
     /// Gets the node resolver batch pipeline.

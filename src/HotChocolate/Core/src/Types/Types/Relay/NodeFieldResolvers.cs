@@ -398,7 +398,7 @@ internal static class NodeFieldResolvers
             return;
         }
 
-        var pipeline = nodeResolver.Pipeline;
+        var pipeline = nodeResolver.Pipeline!;
 
         if (group.Count == 1)
         {
@@ -437,7 +437,7 @@ internal static class NodeFieldResolvers
             return;
         }
 
-        var pipeline = nodeResolver.Pipeline;
+        var pipeline = nodeResolver.Pipeline!;
 
         if (contexts.Length == 1)
         {

@@ -155,7 +155,10 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 if (directive.Type.Name.EqualsOrdinal(Authorize))
                 {
                     var authDir = directive.ToValue<AuthorizeDirective>();
-                    pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
+                    if (pipeline is not null)
+                    {
+                        pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
+                    }
                     if (batchPipeline is not null)
                     {
                         batchPipeline = CreateBatchAuthMiddleware(authDir).Middleware.Invoke(batchPipeline);

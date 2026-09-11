@@ -1,10 +1,16 @@
 #pragma warning disable RCS1102 // Make class static
+using System.Collections.Immutable;
+using System.Reflection;
 using System.Text.Json;
+using HotChocolate.Authorization;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Tests;
 using HotChocolate.Types.Composite;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Relay;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +18,426 @@ namespace HotChocolate.Types;
 
 public class NodeResolverTests
 {
+    [Fact]
+    public async Task ResolveNodeBatch_Should_Preserve_Null_Positions_When_Typed_Delegate_Returns_Missing_Nodes()
+    {
+        // arrange
+        var collector = new BatchNodeCollector();
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode().IdField(n => n.Id).ResolveNodeBatch((_, ids) =>
+            {
+                collector.Record(ids);
+                return Task.FromResult<IReadOnlyList<BatchEntity?>>(
+                    ids.Select(id => id == "y" ? null : new BatchEntity { Name = id }).ToArray());
+            }))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ==", "QmF0Y2hFbnRpdHk6eA=="]) {
+                    ... on BatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot()
+            .Add(result, "Result")
+            .Add(new { collector.InvocationCount, collector.ReceivedIds }, "Dispatch")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task ResolveNodeBatch_Should_Reject_Wrong_Result_Count_When_Registered(int registration)
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddErrorFilter(error => error.Exception is { } exception ? error.WithMessage(exception.Message) : error)
+            .AddObjectType<BatchEntity>(d =>
+            {
+                var node = d.ImplementsNode();
+                _ = registration switch
+                {
+                    0 => node.ResolveNodeBatch<string>((_, _) => Task.FromResult<IReadOnlyList<BatchEntity?>>([])),
+                    1 => node.ResolveNodeBatch(_ => new ValueTask<IReadOnlyList<ResolverResult>>([])),
+                    _ => node.ResolveNodeBatchWith(typeof(FluentBatchNodeResolver).GetMethod(nameof(FluentBatchNodeResolver.WrongCount))!)
+                };
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                node(id: "QmF0Y2hFbnRpdHk6eA==") { ... on BatchEntity { name } }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ResolveNodeBatchWith_Should_Deny_Method_Policy_When_Not_Allowed()
+    {
+        // arrange
+        var collector = new BatchNodeCollector();
+        var handler = new NodePolicyHandler(false);
+        var executor = await new ServiceCollection()
+            .AddSingleton(collector)
+            .AddGraphQL()
+            .AddAuthorizationHandler(_ => handler)
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode().IdField(n => n.Id)
+                .ResolveNodeWith<FluentBatchNodeResolver>(r => r.Protected(default!, default!)))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                node(id: "QmF0Y2hFbnRpdHk6eA==") { ... on BatchEntity { name } }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot()
+            .Add(result, "Result")
+            .Add(new { collector.InvocationCount, handler.Policies }, "Authorization")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task ResolveNodeBatchWith_Should_Preserve_Partitioner_When_Ids_Share_A_Selection()
+    {
+        // arrange
+        var collector = new BatchNodeCollector();
+        var executor = await new ServiceCollection()
+            .AddSingleton(collector)
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode()
+                .ResolveNodeBatchWith<FluentBatchNodeResolver>(r => r.Partitioned(default!, default!)))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ==", "QmF0Y2hFbnRpdHk6eA=="]) {
+                    ... on BatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot()
+            .Add(result, "Result")
+            .Add(new { collector.InvocationCount, collector.BatchSizes, collector.ReceivedIds }, "Dispatch")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task ResolveNodeBatch_Should_Use_Innermost_Formatters_When_Method_Declares_Middleware()
+    {
+        // arrange
+        var collector = new BatchNodeCollector();
+        var executor = await new ServiceCollection()
+            .AddSingleton(collector)
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddDirectiveType<NodeBatchDirectiveType>()
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode()
+                .ResolveNodeBatchWith(typeof(FluentBatchNodeResolver).GetMethod(nameof(FluentBatchNodeResolver.Formatted))!))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ==", "QmF0Y2hFbnRpdHk6eA=="]) {
+                    ... on BatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot()
+            .Add(result, "Result")
+            .Add(new { collector.InvocationCount, collector.ReceivedIds }, "Dispatch")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task ResolveNodeWith_Should_Batch_Ids_When_Node_Attribute_Infers_Resolver()
+    {
+        // arrange
+        var collector = new BatchNodeCollector();
+        var executor = await new ServiceCollection()
+            .AddSingleton(collector)
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddType<InferredBatchEntity>()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["SW5mZXJyZWRCYXRjaEVudGl0eTp4", "SW5mZXJyZWRCYXRjaEVudGl0eTp5"]) {
+                    ... on InferredBatchEntity { id }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot()
+            .Add(result, "Result")
+            .Add(new { collector.InvocationCount, collector.ReceivedIds }, "Dispatch")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Theory]
+    [InlineData(ApplyPolicy.BeforeResolver, false)]
+    [InlineData(ApplyPolicy.BeforeResolver, true)]
+    [InlineData(ApplyPolicy.AfterResolver, false)]
+    [InlineData(ApplyPolicy.AfterResolver, true)]
+    [InlineData(ApplyPolicy.Validation, false)]
+    [InlineData(ApplyPolicy.Validation, true)]
+    public async Task ResolveNodeBatch_Should_Enforce_Type_Policy_When_Registered(
+        ApplyPolicy apply,
+        bool allowed)
+    {
+        // arrange
+        var collector = new BatchNodeCollector();
+        var handler = new NodePolicyHandler(allowed);
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddAuthorizationHandler(_ => handler)
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d =>
+            {
+                d.Authorize("read-node", apply);
+                d.ImplementsNode().IdField(n => n.Id).ResolveNodeBatch((_, ids) =>
+                {
+                    collector.Record(ids);
+                    return Task.FromResult<IReadOnlyList<BatchEntity?>>(
+                        ids.Select(id => new BatchEntity { Name = id }).ToArray());
+                });
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ=="]) {
+                    ... on BatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot(postFix: $"{apply}-{allowed}")
+            .Add(result, "Result")
+            .Add(new { collector.InvocationCount, Policies = handler.Policies.Order().ToArray() }, "Authorization")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task ResolveNodeBatch_Should_Isolate_Error_And_Null_Entries_When_Delegate_Returns_Results()
+    {
+        // arrange
+        var calls = 0;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode().ResolveNodeBatch(contexts =>
+            {
+                calls++;
+                return new ValueTask<IReadOnlyList<ResolverResult>>(
+                [
+                    ResolverResult.Ok(new BatchEntity { Name = "x" }),
+                    ResolverResult.Fail(ErrorHelper.NodeMissing()),
+                    ResolverResult.Ok(null),
+                    ResolverResult.Ok(new BatchEntity { Name = "x" })
+                ]);
+            }))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ==", "QmF0Y2hFbnRpdHk6eQ==", "QmF0Y2hFbnRpdHk6eA=="]) {
+                    ... on BatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot().Add(result, "Result").Add(calls, "Calls").MatchMarkdownSnapshot();
+    }
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(0, 1)]
+    [InlineData(0, 2)]
+    [InlineData(0, 3)]
+    [InlineData(0, 4)]
+    [InlineData(0, 5)]
+    [InlineData(1, 0)]
+    [InlineData(1, 1)]
+    [InlineData(1, 2)]
+    [InlineData(1, 3)]
+    [InlineData(1, 4)]
+    [InlineData(1, 5)]
+    [InlineData(2, 0)]
+    [InlineData(2, 1)]
+    [InlineData(2, 2)]
+    [InlineData(2, 3)]
+    [InlineData(2, 4)]
+    [InlineData(2, 5)]
+    public async Task ResolveNodeBatch_Should_Preserve_Positions_And_Separate_Aliases_When_Configured(
+        int style,
+        int registration)
+    {
+        // arrange
+        var collector = new BatchNodeCollector();
+        var method = typeof(FluentBatchNodeResolver).GetMethod(nameof(FluentBatchNodeResolver.Resolve))!;
+        var builder = new ServiceCollection()
+            .AddSingleton(collector)
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true));
+
+        if (style == 0)
+        {
+            builder.AddObjectType(d =>
+            {
+                d.Name(nameof(BatchEntity));
+                d.Field("name").Type<StringType>().Resolve(c => c.Parent<BatchEntity>().Name);
+                var node = d.ImplementsNode();
+                var field = registration switch
+                {
+                    0 => node.ResolveNodeBatch<string>(ResolveObjects),
+                    1 => node.ResolveNodeBatch(ResolveResults),
+                    2 => node.ResolveNodeBatchWith<FluentBatchNodeResolver>(r => r.Resolve(default!, default!)),
+                    3 => node.ResolveNodeBatchWith(method),
+                    4 => node.ResolveNodeWith<FluentBatchNodeResolver>(r => r.Resolve(default!, default!)),
+                    _ => node.ResolveNodeWith(method)
+                };
+                field.Resolve(c => c.Parent<BatchEntity>().Id);
+            });
+        }
+        else
+        {
+            builder.AddObjectType<BatchEntity>(d =>
+            {
+                var node = d.ImplementsNode();
+                if (style == 1)
+                {
+                    _ = registration switch
+                    {
+                        0 => node.ResolveNodeBatch<string>(ResolveNodes),
+                        1 => node.ResolveNodeBatch(ResolveResults),
+                        2 => node.ResolveNodeBatchWith<FluentBatchNodeResolver>(r => r.Resolve(default!, default!)),
+                        3 => node.ResolveNodeBatchWith(method),
+                        4 => node.ResolveNodeWith<FluentBatchNodeResolver>(r => r.Resolve(default!, default!)),
+                        _ => node.ResolveNodeWith(method)
+                    };
+                }
+                else
+                {
+                    var withId = node.IdField(n => n.Id);
+                    _ = registration switch
+                    {
+                        0 => withId.ResolveNodeBatch(ResolveNodes),
+                        1 => withId.ResolveNodeBatch(ResolveResults),
+                        2 => withId.ResolveNodeBatchWith<FluentBatchNodeResolver>(r => r.Resolve(default!, default!)),
+                        3 => withId.ResolveNodeBatchWith(method),
+                        4 => withId.ResolveNodeWith<FluentBatchNodeResolver>(r => r.Resolve(default!, default!)),
+                        _ => withId.ResolveNodeWith(method)
+                    };
+                }
+            });
+        }
+
+        var executor = await builder.BuildRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ==", "QmF0Y2hFbnRpdHk6eA=="]) {
+                    ... on BatchEntity { id name }
+                }
+                alias: nodes(ids: ["QmF0Y2hFbnRpdHk6eQ=="]) { ... on BatchEntity { name } }
+                single: node(id: "QmF0Y2hFbnRpdHk6eA==") { ... on BatchEntity { name } }
+                malformed: node(id: "garbage") { ... on BatchEntity { name } }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var type = executor.Schema.Types.GetType<ObjectType>(nameof(BatchEntity));
+        type.TryGetNodeResolver(out var resolver);
+        var snapshot = new Snapshot(postFix: style.ToString());
+        snapshot.Add(result, "Result");
+        snapshot.Add(new
+        {
+            collector.InvocationCount,
+            BatchSizes = collector.BatchSizes.Order().ToArray(),
+            Ids = collector.ReceivedIds.Order().ToArray(),
+            RegularPipeline = resolver?.Pipeline is not null,
+            BatchPipeline = resolver?.BatchPipeline is not null
+        }, "Dispatch");
+        snapshot.Add(executor.Schema, "Schema");
+        snapshot.MatchMarkdownSnapshot();
+
+        Task<IReadOnlyList<BatchEntity?>> ResolveNodes(IReadOnlyList<IResolverContext> contexts, IReadOnlyList<string> ids)
+        {
+            collector.Record(ids);
+            return Task.FromResult<IReadOnlyList<BatchEntity?>>(ids.Select(id => new BatchEntity { Name = id }).ToArray());
+        }
+
+        async Task<IReadOnlyList<object?>> ResolveObjects(IReadOnlyList<IResolverContext> contexts, IReadOnlyList<string> ids)
+            => await ResolveNodes(contexts, ids);
+
+        async ValueTask<IReadOnlyList<ResolverResult>> ResolveResults(IReadOnlyList<IResolverContext> contexts)
+        {
+            var ids = contexts.Select(c => c.GetLocalState<string>(WellKnownContextData.InternalId)).ToArray();
+            var nodes = await ResolveNodes(contexts, ids);
+            return nodes.Select(ResolverResult.Ok).ToArray();
+        }
+    }
+
     [Fact]
     public async Task NodeResolver_ResolveNode()
     {
@@ -1005,16 +1431,150 @@ public class NodeResolverTests
     public sealed class BatchNodeCollector
     {
         private readonly List<string> _receivedIds = [];
+        private readonly List<int> _batchSizes = [];
 
         public int InvocationCount { get; private set; }
 
         public IReadOnlyList<string> ReceivedIds => _receivedIds;
 
+        public IReadOnlyList<int> BatchSizes => _batchSizes;
+
         public void Record(IEnumerable<string> ids)
         {
             InvocationCount++;
-            _receivedIds.AddRange(ids);
+            var values = ids.ToArray();
+            _receivedIds.AddRange(values);
+            _batchSizes.Add(values.Length);
         }
+    }
+
+    public class FluentBatchNodeResolver
+    {
+        public List<BatchEntity> WrongCount(List<string> id) => [];
+
+        [BatchResolver]
+        [Authorize("read-node")]
+        public List<BatchEntity> Protected(List<string> id, [Service] BatchNodeCollector collector)
+            => Resolve(id, collector);
+
+        [NodeBatchPartition]
+        public BatchEntity[] Partitioned(List<string> id, [Service] BatchNodeCollector collector)
+            => Resolve(id, collector).ToArray();
+
+        [BatchResolver]
+        public List<BatchEntity> Resolve(IReadOnlyList<string> id, [Service] BatchNodeCollector collector)
+        {
+            collector.Record(id);
+            return id.Select(value => new BatchEntity { Name = value }).ToList();
+        }
+
+        [NodeBatchPipeline]
+        public ValueTask<ImmutableArray<BatchEntity>> Formatted(
+            string[] id,
+            [Service] BatchNodeCollector collector)
+        {
+            collector.Record(id);
+            return new(id.Select(value => new BatchEntity { Name = value }).ToImmutableArray());
+        }
+    }
+
+    [Node(NodeResolver = nameof(GetAsync))]
+    public class InferredBatchEntity(string id)
+    {
+        public string Id => id;
+
+        [NodeResolver]
+        [BatchResolver]
+        public static Task<List<InferredBatchEntity>> GetAsync(
+            ImmutableArray<string> keys,
+            [Service] BatchNodeCollector collector)
+        {
+            collector.Record(keys);
+            return Task.FromResult(keys.Select(key => new InferredBatchEntity(key)).ToList());
+        }
+    }
+
+    private sealed class NodeBatchPipelineAttribute : ObjectFieldDescriptorAttribute
+    {
+        protected override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo? member)
+        {
+            descriptor.Directive("nodeBatch");
+            descriptor.UseBatch(next => async contexts =>
+            {
+                contexts[0].Result = new BatchEntity { Name = "cached" };
+                await next(contexts);
+                foreach (var entry in contexts)
+                {
+                    entry.Result = Append(entry.Result, ":middleware");
+                }
+            });
+            var configuration = descriptor.Extend().Configuration;
+            configuration.FormatterConfigurations.Add(new ResultFormatterConfiguration((_, value) => Append(value, ":first")));
+            configuration.FormatterConfigurations.Add(new ResultFormatterConfiguration((_, value) => Append(value, ":second")));
+        }
+    }
+
+    private sealed class NodeBatchPartitionAttribute : ObjectFieldDescriptorAttribute
+    {
+        protected override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo? member)
+        {
+            descriptor.Extend().Configuration.BatchPartitionKeyResolver =
+                c => c.GetLocalState<string>(WellKnownContextData.InternalId) == "x" ? 0UL : 1UL;
+        }
+    }
+
+    private sealed class NodeBatchDirectiveType : DirectiveType
+    {
+        protected override void Configure(IDirectiveTypeDescriptor descriptor)
+        {
+            descriptor.Name("nodeBatch").Location(DirectiveLocation.FieldDefinition);
+            descriptor.UseBatch((next, _) => async contexts =>
+            {
+                await next(contexts);
+                foreach (var entry in contexts)
+                {
+                    entry.Result = Append(entry.Result, ":directive");
+                }
+            });
+        }
+    }
+
+    private static BatchEntity? Append(object? value, string suffix)
+        => value is BatchEntity node ? new BatchEntity { Name = node.Name + suffix } : null;
+
+    private sealed class NodePolicyHandler(bool allowed) : IAuthorizationHandler
+    {
+        public List<string?> Policies { get; } = [];
+
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            IMiddlewareContext context,
+            AuthorizeDirective directive,
+            CancellationToken cancellationToken)
+        {
+            Policies.Add(directive.Policy);
+            return new(allowed ? AuthorizeResult.Allowed : AuthorizeResult.NotAllowed);
+        }
+
+        public ValueTask<AuthorizeResult> AuthorizeAsync(
+            AuthorizationContext context,
+            IReadOnlyList<AuthorizeDirective> directives,
+            CancellationToken cancellationToken)
+        {
+            Policies.AddRange(directives.Select(d => d.Policy));
+            return new(allowed ? AuthorizeResult.Allowed : AuthorizeResult.NotAllowed);
+        }
+    }
+
+    private static class ErrorHelper
+    {
+        public static IError NodeMissing()
+            => ErrorBuilder.New().SetMessage("missing node").Build();
     }
 
     public class QueryWithCollectingBatchNodeResolver

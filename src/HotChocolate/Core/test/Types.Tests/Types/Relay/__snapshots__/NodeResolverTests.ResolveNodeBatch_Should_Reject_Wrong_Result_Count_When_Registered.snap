@@ -1,0 +1,13 @@
+{
+  "errors": [
+    {
+      "message": "A batch resolver must return exactly one result per context. Expected 1 results but got 0.",
+      "path": [
+        "node"
+      ]
+    }
+  ],
+  "data": {
+    "node": null
+  }
+}
