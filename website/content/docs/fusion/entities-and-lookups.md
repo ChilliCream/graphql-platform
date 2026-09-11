@@ -406,7 +406,7 @@ builder
     .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true);
 ```
 
-Set `ApplyInaccessibleToNodeFields` if you want the generated `node` and `nodes` fields to stay usable as lookups while being hidden from the client-facing composite schema. They are marked `@inaccessible` and `@shareable`, since several source schemas can contribute them. This hides them under standard composition settings, while a composition with global object identification enabled keeps the gateway's own `node` field.
+Set `ApplyInaccessibleToNodeFields` if you want the generated `node` and `nodes` fields to remain in your source schema while being hidden from the client-facing composite schema. They are marked `@inaccessible` and `@shareable`, since several source schemas can contribute them, and `node` keeps working as a lookup for entity resolution. This hides them under standard composition settings, while a composition with global object identification enabled keeps the gateway's own `node` field.
 
 **C# configuration**
 
