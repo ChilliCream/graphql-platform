@@ -1,4 +1,5 @@
 using System.Buffers.Binary;
+using System.Diagnostics;
 using System.Threading.Channels;
 using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 
@@ -61,6 +62,51 @@ public sealed class SqliteDbWatcherTests : IDisposable
             }
         }
         while (sawEvent);
+    }
+
+    /// <summary>
+    /// Waits at least <paramref name="minimumWait"/> and, beyond that, until
+    /// <paramref name="getLastNotificationTimestamp"/> (a
+    /// <see cref="Stopwatch.GetTimestamp"/> value updated via
+    /// <see cref="SqliteDbWatcher.OnNotificationObserved"/>) has not advanced
+    /// for a further <paramref name="quietPeriod"/>. <see cref="SqliteDbWatcher"/>
+    /// (re)arms its debounce timer for exactly <paramref name="quietPeriod"/>
+    /// on every notification, so once this returns, whichever timer the last
+    /// observed notification armed is guaranteed to have already fired: any
+    /// event it produced is already sitting in the channel. The floor keeps
+    /// this at least as strict as a fixed post-read delay; the notification-
+    /// driven extension beyond it catches a notification that lands late
+    /// enough to still be pending when the floor is reached, which a fixed
+    /// delay alone would miss. OnEvent calls the hook synchronously as it
+    /// (re)arms the timer, long before that timer fires, so a still-in-flight
+    /// debounce cycle always advances the timestamp this polls even though it
+    /// has not published yet. Bounded by <see cref="s_testTimeout"/> so a
+    /// genuinely stuck watcher still fails the test instead of hanging.
+    /// </summary>
+    private static async Task WaitForNotificationQuiescenceAsync(
+        Func<long> getLastNotificationTimestamp,
+        TimeSpan minimumWait,
+        TimeSpan quietPeriod,
+        CancellationToken cancellationToken)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(s_testTimeout);
+
+        var start = Stopwatch.GetTimestamp();
+
+        while (true)
+        {
+            var minimumRemaining = minimumWait - Stopwatch.GetElapsedTime(start);
+            var quietRemaining = quietPeriod - Stopwatch.GetElapsedTime(getLastNotificationTimestamp());
+            var remaining = minimumRemaining > quietRemaining ? minimumRemaining : quietRemaining;
+
+            if (remaining <= TimeSpan.Zero)
+            {
+                return;
+            }
+
+            await Task.Delay(remaining, cts.Token);
+        }
     }
 
     private readonly string _directory =
@@ -445,7 +491,15 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
-        var watcher = new SqliteDbWatcher(databasePath, s_burstDebounce);
+        var lastNotificationTimestamp = Stopwatch.GetTimestamp();
+        var watcher = new SqliteDbWatcher(databasePath, s_burstDebounce)
+        {
+            // See WaitForNotificationQuiescenceAsync: this is how the tail
+            // check below learns when the debounce timer was last (re)armed,
+            // instead of guessing a fixed delay from when `first` was read.
+            OnNotificationObserved =
+                () => Interlocked.Exchange(ref lastNotificationTimestamp, Stopwatch.GetTimestamp())
+        };
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
@@ -466,8 +520,19 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         var first = await ReadOneAsync(channel.Reader, testToken);
 
-        // No further event should follow once the burst settles.
-        await Task.Delay(s_burstDebounce * 2, testToken);
+        // No further event should follow once the burst settles: keep the
+        // old fixed floor (s_burstDebounce * 2 after `first`) so this stays
+        // at least as strict as the check it replaces, but extend beyond it
+        // via actual OS notification quiescence when delivery is slow. This
+        // is bd-hai's mechanism (notification delivery jitter under load can
+        // split one burst's events into two debounce cycles further apart
+        // than any fixed guess), so only waiting the fixed window would risk
+        // a miss for a straggler that lands right at or after its edge.
+        await WaitForNotificationQuiescenceAsync(
+            () => Interlocked.Read(ref lastNotificationTimestamp),
+            minimumWait: s_burstDebounce * 2,
+            quietPeriod: s_burstDebounce,
+            testToken);
         cts.Cancel();
         await runTask;
 
