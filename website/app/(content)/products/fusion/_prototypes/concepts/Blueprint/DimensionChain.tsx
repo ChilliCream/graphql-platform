@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { BP, PARTS } from "./palette";
+import { BP, FONT, PARTS } from "./palette";
 import { draw, fade, Sheet, stamp } from "./Sheet";
 
 /**
@@ -16,10 +16,12 @@ import { draw, fade, Sheet, stamp } from "./Sheet";
 
 /** Witness lines of the chain; each pair of neighbours bounds one segment. */
 const WITNESS = [22, 128, 240, 352, 458];
-const CHAIN_Y = 200;
-const OVERALL_Y = 232;
-const BOX_TOP = 108;
-const BOX_BOTTOM = 150;
+const CHAIN_Y = 214;
+const OVERALL_Y = 244;
+const BOX_TOP = 120;
+const BOX_BOTTOM = 170;
+/** Half the width of a sub-assembly box, lettered at the label floor. */
+const BOX_W = 52;
 
 const SEGMENTS = PARTS.slice(0, 4).map((part, i) => ({
   ...part,
@@ -30,7 +32,7 @@ const SEGMENTS = PARTS.slice(0, 4).map((part, i) => ({
 
 /** A dimension arrowhead at `x`, pointing left (-1) or right (1). */
 function head(x: number, y: number, dir: 1 | -1): string {
-  return `M${x} ${y}l${dir * 7} -2.6v5.2Z`;
+  return `M${x} ${y}l${dir * 9} -3.4v6.8Z`;
 }
 
 const CSS = `
@@ -49,7 +51,6 @@ ${draw("bp-d-overall", 64, 6)}
 ${fade("bp-d-overall-label", 71)}
 ${draw("bp-d-return", 74, 5)}
 ${stamp("bp-d-stamp", 82)}
-${fade("bp-d-note", 88)}
 `;
 
 export function DimensionChain() {
@@ -64,7 +65,7 @@ export function DimensionChain() {
       run={active && !reduced}
     >
       <svg
-        viewBox="0 0 480 270"
+        viewBox="0 0 480 276"
         preserveAspectRatio="xMidYMid meet"
         className="absolute inset-0 h-full w-full"
       >
@@ -73,23 +74,18 @@ export function DimensionChain() {
         {/* The client and its one query */}
         <path
           className="bp-d-client"
-          d="M14 10h86v30H14Z"
+          d="M14 8h186v30H14Z"
           pathLength={1}
           fill="none"
           stroke={BP.ink}
           strokeWidth={1.2}
         />
-        <g className="bp-d-client-label">
-          <text x={24} y={24} fontSize={8}>
-            WEB CLIENT
-          </text>
-          <text className="bp-t-dim" x={24} y={35} fontSize={6}>
-            ONE QUERY
-          </text>
-        </g>
+        <text className="bp-d-client-label" x={26} y={29} fontSize={FONT.label}>
+          WEB CLIENT
+        </text>
         <path
           className="bp-d-query"
-          d="M100 25h140v14"
+          d="M200 23h40v33"
           pathLength={1}
           fill="none"
           stroke={BP.dim}
@@ -97,33 +93,33 @@ export function DimensionChain() {
         />
         <path
           className="bp-d-gateway-label"
-          d="M240 46l-2.8-7h5.6Z"
+          d="M240 56l-3.6-9h7.2Z"
           fill={BP.dim}
         />
 
         {/* The main assembly */}
         <path
           className="bp-d-gateway"
-          d="M22 46h436v30H22Z"
+          d="M22 56h436v50H22Z"
           pathLength={1}
           fill={BP.plate}
           stroke={BP.ink}
           strokeWidth={1.6}
         />
         <g className="bp-d-gateway-label">
-          <text x={240} y={65} textAnchor="middle" fontSize={10}>
+          <text x={240} y={80} textAnchor="middle" fontSize={FONT.label}>
             FUSION GATEWAY
           </text>
           <text
             className="bp-t-dim"
-            x={450}
-            y={65}
+            x={446}
+            y={80}
             textAnchor="end"
-            fontSize={6}
+            fontSize={FONT.label}
           >
             ASSY-100
           </text>
-          <text className="bp-t-dim" x={30} y={65} fontSize={6}>
+          <text className="bp-t-dim" x={34} y={100} fontSize={FONT.label}>
             ONE ENDPOINT
           </text>
         </g>
@@ -133,7 +129,7 @@ export function DimensionChain() {
           <g key={segment.no}>
             <path
               className={`bp-d-leader${i}`}
-              d={`M${segment.cx} 76v${BOX_TOP - 76}`}
+              d={`M${segment.cx} 106v${BOX_TOP - 106}`}
               pathLength={1}
               fill="none"
               stroke={BP.inkFaint}
@@ -141,24 +137,29 @@ export function DimensionChain() {
             />
             <path
               className={`bp-d-box${i}`}
-              d={`M${segment.cx - 48} ${BOX_TOP}h96v${BOX_BOTTOM - BOX_TOP}h-96Z`}
+              d={`M${segment.cx - BOX_W} ${BOX_TOP}h${BOX_W * 2}v${BOX_BOTTOM - BOX_TOP}h${-BOX_W * 2}Z`}
               pathLength={1}
               fill={BP.plate}
               stroke={BP.ink}
               strokeWidth={1.2}
             />
             <g className={`bp-d-name${i}`}>
-              <text x={segment.cx} y={126} textAnchor="middle" fontSize={9}>
+              <text
+                x={segment.cx}
+                y={144}
+                textAnchor="middle"
+                fontSize={FONT.label}
+              >
                 {segment.name.toUpperCase()}
               </text>
               <text
                 className="bp-t-dim"
                 x={segment.cx}
-                y={140}
+                y={164}
                 textAnchor="middle"
-                fontSize={6}
+                fontSize={FONT.label}
               >
-                {`${segment.no} · ${segment.language}`}
+                {segment.language}
               </text>
             </g>
           </g>
@@ -191,7 +192,7 @@ export function DimensionChain() {
                 x={segment.cx}
                 y={CHAIN_Y - 6}
                 textAnchor="middle"
-                fontSize={8}
+                fontSize={FONT.label}
               >
                 {segment.feature}
               </text>
@@ -219,7 +220,12 @@ export function DimensionChain() {
         <g className="bp-d-overall-label">
           <path d={head(22, OVERALL_Y, 1)} fill={BP.ink} />
           <path d={head(458, OVERALL_Y, -1)} fill={BP.ink} />
-          <text x={240} y={OVERALL_Y - 7} textAnchor="middle" fontSize={9}>
+          <text
+            x={240}
+            y={OVERALL_Y - 8}
+            textAnchor="middle"
+            fontSize={FONT.label}
+          >
             ONE RESPONSE
           </text>
         </g>
@@ -232,26 +238,23 @@ export function DimensionChain() {
           strokeWidth={1}
         />
 
-        <g className="bp-d-stamp" style={{ transformOrigin: "390px 258px" }}>
+        <g className="bp-d-stamp" style={{ transformOrigin: "333px 262px" }}>
           <path
-            d="M318 246h144v22H318Z"
+            d="M205 250h256v24H205Z"
             fill="none"
             stroke={BP.ok}
             strokeWidth={1}
           />
           <text
             className="bp-t-ok"
-            x={390}
-            y={261}
+            x={333}
+            y={267}
             textAnchor="middle"
-            fontSize={7.5}
+            fontSize={FONT.label}
           >
             COMPOSED IN THE BUILD
           </text>
         </g>
-        <text className="bp-d-note bp-t-dim" x={22} y={261} fontSize={6.5}>
-          CHAIN CLOSES AT THE GATEWAY · NOT AT THE CLIENT
-        </text>
       </svg>
     </Sheet>
   );

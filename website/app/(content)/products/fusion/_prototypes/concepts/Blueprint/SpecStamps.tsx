@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { BOUGHT_IN, BP, PARTS } from "./palette";
+import { BOUGHT_IN, BP, FONT, PARTS } from "./palette";
 import { draw, fade, Sheet, stamp } from "./Sheet";
 
 /**
@@ -17,13 +17,19 @@ import { draw, fade, Sheet, stamp } from "./Sheet";
  */
 
 const ROW_X = 14;
-const ROW_W = 286;
-const ROW_H = 28;
-const TRUNK_X = 320;
-const STAMP_X = 196;
+const ROW_W = 426;
+const ROW_H = 42;
+const ROW_PITCH = 48;
+const TRUNK_X = 456;
+/** Left edge of the stamp box, sized for the longer of the two specifications. */
+const STAMP_X = 180;
+const STAMP_W = 252;
 
-const ROWS = PARTS.map((part, i) => ({ ...part, y: 26 + i * 34 }));
-const SOURCES = BOUGHT_IN.map((part, i) => ({ ...part, y: 200 + i * 34 }));
+const ROWS = PARTS.map((part, i) => ({ ...part, y: 32 + i * ROW_PITCH }));
+const SOURCES = BOUGHT_IN.map((part, i) => ({
+  ...part,
+  y: 274 + i * ROW_PITCH,
+}));
 
 const CSS = `
 ${fade("bp-s-head", 1)}
@@ -51,19 +57,19 @@ function StampMark({ className, y, label }: StampMarkProps) {
   return (
     <g
       className={className}
-      style={{ transformOrigin: `${STAMP_X + 49}px ${y + 14}px` }}
+      style={{ transformOrigin: `${STAMP_X + STAMP_W / 2}px ${y + 21}px` }}
     >
       <path
-        d={`M${STAMP_X} ${y + 4}h98v20h-98Z`}
+        d={`M${STAMP_X} ${y + 8}h${STAMP_W}v26h${-STAMP_W}Z`}
         fill="none"
         stroke={BP.ink}
         strokeWidth={1}
       />
       <text
-        x={STAMP_X + 49}
-        y={y + 18}
+        x={STAMP_X + STAMP_W / 2}
+        y={y + 27}
         textAnchor="middle"
-        fontSize={6.2}
+        fontSize={FONT.label}
         style={{ letterSpacing: "0.1em" }}
       >
         {label.toUpperCase()}
@@ -85,14 +91,14 @@ function Adapter({ className, labelClassName, y, label }: AdapterProps) {
   return (
     <g className={className}>
       <path
-        d={`M${STAMP_X} ${y + 4}h98v20h-98Z`}
+        d={`M${STAMP_X} ${y + 8}h${STAMP_W}v26h${-STAMP_W}Z`}
         pathLength={1}
         fill="none"
         stroke={BP.dim}
         strokeWidth={1}
       />
       <path
-        d={`M${STAMP_X + 18} ${y + 4}v20M${STAMP_X + 80} ${y + 4}v20`}
+        d={`M${STAMP_X + 34} ${y + 8}v26M${STAMP_X + STAMP_W - 34} ${y + 8}v26`}
         pathLength={1}
         fill="none"
         stroke={BP.dim}
@@ -100,10 +106,10 @@ function Adapter({ className, labelClassName, y, label }: AdapterProps) {
       />
       <text
         className={`${labelClassName} bp-t-cyan`}
-        x={STAMP_X + 49}
-        y={y + 18}
+        x={STAMP_X + STAMP_W / 2}
+        y={y + 27}
         textAnchor="middle"
-        fontSize={6.2}
+        fontSize={FONT.label}
       >
         {label}
       </text>
@@ -123,13 +129,18 @@ export function SpecStamps() {
       run={active && !reduced}
     >
       <svg
-        viewBox="0 0 400 400"
+        viewBox="0 0 480 442"
         preserveAspectRatio="xMidYMid meet"
         className="absolute inset-0 h-full w-full"
       >
         <style>{CSS}</style>
 
-        <text className="bp-s-head bp-t-dim" x={ROW_X} y={16} fontSize={6.5}>
+        <text
+          className="bp-s-head bp-t-dim"
+          x={ROW_X}
+          y={22}
+          fontSize={FONT.label}
+        >
           SOURCE SCHEMA · SPECIFICATION STAMP
         </text>
 
@@ -144,14 +155,14 @@ export function SpecStamps() {
               strokeWidth={1.1}
             />
             <g className={`bp-s-label${i}`}>
-              <text x={ROW_X + 10} y={row.y + 13} fontSize={9}>
+              <text x={ROW_X + 8} y={row.y + 18} fontSize={FONT.label}>
                 {row.name.toUpperCase()}
               </text>
               <text
                 className="bp-t-dim"
-                x={ROW_X + 10}
-                y={row.y + 23}
-                fontSize={6}
+                x={ROW_X + 8}
+                y={row.y + 36}
+                fontSize={FONT.label}
               >
                 {`${row.no} · ${row.language}`}
               </text>
@@ -174,16 +185,16 @@ export function SpecStamps() {
                 strokeWidth={1}
                 strokeDasharray="5 3"
               />
-              <text x={ROW_X + 10} y={source.y + 13} fontSize={9}>
+              <text x={ROW_X + 8} y={source.y + 18} fontSize={FONT.label}>
                 {source.name.toUpperCase()}
               </text>
               <text
                 className="bp-t-dim"
-                x={ROW_X + 10}
-                y={source.y + 23}
-                fontSize={6}
+                x={ROW_X + 8}
+                y={source.y + 36}
+                fontSize={FONT.label}
               >
-                {`${source.no} · ${source.kind} · BOUGHT-IN PART`}
+                {`${source.no} · ${source.kind.toUpperCase()}`}
               </text>
             </g>
             <Adapter
@@ -198,7 +209,7 @@ export function SpecStamps() {
         {/* The trunk every stamped drawing runs down */}
         <path
           className="bp-s-trunk"
-          d={`M${TRUNK_X} 40v280`}
+          d={`M${TRUNK_X} 48v328`}
           pathLength={1}
           fill="none"
           stroke={BP.ink}
@@ -219,29 +230,43 @@ export function SpecStamps() {
         {/* One composite schema */}
         <path
           className="bp-s-out"
-          d={`M${ROW_X} 320h372v42h-372Z`}
+          d={`M${ROW_X} 376h452v48h-452Z`}
           pathLength={1}
           fill={BP.plate}
           stroke={BP.ink}
           strokeWidth={1.6}
         />
         <g className="bp-s-out-label">
-          <text x={200} y={340} textAnchor="middle" fontSize={10}>
+          <text x={240} y={400} textAnchor="middle" fontSize={FONT.label}>
             ONE COMPOSITE SCHEMA
           </text>
           <text
             className="bp-t-dim"
-            x={200}
-            y={353}
+            x={240}
+            y={418}
             textAnchor="middle"
-            fontSize={6}
+            fontSize={FONT.label}
           >
-            ASSY-100 · ONE GATEWAY · SEVEN SOURCE SCHEMAS
+            SEVEN SOURCE SCHEMAS
           </text>
         </g>
 
-        <text className="bp-s-note bp-t-dim" x={ROW_X} y={382} fontSize={6.2}>
-          EVERY CONTRACT VALIDATED IN THE SAME COMPOSITION STEP
+        <text
+          className="bp-s-note bp-t-dim"
+          x={ROW_X}
+          y={438}
+          fontSize={FONT.label}
+        >
+          DASHED = BOUGHT-IN
+        </text>
+        <text
+          className="bp-s-note bp-t-dim"
+          x={466}
+          y={438}
+          textAnchor="end"
+          fontSize={FONT.label}
+        >
+          ONE COMPOSITION STEP
         </text>
       </svg>
     </Sheet>
