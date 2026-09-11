@@ -1167,4 +1167,10 @@ Type: `{0}`</value>
   <data name="ErrorHelper_UndefinedInputFieldDefaultEnumValue" xml:space="preserve">
     <value>The default value '{0}' of field '{1}' is not defined in the enum '{2}'.</value>
   </data>
+  <data name="ErrorHelper_BatchResolver_MiddlewareNotSupported" xml:space="preserve">
+    <value>The field `{0}` is resolved by the batch resolver '{1}' but declares the middleware `{2}`, which only supports the per-parent resolver pipeline. Register a batch middleware with `UseBatch` or remove `{2}` from the field.</value>
+  </data>
+  <data name="ErrorHelper_BatchResolver_NotAllowedOnMutationField" xml:space="preserve">
+    <value>The mutation field `{0}` cannot be resolved by the batch resolver '{1}'. Top-level mutation fields execute serially, one field at a time, so there is never more than one parent to batch. Use a standard resolver instead.</value>
+  </data>
 </root>

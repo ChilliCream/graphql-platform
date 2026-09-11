@@ -306,4 +306,7 @@
   <data name="VariableCoercionHelper_CoerceVariableValues_VariablesMustBeObject" xml:space="preserve">
     <value>Variable values must be a JSON Object.</value>
   </data>
+  <data name="ThrowHelper_DirectiveNotSupportedOnBatchSelection" xml:space="preserve">
+    <value>The directive `@{0}` cannot be applied to the field `{1}` on type `{2}` because the field is resolved by a batch resolver and directive middleware is not supported on batch selections.</value>
+  </data>
 </root>
