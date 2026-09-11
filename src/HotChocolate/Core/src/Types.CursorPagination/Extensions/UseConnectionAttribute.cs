@@ -136,7 +136,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
                 new BatchFieldMiddlewareConfiguration(
                     CreateBatchPagingValidationMiddleware(),
                     key: Paging));
-            definition.BatchPartitionKeyResolver = PagingHelper.GetPagingBatchPartitionKey;
+            definition.BatchPartitionKeyResolver ??= PagingHelper.GetPagingBatchPartitionKey;
             definition.Tasks.Add(
                 new OnCreateTypeSystemConfigurationTask(
                     (c, d) => d.Features.Set(c.GetPagingOptions(options)), definition));
@@ -188,9 +188,22 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         {
             foreach (var context in contexts)
             {
-                var options = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
-                ValidateContext(context, options);
-                PublishPagingArguments(context, options);
+                if (context.Result is IError or IEnumerable<IError> or IFieldResult { IsError: true }
+                    || (context.Result is null && (context.HasErrors || context.IsResultModified)))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var options = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+                    ValidateContext(context, options);
+                    PublishPagingArguments(context, options);
+                }
+                catch (Exception ex)
+                {
+                    PagingHelper.ReportPagingError(context, ex);
+                }
             }
 
             await next(contexts).ConfigureAwait(false);
@@ -266,13 +279,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         PagingOptions options)
     {
         var allowBackwardPagination = options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
-        var maxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
-        var defaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
-
-        if (maxPageSize < defaultPageSize)
-        {
-            defaultPageSize = maxPageSize;
-        }
+        var defaultPageSize = PagingHelper.GetEffectiveDefaultPageSize(options);
 
         var first = context.ArgumentValue<int?>(First);
         var last = allowBackwardPagination

@@ -13,15 +13,10 @@ public abstract class OffsetPagingHandler : IPagingHandler
 {
     protected OffsetPagingHandler(PagingOptions options)
     {
-        DefaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
+        DefaultPageSize = PagingHelper.GetEffectiveDefaultPageSize(options);
         MaxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
         IncludeTotalCount = options.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount;
         RequirePagingBoundaries = options.RequirePagingBoundaries ?? false;
-
-        if (MaxPageSize < DefaultPageSize)
-        {
-            DefaultPageSize = MaxPageSize;
-        }
     }
 
     /// <summary>

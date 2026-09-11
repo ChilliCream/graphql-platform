@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.Buffers.Binary;
+using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Hashing;
@@ -12,6 +13,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
+using ConditionFlags = HotChocolate.Execution.ConditionFlags;
 using static HotChocolate.WellKnownMiddleware;
 
 namespace HotChocolate.Types.Pagination;
@@ -77,14 +79,16 @@ public static class PagingHelper
         var pagingProvider = resolvePagingProvider(context.Services, source, name);
         var pagingHandler = pagingProvider.CreateHandler(source, options);
         var middleware = CreateMiddleware(pagingHandler);
-        var batchMiddleware = CreateBatchMiddleware(pagingHandler);
+        var batchMiddleware = CreateBatchMiddleware(pagingHandler, source);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: Paging);
 
         var batchIndex = definition.BatchMiddlewareConfigurations.IndexOf(batchPlaceholder);
         definition.BatchMiddlewareConfigurations[batchIndex] = new(batchMiddleware, key: Paging);
-        definition.BatchPartitionKeyResolver = GetPagingBatchPartitionKey;
+        definition.BatchPartitionKeyResolver ??= (definition.Flags & CoreFieldFlags.CollectionSegment) != 0
+            ? GetOffsetPagingBatchPartitionKey
+            : GetPagingBatchPartitionKey;
         definition.Features.Set(options);
     }
 
@@ -134,37 +138,100 @@ public static class PagingHelper
             return context => middleware.InvokeAsync(context);
         };
 
-    private static BatchFieldMiddleware CreateBatchMiddleware(IPagingHandler handler)
+    private static BatchFieldMiddleware CreateBatchMiddleware(IPagingHandler handler, IExtendedType sourceType)
         => next => async contexts =>
         {
             foreach (var context in contexts)
             {
-                handler.ValidateContext(context);
-                handler.PublishPagingArguments(context);
+                if (HasErrorResult(context) || (context.IsResultModified && context.Result is null))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    handler.ValidateContext(context);
+                    handler.PublishPagingArguments(context);
+                }
+                catch (Exception ex)
+                {
+                    ReportPagingError(context, ex);
+                }
             }
 
             await next(contexts).ConfigureAwait(false);
 
             foreach (var context in contexts)
             {
-                if (context.Result is IFieldResult { IsError: true })
+                if (HasErrorResult(context))
                 {
                     continue;
                 }
 
-                if (context.Result is IFieldResult fieldResult)
+                try
                 {
-                    context.Result = fieldResult.Value;
-                }
+                    if (context.Result is IFieldResult fieldResult)
+                    {
+                        context.Result = fieldResult.Value;
+                    }
 
-                if (context.Result is not null and not IPage)
+                    if (context.Result is { } source and not IPage
+                        && (sourceType.Type.IsInstanceOfType(source)
+                            || (sourceType.IsArrayOrList && source is IEnumerable or IExecutable)))
+                    {
+                        context.Result = await handler
+                            .SliceAsync(context, source)
+                            .ConfigureAwait(false);
+                    }
+
+                    var observers = context.GetLocalStateOrDefault(
+                        WellKnownContextData.PagingObserver,
+                        ImmutableArray<IPageObserver>.Empty);
+
+                    if (context.Result is IPage page)
+                    {
+                        foreach (var observer in observers)
+                        {
+                            page.Accept(observer);
+                        }
+                    }
+                }
+                catch (Exception ex)
                 {
-                    context.Result = await handler
-                        .SliceAsync(context, context.Result)
-                        .ConfigureAwait(false);
+                    ReportPagingError(context, ex);
                 }
             }
         };
+
+    private static bool HasErrorResult(IMiddlewareContext context)
+        => context.Result is IError or IEnumerable<IError> or IFieldResult { IsError: true }
+            || (context.HasErrors && context.Result is null);
+
+    internal static void ReportPagingError(IMiddlewareContext context, Exception exception)
+    {
+        if (exception is GraphQLException graphQLException)
+        {
+            foreach (var error in graphQLException.Errors)
+            {
+                context.ReportError(error.WithPath(context.Path));
+            }
+        }
+        else
+        {
+            context.ReportError(exception);
+        }
+
+        context.Result = null;
+    }
+
+    /// <summary>
+    /// Gets the default page size bounded by the maximum page size.
+    /// Unspecified sizes use the paging defaults.
+    /// </summary>
+    public static int GetEffectiveDefaultPageSize(PagingOptions options)
+        => Math.Min(
+            options.DefaultPageSize ?? PagingDefaults.DefaultPageSize,
+            options.MaxPageSize ?? PagingDefaults.MaxPageSize);
 
     internal static ulong GetPagingBatchPartitionKey(IMiddlewareContext context)
     {
@@ -178,6 +245,12 @@ public static class PagingHelper
         {
             last = context.ArgumentValue<int?>(LastArgumentName);
             before = context.ArgumentValue<string?>(BeforeArgumentName);
+        }
+
+        if (first is null && last is null
+            && !(options.RequirePagingBoundaries ?? PagingDefaults.RequirePagingBoundaries))
+        {
+            first = GetEffectiveDefaultPageSize(options);
         }
 
         var flags = ConnectionFlagsHelper.GetConnectionFlags(context);
@@ -224,6 +297,46 @@ public static class PagingHelper
             }
         }
     }
+
+    internal static ulong GetOffsetPagingBatchPartitionKey(IMiddlewareContext context)
+    {
+        var options = GetPagingOptions(context.Schema, context.Selection.Field);
+        var skip = context.ArgumentValue<int?>("skip");
+        var take = context.ArgumentValue<int?>("take");
+
+        if (take is null
+            && !(options.RequirePagingBoundaries ?? PagingDefaults.RequirePagingBoundaries))
+        {
+            take = GetEffectiveDefaultPageSize(options);
+        }
+
+        var flags = context.Selection.Features.GetOrSetSafe(
+            static c => new OffsetPagingFlags(c.IncludeConditionFlags, c.IsSelected("totalCount")),
+            context);
+        var totalCount = (options.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount)
+            && (flags.Conditions.Word0 == context.IncludeConditionFlags.Word0
+                && flags.Conditions.Overflow.AsSpan().SequenceEqual(context.IncludeConditionFlags.Overflow)
+                ? flags.TotalCount
+                : context.IsSelected("totalCount"));
+
+        if (skip is null && take is null && !totalCount)
+        {
+            return 0;
+        }
+
+        Span<byte> buffer = stackalloc byte[11];
+        var written = WriteIntPartitionKey(buffer, 0, (byte)'s', skip);
+        written = WriteIntPartitionKey(buffer, written, (byte)'t', take);
+        if (totalCount)
+        {
+            buffer[written++] = 1;
+        }
+
+        var hash = ComputePartitionKeyHash(buffer[..written]);
+        return hash == 0 ? 1 : hash;
+    }
+
+    private readonly record struct OffsetPagingFlags(ConditionFlags Conditions, bool TotalCount);
 
     private static int GetIntPartitionKeySize(int? value)
         => value.HasValue ? 5 : 0;

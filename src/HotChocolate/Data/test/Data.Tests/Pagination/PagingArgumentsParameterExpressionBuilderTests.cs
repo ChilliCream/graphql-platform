@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Reflection;
+using CookieCrumble;
 using GreenDonut.Data;
 using HotChocolate.Execution;
 using HotChocolate.Types;
@@ -11,6 +12,54 @@ namespace HotChocolate.Data.Pagination;
 
 public class PagingArgumentsParameterExpressionBuilderTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PagingArguments_Should_UseClampedDefault_When_BatchReturnsPageShapes(bool connection)
+    {
+        // arrange
+        BatchBrandExtensions.BatchCallCount = 0;
+        ConnectionBrandExtensions.BatchCallCount = 0;
+        var builder = new ServiceCollection().AddGraphQL().AddPagingArguments()
+            .ModifyPagingOptions(o =>
+            {
+                o.DefaultPageSize = 100;
+                o.MaxPageSize = 2;
+            });
+        if (connection)
+        {
+            builder.AddQueryType<ConnectionQuery>()
+                .AddTypeExtension<ConnectionBrandExtensions>()
+                .AddType<ConnectionProductConnectionType>();
+        }
+        else
+        {
+            builder.AddQueryType<BatchQuery>().AddTypeExtension<BatchBrandExtensions>();
+        }
+        var executor = await builder.BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        IReadOnlyDictionary<string, object?>[] sets =
+        [
+            new Dictionary<string, object?>(),
+            new Dictionary<string, object?> { ["first"] = 2 },
+            new Dictionary<string, object?> { ["first"] = 3 }
+        ];
+
+        // act
+        await using var result = await executor.ExecuteAsync(OperationRequestBuilder.New()
+            .SetDocument("query($first:Int){brands{products(first:$first){nodes{name}}}}")
+            .SetVariableValues(sets).Build(), TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, connection ? ConnectionBrandExtensions.BatchCallCount : BatchBrandExtensions.BatchCallCount);
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        Assert.Empty(batch.Results[0].ExpectOperationResult().Errors);
+        new Snapshot(postFix: connection.ToString())
+            .Add(batch.Results[0], "Omitted default")
+            .Add(batch.Results[1], "Explicit effective default")
+            .Add(batch.Results[2], "Invalid sibling")
+            .MatchMarkdownSnapshot();
+    }
+
     [Fact]
     public async Task Maps_NullOrdering_From_PagingOptions_To_PagingArguments()
     {
@@ -119,7 +168,7 @@ public class PagingArgumentsParameterExpressionBuilderTests
     }
 
     [Fact]
-    public async Task BatchResolver_Should_Not_Partition_Identical_PagingArguments()
+    public async Task BatchResolver_Should_SeparateAliases_When_PagingArgumentsAreIdentical()
     {
         // arrange
         BatchBrandExtensions.BatchCallCount = 0;
@@ -153,7 +202,7 @@ public class PagingArgumentsParameterExpressionBuilderTests
                 cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(1, BatchBrandExtensions.BatchCallCount);
+        Assert.Equal(2, BatchBrandExtensions.BatchCallCount);
         result.MatchInlineSnapshot(
             """
             {

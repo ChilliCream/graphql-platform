@@ -8,8 +8,7 @@ public abstract class CursorPagingHandler : IPagingHandler
 {
     protected CursorPagingHandler(PagingOptions options)
     {
-        DefaultPageSize =
-            options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
+        DefaultPageSize = PagingHelper.GetEffectiveDefaultPageSize(options);
         MaxPageSize =
             options.MaxPageSize ?? PagingDefaults.MaxPageSize;
         IncludeTotalCount =
@@ -18,11 +17,6 @@ public abstract class CursorPagingHandler : IPagingHandler
             options.RequirePagingBoundaries ?? PagingDefaults.RequirePagingBoundaries;
         AllowBackwardPagination =
             options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
-
-        if (MaxPageSize < DefaultPageSize)
-        {
-            DefaultPageSize = MaxPageSize;
-        }
     }
 
     /// <summary>
