@@ -259,7 +259,7 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
             Commands:
               session-created  Adapt opencode's session.created event: register this session's presence row.
               chat-message     Adapt opencode's chat.message event: append the actor announcement and mail digest.
-              session-idle     Adapt opencode's session.idle event: reserve unread mail for idle delivery.
+              session-idle     Adapt opencode's session.idle event: refresh the session heartbeat.
               session-deleted  Adapt opencode's session.deleted event: remove this session's presence row.
             """);
     }
@@ -273,7 +273,7 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
         "Adapt opencode's chat.message event: append the actor announcement and mail digest.")]
     [InlineData(
         "session-idle",
-        "Adapt opencode's session.idle event: reserve unread mail for idle delivery.")]
+        "Adapt opencode's session.idle event: refresh the session heartbeat.")]
     [InlineData(
         "session-deleted",
         "Adapt opencode's session.deleted event: remove this session's presence row.")]
