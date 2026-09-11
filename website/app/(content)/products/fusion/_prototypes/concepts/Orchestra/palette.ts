@@ -1,11 +1,18 @@
+import { BRAND, CC, FONTS } from "../../brand";
+
 /**
  * Concept v4 "Orchestra": the shared score vocabulary.
  *
  * The gateway is the conductor, every subgraph is an orchestra section, and a
- * query is a line of the conductor's score. Colours are warm stage light on
- * the site's navy so the concept reads as a concert hall rather than a
- * diagram, and the two federation specifications are two notations printed on
- * the same score - neither is styled as the default.
+ * query is a line of the conductor's score. The stage light is warm - the
+ * brand amber and coral - over the site's navy surface, so the concept reads
+ * as a concert hall rather than a diagram, and the two federation
+ * specifications are two notations printed on the same score: neither is
+ * styled as the default.
+ *
+ * Nothing below is a colour of its own: every role maps to a `--color-cc-*`
+ * token or a brand accent from `../../brand`, so the concept follows the site
+ * theme instead of freezing its own hexes.
  */
 
 export interface Desk {
@@ -29,28 +36,47 @@ export interface Guest {
   readonly hue: string;
 }
 
-/** Warm brass, cool strings, a lit rostrum and the unlit hall behind them. */
+/**
+ * Scene role -> site token. Warm brass, cool strings, a lit rostrum and the
+ * unlit hall behind them, all drawn from the site palette: the hall is the
+ * page ground, the boards are the card surface, and the desk lights are the
+ * brand accents the rest of the site already uses.
+ */
 export const STAGE = {
-  hall: "#080c16",
-  boards: "#0c1322",
-  rule: "rgba(245, 241, 234, 0.14)",
-  ruleFaint: "rgba(245, 241, 234, 0.07)",
-  ink: "#a1a3af",
-  heading: "#f5f0ea",
-  baton: "#f5f0ea",
-  rostrum: "#16b9e4",
-  brass: "#fbbf24",
-  strings: "#5eead4",
-  wood: "#7c92c6",
-  perc: "#f0786a",
-  harp: "#34d399",
-  clash: "#f0786a",
-  safe: "#34d399",
+  /** The unlit hall: the scene's own ground, the page background token. */
+  hall: CC.bg,
+  /** Lit boards and plaques: the site's solid navy surface. */
+  boards: CC.surface,
+  /** Printed staff lines and panel edges. */
+  rule: CC.cardBorder,
+  /** The faintest engraved hairlines. */
+  ruleFaint: `color-mix(in srgb, ${CC.cardBorder} 55%, transparent)`,
+  /** Engraved secondary lettering. */
+  ink: CC.ink,
+  /** Engraved primary lettering. */
+  heading: CC.heading,
+  /** The baton itself. */
+  baton: CC.heading,
+  /** The rostrum light: the site accent. */
+  rostrum: BRAND.cyan,
+  /** Brass under the warm stage light. */
+  brass: BRAND.amber,
+  /** Strings under the cool stage light. */
+  strings: BRAND.teal,
+  /** Woodwind. */
+  wood: BRAND.violet,
+  /** Percussion, the warmest desk light. */
+  perc: BRAND.coral,
+  /** Harp. */
+  harp: BRAND.green,
+  /** A clash the rehearsal stops on. */
+  clash: BRAND.coral,
+  /** A part that still composes. */
+  safe: BRAND.green,
 } as const;
 
-/** Monospace stack for the score's engraved labels. */
-export const ENGRAVE =
-  "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+/** The score's engraved lettering: the site's mono face. */
+export const ENGRAVE = FONTS.mono;
 
 /**
  * The five desks on stage, in score order (top staff first). Hot Chocolate's

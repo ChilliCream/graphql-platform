@@ -5,6 +5,7 @@ import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
 import { Link } from "@/src/design-system/Link";
 
+import { CC } from "../../brand";
 import { HERO, NITRO_BAND, SECTIONS } from "../../copy";
 import type { CopyLink } from "../../copy";
 import { Scene } from "../../Primitives";
@@ -14,7 +15,6 @@ import { Recording } from "./Recording";
 import { Rehearsal } from "./Rehearsal";
 import { ScoreStrip } from "./ScoreStrip";
 import { TwoNotations } from "./TwoNotations";
-import { ENGRAVE } from "./palette";
 
 /**
  * Concept v4 "Orchestra": the Fusion page as a conductor's score.
@@ -29,8 +29,8 @@ import { ENGRAVE } from "./palette";
 const MOVEMENTS = ["I", "II", "III", "IV"];
 
 /** Staff lines behind a block, drawn with a gradient so nothing shifts. */
-const STAVES =
-  "repeating-linear-gradient(to bottom, transparent 0px, transparent 15px, rgba(245,241,234,0.06) 15px, rgba(245,241,234,0.06) 16px)";
+const STAFF_LINE = `color-mix(in srgb, ${CC.inkFaint} 40%, transparent)`;
+const STAVES = `repeating-linear-gradient(to bottom, transparent 0px, transparent 15px, ${STAFF_LINE} 15px, ${STAFF_LINE} 16px)`;
 
 interface EngravedProps {
   readonly children: ReactNode;
@@ -41,8 +41,7 @@ interface EngravedProps {
 function Engraved({ children, className }: EngravedProps) {
   return (
     <span
-      style={{ fontFamily: ENGRAVE }}
-      className={`text-cc-nav-label text-[11px] tracking-[0.24em] uppercase ${className ?? ""}`.trim()}
+      className={`text-cc-nav-label font-mono text-[11px] tracking-[0.24em] uppercase ${className ?? ""}`.trim()}
     >
       {children}
     </span>
@@ -127,7 +126,7 @@ function Movement({ index, section, ratio, visual }: MovementProps) {
   return (
     <PageSection
       maxWidth="6xl"
-      className="border-cc-card-border border-t py-16 sm:py-24"
+      className="border-cc-card-border border-t py-20 sm:py-28"
     >
       <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div className={flipped ? "lg:order-2" : undefined}>
@@ -137,7 +136,7 @@ function Movement({ index, section, ratio, visual }: MovementProps) {
           </div>
           <h2
             id={section.id}
-            className="text-cc-heading font-heading mt-4 text-3xl leading-tight sm:text-4xl"
+            className="text-cc-heading font-heading text-h4 sm:text-h3 mt-4 text-balance"
           >
             {section.title}
           </h2>
@@ -176,15 +175,15 @@ export function Orchestra() {
   return (
     <main className="bg-cc-bg">
       <PageSection
-        maxWidth="6xl"
-        className="flex min-h-[88svh] flex-col justify-center py-16"
+        maxWidth="7xl"
+        className="flex min-h-[88svh] flex-col justify-center py-20 sm:py-28"
       >
         <div style={{ backgroundImage: STAVES }} className="py-10">
           <Engraved>{HERO.eyebrow}</Engraved>
-          <h1 className="text-cc-heading font-heading mt-4 text-6xl leading-none sm:text-8xl">
+          <h1 className="text-cc-heading font-heading text-h2 sm:text-h1 mt-4 text-balance">
             {HERO.title}
           </h1>
-          <p className="text-cc-prose mt-6 max-w-2xl text-lg leading-relaxed">
+          <p className="text-cc-prose text-body sm:text-lead mt-6 max-w-2xl">
             {HERO.teaser}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -219,7 +218,7 @@ export function Orchestra() {
 
       <PageSection
         maxWidth="6xl"
-        className="border-cc-card-border border-t py-16 sm:py-24"
+        className="border-cc-card-border border-t py-20 sm:py-28"
       >
         <div
           id={NITRO_BAND.id}
@@ -227,7 +226,7 @@ export function Orchestra() {
         >
           <div>
             <Engraved className="text-cc-accent">Encore</Engraved>
-            <h2 className="text-cc-heading font-heading mt-4 text-3xl leading-tight sm:text-4xl">
+            <h2 className="text-cc-heading font-heading text-h4 sm:text-h3 mt-4 text-balance">
               {NITRO_BAND.title}
             </h2>
             <p className="text-cc-prose text-body mt-6">
