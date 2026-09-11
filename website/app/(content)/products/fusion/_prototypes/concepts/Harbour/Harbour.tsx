@@ -3,8 +3,10 @@ import type { ComponentType, ReactNode } from "react";
 
 import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { Link } from "@/src/design-system/Link";
 
+import { BRAND } from "../../brand";
 import type { CopyLink, CopySection } from "../../copy";
 import { HERO, NITRO_BAND, SECTIONS } from "../../copy";
 import { Scene } from "../../Primitives";
@@ -25,10 +27,12 @@ import { QuayFlags } from "./QuayFlags";
  * carries which container. The words are the production page's, imported from
  * `../../copy`; only the layout, the berth chrome and the six animated scenes
  * belong to the concept.
+ *
+ * The page keeps the site's grid: `bg-cc-bg` under every section, a
+ * `PageSection` container per section and the site's vertical rhythm. The dusk
+ * of the harbour lives in the bounded scene boxes and in one soft full-bleed
+ * glow behind the hero, never as a background of its own.
  */
-
-const EYEBROW =
-  "text-cc-nav-label font-mono text-[10px] tracking-[0.24em] uppercase";
 
 interface Berth {
   readonly id: string;
@@ -116,7 +120,7 @@ function InPractice({ links }: InPracticeProps) {
   if (links.length === 0) return null;
 
   return (
-    <p className="text-cc-ink-dim mt-6 text-sm">
+    <p className="text-cc-ink-dim text-caption mt-6">
       In practice:{" "}
       {links.map((link, i) => (
         <Fragment key={link.href}>
@@ -126,6 +130,56 @@ function InPractice({ links }: InPracticeProps) {
       ))}
       .
     </p>
+  );
+}
+
+interface BerthingProps {
+  readonly ratio: string;
+  readonly label: string;
+  readonly children: ReactNode;
+}
+
+/** Bounded stage every Harbour scene is drawn in. */
+function Berthing({ ratio, label, children }: BerthingProps) {
+  return (
+    <div className="border-cc-card-border bg-cc-surface overflow-hidden rounded-2xl border">
+      <Scene ratio={ratio} label={label}>
+        {children}
+      </Scene>
+    </div>
+  );
+}
+
+/**
+ * Dusk over the harbour: three soft glows behind the hero, in the brand
+ * accents the scenes use. Atmosphere only - the page background stays
+ * `bg-cc-bg` underneath.
+ */
+function HarbourAtmosphere() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 left-1/2 -z-10 w-screen -translate-x-1/2 overflow-hidden"
+    >
+      <div
+        className="absolute top-[8%] right-0 h-[38rem] w-[38rem] translate-x-1/4 rounded-full opacity-80 blur-3xl"
+        style={{
+          background: `radial-gradient(circle, color-mix(in srgb, ${BRAND.amber} 16%, transparent), transparent 68%)`,
+        }}
+      />
+      <div
+        className="absolute top-[36%] left-0 h-[34rem] w-[34rem] -translate-x-1/4 rounded-full opacity-80 blur-3xl"
+        style={{
+          background: `radial-gradient(circle, color-mix(in srgb, ${BRAND.cyan} 14%, transparent), transparent 68%)`,
+        }}
+      />
+      <div
+        className="absolute bottom-0 left-1/2 h-[30rem] w-[30rem] -translate-x-1/2 rounded-full opacity-70 blur-3xl"
+        style={{
+          background: `radial-gradient(circle, color-mix(in srgb, ${BRAND.violet} 14%, transparent), transparent 68%)`,
+        }}
+      />
+    </div>
   );
 }
 
@@ -156,14 +210,14 @@ function BerthSection({ berth, section, flipped }: BerthSectionProps) {
 
   return (
     <div id={section.id}>
-      <PageSection maxWidth="6xl" className="py-16 sm:py-24">
+      <PageSection maxWidth="6xl" className="py-20 sm:py-28">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div className={flipped ? "lg:order-2" : undefined}>
-            <p className={EYEBROW}>{berth.marker}</p>
+            <Eyebrow>{berth.marker}</Eyebrow>
             <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 mt-4 text-balance">
               {section.title}
             </h2>
-            <div className="text-cc-prose mt-6 space-y-4 text-base">
+            <div className="text-cc-prose text-body mt-6 space-y-4">
               {section.paragraphs.map((paragraph) => (
                 <p key={paragraph.slice(0, 24)}>
                   {withLinks(paragraph, section.links)}
@@ -174,11 +228,9 @@ function BerthSection({ berth, section, flipped }: BerthSectionProps) {
           </div>
 
           <div className={flipped ? "lg:order-1" : undefined}>
-            <div className="border-cc-card-border bg-cc-surface overflow-hidden rounded-2xl border">
-              <Scene ratio={berth.ratio} label={berth.label}>
-                <Visual />
-              </Scene>
-            </div>
+            <Berthing ratio={berth.ratio} label={berth.label}>
+              <Visual />
+            </Berthing>
           </div>
         </div>
       </PageSection>
@@ -190,22 +242,14 @@ export function Harbour() {
   return (
     <div className="bg-cc-bg">
       {/* Hero: the harbour at dusk */}
-      <section className="relative isolate flex min-h-[86svh] items-end overflow-hidden">
-        <div className="absolute inset-0">
-          <Scene className="h-full">
-            <HarbourHero />
-          </Scene>
-        </div>
-        <div
-          aria-hidden="true"
-          className="from-cc-bg via-cc-bg/70 absolute inset-0 bg-gradient-to-t to-transparent"
-        />
-        <PageSection maxWidth="6xl" className="relative pt-40 pb-20">
-          <p className={EYEBROW}>{HERO.eyebrow}</p>
-          <h1 className="font-heading text-cc-heading text-h2 sm:text-h1 mt-4">
+      <section className="relative isolate overflow-hidden">
+        <HarbourAtmosphere />
+        <PageSection maxWidth="7xl" className="py-20 sm:py-28">
+          <Eyebrow>{HERO.eyebrow}</Eyebrow>
+          <h1 className="font-heading text-cc-heading text-h2 sm:text-h1 mt-4 max-w-4xl text-balance">
             {HERO.title}
           </h1>
-          <p className="text-cc-prose mt-6 max-w-2xl text-lg sm:text-xl">
+          <p className="text-cc-prose text-body sm:text-lead mt-6 max-w-2xl">
             {HERO.teaser}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
@@ -215,6 +259,14 @@ export function Harbour() {
             <OutlineButton href={HERO.buttons[1].href}>
               {HERO.buttons[1].label}
             </OutlineButton>
+          </div>
+          <div className="mt-14 sm:mt-16">
+            <Berthing
+              ratio="12 / 7"
+              label="A harbour at dusk: the fleet of client ships rides at anchor in front of the lit warehouses on the quay, under the harbour master's sweeping beam."
+            >
+              <HarbourHero />
+            </Berthing>
           </div>
         </PageSection>
       </section>
@@ -237,14 +289,14 @@ export function Harbour() {
 
       {/* Nitro band: the beacon over the basin */}
       <div id={NITRO_BAND.id} className="border-cc-card-border border-t">
-        <PageSection maxWidth="6xl" className="py-16 sm:py-24">
+        <PageSection maxWidth="6xl" className="py-20 sm:py-28">
           <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
-              <p className={EYEBROW}>The beacon</p>
+              <Eyebrow>The beacon</Eyebrow>
               <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 mt-4 text-balance">
                 {NITRO_BAND.title}
               </h2>
-              <p className="text-cc-prose mt-6 text-base">
+              <p className="text-cc-prose text-body mt-6">
                 {NITRO_BAND.description}
               </p>
               <div className="mt-10 flex flex-wrap gap-4">
@@ -256,14 +308,12 @@ export function Harbour() {
                 </OutlineButton>
               </div>
             </div>
-            <div className="border-cc-card-border bg-cc-surface overflow-hidden rounded-2xl border">
-              <Scene
-                ratio="16 / 9"
-                label="A harbour beacon sweeping berths that report latency, throughput and error rate for the gateway and each subgraph."
-              >
-                <BeaconSweep />
-              </Scene>
-            </div>
+            <Berthing
+              ratio="16 / 9"
+              label="A harbour beacon sweeping berths that report latency, throughput and error rate for the gateway and each subgraph."
+            >
+              <BeaconSweep />
+            </Berthing>
           </div>
         </PageSection>
       </div>
