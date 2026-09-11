@@ -1,10 +1,13 @@
 import { Fragment } from "react";
 import type { ComponentType, ReactNode } from "react";
 
+import { ButtonRow } from "@/src/components/ButtonRow";
 import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { Link } from "@/src/design-system/Link";
 
+import { BRAND } from "../../brand";
 import type { CopyLink, CopySection } from "../../copy";
 import { HERO, NITRO_BAND, SECTIONS } from "../../copy";
 import { Scene } from "../../Primitives";
@@ -12,25 +15,24 @@ import { AsBuiltRecord } from "./AsBuiltRecord";
 import { DimensionChain } from "./DimensionChain";
 import { GaugeSchedule } from "./GaugeSchedule";
 import { HeroAssembly } from "./HeroAssembly";
-import { BP, DRAFT } from "./palette";
+import { BP } from "./palette";
 import { SpecStamps } from "./SpecStamps";
 import { ToleranceCheck } from "./ToleranceCheck";
 
 /**
  * Fusion product page, concept v7: Blueprint.
  *
- * The page is a set of engineering drawings. Everything is white line-work on
- * blueprint blue: the gateway is the main assembly, each subgraph is a
- * sub-assembly with a part number, and every claim in the copy is answered by
- * a plate that draws itself on - a dimension chain for one query, a stamped
+ * The page is a set of engineering drawings. Every plate is cyan line-work on
+ * the site's navy surfaces: the gateway is the main assembly, each subgraph is
+ * a sub-assembly with a part number, and every claim in the copy is answered
+ * by a plate that draws itself on - a dimension chain for one query, a stamped
  * parts sheet for the two specifications, a tolerance check that red-lines a
  * conflict, an as-built record swept against a revision, an instrumentation
- * schedule of live dials. The copy is the production page's, imported
- * verbatim from `../../copy`.
+ * schedule of live dials. The page itself is the site's: `bg-cc-bg`, the
+ * shared container and rhythm, the site type scale; the drawing lives inside
+ * the scene boxes. The copy is the production page's, imported verbatim from
+ * `../../copy`.
  */
-
-const FIELD =
-  "font-mono text-[10px] tracking-[0.22em] uppercase whitespace-nowrap";
 
 interface Plate {
   readonly id: string;
@@ -125,7 +127,7 @@ function InPractice({ links }: InPracticeProps) {
   if (links.length === 0) return null;
 
   return (
-    <p className="text-cc-ink-dim mt-6 text-sm">
+    <p className="text-cc-ink-dim text-caption mt-6">
       In practice:{" "}
       {links.map((link, i) => (
         <Fragment key={link.href}>
@@ -138,6 +140,32 @@ function InPractice({ links }: InPracticeProps) {
   );
 }
 
+/**
+ * Blueprint light over the hero: two soft glows in the concept's dimension
+ * cyan. Atmosphere only - the page background stays `bg-cc-bg` underneath.
+ */
+function BlueprintAtmosphere() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 left-1/2 -z-10 w-screen -translate-x-1/2 overflow-hidden"
+    >
+      <div
+        className="absolute top-[6%] right-0 h-[36rem] w-[36rem] translate-x-1/4 rounded-full opacity-80 blur-3xl"
+        style={{
+          background: `radial-gradient(circle, color-mix(in srgb, ${BRAND.cyan} 14%, transparent), transparent 68%)`,
+        }}
+      />
+      <div
+        className="absolute bottom-0 left-0 h-[30rem] w-[30rem] -translate-x-1/3 rounded-full opacity-70 blur-3xl"
+        style={{
+          background: `radial-gradient(circle, color-mix(in srgb, ${BRAND.teal} 12%, transparent), transparent 68%)`,
+        }}
+      />
+    </div>
+  );
+}
+
 interface NoteRailProps {
   readonly sheet: string;
   readonly subject: string;
@@ -146,19 +174,35 @@ interface NoteRailProps {
 /** The drafting note every text block is filed under. */
 function NoteRail({ sheet, subject }: NoteRailProps) {
   return (
-    <div
-      className="mb-6 flex items-center gap-3"
-      style={{ color: BP.dim, fontFamily: DRAFT }}
-    >
-      <span className={FIELD}>{sheet}</span>
+    <div className="mb-6 flex items-center gap-3">
+      <Eyebrow as="span" size="2xs">
+        {sheet}
+      </Eyebrow>
       <span
         aria-hidden="true"
         className="h-px flex-1"
         style={{ background: BP.inkFaint }}
       />
-      <span className={FIELD} style={{ color: BP.inkDim }}>
+      <Eyebrow as="span" size="2xs" color="ink-dim">
         {subject}
-      </span>
+      </Eyebrow>
+    </div>
+  );
+}
+
+interface PlateFrameProps {
+  readonly ratio: string;
+  readonly label: string;
+  readonly children: ReactNode;
+}
+
+/** The drawn frame a plate is pinned inside. */
+function PlateFrame({ ratio, label, children }: PlateFrameProps) {
+  return (
+    <div className="border-cc-card-border overflow-hidden rounded-sm border">
+      <Scene ratio={ratio} label={label}>
+        {children}
+      </Scene>
     </div>
   );
 }
@@ -173,18 +217,15 @@ function PlateSection({ plate, section, flipped }: PlateSectionProps) {
   const { Visual } = plate;
 
   return (
-    <div id={section.id}>
-      <PageSection maxWidth="6xl" className="py-14 sm:py-20">
+    <section id={section.id} className="border-cc-card-border border-t">
+      <PageSection maxWidth="6xl" className="py-20 sm:py-28">
         <NoteRail sheet={plate.sheet} subject={plate.subject} />
         <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
           <div className={flipped ? "lg:order-2" : undefined}>
-            <h2
-              className="font-heading text-h4 sm:text-h3 text-balance"
-              style={{ color: BP.ink }}
-            >
+            <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-balance">
               {section.title}
             </h2>
-            <div className="text-cc-prose mt-6 space-y-4 text-base">
+            <div className="text-cc-ink-dim text-body mt-6 space-y-4">
               {section.paragraphs.map((paragraph) => (
                 <p key={paragraph.slice(0, 24)}>
                   {withLinks(paragraph, section.links)}
@@ -195,51 +236,37 @@ function PlateSection({ plate, section, flipped }: PlateSectionProps) {
           </div>
 
           <div className={flipped ? "lg:order-1" : undefined}>
-            <div
-              className="overflow-hidden rounded-sm"
-              style={{ border: `1px solid ${BP.inkFaint}` }}
-            >
-              <Scene ratio={plate.ratio} label={plate.label}>
-                <Visual />
-              </Scene>
-            </div>
+            <PlateFrame ratio={plate.ratio} label={plate.label}>
+              <Visual />
+            </PlateFrame>
           </div>
         </div>
       </PageSection>
-    </div>
+    </section>
   );
 }
 
 export function Blueprint() {
   return (
-    <div
-      className="relative overflow-hidden"
-      style={{
-        background: `
-          repeating-linear-gradient(0deg, ${BP.grid} 0 1px, transparent 1px 100%) 0 0 / 100% 40px,
-          repeating-linear-gradient(90deg, ${BP.grid} 0 1px, transparent 1px 100%) 0 0 / 40px 100%,
-          ${BP.paper}`,
-        fontFamily: "inherit",
-      }}
-    >
+    <div className="bg-cc-bg">
       {/* Hero: the general arrangement drawing of the whole gateway */}
-      <section className="flex min-h-[86svh] items-center">
-        <PageSection maxWidth="6xl" className="w-full py-20 sm:py-24">
-          <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
+      <section className="relative isolate overflow-hidden">
+        <BlueprintAtmosphere />
+        <PageSection
+          maxWidth="7xl"
+          className="flex min-h-[86svh] items-center py-20 sm:py-28"
+        >
+          <div className="grid w-full items-center gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
             <div>
-              <div
-                className="flex flex-wrap items-center gap-x-4 gap-y-2"
-                style={{ color: BP.dim, fontFamily: DRAFT }}
-              >
-                <span className={FIELD}>DWG-100</span>
-                <span className={FIELD} style={{ color: BP.inkDim }}>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                <Eyebrow as="span" size="2xs">
+                  DWG-100
+                </Eyebrow>
+                <Eyebrow as="span" size="2xs" color="ink-dim">
                   {HERO.eyebrow}
-                </span>
+                </Eyebrow>
               </div>
-              <h1
-                className="font-heading text-h1 sm:text-hero mt-5 tracking-[0.04em]"
-                style={{ color: BP.ink }}
-              >
+              <h1 className="font-heading text-cc-heading text-h2 sm:text-h1 mt-6 text-balance">
                 {HERO.title}
               </h1>
               <div
@@ -247,30 +274,25 @@ export function Blueprint() {
                 className="mt-6 h-px w-full max-w-md"
                 style={{ background: BP.inkFaint }}
               />
-              <p className="text-cc-prose mt-6 max-w-2xl text-lg sm:text-xl">
+              <p className="text-cc-ink text-body sm:text-lead mt-6 max-w-2xl">
                 {HERO.teaser}
               </p>
-              <div className="mt-10 flex flex-wrap gap-4">
+              <ButtonRow align="start" className="mt-10">
                 <SolidButton href={HERO.buttons[0].href}>
                   {HERO.buttons[0].label}
                 </SolidButton>
                 <OutlineButton href={HERO.buttons[1].href}>
                   {HERO.buttons[1].label}
                 </OutlineButton>
-              </div>
+              </ButtonRow>
             </div>
 
-            <div
-              className="overflow-hidden rounded-sm"
-              style={{ border: `1px solid ${BP.inkFaint}` }}
+            <PlateFrame
+              ratio="4 / 3"
+              label="The general arrangement drawing of the Fusion gateway: the main assembly in the middle, five GraphQL sub-assemblies and two bought-in sources ballooned around it, lifting into an exploded view that turns on the table before it settles back together."
             >
-              <Scene
-                ratio="4 / 3"
-                label="The general arrangement drawing of the Fusion gateway: the main assembly in the middle, five GraphQL sub-assemblies and two bought-in sources ballooned around it, lifting into an exploded view that turns on the table before it settles back together."
-              >
-                <HeroAssembly />
-              </Scene>
-            </div>
+              <HeroAssembly />
+            </PlateFrame>
           </div>
         </PageSection>
       </section>
@@ -290,44 +312,36 @@ export function Blueprint() {
       })}
 
       {/* Nitro band: the instrumentation schedule of the drawing set */}
-      <div id={NITRO_BAND.id}>
-        <PageSection maxWidth="6xl" className="py-14 sm:py-24">
+      <section id={NITRO_BAND.id} className="border-cc-card-border border-t">
+        <PageSection maxWidth="6xl" className="py-20 sm:py-28">
           <NoteRail sheet="SHEET 105" subject="Instrumentation" />
           <div className="grid items-start gap-10 lg:grid-cols-2 lg:gap-16">
             <div>
-              <h2
-                className="font-heading text-h4 sm:text-h3 text-balance"
-                style={{ color: BP.ink }}
-              >
+              <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 text-balance">
                 {NITRO_BAND.title}
               </h2>
-              <p className="text-cc-prose mt-6 text-base">
+              <p className="text-cc-ink-dim text-body mt-6">
                 {NITRO_BAND.description}
               </p>
-              <div className="mt-10 flex flex-wrap gap-4">
+              <ButtonRow align="start" className="mt-10">
                 <SolidButton href={NITRO_BAND.buttons[0].href}>
                   {NITRO_BAND.buttons[0].label}
                 </SolidButton>
                 <OutlineButton href={NITRO_BAND.buttons[1].href}>
                   {NITRO_BAND.buttons[1].label}
                 </OutlineButton>
-              </div>
+              </ButtonRow>
             </div>
 
-            <div
-              className="overflow-hidden rounded-sm"
-              style={{ border: `1px solid ${BP.inkFaint}` }}
+            <PlateFrame
+              ratio="2 / 1"
+              label="An instrumentation schedule: three dials read the gateway's latency, throughput and error rate, and a smaller dial reads each subgraph behind it."
             >
-              <Scene
-                ratio="2 / 1"
-                label="An instrumentation schedule: three dials read the gateway's latency, throughput and error rate, and a smaller dial reads each subgraph behind it."
-              >
-                <GaugeSchedule />
-              </Scene>
-            </div>
+              <GaugeSchedule />
+            </PlateFrame>
           </div>
         </PageSection>
-      </div>
+      </section>
     </div>
   );
 }

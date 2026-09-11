@@ -56,10 +56,15 @@ ${at + 1}%{opacity:1;transform:scale(0.94) rotate(1.5deg)}
 ${at + 2}%,100%{opacity:1;transform:none}}`;
 }
 
-/** The gating rule plus the lettering defaults every plate inherits. */
+/**
+ * The gating rule, the lettering defaults every plate inherits, and the rule
+ * that folds the title block down to its title and its number once the sheet
+ * is too narrow to letter every field at the 11px floor.
+ */
 export const SHEET_CSS = `
 .bp-sheet[data-run="false"] *{animation:none!important}
 .bp-sheet text{fill:${BP.ink};font-family:${DRAFT};letter-spacing:0.08em}
+@container (max-width: 28rem){.bp-sheet .bp-tb-wide{display:none}}
 .bp-sheet .bp-t-dim{fill:${BP.inkDim}}
 .bp-sheet .bp-t-cyan{fill:${BP.dim}}
 .bp-sheet .bp-t-ok{fill:${BP.ok}}
@@ -109,7 +114,7 @@ export function Sheet({
             ${BP.plate}`,
           color: BP.ink,
           fontFamily: DRAFT,
-          fontSize: "clamp(6px, 2.2cqw, 13px)",
+          fontSize: "clamp(11px, 3.2cqw, 14px)",
         }}
       >
         <div
@@ -122,13 +127,12 @@ export function Sheet({
             className="flex items-stretch"
             style={{
               borderTop: `1px solid ${BP.inkFaint}`,
-              fontSize: "0.82em",
               letterSpacing: "0.12em",
               whiteSpace: "nowrap",
             }}
           >
             <div
-              className="shrink-0 px-[1em] py-[0.6em]"
+              className="bp-tb-wide shrink-0 px-[1em] py-[0.6em]"
               style={{ borderRight: `1px solid ${BP.inkFaint}` }}
             >
               <span style={{ color: BP.inkDim }}>CHILLICREAM</span>
@@ -146,7 +150,8 @@ export function Sheet({
                 color: BP.inkDim,
               }}
             >
-              {`${no} · REV ${rev} · ${field}`}
+              {`${no} · REV ${rev}`}
+              <span className="bp-tb-wide">{` · ${field}`}</span>
             </div>
           </div>
         </div>
