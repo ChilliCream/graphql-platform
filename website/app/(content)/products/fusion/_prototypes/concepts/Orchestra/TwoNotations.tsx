@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
 import { DESKS, ENGRAVE, GUESTS, STAGE, notation } from "./palette";
 
@@ -95,7 +96,7 @@ export function TwoNotations() {
         x={24}
         y={30}
         fill={STAGE.ink}
-        fontSize={10}
+        fontSize={TYPE.label}
         letterSpacing={1.6}
         fontFamily={ENGRAVE}
       >
@@ -115,7 +116,7 @@ export function TwoNotations() {
             x={52}
             y={20}
             fill={STAGE.heading}
-            fontSize={11}
+            fontSize={TYPE.label}
             fontFamily={ENGRAVE}
           >
             {spec}
@@ -157,7 +158,7 @@ export function TwoNotations() {
               x={24}
               y={y + 2}
               fill={STAGE.heading}
-              fontSize={12}
+              fontSize={TYPE.caption}
               fontFamily={ENGRAVE}
             >
               {row.name}
@@ -166,8 +167,8 @@ export function TwoNotations() {
               x={24}
               y={y + 16}
               fill={STAGE.ink}
-              fontSize={9}
-              letterSpacing={1.2}
+              fontSize={TYPE.label}
+              letterSpacing={0.8}
               fontFamily={ENGRAVE}
             >
               {row.meta}
@@ -192,7 +193,7 @@ export function TwoNotations() {
                   x={STAMP_X}
                   y={y + 4}
                   fill={STAGE.heading}
-                  fontSize={9}
+                  fontSize={TYPE.label}
                   letterSpacing={1.2}
                   fontFamily={ENGRAVE}
                   className={moving ? "tn-a" : undefined}
@@ -203,7 +204,7 @@ export function TwoNotations() {
                   x={STAMP_X}
                   y={y + 4}
                   fill={STAGE.heading}
-                  fontSize={9}
+                  fontSize={TYPE.label}
                   letterSpacing={1.2}
                   fontFamily={ENGRAVE}
                   opacity={0}
@@ -212,10 +213,11 @@ export function TwoNotations() {
                   GRAPHQL FED
                 </text>
                 <text
-                  x={STAMP_X}
+                  x={W - 24}
                   y={y + 18}
+                  textAnchor="end"
                   fill={STAGE.safe}
-                  fontSize={8}
+                  fontSize={TYPE.label}
                   letterSpacing={1.2}
                   fontFamily={ENGRAVE}
                   opacity={0}
@@ -229,7 +231,7 @@ export function TwoNotations() {
                 x={STAMP_X}
                 y={y + 4}
                 fill={STAGE.ink}
-                fontSize={9}
+                fontSize={TYPE.label}
                 letterSpacing={1.2}
                 fontFamily={ENGRAVE}
               >
@@ -252,7 +254,7 @@ export function TwoNotations() {
         y={H - 16}
         textAnchor="end"
         fill={STAGE.heading}
-        fontSize={10}
+        fontSize={TYPE.label}
         letterSpacing={1.4}
         fontFamily={ENGRAVE}
       >
