@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useSceneMotion } from "./hooks";
 import { CN, PLANETS, PROBES } from "./palette";
 
@@ -194,7 +195,7 @@ export function LightPulse() {
           x={STAR.x}
           y={STAR.y + 40}
           fill={CN.ink}
-          fontSize="12"
+          fontSize={TYPE.caption}
           textAnchor="middle"
           style={{ fontFamily: CN.mono, letterSpacing: "0.16em" }}
         >
@@ -204,7 +205,7 @@ export function LightPulse() {
           x={STAR.x}
           y={STAR.y + 58}
           fill={CN.dim}
-          fontSize="11"
+          fontSize={TYPE.label}
           textAnchor="middle"
           style={{ fontFamily: CN.mono, letterSpacing: "0.1em" }}
         >
@@ -226,7 +227,7 @@ export function LightPulse() {
             x={PROBE.x + 22}
             y={PROBE.y + 5}
             fill={CN.ink}
-            fontSize="12"
+            fontSize={TYPE.caption}
             style={{ fontFamily: CN.mono, letterSpacing: "0.14em" }}
           >
             {PROBES[0].toUpperCase()}
@@ -235,7 +236,7 @@ export function LightPulse() {
             x={PROBE.x - 4}
             y={PROBE.y + 34}
             fill={CN.dim}
-            fontSize="11"
+            fontSize={TYPE.label}
             style={{ fontFamily: CN.mono }}
           >
             one query · one response
@@ -258,7 +259,7 @@ export function LightPulse() {
               x={at.x}
               y={at.y - 26}
               fill={CN.ink}
-              fontSize="12"
+              fontSize={TYPE.caption}
               textAnchor="middle"
               style={{ fontFamily: CN.mono, letterSpacing: "0.1em" }}
             >
@@ -268,7 +269,7 @@ export function LightPulse() {
               x={at.x}
               y={at.y + 34}
               fill={CN.dim}
-              fontSize="11"
+              fontSize={TYPE.label}
               textAnchor="middle"
               style={{ fontFamily: CN.mono, letterSpacing: "0.12em" }}
             >

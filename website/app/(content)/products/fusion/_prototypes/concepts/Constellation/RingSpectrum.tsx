@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { useCycle, useSceneMotion } from "./hooks";
 import type { PlanetSpec } from "./palette";
 import { CN, MOONS, PLANETS, orbitPoint, ringDash, specTag } from "./palette";
@@ -80,7 +81,7 @@ export function RingSpectrum() {
           x={STAR.x}
           y={STAR.y - 24}
           fill={CN.dim}
-          fontSize="11"
+          fontSize={TYPE.label}
           textAnchor="middle"
           style={{ fontFamily: CN.mono, letterSpacing: "0.14em" }}
         >
@@ -123,7 +124,7 @@ export function RingSpectrum() {
                 x={at.x}
                 y={nameY}
                 fill={CN.ink}
-                fontSize="12"
+                fontSize={TYPE.caption}
                 textAnchor="middle"
                 style={{ fontFamily: CN.mono, letterSpacing: "0.08em" }}
               >
@@ -133,7 +134,7 @@ export function RingSpectrum() {
                 x={at.x}
                 y={tagY}
                 fill={crossed ? CN.clear : CN.dim}
-                fontSize="10"
+                fontSize={TYPE.label}
                 textAnchor="middle"
                 style={{
                   fontFamily: CN.mono,
@@ -187,7 +188,7 @@ export function RingSpectrum() {
                   x={target.x + 10}
                   y={target.y - 4}
                   fill={CN.dim}
-                  fontSize="10"
+                  fontSize={TYPE.label}
                   style={{ fontFamily: CN.mono, letterSpacing: "0.12em" }}
                 >
                   {`${moon.name.toUpperCase()} · ${moon.kind.toUpperCase()}`}
@@ -201,7 +202,7 @@ export function RingSpectrum() {
           x={20}
           y={VIEW_H - 20}
           fill={CN.dim}
-          fontSize="11"
+          fontSize={TYPE.label}
           style={{ fontFamily: CN.mono, letterSpacing: "0.12em" }}
         >
           SOLID RING = GRAPHQL FEDERATION | DASHED RING = APOLLO FEDERATION
