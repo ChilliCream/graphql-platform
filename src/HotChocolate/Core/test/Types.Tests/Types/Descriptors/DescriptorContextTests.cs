@@ -1,6 +1,10 @@
 using HotChocolate.Configuration;
 using HotChocolate.Features;
+#if NET11_0_OR_GREATER
+using Microsoft.Extensions.DependencyInjection;
+#else
 using HotChocolate.Utilities;
+#endif
 
 namespace HotChocolate.Types.Descriptors;
 

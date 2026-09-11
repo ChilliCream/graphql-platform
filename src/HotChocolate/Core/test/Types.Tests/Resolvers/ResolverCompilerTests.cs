@@ -9,7 +9,9 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+#if !NET11_0_OR_GREATER
 using HotChocolate.Utilities;
+#endif
 using Moq;
 
 namespace HotChocolate.Resolvers;
