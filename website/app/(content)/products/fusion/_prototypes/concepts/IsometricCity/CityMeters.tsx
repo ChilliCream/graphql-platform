@@ -2,8 +2,18 @@
 
 import type { CSSProperties } from "react";
 
+import { FONTS } from "../../brand";
 import { useCityMotion } from "./hooks";
-import { CITY, LABEL, box, iso, tile } from "./palette";
+import {
+  CITY,
+  LABEL,
+  METER_FONT,
+  METER_H,
+  METER_W,
+  box,
+  iso,
+  tile,
+} from "./palette";
 
 /**
  * Nitro band: the city's traffic desk. Every road out of the plaza carries a
@@ -13,6 +23,11 @@ import { CITY, LABEL, box, iso, tile } from "./palette";
  *
  * Rest state: the map with its roads lit and every meter standing at its last
  * reading, so the still frame is a full dashboard rather than an empty one.
+ *
+ * Every line is set in `METER_FONT` units, so the smallest one still reads at
+ * the site's 11px label on a 375px screen. At that size the desk runs the full
+ * width and names every road itself, gateway first, so the plan above it
+ * carries no signage of its own - only the beacon over the plaza.
  */
 
 const CSS = `
@@ -31,8 +46,14 @@ const CSS = `
 }
 `;
 
-const ORIGIN = "translate(216, 76) scale(0.8)";
+/** The city plan sits above the desk, drawn small enough to leave room for it. */
+const MAP_SCALE = 0.28;
+const ORIGIN = `translate(${METER_W / 2}, 12) scale(${MAP_SCALE})`;
 const SIZE = 1.8;
+/** The desk: a full-width panel under the plan. */
+const DESK = { x: 10, y: 110, w: METER_W - 20, h: METER_H - 120 } as const;
+/** Left edge of the three meter columns, and their pitch. */
+const COLUMN = { x: 190, pitch: 170, w: 150 } as const;
 const PLAZA = box(2.2, 2.2, 2, 2, 32);
 const PLAZA_DOOR = iso(3.2, 4.2);
 
@@ -97,24 +118,25 @@ function MeterRow({ label, meters, swing, y, gateway }: MeterRowProps) {
   return (
     <g>
       <text
-        x={0}
+        x={34}
         y={y + 4}
         fill={gateway ? CITY.heading : CITY.ink}
-        fontSize={gateway ? 13 : 12}
+        fontFamily={FONTS.heading}
+        fontSize={METER_FONT.caption}
       >
         {label}
       </text>
       {meters.map((value, i) => (
         <g
           key={METER_LABELS[i]}
-          transform={`translate(${96 + i * 70}, ${y - 6})`}
+          transform={`translate(${COLUMN.x + i * COLUMN.pitch}, ${y - 8})`}
         >
-          <rect width={60} height={9} rx={4} fill={CITY.road} />
+          <rect width={COLUMN.w} height={12} rx={6} fill={CITY.road} />
           <rect
             className="ic-m-bar"
-            width={Math.max(6, Math.round(value * 60))}
-            height={9}
-            rx={4}
+            width={Math.max(12, Math.round(value * COLUMN.w))}
+            height={12}
+            rx={6}
             fill={i === 2 ? CITY.warn : gateway ? CITY.accent : CITY.ok}
             style={
               {
@@ -138,8 +160,12 @@ export function CityMeters() {
       data-run={run ? "true" : "false"}
     >
       <style>{CSS}</style>
-      <svg viewBox="0 0 720 405" className="h-full w-full" aria-hidden="true">
-        <rect width="720" height="405" fill={CITY.sky} />
+      <svg
+        viewBox={`0 0 ${METER_W} ${METER_H}`}
+        className="h-full w-full"
+        aria-hidden="true"
+      >
+        <rect width={METER_W} height={METER_H} fill={CITY.sky} />
 
         <g transform={ORIGIN}>
           <polygon
@@ -194,16 +220,6 @@ export function CityMeters() {
                   fill={CITY.blockTop}
                   stroke={CITY.edge}
                 />
-                <text
-                  x={faces.roof[0]}
-                  y={faces.roof[1] + 4}
-                  textAnchor="middle"
-                  fill={CITY.ink}
-                  fontSize={13}
-                  style={LABEL}
-                >
-                  {road.name}
-                </text>
               </g>
             );
           })}
@@ -226,38 +242,33 @@ export function CityMeters() {
             r={5}
             fill={CITY.accent}
           />
-          <text
-            x={PLAZA.roof[0]}
-            y={PLAZA.roof[1] + 6}
-            textAnchor="middle"
-            fill={CITY.heading}
-            fontSize={14}
-          >
-            Gateway
-          </text>
         </g>
 
         {/* The traffic desk */}
-        <g transform="translate(396, 96)">
+        <g transform={`translate(${DESK.x}, ${DESK.y})`}>
           <rect
-            x={-20}
-            y={-56}
-            width="330"
-            height="290"
+            width={DESK.w}
+            height={DESK.h}
             rx="12"
             fill={CITY.plazaLeft}
             stroke={CITY.edge}
           />
-          <text x={0} y={-30} fill={CITY.ink} fontSize={10} style={LABEL}>
+          <text
+            x={34}
+            y={30}
+            fill={CITY.ink}
+            fontSize={METER_FONT.label}
+            style={LABEL}
+          >
             TRAFFIC DESK
           </text>
           {METER_LABELS.map((label, i) => (
             <text
               key={label}
-              x={96 + i * 70}
-              y={-8}
+              x={COLUMN.x + i * COLUMN.pitch}
+              y={66}
               fill={CITY.ink}
-              fontSize={9}
+              fontSize={METER_FONT.label}
               style={LABEL}
             >
               {label}
@@ -267,7 +278,7 @@ export function CityMeters() {
             label="Gateway"
             meters={[0.46, 0.92, 0.03]}
             swing={1.1}
-            y={24}
+            y={104}
             gateway
           />
           {ROADS.map((road, i) => (
@@ -276,7 +287,7 @@ export function CityMeters() {
               label={road.name}
               meters={road.meters}
               swing={road.swing}
-              y={64 + i * 32}
+              y={138 + i * 34}
               gateway={false}
             />
           ))}

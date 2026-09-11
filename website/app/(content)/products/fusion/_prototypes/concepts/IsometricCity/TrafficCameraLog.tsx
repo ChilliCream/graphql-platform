@@ -1,7 +1,8 @@
 "use client";
 
+import { FONTS } from "../../brand";
 import { useCityCycle, useCityMotion } from "./hooks";
-import { CITY, LABEL, box, iso, tile } from "./palette";
+import { CITY, FONT, LABEL, SCENE_H, SCENE_W, box, iso, tile } from "./palette";
 
 /**
  * "Composition protects the graph, Nitro protects your clients": the traffic
@@ -13,14 +14,20 @@ import { CITY, LABEL, box, iso, tile } from "./palette";
  * Rest state: the road closed, the permit stamp still green and the camera log
  * showing the mobile client's trip marked breaking, so the still frame already
  * carries the whole point.
+ *
+ * Every line is set in `FONT` units, so the smallest one still reads at the
+ * site's 11px label on a 375px screen; at that size the log runs the full
+ * width under the junction, one line per trip.
  */
 
 const PHASES = 5;
 const REST = 4;
 const BEAT = 1700;
 
-const ORIGIN = "translate(180, 96)";
+const ORIGIN = "translate(180, 112)";
 const SIZE = 2.4;
+/** The camera log: a full-width panel under the junction. */
+const LOG = { x: 10, y: 280, w: SCENE_W - 20, h: 190 } as const;
 
 const BLOCK = box(0, 0, SIZE, SIZE, 52);
 const PLAZA = box(5.6, 2.6, 2.6, 2.6, 38);
@@ -57,25 +64,37 @@ function LogRow({ trip, phase, y }: LogRowProps) {
   return (
     <g opacity={shown ? 1 : 0.25}>
       <rect
-        x={18}
-        y={y - 13}
-        width={8}
-        height={8}
-        rx={2}
+        x={24}
+        y={y - 15}
+        width={16}
+        height={16}
+        rx={3}
         fill={shown ? colour : CITY.ink}
       />
-      <text x={36} y={y - 5} fill={CITY.heading} fontSize={12}>
+      <text
+        x={52}
+        y={y}
+        fill={CITY.heading}
+        fontFamily={FONTS.heading}
+        fontSize={FONT.caption}
+      >
         {trip.client}
       </text>
-      <text x={36} y={y + 10} fill={CITY.ink} fontSize={10} style={LABEL}>
+      <text
+        x={211}
+        y={y}
+        fill={CITY.ink}
+        fontFamily={FONTS.mono}
+        fontSize={FONT.label}
+      >
         {trip.road}
       </text>
       <text
-        x={244}
-        y={y + 2}
+        x={LOG.w - 24}
+        y={y}
         textAnchor="end"
         fill={shown ? colour : CITY.ink}
-        fontSize={10}
+        fontSize={FONT.label}
         style={LABEL}
       >
         {trip.breaking ? "BREAKING" : "SAFE"}
@@ -92,8 +111,12 @@ export function TrafficCameraLog() {
 
   return (
     <div className="ic-cam absolute inset-0" data-run={run ? "true" : "false"}>
-      <svg viewBox="0 0 640 480" className="h-full w-full" aria-hidden="true">
-        <rect width="640" height="480" fill={CITY.sky} />
+      <svg
+        viewBox={`0 0 ${SCENE_W} ${SCENE_H}`}
+        className="h-full w-full"
+        aria-hidden="true"
+      >
+        <rect width={SCENE_W} height={SCENE_H} fill={CITY.sky} />
 
         <g transform={ORIGIN}>
           <polygon
@@ -115,11 +138,11 @@ export function TrafficCameraLog() {
             opacity={closed ? 0.7 : 0.9}
           />
           <text
-            x={(ROAD_FROM[0] + ROAD_TO[0]) / 2}
-            y={(ROAD_FROM[1] + ROAD_TO[1]) / 2 - 12}
+            x={SCENE_W / 2 - 180}
+            y={(ROAD_FROM[1] + ROAD_TO[1]) / 2 - 14}
             textAnchor="middle"
             fill={closed ? CITY.stop : CITY.ink}
-            fontSize={10}
+            fontSize={FONT.label}
             style={LABEL}
           >
             {closed ? "Order.trackingCode REMOVED" : "Order.trackingCode"}
@@ -139,19 +162,20 @@ export function TrafficCameraLog() {
           <polygon points={BLOCK.top} fill={CITY.blockTop} stroke={CITY.edge} />
           <text
             x={BLOCK.roof[0]}
-            y={BLOCK.roof[1] + 4}
+            y={BLOCK.roof[1] + 6}
             textAnchor="middle"
             fill={CITY.heading}
-            fontSize={13}
+            fontFamily={FONTS.heading}
+            fontSize={FONT.caption}
           >
             Ordering
           </text>
           <text
             x={BLOCK.roof[0]}
-            y={BLOCK.roof[1] + 19}
+            y={BLOCK.roof[1] + 28}
             textAnchor="middle"
             fill={CITY.ink}
-            fontSize={10}
+            fontSize={FONT.label}
             style={LABEL}
           >
             Go
@@ -159,17 +183,23 @@ export function TrafficCameraLog() {
 
           {/* Zoning still says yes: the source schemas still compose */}
           <g
-            transform={`translate(${BLOCK.roof[0] - 62}, ${BLOCK.roof[1] - 74})`}
+            transform={`translate(${BLOCK.roof[0] - 120}, ${BLOCK.roof[1] - 96})`}
           >
             <rect
-              width="124"
-              height="34"
+              width="240"
+              height="40"
               rx="8"
               fill={CITY.plazaLeft}
               stroke={CITY.ok}
             />
-            <circle cx={18} cy={17} r={5} fill={CITY.ok} />
-            <text x={32} y={21} fill={CITY.ok} fontSize={10} style={LABEL}>
+            <circle cx={24} cy={20} r={6} fill={CITY.ok} />
+            <text
+              x={44}
+              y={27}
+              fill={CITY.ok}
+              fontSize={FONT.label}
+              style={LABEL}
+            >
               ZONING: PASS
             </text>
           </g>
@@ -188,10 +218,11 @@ export function TrafficCameraLog() {
           <polygon points={PLAZA.top} fill={CITY.plazaTop} stroke={CITY.edge} />
           <text
             x={PLAZA.roof[0]}
-            y={PLAZA.roof[1] + 4}
+            y={PLAZA.roof[1] + 6}
             textAnchor="middle"
             fill={CITY.heading}
-            fontSize={13}
+            fontFamily={FONTS.heading}
+            fontSize={FONT.caption}
           >
             Gateway
           </text>
@@ -215,12 +246,18 @@ export function TrafficCameraLog() {
               stroke={CITY.edge}
             />
             <circle
-              cx={32}
+              cx={34}
               cy={7}
-              r={4}
+              r={5}
               fill={flagged ? CITY.stop : CITY.accent}
             />
-            <text x={44} y={11} fill={CITY.ink} fontSize={10} style={LABEL}>
+            <text
+              x={48}
+              y={14}
+              fill={CITY.ink}
+              fontSize={FONT.label}
+              style={LABEL}
+            >
               CAMERA
             </text>
           </g>
@@ -236,25 +273,44 @@ export function TrafficCameraLog() {
               points="0,0 20,7 20,17 0,10"
               fill={flagged ? CITY.stop : CITY.window}
             />
-            <text x={26} y={16} fill={CITY.ink} fontSize={10} style={LABEL}>
+            <text
+              x={-10}
+              y={16}
+              textAnchor="end"
+              fill={CITY.ink}
+              fontSize={FONT.label}
+              style={LABEL}
+            >
               Mobile
             </text>
           </g>
         </g>
 
         {/* The camera log: the operations real clients publish */}
-        <g transform="translate(360, 300)">
+        <g transform={`translate(${LOG.x}, ${LOG.y})`}>
           <rect
-            width="264"
-            height="156"
+            width={LOG.w}
+            height={LOG.h}
             rx="10"
             fill={CITY.plazaLeft}
             stroke={CITY.edge}
           />
-          <text x={18} y={28} fill={CITY.ink} fontSize={10} style={LABEL}>
+          <text
+            x={24}
+            y={34}
+            fill={CITY.ink}
+            fontSize={FONT.label}
+            style={LABEL}
+          >
             TRAFFIC CAMERA LOG
           </text>
-          <text x={18} y={48} fill={CITY.heading} fontSize={12}>
+          <text
+            x={24}
+            y={72}
+            fill={CITY.heading}
+            fontFamily={FONTS.heading}
+            fontSize={FONT.caption}
+          >
             registered clients
           </text>
           {TRIPS.map((trip, i) => (
@@ -262,7 +318,7 @@ export function TrafficCameraLog() {
               key={trip.client}
               trip={trip}
               phase={phase}
-              y={82 + i * 34}
+              y={112 + i * 34}
             />
           ))}
         </g>
