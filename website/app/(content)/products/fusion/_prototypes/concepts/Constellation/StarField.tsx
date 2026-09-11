@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 
+import { TYPE } from "../../brand";
 import { anim, useElementMotion } from "./hooks";
 import { CN, PLANETS, PROBES, orbitPoint, ringDash } from "./palette";
 
@@ -14,6 +15,15 @@ import { CN, PLANETS, PROBES, orbitPoint, ringDash } from "./palette";
  * server is written in and its ring the specification it is written to; probes
  * on the rim send light pulses inward. At rest the system is already formed,
  * so the still frame is the finished constellation rather than an empty sky.
+ *
+ * The sky fills the hero with `slice` rather than shrinking to fit it: a
+ * 1200-unit sky letterboxed into a 375px screen would render its lettering at
+ * about 4px, while filling the hero keeps the scale at or above 1x there, so
+ * the smallest label (`TYPE.label`) clears the 11px floor and the viewport
+ * simply shows less sky. The star sits right of the sky's centre, which the
+ * `xMid` slice window crops away on a phone, so below `sm` the sky hangs off
+ * the left edge and its centre - and with it the gateway star - moves back
+ * into frame.
  */
 
 const VIEW_W = 1200;
@@ -71,7 +81,11 @@ export function StarField() {
   const running = useElementMotion(ref);
 
   return (
-    <div ref={ref} aria-hidden="true" className="absolute inset-0">
+    <div
+      ref={ref}
+      aria-hidden="true"
+      className="absolute inset-y-0 left-[-53%] w-[153%] sm:left-0 sm:w-full"
+    >
       <style>{`
         @keyframes cn9-hero-drift { from { transform: translateX(0); } to { transform: translateX(-46px); } }
         @keyframes cn9-hero-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -94,7 +108,7 @@ export function StarField() {
             <stop offset="100%" stopColor={CN.star} stopOpacity="0" />
           </radialGradient>
           <radialGradient id="cn9-hero-sky" cx="66%" cy="50%" r="72%">
-            <stop offset="0%" stopColor="#111d3a" stopOpacity="0.9" />
+            <stop offset="0%" stopColor={CN.sky} stopOpacity="0.9" />
             <stop offset="100%" stopColor={CN.bg} stopOpacity="1" />
           </radialGradient>
         </defs>
@@ -166,7 +180,7 @@ export function StarField() {
                 x={track.x}
                 y={track.y - 14}
                 fill={CN.dim}
-                fontSize="13"
+                fontSize={TYPE.caption}
                 textAnchor="middle"
                 style={{ fontFamily: CN.mono, letterSpacing: "0.14em" }}
               >
@@ -216,7 +230,7 @@ export function StarField() {
             x={STAR_X}
             y={STAR_Y + 148}
             fill={CN.dim}
-            fontSize="13"
+            fontSize={TYPE.caption}
             textAnchor="middle"
             style={{ fontFamily: CN.mono, letterSpacing: "0.18em" }}
           >
@@ -281,7 +295,7 @@ export function StarField() {
                     x={px}
                     y={py - 24}
                     fill={CN.ink}
-                    fontSize="13"
+                    fontSize={TYPE.caption}
                     textAnchor="middle"
                     style={{ fontFamily: CN.mono, letterSpacing: "0.1em" }}
                   >
@@ -291,7 +305,7 @@ export function StarField() {
                     x={px}
                     y={py + 30}
                     fill={CN.dim}
-                    fontSize="11"
+                    fontSize={TYPE.label}
                     textAnchor="middle"
                     style={{ fontFamily: CN.mono, letterSpacing: "0.14em" }}
                   >
