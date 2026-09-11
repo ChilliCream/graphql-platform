@@ -588,12 +588,10 @@ public class NodeResolverTests
     }
 
     [Fact]
-    public async Task Node_Should_Coalesce_Aliased_Fields_Into_One_Batch_Invocation_When_Same_Type()
+    public async Task Node_Should_Separate_Batch_Invocations_When_Same_Type_Fields_Are_Aliased()
     {
         // arrange
-        // Three aliased node fields target the batch node resolver (two distinct ids plus one
-        // duplicate). They share the same selection path and must coalesce into a single batch
-        // invocation that receives all three internal ids positionally.
+        // Each alias invokes the batch node resolver separately, including duplicate IDs.
         var collector = new BatchNodeCollector();
         var executor =
             await new ServiceCollection()
@@ -617,7 +615,7 @@ public class NodeResolverTests
             cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(1, collector.InvocationCount);
+        Assert.Equal(3, collector.InvocationCount);
         Assert.Equal(["x", "x", "y"], [.. collector.ReceivedIds.OrderBy(x => x)]);
         result.ToJson().MatchInlineSnapshot(
             """
@@ -641,12 +639,10 @@ public class NodeResolverTests
     }
 
     [Fact]
-    public async Task Node_Should_Group_Per_Type_When_Aliased_Fields_Mix_Batch_And_Classic_Resolvers()
+    public async Task Node_Should_Separate_Aliases_When_Fields_Mix_Batch_And_Classic_Resolvers()
     {
         // arrange
-        // Two aliased node fields hit the batch node resolver, one hits the classic resolver.
-        // The batch type group coalesces into a single batch invocation while the classic type
-        // dispatches through its own pipeline.
+        // Two aliases invoke the batch node resolver separately, one invokes the classic resolver.
         var collector = new BatchNodeCollector();
         var executor =
             await new ServiceCollection()
@@ -670,7 +666,7 @@ public class NodeResolverTests
             cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(1, collector.InvocationCount);
+        Assert.Equal(2, collector.InvocationCount);
         Assert.Equal(["x", "y"], [.. collector.ReceivedIds.OrderBy(x => x)]);
         result.ToJson().MatchInlineSnapshot(
             """
@@ -747,11 +743,10 @@ public class NodeResolverTests
     }
 
     [Fact]
-    public async Task Nodes_Should_Share_One_Batch_Invocation_When_Aliased_Fields_Use_Batch_Resolver()
+    public async Task Nodes_Should_Separate_Batch_Invocations_When_Fields_Are_Aliased()
     {
         // arrange
-        // Two aliased nodes fields each fetch one id of the batch type. They share a single
-        // ResolveNodesBatchAsync invocation and the batch node resolver is called once.
+        // Each nodes alias invokes the batch node resolver separately.
         var collector = new BatchNodeCollector();
         var executor =
             await new ServiceCollection()
@@ -773,7 +768,7 @@ public class NodeResolverTests
             cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(1, collector.InvocationCount);
+        Assert.Equal(2, collector.InvocationCount);
         Assert.Equal(["x", "y"], [.. collector.ReceivedIds.OrderBy(x => x)]);
         result.ToJson().MatchInlineSnapshot(
             """

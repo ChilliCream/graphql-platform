@@ -154,15 +154,15 @@ public class BatchResolverReproTests
             """);
     }
 
-    [Fact]
-    public async Task BatchResolver_Should_Run_OwnResolver_Per_Type_When_AbstractParentHasSameNamedFields()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task BatchResolver_Should_Run_OwnResolver_Per_Type_When_AbstractParentHasSameNamedFields(
+        bool useAttributes)
     {
-        // act
-        // REPRO: two object types with same-named batch fields under an abstract parent
-        // share the field-name-only selection path and coalesce into ONE task that runs
-        // the FIRST type's resolver for every context. Each type must run its OWN resolver.
-        var result =
-            await new ServiceCollection()
+        // arrange
+        var builder =
+            new ServiceCollection()
                 .AddGraphQL()
                 .AddQueryType(d =>
                 {
@@ -175,7 +175,19 @@ public class BatchResolverReproTests
                             new Droid(2, "R2D2")
                         });
                 })
-                .AddInterfaceType<ICharacter>(d => d.Field(c => c.Name))
+                .AddInterfaceType<ICharacter>(d => d.Field(c => c.Name));
+
+        if (useAttributes)
+        {
+            builder
+                .AddObjectType<Human>(d => d.Implements<InterfaceType<ICharacter>>())
+                .AddObjectType<Droid>(d => d.Implements<InterfaceType<ICharacter>>())
+                .AddTypeExtension<HumanExtension>()
+                .AddTypeExtension<DroidExtension>();
+        }
+        else
+        {
+            builder
                 .AddObjectType<Human>(d =>
                 {
                     d.Implements<InterfaceType<ICharacter>>();
@@ -215,7 +227,12 @@ public class BatchResolverReproTests
 
                             return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                         });
-                })
+                });
+        }
+
+        // act
+        var result =
+            await builder
                 .ExecuteRequestAsync(
                     """
                     {
@@ -384,6 +401,22 @@ public class BatchResolverReproTests
     public record Human(int Id, string Name) : ICharacter;
 
     public record Droid(int Id, string Name) : ICharacter;
+
+    [ExtendObjectType<Human>]
+    public class HumanExtension
+    {
+        [BatchResolver]
+        public List<List<string>> GetFriends([Parent] List<Human> parents)
+            => parents.Select(p => new List<string> { $"human-friend-of-{p.Name}" }).ToList();
+    }
+
+    [ExtendObjectType<Droid>]
+    public class DroidExtension
+    {
+        [BatchResolver]
+        public List<List<string>> GetFriends([Parent] List<Droid> parents)
+            => parents.Select(p => new List<string> { $"droid-friend-of-{p.Name}" }).ToList();
+    }
 
     public record ReproUser(int Id, string Name);
 

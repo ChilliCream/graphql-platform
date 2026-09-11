@@ -81,7 +81,7 @@ public class BatchResolverTests
     }
 
     [Fact]
-    public async Task BatchResolver_Should_Batch_Aliased_Field_Arguments()
+    public async Task BatchResolver_Should_Separate_Batches_When_Field_Arguments_Are_Aliased()
     {
         // arrange
         ProductByIdQuery.BatchCallCount = 0;
@@ -105,7 +105,7 @@ public class BatchResolverTests
                     cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(1, ProductByIdQuery.BatchCallCount);
+        Assert.Equal(2, ProductByIdQuery.BatchCallCount);
         result.MatchInlineSnapshot(
             """
             {
@@ -122,11 +122,9 @@ public class BatchResolverTests
     }
 
     [Fact]
-    public async Task BatchResolver_Should_Batch_Aliased_Field_Variable_Arguments()
+    public async Task BatchResolver_Should_Separate_Batches_When_Field_Variable_Arguments_Are_Aliased()
     {
         // arrange
-        // exercises the per-context CoerceArguments-with-variables path that the
-        // literal-only test BatchResolver_Should_Batch_Aliased_Field_Arguments skips.
         ProductByIdQuery.BatchCallCount = 0;
 
         // act
@@ -157,7 +155,7 @@ public class BatchResolverTests
                         cancellationToken: TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(1, ProductByIdQuery.BatchCallCount);
+        Assert.Equal(2, ProductByIdQuery.BatchCallCount);
         result.MatchInlineSnapshot(
             """
             {
@@ -174,11 +172,9 @@ public class BatchResolverTests
     }
 
     [Fact]
-    public async Task BatchResolver_Should_Coalesce_Remaining_Siblings_When_One_Is_Skipped()
+    public async Task BatchResolver_Should_Invoke_Remaining_Selection_When_One_Alias_Is_Skipped()
     {
         // arrange
-        // a skipped alias must drop out of the batch while the included sibling
-        // still coalesces into a single batch invocation.
         ProductByIdQuery.BatchCallCount = 0;
 
         // act
@@ -2024,6 +2020,7 @@ public class BatchResolverTests
     {
         // arrange
         var batchSizes = new List<int>();
+        var events = new List<string>();
         var executor = await new ServiceCollection().AddGraphQL()
             .AddQueryType(d => d.Name("Query").Field("ping").Resolve("pong"))
             .AddMutationType(d =>
@@ -2034,8 +2031,10 @@ public class BatchResolverTests
                     d.Field(name).Argument("id", a => a.Type<NonNullType<IntType>>())
                         .Type<ObjectType<Parent>>().Resolve(async ctx =>
                         {
+                            var id = ctx.ArgumentValue<int>("id");
+                            events.Add($"mutation-{id}-start");
                             await Task.Delay(10, ctx.RequestAborted);
-                            return new Parent(ctx.ArgumentValue<int>("id"));
+                            return new Parent(id);
                         });
                 }
             })
@@ -2043,10 +2042,12 @@ public class BatchResolverTests
             .AddObjectType<Child>(d =>
             {
                 d.Field(c => c.Id);
-                d.Field("computed").Type<StringType>().ResolveBatch(contexts =>
+                d.Field("computed").Type<StringType>().ResolveBatch(async contexts =>
                 {
                     batchSizes.Add(contexts.Count);
-                    return ComputeChildrenAsync(contexts);
+                    var results = await ComputeChildrenAsync(contexts);
+                    events.Add($"batch-{contexts[0].Parent<Child>().Id / 10}-complete");
+                    return results;
                 });
             })
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -2064,7 +2065,49 @@ public class BatchResolverTests
 
         // assert
         new Snapshot(postFix: aliasSameField.ToString()).Add(result, "Result").Add(batchSizes, "Batch sizes")
+            .Add(events, "Events")
             .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Batch_Should_Group_One_Selection_When_Parents_Come_From_Different_Variable_Sets()
+    {
+        // arrange
+        var batchSizes = new List<int>();
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("parent")
+                .Argument("id", a => a.Type<NonNullType<IntType>>())
+                .Type<ObjectType<Parent>>()
+                .Resolve(ctx => new Parent(ctx.ArgumentValue<int>("id"))))
+            .AddObjectType<Parent>(ConfigureAsyncChildren)
+            .AddObjectType<Child>(d =>
+            {
+                d.Field(c => c.Id);
+                d.Field("computed").Type<StringType>().ResolveBatch(contexts =>
+                {
+                    batchSizes.Add(contexts.Count);
+                    return ComputeChildrenAsync(contexts);
+                });
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+                OperationRequestBuilder.New()
+                    .SetDocument("query($id: Int!) { parent(id: $id) { id children { id computed } } }")
+                    .SetVariableValues(new List<IReadOnlyDictionary<string, object?>>
+                    {
+                        new Dictionary<string, object?> { ["id"] = 1 },
+                        new Dictionary<string, object?> { ["id"] = 2 }
+                    })
+                    .Build(), TestContext.Current.CancellationToken)
+            .WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+        // assert
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        Assert.Equal(2, batch.Results.Count);
+        new Snapshot().Add(batch.Results[0], "Set 0").Add(batch.Results[1], "Set 1")
+            .Add(batchSizes, "Batch sizes").MatchMarkdownSnapshot();
     }
 
     [Fact]

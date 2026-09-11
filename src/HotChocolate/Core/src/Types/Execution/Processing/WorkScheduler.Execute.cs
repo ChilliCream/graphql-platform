@@ -82,6 +82,15 @@ RESTART:
                     }
                     else
                     {
+                        // Serial resolver paths are active only while their step is running.
+                        if (first is Tasks.ResolverTask resolverTask)
+                        {
+                            lock (_sync)
+                            {
+                                IncrementPathCountUnsafe(resolverTask.FieldSelectionPath);
+                            }
+                        }
+
                         first.BeginExecute(_ct);
                         await WaitForTask(first.Id).ConfigureAwait(false);
                         buffer[0] = null;

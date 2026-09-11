@@ -39,6 +39,18 @@
 
 ```json
 [
-  4
+  2,
+  2
+]
+```
+
+## Events
+
+```json
+[
+  "mutation-1-start",
+  "batch-1-complete",
+  "mutation-2-start",
+  "batch-2-complete"
 ]
 ```

@@ -1,11 +1,12 @@
-# Batch_Should_Complete_When_Serial_Mutation_Parents_Have_Async_Children
+# Batch_Should_Group_One_Selection_When_Parents_Come_From_Different_Variable_Sets
 
-## Result
+## Set 0
 
 ```json
 {
+  "variableIndex": 0,
   "data": {
-    "a": {
+    "parent": {
       "id": 1,
       "children": [
         {
@@ -17,8 +18,18 @@
           "computed": "c12"
         }
       ]
-    },
-    "b": {
+    }
+  }
+}
+```
+
+## Set 1
+
+```json
+{
+  "variableIndex": 1,
+  "data": {
+    "parent": {
       "id": 2,
       "children": [
         {
@@ -39,18 +50,6 @@
 
 ```json
 [
-  2,
-  2
-]
-```
-
-## Events
-
-```json
-[
-  "mutation-1-start",
-  "batch-1-complete",
-  "mutation-2-start",
-  "batch-2-complete"
+  4
 ]
 ```
