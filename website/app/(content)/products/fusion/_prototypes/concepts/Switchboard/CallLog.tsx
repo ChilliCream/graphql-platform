@@ -4,10 +4,12 @@ import { useRef } from "react";
 
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
+import { TYPE } from "../../brand";
 import {
   BRASS,
   BRASS_DIM,
   BRASS_FAINT,
+  BRASS_WASH,
   EDGE,
   EDGE_SOFT,
   FIELD,
@@ -146,7 +148,7 @@ export function CallLog() {
           y="46"
           fill={BRASS_DIM}
           fontFamily={MONO}
-          fontSize="8.5"
+          fontSize={TYPE.label}
           letterSpacing="2"
         >
           REWIRING ORDER
@@ -156,7 +158,7 @@ export function CallLog() {
           y="63"
           fill={BRASS}
           fontFamily={MONO}
-          fontSize="10.5"
+          fontSize={TYPE.label}
           letterSpacing="0.5"
         >
           REMOVE Order.deliveryEstimate
@@ -176,7 +178,7 @@ export function CallLog() {
           y="56"
           fill={BRASS_DIM}
           fontFamily={MONO}
-          fontSize="8.5"
+          fontSize={TYPE.label}
           letterSpacing="1"
         >
           COMPOSES CLEAN
@@ -187,7 +189,7 @@ export function CallLog() {
           y="94"
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="8.5"
+          fontSize={TYPE.label}
           letterSpacing="2"
         >
           CALL LOG · REGISTERED CLIENTS
@@ -213,7 +215,7 @@ export function CallLog() {
             width={LOG_PANEL.w - 12}
             height="28"
             rx="4"
-            fill="rgba(226, 200, 148, 0.08)"
+            fill={BRASS_WASH}
           />
         </g>
 
@@ -233,8 +235,8 @@ export function CallLog() {
               y={ROW_Y[i] + 4}
               fill={BRASS_FAINT}
               fontFamily={MONO}
-              fontSize="8"
-              letterSpacing="1"
+              fontSize={TYPE.label}
+              letterSpacing="0.5"
             >
               {entry.client}
             </text>
@@ -243,7 +245,7 @@ export function CallLog() {
               y={ROW_Y[i] + 4}
               fill={BRASS}
               fontFamily={MONO}
-              fontSize="9.5"
+              fontSize={TYPE.label}
             >
               {entry.operation}
             </text>
@@ -254,7 +256,7 @@ export function CallLog() {
               x={LOG_PANEL.x + LOG_PANEL.w - 16}
               y={ROW_Y[i] + 4}
               fontFamily={MONO}
-              fontSize="8.5"
+              fontSize={TYPE.label}
               letterSpacing="1"
               textAnchor="end"
               style={{ fill: VERDICT_COLOR[entry.verdict] }}
@@ -278,7 +280,7 @@ export function CallLog() {
           y={SIDE.y + 28}
           fill={BRASS}
           fontFamily={MONO}
-          fontSize="12"
+          fontSize={TYPE.caption}
           letterSpacing="3"
           textAnchor="middle"
         >
@@ -289,7 +291,7 @@ export function CallLog() {
           y={SIDE.y + 44}
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="7.5"
+          fontSize={TYPE.label}
           letterSpacing="1"
           textAnchor="middle"
         >
@@ -307,7 +309,7 @@ export function CallLog() {
           x={SIDE.x + 44}
           y={SIDE.y + 86}
           fontFamily={MONO}
-          fontSize="9.5"
+          fontSize={TYPE.label}
           letterSpacing="1"
           style={{ fill: LAMP_FAULT }}
         >
@@ -318,7 +320,7 @@ export function CallLog() {
           y={SIDE.y + 122}
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="7.5"
+          fontSize={TYPE.label}
           letterSpacing="1"
           textAnchor="middle"
         >

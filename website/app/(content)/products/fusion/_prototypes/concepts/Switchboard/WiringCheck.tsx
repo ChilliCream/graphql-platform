@@ -4,10 +4,12 @@ import { useRef } from "react";
 
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
+import { TYPE } from "../../brand";
 import {
   BRASS,
   BRASS_DIM,
   BRASS_FAINT,
+  BRASS_WASH,
   EDGE,
   EDGE_SOFT,
   FIELD,
@@ -151,7 +153,7 @@ export function WiringCheck() {
           y="30"
           fill={BRASS_DIM}
           fontFamily={MONO}
-          fontSize="9"
+          fontSize={TYPE.label}
           letterSpacing="2"
         >
           COMPOSITION · WIRING CHECK
@@ -177,7 +179,7 @@ export function WiringCheck() {
             width={SHEET.w - 12}
             height={ROW_H}
             rx="4"
-            fill="rgba(226, 200, 148, 0.08)"
+            fill={BRASS_WASH}
           />
           <path
             d={`M ${SHEET.x + 6} 0 H ${SHEET.x + SHEET.w - 6}`}
@@ -194,7 +196,7 @@ export function WiringCheck() {
               y={ROW_Y[i] + 20}
               fill={BRASS}
               fontFamily={MONO}
-              fontSize="10.5"
+              fontSize={TYPE.label}
               letterSpacing="1"
             >
               {line.name}
@@ -207,7 +209,7 @@ export function WiringCheck() {
               y={ROW_Y[i] + 20}
               fill={REST.status[i] === 1 ? LAMP_FAULT : BRASS_DIM}
               fontFamily={MONO}
-              fontSize="8.5"
+              fontSize={TYPE.label}
               letterSpacing="1"
               textAnchor="end"
             >
@@ -251,7 +253,7 @@ export function WiringCheck() {
           y={BOARD.y + 26}
           fill={BRASS}
           fontFamily={MONO}
-          fontSize="11"
+          fontSize={TYPE.label}
           letterSpacing="2"
           textAnchor="middle"
         >
@@ -269,7 +271,7 @@ export function WiringCheck() {
           y={BOARD.y + 72}
           fill={BRASS_DIM}
           fontFamily={MONO}
-          fontSize="9.5"
+          fontSize={TYPE.label}
           letterSpacing="1"
         >
           LIVE
@@ -286,7 +288,7 @@ export function WiringCheck() {
           y={BOARD.y + 112}
           fill={BRASS_DIM}
           fontFamily={MONO}
-          fontSize="9.5"
+          fontSize={TYPE.label}
           letterSpacing="1"
         >
           FAULT
@@ -296,7 +298,7 @@ export function WiringCheck() {
           x={BOARD.x + BOARD.w / 2}
           y={BOARD.y + 158}
           fontFamily={MONO}
-          fontSize="9"
+          fontSize={TYPE.label}
           letterSpacing="1"
           textAnchor="middle"
           style={{ fill: REST.faulted ? LAMP_FAULT : BRASS_DIM }}
@@ -312,8 +314,7 @@ export function WiringCheck() {
           y={BOARD.y + 190}
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="7.5"
-          letterSpacing="1"
+          fontSize={TYPE.label}
           textAnchor="middle"
         >
           CHECKED IN THE BUILD,
@@ -323,8 +324,7 @@ export function WiringCheck() {
           y={BOARD.y + 202}
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="7.5"
-          letterSpacing="1"
+          fontSize={TYPE.label}
           textAnchor="middle"
         >
           NOT AT RUNTIME
