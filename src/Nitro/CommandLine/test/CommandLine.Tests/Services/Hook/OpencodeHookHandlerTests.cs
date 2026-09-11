@@ -87,15 +87,17 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     /// <c>opencode-server</c> endpoint is worse than a dead port: 4096 is
     /// also opencode's own <c>opencode serve</c> default, so a push aimed
     /// at this session could land in an unrelated process's session
-    /// instead. The shim now reports whether one of the flags that
-    /// actually make opencode bind (<c>--port</c> / <c>--hostname</c> /
-    /// <c>--mdns</c>) was present in its own argv; when it was not, the
-    /// endpoint is unproven and must be demoted to <c>endpoint_kind =
-    /// 'none'</c> with the idle-push gate left unarmed, so the dispatcher
-    /// records "no-endpoint" honestly instead of spending a push on it.
+    /// instead. The shim now reports <c>serverBound</c> by reading the
+    /// plugin input's <c>serverUrl</c> getter twice and comparing the two
+    /// reads by reference: an unbound opencode builds a fresh placeholder
+    /// URL object on every read, so <c>serverBound</c> is false when this
+    /// payload reports it; the endpoint is then unproven and must be
+    /// demoted to <c>endpoint_kind = 'none'</c> with the idle-push gate
+    /// left unarmed, so the dispatcher records "no-endpoint" honestly
+    /// instead of spending a push on it.
     /// </summary>
     [Fact]
-    public async Task HandleSessionCreatedAsync_Should_RejectThePlaceholderServerUrl_When_NoBindFlagWasPassed()
+    public async Task HandleSessionCreatedAsync_Should_RejectThePlaceholderServerUrl_When_ServerBoundIsFalse()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -435,8 +437,8 @@ public sealed class OpencodeHookHandlerTests : IDisposable
             cancellationToken);
         Assert.Equal(2, reReservedAb.Count);
 
-        // assert: c, held by the other consumer, is untouched - still
-        // reserved, so it cannot be reserved again.
+        // assert: c, held by an earlier turn of the same session, is
+        // untouched - still reserved, so it cannot be reserved again.
         var reReservedC = await _ledger.ReserveAsync(
             CurrentGeneration(), [c.Id], AgentSessionChannel.Digest, _timeProvider.GetUtcNow(), cancellationToken);
         Assert.Empty(reReservedC);

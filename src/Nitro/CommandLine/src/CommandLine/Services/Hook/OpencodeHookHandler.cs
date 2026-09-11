@@ -44,9 +44,13 @@ internal sealed class OpencodeHookHandler(
         // worse than a dead port: 4096 is also opencode's own
         // `opencode serve` default, so a push aimed at this session could
         // land in an unrelated process's session instead. Only register it
-        // as endpoint_kind='opencode-server' when the shim proved, from its
-        // own process.argv, that this process actually bound a server (see
-        // EndpointAddress.IsTrustedOpencodeServerUrl and hc-10-w61.1).
+        // as endpoint_kind='opencode-server' when the shim proved, by
+        // reading the plugin input's serverUrl getter twice and comparing
+        // by reference, that this process actually bound a server: an
+        // unbound opencode builds a fresh placeholder URL object on every
+        // read, so only a genuinely bound server returns the SAME object
+        // both times (see EndpointAddress.IsTrustedOpencodeServerUrl and
+        // hc-10-w61.1).
         var trusted = EndpointAddress.IsTrustedOpencodeServerUrl(payload.ServerUrl!, payload.ServerBound);
         var (endpointKind, endpointAddr, endpointSecret) = trusted
             ? (AgentSessionEndpointKind.OpencodeServer, payload.ServerUrl!, payload.ServerPassword)

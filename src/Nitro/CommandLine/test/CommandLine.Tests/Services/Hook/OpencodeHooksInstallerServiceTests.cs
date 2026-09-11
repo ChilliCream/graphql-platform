@@ -479,9 +479,19 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     /// Instead the shim reads the plugin input's <c>serverUrl</c> getter
     /// twice and compares by reference: opencode returns a fresh
     /// placeholder URL on every read when nothing is bound, so two reads
-    /// are never the same object. Runs the generated JavaScript itself
-    /// under Node, with <c>Bun.spawn</c> stubbed to capture the
-    /// <c>session-created</c> payload the shim sends to the hook process.
+    /// are never the same object, and the SAME object every time once a
+    /// server actually bound. Runs the generated JavaScript itself under
+    /// Node, with <c>Bun.spawn</c> stubbed to capture the
+    /// <c>session-created</c> payload the shim sends to the hook process,
+    /// driving the SAME template with a fresh-URL-every-read fake and a
+    /// stable-URL fake in one script so this test discriminates on its
+    /// own: a probe neutered to a constant fails one of the two assertions
+    /// below, instead of the fresh-URL fake alone passing for the wrong
+    /// reason against a constant <c>false</c>. Proven against the shim's
+    /// probe neutered to a constant false result (this test then fails
+    /// the second assertion: expects True, gets False) and to a constant
+    /// true result (fails the first assertion instead: expects False,
+    /// gets True).
     /// </summary>
     [Fact]
     public async Task Build_Should_ReportServerNotBound_When_TheServerUrlGetterReturnsAFreshUrlEachRead()
@@ -502,15 +512,21 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         var ct = TestContext.Current.CancellationToken;
         var template = OpencodeHooksTemplate.Build(new LaunchDescriptor("nitro", []));
         var scriptPath = Path.Combine(_tempRoot.FullName, "shim-server-not-bound.mjs");
-        await File.WriteAllTextAsync(scriptPath, template + BuildServerBoundDriverScript(stableServerUrl: false), ct);
+        await File.WriteAllTextAsync(scriptPath, template + BuildServerBoundDiscriminationDriverScript(), ct);
 
         // act
         var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
 
-        // assert
+        // assert: the fresh-URL fake proves the placeholder is rejected...
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
         var result = JsonDocument.Parse(stdOut).RootElement;
-        Assert.False(result.GetProperty("serverBound").GetBoolean());
+        Assert.False(result.GetProperty("freshServerBound").GetBoolean());
+
+        // ...and the stable-URL fake, driven through the SAME template in
+        // the SAME run, proves the false above came from the identity
+        // check actually failing to match, not from a probe that always
+        // reports false regardless of what it was given.
+        Assert.True(result.GetProperty("stableServerBound").GetBoolean());
     }
 
     /// <summary>
@@ -650,6 +666,55 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         }));
         """
             .Replace("__STABLE__", stableServerUrl ? "true" : "false", StringComparison.Ordinal);
+
+    /// <summary>
+    /// A driver appended to the generated shim module: stubs
+    /// <c>Bun.spawn</c> to capture each <c>session-created</c> payload,
+    /// then instantiates the plugin TWICE against the SAME template - once
+    /// with a fresh-<c>URL</c>-every-read fake, once with a stable-<c>URL</c>
+    /// fake - so a single run proves both directions of the
+    /// getter-identity probe: a probe forced to a constant fails one of
+    /// the two reported fields no matter which constant it was forced to.
+    /// </summary>
+    private static string BuildServerBoundDiscriminationDriverScript()
+        => """
+
+
+        globalThis.Bun = {
+          spawn() {
+            return {
+              stdin: { write: (chunk) => { globalThis.__lastCapturedStdin = chunk; }, end() {} },
+              stdout: "{}",
+              exited: Promise.resolve(0),
+            };
+          },
+        };
+
+        const stableUrl = new URL("http://127.0.0.1:5123/");
+
+        const freshInput = {
+          get serverUrl() {
+            return new URL("http://localhost:4096");
+          },
+        };
+        const freshHooks = await nitroHooks(freshInput);
+        await freshHooks.event({ event: { type: "session.created", properties: { session: { id: "ses_fresh" } } } });
+        const freshBody = JSON.parse(globalThis.__lastCapturedStdin);
+
+        const stableInput = {
+          get serverUrl() {
+            return stableUrl;
+          },
+        };
+        const stableHooks = await nitroHooks(stableInput);
+        await stableHooks.event({ event: { type: "session.created", properties: { session: { id: "ses_stable" } } } });
+        const stableBody = JSON.parse(globalThis.__lastCapturedStdin);
+
+        console.log(JSON.stringify({
+          freshServerBound: freshBody.serverBound,
+          stableServerBound: stableBody.serverBound,
+        }));
+        """;
 
     /// <summary>
     /// A driver appended to the generated shim module for two sequential
