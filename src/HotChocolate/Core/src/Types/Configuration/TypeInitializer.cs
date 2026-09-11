@@ -429,7 +429,8 @@ internal sealed class TypeInitializer
         {
             foreach (var field in objectType.Configuration!.Fields)
             {
-                if ((CoreFieldFlags.BatchResolver & field.Flags) == CoreFieldFlags.BatchResolver)
+                if (field.BatchResolver is not null
+                    || (CoreFieldFlags.BatchResolver & field.Flags) == CoreFieldFlags.BatchResolver)
                 {
                     field.BatchResolver ??= CompileBatchResolver(field, _context.ResolverCompiler);
                     continue;

@@ -148,7 +148,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             },
             BatchResolver = contexts => ResolveNodeBatchAsync(contexts, serializerAccessor),
             BatchPartitionKeyResolver = NodePartitioner(serializerAccessor),
-            Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodeField
+            Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodeField | CoreFieldFlags.BatchResolver
         };
 
         if (markNodeFieldAsLookup)
@@ -191,7 +191,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             },
             BatchResolver = contexts =>
                 ResolveNodesBatchAsync(contexts, serializerAccessor, maxAllowedNodes),
-            Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodesField
+            Flags = CoreFieldFlags.ParallelExecutable | CoreFieldFlags.GlobalIdNodesField | CoreFieldFlags.BatchResolver
         };
 
         if (markNodeFieldSharable)

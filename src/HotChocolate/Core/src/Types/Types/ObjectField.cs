@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -193,7 +194,7 @@ public sealed class ObjectField : OutputField
         var resolvers = definition.Resolvers;
         Resolver = resolvers.Resolver;
 
-        if (resolvers.PureResolver is not null)
+        if (definition.BatchResolver is null && resolvers.PureResolver is not null)
         {
             Flags |= CoreFieldFlags.HasPureResolver;
 
@@ -212,7 +213,7 @@ public sealed class ObjectField : OutputField
             IsParallelExecutable = true;
         }
 
-        var middleware = FieldMiddlewareCompiler.Compile(
+        var middleware = definition.BatchResolver is not null ? null : FieldMiddlewareCompiler.Compile(
             context.GlobalComponents,
             fieldMiddlewareDefinitions,
             definition.GetResultConverters(),
@@ -281,12 +282,32 @@ public sealed class ObjectField : OutputField
         IReadOnlyList<BatchFieldMiddlewareConfiguration> middlewareComponents,
         BatchFieldDelegate batchResolver)
     {
-        if (middlewareComponents is not { Count: > 0 })
+        BatchFieldDelegate next = contexts =>
         {
-            return batchResolver;
-        }
+            ImmutableArray<IMiddlewareContext>.Builder? survivors = null;
 
-        var next = batchResolver;
+            for (var i = 0; i < contexts.Length; i++)
+            {
+                if (contexts[i].IsResultModified || contexts[i].HasErrors)
+                {
+                    if (survivors is null)
+                    {
+                        survivors = ImmutableArray.CreateBuilder<IMiddlewareContext>(contexts.Length - 1);
+                        for (var j = 0; j < i; j++)
+                        {
+                            survivors.Add(contexts[j]);
+                        }
+                    }
+                }
+                else
+                {
+                    survivors?.Add(contexts[i]);
+                }
+            }
+
+            var dispatch = survivors?.ToImmutable() ?? contexts;
+            return dispatch.IsDefaultOrEmpty ? ValueTask.CompletedTask : batchResolver(dispatch);
+        };
 
         for (var i = middlewareComponents.Count - 1; i >= 0; i--)
         {

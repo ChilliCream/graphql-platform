@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
@@ -208,51 +209,31 @@ internal sealed class BatchResolverTask : IResolverTask
 
         try
         {
-            var allHaveErrors = true;
+            ImmutableArray<IMiddlewareContext>.Builder? survivors = null;
 
             for (var i = 0; i < contexts.Length; i++)
             {
                 var context = Unsafe.As<MiddlewareContext>(contexts[i]);
 
-                // If the arguments are already parsed and processed we can just process.
-                // Arguments need no pre-processing if they have no variables.
-                if (context.Selection.Arguments.IsFullyCoercedNoErrors)
+                if (TryCoerceArguments(context, cancellationToken))
                 {
-                    context.Arguments = context.Selection.Arguments;
-                    allHaveErrors = false;
+                    survivors?.Add(context);
                     continue;
                 }
 
-                // if we have errors on the compiled execution plan we will report the errors and
-                // signal that this resolver task has errors and shall end.
-                if (context.Selection.Arguments.HasErrors)
-                {
-                    foreach (var argument in context.Selection.Arguments.ArgumentValues)
-                    {
-                        if (argument.HasError)
-                        {
-                            context.ReportError(argument.Error!);
-                        }
-                    }
-
-                    continue;
-                }
-
-                // if this field has arguments that contain variables we first need to coerce them
-                // before we can start executing the resolver.
-                var args = _argumentMapPool.Get();
-                context.Selection.Arguments.CoerceArguments(context.Variables, args);
-                context.Arguments = args;
-                _rentedArgs.Add(args);
-                allHaveErrors = false;
+                survivors ??= CollectSurvivors(contexts, i);
+                _excluded.Add(context);
+                context.Result = null;
+                CompleteValue(_entries[i].OperationContext, context, success: false, cancellationToken);
             }
 
-            if (allHaveErrors)
+            var remaining = survivors?.ToImmutable() ?? contexts;
+            if (remaining.IsDefaultOrEmpty)
             {
-                return false;
+                return true;
             }
 
-            await ExecuteBatchPipelineAsync(contexts, cancellationToken).ConfigureAwait(false);
+            await ExecuteBatchPipelineAsync(remaining, cancellationToken).ConfigureAwait(false);
             return true;
         }
         catch (Exception ex)
@@ -287,6 +268,65 @@ internal sealed class BatchResolverTask : IResolverTask
         return false;
     }
 
+    private bool TryCoerceArguments(MiddlewareContext context, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var arguments = context.Selection.Arguments;
+            if (arguments.IsFullyCoercedNoErrors)
+            {
+                context.Arguments = arguments;
+                return true;
+            }
+
+            if (arguments.HasErrors)
+            {
+                foreach (var argument in arguments.ArgumentValues)
+                {
+                    if (argument.HasError)
+                    {
+                        context.ReportError(argument.Error!);
+                    }
+                }
+
+                return false;
+            }
+
+            var args = _argumentMapPool.Get();
+            _rentedArgs.Add(args);
+            arguments.CoerceArguments(context.Variables, args);
+            context.Arguments = args;
+
+            // Runtime argument values are coerced before dispatch and retained for resolver access.
+            foreach (var definition in arguments.ArgumentValues)
+            {
+                var argument = args[definition.Name];
+                if (!argument.IsFullyCoerced)
+                {
+                    var value = context.ArgumentValue<object?>(argument.Name);
+                    args[argument.Name] = new ArgumentValue(
+                        argument,
+                        argument.Kind ?? ValueKind.Unknown,
+                        true,
+                        argument.IsDefaultValue,
+                        value,
+                        argument.ValueLiteral!);
+                }
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                context.ReportError(ex);
+            }
+
+            return false;
+        }
+    }
+
     private async ValueTask ExecuteBatchPipelineAsync(
         ImmutableArray<IMiddlewareContext> contexts,
         CancellationToken cancellationToken)
@@ -300,7 +340,13 @@ internal sealed class BatchResolverTask : IResolverTask
             var serviceScope = first.RequestServices.CreateAsyncScope();
             first.Services = serviceScope.ServiceProvider;
             first.RegisterForCleanup(serviceScope.DisposeAsync);
-            _entries[0].OperationContext.ServiceScopeInitializer.Initialize(
+            var entryIndex = 0;
+            while (!ReferenceEquals(_resolverTasks[entryIndex].Context, first))
+            {
+                entryIndex++;
+            }
+
+            _entries[entryIndex].OperationContext.ServiceScopeInitializer.Initialize(
                 first, first.RequestServices, first.Services);
 
             for (var i = 1; i < contexts.Length; i++)
@@ -336,10 +382,17 @@ internal sealed class BatchResolverTask : IResolverTask
             ImmutableArray<IMiddlewareContext>.Builder? survivors = null;
             ulong firstKey = 0;
             var firstSurvivorIndex = -1;
+            var entryIndex = 0;
 
             for (var i = 0; i < contexts.Length; i++)
             {
-                var key = TryPartition(partitioner, _entries[i].OperationContext, contexts[i], cancellationToken, out var faulted);
+                // Survivors retain entry order even when argument failures compact the array.
+                while (!ReferenceEquals(_resolverTasks[entryIndex].Context, contexts[i]))
+                {
+                    entryIndex++;
+                }
+
+                var key = TryPartition(partitioner, _entries[entryIndex++].OperationContext, contexts[i], cancellationToken, out var faulted);
 
                 if (faulted)
                 {
@@ -535,7 +588,7 @@ internal sealed class BatchResolverTask : IResolverTask
 
             for (var i = 0; i < contexts.Length; i++)
             {
-                if (Unsafe.As<MiddlewareContext>(contexts[i]).ResultValue.IsParentNullOrInvalidated)
+                if (IsParentInvalidated(Unsafe.As<MiddlewareContext>(contexts[i]).ResultValue))
                 {
                     erased[i] = true;
                     erasedCount++;
@@ -581,6 +634,21 @@ internal sealed class BatchResolverTask : IResolverTask
         finally
         {
             ArrayPool<bool>.Shared.Return(erased);
+        }
+
+        static bool IsParentInvalidated(ResultElement value)
+        {
+            do
+            {
+                if (value.IsParentNullOrInvalidated)
+                {
+                    return true;
+                }
+
+                value = value.Parent;
+            } while (value.ValueKind is not JsonValueKind.Undefined);
+
+            return false;
         }
     }
 
@@ -695,6 +763,12 @@ internal sealed class BatchResolverTask : IResolverTask
             }
         }
 
+        if (_taskBuffer.Count > taskCount
+            && (resultValue.IsNullOrInvalidated || resultValue.IsParentNullOrInvalidated))
+        {
+            _taskBuffer.RemoveRange(taskCount, _taskBuffer.Count - taskCount);
+        }
+
         if (resultValue is { IsNullable: false, IsNullOrInvalidated: true })
         {
             if (operationContext.PropagateNullValues)
@@ -706,9 +780,7 @@ internal sealed class BatchResolverTask : IResolverTask
                 resultValue.SetNullValue();
             }
 
-            _completionStatus = ExecutionTaskStatus.Faulted;
             operationContext.Result.AddNonNullViolation(context.Path);
-            _taskBuffer.RemoveRange(taskCount, _taskBuffer.Count - taskCount);
         }
     }
 

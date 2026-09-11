@@ -462,6 +462,7 @@ public class ObjectFieldDescriptor
     public IObjectFieldDescriptor ResolveBatch(BatchResolverDelegate batchResolver)
     {
         ArgumentNullException.ThrowIfNull(batchResolver);
+        Configuration.SetBatchResolverFlags();
 
         Configuration.BatchResolver =
             async contexts =>
