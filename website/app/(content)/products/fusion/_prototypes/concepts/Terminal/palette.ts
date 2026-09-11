@@ -1,3 +1,5 @@
+import { BRAND, CC, FONTS } from "../../brand";
+
 /**
  * Palette and cast for the Terminal concept (prototype v8).
  *
@@ -9,37 +11,43 @@
  * second command that checks the operation registry.
  */
 
-/** Terminal surface colours, shared by all six scenes so they read as one session. */
+/**
+ * Terminal surface colours, shared by all six scenes so they read as one
+ * session. Every role is a site token or a brand accent from `../../brand`,
+ * mixed with `color-mix` where the scene wants the hue at reduced strength;
+ * the concept contributes the role names, never a colour of its own.
+ */
 export const TERM = {
-  /** Scene background behind the pane. */
-  bg: "#080b12",
-  /** Pane background. */
-  pane: "#0b111c",
+  /** Scene background behind the pane: the page background. */
+  bg: CC.bg,
+  /** Pane background: the solid brand navy surface. */
+  pane: CC.surface,
   /** Hairlines and box-drawing rules. */
-  rule: "rgba(245, 241, 234, 0.14)",
-  /** Ordinary output. */
-  text: "#ded9d1",
+  rule: CC.cardBorder,
+  /** Ordinary output: the brightest text token, the way a shell prints. */
+  text: CC.heading,
   /** Secondary output: timestamps, column headers, comments. */
-  dim: "#7c8798",
+  dim: CC.inkDim,
   /** Output that has not been written yet. */
-  faint: "#3f4a5c",
+  faint: CC.inkFaint,
   /** The prompt sigil and anything the operator typed. */
-  prompt: "#16b9e4",
-  /** Success: check marks, `pass`, `safe`. */
-  ok: "#5eead4",
+  prompt: CC.accent,
+  /** Success: check marks, `pass`, `safe`. The phosphor glow, as brand teal. */
+  ok: `color-mix(in srgb, ${BRAND.teal} 90%, transparent)`,
   /** Warning: `risky`, spinner. */
-  warn: "#f6c177",
+  warn: BRAND.amber,
   /** Failure: `breaking`, conflicts, non-zero exits. */
-  err: "#f87171",
+  err: CC.danger,
   /** Specification directives; both specs use this one colour on purpose. */
-  spec: "#c4b5fd",
+  spec: BRAND.violet,
   /** Block caret. */
-  caret: "#f5f0ea",
+  caret: CC.heading,
+  /** The cursor bar Nitro drags down a scanned table row. */
+  scan: `color-mix(in srgb, ${BRAND.cyan} 14%, transparent)`,
 } as const;
 
-/** The one font stack every Terminal scene renders in. */
-export const MONO =
-  "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace";
+/** The one font stack every Terminal scene renders in: the site mono face. */
+export const MONO = FONTS.mono;
 
 export type SubgraphSpec = "GraphQL Federation" | "Apollo Federation";
 
