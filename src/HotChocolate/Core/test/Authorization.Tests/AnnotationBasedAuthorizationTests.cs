@@ -620,9 +620,7 @@ public class AnnotationBasedAuthorizationTests
                 """);
     }
 
-    // REPRO (security): the nodes(ids:) counterpart of the BeforeResolver node-field bypass. An
-    // unauthorized nodes(ids:) lookup must be rejected per index with AUTH_NOT_AUTHORIZED, not
-    // resolve the protected Person.
+    // Field authorization denies the nodes list before node resolver dispatch.
     [Fact]
     public async Task Authorize_Nodes_Field_BeforeResolver_Should_Deny_When_NotAllowed()
     {
@@ -663,19 +661,14 @@ public class AnnotationBasedAuthorizationTests
                     {
                       "message": "The current user is not authorized to access this resource.",
                       "path": [
-                        "nodes",
-                        0
+                        "nodes"
                       ],
                       "extensions": {
                         "code": "AUTH_NOT_AUTHORIZED"
                       }
                     }
                   ],
-                  "data": {
-                    "nodes": [
-                      null
-                    ]
-                  }
+                  "data": null
                 }
                 """);
     }
