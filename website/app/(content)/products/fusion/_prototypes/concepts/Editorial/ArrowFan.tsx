@@ -1,7 +1,15 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { drawStyle, fadeStyle, HAND, MARKER, NOTES, PAPER } from "./palette";
+import {
+  drawStyle,
+  fadeStyle,
+  FONT,
+  HAND,
+  MARKER,
+  NOTES,
+  PAPER,
+} from "./palette";
 import { Folio, PaperGround, StickyNote, Wobble } from "./Sketch";
 
 /**
@@ -11,6 +19,10 @@ import { Folio, PaperGround, StickyNote, Wobble } from "./Sketch";
  * the response is written up as one card.
  *
  * Rest state: the finished diagram, every arrow drawn and the response filled.
+ *
+ * Every line is lettered in `FONT` units, so the smallest one still reads at
+ * the site's 11px label on a 375px screen; the hub, the note column and the
+ * response card are spaced for that lettering.
  */
 
 const CSS = `
@@ -30,13 +42,13 @@ const CSS = `
 @keyframes ed-fan-flow { to { stroke-dashoffset: -180; } }
 `;
 
-const HUB = { x: 296, y: 214, r: 58 };
+const HUB = { x: 290, y: 196, r: 54 };
 
 /** The four subgraphs this query touches, written on notes down the margin. */
-const ROWS = [40, 122, 204, 286];
-const NOTE_X = 424;
-const NOTE_W = 196;
-const NOTE_H = 66;
+const ROWS = [36, 112, 188, 264];
+const NOTE_X = 388;
+const NOTE_W = 232;
+const NOTE_H = 64;
 
 /** Arrow from the gateway out to a note, and the blue answer coming back. */
 function outPath(row: number): string {
@@ -113,16 +125,28 @@ export function ArrowFan() {
             strokeWidth={2.2}
             strokeLinejoin="round"
           />
-          <text x={140} y={104} fill={PAPER.inkSoft} fontSize={16} style={HAND}>
+          <text
+            x={140}
+            y={110}
+            fill={PAPER.inkSoft}
+            fontSize={FONT.label}
+            style={HAND}
+          >
             Web
           </text>
         </g>
-        <text x={20} y={172} fill={PAPER.ink} fontSize={17} style={HAND}>
+        <text
+          x={20}
+          y={170}
+          fill={PAPER.ink}
+          fontSize={FONT.caption}
+          style={HAND}
+        >
           one query
         </text>
-        <g transform="translate(20 186)">
+        <g transform="translate(20 182)">
           <rect
-            width={168}
+            width={148}
             height={72}
             fill={PAPER.sheet}
             stroke={PAPER.ink}
@@ -146,7 +170,7 @@ export function ArrowFan() {
         <path
           className="ed-fan-draw"
           style={drawStyle(140, 0.6)}
-          d={`M192 208 C 224 206, 236 200, ${HUB.x - HUB.r - 6} ${HUB.y - 4}`}
+          d={`M172 218 C 200 216, 212 206, ${HUB.x - HUB.r - 6} ${HUB.y}`}
           fill="none"
           stroke={PAPER.ink}
           strokeWidth={2.4}
@@ -154,12 +178,7 @@ export function ArrowFan() {
           filter="url(#ed-fan-wob)"
         />
         <g className="ed-fan-in" style={fadeStyle(1.1)}>
-          <Head
-            x={HUB.x - HUB.r - 4}
-            y={HUB.y - 4}
-            angle={-4}
-            color={PAPER.ink}
-          />
+          <Head x={HUB.x - HUB.r - 4} y={HUB.y} angle={-4} color={PAPER.ink} />
         </g>
 
         <g filter="url(#ed-fan-wob)">
@@ -183,20 +202,20 @@ export function ArrowFan() {
         </g>
         <text
           x={HUB.x}
-          y={HUB.y + 4}
+          y={HUB.y + 8}
           textAnchor="middle"
           fill={PAPER.ink}
-          fontSize={21}
+          fontSize={FONT.caption}
           style={MARKER}
         >
           gateway
         </text>
         <text
           x={HUB.x}
-          y={HUB.y + 24}
+          y={HUB.y + HUB.r + 30}
           textAnchor="middle"
           fill={PAPER.pencil}
-          fontSize={13}
+          fontSize={FONT.label}
           style={HAND}
         >
           one endpoint
@@ -264,10 +283,16 @@ export function ArrowFan() {
         ))}
 
         {/* The one response, written up under the query */}
-        <text x={20} y={296} fill={PAPER.blue} fontSize={17} style={HAND}>
+        <text
+          x={20}
+          y={300}
+          fill={PAPER.blue}
+          fontSize={FONT.caption}
+          style={HAND}
+        >
           one response
         </text>
-        <g transform="translate(20 308)">
+        <g transform="translate(20 312)">
           <rect
             width={196}
             height={104}
@@ -292,7 +317,7 @@ export function ArrowFan() {
         <path
           className="ed-fan-draw"
           style={drawStyle(180, 4.4)}
-          d={`M${HUB.x - 40} ${HUB.y + 52} C 210 320, 180 330, 150 340`}
+          d={`M${HUB.x - 20} ${HUB.y + 56} C 256 290, 232 310, 200 330`}
           fill="none"
           stroke={PAPER.blue}
           strokeWidth={2.2}
@@ -300,10 +325,16 @@ export function ArrowFan() {
           filter="url(#ed-fan-wob)"
         />
         <g className="ed-fan-in" style={fadeStyle(5.2)}>
-          <Head x={150} y={340} angle={168} color={PAPER.blue} />
+          <Head x={200} y={330} angle={145} color={PAPER.blue} />
         </g>
 
-        <text x={332} y={452} fill={PAPER.pencil} fontSize={15} style={HAND}>
+        <text
+          x={20}
+          y={452}
+          fill={PAPER.pencil}
+          fontSize={FONT.label}
+          style={HAND}
+        >
           the gateway works out who holds what
         </text>
       </svg>
