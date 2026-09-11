@@ -127,7 +127,7 @@ export function MarginNotes() {
           x={16}
           y={rowY(0) - 6}
           width={604}
-          height={46}
+          height={42}
           fill={PAPER.highlight}
         />
 
