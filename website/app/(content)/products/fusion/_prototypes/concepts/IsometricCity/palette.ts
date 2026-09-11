@@ -94,8 +94,9 @@ export function svgFont(px: number, viewBoxWidth: number): number {
   return Math.ceil((px * viewBoxWidth) / SCENE_BOX_PX);
 }
 
-/** Every block scene is drawn 640 units wide. */
+/** Every block scene is drawn 640 x 480, the 4:3 box the page gives it. */
 export const SCENE_W = 640;
+export const SCENE_H = 480;
 /** The traffic-desk scene is drawn wider, at 16:9. */
 export const METER_W = 720;
 

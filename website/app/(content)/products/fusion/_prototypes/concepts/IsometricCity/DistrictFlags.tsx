@@ -1,11 +1,22 @@
 "use client";
 
+import { FONTS } from "../../brand";
 import { useCityMotion } from "./hooks";
-import { CITY, LABEL, box, iso, rightQuad, tile } from "./palette";
+import {
+  CITY,
+  FONT,
+  LABEL,
+  SCENE_H,
+  SCENE_W,
+  box,
+  iso,
+  leftQuad,
+  tile,
+} from "./palette";
 
 /**
  * "Both specifications, one gateway": one street, two kinds of flag. Every
- * building on the road flies a specification flag on its roof - three
+ * GraphQL building on the road flies a specification flag on its roof - two
  * GraphQL Federation, two Apollo Federation - and the corner building flies
  * both while it moves across. The OpenAPI and gRPC buildings have a different
  * facade but stand on the same road into the same plaza.
@@ -13,6 +24,11 @@ import { CITY, LABEL, box, iso, rightQuad, tile } from "./palette";
  * Rest state: the finished street with every flag flying and every road
  * connected, so the still frame reads as one gateway serving both
  * specifications and the non-GraphQL sources alike.
+ *
+ * Signage is set in `FONT` units so the smallest pennant still reads at the
+ * site's 11px label on a 375px screen. At that size the street holds two ranks
+ * of three blocks five cells apart - the pitch that keeps one block's signage
+ * clear of the next one's - and the composition caption sits under the map.
  */
 
 const CSS = `
@@ -36,12 +52,14 @@ const CSS = `
 }
 `;
 
-const ORIGIN = "translate(206, 116)";
+const ORIGIN = "translate(216, 70)";
 const SIZE = 2.2;
+/** Cells between two blocks in the same rank: the signage pitch. */
+const PITCH = 5;
 
 /** The plaza sits at the end of the street, straddling the road. */
-const PLAZA = box(10.4, 2.3, 2.8, 2.8, 40);
-const PLAZA_DOOR = iso(11.8, 5.1);
+const PLAZA = box(13, 2.5, 2.8, 2.8, 40);
+const PLAZA_DOOR = iso(13.95, 5.3);
 
 interface StreetBlock {
   readonly name: string;
@@ -62,52 +80,45 @@ const STREET: readonly StreetBlock[] = [
     name: "Catalog",
     tag: "JS/TS",
     flag: "GraphQL Fed",
-    cell: [0, 0.2],
+    cell: [0, 0],
     height: 52,
   },
   {
     name: "Billing",
     tag: "Java",
     flag: "Apollo Fed",
-    cell: [3.2, 0.2],
+    cell: [PITCH, 0],
     height: 44,
   },
   {
-    name: "Ordering",
-    tag: "Go",
-    flag: "GraphQL Fed",
-    cell: [6.4, 0.2],
-    height: 48,
+    name: "Inventory",
+    tag: "gRPC",
+    flag: null,
+    cell: [2 * PITCH, 0],
+    height: 42,
+    facade: true,
   },
   {
     name: "Shipping",
     tag: "Ruby",
     flag: "Apollo Fed",
     both: true,
-    cell: [1.2, 3.9],
+    cell: [1, PITCH],
     height: 46,
   },
   {
     name: "Accounts",
     tag: "C#",
     flag: "GraphQL Fed",
-    cell: [4.4, 3.9],
+    cell: [1 + PITCH, PITCH],
     height: 54,
   },
   {
     name: "Payments",
     tag: "OpenAPI",
     flag: null,
-    cell: [7.6, 3.9],
+    cell: [1 + 2 * PITCH, PITCH],
     height: 40,
-    facade: true,
-  },
-  {
-    name: "Inventory",
-    tag: "gRPC",
-    flag: null,
-    cell: [9.6, 0.2],
-    height: 42,
     facade: true,
   },
 ];
@@ -126,10 +137,16 @@ function Pennant({ x, y, label, className, opacity }: PennantProps) {
     <g className={className} opacity={opacity}>
       <polygon
         className="ic-f-wave"
-        points={`${x},${y} ${x + 22},${y + 5} ${x},${y + 10}`}
+        points={`${x},${y} ${x + 30},${y + 7} ${x},${y + 14}`}
         fill={CITY.accent}
       />
-      <text x={x + 27} y={y + 9} fill={CITY.ink} fontSize={10} style={LABEL}>
+      <text
+        x={x + 38}
+        y={y + 13}
+        fill={CITY.ink}
+        fontSize={FONT.label}
+        style={LABEL}
+      >
         {label}
       </text>
     </g>
@@ -163,13 +180,13 @@ function StreetHouse({ block }: StreetHouseProps) {
             x1={rx}
             y1={ry}
             x2={rx}
-            y2={ry - (block.both ? 40 : 26)}
+            y2={ry - (block.both ? 62 : 34)}
             stroke={CITY.edge}
             strokeWidth={1.5}
           />
           <Pennant
             x={rx}
-            y={ry - (block.both ? 40 : 26)}
+            y={ry - (block.both ? 62 : 34)}
             label={block.flag}
             className={block.both ? "ic-f-swap-a" : undefined}
             opacity={1}
@@ -177,7 +194,7 @@ function StreetHouse({ block }: StreetHouseProps) {
           {block.both ? (
             <Pennant
               x={rx}
-              y={ry - 22}
+              y={ry - 34}
               label="GraphQL Fed"
               className="ic-f-swap-b"
               opacity={1}
@@ -191,16 +208,17 @@ function StreetHouse({ block }: StreetHouseProps) {
         y={ry + 6}
         textAnchor="middle"
         fill={CITY.heading}
-        fontSize={13}
+        fontFamily={FONTS.heading}
+        fontSize={FONT.caption}
       >
         {block.name}
       </text>
       <text
         x={rx}
-        y={ry + 21}
+        y={ry + 28}
         textAnchor="middle"
         fill={CITY.ink}
-        fontSize={10}
+        fontSize={FONT.label}
         style={LABEL}
       >
         {block.tag}
@@ -229,7 +247,11 @@ export function DistrictFlags() {
       data-run={run ? "true" : "false"}
     >
       <style>{CSS}</style>
-      <svg viewBox="0 0 640 480" className="h-full w-full" aria-hidden="true">
+      <svg
+        viewBox={`0 0 ${SCENE_W} ${SCENE_H}`}
+        className="h-full w-full"
+        aria-hidden="true"
+      >
         <defs>
           <pattern
             id="ic-f-hatch"
@@ -249,15 +271,15 @@ export function DistrictFlags() {
           </pattern>
         </defs>
 
-        <rect width="640" height="480" fill={CITY.sky} />
+        <rect width={SCENE_W} height={SCENE_H} fill={CITY.sky} />
 
         <g transform={ORIGIN}>
           <polygon
-            points={tile(-1, -1, 15, 9)}
+            points={tile(-1, -1, 17, 8.2)}
             fill={CITY.ground}
             stroke={CITY.edge}
           />
-          <polygon points={tile(-1, 2.6, 15, 1.1)} fill={CITY.road} />
+          <polygon points={tile(-1, 2.8, 17, 1.2)} fill={CITY.road} />
 
           {LINKS.map((link) => (
             <line
@@ -290,30 +312,32 @@ export function DistrictFlags() {
           />
           <polygon points={PLAZA.top} fill={CITY.plazaTop} stroke={CITY.edge} />
           <polygon
-            points={rightQuad(13.2, 3.6, 0, 0.9, 18)}
+            points={leftQuad(5.3, 13.5, 0, 0.9, 18)}
             fill={CITY.window}
             opacity="0.9"
           />
           <text
             x={PLAZA.roof[0]}
-            y={PLAZA.roof[1] - 12}
+            y={PLAZA.roof[1] - 14}
             textAnchor="middle"
             fill={CITY.heading}
-            fontSize={14}
+            fontFamily={FONTS.heading}
+            fontSize={FONT.caption}
           >
             Gateway
           </text>
-          <text
-            x={PLAZA.roof[0]}
-            y={PLAZA.roof[1] + 6}
-            textAnchor="middle"
-            fill={CITY.ink}
-            fontSize={10}
-            style={LABEL}
-          >
-            ONE COMPOSITE SCHEMA
-          </text>
         </g>
+
+        <text
+          x={SCENE_W / 2}
+          y={SCENE_H - 14}
+          textAnchor="middle"
+          fill={CITY.ink}
+          fontSize={FONT.label}
+          style={LABEL}
+        >
+          ONE COMPOSITE SCHEMA
+        </text>
       </svg>
     </div>
   );
