@@ -49,13 +49,83 @@ public class BatchResolverReproTests
             .MatchMarkdownSnapshot();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task BatchResolver_Should_NotInvoke_When_ParentCollectionContainsOnlyNulls(bool attributes)
+    {
+        // arrange
+        var probe = new NullParentProbe();
+        var builder = new ServiceCollection().AddSingleton(probe).AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("nullCollection")
+                    .Type<ListType<ObjectType<ReproUser>>>()
+                    .Resolve(_ => (object?)null);
+                d.Field("allNullParents")
+                    .Type<ListType<ObjectType<ReproUser>>>()
+                    .Resolve(new ReproUser?[] { null, null });
+                d.Field("users")
+                    .Resolve(new[] { new ReproUser(1, "Alice"), new ReproUser(2, "Bob") });
+            });
+
+        if (attributes)
+        {
+            builder.AddTypeExtension<NullParentUserExtension>();
+        }
+        else
+        {
+            builder.AddObjectType<ReproUser>(d => d.Field("value")
+                .ResolveBatchWith<NullParentUserExtension>(t => t.GetValue(default!, default!)));
+        }
+
+        var executor = await builder.BuildRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await using var nullResult = await executor.ExecuteAsync(
+            "{ nullCollection { value } allNullParents { value } }",
+            cancellationToken: TestContext.Current.CancellationToken);
+        var nullInvocations = probe.Invocations;
+        await using var controlResult = await executor.ExecuteAsync(
+            "{ users { value } }",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot(postFix: attributes.ToString())
+            .Add(nullResult, "Null parents")
+            .Add(nullInvocations, "Invocations for null parents")
+            .Add(controlResult, "Non-null control")
+            .Add(probe.Invocations, "Invocations after control")
+            .MatchMarkdownSnapshot();
+        Assert.Equal(0, nullInvocations);
+        Assert.Equal(1, probe.Invocations);
+    }
+
+    public sealed class NullParentProbe
+    {
+        public int Invocations { get; set; }
+    }
+
+    [ExtendObjectType<ReproUser>]
+    public class NullParentUserExtension
+    {
+        [BatchResolver]
+        public List<string> GetValue([Parent] List<ReproUser> users, [Service] NullParentProbe probe)
+        {
+            probe.Invocations++;
+            return users.Select(u => u.Name).ToList();
+        }
+    }
+
     public static TheoryData<bool, string, string> DistributionCases()
     {
         var cases = new TheoryData<bool, string, string>();
 
         foreach (var attributes in new[] { false, true })
         {
-            foreach (var mode in new[] { "null", "empty", "short", "long", "exact", "nullElement", "nonList", "indexer", "count" })
+            foreach (var mode in new[] { "null", "empty", "short", "long", "exact", "nullElement", "allNull", "nonList", "indexer", "count" })
             {
                 foreach (var field in new[] { "value", "taskValue", "valueTaskValue" })
                 {
@@ -180,6 +250,7 @@ public class BatchResolverReproTests
                 "short" => ["one"],
                 "long" => ["one", "two", "three"],
                 "nullElement" => ["one", null],
+                "allNull" => [null, null],
                 "nonList" => new NonListResult(),
                 "indexer" => new FailingList { "one", "two" },
                 "count" => new FailingCountList { "one", "two" },
