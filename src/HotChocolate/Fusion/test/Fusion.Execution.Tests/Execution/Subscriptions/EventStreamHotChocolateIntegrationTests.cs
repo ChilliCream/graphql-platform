@@ -673,6 +673,7 @@ public sealed class EventStreamHotChocolateIntegrationTests
 
         services
             .AddGraphQLGateway()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddInMemoryConfiguration(schemaDocument);
 
         return await services.BuildGatewayAsync(TestContext.Current.CancellationToken);

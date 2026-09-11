@@ -129,27 +129,6 @@
                   "event": []
                 },
                 {
-                  "OperationName": "GraphQL Complexity Analysis",
-                  "DisplayName": "GraphQL Complexity Analysis",
-                  "Kind": "Internal",
-                  "Status": "Ok",
-                  "tags": [
-                    {
-                      "Key": "graphql.document.hash",
-                      "Value": "md5:9335388c19fd2e230b6294a596d13a93"
-                    },
-                    {
-                      "Key": "graphql.operation.fieldCost",
-                      "Value": 1.0
-                    },
-                    {
-                      "Key": "graphql.operation.typeCost",
-                      "Value": 2.0
-                    }
-                  ],
-                  "event": []
-                },
-                {
                   "OperationName": "GraphQL Operation Planning",
                   "DisplayName": "GraphQL Operation Planning",
                   "Kind": "Internal",
@@ -195,6 +174,27 @@
                     {
                       "Key": "graphql.document.hash",
                       "Value": "md5:9335388c19fd2e230b6294a596d13a93"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:9335388c19fd2e230b6294a596d13a93"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 1.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 2.0
                     }
                   ],
                   "event": []

@@ -136,6 +136,33 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         enricher.EnrichValidationErrors(context, errors, activity);
     }
 
+    public override IDisposable AnalyzeOperationCost(RequestContext context)
+    {
+        if (options.SkipAnalyzeComplexity)
+        {
+            return EmptyScope;
+        }
+
+        var span = AnalyzeOperationComplexitySpan.Start(Source, context, enricher);
+
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        context.Features.Set(span);
+
+        return span;
+    }
+
+    public override void OperationCost(RequestContext context, double fieldCost, double typeCost)
+    {
+        if (context.Features.TryGet<AnalyzeOperationComplexitySpan>(out var span))
+        {
+            span.SetCost(fieldCost, typeCost);
+        }
+    }
+
     public override IDisposable PlanOperation(RequestContext context, string operationPlanId)
     {
         if (options.SkipPlanOperation)
@@ -155,7 +182,20 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             return EmptyScope;
         }
 
-        if (context.GetOperationPlan() is not { } plan)
+        OperationType operationType;
+        string? operationName;
+
+        if (context.GetOperationPlan() is { } plan)
+        {
+            operationType = plan.Operation.Definition.Operation;
+            operationName = plan.OperationName;
+        }
+        else if (context.TryGetNormalizedOperation(out var operation))
+        {
+            operationType = operation.Operation;
+            operationName = operation.Name?.Value ?? context.Request.OperationName;
+        }
+        else
         {
             return EmptyScope;
         }
@@ -163,8 +203,8 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         var span = VariableCoercionSpan.Start(
             Source,
             context,
-            plan.Operation.Definition.Operation,
-            plan.OperationName,
+            operationType,
+            operationName,
             enricher);
 
         return span ?? EmptyScope;

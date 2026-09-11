@@ -98,7 +98,7 @@ type Droid implements Character {
   "The name of the character."
   name: String @semanticNonNull
   "The episodes the character appears in."
-  appearsIn: [Episode]
+  appearsIn: [Episode] @cost(weight: "1")
   friends(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -149,7 +149,7 @@ type Human implements Character {
   "The name of the character."
   name: String @semanticNonNull
   "The episodes the character appears in."
-  appearsIn: [Episode]
+  appearsIn: [Episode] @cost(weight: "1")
   friends(
     "Returns the first _n_ elements from the list."
     first: Int

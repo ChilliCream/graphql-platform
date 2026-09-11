@@ -61,6 +61,7 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
             .AddHeaderPropagation();
 
         var builder = services.AddGraphQLGatewayServer()
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddInMemoryConfiguration(_compositeSchema)
             .AddHttpClientConfiguration("A", new Uri("http://localhost:5000/graphql"))
             .AddOpenApi()

@@ -162,13 +162,19 @@ public sealed class SpecificationExampleTests
                 }
                 """,
                 "example @approx(tolerance: 0)",
-                5 // FIXME: Should be 4. See https://github.com/ChilliCream/graphql-platform/pull/7130.
+                4
             }
         };
 
     private static IRequestExecutorBuilder CreateRequestExecutorBuilder()
         => new ServiceCollection()
             .AddGraphQLServer()
-            .ModifyCostOptions(o => o.DefaultResolverCost = null)
+            .ModifyCostOptions(o =>
+            {
+                o.DefaultResolverCost = null;
+                // The specification examples carry no @listSize, so pin the assumed
+                // list size ahead of cost enforcement going live (R-DEFAULT-LIST-SIZE).
+                o.DefaultListSize = 1;
+            })
             .UseField(next => next);
 }

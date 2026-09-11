@@ -1500,6 +1500,9 @@ The GraphQL `ByteArray` type has been deprecated. Use the `Base64String` type in
 
 ## Validation walker is now operation-scoped for fragment visits by default
 
+> [!NOTE]
+> The `CostAnalyzer` example below describes the analyzer that shipped with version 16. The current cost analyzer compiles and evaluates its own cost plan and does not use `DocumentValidatorVisitor`.
+
 The base `DocumentValidatorVisitor` no longer re-walks a fragment definition on every sibling spread within an operation. Each fragment is now visited at most once per operation. Cycle detection continues to work via `context.Path.Contains(fragment)` in `FragmentVisitor`.
 
 User-visible effect: some queries that previously failed validation with false-positive errors now validate cleanly. For example, a `@defer` directive with a label inside a fragment spread twice was reported as a duplicate label collision against itself; that case (and similar over-counted errors for argument names, variable usage, input fields, and fragment spread possibility) now behaves correctly. Queries that should fail still fail, with no duplicates per spread.
@@ -1507,14 +1510,14 @@ User-visible effect: some queries that previously failed validation with false-p
 If you wrote a custom `DocumentValidatorVisitor` that called `context.Fragments.Leave(...)`, you have two options:
 
 1. **Match the new default (operation-scoped):** remove the `Leave` call. Each fragment is walked at most once per operation; sibling spreads short-circuit.
-2. **Opt back into per-spread re-walks:** keep the `Leave` call. This is what `CostAnalyzer` does, because per-spread re-walks are required to correctly accumulate cost across reused fragments.
+2. **Opt back into per-spread re-walks:** keep the `Leave` call. The version 16 `CostAnalyzer` used this behavior to accumulate cost across reused fragments.
 
 ```diff
 if (context.Fragments.TryEnter(node, out var fragment))
 {
     var result = Visit(fragment, node, context);
 -   context.Fragments.Leave(fragment); // remove for operation-scoped (recommended for validation rules)
-    // keep the Leave(...) call if your rule needs per-spread re-walks (e.g. cost analysis)
+    // keep the Leave(...) call if your rule needs per-spread re-walks
 
     if (result.IsBreak())
     {

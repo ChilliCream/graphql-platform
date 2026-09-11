@@ -157,6 +157,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                         services
                             .AddGraphQLGatewayServer()
                             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
+                            .ModifyCostOptions(o => o.DefaultListSize = 1)
                             .AddInMemoryConfiguration(result.Value.ToSyntaxNode())
                             .AddHttpClientConfiguration(
                                 schemaDocument.Name,
@@ -202,6 +203,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
                         services
                             .AddGraphQLServer()
                             .AddSourceSchemaDefaults()
+                            .ModifyCostOptions(o => o.DefaultListSize = 1)
                             .AddAuthorization()
                             .AddQueryType<TestSchema.Query>()
                             .AddMutationType<TestSchema.Mutation>()

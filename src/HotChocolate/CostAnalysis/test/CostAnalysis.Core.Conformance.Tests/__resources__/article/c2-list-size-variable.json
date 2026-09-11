@@ -1,0 +1,15 @@
+{
+  "id": "c2-list-size-variable",
+  "source": "article",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION\n\nunion Result = A | B\n\ntype A {\n  a: Int @cost(weight: \"10\")\n}\n\ntype B {\n  b: Int @cost(weight: \"20\")\n}\n\ntype Query {\n  results(limit: Int!): [Result]\n    @cost(weight: \"1\")\n    @listSize(slicingArguments: [\"limit\"])\n}\n",
+  "operation": "query Test($n: Int!) {\n  results(limit: $n) {\n    ... on A { a }\n    ... on B { b }\n  }\n}\n",
+  "operationName": "Test",
+  "variables": { "n": 4 },
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 5,
+    "fieldCost": 81
+  },
+  "notes": "A @listSize slicing argument supplied through a variable must be resolved against the actual variable value before multiplying, composed with C1's exclusive-branch maximum. Schema RECONSTRUCTED; operation/variables/expected verbatim from the article."
+}

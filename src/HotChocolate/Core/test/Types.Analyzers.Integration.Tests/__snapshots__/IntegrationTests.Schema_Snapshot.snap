@@ -280,7 +280,7 @@ type IntsConnection {
   "A list of edges."
   edges: [IntsEdge!]
   "A flattened list of the nodes."
-  nodes: [Int!]
+  nodes: [Int!] @cost(weight: "1")
 }
 
 "An edge in a connection."
@@ -419,9 +419,9 @@ type Zoo {
   nullableAnimals: AnimalKind
   taskAnimals: AnimalKind! @cost(weight: "10")
   valueTaskAnimals: AnimalKind! @cost(weight: "10")
-  animalArray: [AnimalKind]
-  animalList: [AnimalKind!]!
-  nestedAnimalList: [[AnimalKind!]!]!
+  animalArray: [AnimalKind] @cost(weight: "1")
+  animalList: [AnimalKind!]! @cost(weight: "1")
+  nestedAnimalList: [[AnimalKind!]!]! @cost(weight: "1")
   taskAnimalList: [AnimalKind!]! @cost(weight: "10")
   batchAnimals: AnimalKind! @cost(weight: "10")
   fauxFlags: FauxFlagsKind!

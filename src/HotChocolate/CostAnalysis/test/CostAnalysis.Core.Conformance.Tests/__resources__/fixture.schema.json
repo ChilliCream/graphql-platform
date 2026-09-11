@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ChilliCream/graphql-platform/main/src/HotChocolate/CostAnalysis/test/CostAnalysis.Core.Conformance.Tests/__resources__/fixture.schema.json",
+  "title": "Cost analysis conformance fixture",
+  "description": "One differential-oracle case: a schema, an operation, optional variables and the expected IBM typeCost/fieldCost pair.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "source",
+    "sdl",
+    "operation",
+    "operationName",
+    "variables",
+    "defaultListSize",
+    "backend",
+    "expected"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "A stable, file-name-safe identifier for this fixture."
+    },
+    "source": {
+      "type": "string",
+      "enum": ["article", "rust-unit", "rust-corpus", "fuzz-found"],
+      "description": "Where this fixture originates from."
+    },
+    "sdl": {
+      "type": "string",
+      "description": "The schema document, including the @cost and @listSize directive declarations."
+    },
+    "operation": {
+      "type": "string",
+      "description": "The operation document, including any fragments it spreads."
+    },
+    "operationName": {
+      "type": ["string", "null"],
+      "description": "The operation to execute within the document, or null for an anonymous operation."
+    },
+    "variables": {
+      "type": ["object", "null"],
+      "description": "The supplied variable values, or null for the static (variable-free) bound."
+    },
+    "defaultListSize": {
+      "anyOf": [
+        { "type": "number" },
+        { "const": "Infinity" }
+      ],
+      "description": "The CostEngineOptions.DefaultListSize used to compile this fixture."
+    },
+    "backend": {
+      "const": "exact-case",
+      "description": "The traversal backend this fixture's expected values were computed with."
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["typeCost", "fieldCost"],
+      "properties": {
+        "typeCost": { "type": "number" },
+        "fieldCost": { "type": "number" }
+      }
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-form provenance or derivation notes."
+    }
+  }
+}

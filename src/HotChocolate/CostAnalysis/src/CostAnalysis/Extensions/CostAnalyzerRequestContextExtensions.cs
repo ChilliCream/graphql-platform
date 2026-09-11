@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.CostAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,6 +9,29 @@ namespace HotChocolate.Execution;
 /// </summary>
 public static class CostAnalyzerRequestContextExtensions
 {
+    /// <summary>
+    /// Attempts to get the compiled cost plan and estimates for this request.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <param name="result">
+    /// The cost analysis result when cost analysis has completed.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> when the request has a cost analysis result.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="context"/> is <see langword="null"/>.
+    /// </exception>
+    public static bool TryGetCostAnalysisResult(
+        this RequestContext context,
+        [NotNullWhen(true)] out CostAnalysisResult? result)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        return context.Features.TryGet(out result);
+    }
+
     internal static RequestContext SetCostMetrics(
         this RequestContext context,
         CostMetrics costMetrics)

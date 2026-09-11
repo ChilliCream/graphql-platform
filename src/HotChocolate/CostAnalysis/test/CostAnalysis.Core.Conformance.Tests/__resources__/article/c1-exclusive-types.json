@@ -1,0 +1,15 @@
+{
+  "id": "c1-exclusive-types",
+  "source": "article",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION\n\nunion Result = A | B\n\ntype A {\n  a: Int @cost(weight: \"10\")\n}\n\ntype B {\n  b: Int @cost(weight: \"20\")\n}\n\ntype Query {\n  result: Result\n}\n",
+  "operation": "query {\n  result {\n    ... on A { a }\n    ... on B { b }\n  }\n}\n",
+  "operationName": null,
+  "variables": null,
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 2,
+    "fieldCost": 21
+  },
+  "notes": "Mutually exclusive object types: a precise analysis takes the maximum over exclusive branches (a=10, b=20), not the sum. Schema RECONSTRUCTED from the article's prose weights; operation/expected verbatim from the article."
+}

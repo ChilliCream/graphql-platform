@@ -1012,6 +1012,9 @@ public class AnnotationBasedAuthorizationTests
             .AddGlobalObjectIdentification()
             .AddAuthorizationHandler(_ => handler)
             .ModifyAuthorizationOptions(configure ?? (_ => { }))
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .Services
             .BuildServiceProvider();
 

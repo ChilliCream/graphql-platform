@@ -19,6 +19,9 @@ public sealed class ArrayLengthFilterTests(PostgreSqlResource resource)
         await using var services = new ServiceCollection()
             .AddDbContext<CardReaderContext>(c => c.UseNpgsql(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddType<CardReaderFilterInputType>()
             .AddFiltering()

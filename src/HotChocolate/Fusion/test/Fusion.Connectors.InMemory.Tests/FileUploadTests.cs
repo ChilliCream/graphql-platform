@@ -272,6 +272,7 @@ public sealed class FileUploadTests : IDisposable
                 services.AddGraphQLServer("uploads")
                     .AddQueryType<UploadSchema.Query>()
                     .AddUploadType()
+                    .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddSourceSchemaDefaults();
 
                 services.AddGraphQLGatewayServer()

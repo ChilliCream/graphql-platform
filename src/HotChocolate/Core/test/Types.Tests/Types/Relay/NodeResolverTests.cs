@@ -321,6 +321,9 @@ public class NodeResolverTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
+                // This test schema relies on the former implicit list-size fallback
+                // (R-DEFAULT-LIST-SIZE).
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddGlobalObjectIdentification()
                 .AddTypeExtension<EntityExtension5>()
                 .AddTypeExtension<Entity2Extension1>()

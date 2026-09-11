@@ -1,0 +1,15 @@
+{
+  "id": "c5-signed-weights",
+  "source": "article",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION\n\nscalar Text @cost(weight: \"5\")\n\ntype Query @cost(weight: \"0\") {\n  book: Book\n}\n\ntype Book @cost(weight: \"-7\") {\n  title: Text\n  author: Author\n}\n\ntype Author {\n  name: Text\n}\n",
+  "operation": "query Example($a: Boolean!, $b: Boolean!) {\n  book @include(if: $a) {\n    title\n  }\n  book @include(if: $b) {\n    author { name }\n  }\n}\n",
+  "operationName": "Example",
+  "variables": { "a": true, "b": true },
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 4,
+    "fieldCost": 2
+  },
+  "notes": "Negative @cost weights are legal; correctness requires merging same-response-key fields (both book selections) before costing, so Book's negative type weight is paid once, and clamping only at the whole-result boundary. Must equal c5-signed-weights-merged-control. Schema VERBATIM from the article (its only fully published SDL); operation/variables/expected verbatim."
+}

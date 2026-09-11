@@ -1,0 +1,15 @@
+{
+  "id": "c1-exclusive-types-fragments",
+  "source": "article",
+  "sdl": "directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR\ndirective @listSize(assumedSize: Int, slicingArguments: [String!], sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION\n\nunion Result = A | B\n\ntype A {\n  a: Int @cost(weight: \"10\")\n}\n\ntype B {\n  b: Int @cost(weight: \"20\")\n}\n\ntype Query {\n  result: Result\n}\n",
+  "operation": "query {\n  result {\n    ...OnA\n    ...OnB\n  }\n}\n\nfragment OnA on A {\n  a\n}\n\nfragment OnB on B {\n  b\n}\n",
+  "operationName": null,
+  "variables": null,
+  "defaultListSize": "Infinity",
+  "backend": "exact-case",
+  "expected": {
+    "typeCost": 2,
+    "fieldCost": 21
+  },
+  "notes": "Same case as c1-exclusive-types, spelled with named fragments instead of inline fragments. Same schema and expected numbers; fragment spelling must not change the collected cost."
+}

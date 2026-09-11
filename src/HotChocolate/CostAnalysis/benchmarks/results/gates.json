@@ -1,0 +1,8 @@
+{
+  "warmEvaluateP50Us": 1,
+  "warmAllocatedBytes": 0,
+  "coldRustBand": 2.0,
+  "adversarialMs": 1,
+  "caseBudget": 510,
+  "frozenAt": "6c9945cc29fff6b1541f9c71acd11fbbac588f1f"
+}

@@ -11,6 +11,9 @@ public class Issue5893Tests
     {
         var executor = await new ServiceCollection()
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddProjections()
             .AddQueryType<Issue5893Query>()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);

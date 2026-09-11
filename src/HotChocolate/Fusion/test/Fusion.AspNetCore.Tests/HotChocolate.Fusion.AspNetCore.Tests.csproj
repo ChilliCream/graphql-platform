@@ -31,6 +31,16 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
 
+    <!--
+      ArticleCasesTests reads the same six article fixtures as
+      CostAnalysis.Core.Conformance.Tests and HotChocolate.CostAnalysis.Tests, so the
+      corpus has one source of truth across Core, HC and Fusion.
+    -->
+    <None Include="..\..\..\CostAnalysis\test\CostAnalysis.Core.Conformance.Tests\__resources__\article\*.json"
+          Link="__resources__\article\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+
     <Compile Update="FusionTestBase.MatchSnapshot.cs">
       <DependentUpon>FusionTestBase.cs</DependentUpon>
     </Compile>

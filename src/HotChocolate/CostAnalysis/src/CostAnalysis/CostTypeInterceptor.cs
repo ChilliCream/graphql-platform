@@ -3,6 +3,7 @@ using HotChocolate.Configuration;
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Internal;
 using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Types.Pagination;
@@ -107,19 +108,19 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                 foreach (var argumentDef in fieldDef.Arguments)
                 {
                     if ((argumentDef.Flags & CoreFieldFlags.FilterArgument) == CoreFieldFlags.FilterArgument
-                        && _options.Sorting.DefaultSortArgumentCost.HasValue
-                        && !fieldDef.HasCostDirective())
-                    {
-                        argumentDef.AddDirective(
-                            new CostDirective(_options.Sorting.DefaultSortArgumentCost.Value),
-                            completionContext.DescriptorContext.TypeInspector);
-                    }
-                    else if ((argumentDef.Flags & CoreFieldFlags.SortArgument) == CoreFieldFlags.SortArgument
                         && _options.Filtering.DefaultFilterArgumentCost.HasValue
-                        && !fieldDef.HasCostDirective())
+                        && !argumentDef.HasCostDirective())
                     {
                         argumentDef.AddDirective(
                             new CostDirective(_options.Filtering.DefaultFilterArgumentCost.Value),
+                            completionContext.DescriptorContext.TypeInspector);
+                    }
+                    else if ((argumentDef.Flags & CoreFieldFlags.SortArgument) == CoreFieldFlags.SortArgument
+                        && _options.Sorting.DefaultSortArgumentCost.HasValue
+                        && !argumentDef.HasCostDirective())
+                    {
+                        argumentDef.AddDirective(
+                            new CostDirective(_options.Sorting.DefaultSortArgumentCost.Value),
                             completionContext.DescriptorContext.TypeInspector);
                     }
                 }
@@ -182,6 +183,22 @@ internal sealed class CostTypeInterceptor : TypeInterceptor
                 {
                     fieldDef.AddDirective(
                         new CostDirective(_options.DefaultResolverCost.Value),
+                        completionContext.DescriptorContext.TypeInspector);
+                }
+
+                // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
+                // The spec default for a list of leaf types is 0.0, but ChilliCream's default
+                // is 1.0. We write that opinion out explicitly so it is visible in the SDL.
+                // This only applies when nothing else, including the resolver cost above,
+                // has already claimed the field's cost.
+                if (fieldDef.Type is not null
+                    && !fieldDef.HasCostDirective()
+                    && completionContext.TryGetType<IType>(fieldDef.Type, out var fieldType)
+                    && fieldType.IsListType()
+                    && fieldType.NamedType().IsLeafType())
+                {
+                    fieldDef.AddDirective(
+                        new CostDirective(1.0),
                         completionContext.DescriptorContext.TypeInspector);
                 }
             }

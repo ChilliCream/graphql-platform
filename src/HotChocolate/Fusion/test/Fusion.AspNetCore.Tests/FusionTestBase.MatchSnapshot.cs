@@ -56,6 +56,25 @@ public abstract partial class FusionTestBase
             stableStream: false);
     }
 
+    protected Task AssertAndMatchSnapshotAsync(
+        Gateway gateway,
+        OperationRequest request,
+        GraphQLHttpResponse response,
+        Action<IReadOnlyList<OperationResult>> assertResults,
+        string postFix)
+    {
+        ArgumentNullException.ThrowIfNull(assertResults);
+
+        return MatchSnapshotCoreAsync(
+            gateway,
+            request,
+            response,
+            assertResults,
+            postFix,
+            rawRequest: null,
+            stableStream: false);
+    }
+
     private async Task MatchSnapshotCoreAsync(
         Gateway gateway,
         OperationRequest request,

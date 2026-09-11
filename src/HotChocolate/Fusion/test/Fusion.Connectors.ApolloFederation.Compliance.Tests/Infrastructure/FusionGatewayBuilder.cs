@@ -281,6 +281,7 @@ internal static class FusionGatewayBuilder
 
             gatewayServices
                 .AddGraphQLGateway()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddInMemoryConfiguration(schemaDocument, settings);
 

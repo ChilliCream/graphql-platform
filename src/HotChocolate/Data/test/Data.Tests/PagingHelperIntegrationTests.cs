@@ -35,6 +35,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -80,6 +83,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -125,6 +131,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -170,6 +179,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -224,6 +236,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
@@ -279,6 +294,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -333,6 +351,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ModifyPagingOptions(o => o.NullOrdering = NullOrdering.NativeNullsLast)
@@ -388,6 +409,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -442,6 +466,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddPagingArguments()
             .ExecuteRequestAsync(
@@ -496,6 +523,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddTypeExtension(typeof(BrandExtensions))
             .AddPagingArguments()
@@ -553,6 +583,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddTypeExtension(typeof(BrandExtensionsWithSelect))
             .AddPagingArguments()
@@ -942,6 +975,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<QueryConnection>()
             .AddTypeExtension(typeof(BrandConnectionEdgeExtensions))
             .AddPagingArguments()
@@ -989,6 +1025,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<QueryConnection2>()
             .AddTypeExtension(typeof(BrandConnectionEdgeExtensions2))
             .AddPagingArguments()
@@ -1036,6 +1075,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new FooBarContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<QueryNullable>()
             .AddPagingArguments()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
@@ -1091,6 +1133,9 @@ public class PagingHelperIntegrationTests(PostgreSqlResource resource)
         var result = await new ServiceCollection()
             .AddScoped(_ => new FooBarContext(connectionString))
             .AddGraphQLServer()
+            // No @listSize on this schema, so pin the assumed list size ahead of
+            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
+            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<QueryNullable>()
             .AddPagingArguments()
             .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)

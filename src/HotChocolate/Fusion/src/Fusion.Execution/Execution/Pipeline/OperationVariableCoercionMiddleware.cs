@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
@@ -11,31 +13,73 @@ internal sealed class OperationVariableCoercionMiddleware
 {
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly ICostValidationVariableCoercionPolicy? _costValidationPolicy;
 
     private OperationVariableCoercionMiddleware(
-        ICoreExecutionDiagnosticEvents diagnosticEvents)
+        ICoreExecutionDiagnosticEvents diagnosticEvents,
+        ICostValidationVariableCoercionPolicy? costValidationPolicy)
     {
         _diagnosticEvents = diagnosticEvents;
+        _costValidationPolicy = costValidationPolicy;
     }
 
     public ValueTask InvokeAsync(
         RequestContext context,
         RequestDelegate next)
     {
-        var operationExecutionPlan = context.GetOperationPlan();
-
-        if (operationExecutionPlan is null)
+        if (!context.TryGetNormalizedOperation(out var operation))
         {
             context.Result = ErrorHelper.StateInvalidForVariableCoercion();
             return default;
         }
 
+        // Warmup and enabled cost validation requests without variables do not produce coerced values.
+        if (context.IsWarmupRequest()
+            || IsCostValidationWithoutVariables(context, _costValidationPolicy))
+        {
+            return next(context);
+        }
+
         return TryCoerceVariables(
             context,
-            operationExecutionPlan.VariableDefinitions,
+            operation.VariableDefinitions,
             _diagnosticEvents)
             ? next(context)
             : default;
+    }
+
+    private static bool IsCostValidationWithoutVariables(
+        RequestContext context,
+        ICostValidationVariableCoercionPolicy? costValidationPolicy)
+        => context.Request is OperationRequest operationRequest
+            && context.ContextData.ContainsKey(ExecutionContextData.ValidateCost)
+            && HasNoVariableValues(operationRequest.VariableValues)
+            && costValidationPolicy?.SkipVariableCoercion(context) is true;
+
+    private static bool HasNoVariableValues(JsonDocumentOwner? variableValues)
+    {
+        if (variableValues is null)
+        {
+            return true;
+        }
+
+        var root = variableValues.Document.RootElement;
+
+        if (root.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null)
+        {
+            return true;
+        }
+
+        if (root.ValueKind is not JsonValueKind.Object)
+        {
+            return false;
+        }
+
+#if NET10_0_OR_GREATER
+        return root.GetPropertyCount() == 0;
+#else
+        return !root.EnumerateObject().MoveNext();
+#endif
     }
 
     private static bool TryCoerceVariables(
@@ -115,8 +159,16 @@ internal sealed class OperationVariableCoercionMiddleware
             (fc, next) =>
             {
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
-                var middleware = new OperationVariableCoercionMiddleware(diagnosticEvents);
+                var costValidationPolicy = fc.Features.Get<ICostValidationVariableCoercionPolicy>();
+                var middleware = new OperationVariableCoercionMiddleware(
+                    diagnosticEvents,
+                    costValidationPolicy);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             WellKnownRequestMiddleware.OperationVariableCoercionMiddleware);
+}
+
+internal interface ICostValidationVariableCoercionPolicy
+{
+    bool SkipVariableCoercion(RequestContext context);
 }

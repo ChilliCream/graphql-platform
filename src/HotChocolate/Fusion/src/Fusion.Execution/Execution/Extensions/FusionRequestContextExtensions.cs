@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
@@ -93,6 +94,78 @@ public static class FusionRequestContextExtensions
 
         context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
         context.Features.Set<IOperation>(plan.Operation);
+    }
+
+    /// <summary>
+    /// Gets the normalized operation document from the request context.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <returns>
+    /// The normalized operation document.
+    /// </returns>
+    internal static DocumentNode GetNormalizedDocument(
+        this RequestContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        var normalizedDocument = context.Features.Get<FusionOperationInfo>()?.NormalizedDocument;
+
+        if (normalizedDocument is null)
+        {
+            throw new InvalidOperationException("The normalized document was not set.");
+        }
+
+        return normalizedDocument;
+    }
+
+    /// <summary>
+    /// Tries to get the normalized operation definition from the request context.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <param name="operation">
+    /// The normalized operation definition, if one is available.
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if a normalized operation definition is available, otherwise <c>false</c>.
+    /// </returns>
+    internal static bool TryGetNormalizedOperation(
+        this RequestContext context,
+        [NotNullWhen(true)] out OperationDefinitionNode? operation)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+
+        operation = context.Features.Get<FusionOperationInfo>()?.NormalizedOperation;
+        return operation is not null;
+    }
+
+    /// <summary>
+    /// Sets the normalized operation document and its operation definition on the request context.
+    /// </summary>
+    /// <param name="context">
+    /// The request context.
+    /// </param>
+    /// <param name="document">
+    /// The normalized operation document.
+    /// </param>
+    /// <param name="operation">
+    /// The operation definition contained in <paramref name="document"/>.
+    /// </param>
+    internal static void SetNormalizedDocument(
+        this RequestContext context,
+        DocumentNode document,
+        OperationDefinitionNode operation)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(document);
+        ArgumentNullException.ThrowIfNull(operation);
+
+        var info = context.Features.GetOrSet<FusionOperationInfo>();
+        info.NormalizedDocument = document;
+        info.NormalizedOperation = operation;
     }
 
     internal static bool CollectOperationPlanTelemetry(
