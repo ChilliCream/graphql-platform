@@ -133,16 +133,28 @@ public sealed class SqliteDbWatcherTests : IDisposable
         // synchronously at that point, since the window is otherwise too narrow
         // for a test to hit deterministically. No -wal growth is involved, and
         // s_neverFiringDebounce keeps the event-driven path from ever firing, so
-        // only the main-file reconciliation can produce the event. A real SQLite
-        // header (via CreateSqliteHeader) is used rather than two same-length
-        // non-SQLite payloads, so this exercises the supported change-counter
-        // path and does not depend on mtime granularity.
+        // only the main-file reconciliation can produce the event. Unique among
+        // the enable-gap cases: the gap write also grows the file (100 bytes to
+        // 150), modeling an ordinary write transaction that both advances the
+        // change counter and lengthens the file, so this covers the enable gap
+        // and the length signal together, unlike
+        // RunAsync_Should_PublishDataChangedEvent_When_MainFileChangeCounterAdvances_WithMtimeAndLengthUnchanged
+        // below (which forces length and mtime equal to isolate the
+        // change-counter term alone), and unlike
+        // RunAsync_Should_PublishDataChangedEvent_When_MainFileReplaced_WithSameChangeCounter_ButDifferentLength
+        // above (which keeps the change counter equal to isolate the
+        // length/mtime terms from an unrelated counter difference).
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllBytes(databasePath, CreateSqliteHeader(changeCounter: 1));
         var watcher = new SqliteDbWatcher(databasePath, s_neverFiringDebounce)
         {
-            OnBaselineCaptured = () => File.WriteAllBytes(databasePath, CreateSqliteHeader(changeCounter: 2))
+            OnBaselineCaptured = () =>
+            {
+                var grown = new byte[150];
+                CreateSqliteHeader(changeCounter: 2).CopyTo(grown, 0);
+                File.WriteAllBytes(databasePath, grown);
+            }
         };
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
