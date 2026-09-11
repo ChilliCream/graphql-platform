@@ -29,17 +29,21 @@ import { Chip, ClientTabs, Plate, Rail } from "./parts";
  * document with its timing bar.
  *
  * Everything is DOM text at its declared px size, so the 11px label floor holds
- * at any viewport: nothing is scaled to fit, the narrow layout drops panels and
- * relaxes rows instead of shrinking the lettering. Below lg the request plate is
- * gone, the plan rows put the subgraph and its two chips on one wrapping line,
- * and the response plate is the merged document plus the timing bar - the merged
- * lines still appear one per phase, so the merge stays animated there. Budget at
- * 375x667 with a 1.5 line height: tabs 59 (two rows) + 12 + gateway plate 304
- * (38 header + 24 padding + 3 phase labels 49.5 + 8 group gaps + rows 29/47.5/
- * 47.5/29/29 + 2 border) + 12 + response plate 197 (24 padding + merged box
- * 137.5 + timing 33.5 + 2 border) = 584 against the 587 the hero's min-h-[88svh]
- * gives. The column is pinned to the top below lg, so the only thing the 20px
- * top inset can push out of a 667px-tall viewport is the foot of the timing bar.
+ * at any viewport: nothing is scaled to fit, the narrow layout drops panels,
+ * headings and punctuation instead of shrinking the lettering. Below lg the
+ * request plate is gone, the three phase headings are gone (the shared rail
+ * spine still shows the fan-out), the plan rows put the subgraph and its two
+ * chips on one wrapping line, and the response plate is the five merged lines -
+ * still revealed one per phase, so the merge stays animated - plus the timing
+ * bar, without the two brace lines. Row content width at 375 is 274px (320 plate
+ * - 2 border - 24 px-3 - 20 rail), and the shortest row is wider than that, so
+ * the chips do wrap to a second line under every row. Budget at 375x667 with the
+ * 1.25 line height this column sets below lg: pt 12 + tabs ~53.5 + 12 + gateway
+ * plate ~316 (34.5 header + 24 padding + 8 group gaps + rows 3x43.25 + 2x59 with
+ * their source line + 2 border) + 12 + response plate ~147.5 (24 padding +
+ * merged box 5x13.75 + 14 + mt-2 8 + timing 30.75 + 2 border) = ~553 against the
+ * 587 the hero's min-h-[88svh] gives, so the whole merged document and the
+ * timing bar sit inside the band.
  */
 
 /** Steps 0-3 type the query, 4-6 execute the plan, 7-8 merge, 9 rests. */
@@ -110,8 +114,8 @@ export default function QueryPlanTrace() {
       />
       <div className="absolute inset-0" style={{ background: GLOW }} />
 
-      <div className="absolute inset-0 flex items-start justify-center overflow-hidden px-4 pt-5 lg:items-center lg:justify-end lg:pt-0 lg:pr-8 xl:pr-14">
-        <div className="flex flex-col gap-3">
+      <div className="absolute inset-0 flex items-start justify-center overflow-hidden px-4 pt-3 lg:items-center lg:justify-end lg:pt-0 lg:pr-8 xl:pr-14">
+        <div className="flex flex-col gap-3 leading-tight lg:leading-[1.6]">
           <ClientTabs activeIndex={clientIndex} />
 
           <div className="flex flex-col gap-3 lg:flex-row lg:items-stretch">
@@ -160,7 +164,7 @@ export default function QueryPlanTrace() {
                 {PHASES.map((group) => (
                   <div key={group.label} className="flex flex-col">
                     <span
-                      className="pl-5"
+                      className="hidden pl-5 lg:block"
                       style={{
                         color: phase >= group.phase ? MC.phosphor : MC.dim,
                         fontFamily: MC.mono,
@@ -293,7 +297,7 @@ export default function QueryPlanTrace() {
                 }}
               >
                 <span
-                  className="block"
+                  className="hidden lg:block"
                   style={{
                     color: MC.dim,
                     fontFamily: MC.mono,
@@ -320,7 +324,7 @@ export default function QueryPlanTrace() {
                   </span>
                 ))}
                 <span
-                  className="block"
+                  className="hidden lg:block"
                   style={{
                     color: MC.dim,
                     fontFamily: MC.mono,
