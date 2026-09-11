@@ -1,3 +1,4 @@
+using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using HotChocolate.Diagnostics;
@@ -6,6 +7,8 @@ using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
+using HotChocolate.Transport.Sockets;
+using HotChocolate.Transport.Sockets.Client;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
@@ -21,6 +24,7 @@ namespace HotChocolate.Fusion.Diagnostics;
 public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
+    private static readonly Uri s_webSocketUrl = new("ws://localhost:5000/graphql");
 
     [Fact]
     public async Task Http_Post_Single_Request_Default()
@@ -745,6 +749,219 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             // the snapshot records the subscription event span status for a client
             // abort while an event is in flight
             activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Server_Completes()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            using var webSocket = await ConnectWebSocketAsync(gateway, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // the subgraph emits one event then completes its stream, so receive the
+            // single event and then let the gateway end the operation with a
+            // `complete` message (no exception, no abort)
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            // the WebSocket session encloses every span of this trace, so close it
+            // before the trace is read
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            // the snapshot records the gateway request and subscription event span
+            // status for a graceful close
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Client_Completes()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            using var webSocket = await ConnectWebSocketAsync(gateway, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+
+            var request = new OperationRequest("subscription OnIdleMessageSubscription { onIdleMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // receive one event successfully while the subscription is running
+            Assert.True(await results.MoveNextAsync());
+
+            // act
+            // stop the subscription from the client (unsubscribe) while the socket
+            // stays open; disposing the stream sends a `complete` message
+            await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+
+            // the `complete` message is delivered before the close frame, so the
+            // gateway stops the operation first and then ends the session
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            // the snapshot records the subscription event span status for a
+            // client-initiated unsubscribe
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Client_Closes_Connection()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation(o =>
+                o.Scopes = FusionActivityScopes.All));
+
+            using var webSocket = await ConnectWebSocketAsync(gateway, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+
+            var request = new OperationRequest("subscription OnIdleMessageSubscription { onIdleMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // receive one event successfully while the connection is alive
+            Assert.True(await results.MoveNextAsync());
+
+            // act
+            // the subscription is now idle, waiting for the next event. close the
+            // connection (close the tab) without unsubscribing first, so the gateway
+            // has to tear the still-running subscription down with the session.
+            await CloseWebSocketAsync(webSocket, guard.Token);
+            await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+
+            // assert
+            // the snapshot records the subscription event span status for a client
+            // that closes the connection while the subscription is idle
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    private static async Task<WebSocket> ConnectWebSocketAsync(
+        Gateway gateway,
+        CancellationToken cancellationToken)
+    {
+        var webSocketClient = gateway.CreateWebSocketClient();
+        webSocketClient.ConfigureRequest =
+            r => r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+        return await webSocketClient.ConnectAsync(s_webSocketUrl, cancellationToken);
+    }
+
+    private static async Task CloseWebSocketAsync(
+        WebSocket webSocket,
+        CancellationToken cancellationToken)
+    {
+        if (webSocket.State is not WebSocketState.Open)
+        {
+            // the gateway already ended the session, so there is nothing left to close
+            return;
+        }
+
+        try
+        {
+            await webSocket.CloseAsync(
+                WebSocketCloseStatus.NormalClosure,
+                "done",
+                cancellationToken);
+        }
+        catch (WebSocketException)
+        {
+            // expected: the gateway may have torn the connection down already
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the close handshake was aborted
+        }
+        catch (ObjectDisposedException)
+        {
+            // expected: the gateway tore the session down while the close was in flight
+        }
+    }
+
+    private static async Task IgnoreSocketTeardownAsync(Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the streamed read was aborted by the client
+        }
+        catch (IOException)
+        {
+            // expected: aborting an in-flight read can surface as an I/O failure
+        }
+        catch (WebSocketException)
+        {
+            // expected: the socket was closed while a read was in flight
+        }
+        catch (SocketClosedException)
+        {
+            // expected: the client dropped the connection without a close frame
         }
     }
 

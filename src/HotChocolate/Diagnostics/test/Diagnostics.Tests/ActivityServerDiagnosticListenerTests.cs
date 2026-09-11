@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.TestHost;
@@ -9,6 +10,8 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
 using HotChocolate.Transport.Http;
+using HotChocolate.Transport.Sockets;
+using HotChocolate.Transport.Sockets.Client;
 using HotChocolate.Types;
 using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Diagnostics.ActivityTestHelper;
@@ -20,6 +23,7 @@ namespace HotChocolate.Diagnostics;
 public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
+    private static readonly Uri s_webSocketUrl = new("ws://localhost:5000/graphql");
 
     [Fact]
     public async Task Http_Post_SingleRequest_GetHeroName_Default()
@@ -741,6 +745,253 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             // the snapshot records the subscription event span status for a
             // server-side event timeout
             activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Server_Completes()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .Services.AddSingleton(signal));
+            using var webSocket = await ConnectWebSocketAsync(server, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // wait until the server subscribed to the topic, push one event, then
+            // complete the topic so the server ends the operation with a `complete`
+            // message and the client observes a clean, graceful close
+            try
+            {
+                var moveNext = results.MoveNextAsync().AsTask();
+                await signal.Subscribed.Task.WaitAsync(guard.Token);
+                await sender.SendAsync("OnMessage", "hello", guard.Token);
+                Assert.True(await moveNext);
+                await sender.CompleteAsync("OnMessage");
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            // the WebSocket session encloses every span of this trace, so close it
+            // before the trace is read
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Client_Completes()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .Services.AddSingleton(signal));
+            using var webSocket = await ConnectWebSocketAsync(server, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // receive one event successfully while the subscription is running
+            var moveNext = results.MoveNextAsync().AsTask();
+            await signal.Subscribed.Task.WaitAsync(guard.Token);
+            await sender.SendAsync("OnMessage", "hello", guard.Token);
+            Assert.True(await moveNext);
+
+            // act
+            // stop the subscription from the client (unsubscribe) while the socket
+            // stays open; disposing the stream sends a `complete` message
+            await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+
+            // the `complete` message is delivered before the close frame, so the server
+            // stops the operation first and then ends the session
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Client_Closes_Connection()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .Services.AddSingleton(signal));
+            using var webSocket = await ConnectWebSocketAsync(server, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // receive one event successfully while the connection is alive
+            var moveNext = results.MoveNextAsync().AsTask();
+            await signal.Subscribed.Task.WaitAsync(guard.Token);
+            await sender.SendAsync("OnMessage", "hello", guard.Token);
+            Assert.True(await moveNext);
+
+            // act
+            // the subscription is now idle, waiting for the next event. close the
+            // connection (close the tab) without unsubscribing first, so the server
+            // has to tear the still-running subscription down with the session.
+            await CloseWebSocketAsync(webSocket, guard.Token);
+            await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Subscription_Event_Should_Be_Error_When_Timeout()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // a blocking resolver combined with a tiny per-event timeout forces a
+            // server-side event timeout (not a client abort): the socket stays open
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromMilliseconds(200))
+                    .Services.AddSingleton(signal));
+            using var webSocket = await ConnectWebSocketAsync(server, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest(
+                "subscription OnBlockingMessageSubscription { onBlockingMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // start processing an event that blocks past the per-event timeout; the
+            // timeout tears the operation down, so the server ends the stream without
+            // ever delivering a result
+            var first = results.MoveNextAsync().AsTask();
+            await signal.Subscribed.Task.WaitAsync(guard.Token);
+            await sender.SendAsync("OnBlockingMessage", "hello", guard.Token);
+            await signal.Entered.Task.WaitAsync(guard.Token);
+
+            Assert.False(await first);
+
+            await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            // the snapshot records the subscription event span status for a
+            // server-side event timeout
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    private static async Task<WebSocket> ConnectWebSocketAsync(
+        TestServer server,
+        CancellationToken cancellationToken)
+    {
+        var webSocketClient = server.CreateWebSocketClient();
+        webSocketClient.ConfigureRequest =
+            r => r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+        return await webSocketClient.ConnectAsync(s_webSocketUrl, cancellationToken);
+    }
+
+    private static async Task CloseWebSocketAsync(
+        WebSocket webSocket,
+        CancellationToken cancellationToken)
+    {
+        if (webSocket.State is not WebSocketState.Open)
+        {
+            // the server already ended the session, so there is nothing left to close
+            return;
+        }
+
+        try
+        {
+            await webSocket.CloseAsync(
+                WebSocketCloseStatus.NormalClosure,
+                "done",
+                cancellationToken);
+        }
+        catch (WebSocketException)
+        {
+            // expected: the server may have torn the connection down already
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the close handshake was aborted
+        }
+        catch (ObjectDisposedException)
+        {
+            // expected: the server tore the session down while the close was in flight
+        }
+    }
+
+    private static async Task IgnoreSocketTeardownAsync(Task task)
+    {
+        try
+        {
+            await task;
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: the streamed read was aborted by the client
+        }
+        catch (IOException)
+        {
+            // expected: aborting an in-flight read can surface as an I/O failure
+        }
+        catch (WebSocketException)
+        {
+            // expected: the socket was aborted while a read was in flight
+        }
+        catch (SocketClosedException)
+        {
+            // expected: the client dropped the connection without a close frame
         }
     }
 
