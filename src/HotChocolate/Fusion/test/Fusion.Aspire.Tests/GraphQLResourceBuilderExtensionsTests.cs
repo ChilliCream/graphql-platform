@@ -96,7 +96,11 @@ public sealed class GraphQLResourceBuilderExtensionsTests
         using var reader = new StreamReader(schemaStream);
         var schema = Utf8GraphQLParser.Parse(
             await reader.ReadToEndAsync(TestContext.Current.CancellationToken));
+#if NET10_0_OR_GREATER
         await using var zip = ZipFile.OpenRead(archivePath);
+#else
+        using var zip = ZipFile.OpenRead(archivePath);
+#endif
         // composition-settings.json is only written for the overloads that pass an explicit
         // GraphQLCompositionSettings, its presence is not what this test verifies.
         var entries = string.Join(

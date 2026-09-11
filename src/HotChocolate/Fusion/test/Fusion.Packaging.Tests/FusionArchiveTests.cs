@@ -1039,7 +1039,11 @@ public class FusionArchiveTests : IDisposable
 
         // Assert: the persisted layout keeps the legacy gateway entry names.
         stream.Position = 0;
+#if NET10_0_OR_GREATER
         await using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+#else
+        using var zip = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+#endif
         var entryNames = zip.Entries.Select(e => e.FullName).Order().ToArray();
         Assert.Contains("archive-metadata.json", entryNames);
         Assert.Contains("gateway/2.0.0/gateway.graphqls", entryNames);
