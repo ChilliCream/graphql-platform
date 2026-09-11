@@ -54,7 +54,6 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ISessionGateCoordinator, SessionGateCoordinator>();
         services.TryAddSingleton<IMailNudge, MailNudge>();
         services.TryAddSingleton<IActorWakeDispatcher, ActorWakeDispatcher>();
-        services.TryAddSingleton<INotifier, Notifier>();
         services.TryAddSingleton<IMailWakeDaemonLeaderStore, MailWakeDaemonLeaderStore>();
         services.TryAddSingleton(MailWakeDaemonPolicy.Default);
 
