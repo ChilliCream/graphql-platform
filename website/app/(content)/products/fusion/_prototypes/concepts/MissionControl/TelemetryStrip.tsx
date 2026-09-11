@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useSceneMotion } from "./hooks";
 import { MC, STATIONS } from "./palette";
 
@@ -12,6 +13,8 @@ import { MC, STATIONS } from "./palette";
 
 const W = 560;
 const H = 320;
+/** The scene box mirrors the viewBox, so the wall never letterboxes. */
+export const TELEMETRY_STRIP_RATIO = `${W} / ${H}`;
 const TRACE = { x: 16, y: 28, w: W - 32, h: 76 } as const;
 
 /** Deterministic sawtooth trace so the server and client render the same path. */
@@ -80,7 +83,7 @@ export function TelemetryStrip() {
         y={18}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.2em"
       >
         GATEWAY LATENCY · LAST 60 s
@@ -99,7 +102,7 @@ export function TelemetryStrip() {
         y={18}
         fill={MC.phosphor}
         fontFamily={MC.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.2em"
       >
         LIVE
@@ -135,27 +138,26 @@ export function TelemetryStrip() {
               y={y}
               fill={gateway ? MC.ink : MC.dim}
               fontFamily={MC.mono}
-              fontSize="11"
-              letterSpacing="0.14em"
+              fontSize={TYPE.label}
+              letterSpacing="0.08em"
             >
               {row.label}
             </text>
             <text
-              x={TRACE.x + 108}
+              x={TRACE.x + 68}
               y={y}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize="9"
-              letterSpacing="0.1em"
+              fontSize={TYPE.label}
             >
               {row.meta}
             </text>
             <text
-              x={BAR.x - 12}
+              x={BAR.x - 6}
               y={y}
               fill={MC.ink}
               fontFamily={MC.mono}
-              fontSize="10"
+              fontSize={TYPE.label}
               textAnchor="end"
             >
               {row.latency}
@@ -189,7 +191,7 @@ export function TelemetryStrip() {
               y={y}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize="10"
+              fontSize={TYPE.label}
               textAnchor="end"
             >
               {row.errors}
@@ -203,7 +205,7 @@ export function TelemetryStrip() {
         y={H - 14}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="9"
+        fontSize={TYPE.label}
         letterSpacing="0.16em"
       >
         LATENCY · THROUGHPUT · ERROR RATE, PER SUBGRAPH

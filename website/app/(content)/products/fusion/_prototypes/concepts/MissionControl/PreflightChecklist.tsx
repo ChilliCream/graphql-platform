@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { anim, useCycle, useSceneMotion } from "./hooks";
 import { MC, STATIONS } from "./palette";
 
@@ -12,6 +13,8 @@ import { MC, STATIONS } from "./palette";
 
 const W = 640;
 const H = 460;
+/** The scene box mirrors the viewBox, so the checklist never letterboxes. */
+export const PREFLIGHT_CHECKLIST_RATIO = `${W} / ${H}`;
 /** 0 arms the run; the last phase is the rest frame: the aborted build. */
 const PHASES = 7;
 const REST = PHASES - 1;
@@ -75,7 +78,7 @@ export function PreflightChecklist() {
         y={26}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         letterSpacing="0.2em"
       >
         STATION ROSTER
@@ -90,22 +93,20 @@ export function PreflightChecklist() {
         stroke={MC.panelEdge}
       />
       <text
-        x={ROSTER.x + 14}
+        x={ROSTER.x + 10}
         y={ROSTER.y + 24}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="9"
-        letterSpacing="0.14em"
+        fontSize={TYPE.label}
       >
         SUBGRAPH · LANGUAGE
       </text>
       <text
-        x={ROSTER.x + ROSTER.w - 14}
+        x={ROSTER.x + ROSTER.w - 10}
         y={ROSTER.y + 24}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="9"
-        letterSpacing="0.14em"
+        fontSize={TYPE.label}
         textAnchor="end"
       >
         RUNTIME PLUGIN
@@ -119,7 +120,7 @@ export function PreflightChecklist() {
               y={y}
               fill={MC.ink}
               fontFamily={MC.mono}
-              fontSize="12"
+              fontSize={TYPE.caption}
               letterSpacing="0.12em"
             >
               {station.name.toUpperCase()}
@@ -129,17 +130,17 @@ export function PreflightChecklist() {
               y={y + 16}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize="9"
-              letterSpacing="0.14em"
+              fontSize={TYPE.label}
+              letterSpacing="0.06em"
             >
               {`${station.language} · STOCK GRAPHQL SERVER`}
             </text>
             <text
               x={ROSTER.x + ROSTER.w - 14}
-              y={y + 6}
+              y={y}
               fill={MC.phosphor}
               fontFamily={MC.mono}
-              fontSize="10"
+              fontSize={TYPE.label}
               letterSpacing="0.14em"
               textAnchor="end"
             >
@@ -154,7 +155,7 @@ export function PreflightChecklist() {
         y={26}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         letterSpacing="0.2em"
       >
         COMPOSITION PRE-FLIGHT
@@ -175,7 +176,7 @@ export function PreflightChecklist() {
         y={LIST.y + 32}
         fill={aborted ? MC.alert : MC.phosphor}
         fontFamily={MC.mono}
-        fontSize="22"
+        fontSize={TYPE.h5}
         letterSpacing="0.14em"
         style={{
           transition: "fill 400ms ease",
@@ -192,7 +193,7 @@ export function PreflightChecklist() {
         y={LIST.y + 32}
         fill={aborted ? MC.alert : MC.dim}
         fontFamily={MC.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
         letterSpacing="0.16em"
         textAnchor="end"
         style={{ transition: "fill 400ms ease" }}
@@ -210,7 +211,7 @@ export function PreflightChecklist() {
               y={y}
               fill={state === "pending" ? MC.dim : MC.ink}
               fontFamily={MC.mono}
-              fontSize="11"
+              fontSize={TYPE.label}
               letterSpacing="0.1em"
               style={{ transition: "fill 400ms ease" }}
             >
@@ -221,7 +222,7 @@ export function PreflightChecklist() {
               y={y}
               fill={STATE_COLOR[state]}
               fontFamily={MC.mono}
-              fontSize="11"
+              fontSize={TYPE.label}
               letterSpacing="0.14em"
               textAnchor="end"
               style={{ transition: "fill 400ms ease" }}
@@ -245,11 +246,12 @@ export function PreflightChecklist() {
       })}
 
       <text
-        x={LIST.x + 16}
+        x={LIST.x + LIST.w / 2}
         y={LIST.y + 292}
         fill={aborted ? MC.alert : MC.dim}
         fontFamily={MC.mono}
-        fontSize="10"
+        fontSize={TYPE.label}
+        textAnchor="middle"
         style={{ transition: "fill 400ms ease" }}
       >
         {aborted
@@ -273,7 +275,7 @@ export function PreflightChecklist() {
         y={H - 29}
         fill={aborted ? MC.alert : MC.phosphor}
         fontFamily={MC.mono}
-        fontSize="11"
+        fontSize={TYPE.label}
         letterSpacing="0.2em"
         textAnchor="middle"
         style={{ transition: "fill 400ms ease" }}
