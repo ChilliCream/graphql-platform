@@ -1,9 +1,13 @@
-import { FOLIO, HAND, PAPER } from "./palette";
+import { FOLIO, FONT, HAND, PAPER } from "./palette";
 
 /**
  * Drawing parts every Editorial scene shares: the paper ground, the marker
  * wobble filter and the sticky note a subgraph is written on. Not a visual of
  * its own - each scene imports these and composes its own drawing.
+ *
+ * Lettering defaults to the plate sizes in `FONT`, which hold the site's 11px
+ * label floor in a 640-unit plate; the cover drawing is lettered in its own
+ * units and passes `HERO_FONT` sizes in instead.
  */
 
 interface WobbleProps {
@@ -118,6 +122,10 @@ interface StickyNoteProps {
   readonly name: string;
   /** Handwritten under the name, e.g. "Go · GraphQL Fed". */
   readonly caption?: string;
+  /** Size of the name, in viewBox units. */
+  readonly nameSize?: number;
+  /** Size of the caption under it, in viewBox units. */
+  readonly captionSize?: number;
 }
 
 /**
@@ -134,6 +142,8 @@ export function StickyNote({
   tilt = 0,
   name,
   caption,
+  nameSize = FONT.caption,
+  captionSize = FONT.label,
 }: StickyNoteProps) {
   return (
     <g
@@ -159,7 +169,7 @@ export function StickyNote({
         x={12}
         y={caption ? height / 2 - 2 : height / 2 + 6}
         fill={PAPER.ink}
-        fontSize={17}
+        fontSize={nameSize}
         style={HAND}
       >
         {name}
@@ -169,7 +179,7 @@ export function StickyNote({
           x={12}
           y={height / 2 + 20}
           fill={PAPER.inkSoft}
-          fontSize={11}
+          fontSize={captionSize}
           style={HAND}
         >
           {caption}
@@ -184,17 +194,25 @@ interface FolioProps {
   readonly y: number;
   readonly children: string;
   readonly anchor?: "start" | "middle" | "end";
+  /** Size in viewBox units; defaults to the plate label floor. */
+  readonly size?: number;
 }
 
 /** Set-in-type caption inside a scene: the printed layer under the marker. */
-export function Folio({ x, y, children, anchor = "start" }: FolioProps) {
+export function Folio({
+  x,
+  y,
+  children,
+  anchor = "start",
+  size = FONT.label,
+}: FolioProps) {
   return (
     <text
       x={x}
       y={y}
       textAnchor={anchor}
       fill={PAPER.pencil}
-      fontSize={10}
+      fontSize={size}
       style={FOLIO}
     >
       {children.toUpperCase()}
