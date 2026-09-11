@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { DUSK, LABEL, SOURCES, WAREHOUSES } from "./palette";
+import { DUSK, FONT, LABEL, LABEL_TIGHT, SOURCES, WAREHOUSES } from "./palette";
 
 /**
  * "Both specifications, one gateway": every warehouse on the quay flies a
@@ -9,6 +9,10 @@ import { DUSK, LABEL, SOURCES, WAREHOUSES } from "./palette";
  * same harbour. The Shipping warehouse swaps its pennant mid-loop while the
  * quay carries on, and the two dashed warehouses at the end publish an OpenAPI
  * document and a gRPC definition instead of a GraphQL schema.
+ *
+ * The quay is drawn in two ranks: at a phone width, one rank of seven berths
+ * leaves no room for a flag anyone can read, so the back rank moors behind the
+ * front one and every label stays at the site's 11px floor.
  *
  * Rest state: the full quay with each warehouse flying its declared pennant.
  */
@@ -42,11 +46,14 @@ const CSS = `
 }
 `;
 
-const COL_W = 78;
-const COL_GAP = 11;
-const TOP = 168;
-const BOTTOM = 344;
-const QUAY_Y = 396;
+const PITCH = 160;
+const COL_W = 144;
+const BOX_H = 80;
+/** Top of the warehouse box in each rank. */
+const FRONT_TOP = 140;
+const BACK_TOP = 330;
+const BASIN_Y = 430;
+const HARBOUR_X = 320;
 
 interface Berth {
   readonly key: string;
@@ -57,7 +64,7 @@ interface Berth {
   readonly swaps: boolean;
 }
 
-const BERTHS: readonly Berth[] = [
+const ALL_BERTHS: readonly Berth[] = [
   ...WAREHOUSES.map((w) => ({
     key: w.name,
     name: w.name,
@@ -76,9 +83,163 @@ const BERTHS: readonly Berth[] = [
   })),
 ];
 
-const colX = (i: number) => 10 + i * (COL_W + COL_GAP);
+/** Front rank along the water; back rank moored behind it. */
+const FRONT = ALL_BERTHS.slice(0, 4);
+const BACK = ALL_BERTHS.slice(4);
 
-const HARBOUR_X = colX(BERTHS.length - 1) / 2 + COL_W / 2;
+interface QuayBerthProps {
+  readonly berth: Berth;
+  /** Left edge of the berth's slot on the quay. */
+  readonly x: number;
+  /** Top of the warehouse box. */
+  readonly top: number;
+  /** Animation offset, so the rank does not wave in lockstep. */
+  readonly delay: number;
+}
+
+function QuayBerth({ berth, x, top, delay }: QuayBerthProps) {
+  const mast = x + 4;
+  const box = x + 8;
+
+  return (
+    <g>
+      {/* Mast, language flag, specification pennant */}
+      <line
+        x1={mast}
+        y1={top - 92}
+        x2={mast}
+        y2={top}
+        stroke={DUSK.edgeBright}
+        strokeWidth={2}
+      />
+      <g className="hbr-q-flag" style={{ animationDelay: `${delay}s` }}>
+        <rect
+          x={mast}
+          y={top - 92}
+          width={130}
+          height={28}
+          fill={DUSK.accent}
+          opacity="0.75"
+        />
+        <text
+          x={mast + 8}
+          y={top - 72}
+          fill={DUSK.skyTop}
+          fontSize={FONT.label}
+          style={LABEL}
+        >
+          {berth.badge}
+        </text>
+      </g>
+      <g className="hbr-q-flag" style={{ animationDelay: `${delay + 0.4}s` }}>
+        <path
+          d={`M${mast} ${top - 56} H${mast + 154} L${mast + 140} ${top - 42} L${mast + 154} ${top - 28} H${mast} Z`}
+          fill={berth.dashed ? DUSK.quay : DUSK.lamp}
+          stroke={berth.dashed ? DUSK.edgeBright : "none"}
+          strokeDasharray={berth.dashed ? "4 3" : undefined}
+          opacity={berth.dashed ? 0.9 : 0.85}
+        />
+        {berth.swaps ? (
+          <>
+            <text
+              className="hbr-q-out"
+              x={mast + 4}
+              y={top - 36}
+              fill={DUSK.skyTop}
+              fontSize={FONT.label}
+              style={LABEL_TIGHT}
+            >
+              Apollo Fed
+            </text>
+            <text
+              className="hbr-q-in"
+              x={mast + 4}
+              y={top - 36}
+              fill={DUSK.skyTop}
+              fontSize={FONT.label}
+              style={LABEL_TIGHT}
+              opacity="0"
+            >
+              GraphQL Fed
+            </text>
+          </>
+        ) : (
+          <text
+            x={mast + 4}
+            y={top - 36}
+            fill={berth.dashed ? DUSK.ink : DUSK.skyTop}
+            fontSize={FONT.label}
+            style={LABEL_TIGHT}
+          >
+            {berth.pennant}
+          </text>
+        )}
+      </g>
+
+      {/* Warehouse */}
+      <path
+        d={`M${box} ${top} L${box + COL_W / 2} ${top - 16} L${box + COL_W} ${top} Z`}
+        fill={DUSK.quayTop}
+        opacity={berth.dashed ? 0.6 : 1}
+      />
+      <rect
+        x={box}
+        y={top}
+        width={COL_W}
+        height={BOX_H}
+        fill={DUSK.quay}
+        stroke={berth.swaps ? DUSK.lamp : DUSK.edge}
+        strokeDasharray={berth.dashed ? "5 4" : undefined}
+        className={berth.swaps ? "hbr-q-pulse" : undefined}
+        strokeOpacity={berth.swaps ? 0.25 : 1}
+      />
+      <text
+        x={box + COL_W / 2}
+        y={top + 34}
+        textAnchor="middle"
+        fill={DUSK.heading}
+        fontSize={FONT.label}
+      >
+        {berth.name}
+      </text>
+      <rect
+        x={box + 12}
+        y={top + 48}
+        width={COL_W - 24}
+        height={BOX_H - 48}
+        fill={DUSK.skyTop}
+        opacity="0.55"
+      />
+    </g>
+  );
+}
+
+interface MooringProps {
+  /** Centre of the berth the line leaves from. */
+  readonly x: number;
+  /** Bottom of that berth's warehouse. */
+  readonly from: number;
+  readonly delay: number;
+}
+
+/** Mooring line down to the one harbour basin. */
+function Mooring({ x, from, delay }: MooringProps) {
+  return (
+    <path
+      className="hbr-q-line"
+      d={`M${x} ${from} V${BASIN_Y - 30} Q${x} ${BASIN_Y} ${HARBOUR_X} ${BASIN_Y}`}
+      fill="none"
+      stroke={DUSK.shimmer}
+      strokeWidth={1.5}
+      strokeDasharray="8 12"
+      opacity="0.5"
+      style={{ animationDelay: `${delay}s` }}
+    />
+  );
+}
+
+const frontX = (i: number) => i * PITCH;
+const backX = (i: number) => PITCH / 2 + i * PITCH;
 
 export function QuayFlags() {
   const active = useSceneActive();
@@ -94,156 +255,60 @@ export function QuayFlags() {
       <svg viewBox="0 0 640 480" className="h-full w-full" aria-hidden="true">
         <rect width="640" height="480" fill={DUSK.skyTop} />
 
-        {BERTHS.map((berth, i) => {
-          const x = colX(i);
-          const mast = x + 8;
-          return (
-            <g key={berth.key}>
-              {/* Mast, language flag, specification pennant */}
-              <line
-                x1={mast}
-                y1={TOP - 82}
-                x2={mast}
-                y2={TOP}
-                stroke={DUSK.edgeBright}
-                strokeWidth={2}
-              />
-              <g
-                className="hbr-q-flag"
-                style={{ animationDelay: `${(i % 4) * 0.6}s` }}
-              >
-                <rect
-                  x={mast}
-                  y={TOP - 82}
-                  width={COL_W - 20}
-                  height={22}
-                  fill={DUSK.accent}
-                  opacity="0.75"
-                />
-                <text
-                  x={mast + 6}
-                  y={TOP - 66}
-                  fill={DUSK.skyTop}
-                  fontSize={11}
-                  style={LABEL}
-                >
-                  {berth.badge}
-                </text>
-              </g>
-              <g
-                className="hbr-q-flag"
-                style={{ animationDelay: `${(i % 4) * 0.6 + 0.4}s` }}
-              >
-                <path
-                  d={`M${mast} ${TOP - 52} H${mast + COL_W - 16} L${mast + COL_W - 30} ${TOP - 42} L${mast + COL_W - 16} ${TOP - 32} H${mast} Z`}
-                  fill={berth.dashed ? DUSK.quay : DUSK.lamp}
-                  stroke={berth.dashed ? DUSK.edgeBright : "none"}
-                  strokeDasharray={berth.dashed ? "4 3" : undefined}
-                  opacity={berth.dashed ? 0.9 : 0.85}
-                />
-                {berth.swaps ? (
-                  <>
-                    <text
-                      className="hbr-q-out"
-                      x={mast + 5}
-                      y={TOP - 38}
-                      fill={DUSK.skyTop}
-                      fontSize={9}
-                      style={LABEL}
-                    >
-                      Apollo Fed
-                    </text>
-                    <text
-                      className="hbr-q-in"
-                      x={mast + 5}
-                      y={TOP - 38}
-                      fill={DUSK.skyTop}
-                      fontSize={9}
-                      style={LABEL}
-                      opacity="0"
-                    >
-                      GraphQL Fed
-                    </text>
-                  </>
-                ) : (
-                  <text
-                    x={mast + 5}
-                    y={TOP - 38}
-                    fill={berth.dashed ? DUSK.ink : DUSK.skyTop}
-                    fontSize={9}
-                    style={LABEL}
-                  >
-                    {berth.pennant}
-                  </text>
-                )}
-              </g>
+        {/* Front rank, and its mooring lines running behind the back rank */}
+        {FRONT.map((berth, i) => (
+          <Mooring
+            key={berth.key}
+            x={frontX(i) + 8 + COL_W / 2}
+            from={FRONT_TOP + BOX_H}
+            delay={i * 0.25}
+          />
+        ))}
+        {FRONT.map((berth, i) => (
+          <QuayBerth
+            key={berth.key}
+            berth={berth}
+            x={frontX(i)}
+            top={FRONT_TOP}
+            delay={(i % 4) * 0.6}
+          />
+        ))}
 
-              {/* Warehouse */}
-              <path
-                d={`M${x} ${TOP} L${x + COL_W / 2} ${TOP - 24} L${x + COL_W} ${TOP} Z`}
-                fill={DUSK.quayTop}
-                opacity={berth.dashed ? 0.6 : 1}
-              />
-              <rect
-                x={x}
-                y={TOP}
-                width={COL_W}
-                height={BOTTOM - TOP}
-                fill={DUSK.quay}
-                stroke={berth.swaps ? DUSK.lamp : DUSK.edge}
-                strokeDasharray={berth.dashed ? "5 4" : undefined}
-                className={berth.swaps ? "hbr-q-pulse" : undefined}
-                strokeOpacity={berth.swaps ? 0.25 : 1}
-              />
-              <text
-                x={x + COL_W / 2}
-                y={TOP + 40}
-                textAnchor="middle"
-                fill={DUSK.heading}
-                fontSize={13}
-              >
-                {berth.name}
-              </text>
-              <rect
-                x={x + 12}
-                y={TOP + 96}
-                width={COL_W - 24}
-                height={BOTTOM - TOP - 96}
-                fill={DUSK.skyTop}
-                opacity="0.55"
-              />
-
-              {/* Mooring line down to the one harbour basin */}
-              <path
-                className="hbr-q-line"
-                d={`M${x + COL_W / 2} ${BOTTOM} V${QUAY_Y - 28} Q${x + COL_W / 2} ${QUAY_Y} ${HARBOUR_X} ${QUAY_Y}`}
-                fill="none"
-                stroke={DUSK.shimmer}
-                strokeWidth={1.5}
-                strokeDasharray="8 12"
-                opacity="0.5"
-                style={{ animationDelay: `${i * 0.25}s` }}
-              />
-            </g>
-          );
-        })}
+        {/* Back rank */}
+        {BACK.map((berth, i) => (
+          <Mooring
+            key={berth.key}
+            x={backX(i) + 8 + COL_W / 2}
+            from={BACK_TOP + BOX_H}
+            delay={(i + 4) * 0.25}
+          />
+        ))}
+        {BACK.map((berth, i) => (
+          <QuayBerth
+            key={berth.key}
+            berth={berth}
+            x={backX(i)}
+            top={BACK_TOP}
+            delay={((i + 4) % 4) * 0.6}
+          />
+        ))}
 
         {/* One harbour basin: the composite schema every mooring line reaches */}
         <rect
           x="10"
-          y={QUAY_Y}
+          y={BASIN_Y}
           width="620"
-          height="52"
+          height="48"
           rx="10"
           fill={DUSK.quayTop}
           stroke={DUSK.edge}
         />
         <text
-          x="320"
-          y={QUAY_Y + 32}
+          x={HARBOUR_X}
+          y={BASIN_Y + 30}
           textAnchor="middle"
           fill={DUSK.heading}
-          fontSize={13}
+          fontSize={FONT.label}
           style={LABEL}
         >
           ONE COMPOSITE SCHEMA
