@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { DUSK, LABEL, WAREHOUSES } from "./palette";
+import { DUSK, FONT, LABEL, WAREHOUSES } from "./palette";
 
 /**
  * Nitro band: the harbour beacon sweeps the basin and every berth reports
@@ -85,32 +85,38 @@ export function BeaconSweep() {
         {/* Gateway readout */}
         <rect
           x={16}
-          y={24}
+          y={20}
           width={608}
-          height={98}
+          height={136}
           rx={10}
           fill={DUSK.quay}
           stroke={DUSK.edge}
         />
-        <text x={36} y={50} fill={DUSK.heading} fontSize={13} style={LABEL}>
+        <text
+          x={36}
+          y={50}
+          fill={DUSK.heading}
+          fontSize={FONT.label}
+          style={LABEL}
+        >
           FUSION GATEWAY
         </text>
         {METRICS.map((metric, i) => (
           <g key={metric.label}>
             <text
-              x={36 + i * 196}
-              y={78}
+              x={36 + i * 198}
+              y={84}
               fill={DUSK.ink}
-              fontSize={9}
+              fontSize={FONT.label}
               style={LABEL}
             >
               {metric.label}
             </text>
             <text
-              x={36 + i * 196}
-              y={102}
+              x={36 + i * 198}
+              y={118}
               fill={DUSK.accent}
-              fontSize={16}
+              fontSize={FONT.caption}
               style={LABEL}
             >
               {metric.value}
@@ -119,9 +125,9 @@ export function BeaconSweep() {
               <rect
                 key={j}
                 className="hbr-b-bar"
-                x={128 + i * 196 + j * 7}
-                y={102 - h}
-                width={4}
+                x={36 + i * 198 + j * 8}
+                y={148 - h}
+                width={5}
                 height={h}
                 rx={1}
                 fill={DUSK.accent}
@@ -137,21 +143,26 @@ export function BeaconSweep() {
           <g key={w.name}>
             <rect
               x={16 + i * 156}
-              y={144}
+              y={176}
               width={144}
-              height={96}
+              height={112}
               rx={10}
               fill={DUSK.quay}
               stroke={DUSK.edge}
             />
-            <text x={32 + i * 156} y={170} fill={DUSK.heading} fontSize={12}>
+            <text
+              x={32 + i * 156}
+              y={206}
+              fill={DUSK.heading}
+              fontSize={FONT.label}
+            >
               {w.name}
             </text>
             <text
               x={32 + i * 156}
-              y={188}
+              y={232}
               fill={DUSK.ink}
-              fontSize={9}
+              fontSize={FONT.label}
               style={LABEL}
             >
               {w.language}
@@ -161,7 +172,7 @@ export function BeaconSweep() {
                 key={j}
                 className="hbr-b-bar"
                 x={32 + i * 156 + j * 12}
-                y={226 - h}
+                y={278 - h}
                 width={7}
                 height={h}
                 rx={1}

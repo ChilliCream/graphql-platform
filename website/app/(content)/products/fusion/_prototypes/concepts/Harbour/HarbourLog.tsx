@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
-import { DUSK, LABEL } from "./palette";
+import { DUSK, FONT, LABEL, LABEL_TIGHT } from "./palette";
 
 /**
  * "Composition protects the graph, Nitro protects your clients": the Ordering
@@ -61,9 +61,9 @@ const VERDICT_COLOR: Record<LogRow["verdict"], string> = {
 
 const CONTAINERS = ["orderId", "status", "deliveryEstimate"];
 
-const ROW_TOP = 262;
+const ROW_TOP = 256;
 const ROW_H = 46;
-const ROW_GAP = 12;
+const ROW_GAP = 10;
 
 const rowY = (i: number) => ROW_TOP + i * (ROW_H + ROW_GAP);
 
@@ -81,17 +81,17 @@ export function HarbourLog() {
         {/* The warehouse withdrawing a container */}
         <rect
           x={16}
-          y={40}
+          y={32}
           width={324}
-          height={132}
+          height={176}
           rx={10}
           fill={DUSK.quay}
           stroke={DUSK.edge}
         />
-        <text x={34} y={68} fill={DUSK.heading} fontSize={13}>
+        <text x={34} y={62} fill={DUSK.heading} fontSize={FONT.label}>
           Ordering
         </text>
-        <text x={34} y={86} fill={DUSK.ink} fontSize={10} style={LABEL}>
+        <text x={34} y={88} fill={DUSK.ink} fontSize={FONT.label} style={LABEL}>
           GO · SOURCE SCHEMA
         </text>
         {CONTAINERS.map((field, i) => {
@@ -103,10 +103,10 @@ export function HarbourLog() {
               opacity={removed ? 0.28 : 1}
             >
               <rect
-                x={34 + i * 100}
-                y={104}
-                width={92}
-                height={44}
+                x={34}
+                y={100 + i * 36}
+                width={290}
+                height={30}
                 rx={6}
                 fill={removed ? DUSK.skyTop : DUSK.accent}
                 fillOpacity={removed ? 1 : 0.5}
@@ -114,11 +114,10 @@ export function HarbourLog() {
                 strokeDasharray={removed ? "5 4" : undefined}
               />
               <text
-                x={34 + i * 100 + 46}
-                y={130}
-                textAnchor="middle"
+                x={48}
+                y={121 + i * 36}
                 fill={DUSK.heading}
-                fontSize={10}
+                fontSize={FONT.label}
                 style={LABEL}
               >
                 {field}
@@ -130,40 +129,58 @@ export function HarbourLog() {
         {/* Customs still stamps the change through */}
         <rect
           x={356}
-          y={40}
+          y={32}
           width={268}
-          height={132}
+          height={176}
           rx={10}
           fill={DUSK.quay}
           stroke={DUSK.edge}
         />
-        <text x={374} y={68} fill={DUSK.ink} fontSize={10} style={LABEL}>
+        <text
+          x={374}
+          y={62}
+          fill={DUSK.ink}
+          fontSize={FONT.label}
+          style={LABEL}
+        >
           COMPOSITION
         </text>
         <g className="hbr-l-pass">
           <circle
-            cx={412}
-            cy={124}
-            r={20}
+            cx={404}
+            cy={140}
+            r={24}
             fill="none"
             stroke={DUSK.ok}
             strokeWidth={2.5}
           />
           <path
-            d="M402 124 l7 8 l14 -17"
+            d="M392 140 l8 9 l17 -20"
             fill="none"
             stroke={DUSK.ok}
             strokeWidth={3}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <text x={444} y={130} fill={DUSK.ok} fontSize={12} style={LABEL}>
+          <text
+            x={444}
+            y={148}
+            fill={DUSK.ok}
+            fontSize={FONT.label}
+            style={LABEL}
+          >
             PASS
           </text>
         </g>
 
         {/* The harbour log: which ship carries which container */}
-        <text x={16} y={228} fill={DUSK.ink} fontSize={10} style={LABEL}>
+        <text
+          x={16}
+          y={240}
+          fill={DUSK.ink}
+          fontSize={FONT.label}
+          style={LABEL_TIGHT}
+        >
           HARBOUR LOG · REGISTERED CLIENT OPERATIONS
         </text>
         {ROWS.map((row, i) => (
@@ -181,33 +198,38 @@ export function HarbourLog() {
               fill={DUSK.quay}
               stroke={row.verdict === "breaking" ? DUSK.stop : DUSK.edge}
             />
-            <text x={34} y={rowY(i) + 28} fill={DUSK.heading} fontSize={12}>
+            <text
+              x={32}
+              y={rowY(i) + 30}
+              fill={DUSK.heading}
+              fontSize={FONT.label}
+            >
               {row.ship}
             </text>
             <text
-              x={150}
-              y={rowY(i) + 28}
+              x={172}
+              y={rowY(i) + 30}
               fill={DUSK.ink}
-              fontSize={11}
+              fontSize={FONT.label}
               style={LABEL}
             >
               {row.operation}
             </text>
             <rect
-              x={496}
-              y={rowY(i) + 11}
-              width={110}
-              height={24}
-              rx={12}
+              x={460}
+              y={rowY(i) + 9}
+              width={148}
+              height={28}
+              rx={14}
               fill={VERDICT_COLOR[row.verdict]}
               fillOpacity={0.16}
             />
             <text
-              x={551}
-              y={rowY(i) + 27}
+              x={534}
+              y={rowY(i) + 29}
               textAnchor="middle"
               fill={VERDICT_COLOR[row.verdict]}
-              fontSize={11}
+              fontSize={FONT.label}
               style={LABEL}
             >
               {row.verdict}
