@@ -64,7 +64,7 @@ function LogRow({ trip, phase, y }: LogRowProps) {
   return (
     <g opacity={shown ? 1 : 0.25}>
       <rect
-        x={24}
+        x={16}
         y={y - 15}
         width={16}
         height={16}
@@ -72,7 +72,7 @@ function LogRow({ trip, phase, y }: LogRowProps) {
         fill={shown ? colour : CITY.ink}
       />
       <text
-        x={52}
+        x={44}
         y={y}
         fill={CITY.heading}
         fontFamily={FONTS.heading}
@@ -81,7 +81,7 @@ function LogRow({ trip, phase, y }: LogRowProps) {
         {trip.client}
       </text>
       <text
-        x={211}
+        x={220}
         y={y}
         fill={CITY.ink}
         fontFamily={FONTS.mono}
@@ -90,7 +90,7 @@ function LogRow({ trip, phase, y }: LogRowProps) {
         {trip.road}
       </text>
       <text
-        x={LOG.w - 24}
+        x={LOG.w - 16}
         y={y}
         textAnchor="end"
         fill={shown ? colour : CITY.ink}
