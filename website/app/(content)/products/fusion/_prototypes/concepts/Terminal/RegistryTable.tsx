@@ -26,7 +26,7 @@ const scan = (name: string, at: number) => `
 .${name} { animation: ${name} ${DUR}s linear infinite; }
 @keyframes ${name} {
   0%, ${at}% { background: transparent; }
-  ${at + 0.4}%, ${at + 5}% { background: rgba(22, 185, 228, 0.14); }
+  ${at + 0.4}%, ${at + 5}% { background: ${TERM.scan}; }
   ${at + 5.6}%, 100% { background: transparent; }
 }`;
 
