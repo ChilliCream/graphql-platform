@@ -128,6 +128,10 @@ public sealed class Operation : IOperation
 
     public bool HasIncrementalParts => _hasIncrementalParts;
 
+    internal int IncludeConditionCount => _includeConditions.Count;
+
+    internal IncludeConditionCollection IncludeConditions => _includeConditions;
+
     /// <summary>
     /// Gets a value indicating whether this operation has more than 64 include
     /// conditions and therefore requires the wide include flag overloads.
@@ -139,11 +143,6 @@ public sealed class Operation : IOperation
     /// conditions and therefore requires the wide defer flag overloads.
     /// </summary>
     public bool HasWideDeferFlags { get; }
-
-    /// <summary>
-    /// Gets the number of distinct include conditions of this operation.
-    /// </summary>
-    internal int IncludeConditionCount => _includeConditions.Count;
 
     /// <summary>
     /// Gets the number of distinct defer conditions of this operation.

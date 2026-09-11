@@ -27,7 +27,10 @@ public static class LogEntryCodes
     public const string ExternalRequireCollision = "EXTERNAL_REQUIRE_COLLISION";
     public const string ExternalTypeMismatch = "EXTERNAL_TYPE_MISMATCH";
     public const string ExternalUnused = "EXTERNAL_UNUSED";
+    public const string FederationAuthDirectiveLocationNotSupported =
+        "FEDERATION_AUTH_DIRECTIVE_LOCATION_NOT_SUPPORTED";
     public const string FederationDirectiveNotSupported = "FEDERATION_DIRECTIVE_NOT_SUPPORTED";
+    public const string FederationPolicyLocationNotSupported = "FEDERATION_POLICY_LOCATION_NOT_SUPPORTED";
     public const string FederationV1NotSupported = "FEDERATION_V1_NOT_SUPPORTED";
     public const string FederationV1DirectiveNotSupported =
         "FEDERATION_V1_DIRECTIVE_NOT_SUPPORTED";
@@ -76,6 +79,8 @@ public static class LogEntryCodes
     public const string OutputFieldTypesNotMergeable = "OUTPUT_FIELD_TYPES_NOT_MERGEABLE";
     public const string OverrideFromSelf = "OVERRIDE_FROM_SELF";
     public const string OverrideOnInterface = "OVERRIDE_ON_INTERFACE";
+    public const string PolicyDefinitionInvalid = "POLICY_DEFINITION_INVALID";
+    public const string PolicyOnInterface = "POLICY_ON_INTERFACE";
     public const string ProvidesDirectiveInFieldsArgument = "PROVIDES_DIRECTIVE_IN_FIELDS_ARGUMENT";
     public const string ProvidesFieldsHasArguments = "PROVIDES_FIELDS_HAS_ARGUMENTS";
     public const string ProvidesFieldsMissingExternal = "PROVIDES_FIELDS_MISSING_EXTERNAL";

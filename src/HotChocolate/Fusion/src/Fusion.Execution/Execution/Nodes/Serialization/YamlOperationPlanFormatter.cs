@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Globalization;
 using System.Text;
 using HotChocolate.Execution;
 
@@ -17,6 +19,11 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         var writer = new CodeWriter(sb);
 
         WriteOperation(plan, trace, writer);
+
+        if (trace is not null)
+        {
+            WritePolicyConditions(plan, writer);
+        }
 
         writer.WriteLine("nodes:");
         writer.Indent();
@@ -57,7 +64,224 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
+        if (!plan.IncludeConditions.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("includeConditions:");
+            writer.Indent();
+
+            foreach (var condition in plan.IncludeConditions)
+            {
+                writer.WriteLine("-");
+                writer.Indent();
+                if (condition.SkipVariable is not null)
+                {
+                    writer.WriteLine("skipVariable: {0}", condition.SkipVariable);
+                }
+
+                if (condition.IncludeVariable is not null)
+                {
+                    writer.WriteLine("includeVariable: {0}", condition.IncludeVariable);
+                }
+
+                writer.Unindent();
+            }
+
+            writer.Unindent();
+        }
+
+        if (!plan.PolicyExpressions.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("policyExpressions:");
+            writer.Indent();
+
+            foreach (var expression in plan.PolicyExpressions)
+            {
+                writer.WriteLine("- ordinal: {0}", expression.Ordinal);
+                writer.Indent();
+                writer.WriteLine("names: {0}", FormatPolicyNameGroups(expression.Groups));
+                writer.WriteLine("expression: {0}", expression.Format());
+                writer.Unindent();
+            }
+
+            writer.Unindent();
+        }
+
+        if (!plan.PolicySlots.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("policySlots:");
+            writer.Indent();
+
+            foreach (var slot in plan.PolicySlots)
+            {
+                WritePolicySlot(slot, writer);
+            }
+
+            writer.Unindent();
+        }
+
+        if (!plan.Policies.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("policies:");
+            writer.Indent();
+            foreach (var policy in plan.Policies)
+            {
+                writer.WriteLine("- name: {0}", policy.PolicyName);
+                writer.Indent();
+                writer.WriteLine("requirementHash: {0}", policy.RequirementHash);
+                writer.Unindent();
+            }
+            writer.Unindent();
+        }
+
         return sb.ToString();
+    }
+
+    private static void WritePolicyConditions(OperationPlan plan, CodeWriter writer)
+    {
+        if (plan.PolicySlots.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        writer.WriteLine("policyConditions:");
+        writer.Indent();
+
+        foreach (var slot in plan.PolicySlots)
+        {
+            foreach (var application in slot.Applications)
+            {
+                var expression = plan.PolicyExpressions[application.ExpressionOrdinal];
+                writer.WriteLine("- slot: {0}", slot.VariableName);
+                writer.Indent();
+                writer.WriteLine("expression: {0}", PolicyNameGroups.Format(expression.Groups));
+                writer.WriteLine("coordinates:");
+                writer.Indent();
+
+                foreach (var coordinate in slot.Coordinates)
+                {
+                    if (!coordinate.Applications.Any(t =>
+                        t.ExpressionOrdinal == application.ExpressionOrdinal))
+                    {
+                        continue;
+                    }
+
+                    writer.WriteLine(
+                        "- {0}",
+                        coordinate.FieldName is null
+                            ? coordinate.TypeName
+                            : $"{coordinate.TypeName}.{coordinate.FieldName}");
+                }
+
+                writer.Unindent();
+                writer.Unindent();
+            }
+        }
+
+        writer.Unindent();
+    }
+
+    private static void WritePolicySlot(PolicyConditionSlot slot, CodeWriter writer)
+    {
+        writer.WriteLine("- ordinal: {0}", slot.Ordinal);
+        writer.Indent();
+
+        writer.WriteLine("variable: ${0}", slot.VariableName);
+        writer.WriteLine("applications:");
+        writer.Indent();
+
+        foreach (var application in slot.Applications)
+        {
+            writer.WriteLine("- expressionOrdinal: {0}", application.ExpressionOrdinal);
+            writer.Indent();
+            writer.WriteLine("onDenied: {0}", application.OnDenied.ToString());
+            writer.Unindent();
+        }
+
+        writer.Unindent();
+        writer.WriteLine("rmax: {0}", slot.Rmax.ToString());
+        writer.WriteLine("guardMasks: [{0}]", FormatConditionMasks(slot.GuardMasks));
+        writer.WriteLine("coordinates:");
+        writer.Indent();
+
+        foreach (var coordinate in slot.Coordinates)
+        {
+            writer.WriteLine("- typeName: {0}", coordinate.TypeName);
+            writer.Indent();
+            if (coordinate.FieldName is not null)
+            {
+                writer.WriteLine("fieldName: {0}", coordinate.FieldName);
+            }
+            writer.WriteLine("responseNames: [{0}]", string.Join(", ", coordinate.ResponseNames));
+            writer.WriteLine("applications:");
+            writer.Indent();
+            foreach (var application in coordinate.Applications)
+            {
+                writer.WriteLine("- expressionOrdinal: {0}", application.ExpressionOrdinal);
+                writer.Indent();
+                writer.WriteLine("onDenied: {0}", application.OnDenied.ToString());
+                writer.Unindent();
+            }
+            writer.Unindent();
+            writer.WriteLine("isRoot: {0}", coordinate.IsRoot.ToString().ToLowerInvariant());
+            writer.WriteLine("liveGuardMasks: [{0}]", FormatConditionMasks(coordinate.LiveGuardMasks));
+            writer.WriteLine("gateGuardMasks: [{0}]", FormatConditionMasks(coordinate.GateGuardMasks));
+
+            if (coordinate.Requirements.Length > 0)
+            {
+                writer.WriteLine("requirements:");
+                writer.Indent();
+
+                foreach (var requirement in coordinate.Requirements)
+                {
+                    writer.WriteLine("- name: {0}", requirement.PolicyName);
+                    writer.Indent();
+                    writer.WriteLine(
+                        "selectionSet: {0}",
+                        requirement.SelectionSet.ToString(indented: false));
+                    writer.Unindent();
+                }
+
+                writer.Unindent();
+            }
+
+            writer.Unindent();
+        }
+
+        writer.Unindent();
+
+        writer.Unindent();
+    }
+
+    private static string FormatConditionMasks(ImmutableArray<ConditionFlags> masks)
+        => string.Join(", ", masks.Select(FormatConditionMask));
+
+    private static string FormatConditionMask(ConditionFlags mask)
+    {
+        var overflow = mask.Overflow;
+        var lastWord = overflow?.Length ?? 0;
+
+        while (lastWord > 0 && overflow![lastWord - 1] == 0)
+        {
+            lastWord--;
+        }
+
+        if (lastWord == 0)
+        {
+            return mask.Word0.ToString(CultureInfo.InvariantCulture);
+        }
+
+        var builder = new StringBuilder();
+        builder.Append('[');
+        builder.Append(mask.Word0.ToString(CultureInfo.InvariantCulture));
+
+        for (var i = 0; i < lastWord; i++)
+        {
+            builder.Append(", ");
+            builder.Append(overflow![i].ToString(CultureInfo.InvariantCulture));
+        }
+
+        builder.Append(']');
+        return builder.ToString();
     }
 
     private static void WriteNode(ExecutionNode node, ExecutionNodeTrace? nodeTrace, CodeWriter writer)
@@ -90,6 +314,10 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
             case NodeFieldExecutionNode nodeExecutionNode:
                 WriteNodeFieldNode(nodeExecutionNode, nodeTrace, writer);
+                break;
+
+            case PolicyExecutionNode policyNode:
+                WritePolicyNode(policyNode, nodeTrace, writer);
                 break;
         }
     }
@@ -790,6 +1018,132 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
+    private static void WritePolicyNode(PolicyExecutionNode node, ExecutionNodeTrace? trace, CodeWriter writer)
+    {
+        writer.WriteLine("- id: {0}", node.Id);
+        writer.Indent();
+
+        writer.WriteLine("type: {0}", node.Type.ToString());
+
+        writer.WriteLine("targets:");
+        writer.Indent();
+        foreach (var target in node.Targets)
+        {
+            writer.WriteLine("- kind: {0}", target.Kind.ToString());
+            writer.Indent();
+
+            writer.WriteLine("path: {0}", target.Path.ToString());
+            writer.WriteLine("typeName: {0}", target.TypeName);
+
+            writer.WriteLine("policies:");
+            writer.Indent();
+            foreach (var policy in target.Policies)
+            {
+                writer.WriteLine("- names: {0}", FormatPolicyNameGroups(policy.Groups));
+                writer.Indent();
+                writer.WriteLine("onDenied: {0}", policy.OnDenied.ToString());
+                writer.Unindent();
+            }
+            writer.Unindent();
+
+            if (target.Requirements.Length > 0)
+            {
+                writer.WriteLine("requirements:");
+                writer.Indent();
+                foreach (var requirement in target.Requirements)
+                {
+                    writer.WriteLine("- name: {0}", requirement.PolicyName);
+                    writer.Indent();
+                    writer.WriteLine(
+                        "selectionSet: {0}",
+                        requirement.SelectionSet.ToString(indented: false));
+                    writer.Unindent();
+                }
+                writer.Unindent();
+            }
+
+            TryWriteConditions(writer, target.Conditions);
+
+            writer.Unindent();
+        }
+        writer.Unindent();
+
+        TryWriteConditions(writer, node);
+
+        WriteDependencies(node.Dependencies, node.ParentDependencies, writer);
+
+        TryWriteNodeTrace(writer, trace);
+
+        writer.Unindent();
+    }
+
+    private static string FormatPolicyNameGroups(ImmutableArray<ImmutableArray<string>> groups)
+    {
+        var builder = new StringBuilder();
+        builder.Append('[');
+
+        for (var i = 0; i < groups.Length; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append('[');
+
+            var group = groups[i];
+
+            for (var j = 0; j < group.Length; j++)
+            {
+                if (j > 0)
+                {
+                    builder.Append(", ");
+                }
+
+                AppendQuotedPolicyName(builder, group[j]);
+            }
+
+            builder.Append(']');
+        }
+
+        builder.Append(']');
+        return builder.ToString();
+    }
+
+    private static void AppendQuotedPolicyName(StringBuilder builder, string name)
+    {
+        builder.Append('"');
+
+        foreach (var c in name)
+        {
+            switch (c)
+            {
+                case '\\':
+                    builder.Append("\\\\");
+                    break;
+
+                case '"':
+                    builder.Append("\\\"");
+                    break;
+
+                default:
+                    if (char.IsControl(c))
+                    {
+                        builder.Append("\\u");
+                        builder.Append(((int)c).ToString("X4"));
+                    }
+                    else
+                    {
+                        builder.Append(c);
+                    }
+
+                    break;
+            }
+        }
+
+        builder.Append('"');
+    }
+
     private static void TryWriteNodeTrace(CodeWriter writer, ExecutionNodeTrace? trace)
     {
         if (trace is not null)
@@ -805,12 +1159,15 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
     }
 
     private static void TryWriteConditions(CodeWriter writer, ExecutionNode node)
+        => TryWriteConditions(writer, node.Conditions);
+
+    private static void TryWriteConditions(CodeWriter writer, ReadOnlySpan<ExecutionNodeCondition> conditions)
     {
-        if (node.Conditions.Length > 0)
+        if (conditions.Length > 0)
         {
             writer.WriteLine("conditions:");
             writer.Indent();
-            foreach (var condition in node.Conditions)
+            foreach (var condition in conditions)
             {
                 writer.WriteLine("- variable: {0}", "$" + condition.VariableName);
                 writer.Indent();

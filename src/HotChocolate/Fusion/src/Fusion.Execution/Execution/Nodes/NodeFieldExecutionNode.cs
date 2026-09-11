@@ -88,12 +88,12 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
                 return ValueTask.FromResult(ExecutionStatus.Failed);
             }
 
-            EnqueueDependentForExecution(context, _fallbackQuery);
+            context.EnqueueDependent(this, _fallbackQuery);
             context.SetDynamicSchemaName(_fallbackQuery, nodeSchemaName);
 
             foreach (var branch in _branches.Values)
             {
-                EnqueueDependentForExecution(context, branch);
+                context.EnqueueDependent(this, branch);
             }
 
             return ValueTask.FromResult(ExecutionStatus.Success);
@@ -121,13 +121,13 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
         if (_branches.TryGetValue(typeName, out var operation))
         {
             // We have a branch, and we select it for exclusive execution
-            EnqueueDependentForExecution(context, operation);
+            context.EnqueueDependent(this, operation);
 
             return ValueTask.FromResult(ExecutionStatus.Success);
         }
 
         // We have a valid type, but no branch, so we execute the fallback query.
-        EnqueueDependentForExecution(context, _fallbackQuery);
+        context.EnqueueDependent(this, _fallbackQuery);
 
         context.SetDynamicSchemaName(_fallbackQuery, schemaName);
 

@@ -102,7 +102,7 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
         var firstTransportUri = new Uri("https://first.example/graphql");
 
         context.Begin();
-        context.EnqueueForExecution(batchNode, dynamicNode);
+        context.EnqueueDependent(batchNode, dynamicNode);
         context.SetDynamicSchemaName(dynamicNode, "first-schema");
         context.TrackSkippedDefinition(batchNode, skippedDefinition);
         context.TrackBatchRequestError(batchNode, 0, firstError);
@@ -138,7 +138,7 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
 
         var secondError = new InvalidOperationException("second event failed");
         var secondTransportUri = new Uri("https://second.example/graphql");
-        context.EnqueueForExecution(batchNode, dynamicNode);
+        context.EnqueueDependent(batchNode, dynamicNode);
         context.SetDynamicSchemaName(dynamicNode, "second-schema");
         context.TrackSkippedDefinition(batchNode, skippedDefinition);
         context.TrackBatchRequestError(batchNode, 0, secondError);
@@ -178,6 +178,10 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
             nodes,
             deliveryGroups: [],
             incrementalPlans: [],
+            includeConditions: operation.IncludeConditions.ToImmutableArray(),
+            policyExpressions: [],
+            policySlots: [],
+            policies: [],
             searchSpace: 0,
             expandedNodes: 0);
         var incrementalPlan = new IncrementalPlan(
@@ -281,6 +285,10 @@ public sealed class OperationPlanContextResetTests : FusionTestBase
                 allNodes,
                 deliveryGroups: [],
                 incrementalPlans: [],
+                includeConditions: subscriptionOperation.IncludeConditions.ToImmutableArray(),
+                policyExpressions: [],
+                policySlots: [],
+                policies: [],
                 searchSpace: 0,
                 expandedNodes: 0);
             var contextPool = executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();

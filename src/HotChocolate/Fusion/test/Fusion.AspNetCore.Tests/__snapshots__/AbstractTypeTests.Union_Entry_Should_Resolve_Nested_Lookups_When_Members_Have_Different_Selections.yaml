@@ -153,11 +153,11 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query SearchProduct_8e254f5e_5(
+            query SearchProduct_8e254f5e_4(
+              $__fusion_3_id: Int!
               $__fusion_4_audience: String!
-              $__fusion_5_id: Int!
             ) {
-              productById(id: $__fusion_5_id) {
+              productById(id: $__fusion_3_id) {
                 reviews(audience: $__fusion_4_audience) {
                   author {
                     userId
@@ -167,8 +167,8 @@ sourceSchemas:
             }
           variables: |
             {
-              "__fusion_4_audience": "Product: UHJvZHVjdDoy",
-              "__fusion_5_id": 123
+              "__fusion_3_id": 123,
+              "__fusion_4_audience": "Product: UHJvZHVjdDoy"
             }
         response:
           results:
@@ -290,8 +290,8 @@ operationPlan:
         }
       name: SearchProduct
       hash: 8e254f5eea1e0fc464f9cf28677e9ea1
-      searchSpace: 4
-      expandedNodes: 12
+      searchSpace: 1
+      expandedNodes: 3
   nodes:
     - id: 1
       type: Operation
@@ -327,22 +327,22 @@ operationPlan:
         }
       source: $.reviewById
       target: $.searchProduct<ReviewSearchResult>.review
-      batchingGroupId: 7
+      batchingGroupId: 6
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
             id
       dependencies:
         - id: 1
-    - id: 5
+    - id: 4
       type: Operation
       schema: REVIEWS
       operation: |
-        query SearchProduct_8e254f5e_5(
+        query SearchProduct_8e254f5e_4(
+          $__fusion_3_id: Int!
           $__fusion_4_audience: String!
-          $__fusion_5_id: Int!
         ) {
-          productById(id: $__fusion_5_id) {
+          productById(id: $__fusion_3_id) {
             reviews(audience: $__fusion_4_audience) {
               author {
                 userId
@@ -352,14 +352,14 @@ operationPlan:
         }
       source: $.productById
       target: $.searchProduct<ProductSearchResult>.product
-      batchingGroupId: 7
+      batchingGroupId: 6
       requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            productId
         - name: __fusion_4_audience
           selectionMap: >-
             reviewAudience
-        - name: __fusion_5_id
-          selectionMap: >-
-            productId
       dependencies:
         - id: 1
     - id: 3
@@ -375,11 +375,11 @@ operationPlan:
       targets:
         - $.searchProduct<ReviewSearchResult>.review.author
         - $.searchProduct<ProductSearchResult>.product.reviews.author
-      batchingGroupId: 8
+      batchingGroupId: 7
       requirements:
         - name: __fusion_2_id
           selectionMap: >-
             userId
       dependencies:
         - id: 2
-        - id: 5
+        - id: 4

@@ -1,6 +1,8 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -154,6 +156,102 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         for (var i = 0; i < listeners.Length; i++)
         {
             listeners[i].PlanOperationError(context, operationId, error);
+        }
+    }
+
+    public IDisposable EvaluateRequestPolicies(RequestContext context)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].EvaluateRequestPolicies(context);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public IDisposable ExecutePolicyNode(
+        OperationPlanContext context,
+        PolicyExecutionNode node)
+    {
+        var scopes = new IDisposable[listeners.Length];
+
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            scopes[i] = listeners[i].ExecutePolicyNode(context, node);
+        }
+
+        return new AggregateActivityScope(scopes);
+    }
+
+    public void PolicyEvaluated(
+        RequestContext context,
+        string policyName,
+        PolicyEvaluationOutcome outcome,
+        TimeSpan duration)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].PolicyEvaluated(context, policyName, outcome, duration);
+        }
+    }
+
+    public void PolicyDenialApplied(
+        OperationPlanContext context,
+        PolicyExecutionNode node,
+        SelectionPath targetPath,
+        string typeName,
+        string? fieldName,
+        string policyExpression,
+        PolicyDenialBehavior behavior,
+        int deniedCount,
+        int totalCount,
+        string? reason,
+        Guid reasonId,
+        string? subjectId)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].PolicyDenialApplied(
+                context,
+                node,
+                targetPath,
+                typeName,
+                fieldName,
+                policyExpression,
+                behavior,
+                deniedCount,
+                totalCount,
+                reason,
+                reasonId,
+                subjectId);
+        }
+    }
+
+    public void PolicySlotDenied(
+        RequestContext context,
+        string slotVariableName,
+        string policyExpression,
+        string typeName,
+        string? fieldName,
+        PolicyDenialBehavior behavior,
+        string? reason,
+        Guid reasonId,
+        string? subjectId)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].PolicySlotDenied(
+                context,
+                slotVariableName,
+                policyExpression,
+                typeName,
+                fieldName,
+                behavior,
+                reason,
+                reasonId,
+                subjectId);
         }
     }
 
@@ -425,6 +523,38 @@ internal sealed class AggregateFusionExecutionDiagnosticEvents(
         for (var i = 0; i < listeners.Length; i++)
         {
             listeners[i].ExecutorEvicted(name, executor);
+        }
+    }
+
+    public void PolicyCompilationError(string policyName, Exception error)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].PolicyCompilationError(policyName, error);
+        }
+    }
+
+    public void PolicyUpdateError(Exception error)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].PolicyUpdateError(error);
+        }
+    }
+
+    public void ConfigurationReadError(Exception error)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].ConfigurationReadError(error);
+        }
+    }
+
+    public void ConfigurationVerificationFailed(SignatureVerificationResult result)
+    {
+        for (var i = 0; i < listeners.Length; i++)
+        {
+            listeners[i].ConfigurationVerificationFailed(result);
         }
     }
 

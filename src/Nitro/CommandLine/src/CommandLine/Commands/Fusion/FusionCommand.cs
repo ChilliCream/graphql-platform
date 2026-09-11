@@ -1,5 +1,6 @@
 #if !NET9_0_OR_GREATER
 #endif
+using ChilliCream.Nitro.CommandLine.Commands.Fusion.Policy;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.Settings;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.SourceSchema;
@@ -20,6 +21,7 @@ internal sealed class FusionCommand : Command
         Subcommands.Add(new FusionComposeCommand());
         Subcommands.Add(new FusionDownloadCommand());
         Subcommands.Add(new FusionMigrateCommand());
+        Subcommands.Add(new FusionPolicyCommand());
         Subcommands.Add(new FusionPublishCommand());
         Subcommands.Add(new FusionRunCommand());
         Subcommands.Add(new FusionSettingsCommand());

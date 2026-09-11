@@ -3,7 +3,6 @@ operation:
       {
         product(id: "1") {
           name
-          id @fusion__requirement
         }
       }
     hash: 123456789101112
@@ -17,24 +16,8 @@ nodes:
       query Op_123456789101112_1 {
         product(id: "1") {
           name
-          id
         }
       }
-  - id: 2
-    type: Operation
-    schema: b
-    operation: |
-      query Op_defer_3($__fusion_4_id: ID!) {
-        productById(id: $__fusion_4_id) {
-          productSku
-        }
-      }
-    source: $.productById
-    target: $.product
-    requirements:
-      - name: __fusion_4_id
-        selectionMap: >-
-          id
 deliveryGroups:
   - id: 0
     path: $.product
@@ -46,14 +29,7 @@ deliveryGroups:
 incrementalPlans:
   - deliveryGroupIds:
       - 0
-    parentNodeId: 2
-    requirements:
-      - name: __fusion_2_productSku
-        selectionMap: >-
-          productSku
-      - name: __fusion_3_id
-        selectionMap: >-
-          id
+    parentNodeId: 1
     nodes:
       - id: 1
         type: Operation
@@ -74,18 +50,9 @@ incrementalPlans:
             selectionMap: >-
               id
         dependencies:
-          - parentNodeId: 1
-          - parentNodeId: 2
+          - id: 2
+          - id: 3
       - id: 2
-        type: Operation
-        schema: a
-        operation: |
-          query Op_defer_5 {
-            product(id: "1") {
-              id
-            }
-          }
-      - id: 3
         type: Operation
         schema: b
         operation: |
@@ -100,6 +67,17 @@ incrementalPlans:
           - name: __fusion_4_id
             selectionMap: >-
               id
+        dependencies:
+          - id: 3
+      - id: 3
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_5 {
+            product(id: "1") {
+              id
+            }
+          }
   - deliveryGroupIds:
       - 1
     parentNodeId: 1

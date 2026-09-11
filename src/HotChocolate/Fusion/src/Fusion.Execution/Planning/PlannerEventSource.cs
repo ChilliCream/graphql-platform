@@ -12,6 +12,7 @@ internal sealed class PlannerEventSource : EventSource
     public const int PlanErrorEventId = 3;
     public const int PlanDequeueEventId = 4;
     public const int PlanGuardrailExceededEventId = 5;
+    public const int PolicySlotCapacityExceededEventId = 6;
 
     public static readonly PlannerEventSource Log = new();
 
@@ -116,6 +117,18 @@ internal sealed class PlannerEventSource : EventSource
                 reason,
                 limit,
                 observed);
+        }
+    }
+
+    [Event(
+        eventId: PolicySlotCapacityExceededEventId,
+        Level = EventLevel.Warning,
+        Message = "Policy slot capacity exceeded (OperationId={0}, Limit={1})")]
+    public void PolicySlotCapacityExceeded(string operationId, int limit)
+    {
+        if (IsEnabled())
+        {
+            WriteEvent(PolicySlotCapacityExceededEventId, operationId, limit);
         }
     }
 }

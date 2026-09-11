@@ -1,6 +1,8 @@
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
@@ -80,6 +82,55 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
         RequestContext context,
         string operationId,
         Exception error)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual IDisposable EvaluateRequestPolicies(RequestContext context) => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual IDisposable ExecutePolicyNode(
+        OperationPlanContext context,
+        PolicyExecutionNode node)
+        => EmptyScope;
+
+    /// <inheritdoc />
+    public virtual void PolicyEvaluated(
+        RequestContext context,
+        string policyName,
+        PolicyEvaluationOutcome outcome,
+        TimeSpan duration)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void PolicyDenialApplied(
+        OperationPlanContext context,
+        PolicyExecutionNode node,
+        SelectionPath targetPath,
+        string typeName,
+        string? fieldName,
+        string policyExpression,
+        PolicyDenialBehavior behavior,
+        int deniedCount,
+        int totalCount,
+        string? reason,
+        Guid reasonId,
+        string? subjectId)
+    {
+    }
+
+    /// <inheritdoc />
+    public virtual void PolicySlotDenied(
+        RequestContext context,
+        string slotVariableName,
+        string policyExpression,
+        string typeName,
+        string? fieldName,
+        PolicyDenialBehavior behavior,
+        string? reason,
+        Guid reasonId,
+        string? subjectId)
     {
     }
 
@@ -212,6 +263,18 @@ public class FusionExecutionDiagnosticEventListener : IFusionExecutionDiagnostic
 
     /// <inheritdoc />
     public virtual void ExecutorEvicted(string name, IRequestExecutor executor) { }
+
+    /// <inheritdoc />
+    public virtual void PolicyCompilationError(string policyName, Exception error) { }
+
+    /// <inheritdoc />
+    public virtual void PolicyUpdateError(Exception error) { }
+
+    /// <inheritdoc />
+    public virtual void ConfigurationReadError(Exception error) { }
+
+    /// <inheritdoc />
+    public virtual void ConfigurationVerificationFailed(SignatureVerificationResult result) { }
 
     private sealed class EmptyActivityScope : IDisposable
     {

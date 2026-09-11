@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
 
@@ -7,4 +8,5 @@ internal sealed record NodeLookupWorkItem(
     Lookup? Lookup,
     string ResponseName,
     IValueNode IdArgumentValue,
-    SelectionSet SelectionSet) : WorkItem;
+    SelectionSet SelectionSet,
+    ExecutionNodeCondition[] Conditions) : WorkItem;

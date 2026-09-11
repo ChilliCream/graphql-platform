@@ -33,3 +33,6 @@ nodes:
     conditions:
       - variable: $included
         passingValue: true
+includeConditions:
+  -
+    includeVariable: included

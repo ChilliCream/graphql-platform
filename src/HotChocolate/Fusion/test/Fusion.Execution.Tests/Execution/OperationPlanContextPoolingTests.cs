@@ -33,7 +33,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
         {
             large.Initialize(largePlan);
             large.Context.Begin();
-            large.Context.EnqueueForExecution(fallback, nodeField);
+            large.Context.EnqueueDependent(fallback, nodeField);
             large.Context.SetDynamicSchemaName(fallback, "large");
             large.Context.TrackSkippedDefinition(batch, batchDefinition);
             large.Context.TrackBatchRequestError(batch, 3, batchError);
@@ -76,7 +76,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
         Assert.Null(staleTransport.ContentType);
         Assert.True(small.Context.GetDependentsToExecute(smallNode).IsDefaultOrEmpty);
 
-        small.Context.EnqueueForExecution(smallNode, smallDependent);
+        small.Context.EnqueueDependent(smallNode, smallDependent);
 
         Assert.Collection(
             small.Context.GetDependentsToExecute(smallNode),
@@ -118,7 +118,7 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
 
         Assert.True(recovered.Context.GetDependentsToExecute(smallNode).IsDefaultOrEmpty);
 
-        recovered.Context.EnqueueForExecution(smallNode, smallDependent);
+        recovered.Context.EnqueueDependent(smallNode, smallDependent);
 
         Assert.Collection(
             recovered.Context.GetDependentsToExecute(smallNode),
@@ -166,6 +166,10 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [nodeField, fallback, batch],
             deliveryGroups: [],
             incrementalPlans: [],
+            includeConditions: operation.IncludeConditions.ToImmutableArray(),
+            policyExpressions: [],
+            policySlots: [],
+            policies: [],
             searchSpace: 0,
             expandedNodes: 0);
 
@@ -184,6 +188,10 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [node, dependent],
             deliveryGroups: [],
             incrementalPlans: [],
+            includeConditions: operation.IncludeConditions.ToImmutableArray(),
+            policyExpressions: [],
+            policySlots: [],
+            policies: [],
             searchSpace: 0,
             expandedNodes: 0);
 
@@ -200,6 +208,10 @@ public sealed class OperationPlanContextPoolingTests : FusionTestBase
             [node],
             deliveryGroups: [],
             incrementalPlans: [],
+            includeConditions: operation.IncludeConditions.ToImmutableArray(),
+            policyExpressions: [],
+            policySlots: [],
+            policies: [],
             searchSpace: 0,
             expandedNodes: 0);
     }

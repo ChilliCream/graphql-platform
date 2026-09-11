@@ -65,14 +65,18 @@ internal sealed class OperationExecutionMiddleware
 
                     var variableValues = ImmutableCollectionsMarshal.AsArray(context.VariableValues).AsSpan();
                     var tasks = new Task<IExecutionResult>[variableValues.Length];
+                    var policyRequestState = context.Features.Get<PolicyRequestState>();
 
                     for (var i = 0; i < variableValues.Length; i++)
                     {
-                        tasks[i] = OperationPlanExecutor.ExecuteAsync(
-                            context,
-                            variableValues[i],
-                            operationPlan,
-                            cancellationToken);
+                        tasks[i] = policyRequestState is not null
+                            && policyRequestState.TryGetShortCircuitResult(i, out var shortCircuitResult)
+                                ? Task.FromResult<IExecutionResult>(shortCircuitResult)
+                                : OperationPlanExecutor.ExecuteAsync(
+                                    context,
+                                    variableValues[i],
+                                    operationPlan,
+                                    cancellationToken);
                     }
 
                     var results = ImmutableList.CreateRange(await Task.WhenAll(tasks));

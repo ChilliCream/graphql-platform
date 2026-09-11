@@ -23,3 +23,8 @@ nodes:
     forwardedVariables:
       - includeMedia
       - skipPublication
+includeConditions:
+  -
+    includeVariable: includeMedia
+  -
+    skipVariable: skipPublication

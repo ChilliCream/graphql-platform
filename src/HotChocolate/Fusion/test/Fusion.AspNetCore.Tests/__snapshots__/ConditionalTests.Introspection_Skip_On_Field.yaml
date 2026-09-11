@@ -40,3 +40,6 @@ operationPlan:
         - id: 2
           responseName: __typename
           fieldName: __typename
+  includeConditions:
+    -
+      skipVariable: skip

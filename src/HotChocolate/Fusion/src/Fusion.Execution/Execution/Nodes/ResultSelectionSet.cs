@@ -59,6 +59,19 @@ internal sealed class ResultSelectionSet
 
     public bool HasSourceResponseNameMappings { get; }
 
+    internal bool ContainsResponseName(string responseName)
+    {
+        foreach (var candidate in _allResponseNames)
+        {
+            if (candidate.Equals(responseName, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Gets a value indicating whether the objects described by this selection set are opaque
     /// interface values produced by an <c>@interfaceObject</c> stand-in. Such values initialize

@@ -33,9 +33,16 @@ internal sealed class ArchiveSession : IDisposable
         }
 
         var files = new HashSet<string>(tempFiles);
+        var archiveFiles = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var entry in _archive.Entries)
         {
+            if (!archiveFiles.Add(entry.FullName))
+            {
+                throw new InvalidDataException(
+                    $"The archive contains the duplicate entry '{entry.FullName}'.");
+            }
+
             // Skip entries that are explicitly marked Deleted in this session;
             // they are still in the underlying ZipArchive but logically gone.
             if (_files.TryGetValue(entry.FullName, out var tracked)
@@ -76,6 +83,26 @@ internal sealed class ArchiveSession : IDisposable
         }
 
         return _mode is not FusionArchiveMode.Create && _archive.GetEntry(path) is not null;
+    }
+
+    public long GetContentLength(string path)
+    {
+        if (_files.TryGetValue(path, out var file))
+        {
+            if (file.State is FileState.Deleted)
+            {
+                throw new FileNotFoundException(path);
+            }
+
+            return new FileInfo(file.TempPath).Length;
+        }
+
+        if (_mode is not FusionArchiveMode.Create && _archive.GetEntry(path) is { } entry)
+        {
+            return entry.Length;
+        }
+
+        throw new FileNotFoundException(path);
     }
 
     public async Task<Stream> OpenReadAsync(string path, FileKind kind, CancellationToken cancellationToken)
@@ -267,6 +294,8 @@ internal sealed class ArchiveSession : IDisposable
         => kind switch
         {
             FileKind.LegacyArchive => _readOptions.MaxAllowedLegacyArchiveSize,
+            FileKind.Policy => _readOptions.MaxAllowedPolicySize,
+            FileKind.PolicyData => _readOptions.MaxAllowedPolicyDataSize,
             FileKind.Schema => _readOptions.MaxAllowedSchemaSize,
             FileKind.Manifest or FileKind.Settings or FileKind.Metadata or FileKind.Signature
                 => _readOptions.MaxAllowedSettingsSize,

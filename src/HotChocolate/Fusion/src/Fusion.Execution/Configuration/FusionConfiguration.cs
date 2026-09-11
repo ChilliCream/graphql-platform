@@ -18,5 +18,15 @@ public sealed record FusionConfiguration(
     JsonDocumentOwner Settings)
     : IDisposable
 {
-    public void Dispose() => Settings.Dispose();
+    /// <summary>
+    /// Gets the policy content carried alongside the schema and settings, or <c>null</c> when the
+    /// configuration source provides no policy content.
+    /// </summary>
+    public PolicyContentSnapshot? Policies { get; init; }
+
+    public void Dispose()
+    {
+        Settings.Dispose();
+        Policies?.Dispose();
+    }
 }

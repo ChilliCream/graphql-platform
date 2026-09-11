@@ -171,6 +171,12 @@ internal sealed class FusionSettingsSetCommand : Command
 
         using var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
 
+        if (archive.IsSigned)
+        {
+            await archive.RemoveSignatureAsync(cancellationToken);
+            console.Error.WriteErrorLine(Messages.FusionArchiveSignatureRemoved);
+        }
+
         environment ??= environmentVariables.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
         await using var composeActivity = console.StartActivity(

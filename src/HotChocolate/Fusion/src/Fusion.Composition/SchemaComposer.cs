@@ -277,6 +277,8 @@ internal sealed class SchemaComposer
         new LookupReturnsNonNullableTypeRule(),
         new OverrideFromSelfRule(),
         new OverrideOnInterfaceRule(),
+        new PolicyDefinitionInvalidRule(),
+        new PolicyOnInterfaceRule(),
         new ProvidesDirectiveInFieldsArgumentRule(),
         new ProvidesFieldsHasArgumentsRule(),
         new ProvidesFieldsMissingExternalRule(),

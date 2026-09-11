@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
@@ -82,7 +78,7 @@ internal static class CorpusPlanningProbe
         // Shared planning infrastructure.
         var rewriter = new DocumentRewriter(schema);
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
         var compiler = new OperationCompiler(schema, pool);
 
         // Guard against non-termination: bound planning so a wall surfaces as a

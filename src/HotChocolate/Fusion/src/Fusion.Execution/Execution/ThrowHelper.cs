@@ -7,6 +7,66 @@ namespace HotChocolate.Fusion.Execution;
 
 internal static class ThrowHelper
 {
+    public static InvalidOperationException PolicyNameEmpty()
+        => new(FusionExecutionResources.PolicyCollection_PolicyNameEmpty);
+
+    public static InvalidOperationException PolicyNameDuplicate(string policyName)
+        => new(string.Format(
+            FusionExecutionResources.PolicyCollection_PolicyNameDuplicate,
+            policyName));
+
+    public static KeyNotFoundException PolicyNameNotFound(string policyName)
+        => new(string.Format(
+            FusionExecutionResources.PolicyCollection_PolicyNameNotFound,
+            policyName));
+
+    public static InvalidOperationException PolicyRequirementsChanged(string policyName)
+        => new($"Authorization policy '{policyName}' requirements changed after planning.");
+
+    public static InvalidOperationException PolicyRequirementsMustBeSingleFragmentDefinition()
+        => new("Policy requirements must contain exactly one fragment definition.");
+
+    public static InvalidOperationException UnsupportedRegoPolicyFormatVersion(
+        Version highestFormatVersion,
+        Version maxSupportedFormatVersion)
+        => new(
+            $"The Fusion archive only contains Rego policies in format '{highestFormatVersion}', which "
+            + $"exceeds the highest format '{maxSupportedFormatVersion}' this runtime supports. The "
+            + "archive is rejected rather than served with no policies. A runtime built before this "
+            + "check instead returns no policies for such an archive, which does not apply here.");
+
+    public static InvalidOperationException RegoPolicyPairCannotDeclareActionInput(string policyName)
+        => new(
+            $"The Rego policy pair '{policyName}' declares 'custom.input: action' on one of its "
+            + "entrypoints. Action policies require the manifest-indexed Rego policy bundle format "
+            + "(version 2 and above); a flat policy pair cannot carry an action policy.");
+
+    public static InvalidOperationException PolicyActionOnNonFieldCoordinate(string typeName)
+        => new(
+            $"An action policy was applied to the object coordinate '{typeName}', which has no field "
+            + "name or arguments to evaluate. Action policies are only valid on field occurrences.");
+
+    public static InvalidOperationException PolicyActionOccurrenceCannotBeGated(
+        string typeName,
+        string? fieldName,
+        string reason)
+        => new(
+            $"An action policy is applied to '{typeName}{(fieldName is null ? string.Empty : $".{fieldName}")}', "
+            + $"but {reason}, so its fetch cannot be gated. Fetching the guarded field and denying it "
+            + "afterward would violate fail-closed semantics for an action policy, so the operation "
+            + "plan is rejected instead.");
+
+    public static InvalidOperationException PolicyActionOccurrenceMissing(
+        string typeName,
+        string? fieldName)
+        => new(
+            $"An action policy for '{typeName}{(fieldName is null ? string.Empty : $".{fieldName}")}' has "
+            + "no compiled occurrence to evaluate against. An action policy must never be allowed by "
+            + "default when its occurrence cannot be resolved.");
+
+    public static InvalidOperationException PolicyOperationPlanMissing()
+        => new("There is no operation plan available for policy evaluation.");
+
     public static InvalidOperationException MissingBooleanVariable(string variableName)
         => new(string.Format(
             FusionExecutionResources.ExecutionNode_MissingBooleanVariable,
@@ -17,10 +77,61 @@ internal static class ThrowHelper
             FusionExecutionResources.OperationPlan_NodeNotFound,
             id));
 
+    public static InvalidOperationException InvalidOperationPlan(string message)
+        => new(message);
+
     public static InvalidOperationException IncrementalPlanParentNotFound(SelectionPath path)
         => new(string.Format(
             FusionExecutionResources.OperationPlan_IncrementalPlanParentNotFound,
             path));
+
+    public static InvalidOperationException DeferredPolicyRootNotAnchored(int nodeId)
+        => new(
+            "A deferred incremental plan contains an unanchored policy execution node "
+            + $"with id '{nodeId}'.");
+
+    public static InvalidOperationException NestedDeferredPolicyScopeNotSupported(
+        string coordinate,
+        string scope)
+        => new(
+            $"The deferred policy target '{coordinate}' in nested scope '{scope}' "
+            + "cannot be authorized from its immediate parent scope.");
+
+    public static InvalidOperationException DeferredSelectionPathCannotBeRebased(string responseName)
+        => new(
+            $"The deferred result path segment '{responseName}' cannot be resolved in the child operation.");
+
+    public static InvalidOperationException DeferredRequirementNotImported()
+        => new(
+            "A deferred incremental plan fetch references a requirement that was not imported.");
+
+    public static InvalidOperationException MixedDeferredRequirementScopes(
+        IEnumerable<string> imported,
+        IEnumerable<string> local)
+        => new(
+            "A deferred incremental plan fetch references a mix of imported parent-sourced and local "
+            + "requirement keys. Imported parent keys: ["
+            + string.Join(", ", imported)
+            + "]. Local requested keys: ["
+            + string.Join(", ", local)
+            + "].");
+
+    public static InvalidOperationException PolicyRequirementAuthorizationCycle(
+        string policyName,
+        string coordinate)
+        => new(
+            $"Authorization policy '{policyName}' requires protected field "
+            + $"'{coordinate}', which would create an authorization cycle.");
+
+    public static InvalidOperationException UnsupportedPolicyRequirementSelection(string policyName)
+        => new($"Authorization policy '{policyName}' has an unsupported requirement selection.");
+
+    public static InvalidOperationException PolicyRequirementFieldMissing(
+        string policyName,
+        string responseName)
+        => new(
+            $"Authorization policy '{policyName}' requires field '{responseName}', "
+            + "but the execution plan did not provide it.");
 
     public static InvalidOperationException MissingBatchResult(int operationId)
         => new(string.Format(

@@ -235,7 +235,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUserPostsAndComments_defer_3 {
+            query GetUserPostsAndComments_defer_2 {
               user(id: "1") {
                 id
               }
@@ -446,7 +446,6 @@ operationPlan:
         query GetUserPostsAndComments($postLimit: Int!, $commentLimit: Int!) {
           user(id: "1") {
             id
-            id @fusion__requirement
           }
         }
       name: GetUserPostsAndComments
@@ -475,10 +474,6 @@ operationPlan:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1
-      requirements:
-        - name: __fusion_1_id
-          selectionMap: >-
-            id
       nodes:
         - id: 1
           type: Operation
@@ -500,12 +495,12 @@ operationPlan:
           forwardedVariables:
             - postLimit
           dependencies:
-            - parentNodeId: 1
+            - id: 2
         - id: 2
           type: Operation
           schema: A
           operation: |
-            query GetUserPostsAndComments_defer_3 {
+            query GetUserPostsAndComments_defer_2 {
               user(id: "1") {
                 id
               }

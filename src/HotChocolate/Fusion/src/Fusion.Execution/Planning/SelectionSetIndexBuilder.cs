@@ -36,6 +36,9 @@ public sealed class SelectionSetIndexBuilder : ISelectionSetIndex, ISelectionSet
     public bool TryGetOriginalIdFromCloned(uint clonedId, out uint originalId)
         => _clonedToOriginalMap.TryGetValue(clonedId, out originalId);
 
+    public bool IsConcreteBranch(uint id)
+        => _concreteBranchScopes.ContainsKey(id);
+
     public bool IsRegistered(SelectionSetNode selectionSet)
         => _selectionSets.ContainsKey(selectionSet);
 

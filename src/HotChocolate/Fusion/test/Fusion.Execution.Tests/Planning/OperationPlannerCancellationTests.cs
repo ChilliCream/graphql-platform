@@ -50,7 +50,7 @@ public sealed class OperationPlannerCancellationTests : FusionTestBase
     private static OperationPlanner CreatePlanner(FusionSchemaDefinition schema)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
         var compiler = new OperationCompiler(schema, pool);
 
         return new OperationPlanner(schema, compiler);

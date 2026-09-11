@@ -51,6 +51,11 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("operation");
         WriteOperation(jsonWriter, plan.Operation);
 
+        if (trace is not null)
+        {
+            WritePolicyConditions(jsonWriter, plan);
+        }
+
         jsonWriter.WritePropertyName("searchSpace");
         jsonWriter.WriteNumberValue(plan.SearchSpace);
 
@@ -86,11 +91,67 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         WriteDeliveryGroups(jsonWriter, plan.DeliveryGroups);
         WriteIncrementalPlans(jsonWriter, plan.IncrementalPlans);
+        WriteIncludeConditions(jsonWriter, plan.IncludeConditions);
+        WritePolicyExpressions(jsonWriter, plan.PolicyExpressions);
+        WritePolicySlots(jsonWriter, plan.PolicySlots);
+        WritePolicies(jsonWriter, plan.Policies);
 
         jsonWriter.WriteEndObject();
     }
 
-    internal void Format(IBufferWriter<byte> writer, Operation operation, ImmutableArray<ExecutionNode> allNodes)
+    private static void WritePolicyConditions(JsonWriter jsonWriter, OperationPlan plan)
+    {
+        if (plan.PolicySlots.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        jsonWriter.WritePropertyName("policyConditions");
+        jsonWriter.WriteStartArray();
+
+        foreach (var slot in plan.PolicySlots)
+        {
+            foreach (var application in slot.Applications)
+            {
+                var expression = plan.PolicyExpressions[application.ExpressionOrdinal];
+                jsonWriter.WriteStartObject();
+                jsonWriter.WritePropertyName("slot");
+                jsonWriter.WriteStringValue(slot.VariableName);
+                jsonWriter.WritePropertyName("expression");
+                jsonWriter.WriteStringValue(PolicyNameGroups.Format(expression.Groups));
+                jsonWriter.WritePropertyName("coordinates");
+                jsonWriter.WriteStartArray();
+
+                foreach (var coordinate in slot.Coordinates)
+                {
+                    if (!coordinate.Applications.Any(t =>
+                        t.ExpressionOrdinal == application.ExpressionOrdinal))
+                    {
+                        continue;
+                    }
+
+                    jsonWriter.WriteStringValue(
+                        coordinate.FieldName is null
+                            ? coordinate.TypeName
+                            : $"{coordinate.TypeName}.{coordinate.FieldName}");
+                }
+
+                jsonWriter.WriteEndArray();
+                jsonWriter.WriteEndObject();
+            }
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+    internal void Format(
+        IBufferWriter<byte> writer,
+        Operation operation,
+        ImmutableArray<ExecutionNode> allNodes,
+        ImmutableArray<OperationIncludeCondition> includeConditions,
+        ImmutableArray<PolicyConditionExpression> policyExpressions,
+        ImmutableArray<PolicyConditionSlot> policySlots,
+        ImmutableArray<PolicyPlanEntry> policies)
     {
         var jsonWriter = new JsonWriter(writer, _writerOptions);
         jsonWriter.WriteStartObject();
@@ -101,7 +162,40 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("nodes");
         WriteNodes(jsonWriter, operation, allNodes, null);
 
+        WriteIncludeConditions(jsonWriter, includeConditions);
+        WritePolicyExpressions(jsonWriter, policyExpressions);
+        WritePolicySlots(jsonWriter, policySlots);
+        WritePolicies(jsonWriter, policies);
+
         jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteIncludeConditions(
+        JsonWriter jsonWriter,
+        ImmutableArray<OperationIncludeCondition> includeConditions)
+    {
+        jsonWriter.WritePropertyName("includeConditions");
+        jsonWriter.WriteStartArray();
+
+        foreach (var condition in includeConditions)
+        {
+            jsonWriter.WriteStartObject();
+            if (condition.SkipVariable is not null)
+            {
+                jsonWriter.WritePropertyName("skipVariable");
+                jsonWriter.WriteStringValue(condition.SkipVariable);
+            }
+
+            if (condition.IncludeVariable is not null)
+            {
+                jsonWriter.WritePropertyName("includeVariable");
+                jsonWriter.WriteStringValue(condition.IncludeVariable);
+            }
+
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
     }
 
     private static void WriteOperation(
@@ -176,6 +270,10 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
                 case NodeFieldExecutionNode nodeExecutionNode:
                     WriteNodeFieldNode(jsonWriter, operation, nodeExecutionNode, nodeTrace);
                     break;
+
+                case PolicyExecutionNode policyNode:
+                    WritePolicyNode(jsonWriter, operation, policyNode, nodeTrace);
+                    break;
             }
         }
 
@@ -233,6 +331,239 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         }
 
         jsonWriter.WriteEndObject();
+    }
+
+    private static void WritePolicyExpressions(
+        JsonWriter jsonWriter,
+        ImmutableArray<PolicyConditionExpression> policyExpressions)
+    {
+        if (policyExpressions.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        jsonWriter.WritePropertyName("policyExpressions");
+        jsonWriter.WriteStartArray();
+
+        foreach (var expression in policyExpressions)
+        {
+            jsonWriter.WriteStartObject();
+            jsonWriter.WritePropertyName("ordinal");
+            jsonWriter.WriteNumberValue(expression.Ordinal);
+            jsonWriter.WritePropertyName("names");
+            WritePolicyNameGroups(jsonWriter, expression.Groups);
+            jsonWriter.WritePropertyName("expression");
+            jsonWriter.WriteStringValue(expression.Format());
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WritePolicySlots(
+        JsonWriter jsonWriter,
+        ImmutableArray<PolicyConditionSlot> policySlots)
+    {
+        if (policySlots.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        jsonWriter.WritePropertyName("policySlots");
+        jsonWriter.WriteStartArray();
+
+        foreach (var slot in policySlots)
+        {
+            jsonWriter.WriteStartObject();
+
+            jsonWriter.WritePropertyName("ordinal");
+            jsonWriter.WriteNumberValue(slot.Ordinal);
+
+            jsonWriter.WritePropertyName("variable");
+            jsonWriter.WriteStringValue("$" + slot.VariableName);
+
+            jsonWriter.WritePropertyName("applications");
+            jsonWriter.WriteStartArray();
+
+            foreach (var application in slot.Applications)
+            {
+                jsonWriter.WriteStartObject();
+                jsonWriter.WritePropertyName("expressionOrdinal");
+                jsonWriter.WriteNumberValue(application.ExpressionOrdinal);
+                jsonWriter.WritePropertyName("onDenied");
+                jsonWriter.WriteStringValue(application.OnDenied.ToString());
+                jsonWriter.WriteEndObject();
+            }
+
+            jsonWriter.WriteEndArray();
+
+            jsonWriter.WritePropertyName("rmax");
+            jsonWriter.WriteStringValue(slot.Rmax.ToString());
+
+            jsonWriter.WritePropertyName("guardMasks");
+            WriteConditionMasks(jsonWriter, slot.GuardMasks);
+
+            jsonWriter.WritePropertyName("coordinates");
+            jsonWriter.WriteStartArray();
+
+            foreach (var coordinate in slot.Coordinates)
+            {
+                jsonWriter.WriteStartObject();
+                jsonWriter.WritePropertyName("occurrences");
+                jsonWriter.WriteStartArray();
+                foreach (var occurrence in coordinate.Occurrences)
+                {
+                    WritePolicyOccurrence(jsonWriter, occurrence);
+                }
+                jsonWriter.WriteEndArray();
+
+                jsonWriter.WritePropertyName("typeName");
+                jsonWriter.WriteStringValue(coordinate.TypeName);
+
+                if (coordinate.FieldName is not null)
+                {
+                    jsonWriter.WritePropertyName("fieldName");
+                    jsonWriter.WriteStringValue(coordinate.FieldName);
+                }
+
+                jsonWriter.WritePropertyName("responseNames");
+                jsonWriter.WriteStartArray();
+                foreach (var responseName in coordinate.ResponseNames)
+                {
+                    jsonWriter.WriteStringValue(responseName);
+                }
+                jsonWriter.WriteEndArray();
+
+                jsonWriter.WritePropertyName("applications");
+                jsonWriter.WriteStartArray();
+                foreach (var application in coordinate.Applications)
+                {
+                    jsonWriter.WriteStartObject();
+                    jsonWriter.WritePropertyName("expressionOrdinal");
+                    jsonWriter.WriteNumberValue(application.ExpressionOrdinal);
+                    jsonWriter.WritePropertyName("onDenied");
+                    jsonWriter.WriteStringValue(application.OnDenied.ToString());
+                    jsonWriter.WriteEndObject();
+                }
+                jsonWriter.WriteEndArray();
+
+                jsonWriter.WritePropertyName("isRoot");
+                jsonWriter.WriteBooleanValue(coordinate.IsRoot);
+                jsonWriter.WritePropertyName("liveGuardMasks");
+                WriteConditionMasks(jsonWriter, coordinate.LiveGuardMasks);
+                jsonWriter.WritePropertyName("gateGuardMasks");
+                WriteConditionMasks(jsonWriter, coordinate.GateGuardMasks);
+
+                if (coordinate.Requirements.Length > 0)
+                {
+                    jsonWriter.WritePropertyName("requirements");
+                    jsonWriter.WriteStartArray();
+
+                    foreach (var requirement in coordinate.Requirements)
+                    {
+                        jsonWriter.WriteStartObject();
+                        jsonWriter.WritePropertyName("name");
+                        jsonWriter.WriteStringValue(requirement.PolicyName);
+                        jsonWriter.WritePropertyName("selectionSet");
+                        jsonWriter.WriteStringValue(requirement.SelectionSet.ToString(indented: false));
+                        jsonWriter.WriteEndObject();
+                    }
+
+                    jsonWriter.WriteEndArray();
+                }
+
+                jsonWriter.WriteEndObject();
+            }
+
+            jsonWriter.WriteEndArray();
+
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WriteConditionMasks(
+        JsonWriter jsonWriter,
+        ImmutableArray<ConditionFlags> masks)
+    {
+        jsonWriter.WriteStartArray();
+
+        foreach (var mask in masks)
+        {
+            WriteConditionMask(jsonWriter, mask);
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WriteConditionMask(JsonWriter jsonWriter, ConditionFlags mask)
+    {
+        var overflow = mask.Overflow;
+        var lastWord = overflow?.Length ?? 0;
+
+        while (lastWord > 0 && overflow![lastWord - 1] == 0)
+        {
+            lastWord--;
+        }
+
+        if (lastWord == 0)
+        {
+            jsonWriter.WriteNumberValue(mask.Word0);
+            return;
+        }
+
+        jsonWriter.WriteStartArray();
+        jsonWriter.WriteNumberValue(mask.Word0);
+
+        for (var i = 0; i < lastWord; i++)
+        {
+            jsonWriter.WriteNumberValue(overflow![i]);
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WritePolicyNameGroups(
+        JsonWriter jsonWriter,
+        ImmutableArray<ImmutableArray<string>> groups)
+    {
+        jsonWriter.WriteStartArray();
+        foreach (var group in groups)
+        {
+            jsonWriter.WriteStartArray();
+            foreach (var name in group)
+            {
+                jsonWriter.WriteStringValue(name);
+            }
+            jsonWriter.WriteEndArray();
+        }
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WritePolicies(
+        JsonWriter jsonWriter,
+        ImmutableArray<PolicyPlanEntry> policies)
+    {
+        if (policies.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        jsonWriter.WritePropertyName("policies");
+        jsonWriter.WriteStartArray();
+
+        foreach (var policy in policies)
+        {
+            jsonWriter.WriteStartObject();
+            jsonWriter.WritePropertyName("name");
+            jsonWriter.WriteStringValue(policy.PolicyName);
+            jsonWriter.WritePropertyName("requirementHash");
+            jsonWriter.WriteNumberValue(policy.RequirementHash);
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
     }
 
     private static void WriteIncrementalPlans(
@@ -1145,6 +1476,136 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         TryWriteNodeTrace(jsonWriter, operation, trace);
 
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WritePolicyNode(
+        JsonWriter jsonWriter,
+        Operation operation,
+        PolicyExecutionNode node,
+        ExecutionNodeTrace? trace)
+    {
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(node.Id);
+
+        jsonWriter.WritePropertyName("type");
+        jsonWriter.WriteStringValue(node.Type.ToString());
+
+        jsonWriter.WritePropertyName("targets");
+        jsonWriter.WriteStartArray();
+
+        foreach (var target in node.Targets)
+        {
+            jsonWriter.WriteStartObject();
+
+            jsonWriter.WritePropertyName("occurrences");
+            jsonWriter.WriteStartArray();
+            foreach (var occurrence in target.Occurrences)
+            {
+                WritePolicyOccurrence(jsonWriter, occurrence);
+            }
+            jsonWriter.WriteEndArray();
+
+            jsonWriter.WritePropertyName("kind");
+            jsonWriter.WriteStringValue(target.Kind.ToString());
+
+            jsonWriter.WritePropertyName("path");
+            jsonWriter.WriteStringValue(target.Path.ToString());
+
+            jsonWriter.WritePropertyName("typeName");
+            jsonWriter.WriteStringValue(target.TypeName);
+
+            jsonWriter.WritePropertyName("policies");
+            jsonWriter.WriteStartArray();
+
+            foreach (var policy in target.Policies)
+            {
+                jsonWriter.WriteStartObject();
+
+                jsonWriter.WritePropertyName("names");
+                jsonWriter.WriteStartArray();
+
+                foreach (var group in policy.Groups)
+                {
+                    jsonWriter.WriteStartArray();
+
+                    foreach (var name in group)
+                    {
+                        jsonWriter.WriteStringValue(name);
+                    }
+
+                    jsonWriter.WriteEndArray();
+                }
+
+                jsonWriter.WriteEndArray();
+
+                jsonWriter.WritePropertyName("onDenied");
+                jsonWriter.WriteStringValue(policy.OnDenied.ToString());
+
+                jsonWriter.WriteEndObject();
+            }
+
+            jsonWriter.WriteEndArray();
+
+            if (target.Requirements.Length > 0)
+            {
+                jsonWriter.WritePropertyName("requirements");
+                jsonWriter.WriteStartArray();
+
+                foreach (var requirement in target.Requirements)
+                {
+                    jsonWriter.WriteStartObject();
+
+                    jsonWriter.WritePropertyName("name");
+                    jsonWriter.WriteStringValue(requirement.PolicyName);
+
+                    jsonWriter.WritePropertyName("selectionSet");
+                    jsonWriter.WriteStringValue(requirement.SelectionSet.ToString(indented: false));
+
+                    jsonWriter.WriteEndObject();
+                }
+
+                jsonWriter.WriteEndArray();
+            }
+
+            WriteConditions(jsonWriter, target.Conditions);
+
+            jsonWriter.WriteEndObject();
+        }
+
+        jsonWriter.WriteEndArray();
+
+        WriteConditions(jsonWriter, node.Conditions);
+
+        WriteDependencies(jsonWriter, node.Dependencies, node.ParentDependencies);
+
+        TryWriteNodeTrace(jsonWriter, operation, trace);
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WritePolicyOccurrence(
+        JsonWriter jsonWriter,
+        PolicyOccurrenceReference occurrence)
+    {
+        jsonWriter.WriteStartObject();
+        jsonWriter.WritePropertyName("planPart");
+        jsonWriter.WriteNumberValue(occurrence.PlanPart);
+        jsonWriter.WritePropertyName("selectionSetId");
+        jsonWriter.WriteNumberValue(occurrence.SelectionSetId);
+        jsonWriter.WritePropertyName("selectionId");
+        jsonWriter.WriteNumberValue(occurrence.SelectionId);
+        jsonWriter.WritePropertyName("occurrenceOrdinal");
+        jsonWriter.WriteNumberValue(occurrence.OccurrenceOrdinal);
+        jsonWriter.WritePropertyName("applicationOrdinal");
+        jsonWriter.WriteNumberValue(occurrence.ApplicationOrdinal);
+        jsonWriter.WritePropertyName("facet");
+        jsonWriter.WriteStringValue(
+            occurrence.Facet is PolicyOccurrenceFacet.SlotGate
+                ? "slot-gate"
+                : "residual-eval");
         jsonWriter.WriteEndObject();
     }
 

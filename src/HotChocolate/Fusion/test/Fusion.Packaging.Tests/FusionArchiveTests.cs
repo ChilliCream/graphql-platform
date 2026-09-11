@@ -593,7 +593,7 @@ public class FusionArchiveTests : IDisposable
 
         var signatureInfo = await archive.GetSignatureInfoAsync(TestContext.Current.CancellationToken);
         Assert.NotNull(signatureInfo);
-        Assert.Equal("SHA256", signatureInfo.Algorithm);
+        Assert.Equal("sha256", signatureInfo.Algorithm);
         Assert.NotNull(signatureInfo.SignerCertificate);
     }
 

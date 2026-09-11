@@ -13,6 +13,8 @@ namespace HotChocolate.Fusion.Planning;
 /// The <see cref="OperationDefinitionNode"/> for the incremental plan, or
 /// <c>null</c> when planning produced no operation.
 /// </param>
+/// <param name="PolicySlots">The operation-wide policy registry after planning this incremental part.</param>
 internal readonly record struct DeferIncrementalPlanResult(
     ImmutableList<PlanStep> Steps,
-    OperationDefinitionNode? InternalOperationDefinition);
+    OperationDefinitionNode? InternalOperationDefinition,
+    OperationPlanner.PolicySlotRegistry PolicySlots);

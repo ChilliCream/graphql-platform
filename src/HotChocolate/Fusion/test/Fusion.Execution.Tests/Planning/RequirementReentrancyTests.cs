@@ -1,3 +1,4 @@
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Planning;
@@ -52,8 +53,8 @@ public class RequirementReentrancyTests : FusionTestBase
                   }
                 name: getProducts
                 hash: 123456789101112
-                searchSpace: 3
-                expandedNodes: 9
+                searchSpace: 2
+                expandedNodes: 6
             nodes:
               - id: 1
                 type: Operation
@@ -65,15 +66,15 @@ public class RequirementReentrancyTests : FusionTestBase
                       id
                     }
                   }
-              - id: 3
+              - id: 2
                 type: Operation
                 schema: RECOMMENDATION
                 operation: |
-                  query getProducts_123456789101112_3(
+                  query getProducts_123456789101112_2(
+                    $__fusion_1_id: ID!
                     $__fusion_2_category: ProductCategory!
-                    $__fusion_3_id: ID!
                   ) {
-                    productById(id: $__fusion_3_id) {
+                    productById(id: $__fusion_1_id) {
                       recommendations(category: $__fusion_2_category) {
                         product {
                           id
@@ -84,31 +85,31 @@ public class RequirementReentrancyTests : FusionTestBase
                 source: $.productById
                 target: $.products
                 requirements:
+                  - name: __fusion_1_id
+                    selectionMap: >-
+                      id
                   - name: __fusion_2_category
                     selectionMap: >-
                       category
-                  - name: __fusion_3_id
-                    selectionMap: >-
-                      id
                 dependencies:
                   - id: 1
-              - id: 4
+              - id: 3
                 type: Operation
                 schema: CATALOG
                 operation: |
-                  query getProducts_123456789101112_4($__fusion_4_id: ID!) {
-                    productById(id: $__fusion_4_id) {
+                  query getProducts_123456789101112_3($__fusion_3_id: ID!) {
+                    productById(id: $__fusion_3_id) {
                       category
                     }
                   }
                 source: $.productById
                 target: $.products.recommendations.product
                 requirements:
-                  - name: __fusion_4_id
+                  - name: __fusion_3_id
                     selectionMap: >-
                       id
                 dependencies:
-                  - id: 3
+                  - id: 2
             """);
     }
 
@@ -285,6 +286,43 @@ public class RequirementReentrancyTests : FusionTestBase
 
         // assert
         MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Node_ConcreteFragment_Should_HaveExactDownstreamDispatchMatrix()
+    {
+        // arrange
+        var plan = PlanOperation(
+            CreateRequiredFieldSchema(),
+            """
+            query GetProduct($id: ID!, $include: Boolean!) {
+              node(id: $id) {
+                ... on Product @include(if: $include) {
+                  reviews {
+                    author {
+                      name
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        // act
+        var dispatches = new[]
+        {
+            GetConditionEligibleOperations(plan, include: false),
+            GetConditionEligibleOperations(plan, include: true)
+        };
+
+        // assert
+        dispatches.MatchInlineSnapshot(
+            """
+            [
+              ":$:GetProduct_123456789101112_2, PRODUCTS:$:GetProduct_123456789101112_3",
+              ":$:GetProduct_123456789101112_2, PRODUCTS:$:GetProduct_123456789101112_3, REVIEWS:$.node<Product>:GetProduct_123456789101112_4, USERS:$.node<Product>.reviews.author:GetProduct_123456789101112_5"
+            ]
+            """);
     }
 
     [Fact]
@@ -476,8 +514,8 @@ public class RequirementReentrancyTests : FusionTestBase
                   }
                 name: GetSupplier
                 hash: 123456789101112
-                searchSpace: 3
-                expandedNodes: 9
+                searchSpace: 2
+                expandedNodes: 6
             nodes:
               - id: 1
                 type: Operation
@@ -492,15 +530,15 @@ public class RequirementReentrancyTests : FusionTestBase
                       }
                     }
                   }
-              - id: 3
+              - id: 2
                 type: Operation
                 schema: RATINGS
                 operation: |
-                  query GetSupplier_123456789101112_3(
+                  query GetSupplier_123456789101112_2(
+                    $__fusion_1_dbId: Int!
                     $__fusion_2_isEligibleForHighlyRecommended: Boolean!
-                    $__fusion_3_dbId: Int!
                   ) {
-                    supplierByDbId(dbId: $__fusion_3_dbId) {
+                    supplierByDbId(dbId: $__fusion_1_dbId) {
                       rating(
                         isEligibleForHighlyRecommended: $__fusion_2_isEligibleForHighlyRecommended
                       ) {
@@ -519,20 +557,20 @@ public class RequirementReentrancyTests : FusionTestBase
                 source: $.supplierByDbId
                 target: $.supplierBySlug<Supplier>
                 requirements:
+                  - name: __fusion_1_dbId
+                    selectionMap: >-
+                      dbId
                   - name: __fusion_2_isEligibleForHighlyRecommended
                     selectionMap: >-
                       _isEligibleForHighlyRecommended
-                  - name: __fusion_3_dbId
-                    selectionMap: >-
-                      dbId
                 dependencies:
                   - id: 1
-              - id: 4
+              - id: 3
                 type: Operation
                 schema: BOOKINGS
                 operation: |
-                  query GetSupplier_123456789101112_4($__fusion_4_dbId: Int!) {
-                    bookingByDbId(dbId: $__fusion_4_dbId) {
+                  query GetSupplier_123456789101112_3($__fusion_3_dbId: Int!) {
+                    bookingByDbId(dbId: $__fusion_3_dbId) {
                       customer {
                         firstName
                       }
@@ -541,11 +579,11 @@ public class RequirementReentrancyTests : FusionTestBase
                 source: $.bookingByDbId
                 target: $.supplierBySlug<Supplier>.rating.reviews.edges.node.booking
                 requirements:
-                  - name: __fusion_4_dbId
+                  - name: __fusion_3_dbId
                     selectionMap: >-
                       dbId
                 dependencies:
-                  - id: 3
+                  - id: 2
             """);
     }
 
@@ -626,6 +664,56 @@ public class RequirementReentrancyTests : FusionTestBase
               name: String
             }
             """);
+
+    private static string GetConditionEligibleOperations(OperationPlan plan, bool include)
+    {
+        var eligibility = new Dictionary<IOperationPlanNode, bool>();
+
+        return string.Join(
+            ", ",
+            plan.AllNodes
+                .OfType<OperationExecutionNode>()
+                .Where(IsEligible)
+                .Select(node => $"{node.SchemaName}:{node.Target}:{node.Operation.Name}"));
+
+        bool IsEligible(IOperationPlanNode node)
+        {
+            if (eligibility.TryGetValue(node, out var eligible))
+            {
+                return eligible;
+            }
+
+            eligible = node is not ExecutionNode executionNode
+                || ConditionsMatch(executionNode.Conditions, include);
+            foreach (var dependency in node.Dependencies)
+            {
+                if (!IsEligible(dependency))
+                {
+                    eligible = false;
+                    break;
+                }
+            }
+
+            eligibility[node] = eligible;
+            return eligible;
+        }
+    }
+
+    private static bool ConditionsMatch(
+        ReadOnlySpan<ExecutionNodeCondition> conditions,
+        bool include)
+    {
+        foreach (var condition in conditions)
+        {
+            if (!condition.VariableName.Equals("include", StringComparison.Ordinal)
+                || include != condition.PassingValue)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private static FusionSchemaDefinition CreateRecommendationSchema()
     {

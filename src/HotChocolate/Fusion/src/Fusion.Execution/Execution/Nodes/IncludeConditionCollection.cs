@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Immutable;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
@@ -16,6 +17,38 @@ internal class IncludeConditionCollection : ICollection<IncludeCondition>
         => _dictionary.GetAt(index).Key;
 
     public int Count => _dictionary.Count;
+
+    public ImmutableArray<OperationIncludeCondition> ToImmutableArray()
+    {
+        var builder = ImmutableArray.CreateBuilder<OperationIncludeCondition>(_dictionary.Count);
+
+        foreach (var condition in _dictionary.Keys)
+        {
+            builder.Add(new OperationIncludeCondition
+            {
+                SkipVariable = condition.Skip,
+                IncludeVariable = condition.Include
+            });
+        }
+
+        return builder.MoveToImmutable();
+    }
+
+    public static IncludeConditionCollection Create(
+        ImmutableArray<OperationIncludeCondition> conditions,
+        int maxAllowedConditions)
+    {
+        var collection = new IncludeConditionCollection(maxAllowedConditions);
+
+        foreach (var condition in conditions)
+        {
+            collection.Add(new IncludeCondition(
+                condition.SkipVariable,
+                condition.IncludeVariable));
+        }
+
+        return collection;
+    }
 
     public bool IsReadOnly => false;
 

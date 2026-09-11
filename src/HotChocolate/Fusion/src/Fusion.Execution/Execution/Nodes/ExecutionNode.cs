@@ -85,14 +85,13 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
 
         try
         {
-            scope = CreateScope(context);
-
             if (IsSkipped(context))
             {
                 status = ExecutionStatus.Skipped;
             }
             else
             {
+                scope = CreateScope(context);
                 status = await OnExecuteAsync(context, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -139,7 +138,7 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(dependent);
 
-        context.EnqueueForExecution(this, dependent);
+        context.EnqueueDependent(this, dependent);
     }
 
     internal void AddDependency(IOperationPlanNode node)

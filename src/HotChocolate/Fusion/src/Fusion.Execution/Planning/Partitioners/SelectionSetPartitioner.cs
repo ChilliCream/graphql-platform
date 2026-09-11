@@ -26,6 +26,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             PruneUnprovidedAbstractBranches = input.PruneUnprovidedAbstractBranches,
             TreatSourceExternalAsUnresolvable = input.TreatSourceExternalAsUnresolvable
         };
+        context.PushConditions(input.Conditions);
 
         var (resolvable, _) =
             RewriteSelectionSet(
@@ -50,6 +51,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             resolvable,
             context.Unresolvable,
             context.FieldsWithRequirements,
+            context.PolicyTargets,
             context.SelectionSetIndex);
     }
 
@@ -617,6 +619,9 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             return (null, null);
         }
 
+        TryAddFieldPolicyTarget(context, complexType, field, fieldNode);
+        TryAddReturnedObjectPolicyTarget(context, field, fieldNode);
+
         var selectionSet = fieldNode.SelectionSet;
 
         if (selectionSet is not null)
@@ -800,8 +805,10 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             // parent is concrete, discard sibling concrete fragments that can no longer apply.
             // Supertype fragments remain applicable because their possible types include the
             // concrete parent.
-            if (type is FusionObjectTypeDefinition objectType
-                && !ContainsType(schema.GetPossibleTypes(typeCondition, includeInaccessible: true), objectType))
+            if (type is FusionObjectTypeDefinition concreteParentType
+                && !ContainsType(
+                    schema.GetPossibleTypes(typeCondition, includeInaccessible: true),
+                    concreteParentType))
             {
                 return (null, null);
             }
@@ -865,6 +872,11 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 providerSchemas,
                 allowedRuntimeTypes,
                 entryKeyCoverage);
+
+        if (resolvable is not null)
+        {
+            TryAddObjectPolicyTargets(context, typeCondition, context.BuildPath());
+        }
 
         context.Nodes.Pop();
 
@@ -1304,6 +1316,72 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         public ImmutableStack<ConditionedFieldSelection> FieldsWithRequirements { get; set; } = [];
 
+        private readonly List<ConditionalPolicyExecutionTarget> _policyTargets = [];
+
+        public ImmutableStack<ConditionalPolicyExecutionTarget> PolicyTargets
+        {
+            get
+            {
+                var targets = ImmutableStack<ConditionalPolicyExecutionTarget>.Empty;
+                foreach (var target in _policyTargets)
+                {
+                    targets = targets.Push(target);
+                }
+
+                return targets;
+            }
+        }
+
+        public Dictionary<string, int> PolicyTargetIndices { get; } = new(StringComparer.Ordinal);
+
+        public void AddPolicyTarget(
+            string key,
+            ConditionalPolicyExecutionTarget target)
+        {
+            if (!PolicyTargetIndices.TryGetValue(key, out var index))
+            {
+                PolicyTargetIndices.Add(key, _policyTargets.Count);
+                _policyTargets.Add(target);
+                return;
+            }
+
+            var current = _policyTargets[index];
+            var occurrence = target.Occurrences[0];
+            foreach (var existing in current.Occurrences)
+            {
+                if (ConditionsEqual(existing.Conditions, occurrence.Conditions)
+                    && existing.GateEligible == occurrence.GateEligible)
+                {
+                    return;
+                }
+            }
+
+            _policyTargets[index] = current with
+            {
+                Occurrences = current.Occurrences.Add(occurrence)
+            };
+        }
+
+        private static bool ConditionsEqual(
+            ExecutionNodeCondition[] left,
+            ExecutionNodeCondition[] right)
+        {
+            if (left.Length != right.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < left.Length; i++)
+            {
+                if (!left[i].Equals(right[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         public List<ISyntaxNode> Nodes { get; } = [];
 
         private List<ExecutionNodeCondition> ActiveConditions { get; } = [];
@@ -1384,6 +1462,112 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
     {
         var hasTypedShape = false;
         return HasApplicableType(typeCondition, providedSelectionSet, ref hasTypedShape) || !hasTypedShape;
+    }
+
+    private static void TryAddFieldPolicyTarget(
+        Context context,
+        FusionComplexTypeDefinition declaringType,
+        FusionOutputFieldDefinition field,
+        FieldNode fieldNode)
+    {
+        if (field.PolicyApplications.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        var path = context.BuildPath().AppendField(fieldNode.Alias?.Value ?? fieldNode.Name.Value);
+
+        AddPolicyTarget(
+            context,
+            PolicyTargetKind.Field,
+            path,
+            declaringType.Name,
+            field.Name,
+            field.PolicyApplications.ToArray(),
+            gateEligible: true);
+    }
+
+    private void TryAddReturnedObjectPolicyTarget(
+        Context context,
+        FusionOutputFieldDefinition field,
+        FieldNode fieldNode)
+    {
+        TryAddObjectPolicyTargets(
+            context,
+            field.Type.NamedType(),
+            context.BuildPath().AppendField(fieldNode.Alias?.Value ?? fieldNode.Name.Value));
+    }
+
+    private void TryAddObjectPolicyTargets(
+        Context context,
+        ITypeDefinition type,
+        SelectionPath path)
+    {
+        if (type is FusionObjectTypeDefinition objectType)
+        {
+            TryAddObjectPolicyTarget(context, objectType, path, gateEligible: true);
+            return;
+        }
+
+        if (type is not FusionInterfaceTypeDefinition and not FusionUnionTypeDefinition)
+        {
+            return;
+        }
+
+        foreach (var possibleType in schema.GetPossibleTypes(type, includeInaccessible: true))
+        {
+            TryAddObjectPolicyTarget(context, possibleType, path, gateEligible: false);
+        }
+    }
+
+    private static void TryAddObjectPolicyTarget(
+        Context context,
+        FusionObjectTypeDefinition objectType,
+        SelectionPath path,
+        bool gateEligible)
+    {
+        if (objectType.PolicyApplications.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        AddPolicyTarget(
+            context,
+            PolicyTargetKind.Object,
+            path,
+            objectType.Name,
+            fieldName: null,
+            objectType.PolicyApplications.ToArray(),
+            gateEligible);
+    }
+
+    private static void AddPolicyTarget(
+        Context context,
+        PolicyTargetKind kind,
+        SelectionPath path,
+        string typeName,
+        string? fieldName,
+        PolicyApplication[] policies,
+        bool gateEligible)
+    {
+        var key = $"{kind}:{path}:{typeName}:{fieldName}";
+
+        var conditions = context.SnapshotConditions();
+        var target = new PolicyExecutionTarget
+        {
+            Kind = kind,
+            Path = path,
+            TypeName = typeName,
+            Policies = policies,
+            Conditions = conditions
+        };
+
+        context.AddPolicyTarget(
+            key,
+            new ConditionalPolicyExecutionTarget(
+                target,
+                [new PolicyTargetOccurrence(conditions, gateEligible)],
+                fieldName));
     }
 
     private bool HasApplicableType(

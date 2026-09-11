@@ -13,7 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Types" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Composition" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
   </ItemGroup>
 
   <ItemGroup>

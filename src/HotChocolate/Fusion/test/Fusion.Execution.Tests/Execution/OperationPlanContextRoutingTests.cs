@@ -26,6 +26,20 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
     private static readonly FusionSchemaDefinition s_schema = CreateCompositeSchema();
 
     [Fact]
+    public async Task Initialize_Should_AcceptIncrementalPlan_When_PinningPolicies()
+    {
+        // arrange
+        await using var fixture = await RoutingTestFixture.CreateAsync();
+        var incrementalPlan = fixture.CreateIncrementalPlan();
+
+        // act
+        var context = fixture.CreateContext(incrementalPlan);
+
+        // assert
+        Assert.Same(incrementalPlan, context.OperationPlan);
+    }
+
+    [Fact]
     public async Task CreateVariableValueSets_Should_RouteThroughResultStore_When_RequirementKeysIsNull()
     {
         // arrange
@@ -367,7 +381,17 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
 
         public ExecutionNode GetRootNode() => _operationPlan.RootNodes[0];
 
-        public OperationPlanContext CreateContext()
+        public IncrementalPlan CreateIncrementalPlan()
+            => new(
+                _operationPlan.Operation,
+                _operationPlan.RootNodes,
+                _operationPlan.AllNodes,
+                [],
+                []);
+
+        public OperationPlanContext CreateContext() => CreateContext(_operationPlan);
+
+        public OperationPlanContext CreateContext(IOperationPlan operationPlan)
         {
             var pool = _executor.Schema.Services.GetRequiredService<OperationPlanContextPool>();
             var context = pool.Rent();
@@ -400,7 +424,12 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             // The request executor always attaches a memory arena to the request before a plan
             // runs. The arena is supplied explicitly here because this fixture does not go through
             // the request executor that would otherwise attach it to the request context.
-            context.Initialize(requestContext, _variables, _operationPlan, cts, new MemoryArena());
+            context.Initialize(
+                requestContext,
+                _variables,
+                operationPlan,
+                cts,
+                new MemoryArena());
             _rentedContexts.Add(context);
             return context;
         }
@@ -414,7 +443,7 @@ public sealed class OperationPlanContextRoutingTests : FusionTestBase
             _stores.Add(sourceStore);
 
             var entry = sourceStore.CreateVariableValueSets(CompactPath.Root, fields);
-            context.SetRequirements([entry], keys);
+            context.SetRequirements([entry], keys, context.OperationPlan.Operation);
         }
 
         public async ValueTask DisposeAsync()

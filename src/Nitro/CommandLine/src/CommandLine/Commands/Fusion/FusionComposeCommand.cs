@@ -607,6 +607,12 @@ internal sealed class FusionComposeCommand : Command
                 archiveFile,
                 cancellationToken);
 
+            if (archive.IsSigned)
+            {
+                await archive.RemoveSignatureAsync(cancellationToken);
+                console.Error.WriteErrorLine(Messages.FusionArchiveSignatureRemoved);
+            }
+
             if (removeSourceSchemas.Count > 0)
             {
                 var sourceSchemaNames = await archive.GetSourceSchemaNamesAsync(cancellationToken);

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
@@ -52,7 +49,7 @@ public class CorpusPlanningBenchmark
 
         var rewriter = new DocumentRewriter(schema);
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
         var compiler = new OperationCompiler(schema, pool);
         _planner = new OperationPlanner(schema, compiler);
 

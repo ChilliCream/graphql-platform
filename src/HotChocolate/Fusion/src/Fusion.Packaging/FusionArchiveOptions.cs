@@ -19,4 +19,14 @@ public struct FusionArchiveOptions
     /// Gets or sets the maximum allowed size of the legacy archive in the archive.
     /// </summary>
     public int? MaxAllowedLegacyArchiveSize { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum allowed size of a policy implementation in the archive.
+    /// </summary>
+    public int? MaxAllowedPolicySize { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum allowed size of a single Rego data mount in the archive.
+    /// </summary>
+    public int? MaxAllowedPolicyDataSize { get; set; }
 }

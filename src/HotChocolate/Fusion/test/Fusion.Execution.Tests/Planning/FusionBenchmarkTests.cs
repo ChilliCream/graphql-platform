@@ -1,4 +1,5 @@
 using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -52,6 +53,215 @@ public class FusionBenchmarkTests : FusionTestBase
 
         // assert
         MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Conditional_Redundancy_Query_Should_HaveExactDownstreamDispatchMatrix()
+    {
+        // arrange
+        var plan = PlanOperation(
+            CreateSchema(),
+            CreateConditionalRedundancyDocument().ToString());
+        var allFalse = new Dictionary<string, bool>
+        {
+            ["includeExpensive"] = false,
+            ["includeReviews"] = false,
+            ["includeMetadata"] = false,
+            ["includeDetails"] = false
+        };
+        var reviewsAndDetails = new Dictionary<string, bool>(allFalse)
+        {
+            ["includeReviews"] = true,
+            ["includeDetails"] = true
+        };
+        var allTrue = allFalse.ToDictionary(entry => entry.Key, _ => true);
+
+        // act
+        var dispatches = new[]
+        {
+            GetConditionEligibleDownstreamOperations(plan, allFalse),
+            GetConditionEligibleDownstreamOperations(plan, reviewsAndDetails),
+            GetConditionEligibleDownstreamOperations(plan, allTrue)
+        };
+
+        // assert
+        dispatches.MatchInlineSnapshot(
+            """
+            [
+              "reviews:$:Op_123456789101112_1, products:$:Op_123456789101112_2, search:$:Op_123456789101112_3, products:$.searchContent<Product>:Op_123456789101112_6, users:$:Op_123456789101112_10, reviews:$.searchContent<Product>:Op_123456789101112_5, reviews:$.products.edges.node:Op_123456789101112_7, reviews:$.productById:Op_123456789101112_8",
+              "reviews:$:Op_123456789101112_1, products:$:Op_123456789101112_2, search:$:Op_123456789101112_3, products:$.searchContent<Product>:Op_123456789101112_6, users:$.productById.reviews.edges.node.author:Op_123456789101112_9, users:$:Op_123456789101112_10, reviews:$.viewer.reviews.edges.node.author.reviews.nodes:Op_123456789101112_12, users:$.searchContent<Article>.author:Op_123456789101112_4, users:$.viewer.reviews.edges.node.author:Op_123456789101112_11, reviews:$.searchContent<Product>:Op_123456789101112_5, reviews:$.products.edges.node:Op_123456789101112_7, reviews:$.productById:Op_123456789101112_8",
+              "reviews:$:Op_123456789101112_1, products:$:Op_123456789101112_2, search:$:Op_123456789101112_3, products:$.searchContent<Product>:Op_123456789101112_6, users:$.productById.reviews.edges.node.author:Op_123456789101112_9, users:$:Op_123456789101112_10, reviews:$.viewer.reviews.edges.node.author.reviews.nodes:Op_123456789101112_12, users:$.searchContent<Article>.author:Op_123456789101112_4, users:$.viewer.reviews.edges.node.author:Op_123456789101112_11, reviews:$.searchContent<Product>:Op_123456789101112_5, reviews:$.products.edges.node:Op_123456789101112_7, reviews:$.productById:Op_123456789101112_8"
+            ]
+            """);
+    }
+
+    [Fact]
+    public void Complex_Query_Should_HaveExactDownstreamDispatchMatrix()
+    {
+        // arrange
+        var plan = PlanOperation(CreateSchema(), CreateComplexDocument().ToString());
+        var allFalse = new Dictionary<string, bool>
+        {
+            ["level1"] = false,
+            ["level2"] = false,
+            ["level3"] = false,
+            ["level4"] = false,
+            ["level5"] = false,
+            ["level6"] = false,
+            ["includeExpensive"] = false,
+            ["includeReviews"] = false,
+            ["includeMetadata"] = false
+        };
+        var alternating = new Dictionary<string, bool>(allFalse)
+        {
+            ["level1"] = true,
+            ["level3"] = true,
+            ["level5"] = true,
+            ["includeReviews"] = true
+        };
+        var allTrue = allFalse.ToDictionary(entry => entry.Key, _ => true);
+
+        // act
+        var dispatches = new[]
+        {
+            GetConditionEligibleDownstreamOperations(plan, allFalse),
+            GetConditionEligibleDownstreamOperations(plan, alternating),
+            GetConditionEligibleDownstreamOperations(plan, allTrue)
+        };
+
+        // assert
+        dispatches.MatchInlineSnapshot(
+            """
+            [
+              "reviews:$:Op_123456789101112_1, products:$:Op_123456789101112_2, search:$:Op_123456789101112_3, products:$.searchContent<Product>:Op_123456789101112_10, users:$:Op_123456789101112_25, users:$.searchContent<Article>.author:Op_123456789101112_4, reviews:$.products.edges.node:Op_123456789101112_17",
+              "reviews:$:Op_123456789101112_1, products:$:Op_123456789101112_2, search:$:Op_123456789101112_3, products:$.searchContent<Product>:Op_123456789101112_10, users:$:Op_123456789101112_25, users:$.searchContent<Article>.author:Op_123456789101112_4, users:$.viewer.reviews.edges.node.author:Op_123456789101112_26, reviews:$.searchContent<Product>:Op_123456789101112_9, reviews:$.products.edges.node:Op_123456789101112_17, reviews:$.productById:Op_123456789101112_23, reviews:$.searchContent<Article>.author.reviews.nodes:Op_123456789101112_5, reviews:$.searchContent<Article>.author.reviews.nodes:Op_123456789101112_6, users:$.productById.reviews.edges.node.author:Op_123456789101112_24, products:$.searchContent<Article>.author.reviews.nodes.product:Op_123456789101112_7, products:$.searchContent<Article>.author.reviews.nodes.product:Op_123456789101112_8",
+              "reviews:$:Op_123456789101112_1, products:$:Op_123456789101112_2, search:$:Op_123456789101112_3, products:$.searchContent<Product>:Op_123456789101112_10, users:$:Op_123456789101112_25, users:$.searchContent<Article>.author:Op_123456789101112_4, users:$.viewer.reviews.edges.node.author:Op_123456789101112_26, reviews:$.searchContent<Product>:Op_123456789101112_9, reviews:$.products.edges.node:Op_123456789101112_17, reviews:$.searchContent<Article>.author.reviews.nodes:Op_123456789101112_5"
+            ]
+            """);
+    }
+
+    private static string GetConditionEligibleDownstreamOperations(
+        OperationPlan plan,
+        IReadOnlyDictionary<string, bool> variables)
+    {
+        var operations = new List<string>();
+        var eligibility = new Dictionary<IOperationPlanNode, bool>();
+
+        foreach (var node in plan.AllNodes)
+        {
+            switch (node)
+            {
+                case OperationExecutionNode operation
+                    when IsEligible(operation):
+                    operations.Add(
+                        $"{operation.SchemaName}:{operation.Target}:{operation.Operation.Name}");
+                    break;
+
+                case ApolloOperationExecutionNode operation
+                    when IsEligible(operation):
+                    operations.Add(
+                        $"{operation.SchemaName}:{operation.Target}:{operation.Operation.Name}");
+                    break;
+
+                case OperationBatchExecutionNode batch:
+                    foreach (var definition in batch.Operations)
+                    {
+                        if (IsEligible(definition))
+                        {
+                            operations.Add(
+                                $"{definition.SchemaName}:{GetTarget(definition)}:"
+                                + definition.SourceText.Name);
+                        }
+                    }
+                    break;
+
+                case ApolloOperationBatchExecutionNode batch:
+                    foreach (var definition in batch.Operations)
+                    {
+                        if (IsEligible(definition))
+                        {
+                            operations.Add(
+                                $"{definition.SchemaName}:{definition.Target}:"
+                                + definition.SourceText.Name);
+                        }
+                    }
+                    break;
+            }
+        }
+
+        return string.Join(", ", operations);
+
+        bool IsEligible(IOperationPlanNode node)
+        {
+            if (eligibility.TryGetValue(node, out var eligible))
+            {
+                return eligible;
+            }
+
+            var conditions = node switch
+            {
+                ExecutionNode executionNode => executionNode.Conditions,
+                OperationDefinition definition => definition.Conditions,
+                _ => []
+            };
+            eligible = ConditionsMatch(conditions, variables);
+
+            if (eligible)
+            {
+                var dependencies = node.Dependencies;
+                if (node is BatchOperationDefinition)
+                {
+                    eligible = dependencies.IsEmpty;
+                    foreach (var dependency in dependencies)
+                    {
+                        if (IsEligible(dependency))
+                        {
+                            eligible = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var dependency in dependencies)
+                    {
+                        if (!IsEligible(dependency))
+                        {
+                            eligible = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            eligibility[node] = eligible;
+            return eligible;
+        }
+
+        static string GetTarget(OperationDefinition definition)
+            => definition switch
+            {
+                SingleOperationDefinition single => single.Target.ToString(),
+                BatchOperationDefinition batch => string.Join(
+                    "+",
+                    batch.Targets.ToArray().Select(target => target.ToString())),
+                _ => throw new InvalidOperationException()
+            };
+    }
+
+    private static bool ConditionsMatch(
+        ReadOnlySpan<ExecutionNodeCondition> conditions,
+        IReadOnlyDictionary<string, bool> variables)
+    {
+        foreach (var condition in conditions)
+        {
+            if (variables[condition.VariableName] != condition.PassingValue)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private FusionSchemaDefinition CreateSchema()

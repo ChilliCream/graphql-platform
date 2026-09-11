@@ -89,6 +89,17 @@ internal sealed partial class FetchResultStore
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
+        // The previous event's policy denial (any of NULL/ERROR/ABORT) is a decision about
+        // that event's own resource; it must not leak into this event's merge. Merging the new
+        // event's data (AddPartialResults) runs before this event's own policy re-evaluation
+        // (ReevaluatePolicySlotsAsync/SetPolicyExecutionState) repopulates this state, so a
+        // stale deny-flag here would make ValueCompletion.ApplyPolicyDenials replay the prior
+        // event's denial against the new, not-yet-decided root (up to nulling it outright for
+        // ABORT), which then starves this event's own per-event resource read.
+        _policyPlan = null;
+        _policyDenyFlags = 0;
+        _policyPlanPart = -1;
+
         _valueCompletion = new ValueCompletion(
             this,
             _schema,
@@ -136,6 +147,10 @@ internal sealed partial class FetchResultStore
         // null out per-request references
         _result = default!;
         _valueCompletion = default!;
+        _policyPlan = null;
+        _policyRequestState = null;
+        _policyDenyFlags = 0;
+        _policyPlanPart = -1;
         _schema = default!;
         _errorHandler = default!;
         _operation = default!;

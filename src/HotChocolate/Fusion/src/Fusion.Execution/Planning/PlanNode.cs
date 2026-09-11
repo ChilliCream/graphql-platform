@@ -108,6 +108,13 @@ internal sealed record PlanNode
     public OperationPlanner.RequirementAliasRegistry RequirementAliases { get; init; }
         = OperationPlanner.RequirementAliasRegistry.Empty;
 
+    /// <summary>
+    /// Gets the operation-wide registry of canonical policy expressions, reusable gates,
+    /// liveness masks, and explicit policy inventory entries accumulated by this branch.
+    /// </summary>
+    public OperationPlanner.PolicySlotRegistry PolicySlots { get; init; }
+        = OperationPlanner.PolicySlotRegistry.Empty;
+
     public EventStreamDirective? EventStreamDirective { get; init; }
 
     public double PathCost

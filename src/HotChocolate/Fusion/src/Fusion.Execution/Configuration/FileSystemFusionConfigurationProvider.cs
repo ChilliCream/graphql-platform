@@ -3,9 +3,12 @@ using System.Collections.Immutable;
 using System.IO.Hashing;
 using System.IO.Pipelines;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Packaging;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -15,12 +18,15 @@ namespace HotChocolate.Fusion.Configuration;
 
 public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvider
 {
+    private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
 #if NET9_0_OR_GREATER
     private readonly Lock _syncRoot = new();
 #else
     private readonly object _syncRoot = new();
 #endif
     private readonly string _fileName;
+    private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly X509Certificate2Collection? _trustedSigningCertificates;
     private readonly FileSystemWatcher _watcher;
 
     private readonly Channel<bool> _schemaUpdateEvents =
@@ -37,10 +43,21 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
     private readonly bool _isPackage;
     private ulong _schemaDocumentHash;
     private ulong _settingsHash;
+    private ulong _policyContentHash;
     private ulong _packageHash;
     private bool _disposed;
 
-    public FileSystemFusionConfigurationProvider(string fileName)
+    public FileSystemFusionConfigurationProvider(
+        string fileName,
+        IFusionExecutionDiagnosticEvents? diagnosticEvents)
+        : this(fileName, diagnosticEvents, options: null)
+    {
+    }
+
+    public FileSystemFusionConfigurationProvider(
+        string fileName,
+        IFusionExecutionDiagnosticEvents? diagnosticEvents,
+        FileSystemConfigurationOptions? options)
     {
         ArgumentException.ThrowIfNullOrEmpty(fileName);
 
@@ -48,6 +65,8 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         var directory = IOPath.GetDirectoryName(fullPath);
 
         _fileName = fullPath;
+        _diagnosticEvents = diagnosticEvents ?? NoopFusionExecutionDiagnosticEvents.Instance;
+        _trustedSigningCertificates = options?.TrustedSigningCertificates;
 
         if (directory is null)
         {
@@ -74,7 +93,7 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         {
             if (fullPath.Equals(e.FullPath, StringComparison.Ordinal))
             {
-                _schemaUpdateEvents.Writer.TryWrite(true);
+                SignalChange();
             }
         };
 
@@ -82,17 +101,22 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         {
             if (fullPath.Equals(e.FullPath, StringComparison.Ordinal))
             {
-                _schemaUpdateEvents.Writer.TryWrite(true);
+                SignalChange();
             }
         };
 
         _watcher.EnableRaisingEvents = true;
-        _schemaUpdateEvents.Writer.TryWrite(true);
+        SignalChange();
 
         SchemaUpdateProcessorAsync(_cts.Token).FireAndForget();
     }
 
     public FusionConfiguration? Configuration { get; private set; }
+
+    internal void SignalChange()
+    {
+        _schemaUpdateEvents.Writer.TryWrite(true);
+    }
 
     public IDisposable Subscribe(IObserver<FusionConfiguration> observer)
     {
@@ -104,13 +128,15 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         lock (_syncRoot)
         {
             _sessions = _sessions.Add(session);
-        }
 
-        var configuration = Configuration;
-
-        if (configuration is not null)
-        {
-            observer.OnNext(configuration);
+            // The replay is delivered while the lock is held so that it is ordered with respect to a
+            // concurrent NotifyObservers. Delivering it outside the lock would allow a newer
+            // configuration to reach the new subscriber before this replayed value, reverting it to
+            // stale content.
+            if (Configuration is not null)
+            {
+                observer.OnNext(Configuration);
+            }
         }
 
         return session;
@@ -134,9 +160,12 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
             try
             {
                 var settings = new JsonDocumentOwner(defaultSettings, EmptyMemoryOwner.Instance);
+                PolicyContentSnapshot? policyContent = null;
                 DocumentNode schema;
                 ulong settingsHash;
                 ulong schemaHash;
+                ulong policyContentHash = 0;
+                var packageHash = 0UL;
 
                 if (_isPackage)
                 {
@@ -144,17 +173,30 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     {
                         var hash = new XxHash64();
                         await hash.AppendAsync(fileStream, ct);
-                        var packageHash = hash.GetCurrentHashAsUInt64();
+                        packageHash = hash.GetCurrentHashAsUInt64();
 
                         if (packageHash == _packageHash)
                         {
                             continue;
                         }
-
-                        _packageHash = packageHash;
                     }
 
                     using var archive = FusionArchive.Open(_fileName);
+
+                    var trustRootConfigured = _trustedSigningCertificates is not null;
+                    var verificationResult = trustRootConfigured
+                        ? await archive.VerifySignatureAsync(_trustedSigningCertificates!, ct)
+                        : await archive.VerifyIntegrityAsync(ct);
+
+                    if (!IsAccepted(verificationResult, trustRootConfigured))
+                    {
+                        // The package is rejected. It is not committed to _packageHash so that
+                        // the same bytes are re-checked if they reappear, and the previously
+                        // served configuration continues to be used.
+                        _diagnosticEvents.ConfigurationVerificationFailed(verificationResult);
+                        continue;
+                    }
+
                     using var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion, ct);
 
                     if (config is null)
@@ -170,6 +212,19 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     buffer.Write(settingsSpan);
                     settingsHash = XxHash64.HashToUInt64(settingsSpan);
                     settings = new JsonDocumentOwner(JsonDocument.Parse(buffer.WrittenMemory), buffer);
+
+                    policyContent = await PackagePolicyContentReader.ReadAsync(
+                        archive,
+                        WellKnownVersions.LatestRegoPolicyFormatVersion,
+                        ct);
+                    policyContentHash = ComputePolicyContentHash(policyContent);
+
+                    // The schema, settings, and policy content were all read and parsed
+                    // successfully, so the bytes behind this hash are known to be readable.
+                    // Committing the hash any earlier would mean a malformed archive permanently
+                    // suppresses reprocessing of the same bytes, since the equality check above
+                    // would then treat them as already handled.
+                    _packageHash = packageHash;
                 }
                 else
                 {
@@ -178,19 +233,24 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
                     settingsHash = defaultSettingsHash;
                 }
 
-                if (_schemaDocumentHash == schemaHash && _settingsHash == settingsHash)
+                if (_schemaDocumentHash == schemaHash
+                    && _settingsHash == settingsHash
+                    && _policyContentHash == policyContentHash)
                 {
                     settings.Dispose();
+                    policyContent?.Dispose();
                     continue;
                 }
 
                 _settingsHash = settingsHash;
                 _schemaDocumentHash = schemaHash;
-                NotifyObservers(new FusionConfiguration(schema, settings));
+                _policyContentHash = policyContentHash;
+                NotifyObservers(new FusionConfiguration(schema, settings) { Policies = policyContent });
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore and wait for next update
+                // surface the failure and wait for next update
+                _diagnosticEvents.ConfigurationReadError(ex);
             }
         }
     }
@@ -225,6 +285,39 @@ public class FileSystemFusionConfigurationProvider : IFusionConfigurationProvide
         var hash = XxHash64.HashToUInt64(buffer.WrittenSpan);
         var document = Utf8GraphQLParser.Parse(buffer.WrittenSpan);
         return (document, hash);
+    }
+
+    /// <summary>
+    /// Determines whether a package archive verification result is acceptable. With a trust
+    /// root configured, the archive must carry a valid signature produced by a trusted
+    /// certificate. Without one, the archive is not required to be signed, but its manifest, when
+    /// present, must still pass its integrity check; a missing manifest is tolerated.
+    /// </summary>
+    private static bool IsAccepted(SignatureVerificationResult result, bool trustRootConfigured)
+        => trustRootConfigured
+            ? result is SignatureVerificationResult.Valid
+            : result
+                is SignatureVerificationResult.Valid
+                or SignatureVerificationResult.NotSigned
+                or SignatureVerificationResult.ManifestMissing;
+
+    private static ulong ComputePolicyContentHash(PolicyContentSnapshot? policyContent)
+    {
+        if (policyContent is null)
+        {
+            return 0;
+        }
+
+        var hash = new XxHash64();
+
+        foreach (var policy in policyContent.Policies)
+        {
+            hash.Append(s_utf8Encoding.GetBytes(policy.Name));
+            hash.Append(policy.Digest.Span);
+        }
+
+        hash.Append(policyContent.DataDigest.Span);
+        return hash.GetCurrentHashAsUInt64();
     }
 
     private void NotifyObservers(FusionConfiguration configuration)

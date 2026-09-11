@@ -38,6 +38,7 @@ public sealed class Selection : ISelection
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
         bool isInternal,
+        bool hasPolicy,
         ulong deferMask = 0,
         DeliveryGroup[]? deliveryGroups = null)
         : this(
@@ -47,6 +48,7 @@ public sealed class Selection : ISelection
             syntaxNodes,
             includeFlags,
             isInternal,
+            hasPolicy: hasPolicy,
             wideIncludeFlags: null,
             wideIncludeFlagsStride: 0,
             deferMask,
@@ -62,6 +64,7 @@ public sealed class Selection : ISelection
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
         bool isInternal,
+        bool hasPolicy = false,
         ulong[]? wideIncludeFlags = null,
         int wideIncludeFlagsStride = 0,
         ulong deferMask = 0,
@@ -88,6 +91,11 @@ public sealed class Selection : ISelection
         _wideDeferMask = wideDeferMask;
         _deliveryGroups = deliveryGroups ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
+
+        if (hasPolicy)
+        {
+            _flags |= Flags.HasPolicy;
+        }
 
         var type = field.Type;
         _type = type;
@@ -155,11 +163,27 @@ public sealed class Selection : ISelection
     /// <inheritdoc />
     public bool IsConditional => _includeFlags.Length > 0;
 
+    internal ReadOnlySpan<ulong> IncludeFlags => _includeFlags;
+
+    internal ReadOnlySpan<ulong> GetIncludeOverflow(int pathIndex)
+        => _wideIncludeFlags is null
+            ? []
+            : _wideIncludeFlags.AsSpan(
+                pathIndex * _wideIncludeFlagsStride,
+                _wideIncludeFlagsStride);
+
     /// <inheritdoc />
     public bool IsLeaf => (_flags & Flags.Leaf) == Flags.Leaf;
 
     /// <inheritdoc />
     public bool IsEnumValue => (_flags & Flags.EnumValue) == Flags.EnumValue;
+
+    /// <summary>
+    /// Gets a value indicating whether this selection, or any type reachable through its
+    /// named return type, carries an authorization policy that must be evaluated during
+    /// value completion.
+    /// </summary>
+    public bool HasPolicy => (_flags & Flags.HasPolicy) == Flags.HasPolicy;
 
     /// <summary>
     /// Gets the named type of the selection's field type, with all list and
@@ -769,6 +793,7 @@ nextItem:
         ValueTypeNamedType = 32,
         NonNullListElement = 64,
         RequiresWideIncludeFlags = 128,
-        RequiresWideDeferFlags = 256
+        RequiresWideDeferFlags = 256,
+        HasPolicy = 512
     }
 }

@@ -59,6 +59,22 @@ public sealed class OperationCompiler
         string hash,
         string shortHash,
         OperationDefinitionNode operationDefinition)
+        => Compile(
+            id,
+            hash,
+            shortHash,
+            operationDefinition,
+            CreateIncludeConditionCollection(
+                operationDefinition,
+                _maxAllowedIncludeConditions,
+                includeDeferConditions: false));
+
+    internal Operation Compile(
+        string id,
+        string hash,
+        string shortHash,
+        OperationDefinitionNode operationDefinition,
+        IncludeConditionCollection includeConditions)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(operationDefinition);
@@ -67,9 +83,7 @@ public sealed class OperationCompiler
         document = _documentRewriter.RewriteDocument(document);
         operationDefinition = (OperationDefinitionNode)document.Definitions[0];
 
-        var includeConditions = new IncludeConditionCollection(_maxAllowedIncludeConditions);
         var deferConditions = new DeferConditionCollection(_maxAllowedDeferConditions);
-        IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
 
         // Scans the operation for @defer fragments and creates one
         // DeliveryGroup object for each. Also fills deferConditions with any
@@ -82,6 +96,7 @@ public sealed class OperationCompiler
         var partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
 
         var fields = _fieldsPool.Get();
+        fields.Clear();
 
         var compilationContext = new CompilationContext(s_objectArrayPool.Rent(128));
 
@@ -138,6 +153,27 @@ public sealed class OperationCompiler
         {
             _fieldsPool.Return(fields);
         }
+    }
+
+    internal static IncludeConditionCollection CreateIncludeConditionCollection(
+        OperationDefinitionNode operationDefinition,
+        int maxAllowedConditions,
+        bool includeDeferConditions)
+    {
+        var discovered = new IncludeConditionCollection(maxAllowedConditions);
+        IncludeConditionVisitor.Instance.Visit(
+            operationDefinition,
+            new IncludeConditionVisitor.Context(discovered, includeDeferConditions));
+        var includeConditions = new IncludeConditionCollection(maxAllowedConditions);
+
+        foreach (var condition in discovered
+            .OrderBy(condition => condition.Skip, StringComparer.Ordinal)
+            .ThenBy(condition => condition.Include, StringComparer.Ordinal))
+        {
+            includeConditions.Add(condition);
+        }
+
+        return includeConditions;
     }
 
     internal SelectionSet CompileSelectionSet(
@@ -231,6 +267,12 @@ public sealed class OperationCompiler
                 if (IncludeCondition.TryCreate(fieldNode, out var includeCondition))
                 {
                     var index = includeConditions.IndexOf(includeCondition);
+                    if (index < 0)
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            "A client include condition is missing from the operation-wide condition table.");
+                    }
+
                     pathIncludeFlags = pathIncludeFlags.Add(index);
                 }
 
@@ -248,6 +290,12 @@ public sealed class OperationCompiler
                 if (IncludeCondition.TryCreate(inlineFragmentNode, out var includeCondition))
                 {
                     var index = includeConditions.IndexOf(includeCondition);
+                    if (index < 0)
+                    {
+                        throw ThrowHelper.InvalidOperationPlan(
+                            "A client include condition is missing from the operation-wide condition table.");
+                    }
+
                     pathIncludeFlags = pathIncludeFlags.Add(index);
                 }
 
@@ -420,6 +468,8 @@ public sealed class OperationCompiler
                 ? _typeNameField
                 : typeContext.Fields.GetField(first.Node.Name.Value, allowInaccessibleFields: true);
 
+            var hasPolicy = HasPolicy(field);
+
             if (field.Type.NamedType() is FusionInterfaceTypeDefinition interfaceType
                 && interfaceType.TypeNameLookupTypes.IsDefault)
             {
@@ -434,6 +484,7 @@ public sealed class OperationCompiler
                 nodes.ToArray(),
                 includeFlags.ToArray(),
                 isInternal,
+                hasPolicy: hasPolicy,
                 wideIncludeFlags: flatWideIncludeFlags,
                 wideIncludeFlagsStride: wideIncludeFlagsStride,
                 deferMask: deferMask,
@@ -457,6 +508,44 @@ public sealed class OperationCompiler
             isConditional,
             hasIncrementalParts,
             declaringSelection);
+    }
+
+    // Determines, at compile time, whether a selection can ever be subject to an
+    // authorization policy. A selection has a policy when the field itself carries
+    // one, when its concrete named return type carries one, or, for an abstract
+    // named return type (interface or union), when any possible type carries one.
+    // Selections for which this is false take a zero-cost path through value
+    // completion since policy evaluation never applies to them.
+    private bool HasPolicy(IOutputFieldDefinition field)
+    {
+        if (field is FusionOutputFieldDefinition { PolicyApplications.IsDefaultOrEmpty: false })
+        {
+            return true;
+        }
+
+        var namedType = field.Type.NamedType();
+
+        if (namedType is FusionObjectTypeDefinition objectType)
+        {
+            return !objectType.PolicyApplications.IsDefaultOrEmpty;
+        }
+
+        if (namedType is FusionInterfaceTypeDefinition or FusionUnionTypeDefinition)
+        {
+            // Inaccessible object types can still be materialized as the runtime type of
+            // an abstract field: value completion resolves the concrete type from
+            // __typename with allowInaccessibleFields set to true, so the policy check
+            // here must include inaccessible possible types as well.
+            foreach (var possibleType in _schema.GetPossibleTypes(namedType, includeInaccessible: true))
+            {
+                if (!possibleType.PolicyApplications.IsDefaultOrEmpty)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)
@@ -747,17 +836,17 @@ public sealed class OperationCompiler
         }
     }
 
-    private class IncludeConditionVisitor : SyntaxWalker<IncludeConditionCollection>
+    private class IncludeConditionVisitor : SyntaxWalker<IncludeConditionVisitor.Context>
     {
         public static readonly IncludeConditionVisitor Instance = new();
 
         protected override ISyntaxVisitorAction Enter(
             FieldNode node,
-            IncludeConditionCollection context)
+            Context context)
         {
             if (IncludeCondition.TryCreate(node, out var condition))
             {
-                context.Add(condition);
+                context.Conditions.Add(condition);
             }
 
             return base.Enter(node, context);
@@ -765,15 +854,26 @@ public sealed class OperationCompiler
 
         protected override ISyntaxVisitorAction Enter(
             InlineFragmentNode node,
-            IncludeConditionCollection context)
+            Context context)
         {
             if (IncludeCondition.TryCreate(node, out var condition))
             {
-                context.Add(condition);
+                context.Conditions.Add(condition);
+            }
+
+            if (context.IncludeDeferConditions
+                && DeferCondition.TryCreate(node, out var deferCondition)
+                && deferCondition.IfVariableName is { } ifVariableName)
+            {
+                context.Conditions.Add(new IncludeCondition(ifVariableName, include: null));
             }
 
             return base.Enter(node, context);
         }
+
+        internal sealed record Context(
+            IncludeConditionCollection Conditions,
+            bool IncludeDeferConditions);
     }
 
     private class DeferConditionVisitor : SyntaxWalker<DeferConditionCollection>

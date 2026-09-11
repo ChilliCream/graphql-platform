@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Text;
 using HotChocolate.Fusion.ApolloFederation;
 using HotChocolate.Fusion.Definitions;
+using HotChocolate.Fusion.Directives;
 using HotChocolate.Fusion.DirectiveMergers;
 using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Info;
@@ -96,6 +97,10 @@ internal sealed partial class SourceSchemaMerger
                     new OptInFeatureStabilityDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
                 {
+                    DirectiveNames.Policy,
+                    new PolicyDirectiveMerger(DirectiveMergeBehavior.Include)
+                },
+                {
                     DirectiveNames.RequiresOptIn,
                     new RequiresOptInDirectiveMerger(DirectiveMergeBehavior.Include)
                 },
@@ -124,6 +129,7 @@ internal sealed partial class SourceSchemaMerger
         ApplyDirectives();
         ApplyImplementsClosure(mergedSchema);
         ProjectInterfaceObjectFields(mergedSchema);
+        StampFusionPolicyDirectives(mergedSchema);
         SetOperationTypes(mergedSchema);
         AddFusionLookupDirectives(mergedSchema);
         AddNodeField(mergedSchema);
@@ -848,6 +854,8 @@ internal sealed partial class SourceSchemaMerger
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Cost]
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.Policy]
+                    .MergeDirectives(objectType, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag]
                     .MergeDirectives(objectType, memberDefinitions, mergedSchema);
 
@@ -983,6 +991,8 @@ internal sealed partial class SourceSchemaMerger
                 _directiveMergers[DirectiveNames.ListSize]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.McpToolAnnotations]
+                    .MergeDirectives(outputField, memberDefinitions, mergedSchema);
+                _directiveMergers[DirectiveNames.Policy]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.RequiresOptIn]
                     .MergeDirectives(outputField, memberDefinitions, mergedSchema);
@@ -1459,6 +1469,75 @@ internal sealed partial class SourceSchemaMerger
                 arguments));
     }
 
+    private void StampFusionPolicyDirectives(MutableSchemaDefinition mergedSchema)
+    {
+        var fusionPolicyDefinition = _fusionDirectiveDefinitions[DirectiveNames.FusionPolicy];
+
+        foreach (var objectType in mergedSchema.Types.OfType<MutableObjectTypeDefinition>())
+        {
+            var typePolicies = GetPolicyDirectives(objectType.Directives);
+            RemovePolicyDirectives(objectType.Directives);
+            AddFusionPolicyDirectives(objectType, typePolicies, fusionPolicyDefinition);
+
+            foreach (var field in objectType.Fields.AsEnumerable())
+            {
+                var fieldPolicies = GetPolicyDirectives(field.Directives);
+                RemovePolicyDirectives(field.Directives);
+                AddFusionPolicyDirectives(field, fieldPolicies, fusionPolicyDefinition);
+            }
+        }
+    }
+
+    private List<PolicyDirective> GetPolicyDirectives(DirectiveCollection directives)
+    {
+        var policies =
+            directives
+                .AsEnumerable()
+                .Where(d => d.Name == DirectiveNames.Policy)
+                .Select(PolicyDirective.From)
+                .ToList();
+
+        // A policy whose onDenied stayed absent through the merge (no source schema
+        // contributed an explicit value) inherits the schema-wide composition default here,
+        // so the stamped @fusion__policy directive always carries an explicit onDenied value.
+        for (var i = 0; i < policies.Count; i++)
+        {
+            if (policies[i].OnDenied is null)
+            {
+                policies[i] = PolicyDirective.Create(policies[i].Groups, GetPolicyOnDeniedDefault());
+            }
+        }
+
+        return policies;
+    }
+
+    private string GetPolicyOnDeniedDefault()
+    {
+        return _options.PolicyOnDeniedDefault switch
+        {
+            PolicyDenialBehavior.Null => "NULL",
+            PolicyDenialBehavior.Abort => "ABORT",
+            _ => "ERROR"
+        };
+    }
+
+    private static void RemovePolicyDirectives(DirectiveCollection directives)
+    {
+        for (var i = directives.Count - 1; i >= 0; i--)
+        {
+            if (directives[i].Name == DirectiveNames.Policy)
+            {
+                directives.RemoveAt(i);
+            }
+        }
+    }
+
+    private static void AddFusionPolicyDirectives(
+        IDirectivesProvider member,
+        IReadOnlyList<PolicyDirective> policies,
+        MutableDirectiveDefinition directiveDefinition)
+        => PolicyDirectiveMerger.AddPolicyDirectives(member, policies, directiveDefinition);
+
     private readonly record struct EventStreamContribution(
         string Schema,
         bool IsShareable,
@@ -1889,6 +1968,10 @@ internal sealed partial class SourceSchemaMerger
             },
             // Enum type definitions.
             {
+                TypeNames.FusionPolicyDenialBehavior,
+                new FusionPolicyDenialBehaviorMutableEnumTypeDefinition()
+            },
+            {
                 TypeNames.FusionNodeResolution,
                 new FusionNodeResolutionMutableEnumTypeDefinition()
             },
@@ -1920,6 +2003,8 @@ internal sealed partial class SourceSchemaMerger
             (MutableScalarTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionFieldSelectionPath];
         var fieldSelectionSetType =
             (MutableScalarTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionFieldSelectionSet];
+        var fusionPolicyDenialBehaviorType =
+            (MutableEnumTypeDefinition)_fusionTypeDefinitions[TypeNames.FusionPolicyDenialBehavior];
         var stringType = BuiltIns.String.Create();
         var booleanType = BuiltIns.Boolean.Create();
         var intType = BuiltIns.Int.Create();
@@ -1985,6 +2070,12 @@ internal sealed partial class SourceSchemaMerger
                     fieldSelectionMapType,
                     fieldSelectionPathType,
                     booleanType)
+            },
+            {
+                DirectiveNames.FusionPolicy,
+                new FusionPolicyMutableDirectiveDefinition(
+                    stringType,
+                    fusionPolicyDenialBehaviorType)
             },
             {
                 DirectiveNames.FusionRequires,

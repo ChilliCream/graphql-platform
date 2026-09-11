@@ -279,3 +279,6 @@ operationPlan:
                 id
           dependencies:
             - parentNodeId: 1
+  includeConditions:
+    -
+      skipVariable: shouldDefer

@@ -87,3 +87,8 @@ operationPlan:
       forwardedVariables:
         - s
         - x
+  includeConditions:
+    -
+      includeVariable: x
+    -
+      skipVariable: s

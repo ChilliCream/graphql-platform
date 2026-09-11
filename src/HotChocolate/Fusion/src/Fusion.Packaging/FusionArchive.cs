@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Collections.Immutable;
 using System.IO.Compression;
 using System.IO.Pipelines;
@@ -7,6 +7,8 @@ using System.Security.Cryptography.Pkcs;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using HotChocolate.Buffers;
 using HotChocolate.Fusion.Packaging.Serializers;
 
 namespace HotChocolate.Fusion.Packaging;
@@ -20,10 +22,12 @@ public sealed class FusionArchive : IDisposable
     private readonly Stream _stream;
     private readonly bool _leaveOpen;
     private readonly ArchiveSession _session;
+    private readonly FusionArchiveReadOptions _readOptions;
     private ZipArchive _archive;
     private FusionArchiveMode _mode;
     private ArrayBufferWriter<byte>? _buffer;
     private ArchiveMetadata? _metadata;
+    private bool _signatureCurrent;
     private bool _disposed;
 
     private FusionArchive(
@@ -37,6 +41,7 @@ public sealed class FusionArchive : IDisposable
         _leaveOpen = leaveOpen;
         _archive = new ZipArchive(stream, (ZipArchiveMode)mode, leaveOpen);
         _session = new ArchiveSession(_archive, mode, options);
+        _readOptions = options;
     }
 
     /// <summary>
@@ -106,7 +111,9 @@ public sealed class FusionArchive : IDisposable
         var readOptions = new FusionArchiveReadOptions(
             options.MaxAllowedSchemaSize ?? FusionArchiveReadOptions.Default.MaxAllowedSchemaSize,
             options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize,
-            options.MaxAllowedLegacyArchiveSize ?? FusionArchiveReadOptions.Default.MaxAllowedLegacyArchiveSize);
+            options.MaxAllowedLegacyArchiveSize ?? FusionArchiveReadOptions.Default.MaxAllowedLegacyArchiveSize,
+            options.MaxAllowedPolicySize ?? FusionArchiveReadOptions.Default.MaxAllowedPolicySize,
+            options.MaxAllowedPolicyDataSize ?? FusionArchiveReadOptions.Default.MaxAllowedPolicyDataSize);
         return new FusionArchive(stream, mode, leaveOpen, readOptions);
     }
 
@@ -440,6 +447,1279 @@ public sealed class FusionArchive : IDisposable
     }
 
     /// <summary>
+    /// Sets a Rego policy and its GraphQL data requirements for a specific policy format version.
+    /// </summary>
+    /// <param name="policyName">The name of the policy.</param>
+    /// <param name="policy">The Rego policy implementation as UTF-8 encoded bytes.</param>
+    /// <param name="requirements">The GraphQL data requirements as UTF-8 encoded bytes.</param>
+    /// <param name="version">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentException">
+    /// Thrown when the policy name, package declaration, requirements prefix, or version is invalid.
+    /// </exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the policy or requirements are empty.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the archive is read-only or the format version is already a manifest-indexed bundle.
+    /// </exception>
+    public async Task SetRegoPolicyAsync(
+        string policyName,
+        ReadOnlyMemory<byte> policy,
+        ReadOnlyMemory<byte> requirements,
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateRegoPolicyName(policyName);
+        ValidateRegoPolicyVersion(version);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(policy.Length, 0);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(requirements.Length, 0);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        if (ReadRegoPolicyBundleVersions().Contains(version))
+        {
+            throw ThrowHelper.RegoPolicyPairVersionIsBundle(version);
+        }
+
+        if (!HasRegoPolicyRequirementsPrefix(requirements.Span))
+        {
+            throw ThrowHelper.RegoPolicyRequirementsMustBeSelectionSetOrFragment();
+        }
+
+        var conflictingPolicy = ReadRegoPolicyFileSets().FirstOrDefault(
+            t => t.Version == version
+                && t.Name != policyName
+                && t.Name.Equals(policyName, StringComparison.OrdinalIgnoreCase));
+        if (conflictingPolicy is not null)
+        {
+            throw new InvalidOperationException(
+                $"The Rego policy '{policyName}' conflicts with the existing policy "
+                + $"'{conflictingPolicy.Name}' because policy names must be unique ignoring case.");
+        }
+
+        if (!TryScanRegoPackageSegments(policy.Span, out var packageSegments)
+            || packageSegments.Length != 1
+            || !packageSegments[0].Equals(policyName, StringComparison.Ordinal))
+        {
+            throw ThrowHelper.RegoPolicyPackageMustMatchName();
+        }
+
+        // A policy declares a package whose rules form a virtual document rooted at that package path.
+        // That virtual document must not overlap a data mount, which is a base document at the same
+        // path. Reject the policy when its package collides with an existing data mount.
+        await EnsureNoRegoBaseVirtualConflictForPolicyAsync(version, packageSegments, cancellationToken);
+
+        await using (var stream = _session.OpenWrite(FileNames.GetRegoPolicyPath(version, policyName)))
+        {
+            await stream.WriteAsync(policy, cancellationToken);
+        }
+
+        await using (var stream = _session.OpenWrite(FileNames.GetRegoPolicyRequirementsPath(version, policyName)))
+        {
+            await stream.WriteAsync(requirements, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Gets all Rego policy format versions in the archive, ordered by version descending.
+    /// </summary>
+    /// <returns>The Rego policy format versions.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego policy layout is invalid.</exception>
+    public IEnumerable<Version> GetSupportedRegoPolicyFormats()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        return ReadRegoPolicyFileSets()
+            .Select(t => t.Version)
+            .Concat(ReadRegoPolicyBundleVersions())
+            .Distinct()
+            .OrderDescending()
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Determines whether a Rego policy format version is a manifest-indexed bundle rather than the
+    /// flat policy-pair format, keying off the presence of a nested manifest.json.
+    /// </summary>
+    /// <param name="version">The Rego policy format version.</param>
+    /// <returns><see langword="true"/> when the version is a manifest-indexed bundle.</returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    public bool IsRegoPolicyBundleFormat(Version version)
+    {
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        return ReadRegoPolicyBundleVersions().Contains(version);
+    }
+
+    // A version directory is a manifest-indexed bundle, rather than a flat policy-pair format, when it
+    // contains a nested manifest.json. Detecting this by content rather than by a hardcoded version
+    // number keeps the flat-pair format free to keep using arbitrary version numbers of its own.
+    private HashSet<Version> ReadRegoPolicyBundleVersions()
+    {
+        var versions = new HashSet<Version>();
+
+        foreach (var path in _session.GetFiles())
+        {
+            if (path.EndsWith("/", StringComparison.Ordinal)
+                || !path.StartsWith(FileNames.RegoPolicies, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var relativePath = path.AsSpan(FileNames.RegoPolicies.Length);
+            var separator = relativePath.IndexOf('/');
+
+            if (separator <= 0 || !relativePath[(separator + 1)..].SequenceEqual(FileNames.RegoBundleManifestFileName))
+            {
+                continue;
+            }
+
+            if (TryParseRegoPolicyVersion(relativePath[..separator].ToString(), out var version))
+            {
+                versions.Add(version);
+            }
+        }
+
+        return versions;
+    }
+
+    /// <summary>
+    /// Gets all Rego policy names for a policy format version, ordered alphabetically.
+    /// </summary>
+    /// <param name="version">The Rego policy format version.</param>
+    /// <returns>The Rego policy names.</returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego policy layout is invalid.</exception>
+    public IEnumerable<string> GetRegoPolicyNames(Version version)
+    {
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        return ReadRegoPolicyFileSets()
+            .Where(t => t.Version == version)
+            .Select(t => t.Name)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Gets the complete Rego policy catalog for one exact policy format version.
+    /// </summary>
+    /// <param name="version">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The Rego policies ordered by name.</returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego policy layout is invalid.</exception>
+    public async Task<IReadOnlyList<RegoPolicyConfiguration>> GetRegoPoliciesAsync(
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var policies = ReadRegoPolicyFileSets()
+            .Where(t => t.Version == version)
+            .OrderBy(t => t.Name, StringComparer.Ordinal)
+            .ToArray();
+        var configurations = new RegoPolicyConfiguration[policies.Length];
+
+        for (var i = 0; i < policies.Length; i++)
+        {
+            configurations[i] = await CreateRegoPolicyConfigurationAsync(
+                policies[i],
+                cancellationToken);
+        }
+
+        return configurations;
+    }
+
+    /// <summary>
+    /// Attempts to get a Rego policy and its GraphQL data requirements from the archive.
+    /// </summary>
+    /// <param name="policyName">The name of the policy.</param>
+    /// <param name="version">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The Rego policy configuration, or null when the policy is not present.</returns>
+    /// <exception cref="ArgumentException">Thrown when the policy name or version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego policy layout is invalid.</exception>
+    public async Task<RegoPolicyConfiguration?> TryGetRegoPolicyAsync(
+        string policyName,
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateRegoPolicyName(policyName);
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var fileSet = ReadRegoPolicyFileSets().FirstOrDefault(
+            t => t.Version == version && t.Name == policyName);
+        if (fileSet is null)
+        {
+            return null;
+        }
+
+        return await CreateRegoPolicyConfigurationAsync(fileSet, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sets a Rego policy bundle (format version 2 and above) into the archive: a manifest-indexed set
+    /// of policy packages with optional shared library modules and a root data document. Replaces any
+    /// existing bundle content at the same format version.
+    /// </summary>
+    /// <param name="bundle">The bundle to write.</param>
+    /// <param name="version">The Rego policy bundle format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when bundle or version is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the bundle content is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task SetRegoPolicyBundleAsync(
+        RegoPolicyBundle bundle,
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(bundle);
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        if (bundle.Packages.Length == 0)
+        {
+            throw ThrowHelper.RegoPolicyBundleMustHaveAtLeastOnePackage();
+        }
+
+        var reservedPaths = new HashSet<string>(StringComparer.Ordinal);
+        var packageNames = new HashSet<string>(StringComparer.Ordinal);
+        var manifestPolicies = ImmutableArray.CreateBuilder<RegoPolicyBundleManifestPolicy>();
+        var pendingWrites = new List<(string RelativePath, ReadOnlyMemory<byte> Content)>();
+
+        foreach (var package in bundle.Packages)
+        {
+            if (!IsRegoPackageSegment(package.Package))
+            {
+                throw ThrowHelper.RegoPolicyBundlePackageNameInvalid(package.Package);
+            }
+
+            if (!packageNames.Add(package.Package))
+            {
+                throw ThrowHelper.RegoPolicyBundlePackageDuplicate(package.Package);
+            }
+
+            if (package.Modules.Length == 0)
+            {
+                throw ThrowHelper.RegoPolicyBundlePackageMustHaveAtLeastOneModule(package.Package);
+            }
+
+            var moduleNames = new HashSet<string>(StringComparer.Ordinal);
+            var modulePaths = ImmutableArray.CreateBuilder<string>(package.Modules.Length);
+            var moduleSha256 = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
+            string? entrypointRelativePath = null;
+            List<RegoEntrypoint>? entrypointRules = null;
+
+            foreach (var module in package.Modules)
+            {
+                if (!IsValidRegoPolicyName(module.Name))
+                {
+                    throw ThrowHelper.RegoPolicyBundleModuleNameInvalid(package.Package, module.Name);
+                }
+
+                if (!moduleNames.Add(module.Name))
+                {
+                    throw ThrowHelper.RegoPolicyBundleModuleDuplicate(package.Package, module.Name);
+                }
+
+                if (!TryScanRegoPackageSegments(module.Source.Span, out var segments)
+                    || segments.Length != 1
+                    || !segments[0].Equals(package.Package, StringComparison.Ordinal))
+                {
+                    throw ThrowHelper.RegoPolicyBundleModulePackageMismatch(package.Package, module.Name);
+                }
+
+                var relativePath = $"{package.Package}/{module.Name}.rego";
+
+                if (!reservedPaths.Add(relativePath))
+                {
+                    throw ThrowHelper.RegoPolicyBundlePathCollision(relativePath);
+                }
+
+                modulePaths.Add(relativePath);
+                moduleSha256[relativePath] = ComputeRegoBundleSha256(module.Source.Span);
+                pendingWrites.Add((relativePath, module.Source));
+
+                var rules = RegoEntrypointScanner.Scan(Encoding.UTF8.GetString(module.Source.Span));
+
+                if (rules.Count > 0)
+                {
+                    if (entrypointRelativePath is not null)
+                    {
+                        throw ThrowHelper.RegoPolicyBundlePackageEntrypointCountInvalid(package.Package, 2);
+                    }
+
+                    entrypointRelativePath = relativePath;
+                    entrypointRules = rules;
+                }
+            }
+
+            if (entrypointRelativePath is null)
+            {
+                throw ThrowHelper.RegoPolicyBundlePackageEntrypointCountInvalid(package.Package, 0);
+            }
+
+            string? requirementsRelativePath = null;
+
+            if (package.Requirements is { } requirements)
+            {
+                if (!HasRegoPolicyRequirementsPrefix(requirements.Span))
+                {
+                    throw ThrowHelper.RegoPolicyRequirementsMustBeSelectionSetOrFragment();
+                }
+
+                requirementsRelativePath = $"{package.Package}.graphql";
+
+                if (!reservedPaths.Add(requirementsRelativePath))
+                {
+                    throw ThrowHelper.RegoPolicyBundlePathCollision(requirementsRelativePath);
+                }
+
+                moduleSha256[requirementsRelativePath] = ComputeRegoBundleSha256(requirements.Span);
+                pendingWrites.Add((requirementsRelativePath, requirements));
+            }
+
+            var sortedModulePaths = modulePaths.ToImmutable().Sort(StringComparer.Ordinal);
+            var sha256 = moduleSha256.ToImmutable();
+            var packageInput = ResolvePackageInput(package.Package, entrypointRules!);
+
+            if (packageInput is not null && requirementsRelativePath is not null)
+            {
+                throw ThrowHelper.RegoPolicyBundleActionWithResourceRequirements(package.Package);
+            }
+
+            foreach (var rule in entrypointRules!)
+            {
+                var name = $"{package.Package}.{rule.Name}";
+
+                manifestPolicies.Add(new RegoPolicyBundleManifestPolicy
+                {
+                    Name = name,
+                    Package = package.Package,
+                    Entrypoint = $"data.{name}",
+                    Modules = sortedModulePaths,
+                    Requirements = requirementsRelativePath,
+                    Input = packageInput,
+                    Sha256 = sha256
+                });
+            }
+        }
+
+        var manifestLibraries = ImmutableArray.CreateBuilder<RegoPolicyBundleManifestFile>();
+        var libraryNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var library in bundle.Libraries)
+        {
+            if (!IsValidRegoPolicyName(library.Name))
+            {
+                throw ThrowHelper.RegoPolicyBundleLibraryNameInvalid(library.Name);
+            }
+
+            if (!libraryNames.Add(library.Name))
+            {
+                throw ThrowHelper.RegoPolicyBundleLibraryDuplicate(library.Name);
+            }
+
+            var relativePath = $"{FileNames.RegoBundleLibraryDirectoryName}/{library.Name}.rego";
+
+            if (!reservedPaths.Add(relativePath))
+            {
+                throw ThrowHelper.RegoPolicyBundlePathCollision(relativePath);
+            }
+
+            manifestLibraries.Add(new RegoPolicyBundleManifestFile
+            {
+                Path = relativePath,
+                Sha256 = ComputeRegoBundleSha256(library.Source.Span)
+            });
+            pendingWrites.Add((relativePath, library.Source));
+        }
+
+        RegoPolicyBundleManifestFile? manifestData = null;
+
+        if (bundle.Data is { } data)
+        {
+            using (ParseRegoDataObject(data))
+            {
+                // Validated to be a JSON object; the parsed document itself is not otherwise needed.
+            }
+
+            const string dataRelativePath = "data/data.json";
+            manifestData = new RegoPolicyBundleManifestFile
+            {
+                Path = dataRelativePath,
+                Sha256 = ComputeRegoBundleSha256(data.Span)
+            };
+            pendingWrites.Add((dataRelativePath, data));
+        }
+
+        var manifest = new RegoPolicyBundleManifest
+        {
+            FormatVersion = version.Major,
+            Policies = manifestPolicies.ToImmutable(),
+            Libraries = manifestLibraries.ToImmutable(),
+            Data = manifestData
+        };
+
+        // Remove any existing bundle content for this version first, so a re-pack never leaves behind
+        // a module or library the new manifest no longer references.
+        RemoveExistingRegoPolicyBundleFiles(version);
+
+        foreach (var (relativePath, content) in pendingWrites)
+        {
+            await using var stream = _session.OpenWrite(FileNames.GetRegoModulePath(version, relativePath));
+            await stream.WriteAsync(content, cancellationToken);
+        }
+
+        var manifestBuffer = new ArrayBufferWriter<byte>();
+        RegoPolicyBundleManifestSerializer.Format(manifest, manifestBuffer);
+
+        await using (var manifestStream = _session.OpenWrite(FileNames.GetRegoBundleManifestPath(version)))
+        {
+            await manifestStream.WriteAsync(manifestBuffer.WrittenMemory, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Derives one package's uniform <c>custom.input</c> declaration from its scanned entrypoints:
+    /// every decision must declare the same value, or none, and the only value the runtime
+    /// understands is <c>"action"</c>.
+    /// </summary>
+    private static string? ResolvePackageInput(string package, IReadOnlyList<RegoEntrypoint> rules)
+    {
+        string? input = null;
+
+        foreach (var rule in rules)
+        {
+            if (rule.Input is null)
+            {
+                continue;
+            }
+
+            if (input is null)
+            {
+                input = rule.Input;
+            }
+            else if (!input.Equals(rule.Input, StringComparison.Ordinal))
+            {
+                throw ThrowHelper.RegoPolicyBundleActionInputConflicting(package);
+            }
+        }
+
+        if (input?.Equals("action", StringComparison.Ordinal) == false)
+        {
+            throw ThrowHelper.RegoPolicyBundleActionInputInvalidValue(package, input);
+        }
+
+        return input;
+    }
+
+    /// <summary>
+    /// The read-time counterpart of <see cref="ResolvePackageInput"/>: derives a package's uniform
+    /// <c>custom.input</c> declaration without throwing, so the caller can report a scan-time
+    /// disagreement as an archive identity mismatch rather than a publish-time argument error.
+    /// </summary>
+    private static bool TryResolveScannedPackageInput(IReadOnlyList<RegoEntrypoint> rules, out string? input)
+    {
+        string? resolved = null;
+
+        foreach (var rule in rules)
+        {
+            if (rule.Input is null)
+            {
+                continue;
+            }
+
+            if (resolved is null)
+            {
+                resolved = rule.Input;
+            }
+            else if (!resolved.Equals(rule.Input, StringComparison.Ordinal))
+            {
+                input = null;
+                return false;
+            }
+        }
+
+        if (resolved?.Equals("action", StringComparison.Ordinal) == false)
+        {
+            input = null;
+            return false;
+        }
+
+        input = resolved;
+        return true;
+    }
+
+    /// <summary>
+    /// Reads and validates the Rego policy bundle (format version 2 and above) for one exact format
+    /// version: every path the manifest references is checked to exist, hashed, and cross checked
+    /// against its scanned package and entrypoint declarations; every file present on disk under the
+    /// bundle must be listed in the manifest.
+    /// </summary>
+    /// <param name="version">The Rego policy bundle format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The validated bundle content.</returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">
+    /// Thrown when the manifest is missing, malformed, or disagrees with the archive's actual content.
+    /// </exception>
+    public async Task<RegoPolicyBundleContent> GetRegoPolicyBundleAsync(
+        Version version,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateRegoPolicyVersion(version);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var manifestPath = FileNames.GetRegoBundleManifestPath(version);
+
+        if (!await _session.ExistsAsync(manifestPath, FileKind.Manifest, cancellationToken).ConfigureAwait(false))
+        {
+            throw ThrowHelper.RegoPolicyBundleManifestMissing(version);
+        }
+
+        var manifest = await ReadRegoPolicyBundleManifestAsync(version, manifestPath, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (manifest.FormatVersion != version.Major)
+        {
+            throw ThrowHelper.RegoPolicyBundleManifestFormatVersionMismatch(version, manifest.FormatVersion);
+        }
+
+        var directory = FileNames.GetRegoBundleDirectory(version);
+        var manifestRelativePath = manifestPath[directory.Length..];
+        var onDisk = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var path in _session.GetFiles())
+        {
+            if (path.EndsWith("/", StringComparison.Ordinal)
+                || !path.StartsWith(directory, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var relative = path[directory.Length..];
+
+            if (!relative.Equals(manifestRelativePath, StringComparison.Ordinal))
+            {
+                onDisk.Add(relative);
+            }
+        }
+
+        var referencedPaths = new HashSet<string>(StringComparer.Ordinal);
+        var seenPolicyNames = new HashSet<string>(StringComparer.Ordinal);
+        var groups = new Dictionary<string, List<RegoPolicyBundleManifestPolicy>>(StringComparer.Ordinal);
+
+        foreach (var policy in manifest.Policies)
+        {
+            if (!seenPolicyNames.Add(policy.Name))
+            {
+                throw ThrowHelper.RegoPolicyBundlePolicyNameDuplicate(policy.Name);
+            }
+
+            if (!policy.Name.StartsWith(policy.Package + ".", StringComparison.Ordinal)
+                || policy.Name.Length <= policy.Package.Length + 1
+                || !policy.Entrypoint.Equals($"data.{policy.Name}", StringComparison.Ordinal))
+            {
+                throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                    policy.Name,
+                    "the name, package, and entrypoint fields are not consistent.");
+            }
+
+            if (!groups.TryGetValue(policy.Package, out var group))
+            {
+                group = [];
+                groups.Add(policy.Package, group);
+            }
+
+            group.Add(policy);
+        }
+
+        var moduleCache = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+        var packages = ImmutableArray.CreateBuilder<RegoPolicyBundlePackageContent>(groups.Count);
+        var libraries = ImmutableArray.CreateBuilder<RegoLibraryContent>();
+
+        foreach (var (package, entries) in groups.OrderBy(t => t.Key, StringComparer.Ordinal))
+        {
+            var first = entries[0];
+
+            foreach (var entry in entries.Skip(1))
+            {
+                if (!entry.Modules.SequenceEqual(first.Modules, StringComparer.Ordinal)
+                    || entry.Requirements != first.Requirements
+                    || entry.Input != first.Input
+                    || !SameEntries(entry.Sha256, first.Sha256))
+                {
+                    throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                        entry.Name,
+                        $"it shares package '{package}' with other decisions that reference different "
+                        + "modules, requirements, or hashes.");
+                }
+            }
+
+            byte[]? primarySource = null;
+            var expectedHashKeys = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (var modulePath in first.Modules)
+            {
+                ValidateRegoBundlePath(modulePath);
+
+                if (!referencedPaths.Add(modulePath))
+                {
+                    throw ThrowHelper.RegoPolicyBundleManifestPathCollision(modulePath);
+                }
+
+                expectedHashKeys.Add(modulePath);
+
+                var source = await ReadAndVerifyRegoBundlePayloadAsync(
+                    version, modulePath, first.Sha256, moduleCache, cancellationToken).ConfigureAwait(false);
+
+                if (!TryScanRegoPackageSegments(source, out var segments)
+                    || segments.Length != 1
+                    || !segments[0].Equals(package, StringComparison.Ordinal))
+                {
+                    throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                        first.Name,
+                        $"the module '{modulePath}' does not declare package '{package}'.");
+                }
+
+                var rules = RegoEntrypointScanner.Scan(Encoding.UTF8.GetString(source));
+
+                if (rules.Count > 0)
+                {
+                    if (primarySource is not null)
+                    {
+                        throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                            first.Name,
+                            $"more than one module ('{modulePath}') declares entrypoint decisions.");
+                    }
+
+                    primarySource = source;
+
+                    var expectedRules = new HashSet<string>(
+                        entries.Select(e => e.Name[(package.Length + 1)..]),
+                        StringComparer.Ordinal);
+
+                    if (!expectedRules.SetEquals(rules.Select(rule => rule.Name)))
+                    {
+                        throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                            first.Name,
+                            $"the module '{modulePath}' declares a different set of entrypoint decisions "
+                            + "than the manifest lists for this package.");
+                    }
+
+                    // The manifest's persisted 'input' declaration must still agree with what the
+                    // module's own METADATA declares today; a disagreement means the archive was
+                    // tampered with after packaging, or the manifest was hand-edited.
+                    if (!TryResolveScannedPackageInput(rules, out var scannedInput))
+                    {
+                        throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                            first.Name,
+                            $"the module '{modulePath}' declares an invalid or conflicting "
+                            + "'custom.input' value across its entrypoint decisions.");
+                    }
+
+                    if (scannedInput != first.Input)
+                    {
+                        throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                            first.Name,
+                            $"the module '{modulePath}' declares a different 'custom.input' value than "
+                            + "the manifest lists for this package.");
+                    }
+
+                    if (scannedInput is not null && first.Requirements is not null)
+                    {
+                        throw ThrowHelper.RegoPolicyBundleActionWithResourceRequirementsAtRead(package);
+                    }
+                }
+                else
+                {
+                    libraries.Add(new RegoLibraryContent(
+                        modulePath,
+                        source,
+                        Encoding.UTF8.GetBytes(first.Sha256[modulePath])));
+                }
+            }
+
+            if (primarySource is null)
+            {
+                throw ThrowHelper.RegoPolicyBundleIdentityMismatch(
+                    first.Name,
+                    "none of its modules declare an entrypoint decision.");
+            }
+
+            byte[]? requirements = null;
+
+            if (first.Requirements is { } requirementsPath)
+            {
+                ValidateRegoBundlePath(requirementsPath);
+
+                if (!referencedPaths.Add(requirementsPath))
+                {
+                    throw ThrowHelper.RegoPolicyBundleManifestPathCollision(requirementsPath);
+                }
+
+                expectedHashKeys.Add(requirementsPath);
+
+                requirements = await ReadAndVerifyRegoBundlePayloadAsync(
+                    version, requirementsPath, first.Sha256, moduleCache, cancellationToken).ConfigureAwait(false);
+
+                if (!HasRegoPolicyRequirementsPrefix(requirements))
+                {
+                    throw ThrowHelper.RegoPolicyRequirementsMustBeSelectionSetOrFragment();
+                }
+            }
+
+            if (first.Sha256.Count != expectedHashKeys.Count
+                || first.Sha256.Keys.Any(key => !expectedHashKeys.Contains(key)))
+            {
+                throw ThrowHelper.RegoPolicyBundleManifestInvalid(
+                    version,
+                    $"package '{package}' lists sha256 entries that do not exactly match its modules "
+                    + "and requirements.");
+            }
+
+            packages.Add(new RegoPolicyBundlePackageContent(
+                package,
+                primarySource,
+                requirements is null ? null : (ReadOnlyMemory<byte>?)requirements,
+                ComputeRegoBundlePackageDigest(first.Sha256),
+                first.Input));
+        }
+
+        var declaredLibraryPaths = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var library in manifest.Libraries)
+        {
+            ValidateRegoBundlePath(library.Path);
+
+            if (!library.Path.StartsWith(
+                FileNames.RegoBundleLibraryDirectoryName + "/", StringComparison.Ordinal))
+            {
+                throw ThrowHelper.RegoPolicyBundleManifestInvalid(
+                    version,
+                    $"library path '{library.Path}' must be located under "
+                    + $"'{FileNames.RegoBundleLibraryDirectoryName}/'.");
+            }
+
+            if (!declaredLibraryPaths.Add(library.Path))
+            {
+                throw ThrowHelper.RegoPolicyBundleLibraryPathDuplicate(library.Path);
+            }
+
+            if (!referencedPaths.Add(library.Path))
+            {
+                throw ThrowHelper.RegoPolicyBundleManifestPathCollision(library.Path);
+            }
+
+            var sha256 = ImmutableSortedDictionary.CreateRange(
+                StringComparer.Ordinal,
+                [new KeyValuePair<string, string>(library.Path, library.Sha256)]);
+            var source = await ReadAndVerifyRegoBundlePayloadAsync(
+                version, library.Path, sha256, moduleCache, cancellationToken).ConfigureAwait(false);
+
+            libraries.Add(new RegoLibraryContent(
+                library.Path,
+                source,
+                Encoding.UTF8.GetBytes(library.Sha256)));
+        }
+
+        ReadOnlyMemory<byte>? data = null;
+        byte[] dataDigest;
+
+        if (manifest.Data is { } dataFile)
+        {
+            const string dataRelativePath = "data/data.json";
+
+            if (!dataFile.Path.Equals(dataRelativePath, StringComparison.Ordinal))
+            {
+                throw ThrowHelper.RegoPolicyBundleManifestInvalid(
+                    version,
+                    $"the data mount must be located at '{dataRelativePath}'.");
+            }
+
+            referencedPaths.Add(dataRelativePath);
+
+            var dataPath = FileNames.GetRegoDataPath(version, string.Empty);
+
+            if (!await _session.ExistsAsync(dataPath, FileKind.PolicyData, cancellationToken).ConfigureAwait(false))
+            {
+                throw ThrowHelper.RegoPolicyBundlePathMissing(dataFile.Path);
+            }
+
+            byte[] dataBytes;
+            await using (var stream = await _session.OpenReadAsync(
+                dataPath, FileKind.PolicyData, cancellationToken).ConfigureAwait(false))
+            {
+                await using var buffer = new MemoryStream();
+                await stream.CopyToAsync(buffer, cancellationToken).ConfigureAwait(false);
+                dataBytes = buffer.ToArray();
+            }
+
+            var actualHash = ComputeRegoBundleSha256(dataBytes);
+
+            if (!actualHash.Equals(dataFile.Sha256, StringComparison.Ordinal))
+            {
+                throw ThrowHelper.RegoPolicyBundleHashMismatch(dataFile.Path);
+            }
+
+            data = dataBytes;
+            dataDigest = Encoding.UTF8.GetBytes(dataFile.Sha256);
+        }
+        else
+        {
+            dataDigest = Encoding.UTF8.GetBytes(ComputeRegoBundleSha256("{}"u8));
+        }
+
+        var extra = onDisk.FirstOrDefault(path => !referencedPaths.Contains(path));
+
+        if (extra is not null)
+        {
+            throw ThrowHelper.RegoPolicyBundlePathUnlisted(extra);
+        }
+
+        return new RegoPolicyBundleContent
+        {
+            Packages = packages.ToImmutable(),
+            Libraries = libraries.ToImmutable(),
+            Data = data,
+            DataDigest = dataDigest
+        };
+
+        static bool SameEntries(
+            ImmutableSortedDictionary<string, string> left,
+            ImmutableSortedDictionary<string, string> right)
+        {
+            if (left.Count != right.Count)
+            {
+                return false;
+            }
+
+            foreach (var (key, value) in left)
+            {
+                if (!right.TryGetValue(key, out var otherValue)
+                    || !value.Equals(otherValue, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    private async Task<RegoPolicyBundleManifest> ReadRegoPolicyBundleManifestAsync(
+        Version version,
+        string manifestPath,
+        CancellationToken cancellationToken)
+    {
+        var buffer = TryRentBuffer();
+
+        try
+        {
+            await using (var stream = await _session.OpenReadAsync(
+                manifestPath, FileKind.Manifest, cancellationToken).ConfigureAwait(false))
+            {
+                await stream.CopyToAsync(buffer, cancellationToken).ConfigureAwait(false);
+            }
+
+            try
+            {
+                return RegoPolicyBundleManifestSerializer.Parse(buffer.WrittenMemory);
+            }
+            catch (JsonException ex)
+            {
+                throw ThrowHelper.RegoPolicyBundleManifestInvalid(version, ex.Message);
+            }
+        }
+        finally
+        {
+            TryReturnBuffer(buffer);
+        }
+    }
+
+    private async Task<byte[]> ReadAndVerifyRegoBundlePayloadAsync(
+        Version version,
+        string relativePath,
+        ImmutableSortedDictionary<string, string> sha256,
+        Dictionary<string, byte[]> cache,
+        CancellationToken cancellationToken)
+    {
+        if (cache.TryGetValue(relativePath, out var cached))
+        {
+            return cached;
+        }
+
+        if (!sha256.TryGetValue(relativePath, out var expectedHash))
+        {
+            throw ThrowHelper.RegoPolicyBundleManifestInvalid(
+                version,
+                $"'{relativePath}' has no recorded sha256 digest.");
+        }
+
+        var path = FileNames.GetRegoModulePath(version, relativePath);
+        var kind = FileNames.GetFileKind(path);
+
+        if (!await _session.ExistsAsync(path, kind, cancellationToken).ConfigureAwait(false))
+        {
+            throw ThrowHelper.RegoPolicyBundlePathMissing(relativePath);
+        }
+
+        byte[] content;
+        await using (var stream = await _session.OpenReadAsync(path, kind, cancellationToken).ConfigureAwait(false))
+        {
+            await using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer, cancellationToken).ConfigureAwait(false);
+            content = buffer.ToArray();
+        }
+
+        var actualHash = ComputeRegoBundleSha256(content);
+
+        if (!actualHash.Equals(expectedHash, StringComparison.Ordinal))
+        {
+            throw ThrowHelper.RegoPolicyBundleHashMismatch(relativePath);
+        }
+
+        cache[relativePath] = content;
+        return content;
+    }
+
+    private static void ValidateRegoBundlePath(string path)
+    {
+        if (string.IsNullOrEmpty(path) || path[0] == '/' || path.Contains('\\'))
+        {
+            throw ThrowHelper.RegoPolicyBundlePathInvalid(path);
+        }
+
+        foreach (var segment in path.Split('/'))
+        {
+            if (string.IsNullOrEmpty(segment) || segment is "." or "..")
+            {
+                throw ThrowHelper.RegoPolicyBundlePathInvalid(path);
+            }
+        }
+    }
+
+    private void RemoveExistingRegoPolicyBundleFiles(Version version)
+    {
+        var directory = FileNames.GetRegoBundleDirectory(version);
+
+        foreach (var path in _session.GetFiles().ToArray())
+        {
+            if (!path.EndsWith("/", StringComparison.Ordinal)
+                && path.StartsWith(directory, StringComparison.Ordinal))
+            {
+                _session.Delete(path);
+            }
+        }
+    }
+
+    private static string ComputeRegoBundleSha256(ReadOnlySpan<byte> content)
+        => "sha256:" + ToHexLower(SHA256.HashData(content));
+
+    private static byte[] ComputeRegoBundlePackageDigest(ImmutableSortedDictionary<string, string> sha256)
+        => Encoding.UTF8.GetBytes(ComputeArtifactDigest([.. sha256]));
+
+    /// <summary>
+    /// Sets a Rego data document mounted at the specified path within the data tree of a policy format version.
+    /// </summary>
+    /// <param name="mountPath">
+    /// The slash-separated directory path relative to the data root at which the document is mounted.
+    /// An empty string mounts the document at the data root.
+    /// </param>
+    /// <param name="data">
+    /// The data document as UTF-8 encoded JSON bytes. The root of the document must be a JSON object.
+    /// </param>
+    /// <param name="formatVersion">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ArgumentNullException">Thrown when the mount path is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the mount path, version, or data is invalid.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when the data is empty or exceeds the maximum allowed size for a Rego data mount.
+    /// </exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the archive is read-only, the format version is already a manifest-indexed bundle,
+    /// or the mount conflicts with an existing mount.
+    /// </exception>
+    public async Task SetRegoDataAsync(
+        string mountPath,
+        ReadOnlyMemory<byte> data,
+        Version formatVersion,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(mountPath);
+        ValidateRegoPolicyVersion(formatVersion);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(data.Length, 0);
+
+        if (data.Length > _readOptions.MaxAllowedPolicyDataSize)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(data),
+                data.Length,
+                "The Rego data document exceeds the maximum allowed size of "
+                + $"{_readOptions.MaxAllowedPolicyDataSize} bytes for a data mount.");
+        }
+
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var segments = ValidateRegoDataMountPath(mountPath);
+        EnsureMutable();
+
+        if (ReadRegoPolicyBundleVersions().Contains(formatVersion))
+        {
+            throw ThrowHelper.RegoPolicyPairVersionIsBundle(formatVersion);
+        }
+
+        using var document = ParseRegoDataObject(data);
+        await EnsureNoRegoDataConflictAsync(
+            formatVersion,
+            mountPath,
+            segments,
+            document.RootElement,
+            cancellationToken);
+
+        // A data mount is a base document; it must not overlap the virtual document rooted at a policy
+        // package path. Reject the mount when it collides with an existing policy's package.
+        await EnsureNoRegoBaseVirtualConflictForDataAsync(
+            formatVersion,
+            mountPath,
+            segments,
+            document.RootElement,
+            cancellationToken);
+
+        await using var stream = _session.OpenWrite(FileNames.GetRegoDataPath(formatVersion, mountPath));
+        await stream.WriteAsync(data, cancellationToken);
+    }
+
+    /// <summary>
+    /// Attempts to get the Rego data document mounted at the specified path for a policy format version.
+    /// </summary>
+    /// <param name="mountPath">
+    /// The slash-separated directory path relative to the data root. An empty string is the data root.
+    /// </param>
+    /// <param name="formatVersion">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The data document as UTF-8 encoded JSON bytes, or <c>null</c> when it is not present.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the mount path is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the mount path or version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    public async Task<ReadOnlyMemory<byte>?> TryGetRegoDataAsync(
+        string mountPath,
+        Version formatVersion,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(mountPath);
+        ValidateRegoPolicyVersion(formatVersion);
+        ValidateRegoDataMountPath(mountPath);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var path = FileNames.GetRegoDataPath(formatVersion, mountPath);
+
+        if (!await _session.ExistsAsync(path, FileKind.PolicyData, cancellationToken))
+        {
+            return null;
+        }
+
+        await using var stream = await _session.OpenReadAsync(path, FileKind.PolicyData, cancellationToken);
+        await using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory, cancellationToken);
+        return memory.ToArray();
+    }
+
+    /// <summary>
+    /// Gets the mount paths of all Rego data documents for a policy format version, ordered by path.
+    /// The data root is represented by an empty string.
+    /// </summary>
+    /// <param name="formatVersion">The Rego policy format version.</param>
+    /// <returns>The Rego data mount paths.</returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego data layout is invalid.</exception>
+    public IEnumerable<string> GetRegoDataMountPaths(Version formatVersion)
+    {
+        ValidateRegoPolicyVersion(formatVersion);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        return ReadRegoDataMounts(formatVersion)
+            .Select(m => m.MountPath)
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Removes the Rego data document mounted at the specified path for a policy format version.
+    /// </summary>
+    /// <param name="mountPath">
+    /// The slash-separated directory path relative to the data root. An empty string is the data root.
+    /// </param>
+    /// <param name="formatVersion">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns><c>true</c> if the data document was present and removed; otherwise, <c>false</c>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the mount path is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the mount path or version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public async Task<bool> RemoveRegoDataAsync(
+        string mountPath,
+        Version formatVersion,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(mountPath);
+        ValidateRegoPolicyVersion(formatVersion);
+        ValidateRegoDataMountPath(mountPath);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable();
+
+        var path = FileNames.GetRegoDataPath(formatVersion, mountPath);
+
+        if (!await _session.ExistsAsync(path, FileKind.PolicyData, cancellationToken))
+        {
+            return false;
+        }
+
+        _session.Delete(path);
+        return true;
+    }
+
+    /// <summary>
+    /// Attempts to assemble the merged Rego data document for a policy format version by combining every
+    /// mounted data document into a single hierarchical JSON document. Returns <c>null</c> when the version
+    /// has no data subtree. The merge produces the tree by mount path; the order of keys in the result is
+    /// not specified.
+    /// </summary>
+    /// <param name="formatVersion">The Rego policy format version.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>
+    /// An owner of the merged data document that the caller disposes, or <c>null</c> when no data subtree exists.
+    /// </returns>
+    /// <exception cref="ArgumentException">Thrown when the version is invalid.</exception>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidDataException">Thrown when the Rego data layout defines conflicting mounts.</exception>
+    public async Task<JsonDocumentOwner?> TryGetRegoDataDocumentAsync(
+        Version formatVersion,
+        CancellationToken cancellationToken = default)
+    {
+        ValidateRegoPolicyVersion(formatVersion);
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var mounts = ReadRegoDataMounts(formatVersion);
+
+        if (mounts.Count == 0)
+        {
+            return null;
+        }
+
+        // Parse every mount document up front, ordered so that ancestor mounts precede their descendants.
+        var ordered = mounts.OrderBy(m => m.MountPath, StringComparer.Ordinal).ToArray();
+        var documents = new (string MountPath, string[] Segments, JsonObject Document)[ordered.Length];
+
+        for (var i = 0; i < ordered.Length; i++)
+        {
+            JsonNode? node;
+            await using (var stream = await _session.OpenReadAsync(
+                ordered[i].Path,
+                FileKind.PolicyData,
+                cancellationToken))
+            {
+                node = JsonNode.Parse(stream);
+            }
+
+            if (node is not JsonObject document)
+            {
+                throw new InvalidDataException(
+                    $"The Rego data document '{ordered[i].Path}' must be a JSON object.");
+            }
+
+            var segments = ordered[i].MountPath.Length == 0 ? [] : ordered[i].MountPath.Split('/');
+            documents[i] = (ordered[i].MountPath, segments, document);
+        }
+
+        // Reject conflicting mounts on read using the same rule the write path enforces, so an archive
+        // produced elsewhere is not silently deep-merged where the write API would reject it.
+        for (var i = 0; i < documents.Length; i++)
+        {
+            for (var j = 0; j < documents.Length; j++)
+            {
+                if (i == j || !IsRegoDataMountPrefix(documents[i].Segments, documents[j].Segments))
+                {
+                    continue;
+                }
+
+                if (RegoDataDocumentDefinesMountPath(
+                    documents[i].Document,
+                    documents[j].Segments.AsSpan(documents[i].Segments.Length)))
+                {
+                    throw CreateRegoDataConflictDataException(documents[i].MountPath, documents[j].MountPath);
+                }
+            }
+        }
+
+        // Reject data mounts that overlap a policy package's virtual document, the base versus virtual
+        // document conflict, using the same rule the write paths enforce so an archive produced
+        // elsewhere is not silently merged where the write API would reject it.
+        var virtualRoots = await ReadRegoPolicyPackageRootsAsync(formatVersion, cancellationToken);
+
+        foreach (var (mountPath, segments, document) in documents)
+        {
+            foreach (var policySegments in virtualRoots)
+            {
+                if (RegoSegmentsEqual(segments, policySegments)
+                    || IsRegoDataMountPrefix(policySegments, segments))
+                {
+                    throw CreateRegoBaseVirtualConflictDataException(mountPath, policySegments);
+                }
+
+                if (IsRegoDataMountPrefix(segments, policySegments)
+                    && RegoDataDocumentDefinesMountPath(document, policySegments.AsSpan(segments.Length)))
+                {
+                    throw CreateRegoBaseVirtualConflictDataException(mountPath, policySegments);
+                }
+            }
+        }
+
+        var root = new JsonObject();
+
+        foreach (var (mountPath, segments, document) in documents)
+        {
+            var target = segments.Length == 0
+                ? root
+                : NavigateOrCreateRegoDataObject(root, segments, mountPath);
+            MergeRegoDataObject(target, document, mountPath);
+        }
+
+        var buffer = new PooledArrayWriter();
+
+        try
+        {
+            await using (var writer = new Utf8JsonWriter(buffer))
+            {
+                root.WriteTo(writer);
+            }
+
+            return new JsonDocumentOwner(JsonDocument.Parse(buffer.WrittenMemory), buffer);
+        }
+        catch
+        {
+            buffer.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>
     /// Sets a source schema in the archive.
     /// The schema name must be declared in the archive metadata before calling this method.
     /// </summary>
@@ -644,19 +1924,22 @@ public sealed class FusionArchive : IDisposable
 
     /// <summary>
     /// Digitally signs the archive using the provided certificate with private key.
-    /// Creates a manifest of all files and their SHA-256 hashes, then signs the manifest.
+    /// Brings the root content manifest up to date, then creates a PKCS#7/CMS detached signature over
+    /// the raw bytes of that manifest.
     /// </summary>
     /// <param name="privateKey">The certificate containing the private key for signing.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <exception cref="ArgumentNullException">Thrown when privateKey is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="ArgumentException">Thrown when the certificate does not contain a private key.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
     public async Task SignArchiveAsync(
         X509Certificate2 privateKey,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(privateKey);
         ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable(invalidateSignature: false);
 
         if (!privateKey.HasPrivateKey)
         {
@@ -665,32 +1948,150 @@ public sealed class FusionArchive : IDisposable
                 nameof(privateKey));
         }
 
-        // 1. Generate manifest of all non-signature files
-        var manifest = await GenerateManifestAsync(cancellationToken);
+        _signatureCurrent = false;
 
-        // 2. Create detached signature
+        // Bring the root manifest up to date so the signature covers the current archive contents.
+        var manifestBytes = await WriteManifestAsync(cancellationToken);
+
+        // Create the detached CMS signature over the raw manifest bytes with a signing-time attribute.
+        var contentInfo = new ContentInfo(manifestBytes);
+        var signedCms = new SignedCms(contentInfo, detached: true);
+        var signer = new CmsSigner(privateKey);
+        signer.SignedAttributes.Add(new Pkcs9SigningTime());
+        signedCms.ComputeSignature(signer);
+        var signatureBytes = signedCms.Encode();
+
+        await using var stream = _session.OpenWrite(FileNames.Signature);
+        await stream.WriteAsync(signatureBytes, cancellationToken);
+        await stream.FlushAsync(cancellationToken);
+        _signatureCurrent = true;
+    }
+
+    /// <summary>
+    /// Removes the archive signature so its contents can be changed and committed.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
+    public Task RemoveSignatureAsync(CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable(invalidateSignature: false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        _session.Delete(FileNames.Signature);
+        _signatureCurrent = false;
+
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Verifies the archive contents against its content manifest. Every archive file, except the
+    /// manifest and files in the signature directory, must be listed and match its recorded digest.
+    /// Listed files that are absent are permitted.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>
+    /// The verification result. Archives without a signature report
+    /// <see cref="SignatureVerificationResult.NotSigned"/> after their manifest integrity is checked.
+    /// </returns>
+    public async Task<SignatureVerificationResult> VerifyIntegrityAsync(
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        var manifestPresent = await _session.ExistsAsync(
+            FileNames.Manifest,
+            FileKind.Manifest,
+            cancellationToken);
+        var signaturePresent = await _session.ExistsAsync(
+            FileNames.Signature,
+            FileKind.Signature,
+            cancellationToken);
+
+        // The content manifest establishes integrity and is required for every archive. Without it
+        // neither the file digests nor a signature covering the manifest can be verified.
+        if (!manifestPresent)
+        {
+            return signaturePresent
+                ? SignatureVerificationResult.ManifestMissing
+                : SignatureVerificationResult.NotSigned;
+        }
+
         var buffer = TryRentBuffer();
 
         try
         {
-            SignatureManifestSerializer.Format(manifest, buffer, writeManifestHash: true);
-            var contentInfo = new ContentInfo(buffer.WrittenSpan.ToArray());
-            var signedCms = new SignedCms(contentInfo, detached: true);
-            var signer = new CmsSigner(privateKey);
-            signedCms.ComputeSignature(signer);
-            var signatureBytes = signedCms.Encode();
-
-            await using (var stream = _session.OpenWrite(FileNames.SignatureManifest))
+            // 1. Load the manifest bytes and parse the manifest.
+            await using (var manifestStream = await _session.OpenReadAsync(
+                FileNames.Manifest,
+                FileKind.Manifest,
+                cancellationToken))
             {
-                await stream.WriteAsync(buffer.WrittenMemory, cancellationToken);
-                await stream.FlushAsync(cancellationToken);
+                await manifestStream.CopyToAsync(buffer, cancellationToken);
             }
 
-            await using (var stream = _session.OpenWrite(FileNames.Signature))
+            var manifest = ArchiveManifestSerializer.Parse(buffer.WrittenMemory);
+
+            // sha256 is the only supported digest algorithm.
+            if (!manifest.Algorithm.Equals("sha256", StringComparison.Ordinal))
             {
-                await stream.WriteAsync(signatureBytes, cancellationToken);
-                await stream.FlushAsync(cancellationToken);
+                return SignatureVerificationResult.UnsupportedAlgorithm;
             }
+
+            // 2. Every present file, other than the manifest and the signature directory, must be listed.
+            foreach (var path in _session.GetFiles())
+            {
+                if (path.Equals(FileNames.Manifest, StringComparison.Ordinal)
+                    || path.StartsWith(FileNames.SignatureDirectory, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                if (path.EndsWith("/", StringComparison.Ordinal) && _session.GetContentLength(path) == 0)
+                {
+                    // An empty directory placeholder carries no content and is not a listed file.
+                    continue;
+                }
+
+                if (!manifest.Files.ContainsKey(path))
+                {
+                    return SignatureVerificationResult.UnlistedFile;
+                }
+            }
+
+            // 3. Re-hash every listed file that is present; listed files that are absent are permitted.
+            foreach (var file in manifest.Files)
+            {
+                var kind = FileNames.GetFileKind(file.Key);
+
+                if (!await _session.ExistsAsync(file.Key, kind, cancellationToken))
+                {
+                    continue;
+                }
+
+                var actualHash = await ComputeFileHashAsync(file.Key, kind, cancellationToken);
+                if (!actualHash.Equals(file.Value, StringComparison.Ordinal))
+                {
+                    return SignatureVerificationResult.FilesModified;
+                }
+            }
+
+            return signaturePresent
+                ? SignatureVerificationResult.Valid
+                : SignatureVerificationResult.NotSigned;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (CryptographicException)
+        {
+            return SignatureVerificationResult.InvalidSignature;
+        }
+        catch (Exception)
+        {
+            return SignatureVerificationResult.VerificationFailed;
         }
         finally
         {
@@ -699,86 +2100,110 @@ public sealed class FusionArchive : IDisposable
     }
 
     /// <summary>
-    /// Verifies the digital signature of the archive using the provided public key certificate.
-    /// Checks file integrity, manifest hash, and cryptographic signature validity.
+    /// Verifies the archive against its content manifest and detached signature using the provided public
+    /// key certificate.
     /// </summary>
     /// <param name="publicKey">The certificate containing the public key for verification.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>The result of the signature verification process.</returns>
-    public async Task<SignatureVerificationResult> VerifySignatureAsync(
+    /// <returns>The result of the verification process.</returns>
+    public Task<SignatureVerificationResult> VerifySignatureAsync(
         X509Certificate2 publicKey,
         CancellationToken cancellationToken = default)
-    {
-        var manifestExists = await _session.ExistsAsync(
-            FileNames.SignatureManifest,
-            FileKind.Manifest,
-            cancellationToken);
-        var signatureExists = await _session.ExistsAsync(
-            FileNames.Signature,
-            FileKind.Signature,
-            cancellationToken);
+        => VerifySignatureAsync(new X509Certificate2Collection(publicKey), cancellationToken);
 
-        if (!manifestExists || !signatureExists)
+    /// <summary>
+    /// Verifies the archive against its content manifest and detached signature, accepting the
+    /// signature if it was produced by any certificate in the provided collection.
+    /// </summary>
+    /// <param name="trustedCertificates">The certificates trusted as signers.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The result of the verification process.</returns>
+    public async Task<SignatureVerificationResult> VerifySignatureAsync(
+        X509Certificate2Collection trustedCertificates,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(trustedCertificates);
+
+        var integrityResult = await VerifyIntegrityAsync(cancellationToken);
+        if (integrityResult is not SignatureVerificationResult.Valid)
         {
-            return SignatureVerificationResult.NotSigned;
+            return integrityResult;
         }
 
         var buffer = TryRentBuffer();
 
         try
         {
-            // 1. Load manifest and signature
-            await using var manifestStream = await _session.OpenReadAsync(
-                FileNames.SignatureManifest,
+            await using (var manifestStream = await _session.OpenReadAsync(
+                FileNames.Manifest,
                 FileKind.Manifest,
-                cancellationToken);
-            await using var signatureStream = await _session.OpenReadAsync(
+                cancellationToken))
+            {
+                await manifestStream.CopyToAsync(buffer, cancellationToken);
+            }
+
+            var manifestBytes = buffer.WrittenSpan.ToArray();
+
+            buffer.Clear();
+            await using (var signatureStream = await _session.OpenReadAsync(
                 FileNames.Signature,
                 FileKind.Signature,
-                cancellationToken);
-            await manifestStream.CopyToAsync(buffer, cancellationToken);
-            var manifest = SignatureManifestSerializer.Parse(buffer.WrittenMemory);
-            var contentInfo = new ContentInfo(buffer.WrittenSpan.ToArray());
-
-            buffer.Clear();
-            await signatureStream.CopyToAsync(buffer, cancellationToken);
-            var signatureBytes = buffer.WrittenSpan.ToArray();
-
-            // 2. Verify file integrity
-            foreach (var file in manifest.Files.OrderBy(t => t.Key))
+                cancellationToken))
             {
-                var kind = FileNames.GetFileKind(file.Key);
-
-                if (!await _session.ExistsAsync(file.Key, kind, cancellationToken))
-                {
-                    return SignatureVerificationResult.FilesMissing;
-                }
-
-                var actualHash = await ComputeFileHashAsync(file.Key, kind, cancellationToken);
-                if (!actualHash.Equals(file.Value, StringComparison.OrdinalIgnoreCase))
-                {
-                    return SignatureVerificationResult.FilesModified;
-                }
+                await signatureStream.CopyToAsync(buffer, cancellationToken);
             }
 
-            // 3. Verify manifest hash
-            buffer.Clear();
-            SignatureManifestSerializer.Format(manifest, buffer, writeManifestHash: false);
-            var manifestHash = ComputeManifestHash(buffer.WrittenSpan);
-
-            if (manifest.ManifestHash?.Equals(manifestHash, StringComparison.OrdinalIgnoreCase) != true)
-            {
-                return SignatureVerificationResult.ManifestCorrupted;
-            }
-
-            // 4. Verify cryptographic signature
+            var contentInfo = new ContentInfo(manifestBytes);
             var signedCms = new SignedCms(contentInfo, detached: true);
-            signedCms.Decode(signatureBytes);
+            signedCms.Decode(buffer.WrittenSpan.ToArray());
+
+            // CheckSignature only proves that the signature is cryptographically valid for
+            // whichever certificate the message carries; the CMS embeds its signer's certificate
+            // by default, so this alone does not prove that certificate is one we trust. The
+            // trusted-collection membership must be checked explicitly against the certificate
+            // the signature actually resolved to, comparing raw bytes: X509Certificate2Collection.Contains
+            // compares only the issuer distinguished name and serial number, both of which an
+            // attacker can copy onto a forged certificate carrying its own key pair.
             signedCms.CheckSignature(
-                new X509Certificate2Collection(publicKey),
+                trustedCertificates,
                 verifySignatureOnly: true);
 
+            if (signedCms.SignerInfos.Count == 0)
+            {
+                return SignatureVerificationResult.InvalidSignature;
+            }
+
+            foreach (var signerInfo in signedCms.SignerInfos)
+            {
+                var signerCertificate = signerInfo.Certificate;
+
+                if (signerCertificate is null)
+                {
+                    return SignatureVerificationResult.InvalidSignature;
+                }
+
+                var isTrusted = false;
+
+                foreach (var trustedCertificate in trustedCertificates)
+                {
+                    if (signerCertificate.RawData.AsSpan().SequenceEqual(trustedCertificate.RawData))
+                    {
+                        isTrusted = true;
+                        break;
+                    }
+                }
+
+                if (!isTrusted)
+                {
+                    return SignatureVerificationResult.InvalidSignature;
+                }
+            }
+
             return SignatureVerificationResult.Valid;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
         }
         catch (CryptographicException)
         {
@@ -803,16 +2228,9 @@ public sealed class FusionArchive : IDisposable
     public async Task<SignatureInfo?> GetSignatureInfoAsync(
         CancellationToken cancellationToken = default)
     {
-        var manifestExists = await _session.ExistsAsync(
-            FileNames.SignatureManifest,
-            FileKind.Manifest,
-            cancellationToken);
-        var signatureExists = await _session.ExistsAsync(
-            FileNames.Signature,
-            FileKind.Signature,
-            cancellationToken);
+        ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (!manifestExists || !signatureExists)
+        if (!await _session.ExistsAsync(FileNames.Signature, FileKind.Signature, cancellationToken))
         {
             return null;
         }
@@ -821,20 +2239,13 @@ public sealed class FusionArchive : IDisposable
 
         try
         {
-            await using var manifestStream = await _session.OpenReadAsync(
-                FileNames.SignatureManifest,
-                FileKind.Manifest,
-                cancellationToken);
-            await using var signatureStream = await _session.OpenReadAsync(
+            await using (var signatureStream = await _session.OpenReadAsync(
                 FileNames.Signature,
                 FileKind.Signature,
-                cancellationToken);
-
-            await manifestStream.CopyToAsync(buffer, 1024, cancellationToken);
-            var manifest = SignatureManifestSerializer.Parse(buffer.WrittenMemory);
-            buffer.Clear();
-
-            await signatureStream.CopyToAsync(buffer, 1024, cancellationToken);
+                cancellationToken))
+            {
+                await signatureStream.CopyToAsync(buffer, 1024, cancellationToken);
+            }
 
             var signedCms = new SignedCms();
             signedCms.Decode(buffer.WrittenSpan.ToArray());
@@ -848,8 +2259,10 @@ public sealed class FusionArchive : IDisposable
 
             return new SignatureInfo
             {
-                Timestamp = manifest.Timestamp,
-                Algorithm = manifest.Algorithm,
+                Timestamp = TryGetSigningTime(signerInfo),
+                Algorithm = (signerInfo.DigestAlgorithm.FriendlyName
+                    ?? signerInfo.DigestAlgorithm.Value
+                    ?? "sha256").ToLowerInvariant(),
                 SignerCertificate = certificate,
                 IsValid = verificationResult is SignatureVerificationResult.Valid
             };
@@ -867,7 +2280,906 @@ public sealed class FusionArchive : IDisposable
     /// <summary>
     /// Gets a value indicating whether the archive contains a digital signature.
     /// </summary>
-    public bool IsSigned => _session.Exists(FileNames.SignatureManifest);
+    public bool IsSigned => _session.Exists(FileNames.Signature);
+
+    private static DateTimeOffset? TryGetSigningTime(SignerInfo signerInfo)
+    {
+        foreach (var attribute in signerInfo.SignedAttributes)
+        {
+            if (attribute.Oid?.Value != "1.2.840.113549.1.9.5")
+            {
+                continue;
+            }
+
+            foreach (var value in attribute.Values)
+            {
+                if (value is Pkcs9SigningTime signingTime)
+                {
+                    return new DateTimeOffset(signingTime.SigningTime.ToUniversalTime());
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the root content manifest that records a digest for every file and artifact in the archive.
+    /// Returns <c>null</c> when the archive contains no content manifest, which indicates a legacy or
+    /// otherwise invalid archive.
+    /// </summary>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The content manifest or <c>null</c> if not present.</returns>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    public async Task<ArchiveManifest?> GetManifestAsync(CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (!await _session.ExistsAsync(FileNames.Manifest, FileKind.Manifest, cancellationToken))
+        {
+            return null;
+        }
+
+        var buffer = TryRentBuffer();
+
+        try
+        {
+            await using var stream = await _session.OpenReadAsync(
+                FileNames.Manifest,
+                FileKind.Manifest,
+                cancellationToken);
+            await stream.CopyToAsync(buffer, cancellationToken);
+            return ArchiveManifestSerializer.Parse(buffer.WrittenMemory);
+        }
+        finally
+        {
+            TryReturnBuffer(buffer);
+        }
+    }
+
+    /// <summary>
+    /// Removes the specified components from the archive without regenerating the content manifest.
+    /// The root <c>manifest.json</c> and the signature directory are preserved byte-identically, so the
+    /// manifest intentionally continues to list the now-absent files and any existing signature remains valid.
+    /// </summary>
+    /// <param name="components">The components to remove.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the archive is read-only or has pending uncommitted changes.
+    /// </exception>
+    public async Task StripAsync(
+        FusionArchiveComponents components,
+        CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        EnsureMutable(invalidateSignature: false);
+
+        if (_session.HasUncommittedChanges)
+        {
+            throw new InvalidOperationException(
+                "Cannot strip an archive that has pending uncommitted changes. Commit the changes first.");
+        }
+
+        if ((components & FusionArchiveComponents.SourceSchemas) == FusionArchiveComponents.SourceSchemas)
+        {
+            foreach (var path in _session.GetFiles().ToArray())
+            {
+                if (path.StartsWith(FileNames.SourceSchemas, StringComparison.Ordinal))
+                {
+                    _session.Delete(path);
+                }
+            }
+        }
+
+        if ((components & FusionArchiveComponents.CompositionSettings) == FusionArchiveComponents.CompositionSettings)
+        {
+            _session.Delete(FileNames.CompositionSettings);
+        }
+
+        if (_session.HasUncommittedChanges)
+        {
+            // Commit the deletions directly. The content manifest is deliberately not regenerated so that
+            // it keeps listing the stripped files and any existing signature stays valid.
+            await CommitCoreAsync(cancellationToken);
+        }
+    }
+
+    private RegoPolicyFileSet[] ReadRegoPolicyFileSets()
+    {
+        var fileSets = new Dictionary<(Version Version, string Name), RegoPolicyFileSet>();
+        var bundleVersions = ReadRegoPolicyBundleVersions();
+
+        foreach (var path in _session.GetFiles())
+        {
+            if (!path.StartsWith(FileNames.RegoPolicies, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (path.EndsWith("/", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var relativePath = path.AsSpan(FileNames.RegoPolicies.Length);
+            var separator = relativePath.IndexOf('/');
+
+            if (separator <= 0 || separator == relativePath.Length - 1)
+            {
+                throw new InvalidDataException($"The Rego policy path '{path}' is invalid.");
+            }
+
+            var versionText = relativePath[..separator].ToString();
+            if (!TryParseRegoPolicyVersion(versionText, out var version))
+            {
+                throw new InvalidDataException(
+                    $"The Rego policy path '{path}' does not contain a canonical three-part version.");
+            }
+
+            if (bundleVersions.Contains(version))
+            {
+                // A manifest-indexed bundle format version is validated and read through
+                // GetRegoPolicyBundleAsync, not through the flat policy-pair scan.
+                continue;
+            }
+
+            var remainder = relativePath[(separator + 1)..];
+            var remainderSeparator = remainder.IndexOf('/');
+
+            if (remainderSeparator >= 0)
+            {
+                // Nested paths are only valid inside the 'data/' subtree, where every file must be data.json.
+                if (!remainder[..remainderSeparator].SequenceEqual("data"))
+                {
+                    throw new InvalidDataException($"The Rego policy path '{path}' is invalid.");
+                }
+
+                if (!remainder[(remainder.LastIndexOf('/') + 1)..].SequenceEqual(FileNames.DataFile))
+                {
+                    throw new InvalidDataException(
+                        $"The Rego policy path '{path}' is invalid because only '{FileNames.DataFile}' "
+                        + "files are permitted within the 'data/' subtree.");
+                }
+
+                // Data files are validated and read through the data tree APIs, not as policy pairs.
+                continue;
+            }
+
+            var fileName = remainder.ToString();
+            if (fileName.Contains('\\'))
+            {
+                throw new InvalidDataException($"The Rego policy path '{path}' is invalid.");
+            }
+
+            if (fileName.Equals(FileNames.DataFile, StringComparison.Ordinal))
+            {
+                throw new InvalidDataException(
+                    $"The Rego policy path '{path}' is invalid because '{FileNames.DataFile}' files must be "
+                    + "located within the 'data/' subtree.");
+            }
+
+            string policyName;
+            bool isPolicy;
+
+            if (fileName.EndsWith(".rego", StringComparison.Ordinal))
+            {
+                policyName = fileName[..^5];
+                isPolicy = true;
+            }
+            else if (fileName.EndsWith(".graphql", StringComparison.Ordinal))
+            {
+                policyName = fileName[..^8];
+                isPolicy = false;
+            }
+            else
+            {
+                if (fileName.EndsWith(".rego", StringComparison.OrdinalIgnoreCase)
+                    || fileName.EndsWith(".graphql", StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidDataException(
+                        $"The Rego policy path '{path}' uses an invalid file extension casing.");
+                }
+
+                continue;
+            }
+
+            if (IsReservedRegoPolicyName(policyName))
+            {
+                throw new InvalidDataException(
+                    $"The Rego policy path '{path}' uses the reserved policy name 'data', which "
+                    + "identifies the policy data subtree.");
+            }
+
+            if (!IsValidRegoPolicyName(policyName))
+            {
+                throw new InvalidDataException($"The Rego policy path '{path}' contains an invalid policy name.");
+            }
+
+            var key = (version, policyName);
+            if (!fileSets.TryGetValue(key, out var fileSet))
+            {
+                fileSet = new RegoPolicyFileSet(version, policyName);
+                fileSets.Add(key, fileSet);
+            }
+
+            if (isPolicy)
+            {
+                fileSet.HasPolicy = true;
+            }
+            else
+            {
+                fileSet.HasRequirements = true;
+            }
+        }
+
+        foreach (var versionGroup in fileSets.Values.GroupBy(t => t.Version))
+        {
+            var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var fileSet in versionGroup)
+            {
+                if (!names.Add(fileSet.Name))
+                {
+                    throw new InvalidDataException(
+                        $"The Rego policy format '{fileSet.Version}' contains policy names that differ only by case.");
+                }
+
+                if (!fileSet.HasPolicy || !fileSet.HasRequirements)
+                {
+                    throw CreateIncompleteRegoPolicyException(fileSet.Name, fileSet.Version);
+                }
+            }
+        }
+
+        return fileSets.Values.ToArray();
+    }
+
+    private async Task<RegoPolicyConfiguration> CreateRegoPolicyConfigurationAsync(
+        RegoPolicyFileSet fileSet,
+        CancellationToken cancellationToken)
+    {
+        var policyPath = FileNames.GetRegoPolicyPath(fileSet.Version, fileSet.Name);
+        var requirementsPath = FileNames.GetRegoPolicyRequirementsPath(fileSet.Version, fileSet.Name);
+
+        // Extract both files before returning the lazy readers. This applies the configured
+        // archive size limits to the complete policy pair during catalog loading.
+        await _session.ExistsAsync(policyPath, FileKind.Policy, cancellationToken);
+        await _session.ExistsAsync(requirementsPath, FileKind.Schema, cancellationToken);
+
+        return new RegoPolicyConfiguration(
+            fileSet.Name,
+            fileSet.Version,
+            OpenReadPolicyAsync,
+            OpenReadRequirementsAsync);
+
+        Task<Stream> OpenReadPolicyAsync(CancellationToken ct)
+            => _session.OpenReadAsync(policyPath, FileKind.Policy, ct);
+
+        Task<Stream> OpenReadRequirementsAsync(CancellationToken ct)
+            => _session.OpenReadAsync(requirementsPath, FileKind.Schema, ct);
+    }
+
+    private static InvalidDataException CreateIncompleteRegoPolicyException(
+        string policyName,
+        Version version)
+        => new(
+            $"The Rego policy '{policyName}' in format '{version}' must contain both "
+            + $"'{policyName}.rego' and '{policyName}.graphql'.");
+
+    private static void ValidateRegoPolicyName(string policyName)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(policyName);
+
+        if (IsReservedRegoPolicyName(policyName))
+        {
+            throw new ArgumentException(
+                "The Rego policy name 'data' is reserved for the policy data subtree.",
+                nameof(policyName));
+        }
+
+        if (!IsValidRegoPolicyName(policyName))
+        {
+            throw new ArgumentException("Invalid Rego policy name.", nameof(policyName));
+        }
+    }
+
+    // 'data' names the shared policy data subtree, so it cannot also identify a policy pair without
+    // colliding with the 'policies/<language>/<version>/data' artifact key.
+    private static bool IsReservedRegoPolicyName(string policyName)
+        => policyName.Equals("data", StringComparison.Ordinal);
+
+    private static bool IsValidRegoPolicyName(string policyName)
+        => IsRegoPackageSegment(policyName);
+
+    private static void ValidateRegoPolicyVersion(Version version)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+
+        if (version.Build < 0 || version.Revision >= 0)
+        {
+            throw new ArgumentException(
+                "The Rego policy format version must contain exactly three components.",
+                nameof(version));
+        }
+    }
+
+    private static bool TryParseRegoPolicyVersion(string value, out Version version)
+    {
+        if (Version.TryParse(value, out var parsed)
+            && parsed.Build >= 0
+            && parsed.Revision < 0
+            && parsed.ToString(3).Equals(value, StringComparison.Ordinal))
+        {
+            version = parsed;
+            return true;
+        }
+
+        version = null!;
+        return false;
+    }
+
+    private List<RegoDataMount> ReadRegoDataMounts(Version version)
+    {
+        var directory = FileNames.GetRegoDataDirectory(version);
+        var mounts = new List<RegoDataMount>();
+
+        foreach (var path in _session.GetFiles())
+        {
+            if (path.EndsWith("/", StringComparison.Ordinal)
+                || !path.StartsWith(directory, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var relative = path[directory.Length..];
+            var lastSeparator = relative.LastIndexOf('/');
+            var fileName = lastSeparator < 0 ? relative : relative[(lastSeparator + 1)..];
+
+            if (!fileName.Equals(FileNames.DataFile, StringComparison.Ordinal))
+            {
+                throw new InvalidDataException(
+                    $"The Rego data path '{path}' is invalid because only '{FileNames.DataFile}' "
+                    + "files are permitted within the 'data/' subtree.");
+            }
+
+            var mountPath = lastSeparator < 0 ? string.Empty : relative[..lastSeparator];
+            mounts.Add(new RegoDataMount(mountPath, path));
+        }
+
+        return mounts;
+    }
+
+    private static string[] ValidateRegoDataMountPath(string mountPath)
+    {
+        if (mountPath.Length == 0)
+        {
+            return [];
+        }
+
+        var segments = mountPath.Split('/');
+
+        foreach (var segment in segments)
+        {
+            if (!IsValidRegoDataMountSegment(segment))
+            {
+                throw new ArgumentException(
+                    $"The data mount path '{mountPath}' contains an invalid path segment.",
+                    nameof(mountPath));
+            }
+        }
+
+        return segments;
+    }
+
+    private static bool IsValidRegoDataMountSegment(string? segment)
+    {
+        if (string.IsNullOrWhiteSpace(segment) || segment is "." or "..")
+        {
+            return false;
+        }
+
+        foreach (var character in segment)
+        {
+            if (character is '/' or '\\' || char.IsControl(character))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static JsonDocument ParseRegoDataObject(ReadOnlyMemory<byte> data)
+    {
+        JsonDocument document;
+
+        try
+        {
+            document = JsonDocument.Parse(data);
+        }
+        catch (JsonException exception)
+        {
+            throw new ArgumentException("The Rego data document must be valid JSON.", nameof(data), exception);
+        }
+
+        if (document.RootElement.ValueKind is not JsonValueKind.Object)
+        {
+            document.Dispose();
+            throw new ArgumentException("The Rego data document must be a JSON object.", nameof(data));
+        }
+
+        return document;
+    }
+
+    private async Task EnsureNoRegoDataConflictAsync(
+        Version version,
+        string mountPath,
+        string[] segments,
+        JsonElement document,
+        CancellationToken cancellationToken)
+    {
+        foreach (var existing in ReadRegoDataMounts(version))
+        {
+            if (existing.MountPath.Equals(mountPath, StringComparison.Ordinal))
+            {
+                // Writing the same mount replaces its previous document.
+                continue;
+            }
+
+            var existingSegments = existing.MountPath.Length == 0
+                ? []
+                : existing.MountPath.Split('/');
+
+            if (IsRegoDataMountPrefix(existingSegments, segments))
+            {
+                // The existing mount is an ancestor; its document must not already define the path the
+                // new mount occupies.
+                await using var stream = await _session.OpenReadAsync(
+                    existing.Path,
+                    FileKind.PolicyData,
+                    cancellationToken);
+                using var existingDocument = await JsonDocument.ParseAsync(stream, default, cancellationToken);
+
+                if (RegoDataDocumentDefinesMountPath(
+                    existingDocument.RootElement,
+                    segments.AsSpan(existingSegments.Length)))
+                {
+                    throw CreateRegoDataConflictException(mountPath, existing.MountPath);
+                }
+            }
+            else if (IsRegoDataMountPrefix(segments, existingSegments))
+            {
+                // The new mount is an ancestor; its document must not define the path the existing mount occupies.
+                if (RegoDataDocumentDefinesMountPath(document, existingSegments.AsSpan(segments.Length)))
+                {
+                    throw CreateRegoDataConflictException(mountPath, existing.MountPath);
+                }
+            }
+        }
+    }
+
+    private static bool IsRegoDataMountPrefix(string[] prefix, string[] path)
+    {
+        if (prefix.Length >= path.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < prefix.Length; i++)
+        {
+            if (!prefix[i].Equals(path[i], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Determines whether the document at an ancestor mount already defines the mount point that a
+    // descendant mount occupies. The descendant conflicts when the ancestor defines a value exactly at
+    // the mount point, or a non-object value at any segment along the way (which would block descending
+    // into a container). Disjoint sibling keys along the path are not a conflict.
+    private static bool RegoDataDocumentDefinesMountPath(JsonElement document, ReadOnlySpan<string> relativeSegments)
+    {
+        var current = document;
+
+        foreach (var segment in relativeSegments)
+        {
+            if (current.ValueKind is not JsonValueKind.Object)
+            {
+                return true;
+            }
+
+            if (!current.TryGetProperty(segment, out var next))
+            {
+                return false;
+            }
+
+            current = next;
+        }
+
+        return true;
+    }
+
+    private static bool RegoDataDocumentDefinesMountPath(JsonObject document, ReadOnlySpan<string> relativeSegments)
+    {
+        JsonNode? current = document;
+
+        foreach (var segment in relativeSegments)
+        {
+            if (current is not JsonObject next)
+            {
+                return true;
+            }
+
+            if (!next.TryGetPropertyValue(segment, out current))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static JsonObject NavigateOrCreateRegoDataObject(JsonObject root, string[] segments, string mountPath)
+    {
+        var current = root;
+
+        foreach (var segment in segments)
+        {
+            if (current[segment] is JsonObject child)
+            {
+                current = child;
+            }
+            else if (current.ContainsKey(segment))
+            {
+                throw new InvalidDataException(
+                    $"The Rego data mount '{mountPath}' conflicts with another mount on the key '{segment}'.");
+            }
+            else
+            {
+                child = new JsonObject();
+                current[segment] = child;
+                current = child;
+            }
+        }
+
+        return current;
+    }
+
+    private static void MergeRegoDataObject(JsonObject destination, JsonObject source, string mountPath)
+    {
+        foreach (var key in source.Select(property => property.Key).ToArray())
+        {
+            var value = source[key];
+            source.Remove(key);
+
+            if (!destination.TryAdd(key, value))
+            {
+                throw new InvalidDataException(
+                    $"The Rego data mount '{mountPath}' conflicts with another mount on the key '{key}'.");
+            }
+        }
+    }
+
+    private static InvalidOperationException CreateRegoDataConflictException(
+        string mountPath,
+        string existingMountPath)
+    {
+        var newLabel = mountPath.Length == 0 ? "the data root" : $"'{mountPath}'";
+        var existingLabel = existingMountPath.Length == 0 ? "the data root" : $"'{existingMountPath}'";
+
+        return new InvalidOperationException(
+            $"The Rego data mount at {newLabel} conflicts with the existing mount at {existingLabel} "
+            + "because their documents define overlapping paths.");
+    }
+
+    private static InvalidDataException CreateRegoDataConflictDataException(
+        string ancestorMountPath,
+        string descendantMountPath)
+    {
+        var ancestorLabel = ancestorMountPath.Length == 0 ? "the data root" : $"'{ancestorMountPath}'";
+        var descendantLabel = descendantMountPath.Length == 0 ? "the data root" : $"'{descendantMountPath}'";
+
+        return new InvalidDataException(
+            $"The Rego data mount at {descendantLabel} conflicts with the mount at {ancestorLabel} "
+            + "because their documents define overlapping paths.");
+    }
+
+    private async Task EnsureNoRegoBaseVirtualConflictForDataAsync(
+        Version version,
+        string mountPath,
+        string[] dataSegments,
+        JsonElement dataDocument,
+        CancellationToken cancellationToken)
+    {
+        foreach (var policySegments in await ReadRegoPolicyPackageRootsAsync(version, cancellationToken))
+        {
+            if (RegoSegmentsEqual(dataSegments, policySegments)
+                || IsRegoDataMountPrefix(policySegments, dataSegments))
+            {
+                // The data mount sits at or inside the policy's virtual document subtree.
+                throw CreateRegoBaseVirtualConflictException(mountPath, policySegments);
+            }
+
+            if (IsRegoDataMountPrefix(dataSegments, policySegments)
+                && RegoDataDocumentDefinesMountPath(dataDocument, policySegments.AsSpan(dataSegments.Length)))
+            {
+                // The data mount is an ancestor whose document defines the policy's virtual root.
+                throw CreateRegoBaseVirtualConflictException(mountPath, policySegments);
+            }
+        }
+    }
+
+    private async Task EnsureNoRegoBaseVirtualConflictForPolicyAsync(
+        Version version,
+        string[] policySegments,
+        CancellationToken cancellationToken)
+    {
+        foreach (var mount in ReadRegoDataMounts(version))
+        {
+            var dataSegments = mount.MountPath.Length == 0 ? [] : mount.MountPath.Split('/');
+
+            if (RegoSegmentsEqual(dataSegments, policySegments)
+                || IsRegoDataMountPrefix(policySegments, dataSegments))
+            {
+                throw CreateRegoBaseVirtualConflictException(mount.MountPath, policySegments);
+            }
+
+            if (!IsRegoDataMountPrefix(dataSegments, policySegments))
+            {
+                continue;
+            }
+
+            bool defines;
+            await using (var stream = await _session.OpenReadAsync(
+                mount.Path,
+                FileKind.PolicyData,
+                cancellationToken))
+            {
+                using var document = await JsonDocument.ParseAsync(stream, default, cancellationToken);
+                defines = RegoDataDocumentDefinesMountPath(
+                    document.RootElement,
+                    policySegments.AsSpan(dataSegments.Length));
+            }
+
+            if (defines)
+            {
+                throw CreateRegoBaseVirtualConflictException(mount.MountPath, policySegments);
+            }
+        }
+    }
+
+    private async Task<List<string[]>> ReadRegoPolicyPackageRootsAsync(
+        Version version,
+        CancellationToken cancellationToken)
+    {
+        List<string[]>? roots = null;
+
+        foreach (var fileSet in ReadRegoPolicyFileSets())
+        {
+            if (fileSet.Version != version)
+            {
+                continue;
+            }
+
+            var buffer = new ArrayBufferWriter<byte>();
+            await using (var stream = await _session.OpenReadAsync(
+                FileNames.GetRegoPolicyPath(version, fileSet.Name),
+                FileKind.Policy,
+                cancellationToken))
+            {
+                await stream.CopyToAsync(buffer, cancellationToken);
+            }
+
+            if (TryScanRegoPackageSegments(buffer.WrittenSpan, out var segments))
+            {
+                (roots ??= []).Add(segments);
+            }
+        }
+
+        return roots ?? [];
+    }
+
+    private static bool RegoSegmentsEqual(string[] left, string[] right)
+    {
+        if (left.Length != right.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < left.Length; i++)
+        {
+            if (!left[i].Equals(right[i], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // Reads the package path a Rego policy declares (for example 'package a.b.c' yields ["a", "b", "c"]).
+    // Package references that use bracket or string notation cannot be mapped to a simple path and are
+    // reported as not scanned.
+    private static bool TryScanRegoPackageSegments(ReadOnlySpan<byte> source, out string[] segments)
+    {
+        // Skip a leading UTF-8 byte order mark so a policy authored with one is scanned correctly.
+        if (source.Length >= 3 && source[0] == 0xEF && source[1] == 0xBB && source[2] == 0xBF)
+        {
+            source = source[3..];
+        }
+
+        var token = ScanRegoPackageToken(Encoding.UTF8.GetString(source));
+
+        if (string.IsNullOrEmpty(token))
+        {
+            segments = [];
+            return false;
+        }
+
+        var parts = token.Split('.');
+
+        foreach (var part in parts)
+        {
+            if (!IsRegoPackageSegment(part))
+            {
+                segments = [];
+                return false;
+            }
+        }
+
+        segments = parts;
+        return true;
+    }
+
+    private static bool HasRegoPolicyRequirementsPrefix(ReadOnlySpan<byte> source)
+    {
+        if (source.Length >= 3 && source[0] == 0xEF && source[1] == 0xBB && source[2] == 0xBF)
+        {
+            source = source[3..];
+        }
+
+        var index = 0;
+
+        while (index < source.Length)
+        {
+            var current = source[index];
+
+            if (IsGraphQLWhitespace(current) || current == ',')
+            {
+                index++;
+                continue;
+            }
+
+            if (current == '#')
+            {
+                index++;
+
+                while (index < source.Length && source[index] is not (byte)'\r' and not (byte)'\n')
+                {
+                    index++;
+                }
+
+                continue;
+            }
+
+            return current == '{'
+                || (source[index..].StartsWith("fragment"u8)
+                    && index + "fragment"u8.Length < source.Length
+                    && IsGraphQLWhitespace(source[index + "fragment"u8.Length]));
+        }
+
+        return false;
+    }
+
+    private static bool IsGraphQLWhitespace(byte value)
+        => value is (byte)' ' or (byte)'\t' or (byte)'\r' or (byte)'\n';
+
+    private static string? ScanRegoPackageToken(string source)
+    {
+        var span = source.AsSpan();
+        var i = 0;
+
+        while (i < span.Length)
+        {
+            while (i < span.Length && char.IsWhiteSpace(span[i]))
+            {
+                i++;
+            }
+
+            if (i >= span.Length)
+            {
+                break;
+            }
+
+            if (span[i] == '#')
+            {
+                while (i < span.Length && span[i] != '\n')
+                {
+                    i++;
+                }
+
+                continue;
+            }
+
+            const string keyword = "package";
+
+            if (span[i..].StartsWith(keyword)
+                && i + keyword.Length < span.Length
+                && char.IsWhiteSpace(span[i + keyword.Length]))
+            {
+                i += keyword.Length;
+
+                while (i < span.Length && char.IsWhiteSpace(span[i]))
+                {
+                    i++;
+                }
+
+                var start = i;
+
+                while (i < span.Length && !char.IsWhiteSpace(span[i]) && span[i] != '#')
+                {
+                    i++;
+                }
+
+                return span[start..i].ToString();
+            }
+
+            while (i < span.Length && span[i] != '\n')
+            {
+                i++;
+            }
+        }
+
+        return null;
+    }
+
+    private static bool IsRegoPackageSegment(string segment)
+    {
+        if (segment.Length == 0)
+        {
+            return false;
+        }
+
+        foreach (var character in segment)
+        {
+            if (!char.IsAsciiLetterOrDigit(character) && character != '_')
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static InvalidOperationException CreateRegoBaseVirtualConflictException(
+        string mountPath,
+        string[] policySegments)
+    {
+        var mountLabel = mountPath.Length == 0 ? "the data root" : $"'{mountPath}'";
+        var virtualPath = "data." + string.Join('.', policySegments);
+
+        return new InvalidOperationException(
+            $"The Rego data mount at {mountLabel} conflicts with the virtual document '{virtualPath}' "
+            + "defined by a policy package because a data document and a policy package must not define "
+            + "overlapping paths.");
+    }
+
+    private static InvalidDataException CreateRegoBaseVirtualConflictDataException(
+        string mountPath,
+        string[] policySegments)
+    {
+        var mountLabel = mountPath.Length == 0 ? "the data root" : $"'{mountPath}'";
+        var virtualPath = "data." + string.Join('.', policySegments);
+
+        return new InvalidDataException(
+            $"The Rego data mount at {mountLabel} conflicts with the virtual document '{virtualPath}' "
+            + "defined by a policy package because a data document and a policy package must not define "
+            + "overlapping paths.");
+    }
 
     /// <summary>
     /// We will try to work with a single buffer for all file interactions.
@@ -876,6 +3188,19 @@ public sealed class FusionArchive : IDisposable
     {
         return Interlocked.Exchange(ref _buffer, null) ?? new ArrayBufferWriter<byte>(4096);
     }
+
+    private sealed class RegoPolicyFileSet(Version version, string name)
+    {
+        public Version Version { get; } = version;
+
+        public string Name { get; } = name;
+
+        public bool HasPolicy { get; set; }
+
+        public bool HasRequirements { get; set; }
+    }
+
+    private readonly record struct RegoDataMount(string MountPath, string Path);
 
     /// <summary>
     /// Tries to preserve a used buffer.
@@ -896,35 +3221,21 @@ public sealed class FusionArchive : IDisposable
         }
     }
 
-    private async Task<SignatureManifest> GenerateManifestAsync(CancellationToken cancellationToken)
+    private async Task<byte[]> WriteManifestAsync(CancellationToken cancellationToken)
     {
-        var files = ImmutableDictionary.CreateBuilder<string, string>();
-
-        foreach (var path in _session.GetFiles().Order())
-        {
-            if (path.StartsWith(".signature/"))
-            {
-                // Skip signature files
-                continue;
-            }
-
-            var kind = FileNames.GetFileKind(path);
-            files[path] = await ComputeFileHashAsync(path, kind, cancellationToken);
-        }
-
-        var manifest = new SignatureManifest
-        {
-            Version = "1.0.0",
-            Algorithm = "SHA256",
-            Timestamp = DateTime.UtcNow,
-            Files = files.ToImmutable()
-        };
-
+        var manifest = await GenerateManifestAsync(cancellationToken);
         var buffer = TryRentBuffer();
+
         try
         {
-            SignatureManifestSerializer.Format(manifest, buffer);
-            return manifest with { ManifestHash = ComputeManifestHash(buffer.WrittenSpan) };
+            ArchiveManifestSerializer.Format(manifest, buffer);
+            var bytes = buffer.WrittenSpan.ToArray();
+
+            await using var stream = _session.OpenWrite(FileNames.Manifest);
+            await stream.WriteAsync(bytes, cancellationToken);
+            await stream.FlushAsync(cancellationToken);
+
+            return bytes;
         }
         finally
         {
@@ -932,34 +3243,147 @@ public sealed class FusionArchive : IDisposable
         }
     }
 
+    private async Task<ArchiveManifest> GenerateManifestAsync(CancellationToken cancellationToken)
+    {
+        var files = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
+
+        foreach (var path in _session.GetFiles())
+        {
+            if (!IsManifestListedFile(path))
+            {
+                continue;
+            }
+
+            var kind = FileNames.GetFileKind(path);
+            files[path] = await ComputeFileHashAsync(path, kind, cancellationToken);
+        }
+
+        var fileDigests = files.ToImmutable();
+
+        return new ArchiveManifest
+        {
+            Version = "1.0.0",
+            Algorithm = "sha256",
+            Files = fileDigests,
+            Artifacts = ComputeArtifactDigests(fileDigests)
+        };
+    }
+
+    private static bool IsManifestListedFile(string path)
+        => !path.EndsWith("/", StringComparison.Ordinal)
+            && !path.Equals(FileNames.Manifest, StringComparison.Ordinal)
+            && !path.StartsWith(FileNames.SignatureDirectory, StringComparison.Ordinal);
+
+    private static ImmutableSortedDictionary<string, string> ComputeArtifactDigests(
+        ImmutableSortedDictionary<string, string> files)
+    {
+        var members = new Dictionary<string, List<KeyValuePair<string, string>>>(StringComparer.Ordinal);
+
+        foreach (var file in files)
+        {
+            var key = TryGetArtifactKey(file.Key);
+
+            if (key is null)
+            {
+                continue;
+            }
+
+            if (!members.TryGetValue(key, out var list))
+            {
+                list = [];
+                members.Add(key, list);
+            }
+
+            list.Add(file);
+        }
+
+        var artifacts = ImmutableSortedDictionary.CreateBuilder<string, string>(StringComparer.Ordinal);
+
+        foreach (var (key, list) in members)
+        {
+            artifacts.Add(key, ComputeArtifactDigest(list));
+        }
+
+        return artifacts.ToImmutable();
+    }
+
+    private static string? TryGetArtifactKey(string path)
+    {
+        var segments = path.Split('/');
+
+        switch (segments[0])
+        {
+            case "gateway" when segments.Length >= 3:
+                return $"gateway/{segments[1]}";
+
+            case "source-schemas" when segments.Length >= 3:
+                return $"source-schemas/{segments[1]}";
+
+            case "policies" when segments.Length >= 5 && segments[3] == "data":
+                return $"policies/{segments[1]}/{segments[2]}/data";
+
+            case "policies" when segments.Length == 4 && segments[3].EndsWith(".rego", StringComparison.Ordinal):
+                return $"policies/{segments[1]}/{segments[2]}/{segments[3][..^5]}";
+
+            case "policies" when segments.Length == 4 && segments[3].EndsWith(".graphql", StringComparison.Ordinal):
+                return $"policies/{segments[1]}/{segments[2]}/{segments[3][..^8]}";
+
+            default:
+                return null;
+        }
+    }
+
+    private static string ComputeArtifactDigest(List<KeyValuePair<string, string>> members)
+    {
+        // Build the "<path>:<digest>" line for each member and sort the lines by ordinal (byte) order
+        // over their UTF-8 encoding, as the specification requires. Sorting the composed lines rather
+        // than the paths keeps the order well defined for supplementary-plane characters, whose UTF-8
+        // byte order differs from UTF-16 code-unit order, and for degenerate prefix and colon cases.
+        var lines = new byte[members.Count][];
+
+        for (var i = 0; i < members.Count; i++)
+        {
+            lines[i] = Encoding.UTF8.GetBytes(members[i].Key + ":" + members[i].Value);
+        }
+
+        Array.Sort(lines, static (left, right) => left.AsSpan().SequenceCompareTo(right.AsSpan()));
+
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+
+        foreach (var line in lines)
+        {
+            hash.AppendData(line);
+            hash.AppendData("\n"u8);
+        }
+
+        return "sha256:" + ToHexLower(hash.GetHashAndReset());
+    }
+
     private async Task<string> ComputeFileHashAsync(string path, FileKind kind, CancellationToken cancellationToken)
     {
         await using var stream = await _session.OpenReadAsync(path, kind, cancellationToken);
         using var sha256 = SHA256.Create();
         var hashBytes = await sha256.ComputeHashAsync(stream, cancellationToken);
-#if NET9_0_OR_GREATER
-        return "sha256:" + Convert.ToHexStringLower(hashBytes);
-#else
-        return "sha256:" + Convert.ToHexString(hashBytes).ToLowerInvariant();
-#endif
+        return "sha256:" + ToHexLower(hashBytes);
     }
 
-    private static string ComputeManifestHash(ReadOnlySpan<byte> data)
-    {
-        Span<byte> hash = stackalloc byte[32];
-        SHA256.TryHashData(data, hash, out _);
+    private static string ToHexLower(ReadOnlySpan<byte> bytes)
 #if NET9_0_OR_GREATER
-        return "sha256:" + Convert.ToHexStringLower(hash);
+        => Convert.ToHexStringLower(bytes);
 #else
-        return "sha256:" + Convert.ToHexString(hash).ToLowerInvariant();
+        => Convert.ToHexString(bytes).ToLowerInvariant();
 #endif
-    }
 
-    private void EnsureMutable()
+    private void EnsureMutable(bool invalidateSignature = true)
     {
         if (_mode is FusionArchiveMode.Read)
         {
             throw new InvalidOperationException("Cannot modify a read-only archive.");
+        }
+
+        if (invalidateSignature)
+        {
+            _signatureCurrent = false;
         }
     }
 
@@ -981,24 +3405,37 @@ public sealed class FusionArchive : IDisposable
 
         if (_session.HasUncommittedChanges)
         {
-            await _session.CommitAsync(cancellationToken);
+            if (IsSigned && !_signatureCurrent)
+            {
+                throw ThrowHelper.SignatureMustBeRemovedBeforeCommit();
+            }
+
+            // Regenerate the content manifest so it always reflects the committed archive contents.
+            // Determinism guarantees that unchanged content yields a byte-identical manifest.
+            await WriteManifestAsync(cancellationToken);
+            await CommitCoreAsync(cancellationToken);
+        }
+    }
+
+    private async Task CommitCoreAsync(CancellationToken cancellationToken)
+    {
+        await _session.CommitAsync(cancellationToken);
 #if NET10_0_OR_GREATER
-            await _archive.DisposeAsync();
+        await _archive.DisposeAsync();
 #else
-            _archive.Dispose();
+        _archive.Dispose();
 #endif
 
-            if (_stream is { CanSeek: true, CanRead: true, CanWrite: true })
-            {
-                _stream.Seek(0, SeekOrigin.Begin);
-                _archive = new ZipArchive(_stream, ZipArchiveMode.Update, _leaveOpen);
-                _mode = FusionArchiveMode.Update;
-                _session.SetMode(_mode);
-            }
-            else
-            {
-                _mode = FusionArchiveMode.Read;
-            }
+        if (_stream is { CanSeek: true, CanRead: true, CanWrite: true })
+        {
+            _stream.Seek(0, SeekOrigin.Begin);
+            _archive = new ZipArchive(_stream, ZipArchiveMode.Update, _leaveOpen);
+            _mode = FusionArchiveMode.Update;
+            _session.SetMode(_mode);
+        }
+        else
+        {
+            _mode = FusionArchiveMode.Read;
         }
     }
 

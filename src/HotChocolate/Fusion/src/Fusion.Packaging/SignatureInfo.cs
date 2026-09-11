@@ -9,14 +9,13 @@ namespace HotChocolate.Fusion.Packaging;
 public record SignatureInfo
 {
     /// <summary>
-    /// Gets or sets the UTC timestamp when the signature was created.
-    /// This value is extracted from the signature manifest.
+    /// Gets the time when the signature was created, taken from the CMS signing-time attribute.
+    /// This value is <c>null</c> when the signature carries no signing-time attribute.
     /// </summary>
-    public required DateTime Timestamp { get; init; }
+    public DateTimeOffset? Timestamp { get; init; }
 
     /// <summary>
-    /// Gets or sets the hash algorithm used for signature creation.
-    /// This value is extracted from the signature manifest (e.g., "SHA256").
+    /// Gets the digest algorithm used for signature creation as a lowercase name (e.g., "sha256").
     /// </summary>
     public required string Algorithm { get; init; }
 

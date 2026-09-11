@@ -22,3 +22,6 @@ nodes:
       }
     forwardedVariables:
       - include
+includeConditions:
+  -
+    includeVariable: include

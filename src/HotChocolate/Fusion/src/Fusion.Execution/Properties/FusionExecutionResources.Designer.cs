@@ -237,6 +237,54 @@ namespace HotChocolate.Fusion.Properties {
             }
         }
 
+        internal static string ErrorHelper_PolicyDenied {
+            get {
+                return ResourceManager.GetString("ErrorHelper_PolicyDenied", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_PolicyExecutionFailed {
+            get {
+                return ResourceManager.GetString("ErrorHelper_PolicyExecutionFailed", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_ReservedVariablePrefix {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ReservedVariablePrefix", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_ReservedVariablePrefixInFragment {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ReservedVariablePrefixInFragment", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_ReservedVariablePrefixUsage {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ReservedVariablePrefixUsage", resourceCulture);
+            }
+        }
+
+        internal static string PolicyCollection_PolicyNameEmpty {
+            get {
+                return ResourceManager.GetString("PolicyCollection_PolicyNameEmpty", resourceCulture);
+            }
+        }
+
+        internal static string PolicyCollection_PolicyNameDuplicate {
+            get {
+                return ResourceManager.GetString("PolicyCollection_PolicyNameDuplicate", resourceCulture);
+            }
+        }
+
+        internal static string PolicyCollection_PolicyNameNotFound {
+            get {
+                return ResourceManager.GetString("PolicyCollection_PolicyNameNotFound", resourceCulture);
+            }
+        }
+
         internal static string DocumentRewriter_FieldDoesNotExistOnType {
             get {
                 return ResourceManager.GetString("DocumentRewriter_FieldDoesNotExistOnType", resourceCulture);

@@ -231,6 +231,24 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     } = true;
 
     /// <summary>
+    /// Gets or sets the claim types the built-in <c>fusion.scope:&lt;scope&gt;</c> policies read
+    /// from the current user to look for a required scope. <c>scope</c> and <c>scp</c> by default.
+    /// A claim value may carry more than one scope as space-delimited text, and the same claim
+    /// type may occur more than once; every occurrence is checked.
+    /// </summary>
+    public IReadOnlyList<string> ScopeClaimTypes
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+            ArgumentNullException.ThrowIfNull(value);
+
+            field = value;
+        }
+    } = ["scope", "scp"];
+
+    /// <summary>
     /// Clones the options into a new mutable instance.
     /// </summary>
     /// <returns>

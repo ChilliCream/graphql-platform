@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -34,7 +33,7 @@ public class OperationPlannerBenchmark : FusionBenchmarkBase
         _conditionalRedundancyQuery = documentRewriter.RewriteDocument(CreateConditionalRedundancyDocument()).GetOperation(operationName: null);
 
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
         var operationCompiler = new OperationCompiler(schema, pool);
 
         _planner = new OperationPlanner(schema, operationCompiler);

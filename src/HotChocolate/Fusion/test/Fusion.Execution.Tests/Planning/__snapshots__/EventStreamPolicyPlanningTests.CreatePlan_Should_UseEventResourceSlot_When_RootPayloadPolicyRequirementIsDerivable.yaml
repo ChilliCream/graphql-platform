@@ -1,0 +1,48 @@
+operation:
+  - document: |
+      subscription {
+        bookChanged {
+          id
+          title
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: EventStream
+    fieldName: bookChanged
+    resultSelectionSet: >-
+      { bookChanged }
+    eventStream:
+      schema: a
+      topics: [book.changed]
+      message: { id title }
+policyExpressions:
+  - ordinal: 0
+    names: [["CanReadBook"]]
+    expression: CanReadBook
+policySlots:
+  - ordinal: 0
+    variable: $__fusion_policy_0
+    applications:
+      - expressionOrdinal: 0
+        onDenied: Null
+    rmax: Null
+    guardMasks: [0]
+    coordinates:
+      - typeName: Book
+        responseNames: []
+        applications:
+          - expressionOrdinal: 0
+            onDenied: Null
+        isRoot: false
+        liveGuardMasks: [0]
+        gateGuardMasks: []
+        requirements:
+          - name: CanReadBook
+            selectionSet: { title }
+policies:
+  - name: CanReadBook
+    requirementHash: 15168167425373884851

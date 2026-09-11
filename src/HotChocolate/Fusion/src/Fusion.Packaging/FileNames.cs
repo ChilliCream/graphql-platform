@@ -7,10 +7,24 @@ internal static class FileNames
     private const string SourceSchemaFormat = "source-schemas/{0}/schema.graphqls";
     private const string SourceSchemaExtensionsFormat = "source-schemas/{0}/schema-extensions.graphqls";
     private const string SourceSchemaSettingsFormat = "source-schemas/{0}/schema-settings.json";
+    private const string RegoPolicyFormat = "policies/rego/{0}/{1}.rego";
+    private const string RegoPolicyRequirementsFormat = "policies/rego/{0}/{1}.graphql";
+    private const string RegoDataDirectoryFormat = "policies/rego/{0}/data/";
+    private const string RegoDataRootFormat = "policies/rego/{0}/data/data.json";
+    private const string RegoDataMountFormat = "policies/rego/{0}/data/{1}/data.json";
+    private const string RegoBundleDirectoryFormat = "policies/rego/{0}/";
+    private const string RegoBundleManifestFormat = "policies/rego/{0}/manifest.json";
+    private const string RegoLibraryFormat = "policies/rego/{0}/lib/{1}.rego";
 
+    public const string RegoPolicies = "policies/rego/";
+    public const string RegoBundleManifestFileName = "manifest.json";
+    public const string RegoBundleLibraryDirectoryName = "lib";
     public const string ArchiveMetadata = "archive-metadata.json";
     public const string CompositionSettings = "composition-settings.json";
-    public const string SignatureManifest = ".signature/manifest.json";
+    public const string SourceSchemas = "source-schemas/";
+    public const string DataFile = "data.json";
+    public const string Manifest = "manifest.json";
+    public const string SignatureDirectory = ".signature/";
     public const string Signature = ".signature/signature.p7s";
     public const string LegacyArchive = "legacy-v1-archive.fgp";
 
@@ -29,6 +43,32 @@ internal static class FileNames
     public static string GetSourceSchemaSettingsPath(string schemaName)
         => string.Format(SourceSchemaSettingsFormat, schemaName);
 
+    public static string GetRegoPolicyPath(Version version, string policyName)
+        => string.Format(RegoPolicyFormat, version, policyName);
+
+    public static string GetRegoPolicyRequirementsPath(Version version, string policyName)
+        => string.Format(RegoPolicyRequirementsFormat, version, policyName);
+
+    public static string GetRegoDataDirectory(Version version)
+        => string.Format(RegoDataDirectoryFormat, version);
+
+    public static string GetRegoDataPath(Version version, string mountPath)
+        => mountPath.Length == 0
+            ? string.Format(RegoDataRootFormat, version)
+            : string.Format(RegoDataMountFormat, version, mountPath);
+
+    public static string GetRegoBundleDirectory(Version version)
+        => string.Format(RegoBundleDirectoryFormat, version);
+
+    public static string GetRegoBundleManifestPath(Version version)
+        => string.Format(RegoBundleManifestFormat, version);
+
+    public static string GetRegoLibraryPath(Version version, string libraryName)
+        => string.Format(RegoLibraryFormat, version, libraryName);
+
+    public static string GetRegoModulePath(Version version, string relativePath)
+        => string.Format(RegoBundleDirectoryFormat, version) + relativePath;
+
     public static FileKind GetFileKind(string fileName)
     {
         switch (Path.GetFileName(fileName))
@@ -36,11 +76,16 @@ internal static class FileNames
             case "gateway.graphqls":
             case "schema.graphqls":
             case "schema-extensions.graphqls":
+            case var name when name.EndsWith(".graphql", StringComparison.Ordinal):
                 return FileKind.Schema;
+
+            case var name when name.EndsWith(".rego", StringComparison.Ordinal):
+                return FileKind.Policy;
 
             case "schema-settings.json":
             case "gateway-settings.json":
             case "composition-settings.json":
+            case "data.json":
                 return FileKind.Settings;
 
             case "archive-metadata.json":
@@ -49,7 +94,7 @@ internal static class FileNames
             case "manifest.json":
                 return FileKind.Manifest;
 
-            case "signature.json":
+            case "signature.p7s":
                 return FileKind.Signature;
 
             case "legacy-v1-archive.fgp":

@@ -99,3 +99,8 @@ operationPlan:
           passingValue: false
         - variable: $skip2
           passingValue: false
+  includeConditions:
+    -
+      skipVariable: skip1
+    -
+      skipVariable: skip2

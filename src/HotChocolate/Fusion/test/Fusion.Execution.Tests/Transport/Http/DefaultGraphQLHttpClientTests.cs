@@ -13,10 +13,9 @@ public class DefaultGraphQLHttpClientTests
     public async Task Fetch_Large_Json()
     {
         // arrange
-        var context = await GraphQLServerHelper.CreateTestServer();
-        using var server = context.Item1;
-        await using var app = context.Item2;
-        using var client = new DefaultGraphQLHttpClient(server.CreateClient(), disposeInnerClient: true);
+        var largeJson = GenerateLargeJsonResponse(500_000);
+        var handler = new MockHttpMessageHandler(largeJson, "application/json");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
         var operationRequest =
             new OperationRequest("{ items }"u8.ToArray(), null, null, null, VariableValues.Empty, JsonSegment.Empty);
@@ -28,9 +27,7 @@ public class DefaultGraphQLHttpClientTests
 
         // assert
         var itemCount = document.Root.GetProperty("data").GetProperty("items").GetArrayLength();
-        Assert.Equal(500000, itemCount);
-
-        await app.StopAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(500_000, itemCount);
     }
 
     [Fact]

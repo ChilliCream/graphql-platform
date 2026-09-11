@@ -1,0 +1,83 @@
+operation:
+  - document: |
+      {
+        before
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        before
+      }
+deliveryGroups:
+  - id: 0
+    path: $
+incrementalPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    nodes:
+      - id: 1
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_1 {
+            first {
+              id
+            }
+            second {
+              id
+            }
+          }
+      - id: 3
+        type: Policy
+        targets:
+          - kind: Field
+            path: $.first.rating
+            typeName: Product
+            policies:
+              - names: [["CanReadRating"]]
+                onDenied: Null
+            requirements:
+              - name: CanReadRating
+                selectionSet: { id }
+          - kind: Field
+            path: $.second.rating
+            typeName: Product
+            policies:
+              - names: [["CanReadRating"]]
+                onDenied: Null
+            requirements:
+              - name: CanReadRating
+                selectionSet: { id }
+        dependencies:
+          - id: 1
+          - id: 6
+      - id: 2
+        type: OperationBatch
+        schema: b
+        operation: |
+          query Op_defer_2($__fusion_1_id: ID!) {
+            productById(id: $__fusion_1_id) {
+              rating
+            }
+          }
+        source: $.productById
+        targets:
+          - $.second
+          - $.first
+        batchingGroupId: 6
+        requirements:
+          - name: __fusion_1_id
+            selectionMap: >-
+              id
+        dependencies:
+          - id: 1
+policies:
+  - name: CanReadRating
+    requirementHash: 12603091729714403524

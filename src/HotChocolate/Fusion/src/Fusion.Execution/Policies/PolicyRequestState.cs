@@ -1,0 +1,832 @@
+using System.Buffers;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Security.Claims;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Types;
+
+namespace HotChocolate.Fusion.Execution;
+
+/// <summary>
+/// Holds the policy instances and request-constant decisions pinned to one request.
+/// </summary>
+internal sealed class PolicyRequestState
+{
+    private readonly RequestContext _requestContext;
+    private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly Dictionary<string, IPolicy> _policies;
+    private readonly ConcurrentDictionary<IPolicy, Lazy<Task<PolicyDecision>>> _decisions =
+        new(ReferenceEqualityComparer.Instance);
+    private readonly SemaphoreSlim _evaluationLock = new(1, 1);
+    private readonly PolicyContext _policyContext;
+    private PolicyDecision[] _expressionDecisions = [];
+    private bool[] _evaluatedExpressions = [];
+    private OperationResult?[]? _shortCircuitResults;
+    private PolicySlotDenial[][] _coordinateDenials = [];
+    private readonly Dictionary<ActionDecisionKey, PolicyDecision> _actionDecisions = [];
+
+    private PolicyRequestState(
+        RequestContext requestContext,
+        IFusionExecutionDiagnosticEvents diagnosticEvents,
+        Dictionary<string, IPolicy> policies,
+        OperationPlan operationPlan)
+    {
+        _requestContext = requestContext;
+        _diagnosticEvents = diagnosticEvents;
+        _policies = policies;
+        _policyContext = new PolicyContext(requestContext.Features);
+        OperationPlan = operationPlan;
+    }
+
+    internal OperationPlan OperationPlan { get; }
+
+    internal int ReductionBufferCapacity => _expressionDecisions.Length;
+
+    internal static PolicyRequestState GetOrCreate(
+        RequestContext requestContext,
+        OperationPlan operationPlan,
+        IFusionExecutionDiagnosticEvents diagnosticEvents)
+    {
+        HydrateUserState(requestContext);
+
+        if (requestContext.Features.Get<PolicyRequestState>() is { } current)
+        {
+            return current;
+        }
+
+        var snapshot = requestContext.GetPolicySnapshot();
+        if (snapshot.IsDefault)
+        {
+            snapshot = ((FusionSchemaDefinition)requestContext.Schema).Policies.GetSnapshot();
+            requestContext.SetPolicySnapshot(snapshot);
+        }
+
+        var snapshotByName = new Dictionary<string, IPolicy>(StringComparer.Ordinal);
+        foreach (var policy in snapshot)
+        {
+            snapshotByName.TryAdd(policy.Name, policy);
+        }
+
+        var policies = new Dictionary<string, IPolicy>(StringComparer.Ordinal);
+        var requestRequirementHash = PolicyPlanEntry.ComputeRequirementHash(null);
+        foreach (var entry in operationPlan.Policies)
+        {
+            if (policies.ContainsKey(entry.PolicyName))
+            {
+                continue;
+            }
+
+            if (!snapshotByName.TryGetValue(entry.PolicyName, out var policy))
+            {
+                throw ThrowHelper.PolicyNameNotFound(entry.PolicyName);
+            }
+
+            policies.Add(entry.PolicyName, policy);
+
+            if (entry.RequirementHash == requestRequirementHash)
+            {
+                var pinnedPolicy = policies[entry.PolicyName];
+                var requirementHash = PolicyPlanEntry.ComputeRequirementHash(
+                    pinnedPolicy.Requirements.Resource);
+                if (requirementHash != entry.RequirementHash)
+                {
+                    throw ThrowHelper.PolicyRequirementsChanged(entry.PolicyName);
+                }
+            }
+        }
+
+        var created = new PolicyRequestState(
+            requestContext,
+            diagnosticEvents,
+            policies,
+            operationPlan);
+        requestContext.Features.Set(created);
+        return created;
+    }
+
+    internal static void HydrateUserState(RequestContext requestContext)
+    {
+        if (requestContext.Features.Get<UserState>() is null
+            && requestContext.ContextData.TryGetValue(nameof(ClaimsPrincipal), out var value)
+            && value is ClaimsPrincipal principal)
+        {
+            requestContext.Features.Set(new UserState(principal));
+        }
+    }
+
+    internal IPolicy ResolvePolicy(string name)
+        => _policies.TryGetValue(name, out var policy)
+            ? policy
+            : throw ThrowHelper.PolicyNameNotFound(name);
+
+    internal ValueTask<PolicyDecision> EvaluatePolicyOnceAsync(
+        IPolicy policy,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken,
+        OperationPlanContext? eventContext = null,
+        string? eventResponseName = null,
+        ITypeDefinition? eventResourceType = null,
+        bool isSlotEvaluation = false)
+    {
+        var state = new PolicyEvaluationState(
+            this,
+            user,
+            cancellationToken,
+            eventContext,
+            eventResponseName,
+            eventResourceType,
+            isSlotEvaluation);
+        var evaluation = _decisions.GetOrAdd(
+            policy,
+            static (currentPolicy, currentState) => new Lazy<Task<PolicyDecision>>(
+                () => currentState.RequestState.EvaluatePolicyAsync(currentPolicy, currentState),
+                LazyThreadSafetyMode.ExecutionAndPublication),
+            state);
+
+        return new ValueTask<PolicyDecision>(evaluation.Value);
+    }
+
+    internal void ClearDecisions()
+    {
+        _decisions.Clear();
+        Array.Clear(_expressionDecisions);
+        Array.Clear(_evaluatedExpressions);
+        BeginReduction();
+    }
+
+    internal void BeginReduction()
+    {
+        foreach (var denials in _coordinateDenials)
+        {
+            if (denials is not null)
+            {
+                Array.Clear(denials);
+            }
+        }
+
+        _shortCircuitResults = null;
+    }
+
+    internal bool TryGetCoordinateDenial(
+        int slotOrdinal,
+        int coordinateOrdinal,
+        out PolicySlotDenial denial)
+    {
+        if ((uint)slotOrdinal < (uint)_coordinateDenials.Length
+            && (uint)coordinateOrdinal < (uint)_coordinateDenials[slotOrdinal].Length
+            && _coordinateDenials[slotOrdinal][coordinateOrdinal] is { IsDenied: true } current)
+        {
+            denial = current;
+            return true;
+        }
+
+        denial = default;
+        return false;
+    }
+
+    internal void SetShortCircuitResults(OperationResult?[] results)
+        => _shortCircuitResults = results;
+
+    internal bool TryGetShortCircuitResult(int variableIndex, out OperationResult result)
+    {
+        if (_shortCircuitResults is { } results
+            && (uint)variableIndex < (uint)results.Length
+            && results[variableIndex] is { } current)
+        {
+            result = current;
+            return true;
+        }
+
+        result = null!;
+        return false;
+    }
+
+    internal async ValueTask<PolicySlotEvaluationResult> EvaluateSlotsAsync(
+        OperationPlan operationPlan,
+        IVariableValueCollection variables,
+        CancellationToken cancellationToken,
+        OperationPlanContext? eventContext = null)
+    {
+        var includeFlags = operationPlan.Operation.CreateIncludeConditionFlags(variables);
+        var user = _requestContext.Features.Get<UserState>()?.User ?? new ClaimsPrincipal();
+
+        // A data-bearing subscription-root policy application is evaluated against the
+        // current event's own root selection data; this is only available once an event has
+        // actually merged its payload into the shared context (the per-event re-evaluation
+        // path), never during the pre-subscribe request-level evaluation (repo-ctf.11).
+        string? eventResponseName = null;
+        ITypeDefinition? eventResourceType = null;
+
+        if (eventContext is not null)
+        {
+            var rootSelection = operationPlan.Operation.RootSelectionSet.Selections[0];
+            eventResponseName = rootSelection.ResponseName;
+            eventResourceType = rootSelection.Field.Type.NamedType();
+        }
+
+        var denyFlags = 0UL;
+        var fetchGateDenyFlags = 0UL;
+        var liveFlags = 0UL;
+        var shortCircuit = false;
+        PolicySlotDenial? shortCircuitDenial = null;
+
+        EnsureReductionBuffers(operationPlan.PolicyExpressions.Length);
+
+        if (_coordinateDenials.Length < operationPlan.PolicySlots.Length)
+        {
+            _coordinateDenials = new PolicySlotDenial[operationPlan.PolicySlots.Length][];
+        }
+
+        foreach (var slot in operationPlan.PolicySlots)
+        {
+            if (_coordinateDenials[slot.Ordinal] is not { } denials
+                || denials.Length < slot.Coordinates.Length)
+            {
+                _coordinateDenials[slot.Ordinal] = new PolicySlotDenial[slot.Coordinates.Length];
+            }
+        }
+
+        foreach (var slot in operationPlan.PolicySlots)
+        {
+            if (!IsLive(slot.GuardMasks, includeFlags))
+            {
+                continue;
+            }
+
+            liveFlags |= 1UL << slot.Ordinal;
+
+            foreach (var application in slot.Applications)
+            {
+                var expressionOrdinal = application.ExpressionOrdinal;
+                var expression = operationPlan.PolicyExpressions[expressionOrdinal];
+
+                if (IsActionExpression(expression))
+                {
+                    // An action expression's decision depends on its coordinate's own occurrence
+                    // (arguments), so it is evaluated per coordinate below and never cached here.
+                    continue;
+                }
+
+                if (!_evaluatedExpressions[expressionOrdinal])
+                {
+                    _expressionDecisions[expressionOrdinal] =
+                        await EvaluateExpressionAsync(
+                            expression,
+                            user,
+                            cancellationToken,
+                            eventContext,
+                            eventResponseName,
+                            eventResourceType)
+                            .ConfigureAwait(false);
+                    _evaluatedExpressions[expressionOrdinal] = true;
+                }
+            }
+
+            for (var coordinateOrdinal = 0;
+                coordinateOrdinal < slot.Coordinates.Length;
+                coordinateOrdinal++)
+            {
+                var coordinate = slot.Coordinates[coordinateOrdinal];
+                if (!IsLive(coordinate.LiveGuardMasks, includeFlags))
+                {
+                    continue;
+                }
+
+                var gateIsLive = IsLive(coordinate.GateGuardMasks, includeFlags);
+
+                var denied = false;
+                var denialBehavior = default(PolicyDenialBehavior);
+                var denialExpression = string.Empty;
+                string? denialReason = null;
+
+                foreach (var application in coordinate.Applications)
+                {
+                    var expression = operationPlan.PolicyExpressions[application.ExpressionOrdinal];
+                    var expressionDecision = IsActionExpression(expression)
+                        ? await EvaluateActionExpressionAsync(
+                            operationPlan,
+                            expression,
+                            coordinate,
+                            slot.Ordinal,
+                            coordinateOrdinal,
+                            application.ExpressionOrdinal,
+                            variables,
+                            user,
+                            eventContext,
+                            eventResponseName,
+                            eventResourceType,
+                            isEventReevaluation: eventContext is not null,
+                            cancellationToken)
+                            .ConfigureAwait(false)
+                        : _expressionDecisions[application.ExpressionOrdinal];
+                    if (!expressionDecision.IsDenied)
+                    {
+                        continue;
+                    }
+
+                    if (!denied || application.OnDenied >= denialBehavior)
+                    {
+                        denied = true;
+                        denialBehavior = application.OnDenied;
+                        denialExpression = operationPlan
+                            .PolicyExpressions[application.ExpressionOrdinal]
+                            .Text;
+                        denialReason = expressionDecision.Reason;
+                    }
+                }
+
+                if (!denied || denialBehavior < slot.Rmax)
+                {
+                    continue;
+                }
+
+                denyFlags |= 1UL << slot.Ordinal;
+                if (gateIsLive)
+                {
+                    fetchGateDenyFlags |= 1UL << slot.Ordinal;
+                }
+
+                PolicySlotDenial denial;
+                if (_coordinateDenials[slot.Ordinal][coordinateOrdinal] is { IsDenied: true } current)
+                {
+                    denial = current;
+                }
+                else
+                {
+                    var reasonId = Guid.NewGuid();
+                    var subjectId = GetSubjectId(user);
+                    denial = new PolicySlotDenial(
+                        true,
+                        denialBehavior,
+                        denialExpression,
+                        denialReason,
+                        reasonId,
+                        subjectId,
+                        coordinate.IsRoot);
+                    _coordinateDenials[slot.Ordinal][coordinateOrdinal] = denial;
+                    _diagnosticEvents.PolicySlotDenied(
+                        _requestContext,
+                        slot.VariableName,
+                        denialExpression,
+                        coordinate.TypeName,
+                        coordinate.FieldName,
+                        denialBehavior,
+                        denialReason,
+                        reasonId,
+                        subjectId);
+                }
+
+                if (gateIsLive
+                    && (coordinate.IsRoot || denialBehavior is PolicyDenialBehavior.Abort)
+                    && !shortCircuit)
+                {
+                    shortCircuit = true;
+                    shortCircuitDenial = denial;
+                }
+            }
+        }
+
+        return new PolicySlotEvaluationResult(
+            liveFlags,
+            denyFlags,
+            fetchGateDenyFlags,
+            shortCircuit,
+            shortCircuitDenial ?? default);
+    }
+
+    private void EnsureReductionBuffers(int expressionCount)
+    {
+        if (_expressionDecisions.Length >= expressionCount)
+        {
+            return;
+        }
+
+        _expressionDecisions = new PolicyDecision[expressionCount];
+        _evaluatedExpressions = new bool[expressionCount];
+    }
+
+    private async Task<PolicyDecision> EvaluatePolicyAsync(
+        IPolicy policy,
+        PolicyEvaluationState state)
+    {
+        await _evaluationLock.WaitAsync(state.CancellationToken).ConfigureAwait(false);
+        var start = Stopwatch.GetTimestamp();
+        var outcome = PolicyEvaluationOutcome.Error;
+        var evaluationStarted = false;
+
+        try
+        {
+            // Resource-based per-event evaluation (repo-ctf.11) applies only within the slot
+            // re-evaluation path (EvaluateSlotsAsync/EvaluateExpressionAsync); a direct
+            // EvaluatePolicyOnceAsync/EvaluateRequestPolicyAsync call always keeps the existing
+            // request-constant semantics regardless of the policy's own requirement shape.
+            if (state.IsSlotEvaluation && policy.Requirements.Resource is { } resource)
+            {
+                // A data-bearing subscription-root policy can only be decided once an event has
+                // merged its own payload into the shared context: the pre-subscribe
+                // request-level pass (no eventContext) and an event whose root selection
+                // produced no data leave this policy undecided this pass, so it neither allows
+                // nor denies here. The real per-event pass that follows always starts from
+                // cleared decisions (ClearDecisions), so it is never skipped for the actual
+                // event delivering the resource.
+                if (state.EventContext is not { } eventContext
+                    || state.EventResponseName is not { } responseName
+                    || state.EventResourceType is not { } type)
+                {
+                    return default;
+                }
+
+                if (!TryGetEventResourceEntity(eventContext, responseName, out var entity, out var hasMultiple))
+                {
+                    // A list-typed subscription root is excluded from this path at plan time
+                    // (GetConcreteEventStreamMessage/isEventStreamRootCoordinate), so more than
+                    // one resource for this event should never reach here; fail closed instead
+                    // of leaving the decision undecided (default) so no future path can deliver
+                    // an unevaluated item.
+                    return hasMultiple
+                        ? new PolicyDecision(
+                            true,
+                            $"Policy '{policy.Name}' cannot be evaluated because the event "
+                            + "produced more than one resource for a subscription root that "
+                            + "requires exactly one.")
+                        : default;
+                }
+
+                PolicyExecutionNode.EnsureRequirementsAreAvailable(policy.Name, resource, entity);
+                _policyContext.ResetForResource(
+                    state.User,
+                    type,
+                    selection: null,
+                    eventContext.Variables,
+                    new ReadOnlyMemory<CompositeResultElement>([entity]));
+            }
+            else
+            {
+                _policyContext.ResetForRequest(state.User);
+            }
+
+            evaluationStarted = true;
+            await policy.EvaluateAsync(_policyContext, state.CancellationToken).ConfigureAwait(false);
+            var decision = _policyContext.GetDecision(0);
+            outcome = decision.IsDenied
+                ? PolicyEvaluationOutcome.Denied
+                : PolicyEvaluationOutcome.Allowed;
+            return decision;
+        }
+        catch (OperationCanceledException)
+        {
+            outcome = PolicyEvaluationOutcome.Cancelled;
+            throw;
+        }
+        finally
+        {
+            if (evaluationStarted)
+            {
+                _diagnosticEvents.PolicyEvaluated(
+                    _requestContext,
+                    policy.Name,
+                    outcome,
+                    Stopwatch.GetElapsedTime(start));
+            }
+
+            _policyContext.Clear();
+            _evaluationLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Rents the subscription root's own composite result element to use as the resource for a
+    /// data-bearing subscription-root policy. Returns <c>false</c> when the current event has
+    /// not (yet) produced a non-null root result; <paramref name="hasMultipleEntities"/> is
+    /// <c>true</c> only when the event produced more than one, which the caller must treat as a
+    /// fail-closed condition rather than an undecided one.
+    /// </summary>
+    private static bool TryGetEventResourceEntity(
+        OperationPlanContext context,
+        string responseName,
+        out CompositeResultElement entity,
+        out bool hasMultipleEntities)
+    {
+        var elements = context.RentResultElements(SelectionPath.Root.AppendField(responseName), out var count);
+
+        try
+        {
+            hasMultipleEntities = count > 1;
+            if (count != 1 || elements[0].IsNullOrInvalidated)
+            {
+                entity = default;
+                return false;
+            }
+
+            entity = elements[0];
+            return true;
+        }
+        finally
+        {
+            ArrayPool<CompositeResultElement>.Shared.Return(elements, clearArray: true);
+        }
+    }
+
+    private async ValueTask<PolicyDecision> EvaluateExpressionAsync(
+        PolicyConditionExpression expression,
+        ClaimsPrincipal user,
+        CancellationToken cancellationToken,
+        OperationPlanContext? eventContext,
+        string? eventResponseName,
+        ITypeDefinition? eventResourceType)
+    {
+        string? reason = null;
+
+        foreach (var group in expression.Groups)
+        {
+            var groupDenied = false;
+
+            foreach (var name in group)
+            {
+                var decision = await EvaluatePolicyOnceAsync(
+                    ResolvePolicy(name),
+                    user,
+                    cancellationToken,
+                    eventContext,
+                    eventResponseName,
+                    eventResourceType,
+                    isSlotEvaluation: true)
+                    .ConfigureAwait(false);
+                if (decision.IsDenied)
+                {
+                    groupDenied = true;
+                    reason ??= decision.Reason;
+                }
+            }
+
+            if (!groupDenied)
+            {
+                return default;
+            }
+        }
+
+        return new PolicyDecision(true, reason);
+    }
+
+    /// <summary>
+    /// Gets whether any policy name referenced by <paramref name="expression"/> is an action policy
+    /// (<see cref="PolicyEvaluationKind.ActionOccurrence"/>). Such an expression is never cached at
+    /// the expression level: its decision depends on the coordinate's own occurrence.
+    /// </summary>
+    private bool IsActionExpression(PolicyConditionExpression expression)
+    {
+        foreach (var group in expression.Groups)
+        {
+            foreach (var name in group)
+            {
+                if (ResolvePolicy(name).Requirements.Kind == PolicyEvaluationKind.ActionOccurrence)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Evaluates an expression that mixes at least one <see cref="PolicyEvaluationKind.ActionOccurrence"/>
+    /// name with, potentially, other kinds for one coordinate's own occurrence. Only the
+    /// action-kind names are evaluated against that occurrence's guarded field name and coerced
+    /// arguments (reconstructed from the compiled operation and the request's coerced variables,
+    /// never read from a serialized plan value); every other name keeps its normal, cached
+    /// evaluation path (request-constant or resource-based, via <see cref="EvaluatePolicyOnceAsync"/>
+    /// on every pass), exactly as it would outside a mixed expression, so a resource-bearing name is
+    /// re-evaluated against every event's own payload.
+    /// </summary>
+    /// <remarks>
+    /// Each action-kind name caches its own decision, keyed by (slot, coordinate, expression, name):
+    /// a subscription-root action policy is evaluated once before stream setup, independent of the
+    /// per-event resource re-evaluation (repo-ctf.11), so the initial (non-event) pass evaluates it
+    /// fresh and records the decision for a later event to replay. A non-event pass (including every
+    /// variable-batch item) never reads the cache, so variable-batch isolation is unaffected. The
+    /// cache is per action name rather than per whole expression so that a request-constant or
+    /// resource-bearing name sharing the expression is never replayed from this cache.
+    /// </remarks>
+    private async ValueTask<PolicyDecision> EvaluateActionExpressionAsync(
+        OperationPlan operationPlan,
+        PolicyConditionExpression expression,
+        PolicyConditionCoordinate coordinate,
+        int slotOrdinal,
+        int coordinateOrdinal,
+        int expressionOrdinal,
+        IVariableValueCollection variables,
+        ClaimsPrincipal user,
+        OperationPlanContext? eventContext,
+        string? eventResponseName,
+        ITypeDefinition? eventResourceType,
+        bool isEventReevaluation,
+        CancellationToken cancellationToken)
+    {
+        if (coordinate.Occurrences.IsDefaultOrEmpty)
+        {
+            // An action policy must never be allowed by default: a coordinate with no compiled
+            // occurrence to evaluate against cannot produce a real decision, so it fails closed
+            // instead of silently allowing the guarded field.
+            throw ThrowHelper.PolicyActionOccurrenceMissing(coordinate.TypeName, coordinate.FieldName);
+        }
+
+        if (coordinate.FieldName is null)
+        {
+            throw ThrowHelper.PolicyActionOnNonFieldCoordinate(coordinate.TypeName);
+        }
+
+        // The action is built lazily: an expression only reaches this method because at least one
+        // of its names is action-kind (IsActionExpression), but it is built at most once even when
+        // several action-kind names share it.
+        PolicyAction? action = null;
+
+        string? reason = null;
+
+        foreach (var group in expression.Groups)
+        {
+            var groupDenied = false;
+
+            foreach (var name in group)
+            {
+                var policy = ResolvePolicy(name);
+                PolicyDecision decision;
+
+                if (policy.Requirements.Kind == PolicyEvaluationKind.ActionOccurrence)
+                {
+                    var key = new ActionDecisionKey(slotOrdinal, coordinateOrdinal, expressionOrdinal, name);
+
+                    if (isEventReevaluation && _actionDecisions.TryGetValue(key, out var cachedDecision))
+                    {
+                        decision = cachedDecision;
+                    }
+                    else
+                    {
+                        action ??= PolicyActionCoercion.BuildAction(
+                            coordinate.TypeName,
+                            coordinate.FieldName,
+                            ResolveOccurrenceSelection(operationPlan, coordinate.Occurrences[0]),
+                            variables);
+                        decision = await EvaluateActionPolicyAsync(
+                            policy,
+                            user,
+                            action,
+                            cancellationToken)
+                            .ConfigureAwait(false);
+
+                        if (!isEventReevaluation)
+                        {
+                            _actionDecisions[key] = decision;
+                        }
+                    }
+                }
+                else
+                {
+                    // A request-constant or resource-based name mixed into the same expression as
+                    // an action-kind name keeps its own normal, cached evaluation path; it is never
+                    // routed through the per-occurrence action context, and it is evaluated on every
+                    // pass (its own cache, cleared per event by ClearDecisions, decides reuse) so a
+                    // resource-bearing name is never replayed from the action-decision cache.
+                    decision = await EvaluatePolicyOnceAsync(
+                        policy,
+                        user,
+                        cancellationToken,
+                        eventContext,
+                        eventResponseName,
+                        eventResourceType,
+                        isSlotEvaluation: true)
+                        .ConfigureAwait(false);
+                }
+
+                if (decision.IsDenied)
+                {
+                    groupDenied = true;
+                    reason ??= decision.Reason;
+                }
+            }
+
+            if (!groupDenied)
+            {
+                return default;
+            }
+        }
+
+        return new PolicyDecision(true, reason);
+    }
+
+    /// <summary>
+    /// Evaluates one action policy against one occurrence's action, bypassing every request-level
+    /// decision cache: an action policy's decision must never be reused across occurrences or
+    /// variable-batch items.
+    /// </summary>
+    private async ValueTask<PolicyDecision> EvaluateActionPolicyAsync(
+        IPolicy policy,
+        ClaimsPrincipal user,
+        PolicyAction action,
+        CancellationToken cancellationToken)
+    {
+        await _evaluationLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var start = Stopwatch.GetTimestamp();
+        var outcome = PolicyEvaluationOutcome.Error;
+        var evaluationStarted = false;
+
+        try
+        {
+            _policyContext.ResetForAction(user, action);
+            evaluationStarted = true;
+            await policy.EvaluateAsync(_policyContext, cancellationToken).ConfigureAwait(false);
+            var decision = _policyContext.GetDecision(0);
+            outcome = decision.IsDenied
+                ? PolicyEvaluationOutcome.Denied
+                : PolicyEvaluationOutcome.Allowed;
+            return decision;
+        }
+        catch (OperationCanceledException)
+        {
+            outcome = PolicyEvaluationOutcome.Cancelled;
+            throw;
+        }
+        finally
+        {
+            if (evaluationStarted)
+            {
+                _diagnosticEvents.PolicyEvaluated(
+                    _requestContext,
+                    policy.Name,
+                    outcome,
+                    Stopwatch.GetElapsedTime(start));
+            }
+
+            _policyContext.Clear();
+            _evaluationLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Resolves the compiled selection an occurrence reference points to, from the same operation
+    /// that ends up on the final plan; an occurrence reference is never resolved from a serialized
+    /// plan value.
+    /// </summary>
+    private static Selection ResolveOccurrenceSelection(
+        OperationPlan operationPlan,
+        PolicyOccurrenceReference occurrence)
+    {
+        var operation = occurrence.PlanPart == 0
+            ? operationPlan.Operation
+            : operationPlan.IncrementalPlans[occurrence.PlanPart - 1].Operation;
+        return operation.GetSelectionById(occurrence.SelectionId);
+    }
+
+    private static bool IsLive(ImmutableArray<ConditionFlags> guardMasks, ConditionFlags includeFlags)
+    {
+        foreach (var guardMask in guardMasks)
+        {
+            if (PolicyGuardMasks.IsSubsetOf(guardMask, includeFlags))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string? GetSubjectId(ClaimsPrincipal user)
+        => user.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? user.FindFirst("sub")?.Value;
+
+    private readonly record struct ActionDecisionKey(
+        int SlotOrdinal,
+        int CoordinateOrdinal,
+        int ExpressionOrdinal,
+        string Name);
+
+    private readonly record struct PolicyEvaluationState(
+        PolicyRequestState RequestState,
+        ClaimsPrincipal User,
+        CancellationToken CancellationToken,
+        OperationPlanContext? EventContext,
+        string? EventResponseName,
+        ITypeDefinition? EventResourceType,
+        bool IsSlotEvaluation);
+}
+
+internal readonly record struct PolicySlotEvaluationResult(
+    ulong LiveFlags,
+    ulong DenyFlags,
+    ulong FetchGateDenyFlags,
+    bool ShouldShortCircuit,
+    PolicySlotDenial ShortCircuitDenial);
+
+internal readonly record struct PolicySlotDenial(
+    bool IsDenied,
+    PolicyDenialBehavior Behavior,
+    string Expression,
+    string? Reason,
+    Guid ReasonId,
+    string? SubjectId,
+    bool IsRoot);

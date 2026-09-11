@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Collections.Immutable;
@@ -6,6 +7,7 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -251,6 +253,247 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
 
         Assert.NotSame(initialExecutor, executorAfterEviction);
         Assert.Equal(2, warmups);
+    }
+
+    [Fact]
+    public async Task Executor_Should_NotRebuild_When_PolicyContentChangesIncludingResourceRequirements()
+    {
+        // arrange
+        var evictions = 0;
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var policyContentSink = new PolicyContentSink();
+
+        var configProvider = new TestFusionConfigurationProvider(
+            CreateConfigurationWithPolicy("{ id }", "grant-v1"u8));
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .ConfigureSchemaServices(
+                    (_, schemaServices) => schemaServices.AddSingleton<IPolicyProvider>(policyContentSink))
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        manager.Subscribe(new RequestExecutorEventObserver(@event =>
+        {
+            if (@event.Type == RequestExecutorEventType.Evicted)
+            {
+                Interlocked.Increment(ref evictions);
+            }
+        }));
+
+        var initialExecutor = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+        var initialContentDelivered = ReferenceEquals(
+            configProvider.Configuration!.Policies,
+            policyContentSink.Current);
+
+        // act
+        // A rego source-only change keeps the schema and settings unchanged, so it is adopted
+        // without rebuilding the executor and delivered directly to the current provider.
+        configProvider.UpdateConfiguration(
+            CreateConfigurationWithPolicy("{ id }", "grant-v2"u8));
+
+        // A resource requirements change also leaves the schema and settings unchanged. It is no
+        // longer a rebuild trigger: it is handled by targeted plan-cache eviction inside
+        // PolicyCollection, adopted the same way as a source-only change.
+        var finalConfiguration = CreateConfigurationWithPolicy("{ id name }", "grant-v2"u8);
+        var delivery = policyContentSink.Expect(finalConfiguration.Policies);
+        configProvider.UpdateConfiguration(finalConfiguration);
+
+        await delivery.WaitAsync(cts.Token);
+
+        var executorAfterChange = await manager.GetExecutorAsync(cancellationToken: cts.Token);
+
+        // assert
+        // Neither change rebuilt the executor, so no eviction occurred and the same instance is
+        // still served.
+        Assert.Equal(
+            (
+                Evictions: 0,
+                SameExecutor: true,
+                InitialContentDelivered: true,
+                DeliveredContent: finalConfiguration.Policies),
+            (
+                Evictions: evictions,
+                SameExecutor: ReferenceEquals(initialExecutor, executorAfterChange),
+                InitialContentDelivered: initialContentDelivered,
+                DeliveredContent: policyContentSink.Current));
+    }
+
+    // Regression for repo-ctf.24 fix cycle 2 (comment 734, F1): the schema services register the
+    // gateway's CompositePolicyProvider as the resolved IPolicyProvider, so the instance this
+    // manager pushes policy content into at :585 is the very same instance CompositeSchemaBuilder
+    // configures with the schema's built-ins, not a throwaway constructed only for evaluation.
+    [Fact]
+    public async Task GetExecutorAsync_Should_DeliverContentToSameProvider_When_BuiltInIsAlsoReferenced()
+    {
+        // arrange
+        var sink = new PolicyContentSink();
+        var content = new PolicyContentSnapshot("rego", new Version(1, 0, 0), [], [], default, default, dataOwner: null);
+        var configuration = CreateFusionConfiguration(
+            """
+            enum PolicyDenialBehavior { NULL ERROR ABORT }
+            directive @policy(names: [[String!]!]!, onDenied: PolicyDenialBehavior) repeatable on OBJECT | FIELD_DEFINITION
+            type Query {
+              secret: String @policy(names: [["fusion.authenticated"]], onDenied: ERROR)
+            }
+            """) with
+        {
+            Policies = content
+        };
+
+        var configProvider = new TestFusionConfigurationProvider(configuration);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .ConfigureSchemaServices((_, schemaServices) => schemaServices.AddSingleton<IPolicyProvider>(sink))
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert: the content delivered at creation reached the same registered provider that
+        // also serves the schema's built-in fusion.authenticated policy, not a separate,
+        // unregistered instance.
+        var schema = Assert.IsType<FusionSchemaDefinition>(executor.Schema);
+        Assert.Same(content, sink.Current);
+        Assert.True(schema.Policies.TryGet(BuiltInPolicyNames.Authenticated, out var policy));
+        Assert.IsType<AuthenticatedPolicy>(policy);
+    }
+
+    // Regression for repo-ctf.24 review cycle 1 (comment 742, R2): DecoratePolicyProvider must
+    // not treat a keyed IPolicyProvider registration as the ambient user provider it decorates.
+    // Before the fix, the descriptor was matched by ServiceType alone, removed, and then read
+    // through ServiceDescriptor.ImplementationInstance, which throws for a keyed descriptor.
+    [Fact]
+    public async Task GetExecutorAsync_Should_IgnoreKeyedPolicyProvider_When_DecoratingProvider()
+    {
+        // arrange
+        var keyedProvider = new PolicyContentSink();
+        var configProvider = new TestFusionConfigurationProvider(CreateConfiguration());
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .ConfigureSchemaServices(
+                    (_, schemaServices) =>
+                        schemaServices.AddKeyedSingleton<IPolicyProvider>("custom", keyedProvider))
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert: the executor was created without the keyed descriptor being touched, and it is
+        // still resolvable through its key exactly as registered.
+        Assert.NotNull(executor);
+        Assert.Same(
+            keyedProvider,
+            executor.Schema.Services.GetRequiredKeyedService<IPolicyProvider>("custom"));
+    }
+
+    private sealed class PolicyContentSink
+        : IPolicyProvider
+        , IObserver<PolicyContentSnapshot?>
+    {
+        private readonly object _sync = new();
+        private TaskCompletionSource<PolicyContentSnapshot?>? _expected;
+        private PolicyContentSnapshot? _expectedContent;
+
+        public PolicyContentSnapshot? Current { get; private set; }
+
+        public Task<PolicyContentSnapshot?> Expect(PolicyContentSnapshot? content)
+        {
+            lock (_sync)
+            {
+                _expected = new TaskCompletionSource<PolicyContentSnapshot?>(
+                    TaskCreationOptions.RunContinuationsAsynchronously);
+                _expectedContent = content;
+
+                if (ReferenceEquals(Current, content))
+                {
+                    _expected.TrySetResult(content);
+                }
+
+                return _expected.Task;
+            }
+        }
+
+        public void OnNext(PolicyContentSnapshot? value)
+        {
+            lock (_sync)
+            {
+                Current = value;
+
+                if (_expected is { } expected
+                    && ReferenceEquals(_expectedContent, value))
+                {
+                    expected.TrySetResult(value);
+                }
+            }
+        }
+
+        public void OnError(Exception error)
+        {
+        }
+
+        public void OnCompleted()
+        {
+        }
+
+        public IDisposable Subscribe(IObserver<ImmutableArray<IPolicy>> observer)
+        {
+            observer.OnNext([]);
+            return EmptyDisposable.Instance;
+        }
+
+        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+        private sealed class EmptyDisposable : IDisposable
+        {
+            public static EmptyDisposable Instance { get; } = new();
+
+            public void Dispose()
+            {
+            }
+        }
+    }
+
+    private static FusionConfiguration CreateConfigurationWithPolicy(
+        string requirements,
+        ReadOnlySpan<byte> source)
+    {
+        var policy = new PolicyContent(
+            "CanReadProduct",
+            PolicyContentType.Rego,
+            source.ToArray(),
+            new PolicyRequirements
+            {
+                Resource = Utf8GraphQLParser.Syntax.ParseSelectionSet(requirements)
+            },
+            "digest"u8.ToArray());
+
+        var snapshot = new PolicyContentSnapshot(
+            "rego",
+            new Version(1, 0, 0),
+            [policy],
+            [],
+            default,
+            default,
+            dataOwner: null);
+
+        return CreateFusionConfiguration("type Query { field: String! }") with { Policies = snapshot };
     }
 
     [Fact]

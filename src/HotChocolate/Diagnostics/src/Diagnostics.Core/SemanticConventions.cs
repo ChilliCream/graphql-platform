@@ -63,6 +63,7 @@ internal static class SemanticConventions
                     public const string EventStream = "event_stream";
                     public const string Introspection = "introspection";
                     public const string Node = "node";
+                    public const string Policy = "policy";
                 }
 
                 public static class Plan
@@ -83,6 +84,7 @@ internal static class SemanticConventions
                 public const string Validate = "validate";
                 public const string VariableCoercion = "variable_coercion";
                 public const string Plan = "plan";
+                public const string PolicyEvaluate = "policy_evaluate";
                 public const string Execute = "execute";
                 public const string StepExecute = "step_execute";
                 public const string Resolve = "resolve";
@@ -90,6 +92,23 @@ internal static class SemanticConventions
                 public const string DataLoaderBatch = "dataloader_batch";
                 public const string SubscriptionEvent = "subscription_event";
             }
+        }
+
+        public static class Policy
+        {
+            public const string Name = "graphql.policy.name";
+            public const string Outcome = "graphql.policy.outcome";
+            public const string DurationMs = "graphql.policy.duration_ms";
+            public const string Expression = "graphql.policy.expression";
+            public const string OnDenied = "graphql.policy.on_denied";
+            public const string DeniedCount = "graphql.policy.denied_count";
+            public const string TotalCount = "graphql.policy.total_count";
+            public const string SlotVariable = "graphql.policy.slot_variable";
+        }
+
+        public static class Selection
+        {
+            public const string Path = "graphql.selection.path";
         }
 
         public static class Field

@@ -20,6 +20,9 @@ public static class FusionMiddleware
     public static RequestMiddlewareConfiguration OperationVariableCoercion
         => OperationVariableCoercionMiddleware.Create();
 
+    public static RequestMiddlewareConfiguration PolicyEvaluation
+        => PolicyEvaluationMiddleware.Create();
+
     public static RequestMiddlewareConfiguration Timeout
         => TimeoutMiddleware.Create();
 

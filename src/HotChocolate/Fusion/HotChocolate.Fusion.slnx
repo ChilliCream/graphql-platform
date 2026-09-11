@@ -13,7 +13,7 @@
     <Project Path="src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
     <Project Path="src/Fusion.Caching/HotChocolate.Fusion.Caching.csproj" />
     <Project Path="src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
-    <Project Path="src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
+    <Project Path="src/Fusion.Policies.Rego/HotChocolate.Fusion.Policies.Rego.csproj" />
     <Project Path="src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
     <Project Path="src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
     <Project Path="src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />
@@ -38,6 +38,7 @@
     <Project Path="test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
     <Project Path="test/Fusion.Language.Tests/HotChocolate.Fusion.Language.Tests.csproj" />
     <Project Path="test/Fusion.Packaging.Tests/HotChocolate.Fusion.Packaging.Tests.csproj" />
+    <Project Path="test/Fusion.Policies.Rego.Tests/HotChocolate.Fusion.Policies.Rego.Tests.csproj" />
     <Project Path="test/Fusion.SourceSchema.Packaging.Tests/HotChocolate.Fusion.SourceSchema.Packaging.Tests.csproj" />
     <Project Path="test/Fusion.Connectors.InMemory.Tests/HotChocolate.Fusion.Connectors.InMemory.Tests.csproj" />
     <Project Path="test/Fusion.Subscriptions.AmazonSqs.Tests/HotChocolate.Fusion.Subscriptions.AmazonSqs.Tests.csproj" />

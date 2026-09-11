@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Subscriptions.NATS.Tests" />
@@ -21,6 +22,8 @@
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Policies.Rego" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Policies.Rego.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Diagnostics" />
   </ItemGroup>
 
@@ -48,7 +51,7 @@
     <ProjectReference Include="..\..\..\PersistedOperations\src\PersistedOperations.Pipeline\HotChocolate.PersistedOperations.Pipeline.csproj" />
     <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
     <ProjectReference Include="..\..\..\Utilities\src\Utilities.Base36\HotChocolate.Utilities.Base36.csproj" />
-    <ProjectReference Include="..\Fusion.Execution.Types\HotChocolate.Fusion.Execution.Types.csproj" />
+    <ProjectReference Include="..\Fusion.Language\HotChocolate.Fusion.Language.csproj" />
     <ProjectReference Include="..\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
     <ProjectReference Include="..\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" />
   </ItemGroup>
@@ -241,6 +244,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Types\Properties\FusionTypeResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>FusionTypeResources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Types\Properties\FusionTypeResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FusionTypeResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <Compile Update="Properties\FusionExecutionResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

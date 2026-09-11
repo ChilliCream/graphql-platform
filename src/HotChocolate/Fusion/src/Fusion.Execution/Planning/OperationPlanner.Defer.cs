@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Rewriters;
@@ -20,6 +19,8 @@ public sealed partial class OperationPlanner
         string id,
         DeferSplitResult splitResult,
         PlanContextGraph contextGraph,
+        PolicyPlanningSession planningSession,
+        ref PolicySlotRegistry policySlots,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -54,14 +55,24 @@ public sealed partial class OperationPlanner
                 id,
                 descriptor,
                 i,
+                planningSession,
+                policySlots,
                 emitPlannerEvents,
                 cancellationToken);
 
-            var rewrittenIncrementalPlan = ApplyDeferRequirementsToParent(
-                descriptor,
-                incrementalPlanResult.Steps,
-                parentContext,
-                contextGraph);
+            policySlots = incrementalPlanResult.PolicySlots;
+
+            var rewrittenIncrementalPlan =
+                descriptor.Operation.Operation is OperationType.Query
+                    && descriptorsWithChildren.Contains(descriptor)
+                        ? CollapseSameScopeDeferRequirementRelays(
+                            incrementalPlanResult.Steps,
+                            descriptor.Path)
+                        : ApplyDeferRequirementsToParent(
+                            descriptor,
+                            incrementalPlanResult.Steps,
+                            parentContext,
+                            contextGraph);
 
             // A mutation-typed step surviving ApplyDeferRequirementsToParent carries real
             // deferred output of its own, meaning the only way to have produced it was to
@@ -123,6 +134,8 @@ public sealed partial class OperationPlanner
         string shortHash,
         ImmutableArray<DeferRoutingState> routingStates,
         PlanContextGraph contextGraph,
+        IncludeConditionCollection includeConditions,
+        ImmutableArray<PolicyConditionSlot> policySlots,
         CancellationToken cancellationToken)
     {
         if (routingStates.IsDefaultOrEmpty)
@@ -146,7 +159,8 @@ public sealed partial class OperationPlanner
             var (rootNodes, allNodes) = BuildDeferredExecutionNodes(
                 registeredInternalOp,
                 finalSteps,
-                finalSteps.NextId());
+                finalSteps.NextId(),
+                policySlots);
 
             var compiledOp = AddTypeNameToAbstractSelections(
                 registeredInternalOp,
@@ -155,7 +169,8 @@ public sealed partial class OperationPlanner
                 id + "#defer_" + routingState.Index,
                 hash + "#defer_" + routingState.Index,
                 shortHash,
-                compiledOp);
+                compiledOp,
+                includeConditions);
 
             var planScopeRequirements = descriptor.Requirements.Count == 0
                 ? ImmutableArray<OperationRequirement>.Empty
@@ -188,6 +203,8 @@ public sealed partial class OperationPlanner
         string operationId,
         IncrementalPlanDescriptor descriptor,
         int incrementalPlanId,
+        PolicyPlanningSession planningSession,
+        PolicySlotRegistry policySlots,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -219,10 +236,11 @@ public sealed partial class OperationPlanner
             // it is planned like a normal root-rooted operation.
             SelectionSet selectionSet;
             (node, selectionSet) = CreateQueryPlanBase(deferredOperation, "defer", index);
+            node = node with { PolicySlots = policySlots };
 
             if (node.Backlog.IsEmpty)
             {
-                return new DeferIncrementalPlanResult([], null);
+                return new DeferIncrementalPlanResult([], null, policySlots);
             }
 
             foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(selectionSet))
@@ -248,7 +266,7 @@ public sealed partial class OperationPlanner
             var backlog = Backlog.Empty.Push(
                 new NodeFieldWorkItem(new NodeField { Field = nodeFieldNode, ParentFragments = null }));
 
-            node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
+            node = CreateIncrementalPlanNode(deferredOperation, index, backlog, policySlots);
             possiblePlans.EnqueueBranches(node);
         }
         else
@@ -274,10 +292,11 @@ public sealed partial class OperationPlanner
                 // later dropped and routed to the parent scope so the mutation runs exactly once.
                 SelectionSet mutationSelectionSet;
                 (node, mutationSelectionSet) = CreateMutationPlanBase(deferredOperation, "defer", index);
+                node = node with { PolicySlots = policySlots };
 
                 if (node.Backlog.IsEmpty)
                 {
-                    return new DeferIncrementalPlanResult([], null);
+                    return new DeferIncrementalPlanResult([], null, policySlots);
                 }
 
                 foreach (var (schemaName, resolutionCost) in _schema.GetPossibleSchemas(mutationSelectionSet))
@@ -308,7 +327,7 @@ public sealed partial class OperationPlanner
 
                 var backlog = Backlog.Empty.Push(new OperationWorkItem(OperationWorkItemKind.Lookup, anchorSet));
 
-                node = CreateIncrementalPlanNode(deferredOperation, index, backlog);
+                node = CreateIncrementalPlanNode(deferredOperation, index, backlog, policySlots);
                 possiblePlans.EnqueueBranches(node);
             }
         }
@@ -318,7 +337,12 @@ public sealed partial class OperationPlanner
             possiblePlans.Enqueue(node);
         }
 
-        var plan = Plan(operationId + "#defer_" + incrementalPlanId, possiblePlans, emitPlannerEvents, cancellationToken);
+        var plan = Plan(
+            operationId + "#defer_" + incrementalPlanId,
+            possiblePlans,
+            planningSession,
+            emitPlannerEvents,
+            cancellationToken);
 
         if (!plan.HasValue)
         {
@@ -331,12 +355,13 @@ public sealed partial class OperationPlanner
                 throw new DeferredMutationLookupRequiredException(descriptor.Path, mutationAnchorType.Name);
             }
 
-            return new DeferIncrementalPlanResult([], null);
+            return new DeferIncrementalPlanResult([], null, policySlots);
         }
 
         return new DeferIncrementalPlanResult(
             plan.Value.Steps,
-            plan.Value.InternalOperationDefinition);
+            plan.Value.InternalOperationDefinition,
+            plan.Value.PolicySlots);
     }
 
     /// <summary>
@@ -346,7 +371,8 @@ public sealed partial class OperationPlanner
     private PlanNode CreateIncrementalPlanNode(
         OperationDefinitionNode deferredOperation,
         ISelectionSetIndex index,
-        Backlog backlog)
+        Backlog backlog,
+        PolicySlotRegistry policySlots)
     {
         var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
             _options,
@@ -364,7 +390,8 @@ public sealed partial class OperationPlanner
             SelectionSetIndex = index,
             Backlog = backlog,
             RemainingCost = remainingCost,
-            OperationStepCount = 0
+            OperationStepCount = 0,
+            PolicySlots = policySlots
         };
     }
 
@@ -516,7 +543,14 @@ public sealed partial class OperationPlanner
 
         foreach (var (downstreamStepId, downstreamStep) in downstreamByStepId)
         {
-            foreach (var (_, requirement) in downstreamStep.Requirements)
+            // Requirements is an ImmutableDictionary keyed by string; its enumeration
+            // order is not guaranteed and varies with the process-local string hash
+            // seed. Ordering by key here keeps the order in which independent
+            // requirements are escalated to the parent scope deterministic, so the
+            // step ids assigned to the resulting cross-subgraph providers stay stable
+            // across processes.
+            foreach (var (_, requirement) in downstreamStep.Requirements.OrderBy(
+                t => t.Key, StringComparer.Ordinal))
             {
                 // A requirement must sit at or above the defer's own anchor: at the
                 // anchor itself (the common case), or at an ancestor of it (a nested
@@ -568,7 +602,12 @@ public sealed partial class OperationPlanner
                         scopeState,
                         out var parentStepId))
                     {
-                        lifted.Add(new LiftedDeferRequirement(requirement, downstreamStepId, parentStepId));
+                        lifted.Add(
+                            new LiftedDeferRequirement(
+                                requirement,
+                                downstreamStepId,
+                                parentStepId,
+                                scopeState));
                         resolved = true;
                         break;
                     }
@@ -585,7 +624,12 @@ public sealed partial class OperationPlanner
                     if (newStepId is { } resolvedStepId)
                     {
                         scopeState.Steps = stepsAfterPromotion;
-                        lifted.Add(new LiftedDeferRequirement(requirement, downstreamStepId, resolvedStepId));
+                        lifted.Add(
+                            new LiftedDeferRequirement(
+                                requirement,
+                                downstreamStepId,
+                                resolvedStepId,
+                                scopeState));
 
                         if (promotedIncrementalPlanStepId is { } pid)
                         {
@@ -615,7 +659,7 @@ public sealed partial class OperationPlanner
         // Every remaining step's requirement anchored exactly at the defer's own path is
         // retried against the parent scope; the edge and the now-unconsumed field are
         // cleaned up below once it succeeds.
-        var rerouted = new List<(int ProviderStepId, int DownstreamStepId, string FieldName)>();
+        var rerouted = new List<(int ProviderStepId, int DownstreamStepId, string[] ResponseLeaf)>();
 
         foreach (var step in incrementalPlanSteps)
         {
@@ -624,7 +668,11 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            foreach (var (_, requirement) in downstreamStep.Requirements)
+            // See the ordering note above: Requirements enumeration order is not
+            // guaranteed, so it is sorted by key to keep requirement routing
+            // deterministic across processes.
+            foreach (var (_, requirement) in downstreamStep.Requirements.OrderBy(
+                t => t.Key, StringComparer.Ordinal))
             {
                 if (!requirement.Path.Equals(descriptor.Path))
                 {
@@ -677,12 +725,16 @@ public sealed partial class OperationPlanner
                     continue;
                 }
 
-                lifted.Add(new LiftedDeferRequirement(requirement, downstreamStep.Id, resolvedId));
+                lifted.Add(
+                    new LiftedDeferRequirement(
+                        requirement,
+                        downstreamStep.Id,
+                        resolvedId,
+                        scopeState));
 
-                var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
-                if (fieldName is not null)
+                foreach (var responseLeaf in GetResponseLeaves(requirement))
                 {
-                    rerouted.Add((providerStep.Id, downstreamStep.Id, fieldName));
+                    rerouted.Add((providerStep.Id, downstreamStep.Id, responseLeaf));
                 }
             }
         }
@@ -709,7 +761,8 @@ public sealed partial class OperationPlanner
         var rewrittenIncrementalPlan = RewriteIncrementalPlanAfterDeferRequirementRouting(
             incrementalPlanSteps,
             lifted,
-            droppedStepIds);
+            droppedStepIds,
+            ScopeStateFor(parentContext));
 
         // Record the parent-scope requirements on the descriptor.
         foreach (var step in rewrittenIncrementalPlan)
@@ -738,6 +791,136 @@ public sealed partial class OperationPlanner
 
         return rewrittenIncrementalPlan;
     }
+
+    /// <summary>
+    /// Collapses pure same-scope requirement relays onto the in-plan step that grounds
+    /// their requirement when that step can satisfy every relayed consumer requirement.
+    /// </summary>
+    private static ImmutableList<PlanStep> CollapseSameScopeDeferRequirementRelays(
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        SelectionPath anchorPath)
+    {
+        var producers = FindDeferRequirementProducers(incrementalPlanSteps, anchorPath);
+        if (producers.IsEmpty)
+        {
+            return incrementalPlanSteps;
+        }
+
+        var relayCandidates = producers
+            .Where(producer => producer.Requirements.Count == 1)
+            .Where(producer =>
+            {
+                var relayRequirement = producer.Requirements.Values.Single();
+                var ownResponseLeaves = GetResponseLeaves(
+                        producer.Target,
+                        GetStepEntitySelectionSet(producer))
+                    .Where(responseLeaf => !responseLeaf[^1].Equals("__typename", StringComparison.Ordinal));
+
+                return ownResponseLeaves.Any()
+                    && ownResponseLeaves.All(
+                        responseLeaf => RequirementProvidesResponseLeaf(relayRequirement, responseLeaf));
+            })
+            .ToImmutableArray();
+
+        if (relayCandidates.IsEmpty)
+        {
+            return incrementalPlanSteps;
+        }
+
+        var relayIds = relayCandidates.Select(relay => relay.Id).ToHashSet();
+        var relays = new Dictionary<int, (OperationPlanStep GroundingStep, ImmutableHashSet<int> Consumers)>();
+
+        foreach (var producer in relayCandidates)
+        {
+            var relayRequirement = producer.Requirements.Values.Single();
+            var (sourceStep, sourceRequirement) = ResolveDeferRequirementSource(
+                incrementalPlanSteps,
+                producer,
+                relayRequirement,
+                relayIds);
+            var groundingStep = sourceStep is null
+                ? null
+                : TryFindDeferRequirementProvider(incrementalPlanSteps, sourceStep, sourceRequirement);
+
+            if (groundingStep is null || relayIds.Contains(groundingStep.Id))
+            {
+                continue;
+            }
+
+            var consumers = ImmutableHashSet.CreateBuilder<int>();
+            var canCollapse = true;
+
+            foreach (var dependentStepId in producer.Dependents)
+            {
+                if (incrementalPlanSteps.ById(dependentStepId) is not OperationPlanStep dependentStep)
+                {
+                    canCollapse = false;
+                    break;
+                }
+
+                var consumedResponseLeaves = new List<string[]>();
+                foreach (var (_, requirement) in dependentStep.Requirements)
+                {
+                    if (TryFindDeferRequirementProvider(incrementalPlanSteps, dependentStep, requirement)?.Id
+                        == producer.Id)
+                    {
+                        consumedResponseLeaves.AddRange(GetResponseLeaves(requirement));
+                    }
+                }
+
+                if (consumedResponseLeaves.Count == 0
+                    || consumedResponseLeaves.Any(
+                        responseLeaf => !StepProvidesResponseLeaf(groundingStep, responseLeaf)))
+                {
+                    canCollapse = false;
+                    break;
+                }
+
+                consumers.Add(dependentStep.Id);
+            }
+
+            if (canCollapse && consumers.Count > 0)
+            {
+                relays.Add(producer.Id, (groundingStep, consumers.ToImmutable()));
+            }
+        }
+
+        if (relays.Count == 0)
+        {
+            return incrementalPlanSteps;
+        }
+
+        var rewiredSteps = ImmutableList.CreateBuilder<PlanStep>();
+        foreach (var step in incrementalPlanSteps)
+        {
+            if (step is not OperationPlanStep operationStep)
+            {
+                rewiredSteps.Add(step);
+                continue;
+            }
+
+            var dependents = operationStep.Dependents;
+            foreach (var (_, relay) in relays)
+            {
+                if (relay.GroundingStep.Id == operationStep.Id)
+                {
+                    dependents = dependents.Union(relay.Consumers);
+                }
+            }
+
+            rewiredSteps.Add(operationStep with { Dependents = dependents });
+        }
+
+        return RewriteIncrementalPlanAfterDeferRequirementRouting(
+            rewiredSteps.ToImmutable(),
+            [],
+            relays.Keys.ToHashSet(),
+            immediateParentScope: null);
+    }
+
+    private static bool StepProvidesResponseLeaf(OperationPlanStep step, string[] responseLeaf)
+        => GetResponseLeaves(step.Target, GetStepEntitySelectionSet(step))
+            .Any(stepLeaf => ResponseLeavesEqual(stepLeaf, responseLeaf));
 
     /// <summary>
     /// Detects an incremental plan whose entire deferred output is already available from
@@ -1433,15 +1616,19 @@ public sealed partial class OperationPlanner
                 return (current, currentRequirement);
             }
 
-            var neededFieldName =
-                currentRequirement.InternalAlias ?? ExtractRootFieldName(currentRequirement.Map.ToString());
             var upstreamRequirement = provider.Requirements.Values.Single();
-            var upstreamFieldName =
-                upstreamRequirement.InternalAlias ?? ExtractRootFieldName(upstreamRequirement.Map.ToString());
 
-            if (neededFieldName is null
-                || upstreamFieldName is null
-                || !neededFieldName.Equals(upstreamFieldName, StringComparison.Ordinal))
+            var hasMatchingResponseLeaf = false;
+            foreach (var currentLeaf in GetResponseLeaves(currentRequirement))
+            {
+                if (RequirementProvidesResponseLeaf(upstreamRequirement, currentLeaf))
+                {
+                    hasMatchingResponseLeaf = true;
+                    break;
+                }
+            }
+
+            if (!hasMatchingResponseLeaf)
             {
                 return (current, currentRequirement);
             }
@@ -1464,15 +1651,6 @@ public sealed partial class OperationPlanner
         OperationPlanStep consumingStep,
         OperationRequirement requirement)
     {
-        var requirementFieldName =
-            requirement.InternalAlias
-                ?? ExtractRootFieldName(requirement.Map.ToString());
-
-        if (requirementFieldName is null)
-        {
-            return null;
-        }
-
         foreach (var step in incrementalPlanSteps)
         {
             if (step is not OperationPlanStep candidate
@@ -1487,9 +1665,14 @@ public sealed partial class OperationPlanner
                 continue;
             }
 
-            if (SelectionSetContainsField(candidate.Definition.SelectionSet, requirementFieldName))
+            foreach (var responseLeaf in GetResponseLeaves(
+                candidate.Target,
+                GetStepEntitySelectionSet(candidate)))
             {
-                return candidate;
+                if (RequirementProvidesResponseLeaf(requirement, responseLeaf))
+                {
+                    return candidate;
+                }
             }
         }
 
@@ -1513,6 +1696,10 @@ public sealed partial class OperationPlanner
                 && operationStep.SchemaName is not null
                 && !operationStep.Dependents.IsEmpty
                 && (operationStep.Target.Equals(anchorPath) || operationStep.Target.IsRoot)
+                && HasOnlyParentReachableRequirementConsumers(
+                    operationStep,
+                    incrementalPlanSteps,
+                    anchorPath)
                 && IsPureRequirementProducer(operationStep, incrementalPlanSteps))
             {
                 producers.Add(operationStep);
@@ -1520,6 +1707,32 @@ public sealed partial class OperationPlanner
         }
 
         return producers.ToImmutable();
+    }
+
+    private static bool HasOnlyParentReachableRequirementConsumers(
+        OperationPlanStep providerStep,
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        SelectionPath anchorPath)
+    {
+        foreach (var dependentStepId in providerStep.Dependents)
+        {
+            if (incrementalPlanSteps.ById(dependentStepId) is not OperationPlanStep dependentStep)
+            {
+                continue;
+            }
+
+            foreach (var (_, requirement) in dependentStep.Requirements)
+            {
+                if (TryFindDeferRequirementProvider(incrementalPlanSteps, dependentStep, requirement)?.Id
+                        == providerStep.Id
+                    && !requirement.Path.IsParentOfOrSame(anchorPath))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -1531,15 +1744,16 @@ public sealed partial class OperationPlanner
         OperationPlanStep step,
         ImmutableList<PlanStep> incrementalPlanSteps)
     {
-        var ownFields = new HashSet<string>(StringComparer.Ordinal);
-        CollectLeafFieldNames(step.Definition.SelectionSet, ownFields);
+        var ownResponseLeaves = GetResponseLeaves(step.Target, GetStepEntitySelectionSet(step))
+            .Where(responseLeaf => !responseLeaf[^1].Equals("__typename", StringComparison.Ordinal))
+            .ToArray();
 
-        if (ownFields.Count == 0)
+        if (ownResponseLeaves.Length == 0)
         {
             return false;
         }
 
-        var consumed = new HashSet<string>(StringComparer.Ordinal);
+        var consumedRequirements = new List<OperationRequirement>();
         foreach (var dependentStepId in step.Dependents)
         {
             if (incrementalPlanSteps.ById(dependentStepId) is not OperationPlanStep dependentStep)
@@ -1549,18 +1763,13 @@ public sealed partial class OperationPlanner
 
             foreach (var (_, requirement) in dependentStep.Requirements)
             {
-                var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
-
-                if (fieldName is not null)
-                {
-                    consumed.Add(fieldName);
-                }
+                consumedRequirements.Add(requirement);
             }
         }
 
-        foreach (var fieldName in ownFields)
+        foreach (var responseLeaf in ownResponseLeaves)
         {
-            if (!consumed.Contains(fieldName))
+            if (!consumedRequirements.Any(requirement => RequirementProvidesResponseLeaf(requirement, responseLeaf)))
             {
                 return false;
             }
@@ -1570,51 +1779,20 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Collects the response names of every leaf field selection within
-    /// <paramref name="selectionSet"/>, descending through composite fields and inline
-    /// fragments (a composite field wraps a lookup or entity boundary, not output of its
-    /// own). The <c>__typename</c> discriminator is ignored; it never satisfies a
-    /// requirement.
-    /// </summary>
-    private static void CollectLeafFieldNames(SelectionSetNode selectionSet, HashSet<string> names)
-    {
-        foreach (var selection in selectionSet.Selections)
-        {
-            switch (selection)
-            {
-                case FieldNode { SelectionSet: { } nested }:
-                    CollectLeafFieldNames(nested, names);
-                    break;
-
-                case FieldNode field:
-                    if (!field.Name.Value.Equals("__typename", StringComparison.Ordinal))
-                    {
-                        names.Add(field.Alias?.Value ?? field.Name.Value);
-                    }
-                    break;
-
-                case InlineFragmentNode fragment:
-                    CollectLeafFieldNames(fragment.SelectionSet, names);
-                    break;
-            }
-        }
-    }
-
-    /// <summary>
     /// Removes each <paramref name="rerouted"/> provider-to-dependent dependency edge, unless
     /// the dependent still has another requirement that resolves back to the same provider,
     /// and drops the provider's rerouted field once no remaining dependent still consumes it.
     /// </summary>
     private static ImmutableList<PlanStep> RemoveReroutedInPlanEdges(
         ImmutableList<PlanStep> incrementalPlanSteps,
-        List<(int ProviderStepId, int DownstreamStepId, string FieldName)> rerouted)
+        List<(int ProviderStepId, int DownstreamStepId, string[] ResponseLeaf)> rerouted)
     {
         if (rerouted.Count == 0)
         {
             return incrementalPlanSteps;
         }
 
-        var removalsByProvider = new Dictionary<int, List<(int DownstreamStepId, string FieldName)>>();
+        var removalsByProvider = new Dictionary<int, List<(int DownstreamStepId, string[] ResponseLeaf)>>();
         foreach (var entry in rerouted)
         {
             if (!removalsByProvider.TryGetValue(entry.ProviderStepId, out var removals))
@@ -1623,7 +1801,7 @@ public sealed partial class OperationPlanner
                 removalsByProvider[entry.ProviderStepId] = removals;
             }
 
-            removals.Add((entry.DownstreamStepId, entry.FieldName));
+            removals.Add((entry.DownstreamStepId, entry.ResponseLeaf));
         }
 
         var updated = ImmutableList.CreateBuilder<PlanStep>();
@@ -1633,27 +1811,27 @@ public sealed partial class OperationPlanner
             if (step is OperationPlanStep providerStep
                 && removalsByProvider.TryGetValue(providerStep.Id, out var removals))
             {
-                var reroutedFieldNamesByDownstream = new Dictionary<int, HashSet<string>>();
-                foreach (var (downstreamStepId, fieldName) in removals)
+                var reroutedResponseLeavesByDownstream = new Dictionary<int, List<string[]>>();
+                foreach (var (downstreamStepId, responseLeaf) in removals)
                 {
-                    if (!reroutedFieldNamesByDownstream.TryGetValue(downstreamStepId, out var fieldNames))
+                    if (!reroutedResponseLeavesByDownstream.TryGetValue(downstreamStepId, out var responseLeaves))
                     {
-                        fieldNames = new HashSet<string>(StringComparer.Ordinal);
-                        reroutedFieldNamesByDownstream[downstreamStepId] = fieldNames;
+                        responseLeaves = [];
+                        reroutedResponseLeavesByDownstream[downstreamStepId] = responseLeaves;
                     }
 
-                    fieldNames.Add(fieldName);
+                    responseLeaves.Add(responseLeaf);
                 }
 
                 var severedDependentIds = new HashSet<int>();
-                foreach (var (downstreamStepId, reroutedFieldNames) in reroutedFieldNamesByDownstream)
+                foreach (var (downstreamStepId, reroutedResponseLeaves) in reroutedResponseLeavesByDownstream)
                 {
                     if (incrementalPlanSteps.ById(downstreamStepId) is OperationPlanStep downstreamStep
                         && DependentStillRequiresProvider(
                             incrementalPlanSteps,
                             downstreamStep,
                             providerStep,
-                            reroutedFieldNames))
+                            reroutedResponseLeaves))
                     {
                         continue;
                     }
@@ -1663,7 +1841,7 @@ public sealed partial class OperationPlanner
 
                 var remainingDependents = providerStep.Dependents.Except(severedDependentIds);
 
-                var stillConsumedFieldNames = new HashSet<string>(StringComparer.Ordinal);
+                var stillConsumedResponseLeaves = new List<string[]>();
                 foreach (var remainingDependentId in remainingDependents)
                 {
                     if (incrementalPlanSteps.ById(remainingDependentId) is not OperationPlanStep remainingStep)
@@ -1671,27 +1849,45 @@ public sealed partial class OperationPlanner
                         continue;
                     }
 
-                    reroutedFieldNamesByDownstream.TryGetValue(remainingDependentId, out var excludedFieldNames);
+                    reroutedResponseLeavesByDownstream.TryGetValue(
+                        remainingDependentId,
+                        out var excludedResponseLeaves);
 
                     foreach (var (_, requirement) in remainingStep.Requirements)
                     {
-                        var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
-                        if (fieldName is null || (excludedFieldNames?.Contains(fieldName) ?? false))
+                        foreach (var responseLeaf in GetResponseLeaves(requirement))
                         {
-                            continue;
-                        }
+                            if (excludedResponseLeaves?.Any(
+                                    excludedLeaf => ResponseLeavesEqual(excludedLeaf, responseLeaf)) == true)
+                            {
+                                continue;
+                            }
 
-                        stillConsumedFieldNames.Add(fieldName);
+                            stillConsumedResponseLeaves.Add(responseLeaf);
+                        }
                     }
                 }
 
                 var updatedProviderStep = providerStep with { Dependents = remainingDependents };
 
-                foreach (var fieldName in removals.Select(r => r.FieldName).Distinct(StringComparer.Ordinal))
+                var distinctReroutedResponseLeaves = new List<string[]>();
+                foreach (var (_, responseLeaf) in removals)
                 {
-                    if (!stillConsumedFieldNames.Contains(fieldName))
+                    if (!distinctReroutedResponseLeaves.Any(
+                        existingLeaf => ResponseLeavesEqual(existingLeaf, responseLeaf)))
                     {
-                        updatedProviderStep = RemoveUnconsumedEntityField(updatedProviderStep, fieldName);
+                        distinctReroutedResponseLeaves.Add(responseLeaf);
+                    }
+                }
+
+                foreach (var responseLeaf in distinctReroutedResponseLeaves)
+                {
+                    if (!stillConsumedResponseLeaves.Any(
+                        consumedLeaf => ResponseLeavesEqual(consumedLeaf, responseLeaf)))
+                    {
+                        updatedProviderStep = RemoveUnconsumedEntityResponseLeaf(
+                            updatedProviderStep,
+                            responseLeaf);
                     }
                 }
 
@@ -1708,19 +1904,19 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Determines whether <paramref name="downstreamStep"/> still has a requirement, other
-    /// than those named in <paramref name="reroutedFieldNames"/>, that
+    /// than those represented by <paramref name="reroutedResponseLeaves"/>, that
     /// <see cref="TryFindDeferRequirementProvider"/> resolves back to <paramref name="providerStep"/>.
     /// </summary>
     private static bool DependentStillRequiresProvider(
         ImmutableList<PlanStep> incrementalPlanSteps,
         OperationPlanStep downstreamStep,
         OperationPlanStep providerStep,
-        HashSet<string> reroutedFieldNames)
+        List<string[]> reroutedResponseLeaves)
     {
         foreach (var (_, requirement) in downstreamStep.Requirements)
         {
-            var fieldName = requirement.InternalAlias ?? ExtractRootFieldName(requirement.Map.ToString());
-            if (fieldName is not null && reroutedFieldNames.Contains(fieldName))
+            if (GetResponseLeaves(requirement).All(responseLeaf => reroutedResponseLeaves.Any(
+                reroutedResponseLeaf => ResponseLeavesEqual(reroutedResponseLeaf, responseLeaf))))
             {
                 continue;
             }
@@ -1736,35 +1932,100 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Removes a single top-level field from <paramref name="step"/>'s own entity-level
+    /// Removes a single response leaf from <paramref name="step"/>'s own entity-level
     /// selection set (see <see cref="GetStepEntitySelectionSet"/>) once nothing consumes
     /// it any longer, keeping the step's selection-set index in sync.
     /// </summary>
-    private static OperationPlanStep RemoveUnconsumedEntityField(OperationPlanStep step, string fieldName)
+    private static OperationPlanStep RemoveUnconsumedEntityResponseLeaf(
+        OperationPlanStep step,
+        string[] responseLeaf)
     {
         var entitySelectionSet = GetStepEntitySelectionSet(step);
-        var filtered = new List<ISelectionNode>(entitySelectionSet.Selections.Count);
         var removed = false;
+        var targetLength = 0;
 
-        foreach (var selection in entitySelectionSet.Selections)
+        for (var i = 0; i < step.Target.Length; i++)
         {
-            if (!removed
-                && selection is FieldNode field
-                && (field.Alias?.Value ?? field.Name.Value).Equals(fieldName, StringComparison.Ordinal))
+            if (step.Target[i].Kind is SelectionPathSegmentKind.Field)
             {
-                removed = true;
-                continue;
+                targetLength++;
             }
-
-            filtered.Add(selection);
         }
 
-        if (!removed || filtered.Count == 0)
+        var filtered = RemoveResponseLeaf(
+            entitySelectionSet,
+            responseLeaf,
+            targetLength,
+            ref removed);
+
+        if (!removed || filtered.Selections.Count == 0)
         {
             return step;
         }
 
-        return WithEntitySelectionSet(step, new SelectionSetNode(filtered));
+        return WithEntitySelectionSet(step, filtered);
+    }
+
+    private static SelectionSetNode RemoveResponseLeaf(
+        SelectionSetNode selectionSet,
+        string[] responseLeaf,
+        int responseLeafIndex,
+        ref bool removed)
+    {
+        var updated = new List<ISelectionNode>(selectionSet.Selections.Count);
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field
+                    when responseLeafIndex < responseLeaf.Length
+                        && (field.Alias?.Value ?? field.Name.Value).Equals(
+                            responseLeaf[responseLeafIndex],
+                            StringComparison.Ordinal):
+                    if (responseLeafIndex + 1 == responseLeaf.Length)
+                    {
+                        removed = true;
+                        continue;
+                    }
+
+                    if (field.SelectionSet is { } nested)
+                    {
+                        var updatedNested = RemoveResponseLeaf(
+                            nested,
+                            responseLeaf,
+                            responseLeafIndex + 1,
+                            ref removed);
+
+                        if (updatedNested.Selections.Count > 0)
+                        {
+                            updated.Add(field.WithSelectionSet(updatedNested));
+                        }
+
+                        continue;
+                    }
+
+                    break;
+
+                case InlineFragmentNode fragment:
+                    var updatedFragment = RemoveResponseLeaf(
+                        fragment.SelectionSet,
+                        responseLeaf,
+                        responseLeafIndex,
+                        ref removed);
+
+                    if (updatedFragment.Selections.Count > 0)
+                    {
+                        updated.Add(fragment.WithSelectionSet(updatedFragment));
+                    }
+
+                    continue;
+            }
+
+            updated.Add(selection);
+        }
+
+        return new SelectionSetNode(updated);
     }
 
     /// <summary>
@@ -1799,7 +2060,8 @@ public sealed partial class OperationPlanner
     private static ImmutableList<PlanStep> RewriteIncrementalPlanAfterDeferRequirementRouting(
         ImmutableList<PlanStep> incrementalPlanSteps,
         List<LiftedDeferRequirement> lifted,
-        HashSet<int> droppedStepIds)
+        HashSet<int> droppedStepIds,
+        ScopeState? immediateParentScope)
     {
         var parentRefsByStepId = new Dictionary<int, ImmutableHashSet<ParentStepRef>.Builder>();
         foreach (var entry in lifted)
@@ -1848,6 +2110,22 @@ public sealed partial class OperationPlanner
                     ParentDependencies = newParentDependencies
                 });
             }
+            else if (step is PolicyPlanStep policyStep)
+            {
+                var parentDependencies = GetPolicyParentDependencies(
+                    policyStep,
+                    incrementalPlanSteps,
+                    survivors,
+                    lifted,
+                    parentRefsByStepId,
+                    immediateParentScope);
+
+                rewritten.Add(policyStep with
+                {
+                    Id = oldToNewId[step.Id],
+                    ParentDependencies = parentDependencies
+                });
+            }
             else
             {
                 rewritten.Add(step with { Id = oldToNewId[step.Id] });
@@ -1855,6 +2133,169 @@ public sealed partial class OperationPlanner
         }
 
         return rewritten.ToImmutable();
+    }
+
+    // Mirrors PolicyArtifactBinder.TryAddParentDependencyClosure for the supported
+    // operation-artifact topology. Only OperationPlanStep providers and dependencies
+    // participate in this planner representation.
+    private static ImmutableHashSet<ParentStepRef> GetPolicyParentDependencies(
+        PolicyPlanStep policyStep,
+        ImmutableList<PlanStep> incrementalPlanSteps,
+        List<PlanStep> survivingPlanSteps,
+        List<LiftedDeferRequirement> lifted,
+        Dictionary<int, ImmutableHashSet<ParentStepRef>.Builder> parentRefsByStepId,
+        ScopeState? immediateParentScope)
+    {
+        var pairedOperationSteps = incrementalPlanSteps
+            .OfType<OperationPlanStep>()
+            .Where(step => step.Dependents.Contains(policyStep.Id))
+            .ToArray();
+        var broadParentDependencies = policyStep.ParentDependencies;
+
+        foreach (var pairedOperationStep in pairedOperationSteps)
+        {
+            if (parentRefsByStepId.TryGetValue(pairedOperationStep.Id, out var parentRefBuilder))
+            {
+                broadParentDependencies = broadParentDependencies.Union(parentRefBuilder.ToImmutable());
+            }
+        }
+
+        if (immediateParentScope is null)
+        {
+            return broadParentDependencies;
+        }
+
+        var survivingStepIds = survivingPlanSteps
+            .OfType<OperationPlanStep>()
+            .Select(step => step.Id)
+            .ToHashSet();
+        var parentDependencies = policyStep.ParentDependencies.ToBuilder();
+        var visited = new HashSet<(ScopeState Scope, int StepId)>();
+
+        foreach (var policyRequirementLeaf in GetPolicyRequirementLeaves(policyStep))
+        {
+            if (survivingPlanSteps
+                .OfType<OperationPlanStep>()
+                .Any(step => StepProvidesResponseLeaf(step, policyRequirementLeaf)))
+            {
+                continue;
+            }
+
+            // A lift may serve this policy requirement leaf when its downstream
+            // operation survived in this same rewritten incremental-plan part
+            // (pairing with the policy node is no longer required), the lift was
+            // recorded against the immediate parent scope, the lift's requirement
+            // exactly provides the full response leaf, and the lift's own parent
+            // step is itself an immediate-parent provider of that leaf. This never
+            // crosses a plan-part or scope boundary: DownstreamStepId is checked
+            // against survivors of this incremental plan only, ParentScope must be
+            // reference-identical to immediateParentScope, and ParentStepId is
+            // resolved strictly within immediateParentScope.Steps.
+            var hasMatchingLift = lifted.Any(
+                entry => survivingStepIds.Contains(entry.DownstreamStepId)
+                    && ReferenceEquals(entry.ParentScope, immediateParentScope)
+                    && RequirementProvidesResponseLeaf(entry.Requirement, policyRequirementLeaf)
+                    && immediateParentScope.Steps
+                        .OfType<OperationPlanStep>()
+                        .Any(provider => provider.Id == entry.ParentStepId
+                            && StepProvidesResponseLeaf(provider, policyRequirementLeaf)));
+            if (!hasMatchingLift)
+            {
+                return broadParentDependencies;
+            }
+
+            var hasProvider = false;
+            foreach (var provider in immediateParentScope.Steps.OfType<OperationPlanStep>())
+            {
+                if (!StepProvidesResponseLeaf(provider, policyRequirementLeaf))
+                {
+                    continue;
+                }
+
+                hasProvider = true;
+                if (!TryAddParentDependencyClosure(immediateParentScope, provider))
+                {
+                    return broadParentDependencies;
+                }
+            }
+
+            if (!hasProvider)
+            {
+                return broadParentDependencies;
+            }
+        }
+
+        return parentDependencies.ToImmutable();
+
+        bool TryAddParentDependencyClosure(ScopeState scope, OperationPlanStep step)
+        {
+            if (!visited.Add((scope, step.Id)))
+            {
+                return true;
+            }
+
+            if (!step.ParentDependencies.IsEmpty)
+            {
+                return false;
+            }
+
+            parentDependencies.Add(new ParentStepRef(step.Id));
+
+            foreach (var dependency in scope.Steps.OfType<OperationPlanStep>())
+            {
+                if (dependency.Dependents.Contains(step.Id)
+                    && !TryAddParentDependencyClosure(scope, dependency))
+                {
+                    return false;
+                }
+            }
+
+            foreach (var requirement in step.Requirements.Values)
+            {
+                foreach (var requirementLeaf in GetResponseLeaves(requirement))
+                {
+                    var hasRequirementProvider = false;
+                    foreach (var provider in scope.Steps.OfType<OperationPlanStep>())
+                    {
+                        if (!StepProvidesResponseLeaf(provider, requirementLeaf))
+                        {
+                            continue;
+                        }
+
+                        hasRequirementProvider = true;
+                        if (!TryAddParentDependencyClosure(scope, provider))
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (!hasRequirementProvider)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
+
+    private static IEnumerable<string[]> GetPolicyRequirementLeaves(PolicyPlanStep policyStep)
+    {
+        foreach (var target in policyStep.Targets)
+        {
+            var entityPath = target.Kind is PolicyTargetKind.Field
+                ? target.Path.Parent ?? SelectionPath.Root
+                : target.Path;
+
+            foreach (var requirement in target.Requirements)
+            {
+                foreach (var leaf in GetResponseLeaves(entityPath, requirement.SelectionSet))
+                {
+                    yield return leaf;
+                }
+            }
+        }
     }
 
     private static ImmutableHashSet<int> RenumberDeferDependents(
@@ -2059,6 +2500,88 @@ public sealed partial class OperationPlanner
         return currentSet;
     }
 
+    private static bool RequirementProvidesResponseLeaf(OperationRequirement requirement, string[] responseLeaf)
+        => GetResponseLeaves(requirement).Any(requirementLeaf => ResponseLeavesEqual(requirementLeaf, responseLeaf));
+
+    private static IEnumerable<string[]> GetResponseLeaves(OperationRequirement requirement)
+        => GetResponseLeaves(
+            requirement.Path,
+            ValueSelectionToSelectionSetRewriter.Rewrite([requirement.Map]),
+            requirement.InternalAlias);
+
+    private static IEnumerable<string[]> GetResponseLeaves(
+        SelectionPath selectionPath,
+        SelectionSetNode selectionSet,
+        string? firstMappedFieldResponseName = null)
+    {
+        var segments = new List<string>();
+        for (var i = 0; i < selectionPath.Length; i++)
+        {
+            if (selectionPath[i].Kind is SelectionPathSegmentKind.Field)
+            {
+                segments.Add(selectionPath[i].Name);
+            }
+        }
+
+        var leaves = new List<string[]>();
+        CollectResponseLeaves(selectionSet, segments, segments.Count, firstMappedFieldResponseName, leaves);
+        return leaves;
+    }
+
+    private static void CollectResponseLeaves(
+        SelectionSetNode selectionSet,
+        List<string> segments,
+        int mappedFieldStart,
+        string? firstMappedFieldResponseName,
+        List<string[]> leaves)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    var responseName = segments.Count == mappedFieldStart
+                        && firstMappedFieldResponseName is not null
+                            ? firstMappedFieldResponseName
+                            : field.Alias?.Value ?? field.Name.Value;
+                    segments.Add(responseName);
+                    if (field.SelectionSet is { } nested)
+                    {
+                        CollectResponseLeaves(nested, segments, mappedFieldStart, firstMappedFieldResponseName, leaves);
+                    }
+                    else
+                    {
+                        leaves.Add([.. segments]);
+                    }
+                    segments.RemoveAt(segments.Count - 1);
+                    break;
+
+                case InlineFragmentNode fragment:
+                    CollectResponseLeaves(
+                        fragment.SelectionSet, segments, mappedFieldStart, firstMappedFieldResponseName, leaves);
+                    break;
+            }
+        }
+    }
+
+    private static bool ResponseLeavesEqual(string[] first, string[] second)
+    {
+        if (first.Length != second.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < first.Length; i++)
+        {
+            if (!first[i].Equals(second[i], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private static bool SelectionSetContainsField(
         SelectionSetNode selectionSet,
         string fieldName)
@@ -2124,7 +2647,8 @@ public sealed partial class OperationPlanner
     private readonly record struct LiftedDeferRequirement(
         OperationRequirement Requirement,
         int DownstreamStepId,
-        int ParentStepId);
+        int ParentStepId,
+        ScopeState ParentScope);
 
     /// <summary>
     /// Builds execution nodes for an incremental plan's plan steps.
@@ -2132,7 +2656,8 @@ public sealed partial class OperationPlanner
     private (ImmutableArray<ExecutionNode> RootNodes, ImmutableArray<ExecutionNode> AllNodes) BuildDeferredExecutionNodes(
         OperationDefinitionNode deferredOperation,
         ImmutableList<PlanStep> planSteps,
-        int nextNodeId)
+        int nextNodeId,
+        ImmutableArray<PolicyConditionSlot> policySlots)
     {
         if (planSteps.Count == 0)
         {
@@ -2140,12 +2665,25 @@ public sealed partial class OperationPlanner
         }
 
         var ctx = new ExecutionPlanBuildContext(nextNodeId);
-        var hasVariables = deferredOperation.VariableDefinitions.Count > 0;
+        var hasVariables = deferredOperation.VariableDefinitions.Count > 0 || !policySlots.IsDefaultOrEmpty;
 
-        planSteps = TransformPlanSteps(planSteps, deferredOperation);
+        planSteps = TransformPlanSteps(
+            planSteps,
+            deferredOperation,
+            policySlots,
+            promoteNestedConditions: true);
         IndexDependencies(planSteps, ctx);
         BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, CancellationToken.None);
+        ValidateDeferredPolicyRoots(ctx);
+        var policyProducers = CapturePolicyProducers(ctx);
+        var policyRequirementProviders = OperationPlanner.AddPolicyRequirementDependencies(ctx);
         MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy, _schema);
+        policyRequirementProviders = ConsolidatePolicyExecutionNodes(
+            ctx,
+            policyProducers,
+            policyRequirementProviders);
+        var policyGuards = CreatePolicyGuardLookup(ctx, policyRequirementProviders);
+        ApplyPolicyGuards(ctx, policyGuards);
         WireExecutionDependencies(ctx);
 
         var rootNodes = planSteps
@@ -2166,5 +2704,18 @@ public sealed partial class OperationPlanner
         }
 
         return (rootNodes, allNodes);
+    }
+
+    private static void ValidateDeferredPolicyRoots(ExecutionPlanBuildContext ctx)
+    {
+        foreach (var policyNode in ctx.ExecutionNodes.Values.OfType<PolicyExecutionNode>())
+        {
+            if ((!ctx.DependenciesByStepId.TryGetValue(policyNode.Id, out var dependencies)
+                    || dependencies.Count == 0)
+                && policyNode.ParentDependencies.Length == 0)
+            {
+                throw HotChocolate.Fusion.Execution.ThrowHelper.DeferredPolicyRootNotAnchored(policyNode.Id);
+            }
+        }
     }
 }

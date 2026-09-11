@@ -33,3 +33,8 @@ nodes:
     forwardedVariables:
       - includeProduct
       - includeReview
+includeConditions:
+  -
+    includeVariable: includeProduct
+  -
+    includeVariable: includeReview

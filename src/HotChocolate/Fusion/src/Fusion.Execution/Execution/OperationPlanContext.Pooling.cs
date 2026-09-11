@@ -44,6 +44,7 @@ public sealed partial class OperationPlanContext
 
         _disposed = 0;
         RequestContext = requestContext;
+        Schema = (FusionSchemaDefinition)requestContext.Schema;
 
         _memory = memory
             ?? requestContext.Memory
@@ -54,6 +55,7 @@ public sealed partial class OperationPlanContext
 
         Variables = variables;
         OperationPlan = operationPlan;
+        _policyRequestState = requestContext.Features.Get<PolicyRequestState>();
 
         switch (operationPlan)
         {
@@ -69,6 +71,9 @@ public sealed partial class OperationPlanContext
         }
 
         IncludeConditionFlags = operationPlan.Operation.CreateIncludeConditionFlags(variables);
+        PolicyDenyFlags = variables is PolicyVariableValueCollection policyVariables
+            ? policyVariables.DenyFlags
+            : 0;
         DeferConditionFlags = operationPlan.Operation.CreateDeferConditionFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope ??= requestContext.CreateClientScope();
@@ -83,8 +88,17 @@ public sealed partial class OperationPlanContext
             IncludeConditionFlags,
             DeferConditionFlags,
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
+        _resultStore.SetPolicyExecutionState(
+            operationPlan as OperationPlan ?? _policyRequestState?.OperationPlan,
+            _policyRequestState,
+            PolicyDenyFlags);
 
         _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
+
+        if (_policyRequestState is null)
+        {
+            PinPolicies(requestContext.GetPolicySnapshot(), operationPlan);
+        }
 
         var maxNodeId = operationPlan.MaxNodeId;
         EnsureNodeArrayCapacity(maxNodeId);
@@ -159,14 +173,18 @@ public sealed partial class OperationPlanContext
 
         _resultStore.Clean(256, 256);
         _executionState.Clean();
+        ClearResolvedPolicies();
+        _policyRequestState = null;
 
         RequestContext = default!;
+        Schema = default!;
         _memory = null;
         _memorySource.Clear();
         _currentMemorySource = null!;
         Variables = default!;
         OperationPlan = default!;
         IncludeConditionFlags = default;
+        PolicyDenyFlags = 0;
         DeferConditionFlags = default;
         // if a custom scope is used we cannot reuse it and have to null it.
         if (_clientScope is not DefaultSourceSchemaClientScope)

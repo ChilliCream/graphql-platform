@@ -6,7 +6,9 @@ namespace HotChocolate.Fusion.Packaging;
 internal readonly record struct FusionArchiveReadOptions(
     int MaxAllowedSchemaSize,
     int MaxAllowedSettingsSize,
-    int MaxAllowedLegacyArchiveSize)
+    int MaxAllowedLegacyArchiveSize,
+    int MaxAllowedPolicySize,
+    int MaxAllowedPolicyDataSize)
 {
     /// <summary>
     /// Gets the default read options.
@@ -14,5 +16,7 @@ internal readonly record struct FusionArchiveReadOptions(
     public static FusionArchiveReadOptions Default { get; } = new(
         50_000_000,
         512_000,
-        100_000_000);
+        100_000_000,
+        50_000_000,
+        10_000_000);
 }

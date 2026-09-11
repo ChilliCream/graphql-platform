@@ -22,7 +22,8 @@ internal sealed class ExecutePlanNodeSpan(
             [ExecutionNodeType.OperationBatch] = GraphQL.Operation.Step.KindValues.OperationBatch,
             [ExecutionNodeType.EventStream] = GraphQL.Operation.Step.KindValues.EventStream,
             [ExecutionNodeType.Introspection] = GraphQL.Operation.Step.KindValues.Introspection,
-            [ExecutionNodeType.Node] = GraphQL.Operation.Step.KindValues.Node
+            [ExecutionNodeType.Node] = GraphQL.Operation.Step.KindValues.Node,
+            [ExecutionNodeType.Policy] = GraphQL.Operation.Step.KindValues.Policy
         }.ToFrozenDictionary();
 
     public static ExecutePlanNodeSpan? Start(

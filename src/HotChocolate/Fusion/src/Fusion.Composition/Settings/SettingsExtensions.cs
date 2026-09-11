@@ -59,7 +59,13 @@ internal static class SettingsExtensions
                                 .ShareableFieldRuntimeTypeRouting
                             ?? settings.ApolloFederationCompatibility
                                 .ShareableFieldRuntimeTypeRouting
-                    }
+                    },
+                Authorization = new CompositionSettings.AuthorizationSettings
+                {
+                    OnDenied =
+                        compositionSettings.Authorization.OnDenied
+                        ?? settings.Authorization.OnDenied
+                }
             };
         }
     }
@@ -137,6 +143,17 @@ internal static class SettingsExtensions
             }
 
             return mergerOptions;
+        }
+    }
+
+    extension(CompositionSettings.AuthorizationSettings authorizationSettings)
+    {
+        public void MergeInto(SourceSchemaMergerOptions mergerOptions)
+        {
+            if (authorizationSettings.OnDenied is { } onDenied)
+            {
+                mergerOptions.PolicyOnDeniedDefault = onDenied;
+            }
         }
     }
 

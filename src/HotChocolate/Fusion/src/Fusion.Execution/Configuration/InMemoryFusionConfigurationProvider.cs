@@ -10,7 +10,10 @@ public sealed class InMemoryFusionConfigurationProvider : IFusionConfigurationPr
 {
     private readonly JsonDocumentOwner? _schemaSettings;
 
-    public InMemoryFusionConfigurationProvider(DocumentNode schemaDocument, JsonDocumentOwner? schemaSettings)
+    public InMemoryFusionConfigurationProvider(
+        DocumentNode schemaDocument,
+        JsonDocumentOwner? schemaSettings,
+        PolicyContentSnapshot? policies = null)
     {
         ArgumentNullException.ThrowIfNull(schemaDocument);
 
@@ -18,7 +21,10 @@ public sealed class InMemoryFusionConfigurationProvider : IFusionConfigurationPr
             schemaDocument,
             new JsonDocumentOwner(
                 schemaSettings?.Document ?? JsonDocument.Parse("{ }"),
-                EmptyMemoryOwner.Instance));
+                EmptyMemoryOwner.Instance))
+        {
+            Policies = policies
+        };
         _schemaSettings = schemaSettings;
     }
 

@@ -327,6 +327,44 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         }
     }
 
+    [Fact]
+    public async Task Execute_Should_RemoveSignatureAndWarn_When_ArchiveIsSigned()
+    {
+        // arrange
+        var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        File.Copy(
+            Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"),
+            archiveFile);
+        SetupFile(archiveFile, new MemoryStream(File.ReadAllBytes(archiveFile)));
+        await SignArchiveAsync(archiveFile, TestContext.Current.CancellationToken);
+
+        try
+        {
+            // act
+            var result = await ExecuteCommandAsync(
+                "fusion",
+                "settings",
+                "set",
+                "node-resolution",
+                "gateway",
+                "--archive",
+                archiveFile);
+
+            // assert
+            Assert.Equal(0, result.ExitCode);
+            using var archive = FusionArchive.Open(archiveFile);
+            Assert.False(archive.IsSigned);
+            result.StdErr.MatchInlineSnapshot(
+                """
+                Warning: The Fusion archive signature was removed before it was changed. The producer must re-sign the archive.
+                """);
+        }
+        finally
+        {
+            File.Delete(archiveFile);
+        }
+    }
+
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]

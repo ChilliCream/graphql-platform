@@ -15,6 +15,7 @@ public enum FusionActivityScopes
     PlanOperation = 256,
     ExecuteOperation = 512,
     ExecutePlanNodes = 1024,
+    EvaluateRequestPolicies = 2048,
     Default =
         ExecuteHttpRequest
         | ParseHttpRequest
@@ -34,4 +35,5 @@ public enum FusionActivityScopes
         | PlanOperation
         | ExecuteOperation
         | ExecutePlanNodes
+        | EvaluateRequestPolicies
 }

@@ -1052,6 +1052,33 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; in schema &apos;{2}&apos; is annotated with the @{1} directive. Fusion&apos;s @policy directive supports only the OBJECT and FIELD_DEFINITION locations..
+        /// </summary>
+        internal static string LogEntryHelper_FederationAuthDirectiveLocationNotSupported {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FederationAuthDirectiveLocationNotSupported", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{2}&apos; is annotated with the @{1} directive, but it is declared on an interface type. Fusion&apos;s @policy directive does not support interface types or their fields..
+        /// </summary>
+        internal static string LogEntryHelper_FederationAuthDirectiveLocationNotSupportedOnField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FederationAuthDirectiveLocationNotSupportedOnField", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; in schema &apos;{1}&apos; is annotated with the @policy directive. Fusion&apos;s @policy directive supports only the OBJECT and FIELD_DEFINITION locations..
+        /// </summary>
+        internal static string LogEntryHelper_FederationPolicyLocationNotSupported {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_FederationPolicyLocationNotSupported", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; has a different type shape in schema &apos;{1}&apos; than it does in schema &apos;{2}&apos;..
         /// </summary>
         internal static string LogEntryHelper_FieldArgumentTypesNotMergeable {
@@ -1426,6 +1453,33 @@ namespace HotChocolate.Fusion.Properties {
         internal static string LogEntryHelper_OverrideOnInterface {
             get {
                 return ResourceManager.GetString("LogEntryHelper_OverrideOnInterface", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The @policy directive definition declared in schema &apos;{0}&apos; is incompatible with the canonical definition. Expected: {1}.
+        /// </summary>
+        internal static string LogEntryHelper_PolicyDefinitionInvalid {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_PolicyDefinitionInvalid", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The interface field &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @policy directive..
+        /// </summary>
+        internal static string LogEntryHelper_PolicyOnInterfaceField {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_PolicyOnInterfaceField", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The interface type &apos;{0}&apos; in schema &apos;{1}&apos; must not be annotated with the @policy directive..
+        /// </summary>
+        internal static string LogEntryHelper_PolicyOnInterfaceType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_PolicyOnInterfaceType", resourceCulture);
             }
         }
 

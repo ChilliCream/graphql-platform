@@ -7,4 +7,5 @@ internal record SelectionSetPartitionerResult(
     SelectionSetNode? Resolvable,
     ImmutableStack<ConditionedSelectionSet> Unresolvable,
     ImmutableStack<ConditionedFieldSelection> FieldsWithRequirements,
+    ImmutableStack<ConditionalPolicyExecutionTarget> PolicyTargets,
     ISelectionSetIndex SelectionSetIndex);

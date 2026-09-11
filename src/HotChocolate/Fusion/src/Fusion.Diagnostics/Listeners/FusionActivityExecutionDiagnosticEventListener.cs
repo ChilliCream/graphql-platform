@@ -4,9 +4,11 @@ using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
 using static HotChocolate.Fusion.Diagnostics.HotChocolateFusionActivitySource;
+using static HotChocolate.Diagnostics.SemanticConventions;
 
 namespace HotChocolate.Fusion.Diagnostics.Listeners;
 
@@ -146,6 +148,150 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         var span = PlanOperationSpan.Start(Source, context, enricher, operationPlanId);
 
         return span ?? EmptyScope;
+    }
+
+    public override IDisposable EvaluateRequestPolicies(RequestContext context)
+    {
+        if (options.SkipEvaluateRequestPolicies)
+        {
+            return EmptyScope;
+        }
+
+        var span = EvaluateRequestPoliciesSpan.Start(Source, context);
+
+        return span ?? EmptyScope;
+    }
+
+    public override void PolicyEvaluated(
+        RequestContext context,
+        string policyName,
+        PolicyEvaluationOutcome outcome,
+        TimeSpan duration)
+    {
+        if (Activity.Current is not { } activity)
+        {
+            return;
+        }
+
+        var tags = new ActivityTagsCollection
+        {
+            { GraphQL.Policy.Name, policyName },
+            { GraphQL.Policy.Outcome, outcome.ToString().ToLowerInvariant() },
+            { GraphQL.Policy.DurationMs, duration.TotalMilliseconds }
+        };
+        activity.AddEvent(new ActivityEvent("graphql.policy.evaluated", tags: tags));
+    }
+
+    public override void PolicyDenialApplied(
+        OperationPlanContext context,
+        PolicyExecutionNode node,
+        SelectionPath targetPath,
+        string typeName,
+        string? fieldName,
+        string policyExpression,
+        PolicyDenialBehavior behavior,
+        int deniedCount,
+        int totalCount,
+        string? reason,
+        Guid reasonId,
+        string? subjectId)
+    {
+        if (Activity.Current is not { } activity)
+        {
+            return;
+        }
+
+        var tags = new ActivityTagsCollection
+        {
+            { GraphQL.Policy.Expression, policyExpression },
+            { GraphQL.Policy.OnDenied, behavior.ToString().ToLowerInvariant() },
+            { GraphQL.Selection.Path, targetPath.ToString() },
+            { "graphql.type.name", typeName },
+            { GraphQL.Policy.DeniedCount, deniedCount },
+            { GraphQL.Policy.TotalCount, totalCount }
+        };
+
+        if (fieldName is not null)
+        {
+            tags.Add("graphql.field.name", fieldName);
+        }
+
+        activity.AddEvent(new ActivityEvent("graphql.policy.denial_applied", tags: tags));
+
+        if (behavior is PolicyDenialBehavior.Abort)
+        {
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.SetErrorType(FusionExecutionErrorCodes.UnauthorizedFieldOrType);
+        }
+    }
+
+    public override void PolicySlotDenied(
+        RequestContext context,
+        string slotVariableName,
+        string policyExpression,
+        string typeName,
+        string? fieldName,
+        PolicyDenialBehavior behavior,
+        string? reason,
+        Guid reasonId,
+        string? subjectId)
+    {
+        var activity = context.Features.TryGet<ExecuteRequestSpan>(out var requestSpan)
+            ? requestSpan.Activity
+            : Activity.Current;
+
+        if (activity is null)
+        {
+            return;
+        }
+
+        var tags = new ActivityTagsCollection
+        {
+            { GraphQL.Policy.SlotVariable, slotVariableName },
+            { GraphQL.Policy.Expression, policyExpression },
+            { "graphql.type.name", typeName },
+            { GraphQL.Policy.OnDenied, behavior.ToString().ToLowerInvariant() }
+        };
+
+        if (fieldName is not null)
+        {
+            tags.Add("graphql.field.name", fieldName);
+        }
+
+        activity.AddEvent(new ActivityEvent("graphql.policy.slot_denied", tags: tags));
+    }
+
+    public override IDisposable ExecutePolicyNode(
+        OperationPlanContext context,
+        PolicyExecutionNode node)
+        => ExecuteNode(context, node, null);
+
+    public override void PolicyCompilationError(string policyName, Exception error)
+    {
+        var parent = Activity.Current;
+
+        try
+        {
+            Activity.Current = null;
+            using var activity = Source.StartActivity(
+                "GraphQL Policy Compilation Error",
+                ActivityKind.Internal,
+                default(ActivityContext));
+
+            if (activity is null)
+            {
+                return;
+            }
+
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(error);
+            activity.SetErrorType(error);
+            activity.SetTag(GraphQL.Policy.Name, policyName);
+        }
+        finally
+        {
+            Activity.Current = parent;
+        }
     }
 
     public override IDisposable CoerceVariables(RequestContext context)

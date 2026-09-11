@@ -219,7 +219,7 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
         operationNode["batchingGroupId"] = 42;
 
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
         var parser = new JsonOperationPlanParser(new OperationCompiler(schema, pool));
         plan = parser.Parse(
             Encoding.UTF8.GetBytes(
@@ -278,7 +278,7 @@ public class OperationPlannerBatchingGroupIdTests : FusionTestBase
         bool enableRequestGrouping)
     {
         var pool = new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
-            new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>());
+            new FieldMapPooledObjectPolicy());
 
         var operationDoc = Utf8GraphQLParser.Parse(operationText);
 

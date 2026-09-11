@@ -67,12 +67,21 @@ internal sealed class OperationPlanMiddleware
             var operation = rewritten.GetOperation(context.Request.OperationName);
 
             // After optimizing the query structure we can begin the planning process.
+            var policySnapshot = context.GetPolicySnapshot();
+
+            if (policySnapshot.IsDefault)
+            {
+                policySnapshot = ((FusionSchemaDefinition)context.Schema).Policies.GetSnapshot();
+                context.SetPolicySnapshot(policySnapshot);
+            }
+
             var operationPlan =
                 _planner.CreatePlan(
                     operationId,
                     operationHash,
                     operationShortHash,
                     operation,
+                    policySnapshot,
                     context.RequestAborted);
             OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
             context.SetOperationPlan(operationPlan);

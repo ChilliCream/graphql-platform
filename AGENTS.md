@@ -31,6 +31,14 @@ Each area has its own solution file, so you can build or test a subset directly:
 dotnet test src/HotChocolate/Fusion
 ```
 
+## Architecture Boundaries
+
+- `HotChocolate.Types.Abstractions` is the frozen type-system contract. Never add types
+  to it. Extending it is rare and requires explicit maintainer approval.
+- Core (HotChocolate) and Fusion are closed systems that share only the type system.
+  When both need the same concept, duplicate it per system in the namespace that owns
+  the feature. The duplication is intentional design, not an accident to clean up.
+
 ## Code Quality
 
 ### C# / .NET
@@ -70,6 +78,7 @@ dotnet test src/HotChocolate/Fusion
 - Avoid `Assert.DoesNotContain` as it is a weak assertion that easily goes out of date, it only proves something is absent without verifying what *is* present. Prefer `Assert.Equal` to check the entire string value, or `Assert.Collection` to verify the complete contents of a collection.
 - Snapshot tests: update from `__mismatch__/` directory, understand ordering issues before updating.
 - Filter tests during iteration, never run the full suite unnecessarily.
+- Test projects run on xunit v3 / Microsoft.Testing.Platform: the classic `--filter` option is NOT supported. Filter with `dotnet test <project> -- --filter-method "*Name*"` (or `--filter-class`). Do not pass `--nologo`, it breaks the runner.
 - Use real databases in integration tests, not mocks (unless explicitly instructed otherwise).
 
 ## Performance

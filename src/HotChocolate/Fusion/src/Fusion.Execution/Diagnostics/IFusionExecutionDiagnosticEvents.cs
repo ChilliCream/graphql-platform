@@ -2,8 +2,21 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.Types;
 
 namespace HotChocolate.Fusion.Diagnostics;
+
+/// <summary>
+/// Describes the terminal outcome of a policy evaluation.
+/// </summary>
+public enum PolicyEvaluationOutcome
+{
+    Allowed,
+    Denied,
+    Error,
+    Cancelled
+}
 
 /// <summary>
 /// Provides diagnostic events specific to GraphQL Fusion execution.
@@ -76,6 +89,58 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         RequestContext context,
         string operationId,
         Exception error);
+
+    /// <summary>
+    /// Creates a scope for evaluating request-constant authorization policies.
+    /// </summary>
+    IDisposable EvaluateRequestPolicies(RequestContext context);
+
+    /// <summary>
+    /// Creates a scope for executing a policy plan node.
+    /// </summary>
+    IDisposable ExecutePolicyNode(
+        OperationPlanContext context,
+        PolicyExecutionNode node);
+
+    /// <summary>
+    /// Reports one policy-engine evaluation and its terminal outcome.
+    /// </summary>
+    void PolicyEvaluated(
+        RequestContext context,
+        string policyName,
+        PolicyEvaluationOutcome outcome,
+        TimeSpan duration);
+
+    /// <summary>
+    /// Reports the denial applied by a policy execution node.
+    /// </summary>
+    void PolicyDenialApplied(
+        OperationPlanContext context,
+        PolicyExecutionNode node,
+        SelectionPath targetPath,
+        string typeName,
+        string? fieldName,
+        string policyExpression,
+        PolicyDenialBehavior behavior,
+        int deniedCount,
+        int totalCount,
+        string? reason,
+        Guid reasonId,
+        string? subjectId);
+
+    /// <summary>
+    /// Reports a denied policy condition at one live operation coordinate.
+    /// </summary>
+    void PolicySlotDenied(
+        RequestContext context,
+        string slotVariableName,
+        string policyExpression,
+        string typeName,
+        string? fieldName,
+        PolicyDenialBehavior behavior,
+        string? reason,
+        Guid reasonId,
+        string? subjectId);
 
     /// <summary>
     /// Called when executing an operation plan node that handles Relay-style query nodes.
@@ -388,6 +453,49 @@ public interface IFusionExecutionDiagnosticEvents : ICoreExecutionDiagnosticEven
         ExecutionNode node,
         string schemaName,
         ulong subscriptionId);
+
+    /// <summary>
+    /// Called when an authorization policy fails to compile.
+    /// </summary>
+    /// <param name="policyName">
+    /// The name of the policy that failed to compile.
+    /// </param>
+    /// <param name="error">
+    /// The exception that occurred during compilation.
+    /// </param>
+    void PolicyCompilationError(
+        string policyName,
+        Exception error);
+
+    /// <summary>
+    /// Called when an authorization policy update fails to apply.
+    /// </summary>
+    /// <param name="error">
+    /// The exception that occurred while the update was applied.
+    /// </param>
+    void PolicyUpdateError(
+        Exception error);
+
+    /// <summary>
+    /// Called when a fusion configuration could not be read from its source,
+    /// for example because a package archive is malformed or a schema document failed to parse.
+    /// </summary>
+    /// <param name="error">
+    /// The exception that occurred while reading the configuration.
+    /// </param>
+    void ConfigurationReadError(
+        Exception error);
+
+    /// <summary>
+    /// Called when a fusion configuration package archive fails verification and is rejected.
+    /// The previously served configuration continues to be used until a package that passes
+    /// verification is observed.
+    /// </summary>
+    /// <param name="result">
+    /// The verification result describing why the archive was rejected.
+    /// </param>
+    void ConfigurationVerificationFailed(
+        SignatureVerificationResult result);
 
     /// <summary>
     /// Called when a subscription event result has been fully written to the client.
