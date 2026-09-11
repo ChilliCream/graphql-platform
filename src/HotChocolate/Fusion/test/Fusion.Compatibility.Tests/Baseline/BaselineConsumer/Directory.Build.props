@@ -1,0 +1,18 @@
+<Project>
+
+  <!--
+    This file intentionally does not import the repository's root Directory.Build.props.
+    The baseline consumer must build in total isolation from the local product source and
+    its analyzer/warning configuration so that it only ever resolves the pinned 16.6 NuGet
+    packages declared in its own Directory.Packages.props, never the local project output.
+  -->
+
+  <PropertyGroup>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

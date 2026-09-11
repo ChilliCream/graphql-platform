@@ -29,6 +29,7 @@
   <Folder Name="/test/">
     <Project Path="test/Fusion.Aspire.Tests/HotChocolate.Fusion.Aspire.Tests.csproj" />
     <Project Path="test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
+    <Project Path="test/Fusion.Compatibility.Tests/HotChocolate.Fusion.Compatibility.Tests.csproj" />
     <Project Path="test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
     <Project Path="test/Fusion.Composition.ApolloFederation.Tests/HotChocolate.Fusion.Composition.ApolloFederation.Tests.csproj" />
     <Project Path="test/Fusion.Connectors.ApolloFederation.Compliance.Tests/HotChocolate.Fusion.Connectors.ApolloFederation.Compliance.Tests.csproj" />
