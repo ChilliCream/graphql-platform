@@ -45,22 +45,17 @@ public static class McpEndpointRouteBuilderExtensions
                     contentTypes: ["text/event-stream"]))
             .WithMetadata(new ProducesResponseTypeMetadata(StatusCodes.Status202Accepted));
 
-        if (!streamableHttpHandler.HttpServerTransportOptions.Stateless)
-        {
-            // The GET endpoint is not mapped in Stateless mode since there's no way to send
-            // unsolicited messages. Resuming streams via GET is currently not supported in
-            // Stateless mode.
-            streamableHttpGroup
-                .MapGet("", streamableHttpHandler.HandleGetRequestAsync)
-                .WithMetadata(
-                    new ProducesResponseTypeMetadata(
-                        StatusCodes.Status200OK,
-                        contentTypes: ["text/event-stream"]));
+        streamableHttpGroup
+            .MapGet("", streamableHttpHandler.HandleGetRequestAsync)
+            .WithMetadata(
+                new ProducesResponseTypeMetadata(
+                    StatusCodes.Status200OK,
+                    contentTypes: ["text/event-stream"]))
+            .WithMetadata(new ProducesResponseTypeMetadata(StatusCodes.Status405MethodNotAllowed));
 
-            // The DELETE endpoint is not mapped in Stateless mode since there is no server-side
-            // state for the DELETE to clean up.
-            streamableHttpGroup.MapDelete("", streamableHttpHandler.HandleDeleteRequestAsync);
-        }
+        streamableHttpGroup
+            .MapDelete("", streamableHttpHandler.HandleDeleteRequestAsync)
+            .WithMetadata(new ProducesResponseTypeMetadata(StatusCodes.Status405MethodNotAllowed));
 
         return mcpGroup;
     }
