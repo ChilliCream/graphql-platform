@@ -52,10 +52,10 @@
   </PropertyGroup>
 
   <!--
-    Local dev only builds the single target framework that local runs and tests use.
+    Single-target local dev only builds the target framework that local runs and tests use.
     Analyzers and source generators keep netstandard2.0 so they still load into Roslyn.
   -->
-  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV)' == '1'">
+  <PropertyGroup Condition="'$(DOTNET_LOCAL_DEV_SINGLE_TARGET_FRAMEWORK)' == '1'">
     <LocalDevTargetFramework>net10.0</LocalDevTargetFramework>
     <TargetFrameworks>$(LocalDevTargetFramework)</TargetFrameworks>
     <ExtendedTargetFrameworks>$(LocalDevTargetFramework);$(AnalyzerTargetFramework)</ExtendedTargetFrameworks>

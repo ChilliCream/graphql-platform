@@ -93,12 +93,6 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points the global memory store at a fixed directory instead of the
-    /// real machine's application data directory, so tests that exercise
-    /// <c>--scope global</c> stay isolated to their own temp directory.
-    /// </summary>
-
-    /// <summary>
     /// Points the Nitro instance id resolution at a fixed value instead of
     /// hashing the real machine's id, so tests that seed rows by host stay
     /// isolated from the machine running them.

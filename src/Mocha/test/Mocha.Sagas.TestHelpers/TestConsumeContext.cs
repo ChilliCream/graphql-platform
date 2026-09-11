@@ -43,4 +43,33 @@ public sealed class TestConsumeContext : IConsumeContext
     /// Provides mutable access to headers for test setup.
     /// </summary>
     public Headers MutableHeaders => _headers;
+
+    public IConsumeContext Clone(IServiceProvider services)
+    {
+        var clone = new TestConsumeContext
+        {
+            Runtime = Runtime,
+            CancellationToken = CancellationToken,
+            Services = services,
+            Transport = Transport,
+            Endpoint = Endpoint,
+            MessageId = MessageId,
+            CorrelationId = CorrelationId,
+            ConversationId = ConversationId,
+            CausationId = CausationId,
+            SourceAddress = SourceAddress,
+            DestinationAddress = DestinationAddress,
+            ResponseAddress = ResponseAddress,
+            FaultAddress = FaultAddress,
+            ContentType = ContentType,
+            MessageType = MessageType,
+            SentAt = SentAt,
+            DeliverBy = DeliverBy,
+            DeliveryCount = DeliveryCount,
+            Envelope = Envelope is { } envelope ? new MessageEnvelope(envelope) : null,
+            Host = Host
+        };
+        clone.MutableHeaders.AddRange(Headers);
+        return clone;
+    }
 }

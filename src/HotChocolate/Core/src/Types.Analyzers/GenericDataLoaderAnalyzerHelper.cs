@@ -234,10 +234,12 @@ internal static class GenericDataLoaderAnalyzerHelper
         var readOnlyDictionary = compilation.GetTypeByMetadataName(
             "System.Collections.Generic.IReadOnlyDictionary`2");
         var dictionary = compilation.GetTypeByMetadataName("System.Collections.Generic.IDictionary`2");
+        var concreteDictionary = compilation.GetTypeByMetadataName("System.Collections.Generic.Dictionary`2");
 
         return resultType is INamedTypeSymbol { TypeArguments.Length: 2 } namedType
             && (SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, readOnlyDictionary)
-                || SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, dictionary))
+                || SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, dictionary)
+                || SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, concreteDictionary))
             && SymbolEqualityComparer.Default.Equals(namedType.TypeArguments[0], contract.KeyType)
             && SymbolEqualityComparer.Default.Equals(namedType.TypeArguments[1], contract.ValueType);
     }

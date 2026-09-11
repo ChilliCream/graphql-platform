@@ -7,6 +7,7 @@ using HotChocolate.AspNetCore.ParameterExpressionBuilders;
 using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.AspNetCore.Warmup;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -164,6 +165,10 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             ServiceDescriptor.Singleton<
                 IPostConfigureOptions<GraphQLServerOptions>,
                 SourceSchemaServerOptionsPostConfigure>());
+
+        builder.Services.TryAddSingleton<
+            ITransportCapabilitiesProvider,
+            TransportCapabilitiesProvider>();
 
         if (!builder.Services.IsImplementationTypeRegistered<HttpContextParameterExpressionBuilder>())
         {

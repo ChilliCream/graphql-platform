@@ -284,5 +284,17 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ErrorHelper_BatchSizeExceeded", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_VariableBatchingDisabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_VariableBatchingDisabled", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequestBatchingDisabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestBatchingDisabled", resourceCulture);
+            }
+        }
     }
 }

@@ -7,7 +7,8 @@ namespace HotChocolate.Fusion.Suites.ParentEntityCallComplex.B;
 /// Root <c>Query</c> placeholder for the <c>b</c> subgraph. The subgraph
 /// exposes no user-facing root fields; HotChocolate requires a <c>Query</c>
 /// type so the Apollo Federation interceptor can attach <c>_service</c> and
-/// <c>_entities</c>. <see cref="ApolloFederationObjectTypeDescriptorExtensions.ExtendServiceType"/>
+/// <c>_entities</c>.
+/// <see cref="ExtendServiceTypeDescriptorExtensions.ExtendServiceType(IObjectTypeDescriptor)"/>
 /// marks this type as extending the federated <c>Query</c>.
 /// </summary>
 public sealed class QueryType : ObjectType

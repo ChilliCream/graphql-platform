@@ -42,7 +42,12 @@ builder.Services
             .MaxPrefetch(50)
             // MaxConcurrency controls how many messages are processed in parallel.
             .MaxConcurrency(10)
-            .Handler<OrderPlacedHandler>();
+            .Handler<OrderPlacedHandler>()
+            // BindFrom declares the exchange-to-queue binding from the queue that owns it.
+            // Provisioning of the binding follows the queue's AutoProvision setting, falling
+            // back to the transport default; pass BindFrom(source, routingKey, autoProvision)
+            // to override it for a single binding.
+            .BindFrom(new Uri("exchange:order-events"));
 
         // Declare a quorum queue explicitly with durable flag.
         // Quorum queues require durable=true - non-durable quorum queues are not supported.
@@ -73,12 +78,10 @@ builder.Services
             .AutoProvision()
             .QueueType("quorum");
 
-        // Bind the dead-letter exchange to the dead-letter queue.
+        // Bind the dead-letter exchange to the dead-letter queue. DeclareBinding is the
+        // standalone form for topology without a local consumer, such as this dead-letter
+        // queue; the consumer's own binding is declared with BindFrom on its queue above.
         transport.DeclareBinding("order-events.dlx", "orders.processing.dlq")
-            .AutoProvision();
-
-        // Bind the order-events exchange to the order-processing queue.
-        transport.DeclareBinding("order-events", "orders.processing")
             .AutoProvision();
     });
 
