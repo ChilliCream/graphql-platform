@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
 import { DESKS, ENGRAVE, GUESTS, STAGE, notation } from "./palette";
 
@@ -107,7 +108,7 @@ export function ScoreStrip() {
               x={20}
               y={y - 2}
               fill={STAGE.heading}
-              fontSize={13}
+              fontSize={TYPE.body}
               fontFamily={ENGRAVE}
             >
               {row.label}
@@ -116,7 +117,7 @@ export function ScoreStrip() {
               x={20}
               y={y + 12}
               fill={STAGE.ink}
-              fontSize={9}
+              fontSize={TYPE.label}
               letterSpacing={1.4}
               fontFamily={ENGRAVE}
             >
@@ -203,7 +204,7 @@ export function ScoreStrip() {
         y={H - 46}
         textAnchor="end"
         fill={STAGE.heading}
-        fontSize={10}
+        fontSize={TYPE.label}
         letterSpacing={1.6}
         fontFamily={ENGRAVE}
       >
@@ -225,7 +226,7 @@ export function ScoreStrip() {
         x={20}
         y={H - 18}
         fill={STAGE.heading}
-        fontSize={11}
+        fontSize={TYPE.caption}
         letterSpacing={1.4}
         fontFamily={ENGRAVE}
       >

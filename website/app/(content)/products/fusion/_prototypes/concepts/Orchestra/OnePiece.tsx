@@ -1,5 +1,6 @@
 "use client";
 
+import { TYPE } from "../../brand";
 import { useReducedMotionPreference, useSceneActive } from "../../Primitives";
 import { DESKS, ENGRAVE, LISTENERS, STAGE } from "./palette";
 
@@ -72,7 +73,7 @@ export function OnePiece() {
         x={24}
         y={30}
         fill={STAGE.ink}
-        fontSize={10}
+        fontSize={TYPE.label}
         letterSpacing={1.6}
         fontFamily={ENGRAVE}
       >
@@ -94,7 +95,7 @@ export function OnePiece() {
             y={DESK_TOP + i * DESK_H + 30}
             textAnchor="middle"
             fill={STAGE.heading}
-            fontSize={12}
+            fontSize={TYPE.caption}
             fontFamily={ENGRAVE}
           >
             {listener}
@@ -126,7 +127,7 @@ export function OnePiece() {
           y={H / 2 - 4}
           textAnchor="middle"
           fill={STAGE.heading}
-          fontSize={12}
+          fontSize={TYPE.caption}
           fontFamily={ENGRAVE}
         >
           Fusion
@@ -136,7 +137,7 @@ export function OnePiece() {
           y={H / 2 + 12}
           textAnchor="middle"
           fill={STAGE.ink}
-          fontSize={9}
+          fontSize={TYPE.label}
           letterSpacing={1.2}
           fontFamily={ENGRAVE}
         >
@@ -147,7 +148,7 @@ export function OnePiece() {
           y={H / 2 + 84}
           textAnchor="middle"
           fill={STAGE.ink}
-          fontSize={9}
+          fontSize={TYPE.label}
           letterSpacing={1.2}
           fontFamily={ENGRAVE}
         >
@@ -205,7 +206,7 @@ export function OnePiece() {
                 x={DESK_X + 16}
                 y={y + 20}
                 fill={STAGE.heading}
-                fontSize={12}
+                fontSize={TYPE.caption}
                 fontFamily={ENGRAVE}
               >
                 {desk.name}
@@ -214,8 +215,8 @@ export function OnePiece() {
                 x={DESK_X + 16}
                 y={y + 34}
                 fill={STAGE.ink}
-                fontSize={9}
-                letterSpacing={1.2}
+                fontSize={TYPE.label}
+                letterSpacing={0.8}
                 fontFamily={ENGRAVE}
               >
                 {`${desk.section.toUpperCase()} · ${desk.language} · SUBGRAPH`}
@@ -240,7 +241,7 @@ export function OnePiece() {
           y={H / 2 - 19}
           textAnchor="middle"
           fill={STAGE.hall}
-          fontSize={10}
+          fontSize={TYPE.label}
           letterSpacing={1}
           fontFamily={ENGRAVE}
         >
@@ -263,7 +264,7 @@ export function OnePiece() {
           y={H / 2 + 29}
           textAnchor="middle"
           fill={STAGE.hall}
-          fontSize={10}
+          fontSize={TYPE.label}
           letterSpacing={1}
           fontFamily={ENGRAVE}
         >
