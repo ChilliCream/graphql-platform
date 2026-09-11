@@ -4,6 +4,7 @@ import type { ReactElement, ReactNode } from "react";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { PageSection } from "@/src/components/PageSection";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
+import { Eyebrow } from "@/src/design-system/Eyebrow";
 import { Link } from "@/src/design-system/Link";
 
 import { HERO, NITRO_BAND, SECTIONS } from "../../copy";
@@ -14,7 +15,7 @@ import { LineCards } from "./LineCards";
 import { PatchThrough } from "./PatchThrough";
 import { PlugStandards } from "./PlugStandards";
 import { WiringCheck } from "./WiringCheck";
-import { BRASS, BRASS_FAINT, EDGE_SOFT, MONO } from "./palette";
+import { BAND_WASH, EDGE_SOFT } from "./palette";
 
 /**
  * Concept v3 "Switchboard": the Fusion page as an operator's telephone
@@ -57,7 +58,7 @@ interface ProseProps {
 }
 
 function Prose({ children }: ProseProps) {
-  return <div className="text-cc-ink-dim space-y-4 text-base">{children}</div>;
+  return <div className="text-cc-ink-dim text-body space-y-4">{children}</div>;
 }
 
 interface InPracticeProps {
@@ -66,7 +67,7 @@ interface InPracticeProps {
 
 function InPractice({ links }: InPracticeProps) {
   return (
-    <p className="text-cc-ink-dim text-sm">
+    <p className="text-cc-ink-dim text-caption">
       In practice:{" "}
       {links.map((link, i) => (
         <Fragment key={link.href}>
@@ -113,21 +114,18 @@ interface PositionProps {
 function Position({ id, position, title, children }: PositionProps) {
   return (
     <section id={id} className="border-cc-card-border border-t">
-      <PageSection maxWidth="7xl" className="py-20 sm:py-24">
+      <PageSection maxWidth="6xl" className="py-20 sm:py-28">
         <div className="flex items-center gap-4">
-          <span
-            className="text-[10px] tracking-[0.3em] uppercase"
-            style={{ color: BRASS_FAINT, fontFamily: MONO }}
-          >
+          <Eyebrow as="span" size="2xs">
             {`POSITION ${position}`}
-          </span>
+          </Eyebrow>
           <span
             aria-hidden="true"
             className="h-px flex-1"
             style={{ background: EDGE_SOFT }}
           />
         </div>
-        <h2 className="font-heading text-cc-heading text-h3 mt-5 max-w-3xl text-balance">
+        <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 mt-5 max-w-3xl text-balance">
           {title}
         </h2>
         <div className="mt-12">{children}</div>
@@ -142,20 +140,15 @@ export function Switchboard() {
       <section className="relative overflow-hidden">
         <PageSection
           maxWidth="7xl"
-          className="flex min-h-[88svh] items-center py-16 sm:py-20"
+          className="flex min-h-[88svh] items-center py-20 sm:py-28"
         >
           <div className="grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
             <div>
-              <p
-                className="text-[10px] tracking-[0.3em] uppercase"
-                style={{ color: BRASS, fontFamily: MONO }}
-              >
-                {HERO.eyebrow}
-              </p>
-              <h1 className="font-heading text-cc-heading text-h1 sm:text-hero mt-6 text-balance">
+              <Eyebrow size="2xs">{HERO.eyebrow}</Eyebrow>
+              <h1 className="font-heading text-cc-heading text-h2 sm:text-h1 mt-6 text-balance">
                 {HERO.title}
               </h1>
-              <p className="text-cc-ink mt-6 max-w-xl text-base sm:text-lg">
+              <p className="text-cc-ink text-body sm:text-lead mt-6 max-w-xl">
                 {HERO.teaser}
               </p>
               <ButtonRow align="start" className="mt-9">
@@ -238,25 +231,19 @@ export function Switchboard() {
       </Position>
 
       <section id={NITRO_BAND.id} className="border-cc-card-border border-t">
-        <PageSection maxWidth="7xl" className="py-20 sm:py-24">
+        <PageSection maxWidth="6xl" className="py-20 sm:py-28">
           <div
             className="rounded-2xl px-6 py-12 sm:px-12"
             style={{
               border: `1px solid ${EDGE_SOFT}`,
-              background:
-                "linear-gradient(180deg, rgba(226,200,148,0.05), transparent)",
+              background: BAND_WASH,
             }}
           >
-            <p
-              className="text-[10px] tracking-[0.3em] uppercase"
-              style={{ color: BRASS_FAINT, fontFamily: MONO }}
-            >
-              THE CALL LOG
-            </p>
+            <Eyebrow size="2xs">THE CALL LOG</Eyebrow>
             <h2 className="font-heading text-cc-heading text-h4 sm:text-h3 mt-5 max-w-3xl text-balance">
               {NITRO_BAND.title}
             </h2>
-            <p className="text-cc-ink-dim mt-5 max-w-2xl text-base">
+            <p className="text-cc-ink-dim text-body mt-5 max-w-2xl">
               {NITRO_BAND.description}
             </p>
             <ButtonRow align="start" className="mt-8">

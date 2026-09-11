@@ -1,41 +1,62 @@
+import { BRAND, CC, FONTS } from "../../brand";
+
 /**
  * Concept v3 "Switchboard": the shared look and vocabulary of the operator
- * board. A telephone exchange cabinet - walnut panel, brass jack field, cloth
+ * board. A telephone exchange cabinet - dark panel, warm jack field, cloth
  * patch cords, indicator lamps - so the concept reads as one machine across
  * the hero and the five section visuals.
+ *
+ * Every role below maps to a site token (`CC.*`) or a brand accent
+ * (`BRAND.*`) from `../../brand`, varied only with `color-mix`; the file is a
+ * role -> token mapping, never a source of colour. The cabinet sits on the
+ * site's own surfaces (`CC.surface` panel, `CC.bg` recess), the brass
+ * engraving is the brand amber at decreasing strengths, and the lamps keep
+ * semantic tokens (`CC.success` live, `CC.danger` fault).
+ *
+ * SVG text: use `FONTS.mono` (`MONO`) and the `TYPE` px scale, floored at
+ * `TYPE.label`. Each scene draws in a 560-unit-wide `viewBox`, so a label is
+ * rendered at roughly 0.6x on a 375px viewport; `TYPE.labelTight` is the
+ * fallback for the two dense labels that cannot hold `TYPE.label` inside
+ * their box.
  *
  * Only this concept imports from here.
  */
 
-export const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
+export const MONO = FONTS.mono;
 
 /** Cabinet and jack field. */
-export const PANEL = "#151119";
-export const PANEL_TOP = "#1d1822";
-export const FIELD = "#0d0b12";
-export const EDGE = "rgba(226, 200, 148, 0.22)";
-export const EDGE_SOFT = "rgba(226, 200, 148, 0.1)";
+export const PANEL = CC.surface;
+export const PANEL_TOP = `color-mix(in srgb, ${CC.surface} 88%, ${BRAND.slate})`;
+export const FIELD = CC.bg;
+export const EDGE = `color-mix(in srgb, ${BRAND.amber} 24%, transparent)`;
+export const EDGE_SOFT = `color-mix(in srgb, ${BRAND.amber} 11%, transparent)`;
 
 /** Engraved brass lettering. */
-export const BRASS = "#e2c894";
-export const BRASS_DIM = "rgba(226, 200, 148, 0.55)";
-export const BRASS_FAINT = "rgba(226, 200, 148, 0.3)";
+export const BRASS = BRAND.amber;
+export const BRASS_DIM = `color-mix(in srgb, ${BRAND.amber} 66%, transparent)`;
+export const BRASS_FAINT = `color-mix(in srgb, ${BRAND.amber} 38%, transparent)`;
+
+/** The brass wash a scanner leaves on the row it is reading. */
+export const BRASS_WASH = `color-mix(in srgb, ${BRAND.amber} 8%, transparent)`;
+
+/** The wash behind the closing band's card. */
+export const BAND_WASH = `linear-gradient(180deg, ${BRASS_WASH}, transparent)`;
 
 /** Lamps. */
-export const LAMP_ON = "#ffd27d";
-export const LAMP_OFF = "rgba(255, 210, 125, 0.14)";
-export const LAMP_FAULT = "#f0786a";
-export const LAMP_LIVE = "#5eead4";
+export const LAMP_ON = BRAND.amber;
+export const LAMP_OFF = `color-mix(in srgb, ${BRAND.amber} 14%, transparent)`;
+export const LAMP_FAULT = CC.danger;
+export const LAMP_LIVE = CC.success;
 
 /** Cloth cord colours, one per line on the board. */
 export const CORD = [
-  "#16b9e4",
-  "#5eead4",
-  "#c9a227",
-  "#f0786a",
-  "#a78bfa",
-  "#7c92c6",
-  "#34d399",
+  BRAND.cyan,
+  BRAND.teal,
+  BRAND.amber,
+  BRAND.coral,
+  BRAND.violet,
+  BRAND.slate,
+  BRAND.green,
 ] as const;
 
 export type Spec = "GraphQL Federation" | "Apollo Federation";
