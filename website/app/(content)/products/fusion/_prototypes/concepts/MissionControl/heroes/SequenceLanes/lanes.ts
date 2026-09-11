@@ -164,7 +164,7 @@ export const wash = (color: string, percent: number) =>
   `color-mix(in srgb, ${color} ${percent}%, transparent)`;
 
 export const KEYFRAMES = `
-@keyframes mc-seq-scroll { to { transform: translateX(-25%); } }
+@keyframes mc-seq-scroll { to { transform: translateX(-50%); } }
 @keyframes mc-seq-draw {
   0% { transform: scaleY(0); opacity: 0; }
   2% { opacity: 1; }

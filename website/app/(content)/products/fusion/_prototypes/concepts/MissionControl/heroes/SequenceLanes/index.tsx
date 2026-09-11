@@ -30,10 +30,11 @@ import { LanePlate, SequenceBlock } from "./parts";
  * client lane to the gateway, the gateway fans arrows out to the source
  * schemas it needs - all starting at the same x, so the fan-out reads as
  * parallel - the dashed returns come back to the gateway lane one after
- * another, and one merged response arrow goes back up to the client. Four
- * such columns scroll slowly leftwards, each a quarter of a sequence behind
- * the one before it, the way a trace viewer does; the column width is one
- * scroll step, so the loop is seamless.
+ * another, and one merged response arrow goes back up to the client. The
+ * strip carries the four columns twice and scrolls one full set leftwards per
+ * sequence, the way a trace viewer does, so every column crosses the visible
+ * box in turn and the wrap lands on its identical twin at the identical
+ * phase - the loop is seamless.
  *
  * Sizing: the diagram is DOM text on a fixed lane pitch, not a scaled SVG, so
  * every label renders at its own px size (11px floor) at any viewport width;
@@ -43,7 +44,9 @@ import { LanePlate, SequenceBlock } from "./parts";
  *
  * Rest frame: with motion off the scroll parks on the first column and every
  * arrow and activation bar sits at its finished state, so the still picture
- * is four completed sequences - request, fan-out, returns, merged response.
+ * is the web app's one completed sequence - request, fan-out, returns, merged
+ * response - filling the box, with the leading edge of the next one beside it
+ * from `sm` up.
  */
 
 export default function SequenceLanes() {
@@ -94,19 +97,19 @@ export default function SequenceLanes() {
             ))}
 
             <div
-              className="absolute top-0 bottom-0 left-0 flex w-[400%] sm:w-[300%] lg:w-[240%]"
+              className="absolute top-0 bottom-0 left-0 flex w-[800%] sm:w-[600%] lg:w-[480%]"
               style={{
                 animation: anim(
                   running,
-                  `mc-seq-scroll ${SCROLL_MS}ms linear infinite`,
+                  `mc-seq-scroll ${SEQ_MS}ms linear infinite`,
                 ),
               }}
             >
-              {SEQUENCES.map((sequence, i) => (
+              {[...SEQUENCES, ...SEQUENCES].map((sequence, i) => (
                 <SequenceBlock
-                  key={sequence.client}
+                  key={i}
                   sequence={sequence}
-                  delayMs={i * SCROLL_MS - SEQ_MS}
+                  delayMs={(i % SEQUENCES.length) * SCROLL_MS - SEQ_MS}
                   running={running}
                 />
               ))}

@@ -33,7 +33,7 @@ export function LanePlate({ lane, active }: LanePlateProps) {
 
   return (
     <div
-      className="flex shrink-0 flex-col justify-center gap-px overflow-hidden rounded-md border px-2 py-1 leading-tight transition-colors duration-300"
+      className="flex shrink-0 flex-col justify-center gap-px overflow-hidden rounded-md border px-2 py-0.5 leading-none transition-colors duration-300"
       style={{
         height: "calc(var(--mc-seq-lane) - 4px)",
         margin: "2px 0",
@@ -203,7 +203,7 @@ export function SequenceBlock({
   const at = (fraction: number) => delayMs + fraction * SEQ_MS;
 
   return (
-    <div className="relative h-full w-1/4 shrink-0">
+    <div className="relative h-full w-1/8 shrink-0">
       <ActivationBar
         lane={client}
         from={T.request}
