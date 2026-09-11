@@ -175,7 +175,7 @@ export function AsBuiltRecord() {
             textAnchor="middle"
             fontSize={FONT.label}
           >
-            COMPOSITION PASS
+            COMPOSITION OK
           </text>
         </g>
         <text
@@ -184,7 +184,7 @@ export function AsBuiltRecord() {
           y={278}
           fontSize={FONT.label}
         >
-          STILL COMPOSES
+          SCHEMAS COMPOSE
         </text>
         <text
           className="bp-a-note bp-t-dim"
