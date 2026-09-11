@@ -125,6 +125,7 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
         _operation = operationCompiler.Compile(
             OperationId,
             OperationId,
+            OperationId,
             operationDefinition);
 
         var productSelection = _operation.RootSelectionSet.Selections[0];

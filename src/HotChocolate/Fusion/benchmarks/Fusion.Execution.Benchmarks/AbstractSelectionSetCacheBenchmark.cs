@@ -119,7 +119,7 @@ public class AbstractSelectionSetCacheBenchmark
         var compiler = new OperationCompiler(
             schema,
             new NoOpObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>());
-        var operation = compiler.Compile(OperationId, OperationId, operationDefinition);
+        var operation = compiler.Compile(OperationId, OperationId, OperationId, operationDefinition);
 
         if (!operation.RootSelectionSet.TryGetSelection("searchContent", out var selection))
         {
