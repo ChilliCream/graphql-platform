@@ -309,9 +309,12 @@ internal sealed partial class SourceSchemaMerger
             && mergedSchema.Types.TryGetType<IScalarTypeDefinition>(TypeNames.ID, out var idType)
             && mergedSchema.QueryType is { } queryType)
         {
+            var nodeFieldIsInaccessible = false;
+
             if (queryType.Fields.TryGetField(FieldNames.Node, out var nodeField)
                 && IsGoiNodeField(nodeField, nodeType, idType))
             {
+                nodeFieldIsInaccessible = nodeField.HasFusionInaccessibleDirective();
                 queryType.Fields.Remove(nodeField);
             }
 
@@ -329,6 +332,12 @@ internal sealed partial class SourceSchemaMerger
                     new MutableInputFieldDefinition(ArgumentNames.Id, new NonNullType(idType)));
                 canonicalNodeField.Directives.Add(
                     new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionGatewayField]));
+
+                if (nodeFieldIsInaccessible)
+                {
+                    canonicalNodeField.Directives.Add(
+                        new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionInaccessible]));
+                }
 
                 queryType.Fields.Add(canonicalNodeField);
             }
