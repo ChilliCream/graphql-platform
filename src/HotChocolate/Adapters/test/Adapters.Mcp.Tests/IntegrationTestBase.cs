@@ -705,6 +705,7 @@ public abstract class IntegrationTestBase
 
         // assert
         Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal("POST", Assert.Single(response.Content.Headers.Allow));
     }
 
     [Fact]
@@ -724,6 +725,7 @@ public abstract class IntegrationTestBase
 
         // assert
         Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal("POST", Assert.Single(response.Content.Headers.Allow));
     }
 
     [Fact]

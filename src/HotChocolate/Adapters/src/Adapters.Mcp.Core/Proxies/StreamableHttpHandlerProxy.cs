@@ -24,7 +24,7 @@ internal sealed class StreamableHttpHandlerProxy
 
         if (IsStateless(session))
         {
-            context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
+            WriteMethodNotAllowed(context);
 
             return;
         }
@@ -38,7 +38,7 @@ internal sealed class StreamableHttpHandlerProxy
 
         if (IsStateless(session))
         {
-            context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
+            WriteMethodNotAllowed(context);
 
             return;
         }
@@ -48,4 +48,10 @@ internal sealed class StreamableHttpHandlerProxy
 
     private static bool IsStateless(McpExecutorSession session)
         => session.StreamableHttpHandler.HttpServerTransportOptions.Stateless;
+
+    private static void WriteMethodNotAllowed(HttpContext context)
+    {
+        context.Response.Headers.Allow = "POST";
+        context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
+    }
 }
