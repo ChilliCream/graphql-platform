@@ -4,6 +4,7 @@ import { useRef } from "react";
 
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
+import { TYPE } from "../../brand";
 import {
   BRASS,
   BRASS_DIM,
@@ -126,7 +127,7 @@ export function LineCards() {
           y="22"
           fill={BRASS_DIM}
           fontFamily={MONO}
-          fontSize="9"
+          fontSize={TYPE.label}
           letterSpacing="2"
         >
           LINE CARDS
@@ -136,7 +137,7 @@ export function LineCards() {
           y="22"
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="9"
+          fontSize={TYPE.label}
           letterSpacing="2"
           textAnchor="end"
         >
@@ -185,7 +186,7 @@ export function LineCards() {
                   y={ROW_Y[i] + 24}
                   fill={BRASS}
                   fontFamily={MONO}
-                  fontSize="11"
+                  fontSize={TYPE.label}
                   letterSpacing="1"
                 >
                   {line.name}
@@ -207,7 +208,7 @@ export function LineCards() {
                   y={ROW_Y[i] + 23}
                   fill={BRASS}
                   fontFamily={MONO}
-                  fontSize="9"
+                  fontSize={TYPE.label}
                   textAnchor="middle"
                 >
                   {langOf(i, 0, REST_T)}
@@ -227,7 +228,7 @@ export function LineCards() {
                   y={ROW_Y[i] + 23}
                   fill={BRASS_FAINT}
                   fontFamily={MONO}
-                  fontSize="8"
+                  fontSize={TYPE.label}
                   letterSpacing="1"
                   textAnchor="middle"
                 >

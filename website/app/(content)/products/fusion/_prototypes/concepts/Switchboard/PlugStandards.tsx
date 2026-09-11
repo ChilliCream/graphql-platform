@@ -4,6 +4,7 @@ import { useRef } from "react";
 
 import { useRafLoop } from "@/src/components/mocha/useRafLoop";
 
+import { TYPE } from "../../brand";
 import {
   BRASS,
   BRASS_DIM,
@@ -138,7 +139,7 @@ export function PlugStandards() {
           y="40"
           fill={BRASS_DIM}
           fontFamily={MONO}
-          fontSize="9"
+          fontSize={TYPE.label}
           letterSpacing="2"
         >
           ONE GATEWAY
@@ -148,7 +149,7 @@ export function PlugStandards() {
           y="40"
           fill={BRASS_FAINT}
           fontFamily={MONO}
-          fontSize="9"
+          fontSize={TYPE.label}
           letterSpacing="2"
           textAnchor="end"
         >
@@ -279,7 +280,7 @@ export function PlugStandards() {
               y={JACK_Y + 32}
               fill={BRASS}
               fontFamily={MONO}
-              fontSize="9.5"
+              fontSize={TYPE.label}
               letterSpacing="0.5"
               textAnchor="middle"
             >
@@ -293,7 +294,7 @@ export function PlugStandards() {
               y={JACK_Y + 44}
               fill={BRASS_FAINT}
               fontFamily={MONO}
-              fontSize="7.5"
+              fontSize={TYPE.label}
               textAnchor="middle"
             >
               {jack.tag}
