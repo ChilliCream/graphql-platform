@@ -253,7 +253,16 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     /// landing in one tick to compare mtime-equal, silently losing the second.
     /// For a file that is absent, shorter than the header, or not a SQLite
     /// database, <see cref="LastWriteTimeUtc"/> and <see cref="Length"/> are
-    /// compared instead.
+    /// compared instead, which carries that same limit rather than fixing it:
+    /// a same-length rewrite of a non-SQLite file landing within one coarse
+    /// timestamp tick compares equal on both mtime and length and is not
+    /// detectable. <see cref="DiffersFrom"/> ORs the change-counter
+    /// comparison with the mtime/length comparison instead of choosing
+    /// between them, so an equal change counter never suppresses a
+    /// difference mtime or length can still see, such as a whole-file
+    /// replacement (a restore from a backup, a copy over the file, a
+    /// truncation by an external tool) that happens to keep the prior
+    /// counter value.
     /// </summary>
     private readonly record struct MainFileState(
         bool HasChangeCounter,
@@ -264,9 +273,9 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
         public static readonly MainFileState Absent = new(false, 0, DateTime.MinValue, 0);
 
         public bool DiffersFrom(MainFileState other) =>
-            HasChangeCounter && other.HasChangeCounter
-                ? ChangeCounter != other.ChangeCounter
-                : LastWriteTimeUtc != other.LastWriteTimeUtc || Length != other.Length;
+            (HasChangeCounter && other.HasChangeCounter && ChangeCounter != other.ChangeCounter)
+                || LastWriteTimeUtc != other.LastWriteTimeUtc
+                || Length != other.Length;
     }
 
     /// <summary>

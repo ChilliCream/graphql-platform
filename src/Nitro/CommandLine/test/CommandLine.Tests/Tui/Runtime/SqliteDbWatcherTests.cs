@@ -133,13 +133,88 @@ public sealed class SqliteDbWatcherTests : IDisposable
         // synchronously at that point, since the window is otherwise too narrow
         // for a test to hit deterministically. No -wal growth is involved, and
         // s_neverFiringDebounce keeps the event-driven path from ever firing, so
-        // only the main-file reconciliation can produce the event.
+        // only the main-file reconciliation can produce the event. A real SQLite
+        // header (via CreateSqliteHeader) is used rather than two same-length
+        // non-SQLite payloads, so this exercises the supported change-counter
+        // path and does not depend on mtime granularity.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllBytes(databasePath, CreateSqliteHeader(changeCounter: 1));
+        var watcher = new SqliteDbWatcher(databasePath, s_neverFiringDebounce)
+        {
+            OnBaselineCaptured = () => File.WriteAllBytes(databasePath, CreateSqliteHeader(changeCounter: 2))
+        };
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        var received = await ReadOneAsync(channel.Reader, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.IsType<TuiEvent.DataChangedEvent>(received);
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_PublishDataChangedEvent_When_NonSqliteMainFileMtimeAdvances_BeforeEventsAreEnabled()
+    {
+        // arrange: a non-SQLite payload, so the watcher falls back to
+        // comparing mtime/length (see the MainFileState remarks). The write
+        // landing in the enable gap keeps the same length ("initial" and
+        // "changed" are both 7 bytes), so only mtime can distinguish them.
+        // The mtime is advanced explicitly with File.SetLastWriteTimeUtc
+        // rather than left to whatever the wall clock does between two
+        // rapid writes, so the fallback path stays covered without
+        // depending on file system timestamp granularity, which is exactly
+        // the ubuntu-latest risk this test must not reintroduce.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
+        var baselineWriteTimeUtc = File.GetLastWriteTimeUtc(databasePath);
         var watcher = new SqliteDbWatcher(databasePath, s_neverFiringDebounce)
         {
-            OnBaselineCaptured = () => File.WriteAllText(databasePath, "changed")
+            OnBaselineCaptured = () =>
+            {
+                File.WriteAllText(databasePath, "changed");
+                File.SetLastWriteTimeUtc(databasePath, baselineWriteTimeUtc + TimeSpan.FromSeconds(1));
+            }
+        };
+        var channel = Channel.CreateUnbounded<TuiEvent>();
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
+
+        // act
+        var runTask = watcher.RunAsync(channel.Writer, cts.Token);
+        var received = await ReadOneAsync(channel.Reader, testToken);
+        cts.Cancel();
+        await runTask;
+
+        // assert
+        Assert.IsType<TuiEvent.DataChangedEvent>(received);
+    }
+
+    [Fact]
+    public async Task RunAsync_Should_PublishDataChangedEvent_When_MainFileReplaced_WithSameChangeCounter_ButDifferentLength()
+    {
+        // arrange: a whole-file replacement (a restore from a backup, a copy
+        // over the file, a truncation by an external tool) that happens to
+        // carry the same SQLite file change counter as the file it replaced.
+        // The SqliteDbWatcher type-level remarks say the parent directory is
+        // watched precisely so a full file replacement is still caught, so
+        // MainFileState.DiffersFrom must not let an equal change counter
+        // suppress the length difference this replacement also carries.
+        var testToken = TestContext.Current.CancellationToken;
+        var databasePath = Path.Combine(_directory, "tasks.db");
+        File.WriteAllBytes(databasePath, CreateSqliteHeader(changeCounter: 5));
+        var watcher = new SqliteDbWatcher(databasePath, s_neverFiringDebounce)
+        {
+            OnBaselineCaptured = () =>
+            {
+                var replacement = new byte[150];
+                CreateSqliteHeader(changeCounter: 5).CopyTo(replacement, 0);
+                File.WriteAllBytes(databasePath, replacement);
+            }
         };
         var channel = Channel.CreateUnbounded<TuiEvent>();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
