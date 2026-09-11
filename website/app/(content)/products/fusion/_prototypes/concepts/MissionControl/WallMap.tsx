@@ -3,6 +3,9 @@
 import { useRef } from "react";
 import type { CSSProperties } from "react";
 
+import { Eyebrow } from "@/src/design-system/Eyebrow";
+
+import { TYPE } from "../../brand";
 import { anim, useCycle, useElementMotion } from "./hooks";
 import { CLIENTS, MC, SOURCES, STATIONS, specTag } from "./palette";
 
@@ -10,6 +13,12 @@ import { CLIENTS, MC, SOURCES, STATIONS, specTag } from "./palette";
  * Hero visual: the ops-room wall map. A radar sweep turns around the gateway
  * console while the station plates come online one after another and the
  * readout counts the subgraphs that have joined the composite schema.
+ *
+ * The map fills the hero with `slice` rather than shrinking to fit it: a
+ * 1200-unit map letterboxed into a 375px screen would render its lettering at
+ * about 4px, while filling the hero keeps the scale at or above 1x there, so
+ * the smallest label (`TYPE.caption`) stays above the 11px floor and the
+ * viewport simply shows less of the map.
  */
 
 const W = 1200;
@@ -54,7 +63,7 @@ export function WallMap() {
       <style>{KEYFRAMES}</style>
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio="xMidYMid slice"
         className="h-full w-full"
       >
         <defs>
@@ -168,7 +177,7 @@ export function WallMap() {
                 y={y - 2}
                 fill={MC.ink}
                 fontFamily={MC.mono}
-                fontSize="15"
+                fontSize={TYPE.body}
                 letterSpacing="0.08em"
               >
                 {station.name.toUpperCase()}
@@ -178,7 +187,7 @@ export function WallMap() {
                 y={y + 16}
                 fill={MC.dim}
                 fontFamily={MC.mono}
-                fontSize="11"
+                fontSize={TYPE.caption}
                 letterSpacing="0.16em"
               >
                 {`${station.language} · ${specTag(station.spec)}`}
@@ -194,7 +203,7 @@ export function WallMap() {
             y={CY + 300}
             fill={MC.dim}
             fontFamily={MC.mono}
-            fontSize="11"
+            fontSize={TYPE.caption}
             letterSpacing="0.16em"
             textAnchor="middle"
           >
@@ -214,7 +223,7 @@ export function WallMap() {
               y={signal.y - 12}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize="11"
+              fontSize={TYPE.caption}
               letterSpacing="0.16em"
             >
               {signal.label.toUpperCase()}
@@ -257,7 +266,7 @@ export function WallMap() {
             y={CY - 14}
             fill={MC.ink}
             fontFamily={MC.mono}
-            fontSize="16"
+            fontSize={TYPE.h6}
             letterSpacing="0.22em"
             textAnchor="middle"
           >
@@ -268,7 +277,7 @@ export function WallMap() {
             y={CY + 10}
             fill={MC.dim}
             fontFamily={MC.mono}
-            fontSize="11"
+            fontSize={TYPE.caption}
             letterSpacing="0.16em"
             textAnchor="middle"
           >
@@ -279,8 +288,8 @@ export function WallMap() {
             y={CY + 30}
             fill={MC.phosphor}
             fontFamily={MC.mono}
-            fontSize="11"
-            letterSpacing="0.16em"
+            fontSize={TYPE.caption}
+            letterSpacing="0.06em"
             textAnchor="middle"
           >
             DISTRIBUTED EXECUTOR
@@ -288,19 +297,12 @@ export function WallMap() {
         </g>
       </svg>
 
-      <div
-        className="absolute right-4 bottom-4 rounded-md border px-3 py-2 text-right sm:right-8 sm:bottom-8"
-        style={{
-          background: MC.panel,
-          borderColor: MC.panelEdge,
-          fontFamily: MC.mono,
-        }}
-      >
-        <p className="text-[10px] tracking-[0.22em]" style={{ color: MC.dim }}>
+      <div className="border-cc-card-border bg-cc-card-bg absolute right-4 bottom-4 rounded-md border px-3 py-2 text-right sm:right-8 sm:bottom-8">
+        <Eyebrow color="ink-dim" size="2xs">
           SUBGRAPHS ONLINE
-        </p>
+        </Eyebrow>
         <p
-          className="text-2xl tabular-nums"
+          className="text-h5 font-mono tabular-nums"
           style={{ color: MC.phosphor }}
         >{`${String(online).padStart(2, "0")} / ${String(STATIONS.length).padStart(2, "0")}`}</p>
       </div>
