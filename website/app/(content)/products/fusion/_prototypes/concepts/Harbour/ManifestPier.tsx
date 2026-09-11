@@ -235,7 +235,7 @@ export function ManifestPier() {
           <rect x="212" y="330" width="30" height="22" fill={DUSK.hull} />
           <text
             x="596"
-            y="344"
+            y="416"
             textAnchor="end"
             fill={DUSK.ink}
             fontSize={FONT.label}
