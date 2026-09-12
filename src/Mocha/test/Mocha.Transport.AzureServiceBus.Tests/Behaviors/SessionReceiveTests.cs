@@ -460,7 +460,7 @@ public class SessionReceiveUnitTests
         var context = new ReceiveContext();
 
         // act & assert
-        var ex = Assert.Throws<InvalidOperationException>(() => context.GetAzureServiceBusSessionEventArgs());
+        var ex = Assert.Throws<InvalidOperationException>(context.GetAzureServiceBusSessionEventArgs);
         Assert.Contains("session-bound", ex.Message);
     }
 
@@ -477,7 +477,7 @@ public class SessionReceiveUnitTests
             sessionId: "S-1");
         var sessionArgs = new ProcessSessionMessageEventArgs(
             sessionMessage,
-            (ServiceBusSessionReceiver)null!,
+            null!,
             CancellationToken.None);
 
         var nonSessionMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
@@ -485,7 +485,7 @@ public class SessionReceiveUnitTests
             messageId: "non-1");
         var nonSessionArgs = new ProcessMessageEventArgs(
             nonSessionMessage,
-            (ServiceBusReceiver)null!,
+            null!,
             CancellationToken.None);
 
         // act + assert - first dispatch is session

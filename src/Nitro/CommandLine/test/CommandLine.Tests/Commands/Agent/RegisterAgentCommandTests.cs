@@ -1,5 +1,4 @@
 using System.Text.Json;
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 

@@ -1,5 +1,4 @@
 using System.Text.Json;
-using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Text.Json;
@@ -20,7 +19,7 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             """);
 
         using var builder = new SourceResultDocumentBuilder(
-            CommonTestExtensions.CreateArena(), operation, default(ConditionFlags));
+            CommonTestExtensions.CreateArena(), operation, default);
 
         // Root is already set up with the operation structure, now fill in values
         var userSelection = operation.RootSelectionSet.Selections[0];
@@ -63,7 +62,7 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             """);
 
         using var builder = new SourceResultDocumentBuilder(
-            CommonTestExtensions.CreateArena(), operation, default(ConditionFlags));
+            CommonTestExtensions.CreateArena(), operation, default);
         var userProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
 
         var userSelection = operation.RootSelectionSet.Selections[0];
@@ -105,7 +104,7 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             """);
 
         using var builder = new SourceResultDocumentBuilder(
-            CommonTestExtensions.CreateArena(), operation, default(ConditionFlags));
+            CommonTestExtensions.CreateArena(), operation, default);
         var userProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
         userProperty.SetNullValue();
 
@@ -134,7 +133,7 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             """);
 
         using var builder = new SourceResultDocumentBuilder(
-            CommonTestExtensions.CreateArena(), operation, default(ConditionFlags));
+            CommonTestExtensions.CreateArena(), operation, default);
         var userProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
 
         var userSelection = operation.RootSelectionSet.Selections[0];
@@ -180,7 +179,7 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             """);
 
         using var builder = new SourceResultDocumentBuilder(
-            CommonTestExtensions.CreateArena(), operation, default(ConditionFlags));
+            CommonTestExtensions.CreateArena(), operation, default);
         var usersProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
 
         var usersSelection = operation.RootSelectionSet.Selections[0];

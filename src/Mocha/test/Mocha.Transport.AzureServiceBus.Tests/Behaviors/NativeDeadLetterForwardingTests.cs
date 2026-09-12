@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Transport.AzureServiceBus.Tests.Helpers;

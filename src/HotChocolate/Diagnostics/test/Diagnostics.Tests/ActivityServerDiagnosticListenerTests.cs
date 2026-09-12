@@ -1,6 +1,5 @@
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Tests.Utilities;
@@ -745,7 +744,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
     }
 
     private static async Task DrainAsync(
-        IAsyncEnumerator<HotChocolate.Transport.OperationResult> results,
+        IAsyncEnumerator<Transport.OperationResult> results,
         CancellationToken cancellationToken)
     {
         try

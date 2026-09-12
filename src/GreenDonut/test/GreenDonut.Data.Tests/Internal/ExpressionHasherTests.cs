@@ -672,7 +672,7 @@ public static class ExpressionHasherTests
 
         public Type ElementType => typeof(string);
 
-        public Expression Expression => System.Linq.Expressions.Expression.Constant(this);
+        public Expression Expression => Expression.Constant(this);
 
         public IQueryProvider Provider => throw new InvalidOperationException();
 

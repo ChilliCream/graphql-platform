@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HotChocolate.Fusion.Execution.Nodes;

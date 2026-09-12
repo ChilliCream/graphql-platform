@@ -174,11 +174,11 @@ public class Utf8SyntaxFormatterTests
         var documentDirect = new ArrayBufferWriter<byte>();
         var documentBoxed = new ArrayBufferWriter<byte>();
         document.Format(documentDirect, indented: true, variables: map);
-        ((IUtf8SyntaxNode)document).Format(documentBoxed, indented: true, variables: map);
+        document.Format(documentBoxed, indented: true, variables: map);
         var fieldDirect = new ArrayBufferWriter<byte>();
         var fieldBoxed = new ArrayBufferWriter<byte>();
         field.Format(fieldDirect, indented: true, variables: map);
-        ((IUtf8SyntaxNode)field).Format(fieldBoxed, indented: true, variables: map);
+        field.Format(fieldBoxed, indented: true, variables: map);
 
         // assert
         Assert.Equal(documentDirect.WrittenSpan.ToArray(), documentBoxed.WrittenSpan.ToArray());

@@ -1292,20 +1292,20 @@ public class InaccessibleTests : FusionTestBase
             public class Query
             {
                 public IEnumerable<Review> GetReviews()
-                    => Review.All;
+                    => Review.s_all;
             }
 
             [Node]
             public record Review(int Id, string Body)
             {
-                internal static readonly Review[] All =
+                internal static readonly Review[] s_all =
                 [
                     new Review(1, "A great read"),
                     new Review(2, "Could not put it down")
                 ];
 
                 public static Review? GetReview(int id)
-                    => All.FirstOrDefault(r => r.Id == id);
+                    => s_all.FirstOrDefault(r => r.Id == id);
             }
         }
 
@@ -1320,14 +1320,14 @@ public class InaccessibleTests : FusionTestBase
             [Node]
             public record Review(int Id, int Stars)
             {
-                internal static readonly Review[] All =
+                internal static readonly Review[] s_all =
                 [
                     new Review(1, 5),
                     new Review(2, 4)
                 ];
 
                 public static Review? GetReview(int id)
-                    => All.FirstOrDefault(r => r.Id == id);
+                    => s_all.FirstOrDefault(r => r.Id == id);
             }
         }
     }

@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -33,8 +32,7 @@ public class DataLoaderKeyedServiceConflictAnalyzerTests
 
         // act
         var diagnostics = await compilation
-            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
-                new DataLoaderKeyedServiceConflictAnalyzer()))
+            .WithAnalyzers([new DataLoaderKeyedServiceConflictAnalyzer()])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
 
         // assert
@@ -75,8 +73,7 @@ public class DataLoaderKeyedServiceConflictAnalyzerTests
 
         // act
         var diagnostics = await compilation
-            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
-                new DataLoaderKeyedServiceConflictAnalyzer()))
+            .WithAnalyzers([new DataLoaderKeyedServiceConflictAnalyzer()])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
 
         // assert
@@ -114,8 +111,7 @@ public class DataLoaderKeyedServiceConflictAnalyzerTests
 
         // act
         var diagnostics = await compilation
-            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(
-                new DataLoaderKeyedServiceConflictAnalyzer()))
+            .WithAnalyzers([new DataLoaderKeyedServiceConflictAnalyzer()])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
 
         // assert

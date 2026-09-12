@@ -1,6 +1,5 @@
 using HotChocolate.Fusion.Converters;
 using HotChocolate.Fusion.Language;
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
 

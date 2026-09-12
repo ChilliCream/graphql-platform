@@ -183,7 +183,7 @@ public sealed class PingSessionExecutorTests : IDisposable
         // assert
         Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var call = Assert.Single(_claudePeerClient.Calls);
-                Assert.Equal(SessionId, call.SessionId);
+        Assert.Equal(SessionId, call.SessionId);
         Assert.Contains("1 unread nitro message.", call.Message);
         Assert.Contains("nitro agent mail inbox --actor", call.Message);
         Assert.DoesNotContain(message.Id, call.Message);
