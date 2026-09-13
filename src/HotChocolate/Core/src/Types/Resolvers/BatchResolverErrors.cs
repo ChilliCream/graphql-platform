@@ -20,4 +20,16 @@ public static class BatchResolverErrors
                     declaringType.FullName ?? declaringType.Name,
                     methodName)
                 .Build());
+
+    /// <summary>
+    /// Creates the schema error for a batch resolver parameter whose collection shape is not
+    /// supported.
+    /// </summary>
+    public static SchemaException ArgumentMustBeList(Type declaringType, string methodName, string parameterName)
+        => new(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    TypeResources.BatchResolver_ArgumentMustBeList,
+                    $"{declaringType.FullName ?? declaringType.Name}.{methodName}({parameterName})")
+                .Build());
 }

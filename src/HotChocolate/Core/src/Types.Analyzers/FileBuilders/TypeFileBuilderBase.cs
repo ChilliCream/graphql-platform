@@ -848,7 +848,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         resolverMethod.Name,
                         parameter.Name);
 
-                    if (!IsSupportedBatchParameterType(parameter.Type))
+                    if (!IsSupportedBatchCollectionParameterType(parameter.Type))
                     {
                         Writer.WriteIndentedLine(
                             "if (_binding_{0}_{1}_kind is global::{2}.Argument)",
@@ -859,10 +859,11 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         using (Writer.IncreaseIndent())
                         {
                             Writer.WriteIndentedLine(
-                                "throw new global::{0}(\"Batch resolver parameter '{1}' must be a list type (List<T>, IReadOnlyList<T>, T[], or ImmutableArray<T>). Got: {2}.\");",
-                                WellKnownTypes.InvalidOperationException,
-                                GeneratorUtils.EscapeForStringLiteral(parameter.Name),
-                                GeneratorUtils.EscapeForStringLiteral(parameter.Type.ToDisplayString()));
+                                "throw global::{0}.ArgumentMustBeList(typeof({1}), \"{2}\", \"{3}\");",
+                                WellKnownTypes.BatchResolverErrors,
+                                resolver.Member.ContainingType.ToFullyQualified(),
+                                resolverMethod.Name,
+                                parameter.Name);
                         }
 
                         Writer.WriteIndentedLine("}");
@@ -1171,6 +1172,19 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         {
             WriteBatchResolverReturnTypeSchemaError(resolver);
             return;
+        }
+
+        // A batch resolver's Parent/Argument parameters must be a list type (List<T>,
+        // IReadOnlyList<T>, IList<T>, IEnumerable<T>, T[] or ImmutableArray<T>); an unsupported
+        // shape is a schema build error naming the parameter.
+        foreach (var batchParameter in resolver.Parameters)
+        {
+            if (batchParameter.Kind is ResolverParameterKind.Parent or ResolverParameterKind.Argument
+                && !IsSupportedBatchCollectionParameterType(batchParameter.Type))
+            {
+                WriteBatchResolverArgumentSchemaError(resolver, batchParameter);
+                return;
+            }
         }
 
         // Public accessor method: returns BatchFieldDelegate
@@ -1638,6 +1652,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             var batchReceiver = resolver.IsStatic
                 ? batchTypeName
                 : GetInstanceReceiver(batchTypeName, "contexts[0]");
+            var resultIsNonNullableValueType = resolver.ReturnType.IsValueType;
 
             if (isAsync)
             {
@@ -1648,7 +1663,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
                 Writer.WriteLine();
-                WriteBatchResultDistribution();
+                WriteBatchResultDistribution(resultIsNonNullableValueType);
             }
             else
             {
@@ -1659,7 +1674,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
                 Writer.WriteLine();
-                WriteBatchResultDistribution();
+                WriteBatchResultDistribution(resultIsNonNullableValueType);
                 Writer.WriteIndentedLine("return default;");
             }
         }
@@ -1670,26 +1685,36 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     /// <summary>
     /// Emits the batch result distribution: a null result assigns null to every context, an
     /// <c>IList</c> result must contain exactly one entry per context, and any other non-null
-    /// result throws <see cref="InvalidOperationException"/>.
+    /// result throws <see cref="InvalidOperationException"/>. A non-nullable value type result
+    /// (<c>ImmutableArray&lt;T&gt;</c>) can never be null, so the null branch is a compile error
+    /// (CS0037) and is skipped for that shape.
     /// </summary>
-    private void WriteBatchResultDistribution()
+    private void WriteBatchResultDistribution(bool resultIsNonNullableValueType)
     {
-        Writer.WriteIndentedLine("if (result is null)");
-        Writer.WriteIndentedLine("{");
-        using (Writer.IncreaseIndent())
+        if (resultIsNonNullableValueType)
         {
-            Writer.WriteIndentedLine("for (var i = 0; i < contexts.Length; i++)");
+            Writer.WriteIndentedLine("if (result is global::{0} list)", WellKnownTypes.IList);
+        }
+        else
+        {
+            Writer.WriteIndentedLine("if (result is null)");
             Writer.WriteIndentedLine("{");
             using (Writer.IncreaseIndent())
             {
-                Writer.WriteIndentedLine("contexts[i].Result = null;");
+                Writer.WriteIndentedLine("for (var i = 0; i < contexts.Length; i++)");
+                Writer.WriteIndentedLine("{");
+                using (Writer.IncreaseIndent())
+                {
+                    Writer.WriteIndentedLine("contexts[i].Result = null;");
+                }
+
+                Writer.WriteIndentedLine("}");
             }
 
             Writer.WriteIndentedLine("}");
+            Writer.WriteIndentedLine("else if (result is global::{0} list)", WellKnownTypes.IList);
         }
 
-        Writer.WriteIndentedLine("}");
-        Writer.WriteIndentedLine("else if (result is global::{0} list)", WellKnownTypes.IList);
         Writer.WriteIndentedLine("{");
         using (Writer.IncreaseIndent())
         {
@@ -1886,21 +1911,6 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
     }
 
-    private static bool IsSupportedBatchParameterType(ITypeSymbol type)
-    {
-        if (type is IArrayTypeSymbol)
-        {
-            return true;
-        }
-
-        return type is INamedTypeSymbol { IsGenericType: true } namedType
-            && namedType.OriginalDefinition.ToDisplayString() is
-                "System.Collections.Generic.List<T>"
-                or "System.Collections.Generic.IReadOnlyList<T>"
-                or "System.Collections.Generic.IList<T>"
-                or "System.Collections.Immutable.ImmutableArray<T>";
-    }
-
     /// <summary>
     /// The materialization strategy for a batch-collected Parent/Argument parameter.
     /// </summary>
@@ -1976,6 +1986,37 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     }
 
     /// <summary>
+    /// The batch collection shapes the batch writer can materialize for a Parent/Argument
+    /// parameter (List builder, ToArray(), ToImmutableArray()), matching the reflection path's
+    /// <c>BatchResolverCompiler.GetListElementType</c>.
+    /// </summary>
+    private static readonly HashSet<string> s_supportedBatchParameterTypeDefinitions =
+        [
+            "System.Collections.Generic.List<>",
+            "System.Collections.Generic.IReadOnlyList<>",
+            "System.Collections.Generic.IList<>",
+            "System.Collections.Generic.IEnumerable<>",
+            "System.Collections.Immutable.ImmutableArray<>"
+        ];
+
+    /// <summary>
+    /// Determines whether a batch resolver's Parent/Argument parameter is a supported list
+    /// shape: an array, <c>List&lt;T&gt;</c>, <c>IReadOnlyList&lt;T&gt;</c>,
+    /// <c>IList&lt;T&gt;</c>, <c>IEnumerable&lt;T&gt;</c> or <c>ImmutableArray&lt;T&gt;</c>.
+    /// </summary>
+    private static bool IsSupportedBatchCollectionParameterType(ITypeSymbol type)
+    {
+        if (type is IArrayTypeSymbol)
+        {
+            return true;
+        }
+
+        return type is INamedTypeSymbol { IsGenericType: true } namedType
+            && s_supportedBatchParameterTypeDefinitions.Contains(
+                namedType.ConstructUnboundGenericType().ToDisplayString());
+    }
+
+    /// <summary>
     /// Emits a batch resolver accessor that throws the shared batch resolver schema error for a
     /// non-list return type, naming the member.
     /// </summary>
@@ -1995,6 +2036,32 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 WellKnownTypes.BatchResolverErrors,
                 declaringType,
                 resolver.Member.Name);
+        }
+
+        Writer.WriteIndentedLine("}");
+    }
+
+    /// <summary>
+    /// Emits a batch resolver accessor that throws the shared batch resolver schema error for a
+    /// Parent/Argument parameter whose collection shape is not supported, naming the member.
+    /// </summary>
+    private void WriteBatchResolverArgumentSchemaError(Resolver resolver, ResolverParameter parameter)
+    {
+        var declaringType = resolver.Member.ContainingType.ToFullyQualified();
+
+        Writer.WriteIndentedLine(
+            "public global::{0} {1}()",
+            WellKnownTypes.BatchFieldDelegate,
+            resolver.Member.Name);
+        Writer.WriteIndentedLine("{");
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine(
+                "throw global::{0}.ArgumentMustBeList(typeof({1}), \"{2}\", \"{3}\");",
+                WellKnownTypes.BatchResolverErrors,
+                declaringType,
+                resolver.Member.Name,
+                parameter.Name);
         }
 
         Writer.WriteIndentedLine("}");

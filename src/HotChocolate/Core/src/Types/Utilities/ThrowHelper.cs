@@ -31,12 +31,10 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException BatchResolver_ArgumentMustBeList(ParameterInfo parameter)
-        => new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    TypeResources.BatchResolver_ArgumentMustBeList,
-                    parameter.Name)
-                .Build());
+        => HotChocolate.Resolvers.BatchResolverErrors.ArgumentMustBeList(
+            parameter.Member.DeclaringType!,
+            parameter.Member.Name,
+            parameter.Name!);
 
     public static InvalidOperationException BatchResolver_ResultCountMismatch(int expected, int actual)
         => new(string.Format(TypeResources.BatchResolver_ResultCountMismatch, expected, actual));
