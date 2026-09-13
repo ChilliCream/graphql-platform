@@ -52,7 +52,9 @@ public sealed class MatrixCoverageTests
         // act
         foreach (var family in DiscoverFamilies())
         {
-            foreach (var method in family.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            var methods = family.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+
+            foreach (var method in methods)
             {
                 if (method.GetCustomAttribute<TheoryAttribute>() is not { } theory)
                 {

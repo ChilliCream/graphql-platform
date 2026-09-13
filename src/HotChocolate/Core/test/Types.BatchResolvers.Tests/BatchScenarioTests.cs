@@ -61,6 +61,14 @@ public abstract class BatchScenarioTests : IAsyncLifetime
         => executor.ExecuteAsync(request, cancellationToken)
             .WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);
 
+    /// <summary>
+    /// Returns the reason a declaration style is not applicable to this family, or
+    /// <see langword="null"/> when the style is a real, runnable declaration. Scenario tests must
+    /// check this before configuring an executor: a <see cref="Declaration"/> built through
+    /// <see cref="Declaration.NotApplicable"/> throws once <c>Configure</c> actually runs.
+    /// </summary>
+    protected string? GetNotApplicableReason(DeclarationStyle style) => Declarations[style].NotApplicableReason;
+
     protected Task<SchemaException> ExpectSchemaErrorAsync(
         DeclarationStyle style,
         Action<IRequestExecutorBuilder> configure)
