@@ -20,7 +20,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     private const string Para = "para";
     private const string Paramref = "paramref";
     private const string Name = "name";
-    private static readonly char[] CrefTrimChars = ['!', ':', ' '];
+    private static readonly char[] s_crefTrimChars = ['!', ':', ' '];
 
     private readonly IXmlDocumentationResolver _documentationResolver;
     private readonly ObjectPool<StringBuilder> _stringBuilderPool;
@@ -372,7 +372,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                 attribute = currentElement.Attribute(Cref);
                 if (attribute != null)
                 {
-                    var value = attribute.Value.AsSpan().Trim(CrefTrimChars);
+                    var value = attribute.Value.AsSpan().Trim(s_crefTrimChars);
 
                     var lastDotIndex = value.LastIndexOf('.');
                     if (lastDotIndex >= 0)
