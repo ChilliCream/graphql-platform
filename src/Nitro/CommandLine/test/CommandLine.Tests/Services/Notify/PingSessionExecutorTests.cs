@@ -410,6 +410,35 @@ public sealed class PingSessionExecutorTests : IDisposable
         Assert.Equal(AgentPingResult.Timeout, row!.LastPingResult);
     }
 
+    [Fact]
+    public async Task ExecuteCodexThreadAsync_Should_LeaveTheMessageUnread_When_ItQueuesTheDigest()
+    {
+        // arrange: pushing the body to the thread never means it was read.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeSessionAsync(cancellationToken);
+        var message = await _mail.SendMessageAsync(
+            new MailMessageCreation { Sender = "pascal", Subject = "status", Body = "check", To = [Actor] },
+            cancellationToken);
+        var unreadBefore = await _mail.CountUnreadAsync(Actor, cancellationToken);
+        var attemptId = await ClaimAttemptAsync(cancellationToken);
+        var slot = await _leases.TryAcquireAsync(
+            attemptId, _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(30), cancellationToken);
+        var executor = CreateExecutor();
+
+        // act
+        await executor.ExecuteCodexThreadAsync(
+            Harness, SessionId, Actor, ThreadId, attemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
+
+        // assert: the pushed payload says unread, the message is still in the
+        // unread inbox, and the unread count is unchanged.
+        var call = Assert.Single(_queueClient.Calls);
+        Assert.False(DigestRead(call.Message));
+        var unread = await _mail.QueryInboxAsync(
+            new MailInboxFilter { Actor = Actor, UnreadOnly = true }, cancellationToken);
+        Assert.Contains(unread, m => m.Id == message.Id);
+        Assert.Equal(unreadBefore, await _mail.CountUnreadAsync(Actor, cancellationToken));
+    }
+
     private PingSessionExecutor CreateExecutor()
         => new(_mail, _ledger, _queueClient, _claudePeerClient, _sessions, _leases, _timeProvider);
 
@@ -419,6 +448,13 @@ public sealed class PingSessionExecutorTests : IDisposable
         var item = document.RootElement.GetProperty("items")[0];
 
         return (endpoint, item.GetProperty("id").GetString()!, item.GetProperty("body").GetString()!);
+    }
+
+    private static bool DigestRead(string digest)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(digest[(digest.IndexOf('\n') + 1)..]);
+
+        return document.RootElement.GetProperty("items")[0].GetProperty("read").GetBoolean();
     }
 
     /// <summary>

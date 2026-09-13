@@ -175,6 +175,14 @@ public abstract class MailCommandTestBase : CommandTestBase
             item.GetProperty("body").GetString()!);
     }
 
+    private protected static bool ReadDigestReadFlag((string ThreadId, string Message) call)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(
+            call.Message[(call.Message.IndexOf('\n') + 1)..]);
+
+        return document.RootElement.GetProperty("items")[0].GetProperty("read").GetBoolean();
+    }
+
     /// <summary>
     /// Seeds an alive <c>agent_sessions</c> row directly against the
     /// workspace database, on the host id <see cref="CommandTestBase.SetupInstanceId"/> was

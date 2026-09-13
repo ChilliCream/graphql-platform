@@ -7,6 +7,10 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 internal static class MailDigest
 {
+    /// <summary>
+    /// Renders the pushed digest text for the given messages; this is a pure
+    /// projection and never changes any recipient's read state.
+    /// </summary>
     public static string Render(
         string actor,
         IReadOnlyList<MailMessage> messages,

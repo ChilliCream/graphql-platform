@@ -330,6 +330,21 @@ public sealed class MailDigestTests
             """);
     }
 
+    [Fact]
+    public void Render_Should_NotChangeReadState_When_ItRendersAnUnreadMessage()
+    {
+        // arrange: pushing a body to a session never means it was read.
+        var message = Message("m-1", "One", "Hello", "2026-01-01T00:00:00Z");
+
+        // act
+        var digest = MailDigest.Render("maya", [message], 1);
+
+        // assert: the pushed payload reports the message unread, and
+        // rendering leaves the recipient's read state untouched.
+        Assert.Contains("\"read\": false", digest);
+        Assert.Null(Assert.Single(message.Recipients).ReadAt);
+    }
+
     private static MailMessage Message(
         string id,
         string subject,

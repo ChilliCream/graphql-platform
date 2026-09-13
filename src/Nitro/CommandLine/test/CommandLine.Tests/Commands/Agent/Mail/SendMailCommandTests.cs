@@ -117,6 +117,33 @@ public sealed class SendMailCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task NudgeAsync_Should_LeaveTheMessageUnread_When_ItPushesTheBody()
+    {
+        // arrange: pushing the body to the session never means it was read.
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("test-agent");
+        await SeedAgentAsync("bob");
+        var queueClient = await SetupSuccessfulWakeAsync("host-send-unread-test", "bob");
+        var message = await SeedMessageAsync("test-agent", "Status", ["bob"], body: "All good.");
+        var store = CreateStore();
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var unreadBefore = await store.CountUnreadAsync("bob", cancellationToken);
+        var nudge = CreateMailNudge("host-send-unread-test", queueClient);
+
+        // act
+        await nudge.NudgeAsync(["bob"], cancellationToken);
+
+        // assert: the pushed payload says unread, the message is still in the
+        // unread inbox, and the unread count is unchanged.
+        var call = Assert.Single(queueClient.Calls);
+        Assert.False(ReadDigestReadFlag(call));
+        var unread = await store.QueryInboxAsync(
+            new MailInboxFilter { Actor = "bob", UnreadOnly = true }, cancellationToken);
+        Assert.Contains(unread, m => m.Id == message.Id);
+        Assert.Equal(unreadBefore, await store.CountUnreadAsync("bob", cancellationToken));
+    }
+
+    [Fact]
     public async Task SingleRecipient_Should_SendBodyToEachLiveSession_When_ActorHasTwoSessions()
     {
         // arrange

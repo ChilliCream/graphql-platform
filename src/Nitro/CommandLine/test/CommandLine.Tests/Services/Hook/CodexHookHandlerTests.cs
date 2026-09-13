@@ -485,6 +485,30 @@ public sealed class CodexHookHandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task HandleNotifyAsync_Should_LeaveTheMessageUnread_When_ItQueuesTheDigest()
+    {
+        // arrange: queuing the body onto the thread never means it was read.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        var unreadBefore = await _mail.CountUnreadAsync(actor, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+
+        // assert: the queued payload says unread, the message is still in the
+        // unread inbox, and the unread count is unchanged.
+        Assert.True(outcome.Queued);
+        var call = Assert.Single(_queueClient.Calls);
+        Assert.Contains("\"read\": false", call.Message);
+        var unread = await _mail.QueryInboxAsync(
+            new MailInboxFilter { Actor = actor, UnreadOnly = true }, cancellationToken);
+        Assert.Contains(unread, m => m.Id == message.Id);
+        Assert.Equal(unreadBefore, await _mail.CountUnreadAsync(actor, cancellationToken));
+    }
+
+    [Fact]
     public async Task HandleNotifyAsync_Should_QueueTheInboxPointer_When_MailWasSeenOnThePingChannel()
     {
         // arrange

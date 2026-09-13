@@ -395,6 +395,25 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     }
 
     [Fact]
+    public async Task HandleUserPromptSubmitAsync_Should_LeaveTheMessageUnread_When_ItReturnsTheDigest()
+    {
+        // arrange: the digest carries the body, but showing it never means
+        // the recipient read it.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        var unreadBefore = await _mail.CountUnreadAsync(actor, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.Contains("\"read\": false", outcome.AdditionalContext);
+        await AssertStillUnreadAsync(actor, message.Id, unreadBefore, cancellationToken);
+    }
+
+    [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_CalledAgainWithNoNewMail()
     {
         // arrange: the ledger suppresses redelivery of the same message on
@@ -516,6 +535,26 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             outcome.BlockReason);
         Assert.Contains(message.Id, outcome.BlockReason);
         Assert.Contains("\"items\"", outcome.BlockReason);
+    }
+
+    [Fact]
+    public async Task HandleStopAsync_Should_LeaveTheMessageUnread_When_ItGatesOnUnreadMail()
+    {
+        // arrange: the gate shows the body, but blocking the turn never means
+        // the recipient read it.
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var actor = await StartAndGetActorAsync(cancellationToken);
+        var message = await SendMailAsync("bob", actor, cancellationToken);
+        var unreadBefore = await _mail.CountUnreadAsync(actor, cancellationToken);
+
+        // act
+        var outcome = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+
+        // assert
+        Assert.True(outcome.Block);
+        Assert.Contains("\"read\": false", outcome.BlockReason);
+        await AssertStillUnreadAsync(actor, message.Id, unreadBefore, cancellationToken);
     }
 
     [Fact]
@@ -777,6 +816,15 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var row = await FindRowAsync(cancellationToken);
 
         return row!.AgentName!;
+    }
+
+    private async Task AssertStillUnreadAsync(
+        string actor, string messageId, int unreadBefore, CancellationToken cancellationToken)
+    {
+        var unread = await _mail.QueryInboxAsync(
+            new MailInboxFilter { Actor = actor, UnreadOnly = true }, cancellationToken);
+        Assert.Contains(unread, message => message.Id == messageId);
+        Assert.Equal(unreadBefore, await _mail.CountUnreadAsync(actor, cancellationToken));
     }
 
     private async Task<AgentSessionRecord?> FindRowAsync(CancellationToken cancellationToken)
