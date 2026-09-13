@@ -17,11 +17,11 @@ public class OperationCompilerBenchmark : FusionBenchmarkBase
 {
     private const string Id = "123456789101112";
 
-    private OperationCompiler _compiler;
+    private OperationCompiler _compiler = null!;
 
-    private OperationDefinitionNode _simpleQueryWithRequirements;
-    private OperationDefinitionNode _complexQuery;
-    private OperationDefinitionNode _conditionalRedundancyQuery;
+    private OperationDefinitionNode _simpleQueryWithRequirements = null!;
+    private OperationDefinitionNode _complexQuery = null!;
+    private OperationDefinitionNode _conditionalRedundancyQuery = null!;
 
     [GlobalSetup]
     public void GlobalSetup()

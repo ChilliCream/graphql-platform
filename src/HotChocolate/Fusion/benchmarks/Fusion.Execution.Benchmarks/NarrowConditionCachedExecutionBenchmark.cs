@@ -19,7 +19,7 @@ public class NarrowConditionCachedExecutionBenchmark
 
     private static readonly string s_expectedResult = CreateExpectedResult();
     private static readonly string s_documentText = CreateDocument();
-    private static readonly IReadOnlyDictionary<string, object> s_variables = CreateVariables();
+    private static readonly IReadOnlyDictionary<string, object?> s_variables = CreateVariables();
 
     private readonly CacheDiagnosticListener _diagnosticListener = new();
     private IRequestExecutor _executor = null!;
@@ -118,9 +118,9 @@ public class NarrowConditionCachedExecutionBenchmark
         return await services.BuildGatewayAsync();
     }
 
-    private static IReadOnlyDictionary<string, object> CreateVariables()
+    private static IReadOnlyDictionary<string, object?> CreateVariables()
     {
-        var variables = new Dictionary<string, object>(ConditionCount);
+        var variables = new Dictionary<string, object?>(ConditionCount);
 
         for (var i = 0; i < ConditionCount; i++)
         {
