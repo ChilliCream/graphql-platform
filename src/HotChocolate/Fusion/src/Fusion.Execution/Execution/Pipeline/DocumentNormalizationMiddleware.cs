@@ -46,7 +46,7 @@ internal sealed class DocumentNormalizationMiddleware
             // If the document is already in the document cache, we keep the normalized body on
             // the cached entry so that later hits for the same document can reuse it. Multi-operation
             // documents are rewritten per request because the normalized body is operation-specific.
-            if (cachedDocument is not null)
+            if (cachedDocument is { })
             {
                 cachedDocument.NormalizedBody = normalizedDocument;
             }

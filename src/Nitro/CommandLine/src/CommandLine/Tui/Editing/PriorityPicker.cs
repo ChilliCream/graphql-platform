@@ -10,7 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Editing;
 /// </summary>
 internal static class PriorityPicker
 {
-    private static readonly (int Priority, string Label)[] WellKnownPriorities =
+    private static readonly (int Priority, string Label)[] s_wellKnownPriorities =
     [
         (TaskPriorities.Critical, "Critical"),
         (TaskPriorities.High, "High"),
@@ -26,7 +26,7 @@ internal static class PriorityPicker
     public static QuickPicker Create(TaskItem task)
         => new(
             "Priority",
-            [.. WellKnownPriorities.Select(p => new QuickPickerOption(
+            [.. s_wellKnownPriorities.Select(p => new QuickPickerOption(
                 p.Priority.ToString(CultureInfo.InvariantCulture), RenderOption(p.Priority, p.Label)))],
             initialSelectedId: task.Priority.ToString(CultureInfo.InvariantCulture));
 

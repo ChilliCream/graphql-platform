@@ -1,5 +1,3 @@
-using Mocha.Features;
-
 namespace Mocha.Tests.Middlewares.Receive;
 
 /// <summary>

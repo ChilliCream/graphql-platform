@@ -274,8 +274,8 @@ internal static class ExactCasesTraversal
         }
 
         var scratchLength = FieldGroupAccumulator.GetRequiredScratchLength(tree);
-        int[]? rented = null;
-        Span<int> scratch = scratchLength <= FieldGroupAccumulator.MaxStackScratchLength
+        var rented = (int[]?)null;
+        var scratch = scratchLength <= FieldGroupAccumulator.MaxStackScratchLength
             ? stackalloc int[scratchLength]
             : (rented = ArrayPool<int>.Shared.Rent(scratchLength));
 
@@ -915,7 +915,7 @@ internal static class ExactCasesTraversal
 
         public bool Contains(int nodeId)
         {
-            for (SelectedNode? selected = this; selected is not null; selected = selected.Previous)
+            for (var selected = this; selected is not null; selected = selected.Previous)
             {
                 if (selected.NodeId == nodeId)
                 {

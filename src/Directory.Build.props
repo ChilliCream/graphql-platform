@@ -23,6 +23,10 @@
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(CI)' == 'true' AND '$(Configuration)' != 'Release'">
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
   <PropertyGroup>
     <Authors>ChilliCream authors and contributors</Authors>
     <Company>ChilliCream Inc.</Company>

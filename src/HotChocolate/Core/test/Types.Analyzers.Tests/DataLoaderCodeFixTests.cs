@@ -789,7 +789,7 @@ public class DataLoaderCodeFixTests
         var document = CreateDocument(workspace, source);
         var compilation = await document.Project.GetCompilationAsync(TestContext.Current.CancellationToken);
         var diagnostics = await compilation!
-            .WithAnalyzers(ImmutableArray.Create(analyzer))
+            .WithAnalyzers([analyzer])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
         var context = new FixAllContext(
             document,
@@ -807,7 +807,7 @@ public class DataLoaderCodeFixTests
         var fixedDocument = operation.ChangedSolution.GetDocument(document.Id)!;
         var fixedCompilation = await fixedDocument.Project.GetCompilationAsync(TestContext.Current.CancellationToken);
         var residualDiagnostics = await fixedCompilation!
-            .WithAnalyzers(ImmutableArray.Create(analyzer))
+            .WithAnalyzers([analyzer])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken);
 
         Assert.Empty(residualDiagnostics);
@@ -823,7 +823,7 @@ public class DataLoaderCodeFixTests
         var document = CreateDocument(workspace, source);
         var compilation = await document.Project.GetCompilationAsync(TestContext.Current.CancellationToken);
         var diagnostic = (await compilation!
-            .WithAnalyzers(ImmutableArray.Create(analyzer))
+            .WithAnalyzers([analyzer])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken)).First();
         var actions = new List<CodeAction>();
         var context = new CodeFixContext(
@@ -844,7 +844,7 @@ public class DataLoaderCodeFixTests
     {
         var compilation = await document.Project.GetCompilationAsync(TestContext.Current.CancellationToken);
         var diagnostic = (await compilation!
-            .WithAnalyzers(ImmutableArray.Create(analyzer))
+            .WithAnalyzers([analyzer])
             .GetAnalyzerDiagnosticsAsync(TestContext.Current.CancellationToken)).First();
         var actions = new List<CodeAction>();
         var context = new CodeFixContext(

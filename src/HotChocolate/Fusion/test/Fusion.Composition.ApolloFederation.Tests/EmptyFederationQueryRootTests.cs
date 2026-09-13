@@ -1,4 +1,3 @@
-using HotChocolate.Serialization;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 

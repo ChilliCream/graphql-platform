@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using HotChocolate.AspNetCore;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.CostAnalysis;
@@ -887,10 +888,9 @@ public class CostReportingTests : FusionTestBase
 
     private static void AssertOperationCost(OperationResult result, string expected)
     {
-        using var document = JsonDocument.Parse(expected);
         var actual = result.Extensions.GetProperty("operationCost");
 
-        Assert.True(JsonElement.DeepEquals(document.RootElement, actual));
+        Assert.True(JsonNode.DeepEquals(JsonNode.Parse(expected), JsonNode.Parse(actual.GetRawText())));
     }
 
     private static async Task<List<OperationResult>> ReadResultsAsync(GraphQLHttpResponse response)

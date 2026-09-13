@@ -24,10 +24,10 @@ public sealed class SchemaComposerTests
         var executionMetadataDefinitions = new DocumentNode(
             document.Definitions
                 .Where(definition => definition is EnumTypeDefinitionNode
-                    {
-                        Name.Value: "fusion__NodeResolution"
-                            or "fusion__ShareableFieldRuntimeTypeRouting"
-                    }
+                {
+                    Name.Value: "fusion__NodeResolution"
+                        or "fusion__ShareableFieldRuntimeTypeRouting"
+                }
                     or DirectiveDefinitionNode { Name.Value: "fusion__execution" })
                 .ToArray());
 

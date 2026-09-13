@@ -524,10 +524,12 @@ internal sealed class ResultSelectionSet
             if (directive.Name.Value.Equals(ResponseNameDirective, StringComparison.Ordinal)
                 && directive.Arguments is
                 [
+#pragma warning disable IDE0055 // https://github.com/dotnet/roslyn/issues/73251
                     {
                         Name.Value: "name",
                         Value: StringValueNode responseName
                     }
+#pragma warning restore IDE0055
                 ])
             {
                 return responseName.Value;

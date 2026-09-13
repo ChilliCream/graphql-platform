@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text;
 using System.Text.Json;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Packaging;

@@ -141,8 +141,7 @@ public class ScheduledMessageStoreResolverTests
             new ScheduledMessageStoreRegistration(typeof(TransportA), "one:", typeof(SpecificStore)),
             new ScheduledMessageStoreRegistration(typeof(TransportA), "two:", typeof(SpecificStore)));
 
-        Assert.Throws<InvalidOperationException>(() =>
-            provider.GetRequiredService<ScheduledMessageStoreResolver>());
+        Assert.Throws<InvalidOperationException>(provider.GetRequiredService<ScheduledMessageStoreResolver>);
     }
 
     [Fact]
@@ -173,8 +172,7 @@ public class ScheduledMessageStoreResolverTests
             new ScheduledMessageStoreRegistration(typeof(TransportA), "same:", typeof(SpecificStore)),
             new ScheduledMessageStoreRegistration(typeof(TransportB), "same:nested:", typeof(FallbackStore)));
 
-        Assert.Throws<InvalidOperationException>(() =>
-            provider.GetRequiredService<ScheduledMessageStoreResolver>());
+        Assert.Throws<InvalidOperationException>(provider.GetRequiredService<ScheduledMessageStoreResolver>);
     }
 
     [Fact]
@@ -186,8 +184,7 @@ public class ScheduledMessageStoreResolverTests
             new ScheduledMessageStoreRegistration(null, "one:", typeof(SpecificStore), isFallback: true),
             new ScheduledMessageStoreRegistration(null, "two:", typeof(FallbackStore), isFallback: true));
 
-        Assert.Throws<InvalidOperationException>(() =>
-            provider.GetRequiredService<ScheduledMessageStoreResolver>());
+        Assert.Throws<InvalidOperationException>(provider.GetRequiredService<ScheduledMessageStoreResolver>);
     }
 
     [Fact]
@@ -198,8 +195,7 @@ public class ScheduledMessageStoreResolverTests
             new FallbackStore(),
             new ScheduledMessageStoreRegistration(typeof(TransportA), "invalid:", typeof(string)));
 
-        Assert.Throws<InvalidOperationException>(() =>
-            provider.GetRequiredService<ScheduledMessageStoreResolver>());
+        Assert.Throws<InvalidOperationException>(provider.GetRequiredService<ScheduledMessageStoreResolver>);
     }
 
     private static ServiceProvider BuildProvider(
@@ -208,7 +204,7 @@ public class ScheduledMessageStoreResolverTests
         params ScheduledMessageStoreRegistration[] registrations)
     {
         var services = new ServiceCollection();
-        services.AddScoped<ScheduledMessageStoreResolver>(ScheduledMessageStoreResolver.Create);
+        services.AddScoped(ScheduledMessageStoreResolver.Create);
         services.AddSingleton(specific);
         services.AddSingleton(fallback);
         foreach (var registration in registrations)

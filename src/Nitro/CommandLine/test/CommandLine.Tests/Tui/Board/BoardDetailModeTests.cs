@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
-using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -23,7 +22,7 @@ public sealed class BoardDetailModeTests
         var mode = new BoardDetailMode(store);
 
         // assert
-        Assert.Null(((ITuiMode)mode).SelectedTaskId);
+        Assert.Null(mode.SelectedTaskId);
     }
 
     [Fact]
@@ -38,7 +37,7 @@ public sealed class BoardDetailModeTests
         mode.OpenOnTask("a-1");
 
         // assert
-        Assert.Equal("a-1", ((ITuiMode)mode).SelectedTaskId);
+        Assert.Equal("a-1", mode.SelectedTaskId);
         Assert.Contains("a-1", RenderToText(mode));
     }
 
@@ -70,7 +69,7 @@ public sealed class BoardDetailModeTests
         mode.OpenOnTask("a-2");
 
         // assert
-        Assert.Equal("a-2", ((ITuiMode)mode).SelectedTaskId);
+        Assert.Equal("a-2", mode.SelectedTaskId);
     }
 
     [Fact]
@@ -105,7 +104,7 @@ public sealed class BoardDetailModeTests
 
         // assert
         Assert.Null(exception);
-        Assert.Null(((ITuiMode)mode).SelectedTaskId);
+        Assert.Null(mode.SelectedTaskId);
     }
 
     [Fact]

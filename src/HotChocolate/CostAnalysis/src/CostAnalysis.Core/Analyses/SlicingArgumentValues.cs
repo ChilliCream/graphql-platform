@@ -11,7 +11,7 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 internal static class SlicingArgumentValues
 {
-    private static readonly Dictionary<string, SlicingArgumentValue> Empty = [];
+    private static readonly Dictionary<string, SlicingArgumentValue> s_empty = [];
 
     /// <summary>
     /// Builds one slicing-argument entry per name declared in
@@ -27,7 +27,7 @@ internal static class SlicingArgumentValues
     {
         if (metadata is not { SlicingArguments.Length: > 0 })
         {
-            return Empty;
+            return s_empty;
         }
 
         var result = new Dictionary<string, SlicingArgumentValue>(metadata.SlicingArguments.Length);

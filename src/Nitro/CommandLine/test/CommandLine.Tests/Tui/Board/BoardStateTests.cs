@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Board;
 
 public sealed class BoardStateTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static BoardView TwoColumnView() => new()
     {
@@ -25,7 +25,7 @@ public sealed class BoardStateTests
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
         store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Closed));
-        var state = new BoardState(TwoColumnView(), new BoardDataLoader(store, new FakeTimeProvider(Now)));
+        var state = new BoardState(TwoColumnView(), new BoardDataLoader(store, new FakeTimeProvider(s_now)));
 
         // act
         await state.RefreshAsync(CancellationToken.None);
@@ -40,15 +40,15 @@ public sealed class BoardStateTests
     {
         // arrange
         var store = new FakeTaskStore();
-        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open, createdAt: Now));
-        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: Now.AddDays(1)));
-        var state = new BoardState(TwoColumnView(), new BoardDataLoader(store, new FakeTimeProvider(Now)));
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open, createdAt: s_now));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: s_now.AddDays(1)));
+        var state = new BoardState(TwoColumnView(), new BoardDataLoader(store, new FakeTimeProvider(s_now)));
         await state.RefreshAsync(CancellationToken.None);
         state.Columns[0].SelectedRow = 1; // a-2, the later-created task
 
         // act: a new, earlier-priority task pushes a-2 to a different row on refresh
         store.Tasks.Add(TaskItemBuilder.Create(
-            "a-0", status: TaskStates.Open, priority: TaskPriorities.Critical, createdAt: Now.AddDays(-1)));
+            "a-0", status: TaskStates.Open, priority: TaskPriorities.Critical, createdAt: s_now.AddDays(-1)));
         await state.RefreshAsync(CancellationToken.None);
 
         // assert
@@ -63,8 +63,8 @@ public sealed class BoardStateTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
-        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: Now.AddDays(1)));
-        var state = new BoardState(TwoColumnView(), new BoardDataLoader(store, new FakeTimeProvider(Now)));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: s_now.AddDays(1)));
+        var state = new BoardState(TwoColumnView(), new BoardDataLoader(store, new FakeTimeProvider(s_now)));
         await state.RefreshAsync(CancellationToken.None);
         state.Columns[0].SelectedRow = 1; // a-2
 
@@ -83,7 +83,7 @@ public sealed class BoardStateTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
-        var state = new BoardState(TwoColumnView(), new BoardDataLoader(store, new FakeTimeProvider(Now)));
+        var state = new BoardState(TwoColumnView(), new BoardDataLoader(store, new FakeTimeProvider(s_now)));
         await state.RefreshAsync(CancellationToken.None);
 
         // act
@@ -105,7 +105,7 @@ public sealed class BoardStateTests
     {
         // arrange
         var store = new FakeTaskStore();
-        var state = new BoardState(TwoColumnView(), new BoardDataLoader(store, new FakeTimeProvider(Now)));
+        var state = new BoardState(TwoColumnView(), new BoardDataLoader(store, new FakeTimeProvider(s_now)));
 
         // act
         state.FocusColumn(requested);

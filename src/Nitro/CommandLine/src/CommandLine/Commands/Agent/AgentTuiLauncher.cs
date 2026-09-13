@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
@@ -86,13 +85,12 @@ internal static class AgentTuiLauncher
             treeView,
             taskStore,
             actor: null,
-            mailStore,
             mailWakeDaemonState: () => mailWakeDaemonCoordinator.Status.State,
             quitGates: mailMode is null ? null : [mailMode.CreateQuitGate()]);
         var application = new TuiApplication(console);
         var dbWatcher = new SqliteDbWatcher(AgentWorkspace.GetDatabasePath(workspaceDirectory));
 
-        shell.QuitConfirmed += () => quitCts.Cancel();
+        shell.QuitConfirmed += quitCts.Cancel;
 
         if (mailMode is not null)
         {

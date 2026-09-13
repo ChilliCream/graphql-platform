@@ -13,13 +13,13 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// </summary>
 public sealed class CodexConfigTomlNotifyEditorTests
 {
-    private static readonly IReadOnlyList<string> OurArgv =
+    private static readonly IReadOnlyList<string> s_ourArgv =
         ["/home/agent/.dotnet/tools/nitro", "agent", "hook", "codex", "notify"];
 
     [Fact]
     public void Install_MissingFile_InsertsOurNotifyLineWithNoPriorForeign()
     {
-        var result = CodexConfigTomlNotifyEditor.Install(null, OurArgv, null, null);
+        var result = CodexConfigTomlNotifyEditor.Install(null, s_ourArgv, null, null);
 
         Assert.Equal(HookInstallOutcome.Installed, result.Outcome);
         Assert.Null(result.NewPriorForeign);
@@ -31,7 +31,7 @@ public sealed class CodexConfigTomlNotifyEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("config-toml", "foreign-notify.toml");
 
-        var result = CodexConfigTomlNotifyEditor.Install(before, OurArgv, recordedOurArgv: null, recordedPriorForeign: null);
+        var result = CodexConfigTomlNotifyEditor.Install(before, s_ourArgv, recordedOurArgv: null, recordedPriorForeign: null);
 
         Assert.Equal(HookInstallOutcome.Updated, result.Outcome);
         Assert.Equal(["/usr/local/bin/herdr-notify", "--flag"], result.NewPriorForeign);
@@ -47,11 +47,11 @@ public sealed class CodexConfigTomlNotifyEditorTests
     public void Install_Twice_IsIdempotent_And_KeepsThePriorForeignRecord()
     {
         var before = CodexHooksInstallFixtures.Read("config-toml", "foreign-notify.toml");
-        var first = CodexConfigTomlNotifyEditor.Install(before, OurArgv, null, null);
+        var first = CodexConfigTomlNotifyEditor.Install(before, s_ourArgv, null, null);
         Assert.Equal(HookInstallOutcome.Updated, first.Outcome);
 
         var second = CodexConfigTomlNotifyEditor.Install(
-            first.ConfigToml, OurArgv, recordedOurArgv: OurArgv, recordedPriorForeign: first.NewPriorForeign);
+            first.ConfigToml, s_ourArgv, recordedOurArgv: s_ourArgv, recordedPriorForeign: first.NewPriorForeign);
 
         Assert.Equal(HookInstallOutcome.Unchanged, second.Outcome);
         Assert.Equal(first.ConfigToml, second.ConfigToml);
@@ -70,7 +70,7 @@ public sealed class CodexConfigTomlNotifyEditorTests
         var before = $"notify = [{string.Join(", ", staleArgv.Select(a => $"\"{a}\""))}]\n";
         var recordedPriorForeign = new List<string> { "/usr/local/bin/herdr-notify" };
 
-        var result = CodexConfigTomlNotifyEditor.Install(before, OurArgv, staleArgv, recordedPriorForeign);
+        var result = CodexConfigTomlNotifyEditor.Install(before, s_ourArgv, staleArgv, recordedPriorForeign);
 
         Assert.Equal(HookInstallOutcome.Updated, result.Outcome);
         Assert.Equal(recordedPriorForeign, result.NewPriorForeign);
@@ -82,7 +82,7 @@ public sealed class CodexConfigTomlNotifyEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("config-toml", "notify-in-table.toml");
 
-        var result = CodexConfigTomlNotifyEditor.Install(before, OurArgv, null, null);
+        var result = CodexConfigTomlNotifyEditor.Install(before, s_ourArgv, null, null);
 
         Assert.Equal(HookInstallOutcome.Installed, result.Outcome);
         Assert.Null(result.NewPriorForeign);
@@ -99,7 +99,7 @@ public sealed class CodexConfigTomlNotifyEditorTests
         var before = CodexHooksInstallFixtures.Read("config-toml", "multiline-notify.toml");
 
         var exception = Assert.Throws<ExitException>(
-            () => CodexConfigTomlNotifyEditor.Install(before, OurArgv, null, null));
+            () => CodexConfigTomlNotifyEditor.Install(before, s_ourArgv, null, null));
 
         Assert.Contains("safely parse", exception.Message, StringComparison.Ordinal);
     }
@@ -107,22 +107,22 @@ public sealed class CodexConfigTomlNotifyEditorTests
     [Fact]
     public void Status_ReportsMissingInstalledAndOutdated()
     {
-        Assert.Equal(HookStatusOutcome.Missing, CodexConfigTomlNotifyEditor.Status(null, OurArgv));
+        Assert.Equal(HookStatusOutcome.Missing, CodexConfigTomlNotifyEditor.Status(null, s_ourArgv));
 
-        var installed = $"notify = [{string.Join(", ", OurArgv.Select(a => $"\"{a}\""))}]\n";
-        Assert.Equal(HookStatusOutcome.Installed, CodexConfigTomlNotifyEditor.Status(installed, OurArgv));
+        var installed = $"notify = [{string.Join(", ", s_ourArgv.Select(a => $"\"{a}\""))}]\n";
+        Assert.Equal(HookStatusOutcome.Installed, CodexConfigTomlNotifyEditor.Status(installed, s_ourArgv));
 
         var foreign = CodexHooksInstallFixtures.Read("config-toml", "foreign-notify.toml");
-        Assert.Equal(HookStatusOutcome.Outdated, CodexConfigTomlNotifyEditor.Status(foreign, OurArgv));
+        Assert.Equal(HookStatusOutcome.Outdated, CodexConfigTomlNotifyEditor.Status(foreign, s_ourArgv));
     }
 
     [Fact]
     public void Uninstall_RestoresThePriorForeignProgramVerbatim()
     {
-        var installed = $"model = \"gpt-5.6-sol\"\nnotify = [{string.Join(", ", OurArgv.Select(a => $"\"{a}\""))}]\n\n[hooks.state]\n";
+        var installed = $"model = \"gpt-5.6-sol\"\nnotify = [{string.Join(", ", s_ourArgv.Select(a => $"\"{a}\""))}]\n\n[hooks.state]\n";
         var recordedPriorForeign = new List<string> { "/usr/local/bin/herdr-notify", "--flag" };
 
-        var result = CodexConfigTomlNotifyEditor.Uninstall(installed, OurArgv, recordedPriorForeign);
+        var result = CodexConfigTomlNotifyEditor.Uninstall(installed, s_ourArgv, recordedPriorForeign);
 
         Assert.Equal(HookUninstallOutcome.Removed, result.Outcome);
         Assert.Contains("notify = [\"/usr/local/bin/herdr-notify\", \"--flag\"]", result.ConfigToml);
@@ -134,9 +134,9 @@ public sealed class CodexConfigTomlNotifyEditorTests
     [Fact]
     public void Uninstall_NoPriorForeign_RemovesTheKeyEntirely()
     {
-        var installed = $"model = \"gpt-5.6-sol\"\nnotify = [{string.Join(", ", OurArgv.Select(a => $"\"{a}\""))}]\n";
+        var installed = $"model = \"gpt-5.6-sol\"\nnotify = [{string.Join(", ", s_ourArgv.Select(a => $"\"{a}\""))}]\n";
 
-        var result = CodexConfigTomlNotifyEditor.Uninstall(installed, OurArgv, null);
+        var result = CodexConfigTomlNotifyEditor.Uninstall(installed, s_ourArgv, null);
 
         Assert.Equal(HookUninstallOutcome.Removed, result.Outcome);
         Assert.DoesNotContain("notify", result.ConfigToml);
@@ -150,7 +150,7 @@ public sealed class CodexConfigTomlNotifyEditorTests
         // edit landed since): must not clobber it.
         const string edited = "notify = [\"/something/else\"]\n";
 
-        var result = CodexConfigTomlNotifyEditor.Uninstall(edited, OurArgv, ["/usr/local/bin/herdr-notify"]);
+        var result = CodexConfigTomlNotifyEditor.Uninstall(edited, s_ourArgv, ["/usr/local/bin/herdr-notify"]);
 
         Assert.Equal(HookUninstallOutcome.NotPresent, result.Outcome);
         Assert.Equal(edited, result.ConfigToml);
@@ -159,7 +159,7 @@ public sealed class CodexConfigTomlNotifyEditorTests
     [Fact]
     public void Uninstall_MissingFile_NotPresent()
     {
-        var result = CodexConfigTomlNotifyEditor.Uninstall(null, OurArgv, null);
+        var result = CodexConfigTomlNotifyEditor.Uninstall(null, s_ourArgv, null);
 
         Assert.Equal(HookUninstallOutcome.NotPresent, result.Outcome);
     }

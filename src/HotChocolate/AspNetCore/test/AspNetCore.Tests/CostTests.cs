@@ -1,4 +1,7 @@
 using System.Net;
+#if !NET11_0_OR_GREATER
+using System.Net.Http.Json;
+#endif
 using System.Text;
 using System.Text.Json;
 using HotChocolate.AspNetCore.Tests.Utilities;

@@ -311,11 +311,11 @@ public sealed class ShareableFieldRuntimeTypeRoutingPlanningTests : FusionTestBa
             schema
               @fusion__execution(
                 shareableFieldRuntimeTypeRouting: {{routing switch
-                {
-                    ShareableFieldRuntimeTypeRouting.SourceLocal => "SOURCE_LOCAL",
-                    ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes => "COMMON_RUNTIME_TYPES",
-                    _ => throw new ArgumentOutOfRangeException(nameof(routing))
-                }}}) {
+            {
+                ShareableFieldRuntimeTypeRouting.SourceLocal => "SOURCE_LOCAL",
+                ShareableFieldRuntimeTypeRouting.CommonRuntimeTypes => "COMMON_RUNTIME_TYPES",
+                _ => throw new ArgumentOutOfRangeException(nameof(routing))
+            }}}) {
               query: Query
             }
 

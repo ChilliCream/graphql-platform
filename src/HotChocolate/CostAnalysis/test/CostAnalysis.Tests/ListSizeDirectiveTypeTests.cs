@@ -1,6 +1,5 @@
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Execution;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;

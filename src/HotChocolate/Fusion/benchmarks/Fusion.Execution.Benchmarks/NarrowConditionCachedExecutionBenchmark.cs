@@ -1,16 +1,10 @@
-using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using HotChocolate;
 using HotChocolate.Execution;
-using HotChocolate.Fusion;
-using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +19,7 @@ public class NarrowConditionCachedExecutionBenchmark
 
     private static readonly string s_expectedResult = CreateExpectedResult();
     private static readonly string s_documentText = CreateDocument();
-    private static readonly IReadOnlyDictionary<string, object> s_variables = CreateVariables();
+    private static readonly IReadOnlyDictionary<string, object?> s_variables = CreateVariables();
 
     private readonly CacheDiagnosticListener _diagnosticListener = new();
     private IRequestExecutor _executor = null!;
@@ -57,7 +51,6 @@ public class NarrowConditionCachedExecutionBenchmark
         await VerifyCachedExecutionAsync();
     }
 
-
     [Benchmark(Baseline = true)]
     public Task<ExecutionResultKind> Execute_Cached_Narrow()
         => ExecuteAsync();
@@ -65,7 +58,6 @@ public class NarrowConditionCachedExecutionBenchmark
     [Benchmark]
     public Task<ExecutionResultKind> Execute_Cached_Narrow_BaselineCopy()
         => ExecuteAsync();
-
 
     private async Task VerifyCachedExecutionAsync()
     {
@@ -126,10 +118,9 @@ public class NarrowConditionCachedExecutionBenchmark
         return await services.BuildGatewayAsync();
     }
 
-
-    private static IReadOnlyDictionary<string, object> CreateVariables()
+    private static IReadOnlyDictionary<string, object?> CreateVariables()
     {
-        var variables = new Dictionary<string, object>(ConditionCount);
+        var variables = new Dictionary<string, object?>(ConditionCount);
 
         for (var i = 0; i < ConditionCount; i++)
         {

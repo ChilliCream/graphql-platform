@@ -196,15 +196,13 @@ internal abstract record TuiMessage
 
     /// <summary>
     /// The mail board's agent filter quick picker should open, scoped to
-    /// <see cref="ChilliCream.Nitro.CommandLine.Tui.Mail.MailMailbox.Workspace"/>.
+    /// <see cref="Mail.MailMailbox.Workspace"/>.
     /// </summary>
     public sealed record AgentFilterPickerRequested : TuiMessage;
 
     /// <summary>
-    /// The mail board's list pane should toggle between
-    /// <see cref="ChilliCream.Nitro.CommandLine.Tui.Mail.MailListMode.Threads"/>
-    /// and <see cref="ChilliCream.Nitro.CommandLine.Tui.Mail.MailListMode.Flat"/>
-    /// (Shift+V).
+    /// The mail board's list pane should toggle between <see cref="Mail.MailListMode.Threads"/>
+    /// and <see cref="Mail.MailListMode.Flat"/> (Shift+V).
     /// </summary>
     public sealed record ToggleListModeRequested : TuiMessage;
 

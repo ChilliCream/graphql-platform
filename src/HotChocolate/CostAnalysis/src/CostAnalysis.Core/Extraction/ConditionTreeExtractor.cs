@@ -110,8 +110,8 @@ internal static class ConditionTreeExtractor
             }
         }
 
-        return fragments ?? EmptyFragments;
+        return fragments ?? s_emptyFragments;
     }
 
-    private static readonly Dictionary<string, FragmentDefinitionNode> EmptyFragments = [];
+    private static readonly Dictionary<string, FragmentDefinitionNode> s_emptyFragments = [];
 }

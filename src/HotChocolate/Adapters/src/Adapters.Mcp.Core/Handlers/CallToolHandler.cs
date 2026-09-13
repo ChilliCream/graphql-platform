@@ -24,10 +24,10 @@ internal static class CallToolHandler
 #endif
     public static async ValueTask<CallToolResult> HandleAsync(
         RequestContext<CallToolRequestParams> context,
+        IServiceProvider schemaServices,
         CancellationToken cancellationToken)
     {
-        var services = context.Services!;
-        var registry = services.GetRequiredService<McpFeatureRegistry>();
+        var registry = schemaServices.GetRequiredService<McpFeatureRegistry>();
 
         if (!registry.TryGetTool(context.Params!.Name, out var tool))
         {
@@ -59,8 +59,9 @@ internal static class CallToolHandler
             };
         }
 
-        var requestExecutor = services.GetRequiredService<IRequestExecutor>();
-        var rootServiceProvider = services.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
+        var requestExecutor = schemaServices.GetRequiredService<IRequestExecutor>();
+        var rootServiceProvider =
+            schemaServices.GetRequiredService<IRootServiceProviderAccessor>().ServiceProvider;
         var httpContext = rootServiceProvider.GetRequiredService<IHttpContextAccessor>().HttpContext!;
         var diagnosticEvents = requestExecutor.Schema.Services.GetRequiredService<IServerDiagnosticEvents>();
         var requestBuilder = CreateRequestBuilder(httpContext);

@@ -1,5 +1,3 @@
-using HotChocolate.Types;
-
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
