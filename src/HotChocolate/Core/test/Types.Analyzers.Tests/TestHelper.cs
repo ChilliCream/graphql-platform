@@ -435,7 +435,9 @@ internal static partial class TestHelper
                 new DataLoaderKeyedServiceOnConstructorParameterAnalyzer(),
                 new DataLoaderKeyedServiceKeyNotDeterminableAnalyzer(),
                 new DataLoaderMissingInterfaceImplementationAnalyzer(),
-                new DataLoaderPublicInterfaceAccessModifierAnalyzer());
+                new DataLoaderPublicInterfaceAccessModifierAnalyzer(),
+                new BatchResolverOnMutationFieldAnalyzer(),
+                new BatchResolverMiddlewareNotSupportedAnalyzer());
 
             var compilationWithAnalyzers = analyzerCompilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;

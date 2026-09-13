@@ -44,11 +44,26 @@ public static class WellKnownAttributes
     public const string BatchResolverAttribute = "HotChocolate.Types.BatchResolverAttribute";
     public const string GraphQLTypeAttribute = "HotChocolate.GraphQLTypeAttribute";
     public const string IsSelectedAttribute = "HotChocolate.Types.IsSelectedAttribute";
+    public const string UseDataLoaderAttribute = "HotChocolate.Types.UseDataLoaderAttribute";
+    public const string UseFirstOrDefaultAttribute = "HotChocolate.Data.UseFirstOrDefaultAttribute";
+    public const string UseSingleOrDefaultAttribute = "HotChocolate.Data.UseSingleOrDefaultAttribute";
 
     public static HashSet<string> BindAttributes { get; } =
     [
         BindMemberAttribute,
         BindFieldAttribute
+    ];
+
+    /// <summary>
+    /// Attributes that register a middleware supporting only the per-parent resolver pipeline.
+    /// Attributes with a batch-aware twin (e.g. UsePaging, UseFiltering, UseSorting,
+    /// UseProjection, UseConnection, UseOffsetPaging, Authorize) are never listed here.
+    /// </summary>
+    public static HashSet<string> PerParentMiddlewareAttributes { get; } =
+    [
+        UseDataLoaderAttribute,
+        UseFirstOrDefaultAttribute,
+        UseSingleOrDefaultAttribute
     ];
 
     public static HashSet<string> TypeAttributes { get; } =
