@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -1200,10 +1201,13 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         using (Writer.IncreaseIndent())
         {
-            // IsSelected and QueryContext parameters bind over the union of every context's
-            // include condition flags in the batch.
+            // IsSelected, QueryContext, ConnectionFlags and PagingArguments parameters bind over
+            // the union of every context's include condition flags in the batch.
             if (resolver.Parameters.Any(
-                p => p.Kind is ResolverParameterKind.IsSelected or ResolverParameterKind.QueryContext))
+                p => p.Kind is ResolverParameterKind.IsSelected
+                    or ResolverParameterKind.QueryContext
+                    or ResolverParameterKind.ConnectionFlags
+                    or ResolverParameterKind.PagingArguments))
             {
                 Writer.WriteIndentedLine(
                     "var batchSelectionContext = global::{0}.CreateBatchSelectionContext(contexts);",
@@ -1292,7 +1296,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         break;
 
                     case ResolverParameterKind.PagingArguments:
-                        WritePagingArguments(i, "contexts[0]");
+                        WritePagingArguments(i, "batchSelectionContext");
                         break;
 
                     case ResolverParameterKind.ClaimsPrincipal:
@@ -1375,7 +1379,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                     case ResolverParameterKind.ConnectionFlags:
                         Writer.WriteIndentedLine(
-                            "var args{0} = global::{1}.GetConnectionFlags(contexts[0]);",
+                            "var args{0} = global::{1}.GetConnectionFlags(batchSelectionContext);",
                             i,
                             WellKnownTypes.ConnectionFlagsHelper);
                         break;
@@ -1665,13 +1669,28 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     }
 
     /// <summary>
-    /// Emits the batch result distribution: an <c>IList</c> result must contain exactly one
-    /// entry per context, a null result is left undistributed, and any other non-null result
-    /// throws <see cref="InvalidOperationException"/>.
+    /// Emits the batch result distribution: a null result assigns null to every context, an
+    /// <c>IList</c> result must contain exactly one entry per context, and any other non-null
+    /// result throws <see cref="InvalidOperationException"/>.
     /// </summary>
     private void WriteBatchResultDistribution()
     {
-        Writer.WriteIndentedLine("if (result is global::{0} list)", WellKnownTypes.IList);
+        Writer.WriteIndentedLine("if (result is null)");
+        Writer.WriteIndentedLine("{");
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine("for (var i = 0; i < contexts.Length; i++)");
+            Writer.WriteIndentedLine("{");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine("contexts[i].Result = null;");
+            }
+
+            Writer.WriteIndentedLine("}");
+        }
+
+        Writer.WriteIndentedLine("}");
+        Writer.WriteIndentedLine("else if (result is global::{0} list)", WellKnownTypes.IList);
         Writer.WriteIndentedLine("{");
         using (Writer.IncreaseIndent())
         {
@@ -1710,7 +1729,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
 
         Writer.WriteIndentedLine("}");
-        Writer.WriteIndentedLine("else if (result is not null)");
+        Writer.WriteIndentedLine("else");
         Writer.WriteIndentedLine("{");
         using (Writer.IncreaseIndent())
         {
@@ -1963,7 +1982,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     /// </summary>
     private void WriteBatchResolverReturnTypeSchemaError(Resolver resolver)
     {
-        var declaringType = resolver.Member.ContainingType.ToDisplayString();
+        var declaringType = GetReflectionFullName(resolver.Member.ContainingType);
         var message = GeneratorUtils.EscapeForStringLiteral(
             $"The batch resolver method '{declaringType}.{resolver.Member.Name}' must return a "
             + "list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch "
@@ -1985,6 +2004,29 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
 
         Writer.WriteIndentedLine("}");
+    }
+
+    /// <summary>
+    /// Renders a type's full name the way <see cref="Type.FullName"/> does at runtime: the
+    /// namespace followed by the containing-type chain joined with <c>+</c> for nested types.
+    /// </summary>
+    private static string GetReflectionFullName(INamedTypeSymbol type)
+    {
+        var typeNames = new Stack<string>();
+        var outermost = type;
+
+        for (var current = type; current is not null; current = current.ContainingType)
+        {
+            typeNames.Push(current.Name);
+            outermost = current;
+        }
+
+        var typeChain = string.Join("+", typeNames);
+        var containingNamespace = outermost.ContainingNamespace;
+
+        return containingNamespace is { IsGlobalNamespace: false }
+            ? $"{containingNamespace.ToDisplayString()}.{typeChain}"
+            : typeChain;
     }
 
     /// <summary>

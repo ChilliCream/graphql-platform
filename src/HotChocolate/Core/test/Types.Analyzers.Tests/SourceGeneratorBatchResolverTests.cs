@@ -205,6 +205,59 @@ public class SourceGeneratorBatchResolverTests
     }
 
     [Fact]
+    public void BatchResolver_Should_NameNestedDeclaringType_LikeReflection_When_ReturnTypeIsNotIList()
+    {
+        // arrange
+        // ThrowHelper (reflection path) names a nested declaring type via Type.FullName ("Outer+
+        // Inner"); the generated schema error must match it byte for byte instead of using the
+        // display-string form ("Outer.Inner").
+        const string source =
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public static partial class Container
+            {
+                [ObjectType<Brand>]
+                public static partial class BrandNode
+                {
+                    [BatchResolver]
+                    public static IEnumerable<string> GetLabel([Parent] List<Brand> brands)
+                        => brands.Select(b => $"label-{b.Name}");
+                }
+            }
+
+            public class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+            """;
+
+        const string expectedMessage =
+            "The batch resolver method 'TestNamespace.Container+BrandNode.GetLabel' must return a "
+            + "list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch "
+            + "resolvers return one result per parent object, so the return type must be a "
+            + "collection.";
+
+        string? generatedSource = null;
+
+        // act
+        TestHelper.GetGeneratedSourceSnapshot(
+            source,
+            compilation => generatedSource = compilation.SyntaxTrees
+                .Select(tree => tree.ToString())
+                .FirstOrDefault(text => text.Contains("GetLabel()", StringComparison.Ordinal)));
+
+        // assert
+        Assert.Contains(expectedMessage, generatedSource, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task BatchResolver_Should_ThrowResultCountMismatch_When_ListLengthDoesNotMatchContexts()
     {
         // arrange
@@ -261,6 +314,75 @@ public class SourceGeneratorBatchResolverTests
                 && error.Exception.Message.Equals(
                     "A batch resolver must return exactly one result per context. Expected 2 results but got 1.",
                     StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task BatchResolver_Should_AssignNullToEveryContext_When_ResultIsNull()
+    {
+        // arrange
+        // a null batch result must assign null to every context's Result, matching the
+        // reflection path (BatchResolverCompiler.DistributeList), instead of leaving results
+        // undistributed.
+        var assembly = TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<Brand> GetBrands()
+                    => new()
+                    {
+                        new Brand { Id = 1, Name = "Acme" },
+                        new Brand { Id = 2, Name = "Globex" }
+                    };
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static List<string?>? GetLabel([Parent] List<Brand> brands)
+                    => null;
+            }
+            """,
+            "SourceGeneratorBatchNullResultRepro");
+
+        // act
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(assembly, "{ brands { name label } }");
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors ?? []);
+        operationResult.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "brands": [
+                  {
+                    "name": "Acme",
+                    "label": null
+                  },
+                  {
+                    "name": "Globex",
+                    "label": null
+                  }
+                ]
+              }
+            }
+            """);
     }
 
     [Fact]
@@ -485,4 +607,312 @@ public class SourceGeneratorBatchResolverTests
             }
             """,
             assemblyName);
+
+    [Fact]
+    public async Task PagingArguments_Should_ClampToMaxPageSize_When_FirstAndLastOmitted_OnBothEmissionSites()
+    {
+        // arrange
+        // [UseConnection(DefaultPageSize = 100, MaxPageSize = 20)] must clamp the effective page
+        // size to 20 (Math.Min) when first/last are omitted, for both a singular resolver and a
+        // [BatchResolver], each binding PagingArguments directly (implicit PageConnection<T>
+        // paging), not just the classic [UsePaging] middleware path.
+        var assembly = TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using System.Linq;
+            using System.Threading.Tasks;
+            using GreenDonut.Data;
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Pagination;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+
+            public sealed class Product
+            {
+                public int Id { get; set; }
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<Brand> GetBrands()
+                    => new() { new Brand { Id = 1, Name = "Acme" } };
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [UseConnection(DefaultPageSize = 100, MaxPageSize = 20)]
+                public static PageConnection<Product> GetSingularProducts(
+                    [Parent] Brand brand,
+                    PagingArguments arguments)
+                    => new(CreatePage(arguments));
+
+                [BatchResolver]
+                [UseConnection(DefaultPageSize = 100, MaxPageSize = 20)]
+                public static Task<List<PageConnection<Product>>> GetBatchProductsAsync(
+                    [Parent] List<Brand> brands,
+                    PagingArguments arguments)
+                {
+                    var connection = new PageConnection<Product>(CreatePage(arguments));
+                    return Task.FromResult(brands.Select(_ => connection).ToList());
+                }
+
+                private static Page<Product> CreatePage(PagingArguments arguments)
+                    => Page<Product>.Create(
+                        Enumerable.Range(0, arguments.First ?? 0)
+                            .Select(id => new Product { Id = id })
+                            .ToImmutableArray(),
+                        hasNextPage: false,
+                        hasPreviousPage: false,
+                        createCursor: p => p.Id.ToString());
+            }
+            """,
+            "SourceGeneratorPagingArgumentsClampRepro");
+
+        // act
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(
+            assembly,
+            """
+            {
+                brands {
+                    singularProducts { edges { node { id } } }
+                    batchProducts { edges { node { id } } }
+                }
+            }
+            """);
+
+        // assert
+        // DefaultPageSize 100 is clamped down to MaxPageSize 20 on both emission sites, so
+        // exactly 20 edges (ids 0-19) come back for each even though first/last were omitted.
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "brands": [
+                  {
+                    "singularProducts": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": 0
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 1
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 2
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 3
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 4
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 5
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 6
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 7
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 8
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 9
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 10
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 11
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 12
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 13
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 14
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 15
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 16
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 17
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 18
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 19
+                          }
+                        }
+                      ]
+                    },
+                    "batchProducts": {
+                      "edges": [
+                        {
+                          "node": {
+                            "id": 0
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 1
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 2
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 3
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 4
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 5
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 6
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 7
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 8
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 9
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 10
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 11
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 12
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 13
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 14
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 15
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 16
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 17
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 18
+                          }
+                        },
+                        {
+                          "node": {
+                            "id": 19
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+            """);
+    }
 }

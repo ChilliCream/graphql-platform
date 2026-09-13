@@ -2,11 +2,8 @@ using Microsoft.CodeAnalysis;
 
 namespace HotChocolate.Types;
 
-// REPRO: the ParentAttributeAnalyzer blesses [Parent] list shapes (T[], ImmutableArray<T>,
-// IReadOnlyList<T>) and BatchResolverAttribute's own XML docs advertise IReadOnlyList<T> and T[],
-// but WriteBatchResolver emits "new {ParamType}(contexts.Length)" verbatim, so only List<T> compiles.
-// These tests assert the generated assembly emits cleanly (the post-fix behavior). They fail today
-// because the generated .hc.g.cs contains compiler errors (CS1586 / CS1729 / CS0144).
+// A [BatchResolver] method's [Parent] parameter supports T[], ImmutableArray<T> and
+// IReadOnlyList<T>, in addition to List<T>; the generated code must compile for each shape.
 public class ParentAttributeBatchResolverCompilationTests
 {
     [Fact]

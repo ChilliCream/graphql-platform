@@ -128,19 +128,20 @@ namespace TestNamespace
 
             private async global::System.Threading.Tasks.ValueTask GetProductsAsync(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
+                var batchSelectionContext = global::HotChocolate.ResolverContextExtensions.CreateBatchSelectionContext(contexts);
                 var args0 = new global::System.Collections.Generic.List<global::TestNamespace.Brand>(contexts.Length);
-                var args1_options = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(contexts[0].Schema, contexts[0].Selection.Field);
-                var args1_flags = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(contexts[0]);
-                var args1_first = contexts[0].ArgumentValue<int?>("first");
-                var args1_after = contexts[0].ArgumentValue<string?>("after");
+                var args1_options = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(batchSelectionContext.Schema, batchSelectionContext.Selection.Field);
+                var args1_flags = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(batchSelectionContext);
+                var args1_first = batchSelectionContext.ArgumentValue<int?>("first");
+                var args1_after = batchSelectionContext.ArgumentValue<string?>("after");
                 int? args1_last = null;
                 string? args1_before = null;
                 bool args1_includeTotalCount = false;
 
                 if(args1_options.AllowBackwardPagination ?? global::HotChocolate.Types.Pagination.PagingDefaults.AllowBackwardPagination)
                 {
-                    args1_last = contexts[0].ArgumentValue<int?>("last");
-                    args1_before = contexts[0].ArgumentValue<string?>("before");
+                    args1_last = batchSelectionContext.ArgumentValue<int?>("last");
+                    args1_before = batchSelectionContext.ArgumentValue<string?>("before");
                 }
 
                 if(args1_first is null && args1_last is null)
@@ -182,7 +183,14 @@ namespace TestNamespace
 
                 var result = await global::TestNamespace.BrandNode.GetProductsAsync(args0, args1, args2, args3);
 
-                if (result is global::System.Collections.IList list)
+                if (result is null)
+                {
+                    for (var i = 0; i < contexts.Length; i++)
+                    {
+                        contexts[i].Result = null;
+                    }
+                }
+                else if (result is global::System.Collections.IList list)
                 {
                     if (list.Count != contexts.Length)
                     {
@@ -198,7 +206,7 @@ namespace TestNamespace
                         contexts[i].Result = list[i];
                     }
                 }
-                else if (result is not null)
+                else
                 {
                     throw new global::System.InvalidOperationException(
                         global::System.String.Concat("Batch resolver must return a list type. Got: ", result.GetType(), "."));

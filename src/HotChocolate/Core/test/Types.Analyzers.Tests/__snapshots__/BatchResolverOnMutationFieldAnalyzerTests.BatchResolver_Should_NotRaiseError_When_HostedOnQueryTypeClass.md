@@ -171,7 +171,14 @@ namespace TestNamespace
 
                 var result = global::TestNamespace.Query.GetProductNames(args0);
 
-                if (result is global::System.Collections.IList list)
+                if (result is null)
+                {
+                    for (var i = 0; i < contexts.Length; i++)
+                    {
+                        contexts[i].Result = null;
+                    }
+                }
+                else if (result is global::System.Collections.IList list)
                 {
                     if (list.Count != contexts.Length)
                     {
@@ -187,7 +194,7 @@ namespace TestNamespace
                         contexts[i].Result = list[i];
                     }
                 }
-                else if (result is not null)
+                else
                 {
                     throw new global::System.InvalidOperationException(
                         global::System.String.Concat("Batch resolver must return a list type. Got: ", result.GetType(), "."));
