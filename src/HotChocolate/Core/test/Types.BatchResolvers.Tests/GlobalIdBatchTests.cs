@@ -4,9 +4,9 @@ public sealed partial class GlobalIdBatchTests : BatchScenarioTests
 {
     protected override BatchDeclarations Declarations => new()
     {
-        Attribute = new Declaration(ConfigureAttribute, nameof(IdProductAttributeExtension.GetExternalId)),
-        SourceGenerated = new Declaration(ConfigureSourceGenerated, nameof(IdProductNode.GetExternalId)),
-        Fluent = new Declaration(ConfigureFluent, nameof(FluentIdResolvers.GetExternalId))
+        Attribute = new Declaration(ConfigureAttribute),
+        SourceGenerated = new Declaration(ConfigureSourceGenerated),
+        Fluent = new Declaration(ConfigureFluent)
     };
 
     [Theory]

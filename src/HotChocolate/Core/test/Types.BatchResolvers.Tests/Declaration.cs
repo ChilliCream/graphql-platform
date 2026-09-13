@@ -2,7 +2,7 @@ using HotChocolate.Execution.Configuration;
 
 namespace HotChocolate.Types.BatchResolvers;
 
-public sealed record Declaration(Action<IRequestExecutorBuilder> Configure, string MemberName)
+public sealed record Declaration(Action<IRequestExecutorBuilder> Configure)
 {
     public string? NotApplicableReason { get; private init; }
 
@@ -10,7 +10,7 @@ public sealed record Declaration(Action<IRequestExecutorBuilder> Configure, stri
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
 
-        return new Declaration(_ => throw ThrowHelper.DeclarationNotApplicable(reason), string.Empty)
+        return new Declaration(_ => throw ThrowHelper.DeclarationNotApplicable(reason))
         {
             NotApplicableReason = reason
         };

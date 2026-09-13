@@ -113,7 +113,7 @@ public sealed class MatrixCoverageTests
     private static string DescribeCell(Declaration declaration)
         => declaration.NotApplicableReason is { } reason
             ? $"NotApplicable({reason})"
-            : $"Declared({declaration.MemberName})";
+            : "Declared";
 
     private static string RenderMarkdown(
         IReadOnlyList<(string Family, string Scenario, DeclarationStyle Style, string Cell)> rows)
