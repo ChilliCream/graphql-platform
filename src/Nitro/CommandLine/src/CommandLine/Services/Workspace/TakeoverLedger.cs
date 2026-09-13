@@ -35,16 +35,6 @@ internal sealed class TakeoverLedger(
             cancellationToken,
             transaction);
 
-        var headerParameters = new DynamicParameters();
-        headerParameters.Add("Id", id);
-        headerParameters.Add("FromActor", creation.FromActor);
-        headerParameters.Add("ToActor", creation.ToActor);
-        headerParameters.Add("Actor", creation.Actor);
-        headerParameters.Add("CreatedAt", createdAt);
-        headerParameters.Add("Forced", creation.Forced);
-        headerParameters.Add("Role", creation.Role);
-        headerParameters.Add("Reason", creation.Reason);
-
         await connection.ExecuteAsync(
             new CommandDefinition(
                 """
@@ -55,7 +45,17 @@ internal sealed class TakeoverLedger(
                 @Id, @FromActor, @ToActor, @Actor, @CreatedAt, @Forced, @Role, @Reason
             );
             """,
-                headerParameters,
+                new
+                {
+                    Id = id,
+                    creation.FromActor,
+                    creation.ToActor,
+                    creation.Actor,
+                    CreatedAt = createdAt,
+                    creation.Forced,
+                    creation.Role,
+                    creation.Reason
+                },
                 transaction,
                 cancellationToken: cancellationToken));
 
@@ -98,12 +98,12 @@ internal sealed class TakeoverLedger(
         await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
 
         var where = new List<string>();
-        var parameters = new DynamicParameters();
+        var parameters = new Dictionary<string, object?>();
 
         if (filter.Actor is not null)
         {
             where.Add("(t.from_actor = @Actor OR t.to_actor = @Actor)");
-            parameters.Add("Actor", filter.Actor);
+            parameters["Actor"] = filter.Actor;
         }
 
         if (filter.MessageId is not null)
@@ -118,7 +118,7 @@ internal sealed class TakeoverLedger(
                         AND i.kind IN ('message_sender', 'message_recipient')
                 )
                 """);
-            parameters.Add("MessageId", filter.MessageId);
+            parameters["MessageId"] = filter.MessageId;
         }
 
         if (filter.TaskId is not null)
@@ -133,48 +133,46 @@ internal sealed class TakeoverLedger(
                         AND i.item_id = @TaskId
                 )
                 """);
-            parameters.Add("TaskId", filter.TaskId);
+            parameters["TaskId"] = filter.TaskId;
         }
 
-        parameters.Add("Limit", filter.Limit);
+        parameters["Limit"] = filter.Limit;
 
-        var rows = (await connection.QueryAsync<TakeoverRecordRow>(
-            new CommandDefinition(
-                $"""
+        var sql =
+            $"""
             SELECT {TakeoverRecord.Columns}
             FROM agent_takeovers AS t
             {(where.Count == 0 ? string.Empty : $"WHERE {string.Join(" AND ", where)}")}
             ORDER BY t.created_at DESC, t.id DESC
             LIMIT COALESCE(@Limit, -1);
-            """,
-                parameters,
-                cancellationToken: cancellationToken))).ToArray();
+            """;
 
-        if (rows.Length == 0)
+        var rows = await ExecuteRecordQueryAsync(connection, sql, parameters, cancellationToken);
+
+        if (rows.Count == 0)
         {
             return [];
         }
 
-        var itemParameters = new DynamicParameters();
-        var itemNames = new string[rows.Length];
+        var itemParameters = new Dictionary<string, object?>();
+        var itemNames = new string[rows.Count];
 
-        for (var index = 0; index < rows.Length; index++)
+        for (var index = 0; index < rows.Count; index++)
         {
             var name = $"TakeoverId{index}";
             itemNames[index] = $"@{name}";
-            itemParameters.Add(name, rows[index].Id);
+            itemParameters[name] = rows[index].Id;
         }
 
-        var itemRows = await connection.QueryAsync<TakeoverItemRow>(
-            new CommandDefinition(
-                $"""
+        var itemsSql =
+            $"""
             SELECT takeover_id AS TakeoverId, kind AS Kind, item_id AS ItemId
             FROM agent_takeover_items
             WHERE takeover_id IN ({string.Join(", ", itemNames)})
             ORDER BY takeover_id, kind, item_id;
-            """,
-                itemParameters,
-                cancellationToken: cancellationToken));
+            """;
+
+        var itemRows = await ExecuteItemQueryAsync(connection, itemsSql, itemParameters, cancellationToken);
         var itemsByTakeoverId = itemRows
             .GroupBy(item => item.TakeoverId, StringComparer.Ordinal)
             .ToDictionary(group => group.Key, group => (IReadOnlyList<TakeoverItem>)group
@@ -193,6 +191,89 @@ internal sealed class TakeoverLedger(
             Reason = row.Reason,
             Items = itemsByTakeoverId.GetValueOrDefault(row.Id, [])
         }).ToArray();
+    }
+
+    // The WHERE and IN clauses here are assembled at runtime from the filter,
+    // so the SQL text is never a call-site literal; Dapper.AOT can only
+    // intercept calls whose SQL it can read at compile time. Reading through
+    // plain ADO.NET instead of Dapper's reflection fallback keeps this path
+    // free of runtime code generation.
+    private static async Task<List<TakeoverRecordRow>> ExecuteRecordQueryAsync(
+        SqliteConnection connection,
+        string sql,
+        IReadOnlyDictionary<string, object?> parameters,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        foreach (var (name, value) in parameters)
+        {
+            command.Parameters.AddWithValue("@" + name, value ?? DBNull.Value);
+        }
+
+        var results = new List<TakeoverRecordRow>();
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var id = reader.GetOrdinal("Id");
+        var fromActor = reader.GetOrdinal("FromActor");
+        var toActor = reader.GetOrdinal("ToActor");
+        var actor = reader.GetOrdinal("Actor");
+        var createdAt = reader.GetOrdinal("CreatedAt");
+        var forced = reader.GetOrdinal("Forced");
+        var role = reader.GetOrdinal("Role");
+        var reason = reader.GetOrdinal("Reason");
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            results.Add(new TakeoverRecordRow
+            {
+                Id = reader.GetString(id),
+                FromActor = reader.GetString(fromActor),
+                ToActor = reader.GetString(toActor),
+                Actor = reader.GetString(actor),
+                CreatedAt = reader.GetString(createdAt),
+                Forced = reader.GetBoolean(forced),
+                Role = reader.IsDBNull(role) ? null : reader.GetString(role),
+                Reason = reader.IsDBNull(reason) ? null : reader.GetString(reason)
+            });
+        }
+
+        return results;
+    }
+
+    private static async Task<List<TakeoverItemRow>> ExecuteItemQueryAsync(
+        SqliteConnection connection,
+        string sql,
+        IReadOnlyDictionary<string, object?> parameters,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        foreach (var (name, value) in parameters)
+        {
+            command.Parameters.AddWithValue("@" + name, value ?? DBNull.Value);
+        }
+
+        var results = new List<TakeoverItemRow>();
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var takeoverId = reader.GetOrdinal("TakeoverId");
+        var kind = reader.GetOrdinal("Kind");
+        var itemId = reader.GetOrdinal("ItemId");
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            results.Add(new TakeoverItemRow
+            {
+                TakeoverId = reader.GetString(takeoverId),
+                Kind = reader.GetString(kind),
+                ItemId = reader.GetString(itemId)
+            });
+        }
+
+        return results;
     }
 
     private string? FindWorkspaceDirectory()
