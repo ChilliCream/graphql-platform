@@ -43,7 +43,10 @@ public class ParameterExpressionBuilderTests
     {
         // arrange
         var services = new ServiceCollection()
+            .AddSingleton(new BatchNodeAuthorizationProbe(true))
+            .AddSingleton(new BatchAuthorizationProbe(true))
             .AddGraphQLServer()
+            .AddAuthorizationHandler(s => s.GetRequiredService<BatchNodeAuthorizationProbe>())
             .AddIntegrationTestTypesCore()
             .AddPagingArguments();
 
