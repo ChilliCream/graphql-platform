@@ -501,7 +501,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         if (resolver.DescriptorAttributes.Length > 0
             || resolver.IsNodeResolver
-            || resolver.IsConnectionResolver)
+            || resolver.IsConnectionResolver
+            || resolver.Kind is ResolverKind.BatchResolver)
         {
             Writer.WriteLine();
             Writer.WriteIndentedLine("configuration.Member = context.ThisType.GetMethod(");

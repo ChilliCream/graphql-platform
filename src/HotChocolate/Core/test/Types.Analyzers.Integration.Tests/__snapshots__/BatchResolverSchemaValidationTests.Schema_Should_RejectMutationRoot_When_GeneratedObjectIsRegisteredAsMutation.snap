@@ -1,7 +1,7 @@
 [
   {
     "Code": "HC0135",
-    "Message": "The mutation field `ValidationMutation.value` cannot be resolved by the batch resolver 'ValidationMutation.value'. Top-level mutation fields execute serially, one field at a time, so there is never more than one parent to batch. Use a standard resolver instead.",
+    "Message": "The mutation field `ValidationMutation.value` cannot be resolved by the batch resolver 'HotChocolate.Types.ValidationMutationType.GetValue'. Top-level mutation fields execute serially, one field at a time, so there is never more than one parent to batch. Use a standard resolver instead.",
     "Extensions": {
       "fieldCoordinate": {
         "OfDirective": false,

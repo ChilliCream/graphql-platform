@@ -79,6 +79,14 @@ namespace TestNamespace
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetDisplayName",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Collections.Immutable.ImmutableArray<global::TestNamespace.Product>)
+                        })!;
+
                     configuration.BatchResolver = context.Resolvers.GetDisplayName();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -129,7 +137,7 @@ namespace TestNamespace
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "ProductNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (61,32)-(61,114)",
+    "Location": "ProductNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (69,32)-(69,114)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1729)",
     "MessageFormat": "'{0}' does not contain a constructor that takes {1} arguments",
     "Message": "'ImmutableArray<Product>' does not contain a constructor that takes 1 arguments",

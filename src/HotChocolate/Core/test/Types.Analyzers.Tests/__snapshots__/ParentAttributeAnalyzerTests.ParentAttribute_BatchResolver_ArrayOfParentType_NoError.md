@@ -79,6 +79,14 @@ namespace TestNamespace
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetDisplayName",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::TestNamespace.Product[])
+                        })!;
+
                     configuration.BatchResolver = context.Resolvers.GetDisplayName();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -129,7 +137,7 @@ namespace TestNamespace
     "Title": "",
     "Severity": "Error",
     "WarningLevel": 0,
-    "Location": "ProductNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (61,61)-(61,63)",
+    "Location": "ProductNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (69,61)-(69,63)",
     "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1586)",
     "MessageFormat": "Array creation must have array size or array initializer",
     "Message": "Array creation must have array size or array initializer",

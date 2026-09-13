@@ -97,6 +97,15 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetGreeting",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Collections.Generic.List<global::TestNamespace.User>),
+                            typeof(global::TestNamespace.CurrentUser)
+                        })!;
+
                     var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
 
                     bindingResolver.ApplyConfiguration(

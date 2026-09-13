@@ -79,6 +79,21 @@ namespace TestNamespace
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetGreeting",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Collections.Generic.List<global::TestNamespace.User>),
+                            typeof(global::System.Threading.CancellationToken),
+                            typeof(global::System.Security.Claims.ClaimsPrincipal),
+                            typeof(global::HotChocolate.Language.DocumentNode),
+                            typeof(global::HotChocolate.Language.FieldNode),
+                            typeof(global::HotChocolate.Types.IOutputFieldDefinition),
+                            typeof(global::HotChocolate.Types.Pagination.ConnectionFlags),
+                            typeof(global::HotChocolate.Execution.ISelection)
+                        })!;
+
                     configuration.BatchResolver = context.Resolvers.GetGreeting();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
