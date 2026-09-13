@@ -136,14 +136,13 @@ public class SourceGeneratorBatchResolverTests
 
         // assert
         var exception = await Assert.ThrowsAsync<SchemaException>(Fail);
+        var expected = BatchResolverErrors
+            .ReturnTypeMustBeList(assembly.GetType("Repro.BrandNode")!, "GetLabel")
+            .Errors[0]
+            .Message;
         Assert.Collection(
             exception.Errors,
-            error => Assert.Contains(
-                "The batch resolver method 'Repro.BrandNode.GetLabel' must return a list type "
-                + "(e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch resolvers "
-                + "return one result per parent object, so the return type must be a collection.",
-                error.Message,
-                StringComparison.Ordinal));
+            error => Assert.Contains(expected, error.Message, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -195,14 +194,13 @@ public class SourceGeneratorBatchResolverTests
 
         // assert
         var exception = await Assert.ThrowsAsync<SchemaException>(Fail);
+        var expected = BatchResolverErrors
+            .ReturnTypeMustBeList(assembly.GetType("Repro.BrandNode")!, "GetLabel")
+            .Errors[0]
+            .Message;
         Assert.Collection(
             exception.Errors,
-            error => Assert.Contains(
-                "The batch resolver method 'Repro.BrandNode.GetLabel' must return a list type "
-                + "(e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch resolvers "
-                + "return one result per parent object, so the return type must be a collection.",
-                error.Message,
-                StringComparison.Ordinal));
+            error => Assert.Contains(expected, error.Message, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -255,15 +253,13 @@ public class SourceGeneratorBatchResolverTests
 
         // assert
         var exception = await Assert.ThrowsAsync<SchemaException>(Fail);
+        var expected = BatchResolverErrors
+            .ArgumentMustBeList(assembly.GetType("Repro.BrandNode")!, "GetLabel", "brands")
+            .Errors[0]
+            .Message;
         Assert.Collection(
             exception.Errors,
-            error => Assert.Contains(
-                "The parameter 'Repro.BrandNode.GetLabel(brands)' on a batch resolver must be a "
-                + "list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch "
-                + "resolvers receive one value per parent object, so all argument parameters "
-                + "must be collections.",
-                error.Message,
-                StringComparison.Ordinal));
+            error => Assert.Contains(expected, error.Message, StringComparison.Ordinal));
     }
 
     [Fact]
@@ -319,15 +315,13 @@ public class SourceGeneratorBatchResolverTests
 
         // assert
         var exception = await Assert.ThrowsAsync<SchemaException>(Fail);
+        var expected = BatchResolverErrors
+            .ArgumentMustBeList(assembly.GetType("Repro.BrandNode")!, "GetLabel", "prefix")
+            .Errors[0]
+            .Message;
         Assert.Collection(
             exception.Errors,
-            error => Assert.Contains(
-                "The parameter 'Repro.BrandNode.GetLabel(prefix)' on a batch resolver must be a "
-                + "list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch "
-                + "resolvers receive one value per parent object, so all argument parameters "
-                + "must be collections.",
-                error.Message,
-                StringComparison.Ordinal));
+            error => Assert.Contains(expected, error.Message, StringComparison.Ordinal));
     }
 
     [Fact]
