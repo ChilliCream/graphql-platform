@@ -1683,11 +1683,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     }
 
     /// <summary>
-    /// Emits the batch result distribution: a null result assigns null to every context, an
-    /// <c>IList</c> result must contain exactly one entry per context, and any other non-null
-    /// result throws <see cref="InvalidOperationException"/>. A non-nullable value type result
-    /// (<c>ImmutableArray&lt;T&gt;</c>) can never be null, so the null branch is a compile error
-    /// (CS0037) and is skipped for that shape.
+    /// Emits the batch result distribution; a non-nullable value type result is never null, so
+    /// the null branch is omitted for it.
     /// </summary>
     private void WriteBatchResultDistribution(bool resultIsNonNullableValueType)
     {

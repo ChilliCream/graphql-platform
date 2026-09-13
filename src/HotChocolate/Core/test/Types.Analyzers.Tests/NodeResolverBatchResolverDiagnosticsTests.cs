@@ -1,10 +1,7 @@
 namespace HotChocolate.Types;
 
-// A [NodeResolver][BatchResolver] method used to register through
-// INodeDescriptor<TNode>.ResolveNodeBatchWith(MethodInfo) before the id-parameter validation
-// loop ran, so InvalidNodeResolverArgumentName and TooManyNodeResolverArguments never fired for
-// it. The loop must run for batch node resolvers too, using the same id rule as singular node
-// resolvers (parameter named `id` or ending in `Id`, otherwise the first parameter).
+// The id-parameter validation loop applies to [NodeResolver][BatchResolver] methods too, using
+// the same id rule as singular node resolvers.
 public class NodeResolverBatchResolverDiagnosticsTests
 {
     [Fact]
