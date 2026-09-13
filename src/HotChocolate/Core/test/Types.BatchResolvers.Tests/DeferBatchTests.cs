@@ -33,8 +33,8 @@ public sealed partial class DeferBatchTests : BatchScenarioTests
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Single(Probe.Invocations);
         Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot(style);
+        Assert.Single(Probe.Invocations);
     }
 
     [Theory]
@@ -61,8 +61,8 @@ public sealed partial class DeferBatchTests : BatchScenarioTests
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Single(Probe.Invocations);
         Assert.IsType<ResponseStream>(result).MatchMarkdownSnapshot(style);
+        Assert.Single(Probe.Invocations);
     }
 
     [Theory]
@@ -92,7 +92,7 @@ public sealed partial class DeferBatchTests : BatchScenarioTests
             .Build();
 
         // act
-        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        await using var result = await ExecuteAsync(executor, request, TestContext.Current.CancellationToken);
 
         // assert
         var batch = Assert.IsType<OperationResultBatch>(result);

@@ -51,12 +51,12 @@ public abstract class BatchScenarioTests : IAsyncLifetime
 
     protected static Task<IExecutionResult> ExecuteAsync(
         IRequestExecutor executor,
-        OperationRequest request)
+        IOperationRequest request)
         => ExecuteAsync(executor, request, TestContext.Current.CancellationToken);
 
     protected static Task<IExecutionResult> ExecuteAsync(
         IRequestExecutor executor,
-        OperationRequest request,
+        IOperationRequest request,
         CancellationToken cancellationToken)
         => executor.ExecuteAsync(request, cancellationToken)
             .WaitAsync(TimeSpan.FromSeconds(10), cancellationToken);

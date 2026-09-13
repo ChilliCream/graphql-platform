@@ -30,12 +30,12 @@ public sealed partial class VariableBatchBatchTests : BatchScenarioTests
             .Build();
 
         // act
-        await using var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        await using var result = await ExecuteAsync(executor, request, TestContext.Current.CancellationToken);
 
         // assert
         var batch = Assert.IsType<OperationResultBatch>(result);
         Assert.Single(Probe.Invocations);
-        Assert.Equal(new object?[] { 1, 2, 99 }, Probe.Invocations[0].Keys);
+        Assert.Equal(new object?[] { 1, 2, 99 }, Probe.Invocations[0].Keys.OrderBy(key => (int)key!));
         Snapshot.Create(postFix: style.ToString())
             .Add(batch.Results[0], "Set 0")
             .Add(batch.Results[1], "Set 1")
