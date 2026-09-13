@@ -1063,6 +1063,44 @@ public class ObjectTypeTests
     }
 
     [Fact]
+    public async Task BatchResolver_With_QueryContext_MatchesSnapshot()
+    {
+        // a batch QueryContext selector must build from the union-flags-backed batch selection
+        // context, not contexts[0] alone.
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using GreenDonut.Data;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public sealed class Order
+            {
+                public int UserId { get; set; }
+            }
+
+            [ObjectType<User>]
+            public static partial class UserExtensions
+            {
+                [BatchResolver]
+                public static List<IQueryable<Order>> GetOrders(
+                    [Parent] List<User> users,
+                    QueryContext<Order> query)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
     public async Task BatchResolver_With_Service_MatchesSnapshot()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

@@ -374,7 +374,7 @@ namespace TestNamespace.Types.Nodes
 
                 if(args1_first is null && args1_last is null)
                 {
-                    args1_first = args1_options.DefaultPageSize ?? global::HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize;
+                    args1_first = global::HotChocolate.Types.Pagination.PagingHelper.GetEffectiveDefaultPageSize(args1_options);
                 }
 
                 if(args1_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
@@ -550,7 +550,7 @@ namespace TestNamespace.Types.Root
 
                 if(args0_first is null && args0_last is null)
                 {
-                    args0_first = args0_options.DefaultPageSize ?? global::HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize;
+                    args0_first = global::HotChocolate.Types.Pagination.PagingHelper.GetEffectiveDefaultPageSize(args0_options);
                 }
 
                 if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
@@ -594,7 +594,7 @@ namespace TestNamespace.Types.Root
 
                 if(args0_first is null && args0_last is null)
                 {
-                    args0_first = args0_options.DefaultPageSize ?? global::HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize;
+                    args0_first = global::HotChocolate.Types.Pagination.PagingHelper.GetEffectiveDefaultPageSize(args0_options);
                 }
 
                 if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)

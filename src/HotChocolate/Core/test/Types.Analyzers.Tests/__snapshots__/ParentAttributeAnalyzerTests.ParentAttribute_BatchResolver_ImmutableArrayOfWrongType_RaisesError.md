@@ -103,20 +103,30 @@ namespace TestNamespace
 
             private global::System.Threading.Tasks.ValueTask GetDisplayName(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
-                var args0 = new global::System.Collections.Immutable.ImmutableArray<global::TestNamespace.Brand>(contexts.Length);
+                var args0_items = new global::System.Collections.Generic.List<global::TestNamespace.Brand>(contexts.Length);
 
                 for (var i = 0; i < contexts.Length; i++)
                 {
-                    args0.Add(contexts[i].Parent<global::TestNamespace.Brand>());
+                    args0_items.Add(contexts[i].Parent<global::TestNamespace.Brand>());
                 }
+                var args0 = global::System.Collections.Immutable.ImmutableArray.ToImmutableArray(args0_items);
 
                 var result = global::TestNamespace.ProductNode.GetDisplayName(args0);
 
                 if (result is global::System.Collections.IList list)
                 {
+                    if (list.Count != contexts.Length)
+                    {
+                        throw new global::System.InvalidOperationException(
+                            global::System.String.Format(
+                                "A batch resolver must return exactly one result per context. Expected {0} results but got {1}.",
+                                contexts.Length,
+                                list.Count));
+                    }
+
                     for (var i = 0; i < contexts.Length; i++)
                     {
-                        contexts[i].Result = i < list.Count ? list[i] : null;
+                        contexts[i].Result = list[i];
                     }
                 }
                 return default;
@@ -142,29 +152,6 @@ namespace TestNamespace
     "Message": "The parameter type 'ImmutableArray' must be 'Product' or a base type/interface that 'Product' implements",
     "Category": "TypeSystem",
     "CustomTags": []
-  }
-]
-```
-
-## Assembly Emit Diagnostics
-
-```json
-[
-  {
-    "Id": "CS1729",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "ProductNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (69,32)-(69,112)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1729)",
-    "MessageFormat": "'{0}' does not contain a constructor that takes {1} arguments",
-    "Message": "'ImmutableArray<Brand>' does not contain a constructor that takes 1 arguments",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
   }
 ]
 ```

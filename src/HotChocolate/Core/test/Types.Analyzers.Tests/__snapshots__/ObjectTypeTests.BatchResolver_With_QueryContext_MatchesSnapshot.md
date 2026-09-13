@@ -1,4 +1,4 @@
-# BatchResolver_Async_MatchesSnapshot
+# BatchResolver_With_QueryContext_MatchesSnapshot
 
 ## HotChocolateTypeModule.735550c.g.cs
 
@@ -62,7 +62,7 @@ namespace TestNamespace
             var naming = descriptor.Extend().Context.Naming;
 
             descriptor
-                .Field(naming.GetMemberName("Greeting", global::HotChocolate.Types.MemberKind.ObjectField))
+                .Field(naming.GetMemberName("Orders", global::HotChocolate.Types.MemberKind.ObjectField))
                 .ExtendWith(static (field, context) =>
                 {
                     var configuration = field.Configuration;
@@ -71,30 +71,24 @@ namespace TestNamespace
                     var naming = field.Context.Naming;
 
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
-                        typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
-                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
-                    configuration.ResultType = typeof(string);
+                        typeInspector.GetTypeRef(typeof(global::TestNamespace.Order), HotChocolate.Types.TypeContext.Output),
+                        new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Order")))));
+                    configuration.ResultType = typeof(global::System.Linq.IQueryable<global::TestNamespace.Order>);
                     configuration.DeclaringType = context.ThisType;
 
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
 
                     configuration.Member = context.ThisType.GetMethod(
-                        "GetGreeting",
+                        "GetOrders",
                         global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
                         new global::System.Type[]
                         {
                             typeof(global::System.Collections.Generic.List<global::TestNamespace.User>),
-                            typeof(global::System.Threading.CancellationToken),
-                            typeof(global::System.Security.Claims.ClaimsPrincipal),
-                            typeof(global::HotChocolate.Language.DocumentNode),
-                            typeof(global::HotChocolate.Language.FieldNode),
-                            typeof(global::HotChocolate.Types.IOutputFieldDefinition),
-                            typeof(global::HotChocolate.Types.Pagination.ConnectionFlags),
-                            typeof(global::HotChocolate.Execution.ISelection)
+                            typeof(global::GreenDonut.Data.QueryContext<global::TestNamespace.Order>)
                         })!;
 
-                    configuration.BatchResolver = context.Resolvers.GetGreeting();
+                    configuration.BatchResolver = context.Resolvers.GetOrders();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
 
@@ -105,26 +99,27 @@ namespace TestNamespace
 
         private sealed class __Resolvers
         {
-            public HotChocolate.Resolvers.BatchFieldDelegate GetGreeting()
-                => GetGreeting;
+            public HotChocolate.Resolvers.BatchFieldDelegate GetOrders()
+                => GetOrders;
 
-            private async global::System.Threading.Tasks.ValueTask GetGreeting(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
+            private global::System.Threading.Tasks.ValueTask GetOrders(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
+                var batchSelectionContext = global::HotChocolate.ResolverContextExtensions.CreateBatchSelectionContext(contexts);
                 var args0 = new global::System.Collections.Generic.List<global::TestNamespace.User>(contexts.Length);
-                var args1 = contexts[0].RequestAborted;
-                var args2 = contexts[0].GetGlobalState<global::System.Security.Claims.ClaimsPrincipal>("ClaimsPrincipal");
-                var args3 = contexts[0].Operation.Document;
-                var args4 = contexts[0].Selection.SyntaxNodes[0].Node;
-                var args5 = contexts[0].Selection.Field;
-                var args6 = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(contexts[0]);
-                var args7 = contexts[0].Selection;
+                var args1_selection = batchSelectionContext.Selection;
+                var args1_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(batchSelectionContext);
+                var args1_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(batchSelectionContext);
+                var args1 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Order>(
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Order>(args1_selection, batchSelectionContext.IncludeConditionFlags),
+                    args1_filter?.AsPredicate<global::TestNamespace.Order>(),
+                    args1_sorting?.AsSortDefinition<global::TestNamespace.Order>());
 
                 for (var i = 0; i < contexts.Length; i++)
                 {
                     args0.Add(contexts[i].Parent<global::TestNamespace.User>());
                 }
 
-                var result = await global::TestNamespace.UserExtensions.GetGreeting(args0, args1, args2, args3, args4, args5, args6, args7);
+                var result = global::TestNamespace.UserExtensions.GetOrders(args0, args1);
 
                 if (result is global::System.Collections.IList list)
                 {
@@ -142,6 +137,7 @@ namespace TestNamespace
                         contexts[i].Result = list[i];
                     }
                 }
+                return default;
             }
         }
     }

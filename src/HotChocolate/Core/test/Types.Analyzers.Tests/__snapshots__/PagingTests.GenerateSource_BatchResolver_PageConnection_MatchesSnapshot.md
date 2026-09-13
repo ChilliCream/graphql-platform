@@ -145,7 +145,7 @@ namespace TestNamespace
 
                 if(args1_first is null && args1_last is null)
                 {
-                    args1_first = args1_options.DefaultPageSize ?? global::HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize;
+                    args1_first = global::HotChocolate.Types.Pagination.PagingHelper.GetEffectiveDefaultPageSize(args1_options);
                 }
 
                 if(args1_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)
@@ -184,9 +184,18 @@ namespace TestNamespace
 
                 if (result is global::System.Collections.IList list)
                 {
+                    if (list.Count != contexts.Length)
+                    {
+                        throw new global::System.InvalidOperationException(
+                            global::System.String.Format(
+                                "A batch resolver must return exactly one result per context. Expected {0} results but got {1}.",
+                                contexts.Length,
+                                list.Count));
+                    }
+
                     for (var i = 0; i < contexts.Length; i++)
                     {
-                        contexts[i].Result = i < list.Count ? list[i] : null;
+                        contexts[i].Result = list[i];
                     }
                 }
             }

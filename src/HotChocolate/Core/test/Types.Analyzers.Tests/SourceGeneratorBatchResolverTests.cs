@@ -1,20 +1,5 @@
 using System.Reflection;
-using System.Runtime.Loader;
-using Basic.Reference.Assemblies;
-using GreenDonut;
-using GreenDonut.Data;
-using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Features;
-using HotChocolate.Language;
-using HotChocolate.Types.Analyzers;
-using HotChocolate.Types.Pagination;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
@@ -24,10 +9,9 @@ public class SourceGeneratorBatchResolverTests
     public async Task BatchResolver_Should_Bind_Argument_Per_Context_When_SourceGenerated()
     {
         // arrange
-        // a source-generated [BatchResolver] with a GraphQL argument; the generator emits
-        // contexts[i].ArgumentValue<string>("prefix"), so each aliased sibling must receive its
-        // own argument value and each parent its own positional result.
-        var assembly = CompileBatchAssembly(
+        // each aliased sibling must receive its own argument value and each parent its own
+        // positional result.
+        var assembly = TestHelper.CompileBatchAssembly(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -68,7 +52,7 @@ public class SourceGeneratorBatchResolverTests
             "SourceGeneratorBatchArgumentRepro");
 
         // act
-        var result = await ExecuteSourceGeneratedAsync(
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(
             assembly,
             """
             {
@@ -103,14 +87,12 @@ public class SourceGeneratorBatchResolverTests
     }
 
     [Fact]
-    public async Task BatchResolver_Should_Distribute_Results_When_ReturnTypeIsNotIList()
+    public async Task BatchResolver_Should_RaiseSchemaError_When_ReturnTypeIsNotIList()
     {
         // arrange
-        // REPRO: the generated batch delegate only distributes results when
-        // "result is System.Collections.IList". A [BatchResolver] returning a non-IList shape
-        // (here a LINQ IEnumerable<T>) leaves every context's Result null with no error. A default
-        // user expects per-parent values just like the List<T> path.
-        var assembly = CompileBatchAssembly(
+        // a [BatchResolver] returning a non-IList shape (here a lazy IEnumerable<T>) must raise a
+        // build-time schema error naming the member.
+        var assembly = TestHelper.CompileBatchAssembly(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -149,16 +131,127 @@ public class SourceGeneratorBatchResolverTests
             "SourceGeneratorBatchNonListRepro");
 
         // act
-        var result = await ExecuteSourceGeneratedAsync(
-            assembly,
+        async Task Fail() => await TestHelper.ExecuteSourceGeneratedAsync(assembly, "{ brands { name label } }");
+
+        // assert
+        var exception = await Assert.ThrowsAsync<SchemaException>(Fail);
+        Assert.Collection(
+            exception.Errors,
+            error => Assert.Contains(
+                "The batch resolver method 'Repro.BrandNode.GetLabel' must return a list type "
+                + "(e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch resolvers "
+                + "return one result per parent object, so the return type must be a collection.",
+                error.Message,
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task BatchResolver_Should_ThrowResultCountMismatch_When_ListLengthDoesNotMatchContexts()
+    {
+        // arrange
+        // a [BatchResolver] must return exactly one result per context; returning fewer entries
+        // than parents must throw instead of silently null-filling.
+        var assembly = TestHelper.CompileBatchAssembly(
             """
+            using System.Collections.Generic;
+            using System.Linq;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public sealed class Brand
             {
-                brands {
-                    name
-                    label
-                }
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
             }
-            """);
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<Brand> GetBrands()
+                    => new()
+                    {
+                        new Brand { Id = 1, Name = "Acme" },
+                        new Brand { Id = 2, Name = "Globex" }
+                    };
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static List<string> GetLabel([Parent] List<Brand> brands)
+                    => brands.Take(1).Select(b => $"label-{b.Name}").ToList();
+            }
+            """,
+            "SourceGeneratorBatchResultCountMismatchRepro");
+
+        // act
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(assembly, "{ brands { name label } }");
+
+        // assert
+        // the mismatch is reported as a field error on the response.
+        var operationResult = result.ExpectOperationResult();
+        Assert.NotNull(operationResult.Errors);
+        Assert.Contains(
+            operationResult.Errors!,
+            error => error.Exception is InvalidOperationException
+                && error.Exception.Message.Equals(
+                    "A batch resolver must return exactly one result per context. Expected 2 results but got 1.",
+                    StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task BatchResolver_Should_Distribute_Results_When_ReturnTypeIsTaskOfList()
+    {
+        // arrange
+        // schema-build element-type inference must unwrap Task<>, not just ValueTask<>.
+        var assembly = TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Threading.Tasks;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<Brand> GetBrands()
+                    => new()
+                    {
+                        new Brand { Id = 1, Name = "Acme" },
+                        new Brand { Id = 2, Name = "Globex" }
+                    };
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static Task<List<string>> GetLabel([Parent] List<Brand> brands)
+                    => Task.FromResult(brands.Select(b => $"label-{b.Name}").ToList());
+            }
+            """,
+            "SourceGeneratorBatchTaskAsyncInferenceRepro");
+
+        // act
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(
+            assembly,
+            "{ brands { name label } }");
 
         // assert
         result.MatchInlineSnapshot(
@@ -180,121 +273,157 @@ public class SourceGeneratorBatchResolverTests
             """);
     }
 
-    private static async Task<IExecutionResult> ExecuteSourceGeneratedAsync(
-        Assembly assembly,
-        string query)
+    [Fact]
+    public async Task BatchResolver_Should_Bind_IsSelected_When_SourceGenerated()
     {
-        var builder = new ServiceCollection().AddGraphQLServer(disableDefaultSecurity: true);
+        // arrange
+        // [IsSelected] checks a child field within the current field's own composite selection.
+        var assembly = CompileIsSelectedRepro("SourceGeneratorBatchIsSelectedRepro");
 
-        var addModuleMethod = FindRegistrationMethod(
+        // act
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(
             assembly,
-            m =>
+            """
             {
-                var p = m.GetParameters();
-                return m.Name.Equals("AddDemo", StringComparison.Ordinal)
-                    && m.ReturnType == typeof(IRequestExecutorBuilder)
-                    && p.Length == 1
-                    && p[0].ParameterType == typeof(IRequestExecutorBuilder);
-            });
+                brands {
+                    manager {
+                        name
+                        email
+                    }
+                }
+            }
+            """);
 
-        addModuleMethod.Invoke(null, [builder]);
-
-        var executor = await builder.BuildRequestExecutorAsync();
-        return await executor.ExecuteAsync(query);
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "brands": [
+                  {
+                    "manager": {
+                      "name": "Acme",
+                      "email": "Acme@example.com"
+                    }
+                  },
+                  {
+                    "manager": {
+                      "name": "Globex",
+                      "email": "Globex@example.com"
+                    }
+                  }
+                ]
+              }
+            }
+            """);
     }
 
-    private static MethodInfo FindRegistrationMethod(
-        Assembly assembly,
-        Func<MethodInfo, bool> predicate)
+    [Fact]
+    public async Task BatchResolver_Should_Bind_IsSelected_When_ConditionsSpanOverflowWords()
     {
-        return assembly
-            .GetTypes()
-            .Where(t => t is { IsAbstract: true, IsSealed: true }
-                && t.Namespace == "Microsoft.Extensions.DependencyInjection")
-            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static))
-            .Single(predicate);
+        // arrange
+        // 64 filler conditions occupy Word0 (indexes 0-63), so the condition guarding "email"
+        // lands in Overflow; the batch [IsSelected] binding must thread the full ConditionFlags,
+        // not just Word0, to see it.
+        const int fillerCount = 64;
+        var assembly = CompileIsSelectedRepro("SourceGeneratorBatchIsSelectedOverflowRepro");
+
+        var fillerVariables = string.Join(
+            ", ",
+            Enumerable.Range(0, fillerCount).Select(i => $"$u{i}: Boolean = false"));
+        var fillerFields = string.Concat(
+            Enumerable.Range(0, fillerCount)
+                .Select(i => $"                    f{i}: id @include(if: $u{i})\n"));
+
+        // act
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(
+            assembly,
+            $$"""
+            query($real: Boolean = true, {{fillerVariables}}) {
+                brands {
+            {{fillerFields}}                manager {
+                        name
+                        email @include(if: $real)
+                    }
+                }
+            }
+            """);
+
+        // assert
+        // every filler field is excluded, so the shape matches the non-overflow proof above.
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "brands": [
+                  {
+                    "manager": {
+                      "name": "Acme",
+                      "email": "Acme@example.com"
+                    }
+                  },
+                  {
+                    "manager": {
+                      "name": "Globex",
+                      "email": "Globex@example.com"
+                    }
+                  }
+                ]
+              }
+            }
+            """);
     }
 
-    private static Assembly CompileBatchAssembly(string source, string assemblyName)
-    {
-        var parseOptions = CSharpParseOptions.Default;
-        var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
+    private static Assembly CompileIsSelectedRepro(string assemblyName)
+        => TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using HotChocolate;
+            using HotChocolate.Types;
 
-        IEnumerable<PortableExecutableReference> references =
-        [
-#if NET8_0
-            .. Net80.References.All,
-#elif NET9_0
-            .. Net90.References.All,
-#elif NET10_0
-            .. Net100.References.All,
-#elif NET11_0
-            .. Net110.References.All,
-#endif
-            MetadataReference.CreateFromFile(typeof(ITypeSystemMember).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(RequestDelegate).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(RequestContext).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(HotChocolateExecutionSelectionExtensions).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(IRequestExecutorBuilder).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(ISelection).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(QueryTypeAttribute).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(PageConnection<>).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(ISchemaDefinition).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(IFeatureProvider).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(OperationType).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
-            MetadataReference.CreateFromFile(
-                typeof(HotChocolateAspNetCoreServiceCollectionExtensions).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(DataLoaderBase<,>).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(IDataLoader).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(DefaultPredicateBuilder).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
-            MetadataReference.CreateFromFile(
-                typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location),
-            MetadataReference.CreateFromFile(typeof(UseOffsetPagingAttribute).Assembly.Location)
-        ];
+            [assembly: Module("Demo")]
 
-        var compilation = CSharpCompilation.Create(
-            assemblyName: assemblyName,
-            syntaxTrees: [syntaxTree],
-            references: references,
-            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            namespace Repro;
 
-        var driver = CSharpGeneratorDriver
-            .Create(new GraphQLServerGenerator())
-            .RunGenerators(compilation);
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
 
-        var generatedTrees = driver
-            .GetRunResult()
-            .Results
-            .SelectMany(t => t.GeneratedSources)
-            .Select(s => CSharpSyntaxTree.ParseText(s.SourceText, parseOptions, path: s.HintName));
+            public sealed class Manager
+            {
+                public string Name { get; set; } = default!;
+                public string? Email { get; set; }
+            }
 
-        var updatedCompilation = compilation.AddSyntaxTrees(generatedTrees);
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<Brand> GetBrands()
+                    => new()
+                    {
+                        new Brand { Id = 1, Name = "Acme" },
+                        new Brand { Id = 2, Name = "Globex" }
+                    };
+            }
 
-        using var stream = new MemoryStream();
-        var emitResult = updatedCompilation.Emit(stream);
-
-        if (!emitResult.Success)
-        {
-            throw new InvalidOperationException(
-                string.Join(
-                    Environment.NewLine,
-                    emitResult.Diagnostics
-                        .OrderBy(d => d.Severity)
-                        .ThenBy(d => d.Id)
-                        .Select(d => d.ToString())));
-        }
-
-        stream.Position = 0;
-
-        var context = new AssemblyLoadContext(assemblyName, isCollectible: true);
-        return context.LoadFromStream(stream);
-    }
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static List<Manager> GetManager(
+                    [Parent] List<Brand> brands,
+                    [IsSelected("email")] bool wantsEmail)
+                    => brands
+                        .Select(b => new Manager
+                        {
+                            Name = b.Name,
+                            Email = wantsEmail ? $"{b.Name}@example.com" : null
+                        })
+                        .ToList();
+            }
+            """,
+            assemblyName);
 }

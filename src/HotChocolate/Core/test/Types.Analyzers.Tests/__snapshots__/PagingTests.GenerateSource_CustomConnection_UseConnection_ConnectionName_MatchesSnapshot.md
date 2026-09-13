@@ -106,7 +106,7 @@ namespace TestNamespace
 
                 if(args0_first is null && args0_last is null)
                 {
-                    args0_first = args0_options.DefaultPageSize ?? global::HotChocolate.Types.Pagination.PagingDefaults.DefaultPageSize;
+                    args0_first = global::HotChocolate.Types.Pagination.PagingHelper.GetEffectiveDefaultPageSize(args0_options);
                 }
 
                 if(args0_options.IncludeTotalCount ?? global::HotChocolate.Types.Pagination.PagingDefaults.IncludeTotalCount)

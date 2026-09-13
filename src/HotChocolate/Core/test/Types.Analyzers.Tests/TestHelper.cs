@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -278,6 +280,91 @@ internal static partial class TestHelper
         }
 
         return snapshot;
+    }
+
+    /// <summary>
+    /// Compiles a source-generated module assembly (including a <c>[assembly: Module("...")]</c>
+    /// registration) and loads it into a collectible <see cref="AssemblyLoadContext"/>, for guards
+    /// that need to actually execute the generated code (not just inspect the emitted source or
+    /// diagnostics).
+    /// </summary>
+    public static Assembly CompileBatchAssembly(
+        [StringSyntax("csharp")] string sourceText,
+        string assemblyName)
+    {
+        var parseOptions = CSharpParseOptions.Default;
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, parseOptions);
+
+        var compilation = CSharpCompilation.Create(
+            assemblyName: assemblyName,
+            syntaxTrees: [syntaxTree],
+            references: s_references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var driver = CSharpGeneratorDriver
+            .Create(new GraphQLServerGenerator())
+            .RunGenerators(compilation);
+
+        var generatedTrees = driver
+            .GetRunResult()
+            .Results
+            .SelectMany(t => t.GeneratedSources)
+            .Select(s => CSharpSyntaxTree.ParseText(s.SourceText, parseOptions, path: s.HintName));
+
+        var updatedCompilation = compilation.AddSyntaxTrees(generatedTrees);
+
+        using var stream = new MemoryStream();
+        var emitResult = updatedCompilation.Emit(stream);
+
+        if (!emitResult.Success)
+        {
+            throw new InvalidOperationException(
+                string.Join(
+                    Environment.NewLine,
+                    emitResult.Diagnostics
+                        .OrderBy(d => d.Severity)
+                        .ThenBy(d => d.Id)
+                        .Select(d => d.ToString())));
+        }
+
+        stream.Position = 0;
+
+        var loadContext = new AssemblyLoadContext(assemblyName, isCollectible: true);
+        return loadContext.LoadFromStream(stream);
+    }
+
+    /// <summary>
+    /// Builds a GraphQL server from the module registration extension method generated for the
+    /// assembly produced by <see cref="CompileBatchAssembly"/> and executes <paramref name="query"/>
+    /// against it.
+    /// </summary>
+    public static async Task<IExecutionResult> ExecuteSourceGeneratedAsync(
+        Assembly assembly,
+        [StringSyntax("graphql")] string query,
+        Dictionary<string, object?>? variableValues = null)
+    {
+        var builder = new ServiceCollection().AddGraphQLServer(disableDefaultSecurity: true);
+
+        var addModuleMethod = assembly
+            .GetTypes()
+            .Where(t => t is { IsAbstract: true, IsSealed: true }
+                && t.Namespace == "Microsoft.Extensions.DependencyInjection")
+            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            .Single(m =>
+            {
+                var p = m.GetParameters();
+                return m.Name.StartsWith("Add", StringComparison.Ordinal)
+                    && m.ReturnType == typeof(IRequestExecutorBuilder)
+                    && p.Length == 1
+                    && p[0].ParameterType == typeof(IRequestExecutorBuilder);
+            });
+
+        addModuleMethod.Invoke(null, [builder]);
+
+        var executor = await builder.BuildRequestExecutorAsync();
+        return variableValues is null
+            ? await executor.ExecuteAsync(query)
+            : await executor.ExecuteAsync(query, variableValues);
     }
 
     public static ImmutableArray<Diagnostic> GetGeneratedAssemblyEmitDiagnostics(

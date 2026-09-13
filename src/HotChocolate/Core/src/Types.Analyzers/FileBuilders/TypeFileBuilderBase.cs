@@ -1165,6 +1165,14 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     {
         var isAsync = resolver.ResultKind is ResolverResultKind.Task or ResolverResultKind.TaskAsyncEnumerable;
 
+        // A batch resolver must return a list type (List<T>, IReadOnlyList<T>, IList<T>, T[] or
+        // ImmutableArray<T>); a non-list return type is a schema build error.
+        if (!IsSupportedBatchReturnType(resolver.ReturnType))
+        {
+            WriteBatchResolverReturnTypeSchemaError(resolver);
+            return;
+        }
+
         // Public accessor method: returns BatchFieldDelegate
         Writer.WriteMethod(
             "public",
@@ -1192,6 +1200,16 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         using (Writer.IncreaseIndent())
         {
+            // IsSelected and QueryContext parameters bind over the union of every context's
+            // include condition flags in the batch.
+            if (resolver.Parameters.Any(
+                p => p.Kind is ResolverParameterKind.IsSelected or ResolverParameterKind.QueryContext))
+            {
+                Writer.WriteIndentedLine(
+                    "var batchSelectionContext = global::{0}.CreateBatchSelectionContext(contexts);",
+                    WellKnownTypes.ResolverContextExtensions);
+            }
+
             // Declare variables for batched parameters (parent, arguments) and singular parameters (services, state, etc.)
             for (var i = 0; i < resolver.Parameters.Length; i++)
             {
@@ -1200,23 +1218,36 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 switch (parameter.Kind)
                 {
                     case ResolverParameterKind.Parent:
+                    {
+                        // T[] and ImmutableArray<T> parents are materialized from the List<T>
+                        // builder after the collection loop below.
+                        var elementType = GetListElementType(parameter.Type);
+                        var shape = GetBatchCollectionShape(parameter.Type);
+                        var builderName = shape is BatchCollectionShape.List ? $"args{i}" : $"args{i}_items";
                         Writer.WriteIndentedLine(
-                            "var args{0} = new {1}(contexts.Length);",
-                            i,
-                            parameter.Type.ToFullyQualified());
+                            "var {0} = new global::System.Collections.Generic.List<{1}>(contexts.Length);",
+                            builderName,
+                            elementType);
                         break;
+                    }
 
                     case ResolverParameterKind.Argument:
+                    {
+                        var elementType = GetListElementType(parameter.Type);
+                        var shape = GetBatchCollectionShape(parameter.Type);
+                        var builderName = shape is BatchCollectionShape.List ? $"args{i}" : $"args{i}_items";
                         Writer.WriteIndentedLine(
-                            "var args{0} = new {1}(contexts.Length);",
-                            i,
-                            ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup));
+                            "var {0} = new global::System.Collections.Generic.List<{1}>(contexts.Length);",
+                            builderName,
+                            elementType);
                         break;
+                    }
 
                     case ResolverParameterKind.Unknown:
                         var parameterType =
                             ToFullyQualifiedString(parameter.Type, resolverMethod, typeLookup);
-                        var elementType = GetListElementType(parameter.Type);
+                        var unknownElementType = GetListElementType(parameter.Type);
+                        var unknownShape = GetBatchCollectionShape(parameter.Type);
                         Writer.WriteIndentedLine(
                             "var args{0}_arguments = _binding_{1}_{2}_kind is global::{3}.Argument",
                             i,
@@ -1227,7 +1258,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         {
                             Writer.WriteIndentedLine(
                                 "? new global::System.Collections.Generic.List<{0}>(contexts.Length)",
-                                elementType);
+                                unknownElementType);
                             Writer.WriteIndentedLine(": null;");
                         }
 
@@ -1241,10 +1272,29 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                                 resolver.Member.Name,
                                 parameter.Name,
                                 parameterType);
-                            Writer.WriteIndentedLine(
-                                ": ({0})(object)args{1}_arguments;",
-                                parameterType,
-                                i);
+
+                            switch (unknownShape)
+                            {
+                                case BatchCollectionShape.Array:
+                                    Writer.WriteIndentedLine(
+                                        ": args{0}_arguments!.ToArray();",
+                                        i);
+                                    break;
+
+                                case BatchCollectionShape.Immutable:
+                                    Writer.WriteIndentedLine(
+                                        ": global::System.Collections.Immutable.ImmutableArray"
+                                        + ".ToImmutableArray(args{0}_arguments!);",
+                                        i);
+                                    break;
+
+                                default:
+                                    Writer.WriteIndentedLine(
+                                        ": ({0})(object)args{1}_arguments;",
+                                        parameterType,
+                                        i);
+                                    break;
+                            }
                         }
 
                         break;
@@ -1346,11 +1396,13 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
                     case ResolverParameterKind.QueryContext:
                         var entityType = parameter.TypeParameters[0].ToFullyQualified();
-                        Writer.WriteIndentedLine("var args{0}_selection = contexts[0].Selection;", i);
-                        Writer.WriteIndentedLine("var args{0}_filter = global::{1}.GetFilterContext(contexts[0]);",
+                        Writer.WriteIndentedLine("var args{0}_selection = batchSelectionContext.Selection;", i);
+                        Writer.WriteIndentedLine(
+                            "var args{0}_filter = global::{1}.GetFilterContext(batchSelectionContext);",
                             i,
                             WellKnownTypes.FilterContextResolverContextExtensions);
-                        Writer.WriteIndentedLine("var args{0}_sorting = global::{1}.GetSortingContext(contexts[0]);",
+                        Writer.WriteIndentedLine(
+                            "var args{0}_sorting = global::{1}.GetSortingContext(batchSelectionContext);",
                             i,
                             WellKnownTypes.SortingContextResolverContextExtensions);
                         Writer.WriteIndentedLine(
@@ -1361,12 +1413,73 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         using (Writer.IncreaseIndent())
                         {
                             Writer.WriteIndentedLine(
-                                "global::{0}.AsSelector<{1}>(args{2}_selection, contexts[0].IncludeConditionFlags),",
+                                "global::{0}.AsSelector<{1}>(args{2}_selection, "
+                                + "batchSelectionContext.IncludeConditionFlags),",
                                 WellKnownTypes.HotChocolateExecutionSelectionExtensions,
                                 entityType,
                                 i);
                             Writer.WriteIndentedLine("args{0}_filter?.AsPredicate<{1}>(),", i, entityType);
                             Writer.WriteIndentedLine("args{0}_sorting?.AsSortDefinition<{1}>());", i, entityType);
+                        }
+
+                        break;
+
+                    case ResolverParameterKind.IsSelected:
+                        var (variant, fieldNames, _) = GetIsSelectedInfo(parameter);
+
+                        switch (variant)
+                        {
+                            case IsSelectedVariant.SingleField:
+                                Writer.WriteIndentedLine(
+                                    "var args{0} = batchSelectionContext.Select().IsSelected(\"{1}\");",
+                                    i,
+                                    fieldNames[0]);
+                                break;
+
+                            case IsSelectedVariant.MultipleFields:
+                                var sb = new StringBuilder();
+                                for (var j = 0; j < fieldNames.Length; j++)
+                                {
+                                    if (j > 0)
+                                    {
+                                        sb.Append(", ");
+                                    }
+
+                                    sb.Append('"');
+                                    sb.Append(fieldNames[j]);
+                                    sb.Append('"');
+                                }
+
+                                Writer.WriteIndentedLine(
+                                    "var args{0} = batchSelectionContext.Select().IsSelected({1});",
+                                    i,
+                                    sb.ToString());
+                                break;
+
+                            case IsSelectedVariant.FieldSet:
+                                Writer.WriteIndentedLine(
+                                    "var args{0} = batchSelectionContext.Select().IsSelected(_isSelected_{1}_{2});",
+                                    i,
+                                    resolver.Member.Name,
+                                    parameter.Name);
+                                break;
+
+                            case IsSelectedVariant.Pattern:
+                                Writer.WriteIndentedLine(
+                                    "var args{0}_selectionContext = "
+                                    + "new global::HotChocolate.Resolvers.IsSelectedContext("
+                                    + "batchSelectionContext.Schema, batchSelectionContext.Select());",
+                                    i);
+                                Writer.WriteIndentedLine(
+                                    "global::HotChocolate.Resolvers.IsSelectedVisitor.Instance.Visit("
+                                    + "_isSelected_{0}_{1}, args{2}_selectionContext);",
+                                    resolver.Member.Name,
+                                    parameter.Name,
+                                    i);
+                                Writer.WriteIndentedLine(
+                                    "var args{0} = args{0}_selectionContext.AllSelected;",
+                                    i);
+                                break;
                         }
 
                         break;
@@ -1416,9 +1529,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             {
                                 // Get the element type from the list parameter (e.g. List<User> -> User)
                                 var elementType = GetListElementType(parameter.Type);
+                                var builderName = GetBatchCollectionShape(parameter.Type) is BatchCollectionShape.List
+                                    ? $"args{i}"
+                                    : $"args{i}_items";
                                 Writer.WriteIndentedLine(
-                                    "args{0}.Add(contexts[i].Parent<{1}>());",
-                                    i,
+                                    "{0}.Add(contexts[i].Parent<{1}>());",
+                                    builderName,
                                     elementType);
                                 break;
                             }
@@ -1426,9 +1542,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             case ResolverParameterKind.Argument:
                             {
                                 var elementType = GetListElementType(parameter.Type);
+                                var builderName = GetBatchCollectionShape(parameter.Type) is BatchCollectionShape.List
+                                    ? $"args{i}"
+                                    : $"args{i}_items";
                                 Writer.WriteIndentedLine(
-                                    "args{0}.Add(contexts[i].ArgumentValue<{1}>(\"{2}\"));",
-                                    i,
+                                    "{0}.Add(contexts[i].ArgumentValue<{1}>(\"{2}\"));",
+                                    builderName,
                                     elementType,
                                     parameter.Key ?? parameter.Name);
                                 break;
@@ -1458,6 +1577,32 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 Writer.WriteIndentedLine("}");
             }
 
+            // Materialize batch-collected Parent/Argument parameters into their declared shape
+            // (T[] or ImmutableArray<T>) once the collection loop above has populated the builder.
+            for (var i = 0; i < resolver.Parameters.Length; i++)
+            {
+                var parameter = resolver.Parameters[i];
+
+                if (parameter.Kind is not (ResolverParameterKind.Parent or ResolverParameterKind.Argument))
+                {
+                    continue;
+                }
+
+                switch (GetBatchCollectionShape(parameter.Type))
+                {
+                    case BatchCollectionShape.Array:
+                        Writer.WriteIndentedLine("var args{0} = args{0}_items.ToArray();", i);
+                        break;
+
+                    case BatchCollectionShape.Immutable:
+                        Writer.WriteIndentedLine(
+                            "var args{0} = global::System.Collections.Immutable.ImmutableArray"
+                            + ".ToImmutableArray(args{0}_items);",
+                            i);
+                        break;
+                }
+            }
+
             Writer.WriteLine();
 
             // Call the user's batch resolver method.
@@ -1475,21 +1620,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
                 Writer.WriteLine();
-                Writer.WriteIndentedLine("if (result is global::{0} list)", WellKnownTypes.IList);
-                Writer.WriteIndentedLine("{");
-                using (Writer.IncreaseIndent())
-                {
-                    Writer.WriteIndentedLine("for (var i = 0; i < contexts.Length; i++)");
-                    Writer.WriteIndentedLine("{");
-                    using (Writer.IncreaseIndent())
-                    {
-                        Writer.WriteIndentedLine("contexts[i].Result = i < list.Count ? list[i] : null;");
-                    }
-
-                    Writer.WriteIndentedLine("}");
-                }
-
-                Writer.WriteIndentedLine("}");
+                WriteBatchResultDistribution();
             }
             else
             {
@@ -1500,23 +1631,57 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     GetResolverArgumentAssignments(resolver.Parameters.Length));
 
                 Writer.WriteLine();
-                Writer.WriteIndentedLine("if (result is global::{0} list)", WellKnownTypes.IList);
-                Writer.WriteIndentedLine("{");
-                using (Writer.IncreaseIndent())
-                {
-                    Writer.WriteIndentedLine("for (var i = 0; i < contexts.Length; i++)");
-                    Writer.WriteIndentedLine("{");
-                    using (Writer.IncreaseIndent())
-                    {
-                        Writer.WriteIndentedLine("contexts[i].Result = i < list.Count ? list[i] : null;");
-                    }
-
-                    Writer.WriteIndentedLine("}");
-                }
-
-                Writer.WriteIndentedLine("}");
+                WriteBatchResultDistribution();
                 Writer.WriteIndentedLine("return default;");
             }
+        }
+
+        Writer.WriteIndentedLine("}");
+    }
+
+    /// <summary>
+    /// Emits the batch result distribution: a list result must contain exactly one entry per
+    /// context, or an <see cref="InvalidOperationException"/> is thrown; a null result is left
+    /// undistributed.
+    /// </summary>
+    private void WriteBatchResultDistribution()
+    {
+        Writer.WriteIndentedLine("if (result is global::{0} list)", WellKnownTypes.IList);
+        Writer.WriteIndentedLine("{");
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine("if (list.Count != contexts.Length)");
+            Writer.WriteIndentedLine("{");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine(
+                    "throw new global::{0}(",
+                    WellKnownTypes.InvalidOperationException);
+                using (Writer.IncreaseIndent())
+                {
+                    Writer.WriteIndentedLine(
+                        "global::System.String.Format(");
+                    using (Writer.IncreaseIndent())
+                    {
+                        Writer.WriteIndentedLine(
+                            "\"A batch resolver must return exactly one result per context. "
+                            + "Expected {0} results but got {1}.\",");
+                        Writer.WriteIndentedLine("contexts.Length,");
+                        Writer.WriteIndentedLine("list.Count));");
+                    }
+                }
+            }
+
+            Writer.WriteIndentedLine("}");
+            Writer.WriteLine();
+            Writer.WriteIndentedLine("for (var i = 0; i < contexts.Length; i++)");
+            Writer.WriteIndentedLine("{");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine("contexts[i].Result = list[i];");
+            }
+
+            Writer.WriteIndentedLine("}");
         }
 
         Writer.WriteIndentedLine("}");
@@ -1612,9 +1777,9 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         using (Writer.IncreaseIndent())
         {
             Writer.WriteIndentedLine(
-                "args{0}_first = args{0}_options.DefaultPageSize ?? global::{1}.DefaultPageSize;",
+                "args{0}_first = global::{1}.GetEffectiveDefaultPageSize(args{0}_options);",
                 i,
-                WellKnownTypes.PagingDefaults);
+                WellKnownTypes.PagingHelper);
         }
 
         Writer.WriteIndentedLine("}");
@@ -1675,6 +1840,156 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                 or "System.Collections.Generic.IReadOnlyList<T>"
                 or "System.Collections.Generic.IList<T>"
                 or "System.Collections.Immutable.ImmutableArray<T>";
+    }
+
+    /// <summary>
+    /// The materialization strategy for a batch-collected Parent/Argument parameter.
+    /// </summary>
+    private enum BatchCollectionShape
+    {
+        /// <summary>
+        /// The declared type is List&lt;T&gt; or an interface a List&lt;T&gt; builder satisfies
+        /// directly (IReadOnlyList&lt;T&gt;, IList&lt;T&gt;, IEnumerable&lt;T&gt;).
+        /// </summary>
+        List,
+
+        /// <summary>
+        /// The declared type is T[]; the List&lt;T&gt; builder is converted with ToArray().
+        /// </summary>
+        Array,
+
+        /// <summary>
+        /// The declared type is ImmutableArray&lt;T&gt;; the List&lt;T&gt; builder is converted
+        /// with ToImmutableArray().
+        /// </summary>
+        Immutable
+    }
+
+    /// <summary>
+    /// Determines how a batch-collected Parent/Argument parameter's List&lt;T&gt; builder must be
+    /// materialized to match its declared parameter type.
+    /// </summary>
+    private static BatchCollectionShape GetBatchCollectionShape(ITypeSymbol type)
+    {
+        if (type is IArrayTypeSymbol)
+        {
+            return BatchCollectionShape.Array;
+        }
+
+        if (type is INamedTypeSymbol { IsGenericType: true } namedType
+            && namedType.ConstructUnboundGenericType().ToDisplayString().Equals(
+                "System.Collections.Immutable.ImmutableArray<>",
+                StringComparison.Ordinal))
+        {
+            return BatchCollectionShape.Immutable;
+        }
+
+        return BatchCollectionShape.List;
+    }
+
+    /// <summary>
+    /// Determines whether a batch resolver's (already async-unwrapped) return type is a
+    /// supported list shape. A bare <c>IEnumerable&lt;T&gt;</c> is not supported.
+    /// </summary>
+    private static bool IsSupportedBatchReturnType(ITypeSymbol returnType)
+    {
+        if (returnType is INamedTypeSymbol { IsGenericType: true } namedType
+            && namedType.ConstructUnboundGenericType().ToDisplayString().Equals(
+                WellKnownTypes.EnumerableDefinition,
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        return TryGetListElementType(returnType, out _);
+    }
+
+    /// <summary>
+    /// Emits a batch resolver accessor that throws a <c>SchemaException</c> naming the member,
+    /// for a non-list return type.
+    /// </summary>
+    private void WriteBatchResolverReturnTypeSchemaError(Resolver resolver)
+    {
+        var declaringType = resolver.Member.ContainingType.ToDisplayString();
+        var message = GeneratorUtils.EscapeForStringLiteral(
+            $"The batch resolver method '{declaringType}.{resolver.Member.Name}' must return a "
+            + "list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch "
+            + "resolvers return one result per parent object, so the return type must be a "
+            + "collection.");
+
+        Writer.WriteIndentedLine(
+            "public global::{0} {1}()",
+            WellKnownTypes.BatchFieldDelegate,
+            resolver.Member.Name);
+        Writer.WriteIndentedLine("{");
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine(
+                "throw new global::{0}(global::{1}.New().SetMessage(\"{2}\").Build());",
+                WellKnownTypes.SchemaException,
+                WellKnownTypes.SchemaErrorBuilder,
+                message);
+        }
+
+        Writer.WriteIndentedLine("}");
+    }
+
+    /// <summary>
+    /// Emits <c>.ResolveNodeBatchWith(thisType.GetMethod(...)!)</c> for a
+    /// <c>[NodeResolver][BatchResolver]</c> method: registration through the public,
+    /// already-landed reflection entry point on <c>INodeDescriptor&lt;TNode&gt;</c>, which
+    /// consumes <c>BatchResolverCompiler</c>'s id-collector/list-shape/exact-count machinery
+    /// instead of a source-generated delegate body.
+    /// </summary>
+    protected void WriteResolveNodeBatchWith(Resolver resolver, ILocalTypeLookup typeLookup)
+    {
+        Writer.WriteIndentedLine(".ResolveNodeBatchWith(");
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine("thisType.GetMethod(");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine("\"{0}\",", resolver.Member.Name);
+                Writer.WriteIndentedLine(
+                    "global::{0},",
+                    resolver.IsStatic
+                        ? WellKnownTypes.StaticMemberFlags
+                        : WellKnownTypes.InstanceMemberFlags);
+
+                var resolverMethod = (IMethodSymbol)resolver.Member;
+
+                if (resolverMethod.Parameters.Length == 0)
+                {
+                    Writer.WriteIndentedLine("global::System.Array.Empty<global::System.Type>())!);");
+                }
+                else
+                {
+                    Writer.WriteIndentedLine("new global::System.Type[]");
+                    Writer.WriteIndentedLine("{");
+                    using (Writer.IncreaseIndent())
+                    {
+                        for (var i = 0; i < resolverMethod.Parameters.Length; i++)
+                        {
+                            if (i > 0)
+                            {
+                                Writer.Write(',');
+                                Writer.WriteLine();
+                            }
+
+                            Writer.WriteIndented(
+                                "typeof({0})",
+                                ToFullyQualifiedString(
+                                    resolverMethod.Parameters[i].Type,
+                                    resolverMethod,
+                                    typeLookup));
+                        }
+                    }
+
+                    Writer.WriteLine();
+                    Writer.WriteIndentedLine("})!);");
+                }
+            }
+        }
     }
 
     private void WritePropertyResolver(Resolver resolver)
@@ -2025,9 +2340,9 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     using (Writer.IncreaseIndent())
                     {
                         Writer.WriteIndentedLine(
-                            "args{0}_first = args{0}_options.DefaultPageSize ?? global::{1}.DefaultPageSize;",
+                            "args{0}_first = global::{1}.GetEffectiveDefaultPageSize(args{0}_options);",
                             i,
-                            WellKnownTypes.PagingDefaults);
+                            WellKnownTypes.PagingHelper);
                     }
 
                     Writer.WriteIndentedLine("}");
