@@ -45,13 +45,7 @@ internal static class ThrowHelper
         => new($"Batch resolver must return a list type. Got: {type}.");
 
     public static SchemaException BatchResolver_ReturnTypeMustBeList(MethodInfo method)
-        => new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    TypeResources.BatchResolver_ReturnTypeMustBeList,
-                    method.DeclaringType?.FullName ?? method.DeclaringType?.Name,
-                    method.Name)
-                .Build());
+        => HotChocolate.Resolvers.BatchResolverErrors.ReturnTypeMustBeList(method.DeclaringType!, method.Name);
 
     public static SchemaException ObjectDeprecationNotEnabled(string typeName)
         => new SchemaException(

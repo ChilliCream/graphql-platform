@@ -116,6 +116,7 @@ public static class WellKnownTypes
     public const string MiddlewareContext = "HotChocolate.Resolvers.IMiddlewareContext";
     public const string ISelection = "HotChocolate.Execution.ISelection";
     public const string ResolverContextExtensions = "HotChocolate.ResolverContextExtensions";
+    public const string BatchResolverErrors = "HotChocolate.Resolvers.BatchResolverErrors";
 
     public static HashSet<string> TypeClass { get; } =
     [

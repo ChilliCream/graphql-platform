@@ -1,5 +1,6 @@
 using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types;
 
@@ -208,9 +209,9 @@ public class SourceGeneratorBatchResolverTests
     public void BatchResolver_Should_NameNestedDeclaringType_LikeReflection_When_ReturnTypeIsNotIList()
     {
         // arrange
-        // ThrowHelper (reflection path) names a nested declaring type via Type.FullName ("Outer+
-        // Inner"); the generated schema error must match it byte for byte instead of using the
-        // display-string form ("Outer.Inner").
+        // the generator must pass the fully nested declaring type and method name to the shared
+        // helper (HotChocolate.Resolvers.BatchResolverErrors), the same helper ThrowHelper
+        // delegates to on the reflection path, so both render "Outer+Inner" by construction.
         const string source =
             """
             using System.Collections.Generic;
@@ -238,12 +239,6 @@ public class SourceGeneratorBatchResolverTests
             }
             """;
 
-        const string expectedMessage =
-            "The batch resolver method 'TestNamespace.Container+BrandNode.GetLabel' must return a "
-            + "list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch "
-            + "resolvers return one result per parent object, so the return type must be a "
-            + "collection.";
-
         string? generatedSource = null;
 
         // act
@@ -254,7 +249,28 @@ public class SourceGeneratorBatchResolverTests
                 .FirstOrDefault(text => text.Contains("GetLabel()", StringComparison.Ordinal)));
 
         // assert
-        Assert.Contains(expectedMessage, generatedSource, StringComparison.Ordinal);
+        Assert.Contains(
+            "global::HotChocolate.Resolvers.BatchResolverErrors.ReturnTypeMustBeList("
+            + "typeof(global::TestNamespace.Container.BrandNode), \"GetLabel\")",
+            generatedSource,
+            StringComparison.Ordinal);
+
+        // the shared helper renders any nested declaring type the same way, proving the argument
+        // above yields the reflection-style "+" nesting rather than the display-string "." form.
+        var nestedTypeMessage = BatchResolverErrors
+            .ReturnTypeMustBeList(typeof(NestedDeclaringTypeFixture.BrandNode), "GetLabel")
+            .Errors[0]
+            .Message;
+        Assert.Contains(
+            $"'{typeof(NestedDeclaringTypeFixture.BrandNode).FullName}.GetLabel'",
+            nestedTypeMessage,
+            StringComparison.Ordinal);
+        Assert.Contains("+", typeof(NestedDeclaringTypeFixture.BrandNode).FullName, StringComparison.Ordinal);
+    }
+
+    private static class NestedDeclaringTypeFixture
+    {
+        public static class BrandNode;
     }
 
     [Fact]

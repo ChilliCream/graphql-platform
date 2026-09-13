@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
@@ -1977,17 +1976,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     }
 
     /// <summary>
-    /// Emits a batch resolver accessor that throws a <c>SchemaException</c> naming the member,
-    /// for a non-list return type.
+    /// Emits a batch resolver accessor that throws the shared batch resolver schema error for a
+    /// non-list return type, naming the member.
     /// </summary>
     private void WriteBatchResolverReturnTypeSchemaError(Resolver resolver)
     {
-        var declaringType = GetReflectionFullName(resolver.Member.ContainingType);
-        var message = GeneratorUtils.EscapeForStringLiteral(
-            $"The batch resolver method '{declaringType}.{resolver.Member.Name}' must return a "
-            + "list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch "
-            + "resolvers return one result per parent object, so the return type must be a "
-            + "collection.");
+        var declaringType = resolver.Member.ContainingType.ToFullyQualified();
 
         Writer.WriteIndentedLine(
             "public global::{0} {1}()",
@@ -1997,36 +1991,13 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         using (Writer.IncreaseIndent())
         {
             Writer.WriteIndentedLine(
-                "throw new global::{0}(global::{1}.New().SetMessage(\"{2}\").Build());",
-                WellKnownTypes.SchemaException,
-                WellKnownTypes.SchemaErrorBuilder,
-                message);
+                "throw global::{0}.ReturnTypeMustBeList(typeof({1}), \"{2}\");",
+                WellKnownTypes.BatchResolverErrors,
+                declaringType,
+                resolver.Member.Name);
         }
 
         Writer.WriteIndentedLine("}");
-    }
-
-    /// <summary>
-    /// Renders a type's full name the way <see cref="Type.FullName"/> does at runtime: the
-    /// namespace followed by the containing-type chain joined with <c>+</c> for nested types.
-    /// </summary>
-    private static string GetReflectionFullName(INamedTypeSymbol type)
-    {
-        var typeNames = new Stack<string>();
-        var outermost = type;
-
-        for (var current = type; current is not null; current = current.ContainingType)
-        {
-            typeNames.Push(current.Name);
-            outermost = current;
-        }
-
-        var typeChain = string.Join("+", typeNames);
-        var containingNamespace = outermost.ContainingNamespace;
-
-        return containingNamespace is { IsGlobalNamespace: false }
-            ? $"{containingNamespace.ToDisplayString()}.{typeChain}"
-            : typeChain;
     }
 
     /// <summary>
