@@ -56,17 +56,26 @@ public sealed class MatrixCoverageTests
             {
                 if (method.GetCustomAttribute<TheoryAttribute>() is not { } theory)
                 {
+                    if (method.GetCustomAttribute<FactAttribute>() is not null)
+                    {
+                        violations.Add($"{family.Name}.{method.Name}");
+                    }
+
                     continue;
                 }
 
                 var dataAttributes = method.GetCustomAttributes()
                     .OfType<DataAttribute>()
                     .ToArray();
-                var skip = theory.GetType().GetProperty("Skip")?.GetValue(theory) as string;
 
                 if (dataAttributes.Length != 1
-                    || dataAttributes[0] is not BatchMatrixAttribute
-                    || !string.IsNullOrEmpty(skip))
+                    || dataAttributes[0] is not BatchMatrixAttribute batchMatrix
+                    || !string.IsNullOrEmpty(theory.Skip)
+                    || !string.IsNullOrEmpty(theory.SkipWhen)
+                    || !string.IsNullOrEmpty(theory.SkipUnless)
+                    || !string.IsNullOrEmpty(batchMatrix.Skip)
+                    || !string.IsNullOrEmpty(batchMatrix.SkipWhen)
+                    || !string.IsNullOrEmpty(batchMatrix.SkipUnless))
                 {
                     violations.Add($"{family.Name}.{method.Name}");
                 }

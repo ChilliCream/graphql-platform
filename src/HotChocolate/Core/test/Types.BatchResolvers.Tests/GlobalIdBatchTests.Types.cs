@@ -23,15 +23,7 @@ public sealed partial class GlobalIdBatchTests
     {
         Common(builder);
 
-        builder
-            .AddQueryType(d =>
-            {
-                d.Name("Query");
-                d.Field("products").Type<ListType<ObjectType<IdProduct>>>().Resolve(Products);
-                d.Field<IdQueryAttributeResolvers>(t => t.GetProductById(null!, null!));
-            })
-            .AddObjectType<IdProduct>(d =>
-                d.Field<IdProductAttributeExtension>(t => t.GetExternalId(null!, null!)));
+        builder.AddQueryType<IdAttributeQuery>().AddTypeExtension<IdProductAttributeExtension>();
     }
 
     private void ConfigureSourceGenerated(IRequestExecutorBuilder builder)
@@ -91,6 +83,7 @@ public sealed class FluentIdResolvers
 /// <summary>
 /// Attribute-style batch resolver for <see cref="IdProduct.Id"/> as an encoded global id.
 /// </summary>
+[ExtendObjectType<IdProduct>]
 public sealed class IdProductAttributeExtension
 {
     [BatchResolver]
@@ -104,10 +97,12 @@ public sealed class IdProductAttributeExtension
 }
 
 /// <summary>
-/// Attribute-style root query resolvers, including a batch resolver that decodes a global id.
+/// Attribute-style root query, including a batch resolver that decodes a global id.
 /// </summary>
-public sealed class IdQueryAttributeResolvers
+public sealed class IdAttributeQuery
 {
+    public IReadOnlyList<IdProduct> GetProducts() => GlobalIdBatchTests.Products;
+
     [BatchResolver]
     public List<IdProduct?> GetProductById([ID] List<int> id, BatchProbe probe)
     {
