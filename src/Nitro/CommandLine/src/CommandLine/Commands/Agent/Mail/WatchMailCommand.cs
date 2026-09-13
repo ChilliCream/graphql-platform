@@ -2,7 +2,6 @@ using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -66,7 +65,7 @@ internal sealed class WatchMailCommand : Command
             new MailInboxFilter { Actor = actor },
             cancellationToken);
 
-        HashSet<string> baselineIds = includeExisting
+        var baselineIds = includeExisting
             ? []
             : after is { } cursor
                 ? baseline.Where(m => IsAtOrBeforeCursor(m, cursor)).Select(m => m.Id).ToHashSet()

@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Features;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Sagas.Tests;

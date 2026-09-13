@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Features;
 using Mocha.Middlewares;
 
 namespace Mocha;
@@ -98,7 +97,7 @@ internal sealed class ConsumerRetryMiddleware(
             {
                 var feature = context.GetExceptionPolicyFeature();
                 var middleware = new ConsumerRetryMiddleware(
-                    feature?.Rules.ToImmutableArray() ?? ImmutableArray<ExceptionPolicyRule>.Empty,
+                    feature?.Rules.ToImmutableArray() ?? [],
                     context.Consumer,
                     context.GetConsumerExecutionStrategy());
 

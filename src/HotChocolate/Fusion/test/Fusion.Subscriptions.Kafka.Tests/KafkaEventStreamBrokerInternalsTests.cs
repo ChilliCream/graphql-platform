@@ -1,7 +1,5 @@
-using System.Linq;
 using System.Text;
 using Confluent.Kafka;
-using HotChocolate.Fusion.Subscriptions;
 
 namespace HotChocolate.Fusion.Subscriptions.Kafka;
 

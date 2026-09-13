@@ -69,7 +69,7 @@ internal sealed class AzureServiceBusMessageEnvelopeParser
             }
 
             Range[]? rentedRanges = null;
-            Span<Range> ranges =
+            var ranges =
                 maximumRangeCount <= 32
                     ? stackalloc Range[32]
                     : rentedRanges = ArrayPool<Range>.Shared.Rent(maximumRangeCount);

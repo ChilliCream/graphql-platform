@@ -5,14 +5,12 @@ using ChilliCream.Nitro.CommandLine.Tests.Hook;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Covers the command's wiring and the response it writes to stdout, plus
-/// the queue call <c>notify</c> makes (its own stdout carries nothing). The
-/// event state machine, digest, gate, and ledger behavior are exercised
-/// directly against
-/// <see cref="ChilliCream.Nitro.CommandLine.Services.Hook.CodexHookHandler"/>
-/// in <c>CodexHookHandlerTests</c>, and the fail-open envelopes against
-/// <see cref="ChilliCream.Nitro.CommandLine.Services.Hook.CodexHookExecutor"/>
-/// / <c>CodexNotifyExecutor</c> in <c>CodexHookExecutorTests</c>.
+/// Covers the command's wiring and the response it writes to stdout, plus the queue call
+/// <c>notify</c> makes (its own stdout carries nothing). The event state machine, digest, gate, and
+/// ledger behavior are exercised directly against <see cref="Services.Hook.CodexHookHandler"/> in
+/// <c>CodexHookHandlerTests</c>, and the fail-open envelopes against
+/// <see cref="Services.Hook.CodexHookExecutor"/> / <c>CodexNotifyExecutor</c> in
+/// <c>CodexHookExecutorTests</c>.
 /// </summary>
 public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {

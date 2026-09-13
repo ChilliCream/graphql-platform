@@ -1,7 +1,6 @@
 using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Threading;
 

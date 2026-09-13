@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Diagnostics.dotMemory;
 using BenchmarkDotNet.Jobs;

@@ -5,12 +5,11 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Board;
 
 /// <summary>
-/// An in-memory <see cref="ITaskStore"/> exercising the query surface the
-/// board model consumes (<see cref="QueryTasksAsync"/> and
-/// <see cref="ComputeBlockedAsync(CancellationToken)"/>), plus the task
-/// detail surface <see cref="ChilliCream.Nitro.CommandLine.Tui.Board.BoardDetailMode"/>
-/// consumes (task by id, labels, dependencies, blocks, comments). Every
-/// other member throws <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="ITaskStore"/> exercising the query surface the board model consumes
+/// (<see cref="QueryTasksAsync"/> and <see cref="ComputeBlockedAsync(CancellationToken)"/>), plus
+/// the task detail surface <see cref="CommandLine.Tui.Board.BoardDetailMode"/> consumes (task by
+/// id, labels, dependencies, blocks, comments). Every other member throws
+/// <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
 {

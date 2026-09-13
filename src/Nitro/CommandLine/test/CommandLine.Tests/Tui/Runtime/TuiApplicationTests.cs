@@ -10,9 +10,9 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Runtime;
 
 public sealed class TuiApplicationTests
 {
-    private static readonly TimeSpan TickInterval = TimeSpan.FromMilliseconds(10);
-    private static readonly TimeSpan KeyPollInterval = TimeSpan.FromMilliseconds(5);
-    private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan s_tickInterval = TimeSpan.FromMilliseconds(10);
+    private static readonly TimeSpan s_keyPollInterval = TimeSpan.FromMilliseconds(5);
+    private static readonly TimeSpan s_testTimeout = TimeSpan.FromSeconds(5);
 
     [Fact]
     public async Task RunAsync_Should_MergeKeyAndTickEvents_IntoRootHandler()
@@ -21,7 +21,7 @@ public sealed class TuiApplicationTests
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole();
         console.Input.PushKey(ConsoleKey.A);
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval);
         var received = new ConcurrentQueue<TuiEvent>();
         var sawBoth = new TaskCompletionSource();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
@@ -39,7 +39,7 @@ public sealed class TuiApplicationTests
 
         // act
         var runTask = app.RunAsync(Handler, () => new Text("frame"), cts.Token);
-        await Task.WhenAny(sawBoth.Task, Task.Delay(TestTimeout, testToken));
+        await Task.WhenAny(sawBoth.Task, Task.Delay(s_testTimeout, testToken));
         cts.Cancel();
         await runTask;
 
@@ -54,7 +54,7 @@ public sealed class TuiApplicationTests
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole();
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval);
         var received = new ConcurrentQueue<TuiEvent>();
         var sawResize = new TaskCompletionSource();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
@@ -72,10 +72,10 @@ public sealed class TuiApplicationTests
 
         // act
         var runTask = app.RunAsync(Handler, () => new Text("frame"), cts.Token);
-        await Task.Delay(TickInterval * 3, testToken);
+        await Task.Delay(s_tickInterval * 3, testToken);
         console.Profile.Width = 120;
         console.Profile.Height = 40;
-        await Task.WhenAny(sawResize.Task, Task.Delay(TestTimeout, testToken));
+        await Task.WhenAny(sawResize.Task, Task.Delay(s_testTimeout, testToken));
         cts.Cancel();
         await runTask;
 
@@ -91,7 +91,7 @@ public sealed class TuiApplicationTests
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole();
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval);
         var rendererCallCount = 0;
         var handlerCallCount = 0;
         var handlerInvoked = new TaskCompletionSource();
@@ -112,8 +112,8 @@ public sealed class TuiApplicationTests
 
         // act
         var runTask = app.RunAsync(Handler, Renderer, cts.Token);
-        await Task.WhenAny(handlerInvoked.Task, Task.Delay(TestTimeout, testToken));
-        await Task.Delay(TickInterval * 3, testToken);
+        await Task.WhenAny(handlerInvoked.Task, Task.Delay(s_testTimeout, testToken));
+        await Task.Delay(s_tickInterval * 3, testToken);
         cts.Cancel();
         await runTask;
 
@@ -128,14 +128,14 @@ public sealed class TuiApplicationTests
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole { EmitAnsiSequences = true };
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
         // act
         var runTask = app.RunAsync(_ => false, () => new Text("frame"), cts.Token);
-        await Task.Delay(TickInterval * 3, testToken);
+        await Task.Delay(s_tickInterval * 3, testToken);
         cts.Cancel();
-        var completed = await Task.WhenAny(runTask, Task.Delay(TestTimeout, testToken));
+        var completed = await Task.WhenAny(runTask, Task.Delay(s_testTimeout, testToken));
 
         // assert
         Assert.Same(runTask, completed);
@@ -150,14 +150,14 @@ public sealed class TuiApplicationTests
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole { EmitAnsiSequences = true };
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
         // act
         // The handler never reports the frame as dirty, so the initial frame can only
         // reach the console output via the Live display's own startup paint.
         var runTask = app.RunAsync(_ => false, () => new Text("initial-frame-marker"), cts.Token);
-        await Task.Delay(TickInterval * 5, testToken);
+        await Task.Delay(s_tickInterval * 5, testToken);
         cts.Cancel();
         await runTask;
 
@@ -171,7 +171,7 @@ public sealed class TuiApplicationTests
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole();
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval);
         var received = new ConcurrentQueue<TuiEvent>();
         var sawDataChanged = new TaskCompletionSource();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
@@ -191,7 +191,7 @@ public sealed class TuiApplicationTests
         {
             try
             {
-                await Task.Delay(TickInterval, sourceToken);
+                await Task.Delay(s_tickInterval, sourceToken);
                 writer.TryWrite(new TuiEvent.DataChangedEvent());
                 await Task.Delay(Timeout.InfiniteTimeSpan, sourceToken);
             }
@@ -203,9 +203,9 @@ public sealed class TuiApplicationTests
 
         // act
         var runTask = app.RunAsync(Handler, () => new Text("frame"), cts.Token, [Source]);
-        await Task.WhenAny(sawDataChanged.Task, Task.Delay(TestTimeout, testToken));
+        await Task.WhenAny(sawDataChanged.Task, Task.Delay(s_testTimeout, testToken));
         cts.Cancel();
-        var completed = await Task.WhenAny(runTask, Task.Delay(TestTimeout, testToken));
+        var completed = await Task.WhenAny(runTask, Task.Delay(s_testTimeout, testToken));
 
         // assert
         Assert.Contains(received, e => e is TuiEvent.DataChangedEvent);
@@ -221,7 +221,7 @@ public sealed class TuiApplicationTests
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole();
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval);
         var queue = new TuiEffectQueue<string>();
         var release = new TaskCompletionSource();
         var submitted = false;
@@ -238,7 +238,7 @@ public sealed class TuiApplicationTests
                     "slow-op",
                     async (_, ct) =>
                     {
-                        await release.Task.WaitAsync(TestTimeout, ct);
+                        await release.Task.WaitAsync(s_testTimeout, ct);
                         return "done";
                     },
                     testToken,
@@ -257,7 +257,7 @@ public sealed class TuiApplicationTests
 
         // act
         var runTask = app.RunAsync(Handler, () => new Text("frame"), cts.Token, [queue.RunAsync]);
-        var completed = await Task.WhenAny(manyTicksObserved.Task, Task.Delay(TestTimeout, testToken));
+        var completed = await Task.WhenAny(manyTicksObserved.Task, Task.Delay(s_testTimeout, testToken));
 
         // assert
         Assert.Same(manyTicksObserved.Task, completed);
@@ -274,7 +274,7 @@ public sealed class TuiApplicationTests
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole();
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval);
         var queue = new TuiEffectQueue<string>();
         var received = new ConcurrentQueue<TuiEvent>();
         var sawEffectCompleted = new TaskCompletionSource();
@@ -294,7 +294,7 @@ public sealed class TuiApplicationTests
         // act
         var runTask = app.RunAsync(Handler, () => new Text("frame"), cts.Token, [queue.RunAsync]);
         queue.TrySubmit("op", (_, _) => Task.FromResult("stored"), testToken, out var operationId);
-        await Task.WhenAny(sawEffectCompleted.Task, Task.Delay(TestTimeout, testToken));
+        await Task.WhenAny(sawEffectCompleted.Task, Task.Delay(s_testTimeout, testToken));
         cts.Cancel();
         await runTask;
 
@@ -314,7 +314,7 @@ public sealed class TuiApplicationTests
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole { EmitAnsiSequences = true };
         var shutdownDrainBound = TimeSpan.FromMilliseconds(100);
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval, shutdownDrainBound);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval, shutdownDrainBound);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
         Task NoncooperativeSource(ChannelWriter<TuiEvent> writer, CancellationToken sourceToken)
@@ -325,16 +325,16 @@ public sealed class TuiApplicationTests
 
         // act
         var runTask = app.RunAsync(_ => false, () => new Text("frame"), cts.Token, [NoncooperativeSource]);
-        await Task.Delay(TickInterval * 3, testToken);
+        await Task.Delay(s_tickInterval * 3, testToken);
         var stopwatch = Stopwatch.StartNew();
         cts.Cancel();
-        var completed = await Task.WhenAny(runTask, Task.Delay(TestTimeout, testToken));
+        var completed = await Task.WhenAny(runTask, Task.Delay(s_testTimeout, testToken));
 
         // assert
         Assert.Same(runTask, completed);
         await runTask;
         Assert.True(
-            stopwatch.Elapsed < shutdownDrainBound + TestTimeout,
+            stopwatch.Elapsed < shutdownDrainBound + s_testTimeout,
             $"Shutdown took {stopwatch.Elapsed}, expected close to the {shutdownDrainBound} bound.");
         Assert.Contains("[?1049h", console.Output);
         Assert.Contains("[?1049l", console.Output);
@@ -346,7 +346,7 @@ public sealed class TuiApplicationTests
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole { EmitAnsiSequences = true };
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
         IRenderable ThrowingRenderer() => throw new InvalidOperationException("render boom");
@@ -367,7 +367,7 @@ public sealed class TuiApplicationTests
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole();
-        var app = new TuiApplication(console, TickInterval, KeyPollInterval);
+        var app = new TuiApplication(console, s_tickInterval, s_keyPollInterval);
         var handlerInvoked = new TaskCompletionSource();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
@@ -379,15 +379,15 @@ public sealed class TuiApplicationTests
 
         // act
         var runTask = app.RunAsync(Handler, () => new Text("frame"), cts.Token);
-        await Task.WhenAny(handlerInvoked.Task, Task.Delay(TestTimeout, testToken));
+        await Task.WhenAny(handlerInvoked.Task, Task.Delay(s_testTimeout, testToken));
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => runTask);
 
         // Give the key-reader loop several poll intervals worth of time to consume
         // the key below if it were still running.
-        await Task.Delay(KeyPollInterval * 10, testToken);
+        await Task.Delay(s_keyPollInterval * 10, testToken);
         console.Input.PushKey(ConsoleKey.A);
-        await Task.Delay(KeyPollInterval * 10, testToken);
+        await Task.Delay(s_keyPollInterval * 10, testToken);
 
         // assert
         Assert.Equal("boom", exception.Message);

@@ -21,23 +21,6 @@ public class DefaultNamingConventionsTests
         InstanceId = Guid.NewGuid()
     };
 
-    private static readonly HostInfo s_hostWithoutService = new()
-    {
-        MachineName = "test-machine",
-        ProcessName = "test-process",
-        ProcessId = 1,
-        AssemblyName = "TestAssembly",
-        AssemblyVersion = "1.0.0",
-        PackageVersion = "1.0.0",
-        FrameworkVersion = ".NET 11.0",
-        OperatingSystemVersion = "Linux",
-        EnvironmentName = "Test",
-        ServiceName = null,
-        ServiceVersion = null,
-        RuntimeInfo = new TestRuntimeInfo(),
-        InstanceId = Guid.NewGuid()
-    };
-
     [Fact]
     public void GetReceiveEndpointName_Type_Should_ReturnKebabCaseName_When_HandlerSuffix()
     {

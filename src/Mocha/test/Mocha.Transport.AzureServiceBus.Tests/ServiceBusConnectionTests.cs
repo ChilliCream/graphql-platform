@@ -1,7 +1,6 @@
 using Azure.Core;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Transport.AzureServiceBus;
 
 namespace Mocha.Transport.AzureServiceBus.Tests;
 

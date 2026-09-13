@@ -4,7 +4,6 @@ using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Client;
 using Newtonsoft.Json;

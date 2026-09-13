@@ -129,11 +129,11 @@ public sealed class PooledFeatureCollection : IFeatureCollection
         }
 
         var key = typeof(TFeature);
-        if (_cachedFeatures.TryGetValue(key, out var cached) && cached is TFeature)
+        if (_cachedFeatures.TryGetValue(key, out var cached) && cached is TFeature feature1)
         {
             _cachedFeatures.Remove(key);
             this[key] = cached;
-            return (TFeature)cached;
+            return feature1;
         }
 
         feature = factory(state);

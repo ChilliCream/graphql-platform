@@ -9,7 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 /// </summary>
 internal static class AgentSessionParticipantBuilder
 {
-    private static readonly DateTimeOffset DefaultNow = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_defaultNow = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     public static AgentSessionRecord Session(
         string sessionId = "s-1",
@@ -35,8 +35,8 @@ internal static class AgentSessionParticipantBuilder
             WorkspacePath = workspacePath,
             EndpointKind = endpointKind,
             EndpointAddr = endpointAddr,
-            StartedAt = startedAt ?? DefaultNow,
-            LastBeatAt = lastBeatAt ?? startedAt ?? DefaultNow,
+            StartedAt = startedAt ?? s_defaultNow,
+            LastBeatAt = lastBeatAt ?? startedAt ?? s_defaultNow,
             BlockBudgetUsed = 0,
             Role = role,
             HarnessVersion = harnessVersion
