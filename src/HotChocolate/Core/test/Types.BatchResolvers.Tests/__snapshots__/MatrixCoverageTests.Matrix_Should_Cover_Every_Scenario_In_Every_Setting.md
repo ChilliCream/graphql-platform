@@ -3,6 +3,12 @@
 ```text
 | Family | Scenario | Style | Result |
 | --- | --- | --- | --- |
+| AbstractParentBatchTests | BatchResolver_Should_Run_OwnResolver_PerType_When_InterfaceParentHasSameNamedFields | Attribute | Declared |
+| AbstractParentBatchTests | BatchResolver_Should_Run_OwnResolver_PerType_When_InterfaceParentHasSameNamedFields | SourceGenerated | Declared |
+| AbstractParentBatchTests | BatchResolver_Should_Run_OwnResolver_PerType_When_InterfaceParentHasSameNamedFields | Fluent | Declared |
+| AbstractParentBatchTests | BatchResolver_Should_Run_OwnResolver_PerType_When_UnionParentHasSameNamedFields | Attribute | Declared |
+| AbstractParentBatchTests | BatchResolver_Should_Run_OwnResolver_PerType_When_UnionParentHasSameNamedFields | SourceGenerated | Declared |
+| AbstractParentBatchTests | BatchResolver_Should_Run_OwnResolver_PerType_When_UnionParentHasSameNamedFields | Fluent | Declared |
 | DeferBatchTests | BatchResolver_Should_Deliver_Data_When_NestedFieldIsInsideDeferFragment | Attribute | Declared |
 | DeferBatchTests | BatchResolver_Should_Deliver_Data_When_NestedFieldIsInsideDeferFragment | SourceGenerated | Declared |
 | DeferBatchTests | BatchResolver_Should_Deliver_Data_When_NestedFieldIsInsideDeferFragment | Fluent | Declared |
@@ -90,6 +96,15 @@
 | InterfaceBatchTests | BatchResolver_Should_Resolve_When_DeclaredOnInterfaceAndInheritedByObjectType | Attribute | NotApplicable(interface batch fields are declared through ResolveBatchWith or [InterfaceType<T>] partials only) |
 | InterfaceBatchTests | BatchResolver_Should_Resolve_When_DeclaredOnInterfaceAndInheritedByObjectType | SourceGenerated | Declared |
 | InterfaceBatchTests | BatchResolver_Should_Resolve_When_DeclaredOnInterfaceAndInheritedByObjectType | Fluent | Declared |
+| MutationRootBatchTests | BatchResolver_Should_Fail_Schema_Build_When_DeclaredOnMutationRootField | Attribute | Declared |
+| MutationRootBatchTests | BatchResolver_Should_Fail_Schema_Build_When_DeclaredOnMutationRootField | SourceGenerated | NotApplicable(compile-time diagnostic HC0137; see BatchResolverOnMutationFieldAnalyzerTests.BatchResolver_Should_RaiseError_When_HostedOnMutationTypeClass) |
+| MutationRootBatchTests | BatchResolver_Should_Fail_Schema_Build_When_DeclaredOnMutationRootField | Fluent | Declared |
+| NonListReturnBatchTests | BatchResolver_Should_Fail_Schema_Build_When_ReturnTypeIsNotList | Attribute | Declared |
+| NonListReturnBatchTests | BatchResolver_Should_Fail_Schema_Build_When_ReturnTypeIsNotList | SourceGenerated | Declared |
+| NonListReturnBatchTests | BatchResolver_Should_Fail_Schema_Build_When_ReturnTypeIsNotList | Fluent | Declared |
+| PerParentMiddlewareBatchTests | Use_Should_Fail_Schema_Build_When_FieldIsBatchResolved | Attribute | Declared |
+| PerParentMiddlewareBatchTests | Use_Should_Fail_Schema_Build_When_FieldIsBatchResolved | SourceGenerated | Declared |
+| PerParentMiddlewareBatchTests | Use_Should_Fail_Schema_Build_When_FieldIsBatchResolved | Fluent | Declared |
 | VariableBatchBatchTests | BatchResolver_Should_Use_PerSet_Arguments_When_RequestIsVariableBatch | Attribute | Declared |
 | VariableBatchBatchTests | BatchResolver_Should_Use_PerSet_Arguments_When_RequestIsVariableBatch | SourceGenerated | Declared |
 | VariableBatchBatchTests | BatchResolver_Should_Use_PerSet_Arguments_When_RequestIsVariableBatch | Fluent | Declared |
