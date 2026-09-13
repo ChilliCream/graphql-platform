@@ -112,7 +112,7 @@ namespace TestNamespace
                 _binding_GetProductsAsync_context = bindingResolver.GetBinding(CreateParameterDescriptor_GetProductsAsync_context(), out _binding_GetProductsAsync_context_kind);
                 if (_binding_GetProductsAsync_context_kind is global::HotChocolate.Internal.ArgumentKind.Argument)
                 {
-                    throw new global::System.InvalidOperationException("Batch resolver parameter 'context' must be a list type (List<T>, IReadOnlyList<T>, T[], or ImmutableArray<T>). Got: TestNamespace.ProductContext.");
+                    throw global::HotChocolate.Resolvers.BatchResolverErrors.ArgumentMustBeList(typeof(global::TestNamespace.BrandNode), "GetProductsAsync", "context");
                 }
             }
 

@@ -206,6 +206,201 @@ public class SourceGeneratorBatchResolverTests
     }
 
     [Fact]
+    public async Task BatchResolver_Should_RaiseSchemaError_When_ParentIsHashSet()
+    {
+        // arrange
+        // a [BatchResolver] whose [Parent] parameter is a non-list shape (here HashSet<T>) must
+        // raise a build-time schema error naming the member and parameter, never a compile error
+        // in the generated code.
+        var assembly = TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<Brand> GetBrands()
+                    => new()
+                    {
+                        new Brand { Id = 1, Name = "Acme" },
+                        new Brand { Id = 2, Name = "Globex" }
+                    };
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static List<string> GetLabel([Parent] HashSet<Brand> brands)
+                    => brands.Select(b => $"label-{b.Name}").ToList();
+            }
+            """,
+            "SourceGeneratorBatchParentHashSetRepro");
+
+        // act
+        async Task Fail() => await TestHelper.ExecuteSourceGeneratedAsync(assembly, "{ brands { name label } }");
+
+        // assert
+        var exception = await Assert.ThrowsAsync<SchemaException>(Fail);
+        Assert.Collection(
+            exception.Errors,
+            error => Assert.Contains(
+                "The parameter 'Repro.BrandNode.GetLabel(brands)' on a batch resolver must be a "
+                + "list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch "
+                + "resolvers receive one value per parent object, so all argument parameters "
+                + "must be collections.",
+                error.Message,
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task BatchResolver_Should_RaiseSchemaError_When_ArgumentIsHashSet()
+    {
+        // arrange
+        // a [BatchResolver] whose argument parameter is a non-list shape (here HashSet<T>) must
+        // raise a build-time schema error naming the member and parameter, never a compile error
+        // in the generated code.
+        var assembly = TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<Brand> GetBrands()
+                    => new()
+                    {
+                        new Brand { Id = 1, Name = "Acme" },
+                        new Brand { Id = 2, Name = "Globex" }
+                    };
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static List<string> GetLabel(
+                    [Parent] List<Brand> brands,
+                    HashSet<string> prefix)
+                    => brands.Select(b => $"label-{b.Name}").ToList();
+            }
+            """,
+            "SourceGeneratorBatchArgumentHashSetRepro");
+
+        // act
+        async Task Fail()
+            => await TestHelper.ExecuteSourceGeneratedAsync(assembly, "{ brands { name label(prefix: \"x\") } }");
+
+        // assert
+        var exception = await Assert.ThrowsAsync<SchemaException>(Fail);
+        Assert.Collection(
+            exception.Errors,
+            error => Assert.Contains(
+                "The parameter 'Repro.BrandNode.GetLabel(prefix)' on a batch resolver must be a "
+                + "list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch "
+                + "resolvers receive one value per parent object, so all argument parameters "
+                + "must be collections.",
+                error.Message,
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task BatchResolver_Should_DistributeResults_When_ReturnTypeIsImmutableArray()
+    {
+        // arrange
+        // ImmutableArray<T> is a non-nullable value type, so the batch result distribution must
+        // not pattern-match it against null (CS0037 in generated code); the generated accessor
+        // must still compile and distribute results correctly.
+        var assembly = TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Immutable;
+            using System.Linq;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static System.Collections.Generic.List<Brand> GetBrands()
+                    => new()
+                    {
+                        new Brand { Id = 1, Name = "Acme" },
+                        new Brand { Id = 2, Name = "Globex" }
+                    };
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static ImmutableArray<string> GetLabel([Parent] ImmutableArray<Brand> brands)
+                    => brands.Select(b => $"label-{b.Name}").ToImmutableArray();
+            }
+            """,
+            "SourceGeneratorBatchImmutableArrayReturnRepro");
+
+        // act
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(assembly, "{ brands { name label } }");
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors ?? []);
+        operationResult.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "brands": [
+                  {
+                    "name": "Acme",
+                    "label": "label-Acme"
+                  },
+                  {
+                    "name": "Globex",
+                    "label": "label-Globex"
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
     public void BatchResolver_Should_NameNestedDeclaringType_LikeReflection_When_ReturnTypeIsNotIList()
     {
         // arrange

@@ -131,7 +131,7 @@ namespace TestNamespace
                 _binding_GetGreeting_currentUser = bindingResolver.GetBinding(CreateParameterDescriptor_GetGreeting_currentUser(), out _binding_GetGreeting_currentUser_kind);
                 if (_binding_GetGreeting_currentUser_kind is global::HotChocolate.Internal.ArgumentKind.Argument)
                 {
-                    throw new global::System.InvalidOperationException("Batch resolver parameter 'currentUser' must be a list type (List<T>, IReadOnlyList<T>, T[], or ImmutableArray<T>). Got: TestNamespace.CurrentUser.");
+                    throw global::HotChocolate.Resolvers.BatchResolverErrors.ArgumentMustBeList(typeof(global::TestNamespace.UserType), "GetGreeting", "currentUser");
                 }
             }
 

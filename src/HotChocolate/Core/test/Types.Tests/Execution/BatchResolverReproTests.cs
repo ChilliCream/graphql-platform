@@ -204,6 +204,72 @@ public class BatchResolverReproTests
             """);
     }
 
+    [Fact]
+    public async Task BatchResolver_Should_RejectHashSetParent_When_BuildingSchema()
+    {
+        // arrange
+        // a [Parent] parameter with a non-list shape (here HashSet<T>) must raise the same
+        // schema error text on the reflection path as the source-generated path, naming the
+        // member and parameter.
+        var builder = new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("users").Resolve(new[] { new ReproUser(1, "A") }))
+            .AddObjectType<ReproUser>(d => d.Field("value").ResolveBatchWith(
+                typeof(HashSetParentUserExtension).GetMethod(nameof(HashSetParentUserExtension.GetValue))!));
+
+        // act
+        var error = await Assert.ThrowsAsync<SchemaException>(async () =>
+            await builder.BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken));
+
+        // assert
+        error.Errors.Select(e => e.Message).ToArray().MatchInlineSnapshot(
+            """
+            [
+              "The parameter 'HotChocolate.Execution.BatchResolverReproTests+HashSetParentUserExtension.GetValue(users)' on a batch resolver must be a list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch resolvers receive one value per parent object, so all argument parameters must be collections."
+            ]
+            """);
+    }
+
+    [Fact]
+    public async Task BatchResolver_Should_RejectHashSetArgument_When_BuildingSchema()
+    {
+        // arrange
+        // an argument parameter with a non-list shape (here HashSet<T>) must raise the same
+        // schema error text on the reflection path as the source-generated path, naming the
+        // member and parameter.
+        var builder = new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Name("Query").Field("users").Resolve(new[] { new ReproUser(1, "A") }))
+            .AddTypeExtension<HashSetArgumentUserExtension>();
+
+        // act
+        var error = await Assert.ThrowsAsync<SchemaException>(async () =>
+            await builder.BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken));
+
+        // assert
+        error.Errors.Select(e => e.Message).ToArray().MatchInlineSnapshot(
+            """
+            [
+              "For more details look at the `Errors` property.\n\n1. The parameter 'HotChocolate.Execution.BatchResolverReproTests+HashSetArgumentUserExtension.GetValue(prefix)' on a batch resolver must be a list type (e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch resolvers receive one value per parent object, so all argument parameters must be collections.\n"
+            ]
+            """);
+    }
+
+    // Registered explicitly with ResolveBatchWith, not [ExtendObjectType<ReproUser>], so the
+    // field reaches BatchResolverCompiler and this schema error, rather than attribute discovery.
+    public class HashSetParentUserExtension
+    {
+        [BatchResolver]
+        public List<string> GetValue([Parent] HashSet<ReproUser> users)
+            => users.Select(u => u.Name).ToList();
+    }
+
+    [ExtendObjectType<ReproUser>]
+    public class HashSetArgumentUserExtension
+    {
+        [BatchResolver]
+        public List<string> GetValue([Parent] List<ReproUser> users, HashSet<string> prefix)
+            => users.Select(u => u.Name).ToList();
+    }
+
     [ExtendObjectType<ReproUser>]
     public class ShapeUserExtension
     {

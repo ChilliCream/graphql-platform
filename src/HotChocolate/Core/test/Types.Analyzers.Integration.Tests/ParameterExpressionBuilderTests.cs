@@ -57,13 +57,14 @@ public class ParameterExpressionBuilderTests
                 .AsTask());
 
         // assert
-        var invalidOperationException = Assert.IsType<InvalidOperationException>(
+        var argumentShapeException = Assert.IsType<SchemaException>(
             exception.Errors.Single().Exception);
         Assert.Equal(
-            "Batch resolver parameter 'currentUser' must be a list type "
-            + "(List<T>, IReadOnlyList<T>, T[], or ImmutableArray<T>). "
-            + "Got: HotChocolate.Types.BatchCurrentUser.",
-            invalidOperationException.Message);
+            "The parameter 'HotChocolate.Types.BookBatchType.GetBatchGreeting(currentUser)' on a "
+            + "batch resolver must be a list type (e.g. List<T>, IReadOnlyList<T>, "
+            + "ImmutableArray<T> or T[]). Batch resolvers receive one value per parent object, "
+            + "so all argument parameters must be collections.",
+            argumentShapeException.Errors.Single().Message);
     }
 
     [Fact]
