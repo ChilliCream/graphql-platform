@@ -483,23 +483,7 @@ public class ObjectTypeInspector : ISyntaxInspector
         ref ImmutableArray<Diagnostic> diagnostics)
     {
         var compilation = context.SemanticModel.Compilation;
-
-        if (resolverMethod.IsBatchResolver())
-        {
-            // A [NodeResolver][BatchResolver] method registers through
-            // INodeDescriptor<TNode>.ResolveNodeBatchWith(MethodInfo) instead of a
-            // source-generated delegate.
-            return new Resolver(
-                resolverType.Name,
-                resolverMethod,
-                compilation.GetDescription(resolverMethod),
-                compilation.GetDeprecationReason(resolverMethod),
-                resolverMethod.GetResultKind(),
-                [],
-                resolverMethod.GetMemberBindings(),
-                compilation.CreateTypeReference(resolverMethod, isBatchResolver: true),
-                kind: ResolverKind.BatchResolver);
-        }
+        var isBatchResolver = resolverMethod.IsBatchResolver();
 
         var parameters = resolverMethod.Parameters;
         var buffer = new ResolverParameter[parameters.Length];
@@ -558,6 +542,23 @@ public class ObjectTypeInspector : ISyntaxInspector
                 Diagnostic.Create(
                     Errors.TooManyNodeResolverArguments,
                     Location.Create(location.SourceTree!, location.SourceSpan)));
+        }
+
+        if (isBatchResolver)
+        {
+            // A [NodeResolver][BatchResolver] method registers through
+            // INodeDescriptor<TNode>.ResolveNodeBatchWith(MethodInfo) instead of a
+            // source-generated delegate.
+            return new Resolver(
+                resolverType.Name,
+                resolverMethod,
+                compilation.GetDescription(resolverMethod),
+                compilation.GetDeprecationReason(resolverMethod),
+                resolverMethod.GetResultKind(),
+                [],
+                resolverMethod.GetMemberBindings(),
+                compilation.CreateTypeReference(resolverMethod, isBatchResolver: true),
+                kind: ResolverKind.BatchResolver);
         }
 
         return new Resolver(
