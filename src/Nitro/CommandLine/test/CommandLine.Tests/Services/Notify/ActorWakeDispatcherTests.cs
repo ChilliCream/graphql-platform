@@ -547,23 +547,6 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             (call.ThreadId, item.GetProperty("id").GetString(), item.GetProperty("body").GetString()));
     }
 
-    private static async Task<long> ScalarCountAsync(
-        Microsoft.Data.Sqlite.SqliteConnection connection,
-        string sql,
-        string? sessionId,
-        CancellationToken cancellationToken)
-    {
-        await using var command = connection.CreateCommand();
-        command.CommandText = sql;
-
-        if (sessionId is not null)
-        {
-            command.Parameters.AddWithValue("@sessionId", sessionId);
-        }
-
-        return (long)(await command.ExecuteScalarAsync(cancellationToken))!;
-    }
-
     private DateTimeOffset Deadline() => _timeProvider.GetUtcNow() + WakeDispatchPolicy.BatchDeadline;
 
     private ActorWakeDispatcher CreateDispatcher(FakePingSessionExecutor executor)

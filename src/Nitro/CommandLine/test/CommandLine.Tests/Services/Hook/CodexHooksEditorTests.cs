@@ -13,13 +13,13 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// </summary>
 public sealed class CodexHooksEditorTests
 {
-    private static readonly LaunchDescriptor Descriptor =
+    private static readonly LaunchDescriptor s_descriptor =
         new("/home/agent/.dotnet/tools/nitro", []);
 
     [Fact]
     public void Install_MissingFile_CreatesAllThreeEventsAsInstalled()
     {
-        var result = CodexHooksEditor.Install(null, Descriptor);
+        var result = CodexHooksEditor.Install(null, s_descriptor);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Installed, o.Outcome));
         Assert.Equal(CodexHooksTemplate.Events, result.Outcomes.Select(o => o.Event));
@@ -29,7 +29,7 @@ public sealed class CodexHooksEditorTests
         foreach (var codexEvent in CodexHooksTemplate.Events)
         {
             var group = SingleGroup(root, codexEvent);
-            AssertCommand(group, CodexHooksTemplate.BuildCommand(Descriptor, codexEvent), 10);
+            AssertCommand(group, CodexHooksTemplate.BuildCommand(s_descriptor, codexEvent), 10);
         }
 
         Assert.NotNull(root["hooks"]);
@@ -42,7 +42,7 @@ public sealed class CodexHooksEditorTests
         var beforeRoot = Parse(before);
         var herdrBefore = ((JsonArray)Hooks(beforeRoot)["SessionStart"]!)[0];
 
-        var result = CodexHooksEditor.Install(before, Descriptor);
+        var result = CodexHooksEditor.Install(before, s_descriptor);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Installed, o.Outcome));
 
@@ -52,7 +52,7 @@ public sealed class CodexHooksEditorTests
         Assert.Equal(2, sessionStart.Count);
         Assert.True(JsonNode.DeepEquals(herdrBefore, sessionStart[0]));
         AssertCommand(
-            (JsonObject)sessionStart[1]!, CodexHooksTemplate.BuildCommand(Descriptor, "SessionStart"), 10);
+            (JsonObject)sessionStart[1]!, CodexHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
 
         Assert.True(JsonNode.DeepEquals(beforeRoot["someOtherTopLevelKey"], afterRoot["someOtherTopLevelKey"]));
     }
@@ -64,7 +64,7 @@ public sealed class CodexHooksEditorTests
         var beforeRoot = Parse(before);
         var herdrBefore = ((JsonArray)Hooks(beforeRoot)["SessionStart"]!)[0];
 
-        var result = CodexHooksEditor.Install(before, Descriptor);
+        var result = CodexHooksEditor.Install(before, s_descriptor);
 
         var byEvent = result.Outcomes.ToDictionary(o => o.Event, o => o.Outcome);
         Assert.Equal(HookInstallOutcome.Updated, byEvent["SessionStart"]);
@@ -77,14 +77,14 @@ public sealed class CodexHooksEditorTests
         Assert.Equal(2, sessionStart.Count);
         Assert.True(JsonNode.DeepEquals(herdrBefore, sessionStart[0]));
         AssertCommand(
-            (JsonObject)sessionStart[1]!, CodexHooksTemplate.BuildCommand(Descriptor, "SessionStart"), 10);
+            (JsonObject)sessionStart[1]!, CodexHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
 
         AssertCommand(
             SingleGroup(afterRoot, "UserPromptSubmit"),
-            CodexHooksTemplate.BuildCommand(Descriptor, "UserPromptSubmit"),
+            CodexHooksTemplate.BuildCommand(s_descriptor, "UserPromptSubmit"),
             10);
         AssertCommand(
-            SingleGroup(afterRoot, "SessionEnd"), CodexHooksTemplate.BuildCommand(Descriptor, "SessionEnd"), 10);
+            SingleGroup(afterRoot, "SessionEnd"), CodexHooksTemplate.BuildCommand(s_descriptor, "SessionEnd"), 10);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public sealed class CodexHooksEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("install", "already-installed.json");
 
-        var result = CodexHooksEditor.Install(before, Descriptor);
+        var result = CodexHooksEditor.Install(before, s_descriptor);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Unchanged, o.Outcome));
         Assert.True(JsonNode.DeepEquals(Parse(before), Parse(result.HooksJson)));
@@ -103,7 +103,7 @@ public sealed class CodexHooksEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("install", "outdated.json");
 
-        var result = CodexHooksEditor.Install(before, Descriptor);
+        var result = CodexHooksEditor.Install(before, s_descriptor);
 
         var byEvent = result.Outcomes.ToDictionary(o => o.Event, o => o.Outcome);
         Assert.Equal(HookInstallOutcome.Updated, byEvent["SessionStart"]);
@@ -112,7 +112,7 @@ public sealed class CodexHooksEditorTests
 
         var root = Parse(result.HooksJson);
         AssertCommand(
-            SingleGroup(root, "SessionStart"), CodexHooksTemplate.BuildCommand(Descriptor, "SessionStart"), 10);
+            SingleGroup(root, "SessionStart"), CodexHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
     }
 
     [Fact]
@@ -120,21 +120,21 @@ public sealed class CodexHooksEditorTests
     {
         var before = CodexHooksInstallFixtures.Read("install", "manually-edited.json");
 
-        var result = CodexHooksEditor.Install(before, Descriptor);
+        var result = CodexHooksEditor.Install(before, s_descriptor);
 
         var outcome = Assert.Single(result.Outcomes, o => o.Event == "SessionStart");
         Assert.Equal(HookInstallOutcome.Updated, outcome.Outcome);
 
         var root = Parse(result.HooksJson);
         AssertCommand(
-            SingleGroup(root, "SessionStart"), CodexHooksTemplate.BuildCommand(Descriptor, "SessionStart"), 10);
+            SingleGroup(root, "SessionStart"), CodexHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
     }
 
     [Fact]
     public void Install_Twice_IsIdempotent()
     {
-        var once = CodexHooksEditor.Install(null, Descriptor).HooksJson;
-        var twice = CodexHooksEditor.Install(once, Descriptor).HooksJson;
+        var once = CodexHooksEditor.Install(null, s_descriptor).HooksJson;
+        var twice = CodexHooksEditor.Install(once, s_descriptor).HooksJson;
 
         Assert.Equal(once, twice);
     }
@@ -142,15 +142,15 @@ public sealed class CodexHooksEditorTests
     [Fact]
     public void Status_ReportsMissingInstalledAndOutdated()
     {
-        var missing = CodexHooksEditor.Status(null, Descriptor);
+        var missing = CodexHooksEditor.Status(null, s_descriptor);
         Assert.All(missing, r => Assert.Equal(HookStatusOutcome.Missing, r.Outcome));
 
         var installed = CodexHooksEditor.Status(
-            CodexHooksInstallFixtures.Read("install", "already-installed.json"), Descriptor);
+            CodexHooksInstallFixtures.Read("install", "already-installed.json"), s_descriptor);
         Assert.All(installed, r => Assert.Equal(HookStatusOutcome.Installed, r.Outcome));
 
         var outdated = CodexHooksEditor.Status(
-            CodexHooksInstallFixtures.Read("install", "outdated.json"), Descriptor);
+            CodexHooksInstallFixtures.Read("install", "outdated.json"), s_descriptor);
         var sessionStart = Assert.Single(outdated, r => r.Event == "SessionStart");
         Assert.Equal(HookStatusOutcome.Outdated, sessionStart.Outcome);
         Assert.Equal("/opt/old/nitro agent hook codex session-start", sessionStart.InstalledCommand);
@@ -190,7 +190,7 @@ public sealed class CodexHooksEditorTests
     [Fact]
     public void Uninstall_DuplicateNitroGroups_RemovesEveryNitroInvocation()
     {
-        var installed = CodexHooksEditor.Install(null, Descriptor).HooksJson;
+        var installed = CodexHooksEditor.Install(null, s_descriptor).HooksJson;
         var root = Parse(installed);
         var sessionStart = (JsonArray)Hooks(root)["SessionStart"]!;
         sessionStart.Add(sessionStart[0]!.DeepClone());

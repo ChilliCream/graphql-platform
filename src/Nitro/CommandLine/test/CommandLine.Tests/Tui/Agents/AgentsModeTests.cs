@@ -12,7 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 public sealed class AgentsModeTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static AgentRecord Agent(
         string name, string role = "", string client = "", bool isImplicit = false)
@@ -22,8 +22,8 @@ public sealed class AgentsModeTests
             Role = role,
             Client = client,
             Implicit = isImplicit,
-            RegisteredAt = Now,
-            LastSeenAt = Now
+            RegisteredAt = s_now,
+            LastSeenAt = s_now
         };
 
     private static AgentsMode CreateMode(
@@ -33,11 +33,16 @@ public sealed class AgentsModeTests
             new FakeMailStore(),
             sessionRegistry,
             activityReader ?? new FakeClaudeSessionActivityReader(),
-            new FakeTimeProvider(Now));
+            new FakeTimeProvider(s_now));
 
     private static AgentsMode CreateMode(
         FakeAgentSessionRegistry sessionRegistry, FakeTaskStore taskStore, FakeMailStore mailStore)
-        => new(taskStore, mailStore, sessionRegistry, new FakeClaudeSessionActivityReader(), new FakeTimeProvider(Now));
+        => new(
+            taskStore,
+            mailStore,
+            sessionRegistry,
+            new FakeClaudeSessionActivityReader(),
+            new FakeTimeProvider(s_now));
 
     private static string RenderToText(AgentsMode mode, int width = 100, int height = 24)
     {

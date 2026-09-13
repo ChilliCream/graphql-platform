@@ -25,7 +25,7 @@ public sealed class QueryType : ObjectType
 
                 if (SubgraphAData.AccountsById.TryGetValue(id, out var account))
                 {
-                    return (INode)account;
+                    return account;
                 }
 
                 if (SubgraphAData.ChatsById.TryGetValue(id, out var chat))
@@ -33,7 +33,7 @@ public sealed class QueryType : ObjectType
                     // Intentionally corrupted: Chat.id is @external in this
                     // subgraph, so we return "never" as the id to test
                     // gateway handling of corrupted node IDs.
-                    return (INode)new Chat { Id = "never", AccountId = chat.AccountId };
+                    return new Chat { Id = "never", AccountId = chat.AccountId };
                 }
 
                 return null;

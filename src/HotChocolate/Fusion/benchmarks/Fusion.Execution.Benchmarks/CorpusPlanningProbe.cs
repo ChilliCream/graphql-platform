@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
@@ -43,10 +39,7 @@ internal static class CorpusPlanningProbe
         Console.WriteLine($"schema file size : {schemaText.Length / (1024.0 * 1024.0):F1} MiB");
 
         DocumentNode schemaDoc = null!;
-        Measure("parse schema SDL", () =>
-        {
-            schemaDoc = Utf8GraphQLParser.Parse(schemaText);
-        });
+        Measure("parse schema SDL", () => schemaDoc = Utf8GraphQLParser.Parse(schemaText));
         Console.WriteLine($"schema defs      : {schemaDoc.Definitions.Count}");
         Console.WriteLine();
 
@@ -113,10 +106,9 @@ internal static class CorpusPlanningProbe
         Measure($"{label}: parse", () => doc = Utf8GraphQLParser.Parse(text));
 
         OperationDefinitionNode operation = null!;
-        Measure($"{label}: rewrite+getOperation", () =>
-        {
-            operation = rewriter.RewriteDocument(doc).GetOperation(operationName: null);
-        });
+        Measure(
+            $"{label}: rewrite+getOperation",
+            () => operation = rewriter.RewriteDocument(doc).GetOperation(operationName: null));
 
         try
         {
@@ -187,9 +179,9 @@ internal static class CorpusPlanningProbe
         var heapAfter = GC.GetTotalMemory(forceFullCollection: false);
 
         Console.WriteLine(
-            $"{label,-34} : {sw.Elapsed.TotalMilliseconds,10:F1} ms" +
-            $" | alloc {(allocAfter - allocBefore) / (1024.0 * 1024.0),9:F1} MiB" +
-            $" | heap {(heapAfter - heapBefore) / (1024.0 * 1024.0),9:F1} MiB");
+            $"{label,-34} : {sw.Elapsed.TotalMilliseconds,10:F1} ms"
+            + $" | alloc {(allocAfter - allocBefore) / (1024.0 * 1024.0),9:F1} MiB"
+            + $" | heap {(heapAfter - heapBefore) / (1024.0 * 1024.0),9:F1} MiB");
         return true;
     }
 
@@ -210,8 +202,8 @@ internal static class CorpusPlanningProbe
         var heapAfter = GC.GetTotalMemory(forceFullCollection: false);
 
         Console.WriteLine(
-            $"{label,-34} : {sw.Elapsed.TotalMilliseconds,10:F1} ms" +
-            $" | alloc {(allocAfter - allocBefore) / (1024.0 * 1024.0),9:F1} MiB" +
-            $" | heap {(heapAfter - heapBefore) / (1024.0 * 1024.0),9:F1} MiB");
+            $"{label,-34} : {sw.Elapsed.TotalMilliseconds,10:F1} ms"
+            + $" | alloc {(allocAfter - allocBefore) / (1024.0 * 1024.0),9:F1} MiB"
+            + $" | heap {(heapAfter - heapBefore) / (1024.0 * 1024.0),9:F1} MiB");
     }
 }

@@ -1,7 +1,6 @@
 // ReSharper disable IntroduceOptionalParameters.Global
 
 using System.Diagnostics;
-using System.Net.Http.Headers;
 using System.Text;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
@@ -15,6 +14,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Transport.Http;
 #else
+using System.Net.Http.Headers;
 using System.Text.Json;
 using HotChocolate.Transport.Serialization;
 
@@ -522,21 +522,21 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("id=");
-            sb.Append(Uri.EscapeDataString(or.Id!));
+            sb.Append(Uri.EscapeDataString(or.Id));
         }
 
         if (!string.IsNullOrWhiteSpace(or.Query))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("query=");
-            sb.Append(Uri.EscapeDataString(or.Query!));
+            sb.Append(Uri.EscapeDataString(or.Query));
         }
 
         if (!string.IsNullOrWhiteSpace(or.OperationName))
         {
             AppendAmpersand(sb, ref appendAmpersand);
             sb.Append("operationName=");
-            sb.Append(Uri.EscapeDataString(or.OperationName!));
+            sb.Append(Uri.EscapeDataString(or.OperationName));
         }
 
         if (or.OnError is { } errorHandlingMode)

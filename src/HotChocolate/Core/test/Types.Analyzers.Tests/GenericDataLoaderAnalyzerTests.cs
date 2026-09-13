@@ -45,6 +45,16 @@ public class GenericDataLoaderAnalyzerTests
 
                 [DataLoader<ICacheDataLoader<int, string>>]
                 internal static Task<int> GetInvalidCacheReturnTypeAsync(int key) => default!;
+
+                [DataLoader<IBatchDataLoader<int, string>>]
+                internal static Task<Dictionary<string, string>> GetInvalidDictionaryKeyTypeAsync(
+                    IReadOnlyList<int> keys)
+                    => default!;
+
+                [DataLoader<IBatchDataLoader<int, string>>]
+                internal static ValueTask<Dictionary<int, int>> GetInvalidDictionaryValueTypeAsync(
+                    IReadOnlyList<int> keys)
+                    => default;
             }
             """;
 
@@ -246,6 +256,8 @@ public class GenericDataLoaderAnalyzerTests
 
             internal interface IEntityByIdDataLoader : IBatchDataLoader<int, string> { }
 
+            internal interface IEntitiesByIdDataLoader : IBatchDataLoader<int, string[]> { }
+
             internal static class TestClass
             {
                 [DataLoader<IEntityByIdDataLoader>]
@@ -255,6 +267,16 @@ public class GenericDataLoaderAnalyzerTests
 
                 [DataLoader<ICacheDataLoader<int, string>>]
                 internal static ValueTask<string> GetByKeyAsync(int key) => default;
+
+                [DataLoader<IBatchDataLoader<int, string>>]
+                internal static Task<Dictionary<int, string>> GetDictionaryByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => Task.FromResult(new Dictionary<int, string>());
+
+                [DataLoader<IEntitiesByIdDataLoader>]
+                internal static ValueTask<Dictionary<int, string[]>> GetDictionaryGroupsByIdAsync(
+                    IReadOnlyList<int> keys)
+                    => new(new Dictionary<int, string[]>());
             }
             """;
 

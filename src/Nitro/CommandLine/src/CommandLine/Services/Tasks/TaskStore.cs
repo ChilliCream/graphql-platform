@@ -2438,7 +2438,7 @@ internal sealed class TaskStore(
             if (current == id)
             {
                 var path = new List<string>();
-                string? node = current;
+                var node = current;
 
                 while (node is not null)
                 {

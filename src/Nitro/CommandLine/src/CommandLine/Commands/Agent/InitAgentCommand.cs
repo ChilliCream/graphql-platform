@@ -3,7 +3,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Agent.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
-using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using Dapper;
@@ -53,7 +52,6 @@ internal sealed class InitAgentCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var store = services.GetRequiredService<ITaskStore>();
-        var memoryStore = services.GetRequiredService<IMemoryStore>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
         var database = services.GetRequiredService<AgentDatabase>();
 

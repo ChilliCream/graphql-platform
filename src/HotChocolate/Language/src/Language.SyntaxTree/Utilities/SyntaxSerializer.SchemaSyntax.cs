@@ -549,7 +549,7 @@ public sealed partial class SyntaxSerializer
             writer.WriteIndent();
             writer.WriteMany(
                 directives,
-                (n, w) => WriteDirective(n, w),
+                WriteDirective,
                 w =>
                 {
                     w.WriteLine();
@@ -577,7 +577,7 @@ public sealed partial class SyntaxSerializer
             writer.WriteIndent();
             writer.WriteMany(
                 directives,
-                (n, w) => WriteDirective(n, w),
+                WriteDirective,
                 w =>
                 {
                     w.WriteLine();

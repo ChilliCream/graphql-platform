@@ -713,7 +713,7 @@ public class DataLoaderTests
                 "",
                 "IBatchDataLoader<int, string>",
                 "Task<Dictionary<int, string>> GetAsync(IReadOnlyList<int> keys) => default!;"),
-            null
+            DataLoaderKind.Batch
         ];
         yield return
         [
@@ -2026,7 +2026,7 @@ public class DataLoaderTests
             : methods.Single(t => t.Identifier.ValueText == methodName);
         var attributeSyntax = methodSyntax.AttributeLists.SelectMany(t => t.Attributes).Single();
         var semanticModel = compilation.GetSemanticModel(syntaxTree);
-        var methodSymbol = (IMethodSymbol)semanticModel.GetDeclaredSymbol(methodSyntax)!;
+        var methodSymbol = semanticModel.GetDeclaredSymbol(methodSyntax)!;
         var attributeSymbol = (IMethodSymbol)semanticModel.GetSymbolInfo(attributeSyntax).Symbol!;
         var attributeData = methodSymbol.GetAttributes().Single();
 
@@ -2061,7 +2061,7 @@ public class DataLoaderTests
         var compilation = TestHelper.CreateCompilation(source);
         var inspected = new ConcurrentQueue<SyntaxInfo>();
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new DataLoaderInspectionGenerator(inspected));
-        driver = driver.RunGenerators(compilation);
+        _ = driver.RunGenerators(compilation);
 
         return inspected;
     }

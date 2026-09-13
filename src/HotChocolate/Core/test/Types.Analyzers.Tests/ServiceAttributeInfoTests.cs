@@ -150,7 +150,7 @@ public class ServiceAttributeInfoTests
             }
             """,
             "MetadataAttributes");
-        var compilation = (CSharpCompilation)TestHelper.CreateCompilation(
+        var compilation = TestHelper.CreateCompilation(
             """
             class Query
             {
@@ -580,6 +580,6 @@ public class ServiceAttributeInfoTests
         var syntaxTree = compilation.SyntaxTrees.Single();
         var method = syntaxTree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
         var semanticModel = compilation.GetSemanticModel(syntaxTree);
-        return ((IMethodSymbol)semanticModel.GetDeclaredSymbol(method)!).Parameters;
+        return semanticModel.GetDeclaredSymbol(method)!.Parameters;
     }
 }

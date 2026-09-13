@@ -13,7 +13,12 @@ namespace HotChocolate.Fusion.Types;
 /// </summary>
 internal sealed class NodeFallbackLookup : INeedsCompletion
 {
-    private FrozenDictionary<string, string> _schemaByType = FrozenDictionary<string, string>.Empty;
+    private FrozenDictionary<string, string> _schemaByType
+#if NET11_0_OR_GREATER
+        = [];
+#else
+        = FrozenDictionary<string, string>.Empty;
+#endif
     private string[] _sourceSchemaNodeLookupSchemas = [];
 
     /// <summary>

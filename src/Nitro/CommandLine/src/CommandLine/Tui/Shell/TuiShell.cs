@@ -1,5 +1,4 @@
 using System.Globalization;
-using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
@@ -39,7 +38,6 @@ internal sealed class TuiShell
     private readonly SearchMode? _searchMode;
     private readonly DependencyTreeView? _treeView;
     private readonly ITaskStore? _store;
-    private readonly IMailStore? _mailStore;
     private readonly string? _actor;
 
     private readonly Func<MailWakeDaemonState>? _mailWakeDaemonState;
@@ -72,7 +70,6 @@ internal sealed class TuiShell
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
         string? actor = null,
-        IMailStore? mailStore = null,
         Func<MailWakeDaemonState>? mailWakeDaemonState = null,
         IReadOnlyList<TuiQuitGate>? quitGates = null,
         TimeSpan? quitGateDrainBound = null)
@@ -89,7 +86,6 @@ internal sealed class TuiShell
             treeView,
             store,
             actor,
-            mailStore,
             mailWakeDaemonState,
             quitGates,
             quitGateDrainBound)
@@ -129,7 +125,6 @@ internal sealed class TuiShell
         DependencyTreeView? treeView = null,
         ITaskStore? store = null,
         string? actor = null,
-        IMailStore? mailStore = null,
         Func<MailWakeDaemonState>? mailWakeDaemonState = null,
         IReadOnlyList<TuiQuitGate>? quitGates = null,
         TimeSpan? quitGateDrainBound = null)
@@ -153,7 +148,6 @@ internal sealed class TuiShell
         _searchMode = searchMode;
         _treeView = treeView;
         _store = store;
-        _mailStore = mailStore;
         _actor = actor;
         _mailWakeDaemonState = mailWakeDaemonState;
         _quitGates = quitGates ?? [];
@@ -224,7 +218,7 @@ internal sealed class TuiShell
     {
         var contentHeight = ContentHeight;
 
-        IRenderable content = _confirmDialog is { } quitDialog
+        var content = _confirmDialog is { } quitDialog
             ? quitDialog.Render(_width, contentHeight)
             : _discardDialog is { } discardDialog
                 ? discardDialog.Render(_width, contentHeight)
@@ -239,7 +233,7 @@ internal sealed class TuiShell
                                 : ActiveMode.Render(_width, contentHeight);
 
         var toastRow = _toaster.Render()
-            ?? (IRenderable)new Markup(FormatFooter(BuildFooterHints(), _width, _actor, _mailWakeDaemonState?.Invoke()));
+            ?? new Markup(FormatFooter(BuildFooterHints(), _width, _actor, _mailWakeDaemonState?.Invoke()));
 
         if (_tabs.Count <= 1)
         {

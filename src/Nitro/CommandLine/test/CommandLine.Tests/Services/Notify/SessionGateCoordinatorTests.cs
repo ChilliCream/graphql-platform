@@ -14,8 +14,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// </summary>
 public sealed class SessionGateCoordinatorTests : IDisposable
 {
-    private static readonly AgentSessionGeneration TargetA = new("claude-code", "session-1", "host-1");
-    private static readonly AgentSessionGeneration TargetB = new("claude-code", "session-2", "host-1");
+    private static readonly AgentSessionGeneration s_targetA = new("claude-code", "session-1", "host-1");
+    private static readonly AgentSessionGeneration s_targetB = new("claude-code", "session-2", "host-1");
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
@@ -48,12 +48,12 @@ public sealed class SessionGateCoordinatorTests : IDisposable
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
 
         // act
-        var result = await _coordinator.TryReserveAsync(TargetA, "attempt-1", now, cancellationToken);
+        var result = await _coordinator.TryReserveAsync(s_targetA, "attempt-1", now, cancellationToken);
 
         // assert
         Assert.NotNull(result.Reservation);
         Assert.Null(result.Failure);
-        Assert.Equal(TargetA, result.Reservation.Target);
+        Assert.Equal(s_targetA, result.Reservation.Target);
         Assert.InRange(result.Reservation.Slot, 1, 4);
     }
 
@@ -64,10 +64,10 @@ public sealed class SessionGateCoordinatorTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _coordinator.TryReserveAsync(TargetA, "attempt-1", now, cancellationToken);
+        await _coordinator.TryReserveAsync(s_targetA, "attempt-1", now, cancellationToken);
 
         // act: a second attempt against the exact same target generation.
-        var result = await _coordinator.TryReserveAsync(TargetA, "attempt-2", now, cancellationToken);
+        var result = await _coordinator.TryReserveAsync(s_targetA, "attempt-2", now, cancellationToken);
 
         // assert
         Assert.Null(result.Reservation);
@@ -89,7 +89,7 @@ public sealed class SessionGateCoordinatorTests : IDisposable
         }
 
         // act
-        var result = await _coordinator.TryReserveAsync(TargetA, "attempt-1", now, cancellationToken);
+        var result = await _coordinator.TryReserveAsync(s_targetA, "attempt-1", now, cancellationToken);
 
         // assert
         Assert.Null(result.Reservation);
@@ -98,12 +98,12 @@ public sealed class SessionGateCoordinatorTests : IDisposable
         // the gate this attempt reserved before hitting capacity was
         // released again, so an immediate retry for the same target is not
         // blocked by a gate this rejected attempt never should have kept.
-        var retryResult = await _coordinator.TryReserveAsync(TargetB, "attempt-2", now, cancellationToken);
+        var retryResult = await _coordinator.TryReserveAsync(s_targetB, "attempt-2", now, cancellationToken);
         Assert.Null(retryResult.Reservation);
         Assert.Equal(WakeReservationFailure.CapacityDropped, retryResult.Failure);
 
         var gateStillHeld = await _gates.TryAcquireAsync(
-            TargetA, "attempt-3", now, TimeSpan.FromSeconds(30), cancellationToken);
+            s_targetA, "attempt-3", now, TimeSpan.FromSeconds(30), cancellationToken);
         Assert.True(gateStillHeld);
     }
 
@@ -114,20 +114,20 @@ public sealed class SessionGateCoordinatorTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        var reserved = await _coordinator.TryReserveAsync(TargetA, "attempt-1", now, cancellationToken);
+        var reserved = await _coordinator.TryReserveAsync(s_targetA, "attempt-1", now, cancellationToken);
 
         // act
         await _coordinator.CompleteAsync(reserved.Reservation!, success: true, now, cancellationToken);
 
         // assert: a fresh attempt against the same generation, immediately
         // after, finds the gate still busy (the cooldown), not free.
-        var retry = await _coordinator.TryReserveAsync(TargetA, "attempt-2", now, cancellationToken);
+        var retry = await _coordinator.TryReserveAsync(s_targetA, "attempt-2", now, cancellationToken);
         Assert.Null(retry.Reservation);
         Assert.Equal(WakeReservationFailure.GateBusy, retry.Failure);
 
         // and after the cooldown elapses, it is free again.
         var afterCooldown = await _coordinator.TryReserveAsync(
-            TargetA, "attempt-3", now + PingPolicy.Cooldown + TimeSpan.FromSeconds(1), cancellationToken);
+            s_targetA, "attempt-3", now + PingPolicy.Cooldown + TimeSpan.FromSeconds(1), cancellationToken);
         Assert.NotNull(afterCooldown.Reservation);
     }
 
@@ -138,13 +138,13 @@ public sealed class SessionGateCoordinatorTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        var reserved = await _coordinator.TryReserveAsync(TargetA, "attempt-1", now, cancellationToken);
+        var reserved = await _coordinator.TryReserveAsync(s_targetA, "attempt-1", now, cancellationToken);
 
         // act
         await _coordinator.CompleteAsync(reserved.Reservation!, success: false, now, cancellationToken);
 
         // assert: no cooldown at all - a fresh attempt succeeds right away.
-        var retry = await _coordinator.TryReserveAsync(TargetA, "attempt-2", now, cancellationToken);
+        var retry = await _coordinator.TryReserveAsync(s_targetA, "attempt-2", now, cancellationToken);
         Assert.NotNull(retry.Reservation);
     }
 
@@ -155,7 +155,7 @@ public sealed class SessionGateCoordinatorTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        var reserved = await _coordinator.TryReserveAsync(TargetA, "attempt-1", now, cancellationToken);
+        var reserved = await _coordinator.TryReserveAsync(s_targetA, "attempt-1", now, cancellationToken);
 
         // act
         await _coordinator.CompleteAsync(reserved.Reservation!, success: true, now, cancellationToken);

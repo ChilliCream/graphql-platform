@@ -1233,7 +1233,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
             """,
             ("@id", id), ("@title", title), ("@status", status),
             ("@priority", priority), ("@type", type), ("@now", now),
-            ("@closedAt", closedAt.HasValue ? (object)closedAt.Value : DBNull.Value),
+            ("@closedAt", (object?)closedAt ?? DBNull.Value),
             ("@assignee", assignee is null ? DBNull.Value : (object)assignee));
     }
 

@@ -245,7 +245,7 @@ public sealed class ClaudePeerClientTests : IDisposable
             return;
         }
 
-        var parent = Path.GetDirectoryName(socketPath)!;
+        var parent = Path.GetDirectoryName(socketPath);
 
         if (Directory.Exists(parent))
         {

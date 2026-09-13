@@ -329,7 +329,7 @@ public sealed class Operation : IOperation
     /// </summary>
     public ConditionFlags CreateIncludeConditionFlags(IVariableValueCollection variables)
     {
-        ulong[]? overflow = HasWideIncludeFlags
+        var overflow = HasWideIncludeFlags
             ? new ulong[(_includeConditions.Count - 1) >> 6]
             : null;
         var index = 0;
@@ -360,7 +360,7 @@ public sealed class Operation : IOperation
     /// </summary>
     public ConditionFlags CreateDeferConditionFlags(IVariableValueCollection variables)
     {
-        ulong[]? overflow = HasWideDeferFlags
+        var overflow = HasWideDeferFlags
             ? new ulong[(_deferConditions.Count - 1) >> 6]
             : null;
         var index = 0;

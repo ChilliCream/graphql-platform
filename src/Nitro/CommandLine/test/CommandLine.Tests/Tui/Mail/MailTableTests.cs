@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
 public sealed class MailTableTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static MailThreadSummary Thread(
         string threadId = "t-1",
@@ -24,7 +24,7 @@ public sealed class MailTableTests
             ThreadId = threadId,
             Subject = subject,
             MessageCount = messageCount,
-            LastMessageAt = lastMessageAt ?? Now,
+            LastMessageAt = lastMessageAt ?? s_now,
             LastSender = lastSender,
             LastRecipients = lastRecipients ?? ["alice"],
             BodyPreview = bodyPreview,
@@ -52,12 +52,11 @@ public sealed class MailTableTests
     }
 
     /// <summary>
-    /// Renders <paramref name="markup"/> through a <see cref="TestConsole"/>
-    /// built with <c>.Colors(ColorSystem.TrueColor)</c> and
-    /// <c>.EmitAnsiSequences()</c>, the console shape
-    /// <see cref="AnsiAssertions.AssertAnsiStyleApplied"/> requires - a plain
-    /// <see cref="TestConsole"/> strips markup entirely, so it would leave
-    /// every ANSI-tier assertion green even for a wrong or missing token.
+    /// Renders <paramref name="markup"/> through a <see cref="TestConsole"/> built with
+    /// <c>.Colors(ColorSystem.TrueColor)</c> and <c>.EmitAnsiSequences()</c>, the console shape
+    /// <see cref="AssertAnsiStyleApplied"/> requires. A plain <see cref="TestConsole"/> strips
+    /// markup entirely, so it would leave every ANSI-tier assertion green even for a wrong or
+    /// missing token.
     /// </summary>
     private static string RenderAnsi(string markup)
     {
@@ -185,7 +184,7 @@ public sealed class MailTableTests
         var thread = Thread(subject: "Status update", lastSender: "bob", lastRecipients: ["alice"], bodyPreview: "hi there");
 
         // act
-        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
         Assert.Contains("bob", line);
@@ -204,7 +203,7 @@ public sealed class MailTableTests
         var thread = Thread(messageCount: 7);
 
         // act
-        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
         Assert.Contains("(7)", line);
@@ -218,8 +217,8 @@ public sealed class MailTableTests
         var thread = Thread();
 
         // act
-        var collapsed = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
-        var expanded = MailTable.RenderThreadRow(thread, expanded: true, unreadToMe: false, selected: false, "alice", Now, columns);
+        var collapsed = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
+        var expanded = MailTable.RenderThreadRow(thread, expanded: true, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
         Assert.Contains("▸", collapsed);
@@ -234,8 +233,8 @@ public sealed class MailTableTests
         var thread = Thread();
 
         // act
-        var unread = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: true, selected: false, "alice", Now, columns);
-        var read = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var unread = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: true, selected: false, "alice", s_now, columns);
+        var read = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert: the unread-to-me row carries the marker glyph and a style
         // span the read row does not.
@@ -252,8 +251,8 @@ public sealed class MailTableTests
         var thread = Thread();
 
         // act
-        var selected = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: true, "alice", Now, columns);
-        var unselected = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var selected = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: true, "alice", s_now, columns);
+        var unselected = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
         Assert.Contains(">", selected);
@@ -269,7 +268,7 @@ public sealed class MailTableTests
         var thread = Thread(subject: "[URGENT] fix this", bodyPreview: "see [here]");
 
         // act
-        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
         AssertRendersWithoutError(line);
@@ -284,7 +283,7 @@ public sealed class MailTableTests
         var thread = Thread(lastSender: "bob", lastRecipients: ["alice"]);
 
         // act
-        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
         var output = RenderAnsi(line);
 
         // assert: mail.row.to and mail.row.age share their color with other
@@ -309,7 +308,7 @@ public sealed class MailTableTests
         var thread = Thread(lastSender: "alice", lastRecipients: ["bob"]);
 
         // act
-        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
         var output = RenderAnsi(line);
 
         // assert: mail.row.glyph.from-me and mail.row.from.me render the
@@ -327,7 +326,7 @@ public sealed class MailTableTests
         var thread = Thread();
 
         // act
-        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: true, selected: false, "alice", Now, columns);
+        var line = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: true, selected: false, "alice", s_now, columns);
         var output = RenderAnsi(line);
 
         // assert
@@ -344,11 +343,11 @@ public sealed class MailTableTests
             sender: "bob",
             subject: "Status update",
             body: "hi there, this is the body",
-            createdAt: Now,
+            createdAt: s_now,
             recipients: [MailMessageBuilder.ToRecipient("alice")]);
 
         // act
-        var line = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var line = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
         Assert.Contains("bob", line);
@@ -367,11 +366,11 @@ public sealed class MailTableTests
         // conv. 7).
         var columns = MailTable.ComputeColumns(120, showCount: true);
         var message = MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]);
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]);
 
         // act
-        var childRow = MailTable.RenderMessageRow(message, threadChild: true, unreadToMe: false, selected: false, "alice", Now, columns);
-        var flatRow = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var childRow = MailTable.RenderMessageRow(message, threadChild: true, unreadToMe: false, selected: false, "alice", s_now, columns);
+        var flatRow = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
         Assert.Contains("└", childRow);
@@ -385,11 +384,11 @@ public sealed class MailTableTests
         // arrange
         var columns = MailTable.ComputeColumns(120, showCount: false);
         var message = MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]);
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]);
 
         // act
-        var unread = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: true, selected: false, "alice", Now, columns);
-        var read = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var unread = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: true, selected: false, "alice", s_now, columns);
+        var read = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
         Assert.Contains("●", unread);
@@ -403,10 +402,10 @@ public sealed class MailTableTests
         // relationship glyph.
         var columns = MailTable.ComputeColumns(120, showCount: false);
         var message = MailMessageBuilder.Create(
-            "m-1", sender: "bob", body: "hi", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]);
+            "m-1", sender: "bob", body: "hi", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]);
 
         // act
-        var line = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var line = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "alice", s_now, columns);
         var output = RenderAnsi(line);
 
         // assert: mail.row.to, mail.row.preview, and mail.row.age share
@@ -429,10 +428,10 @@ public sealed class MailTableTests
         // arrange
         var columns = MailTable.ComputeColumns(120, showCount: false);
         var message = MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]);
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]);
 
         // act
-        var line = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: true, selected: false, "alice", Now, columns);
+        var line = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: true, selected: false, "alice", s_now, columns);
         var output = RenderAnsi(line);
 
         // assert
@@ -446,10 +445,10 @@ public sealed class MailTableTests
         // example a Sent-mailbox flat fallback while the count column is
         // still reserved) must not print a stray count.
         var columns = MailTable.ComputeColumns(120, showCount: true);
-        var message = MailMessageBuilder.Create("m-1", createdAt: Now);
+        var message = MailMessageBuilder.Create("m-1", createdAt: s_now);
 
         // act
-        var line = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "actor", Now, columns);
+        var line = MailTable.RenderMessageRow(message, threadChild: false, unreadToMe: false, selected: false, "actor", s_now, columns);
 
         // assert
         Assert.DoesNotContain("(", line);
@@ -463,8 +462,8 @@ public sealed class MailTableTests
         var thread = Thread();
 
         // act
-        var first = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
-        var second = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns);
+        var first = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
+        var second = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
         Assert.Equal(first, second);
@@ -494,7 +493,7 @@ public sealed class MailTableTests
         // act
         var heading = RenderPlain(MailTable.RenderHeading(columns));
         var row = RenderPlain(MailTable.RenderThreadRow(
-            thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns));
+            thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns));
 
         // assert: the RenderHeading join fix restores exactly PrefixWidth
         // columns before "From", so every later label starts at the same
@@ -533,7 +532,7 @@ public sealed class MailTableTests
         // act
         var heading = RenderPlain(MailTable.RenderHeading(columns));
         var row = RenderPlain(MailTable.RenderThreadRow(
-            thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns));
+            thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns));
 
         // assert: the clamped subject floor keeps Subject/Preview from
         // pushing Age (and the count column, when shown) past contentWidth.
@@ -559,7 +558,7 @@ public sealed class MailTableTests
 
         // act
         var row = RenderPlain(MailTable.RenderThreadRow(
-            thread, expanded: false, unreadToMe: false, selected: false, "alice", Now, columns));
+            thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns));
 
         // assert: the row still fills exactly contentWidth terminal cells,
         // the same guarantee the all-ASCII alignment test above makes,
@@ -584,12 +583,12 @@ public sealed class MailTableTests
             sender: string.Concat(Enumerable.Repeat("🎈", 60)),
             subject: string.Concat(Enumerable.Repeat("🎉", 60)),
             body: string.Concat(Enumerable.Repeat("🎊", 60)),
-            createdAt: Now,
+            createdAt: s_now,
             recipients: [MailMessageBuilder.ToRecipient(string.Concat(Enumerable.Repeat("🎁", 60)))]);
 
         // act
         var row = RenderPlain(MailTable.RenderMessageRow(
-            message, threadChild: false, unreadToMe: false, selected: false, "alice", Now, columns));
+            message, threadChild: false, unreadToMe: false, selected: false, "alice", s_now, columns));
 
         // assert
         Assert.Equal(contentWidth, MeasureCellWidth(row));
@@ -615,12 +614,12 @@ public sealed class MailTableTests
             sender: string.Concat(Enumerable.Repeat("🎈", 40)),
             subject: string.Concat(Enumerable.Repeat("🎉", 40)),
             body: string.Concat(Enumerable.Repeat("🎊", 40)),
-            createdAt: Now,
+            createdAt: s_now,
             recipients: [MailMessageBuilder.ToRecipient(string.Concat(Enumerable.Repeat("🎁", 40)))]);
 
         // act
         var row = MailTable.RenderMessageRow(
-            message, threadChild: false, unreadToMe: false, selected: false, "alice", Now, columns);
+            message, threadChild: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert: no lone surrogate in either the raw markup or the plain
         // rendered text - the ellipsis this fix truncates to never ends up

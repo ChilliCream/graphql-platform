@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Tests.Hook;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Mail;
 
 public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)

@@ -434,7 +434,7 @@ public class CacheTests
 
         // act
         // assert
-        Assert.Throws<ArgumentException>(() => cache.TryGet(ReadOnlySpan<char>.Empty, out _));
+        Assert.Throws<ArgumentException>(() => cache.TryGet([], out _));
     }
 
     [Fact]
@@ -445,7 +445,7 @@ public class CacheTests
 
         // act
         // assert
-        Assert.Throws<ArgumentException>(() => cache.TryAdd(ReadOnlySpan<char>.Empty, "value"));
+        Assert.Throws<ArgumentException>(() => cache.TryAdd([], "value"));
     }
 
     [Fact]
@@ -456,7 +456,7 @@ public class CacheTests
 
         // act
         // assert
-        Assert.Throws<ArgumentException>(() => cache.GetOrCreate(ReadOnlySpan<char>.Empty, _ => "value"));
+        Assert.Throws<ArgumentException>(() => cache.GetOrCreate([], _ => "value"));
     }
 
     [Fact]
@@ -467,7 +467,7 @@ public class CacheTests
 
         // act
         // assert
-        Assert.Throws<ArgumentException>(() => cache.GetOrCreate(ReadOnlySpan<char>.Empty, (k, s) => $"{k}:{s}", 1));
+        Assert.Throws<ArgumentException>(() => cache.GetOrCreate([], (k, s) => $"{k}:{s}", 1));
     }
 #endif
 

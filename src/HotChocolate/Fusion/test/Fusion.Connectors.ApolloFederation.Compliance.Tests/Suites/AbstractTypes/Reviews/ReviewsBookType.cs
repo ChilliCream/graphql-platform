@@ -80,7 +80,7 @@ public sealed class ReviewsBookType : ObjectType<ReviewBookEntity>
 
     private static List<ReviewResult> BuildReviewResults(string productId)
         => ReviewData.ReviewsForProduct(productId)
-            .Select(r => BuildReviewResult(r))
+            .Select(BuildReviewResult)
             .ToList();
 
     private static ReviewResult BuildReviewResult(ReviewEntity r)

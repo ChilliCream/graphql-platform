@@ -1216,7 +1216,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     {
         if (shape.IsDefault)
         {
-            return JsonValue.Create("default")!;
+            return JsonValue.Create("default");
         }
 
         var nodes = new JsonArray();

@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Threading.Channels;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -29,7 +28,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// reaching the store, on any message the actor is not a recipient of.
 /// A board with no actor is read-only in every mailbox, refusing each of
 /// those gestures and every jump to a personal mailbox with
-/// <see cref="Shell.BoardIdentity.NoIdentityMessage"/>.
+/// <see cref="BoardIdentity.NoIdentityMessage"/>.
 /// <see cref="MailMailbox.Workspace"/> shows every agent's mail, so it is
 /// read-only by default: u, a, c, and r are all refused with
 /// <see cref="MailLifecycleActions.WorkspaceReadOnlyMessage"/> there
@@ -88,9 +87,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private const int ListWidthDenominator = 5;
 
     /// <summary>
-    /// The <see cref="Editing.QuickPickerOption.Id"/> for the agent filter
-    /// picker's "all agents" entry, which clears <see cref="MailState.AgentFilter"/>
-    /// rather than naming an agent.
+    /// The <see cref="QuickPickerOption.Id"/> for the agent filter picker's "all agents" entry,
+    /// which clears <see cref="MailState.AgentFilter"/> rather than naming an agent.
     /// </summary>
     private const string AllAgentsOptionId = "";
 
@@ -662,7 +660,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     {
         if (_state.Actor is null)
         {
-            return [new TuiMessage.ShowToast(Shell.BoardIdentity.NoIdentityMessage, ToastStyle.Warn)];
+            return [new TuiMessage.ShowToast(BoardIdentity.NoIdentityMessage, ToastStyle.Warn)];
         }
 
         return MailLifecycleActions.IsReadOnly(_state.Mailbox, _state.Actor)
@@ -1127,7 +1125,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     {
         if (_state.Actor is null && mailbox != MailMailbox.Workspace)
         {
-            return [new TuiMessage.ShowToast(Shell.BoardIdentity.NoIdentityMessage, ToastStyle.Warn)];
+            return [new TuiMessage.ShowToast(BoardIdentity.NoIdentityMessage, ToastStyle.Warn)];
         }
 
         _state.SelectMailboxAsync(mailbox, CancellationToken.None).GetAwaiter().GetResult();

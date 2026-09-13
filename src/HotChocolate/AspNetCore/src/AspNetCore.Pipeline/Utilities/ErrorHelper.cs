@@ -99,4 +99,16 @@ internal static class ErrorHelper
             .SetMessage(ErrorHelper_BatchSizeExceeded, maxBatchSize)
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
+
+    public static IError VariableBatchingDisabled()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_VariableBatchingDisabled)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
+
+    public static IError RequestBatchingDisabled()
+        => ErrorBuilder.New()
+            .SetMessage(ErrorHelper_RequestBatchingDisabled)
+            .SetCode(ErrorCodes.Server.RequestInvalid)
+            .Build();
 }

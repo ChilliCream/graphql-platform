@@ -2,7 +2,6 @@ using HotChocolate.ApolloFederation.Resolvers;
 using HotChocolate.ApolloFederation.Types;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.ApolloFederation;
-using HotChocolate.Fusion.Execution.Clients;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
