@@ -9,6 +9,7 @@ internal sealed class PingSessionExecutor(
     ICodexQueueClient queueClient,
     IClaudePeerClient claudePeerClient,
     IAgentSessionRegistry sessionRegistry,
+    ISessionDeliveryLedger ledger,
     IPingLeaseStore leaseStore,
     TimeProvider timeProvider) : IPingSessionExecutor
 {
@@ -89,7 +90,7 @@ internal sealed class PingSessionExecutor(
 
             try
             {
-                digest = await BuildDigestAsync(actorName, linkedSource.Token);
+                digest = await BuildDigestAsync(harness, sessionId, actorName, linkedSource.Token);
             }
             catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
             {
@@ -99,10 +100,11 @@ internal sealed class PingSessionExecutor(
 
             if (digest is null)
             {
-                // The unread mail that triggered this ping was already read
-                // by the time the attempt actually ran (a benign race, not
-                // a failure): nothing left to say, so this is a success
-                // with no transport call.
+                // The unread mail that triggered this ping was already read,
+                // or already announced to this session on the ping channel,
+                // by the time the attempt actually ran (a benign race, not a
+                // failure): nothing left to say, so this is a success with no
+                // transport call.
                 return await WriteResultAsync(harness, sessionId, attemptId, PingAttemptReason.Ok, null);
             }
 
@@ -135,13 +137,30 @@ internal sealed class PingSessionExecutor(
         }
     }
 
-    private async Task<string?> BuildDigestAsync(string actorName, CancellationToken cancellationToken)
+    private async Task<string?> BuildDigestAsync(
+        string harness,
+        string sessionId,
+        string actorName,
+        CancellationToken cancellationToken)
     {
         var unread = await mailStore.QueryInboxAsync(
             new MailInboxFilter { Actor = actorName, UnreadOnly = true, Limit = PingPolicy.MaxDigestMessages },
             cancellationToken);
 
         if (unread.Count == 0)
+        {
+            return null;
+        }
+
+        var reserved = await ledger.ReserveAsync(
+            harness,
+            sessionId,
+            unread.Select(message => message.Id).ToList(),
+            AgentSessionChannel.Ping,
+            timeProvider.GetUtcNow(),
+            cancellationToken);
+
+        if (reserved.Count == 0)
         {
             return null;
         }

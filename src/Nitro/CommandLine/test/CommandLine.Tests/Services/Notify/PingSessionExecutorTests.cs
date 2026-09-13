@@ -374,6 +374,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             new NeverCompletingCodexQueueClient(),
             _claudePeerClient,
             _sessions,
+            new SessionDeliveryLedger(_fileSystem, _database),
             _leases,
             _timeProvider);
 
@@ -416,7 +417,9 @@ public sealed class PingSessionExecutorTests : IDisposable
     }
 
     private PingSessionExecutor CreateExecutor()
-        => new(_mail, _queueClient, _claudePeerClient, _sessions, _leases, _timeProvider);
+        => new(
+            _mail, _queueClient, _claudePeerClient, _sessions,
+            new SessionDeliveryLedger(_fileSystem, _database), _leases, _timeProvider);
 
     /// <summary>
     /// A deadline generous enough that a test's own real-time transport work
