@@ -73,8 +73,8 @@ public class CompositeObjectCreateTemplateBenchmark : FusionBenchmarkBase
 
     // The document under test is created with neither @include/@skip variables
     // nor @defer, matching CompositeResultDocument._includeFlags/_deferFlags = 0.
-    private static readonly ConditionFlags s_includeFlags;
-    private static readonly ConditionFlags s_deferFlags;
+    private static readonly ConditionFlags s_includeFlags = new(0);
+    private static readonly ConditionFlags s_deferFlags = new(0);
 
 #pragma warning disable IDE0370 // Remove unnecessary suppression
     private FusionOperation _operation = null!;
