@@ -15,12 +15,4 @@ internal static class PingPolicy
     public static readonly TimeSpan Cooldown = TimeSpan.FromSeconds(60);
     public static readonly TimeSpan LeaseDuration = TimeSpan.FromSeconds(30);
     public static readonly TimeSpan HardTimeout = TimeSpan.FromSeconds(20);
-
-    /// <summary>
-    /// Shared with the Claude and Codex turn-boundary digests
-    /// (<c>CodexHookHandler.MaxDigestMessages</c>): the digest envelope, its
-    /// per-call message cap, and its byte ceiling are harness-neutral by
-    /// design.
-    /// </summary>
-    public const int MaxDigestMessages = 10;
 }
