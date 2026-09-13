@@ -194,6 +194,11 @@ namespace TestNamespace
                         contexts[i].Result = list[i];
                     }
                 }
+                else if (result is not null)
+                {
+                    throw new global::System.InvalidOperationException(
+                        global::System.String.Concat("Batch resolver must return a list type. Got: ", result.GetType(), "."));
+                }
                 return default;
             }
         }

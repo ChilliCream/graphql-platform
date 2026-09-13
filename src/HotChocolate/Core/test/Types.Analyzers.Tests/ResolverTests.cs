@@ -296,6 +296,57 @@ public class ResolverTests
     }
 
     [Fact]
+    public async Task GenerateSource_BatchResolverWithCustomParameterBinding_ArrayShape_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User;
+
+            [ObjectType<User>]
+            public static partial class UserType
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting(
+                    [Parent] List<User> users,
+                    string[] tags)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task GenerateSource_BatchResolverWithCustomParameterBinding_ImmutableArrayShape_MatchesSnapshot()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            """
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            namespace TestNamespace;
+
+            public sealed class User;
+
+            [ObjectType<User>]
+            public static partial class UserType
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting(
+                    [Parent] List<User> users,
+                    ImmutableArray<string> tags)
+                    => default!;
+            }
+            """).MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
     public async Task Ensure_Entity_Becomes_Node()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

@@ -139,9 +139,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
 
         base.WriteResolverMethods(objectType, typeLookup);
 
-        // A [NodeResolver][BatchResolver] combination is registered directly through the
-        // reflection-based INodeDescriptor<TNode>.ResolveNodeBatchWith(MethodInfo) entry point
-        // (see WriteInitializeMethod); it has no generated delegate body to write here.
+        // A [NodeResolver][BatchResolver] method has no generated delegate body.
         if (objectType.NodeResolver is { Kind: not ResolverKind.BatchResolver })
         {
             if (objectType.Resolvers.Length > 0)

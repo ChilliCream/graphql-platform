@@ -146,6 +146,65 @@ public class SourceGeneratorBatchResolverTests
     }
 
     [Fact]
+    public async Task BatchResolver_Should_RaiseSchemaError_When_ReturnTypeIsHashSet()
+    {
+        // arrange
+        // a [BatchResolver] returning a non-list shape (here HashSet<T>) must raise a build-time
+        // schema error naming the member.
+        var assembly = TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<Brand> GetBrands()
+                    => new()
+                    {
+                        new Brand { Id = 1, Name = "Acme" },
+                        new Brand { Id = 2, Name = "Globex" }
+                    };
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static HashSet<string> GetLabel([Parent] List<Brand> brands)
+                    => new(brands.Select(b => $"label-{b.Name}"));
+            }
+            """,
+            "SourceGeneratorBatchHashSetRepro");
+
+        // act
+        async Task Fail() => await TestHelper.ExecuteSourceGeneratedAsync(assembly, "{ brands { name label } }");
+
+        // assert
+        var exception = await Assert.ThrowsAsync<SchemaException>(Fail);
+        Assert.Collection(
+            exception.Errors,
+            error => Assert.Contains(
+                "The batch resolver method 'Repro.BrandNode.GetLabel' must return a list type "
+                + "(e.g. List<T>, IReadOnlyList<T>, ImmutableArray<T> or T[]). Batch resolvers "
+                + "return one result per parent object, so the return type must be a collection.",
+                error.Message,
+                StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task BatchResolver_Should_ThrowResultCountMismatch_When_ListLengthDoesNotMatchContexts()
     {
         // arrange
