@@ -15,7 +15,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// </summary>
 public sealed class CodexHooksInstallerServiceTests : IDisposable
 {
-    private static readonly LaunchDescriptor Descriptor = new("/home/agent/.dotnet/tools/nitro", []);
+    private static readonly LaunchDescriptor s_descriptor = new("/home/agent/.dotnet/tools/nitro", []);
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _hooksJsonPath;
@@ -163,7 +163,7 @@ public sealed class CodexHooksInstallerServiceTests : IDisposable
     private CodexHooksInstallerService CreateService(IFileSystem fileSystem) => new(
         fileSystem,
         new FixedCodexPathResolver(_hooksJsonPath, _configTomlPath),
-        new FixedLaunchDescriptorResolver(Descriptor),
+        new FixedLaunchDescriptorResolver(s_descriptor),
         new CodexHooksSidecarStore(fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
         _timeProvider);
 

@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using HotChocolate.Buffers;
-using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -237,7 +236,7 @@ public sealed partial class SourceResultDocument
                 }
 
                 var toCopy = Math.Min(source.Length, chunkSize - offset);
-                source[..toCopy].CopyTo(current.Span.Slice(offset));
+                source[..toCopy].CopyTo(current.Span[offset..]);
                 source = source[toCopy..];
                 offset += toCopy;
             }

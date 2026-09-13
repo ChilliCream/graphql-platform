@@ -494,7 +494,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                     if (chunkSize - currentChunkPosition >= source.Length)
                     {
-                        source.CopyTo(current.Span.Slice(currentChunkPosition));
+                        source.CopyTo(current.Span[currentChunkPosition..]);
                         currentChunkPosition += source.Length;
                     }
                     else
@@ -508,7 +508,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                             // we copy the data we have into the current chunk.
                             source.Slice(segmentOffset, bytesToCopy)
-                                .CopyTo(current.Span.Slice(currentChunkPosition));
+                                .CopyTo(current.Span[currentChunkPosition..]);
                             currentChunkPosition += bytesToCopy;
                             segmentOffset += bytesToCopy;
 
@@ -549,7 +549,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
                             // we copy the data we have into the current chunk.
                             source.Slice(segmentOffset, bytesToCopy)
-                                .CopyTo(current.Span.Slice(currentChunkPosition));
+                                .CopyTo(current.Span[currentChunkPosition..]);
                             currentChunkPosition += bytesToCopy;
                             segmentOffset += bytesToCopy;
 

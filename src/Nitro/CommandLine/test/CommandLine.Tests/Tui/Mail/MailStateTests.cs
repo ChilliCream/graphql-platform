@@ -4,7 +4,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
 public sealed class MailStateTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static MailState CreateState(FakeMailStore store, string actor = "alice")
         => new(actor, new MailDataLoader(store));
@@ -15,7 +15,7 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
 
         // act
@@ -31,16 +31,16 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
         state.SelectedRow = 1; // m-1, currently the older/last row
 
         // act: a newer message pushes m-1 to a different row on refresh
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-3", createdAt: Now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-3", createdAt: s_now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         await state.RefreshAsync(CancellationToken.None);
 
         // assert
@@ -55,9 +55,9 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
         state.SelectedRow = 0; // m-2, newest first
@@ -111,9 +111,9 @@ public sealed class MailStateTests
         // message is already read for her.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
         Assert.Equal(["t-2", "t-1"], state.Threads.Select(t => t.ThreadId));
@@ -136,10 +136,10 @@ public sealed class MailStateTests
         // is not.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now,
-            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: Now)]));
+            "m-1", threadId: "t-1", createdAt: s_now,
+            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: s_now)]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
 
         // act
@@ -159,10 +159,10 @@ public sealed class MailStateTests
         // is not.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now,
-            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: Now)]));
+            "m-1", threadId: "t-1", createdAt: s_now,
+            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: s_now)]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
 
@@ -183,7 +183,7 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var state = CreateState(store);
         await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
         Assert.Empty(state.Messages); // alice is not a recipient of m-1, so the Inbox is empty
@@ -202,9 +202,9 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
         state.SelectedRow = 1;
@@ -224,7 +224,7 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
         state.SelectedRow = 0;
@@ -243,9 +243,9 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1)));
+            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1)));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
 
@@ -279,7 +279,7 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
         await state.ShowThreadAsync(CancellationToken.None);
@@ -300,7 +300,7 @@ public sealed class MailStateTests
         // though a MessageRow's own default is Message.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
         state.ToggleListMode(); // Threads -> Flat
@@ -326,7 +326,7 @@ public sealed class MailStateTests
         // own default is Thread; ShowMessage manually overrides to Message.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
         Assert.Equal(MailViewMode.Thread, state.ViewMode); // Thread row's own default
@@ -349,9 +349,9 @@ public sealed class MailStateTests
         // first thread row's default to Message.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
         state.ShowMessage();
@@ -372,9 +372,9 @@ public sealed class MailStateTests
         // row's default to Thread.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
         state.ToggleListMode(); // Threads -> Flat
@@ -396,7 +396,7 @@ public sealed class MailStateTests
         // override needed) so ThreadMessages is populated from the start.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
         Assert.Equal(MailViewMode.Thread, state.ViewMode);
@@ -407,7 +407,7 @@ public sealed class MailStateTests
         // its usual re-sync - RefreshAsync must still refresh ThreadMessages
         // itself, since the cache backing it was just cleared.
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1)));
+            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1)));
         await state.RefreshAsync(CancellationToken.None);
 
         // assert
@@ -421,9 +421,9 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-2", sender: "carol", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None); // already the default Workspace mailbox
         Assert.Equal(["m-2", "m-1"], state.Messages.Select(m => m.Id));
@@ -442,9 +442,9 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "alice", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-2", sender: "alice", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None); // already the default Workspace mailbox
         state.SelectedRow = 1;
@@ -462,9 +462,9 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-2", sender: "carol", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var state = CreateState(store);
         await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
         await state.SelectAgentFilterAsync("alice", CancellationToken.None);
@@ -484,7 +484,7 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var state = CreateState(store);
         await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
         await state.SelectAgentFilterAsync("alice", CancellationToken.None);
@@ -527,9 +527,9 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
 
         // act
@@ -550,9 +550,9 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
 
@@ -578,9 +578,9 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
         state.ExpandThread("t-1");
@@ -600,7 +600,7 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
 
@@ -618,9 +618,9 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.RefreshAsync(CancellationToken.None);
 
@@ -644,7 +644,7 @@ public sealed class MailStateTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
         await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
 
@@ -662,7 +662,7 @@ public sealed class MailStateTests
         // arrange: already the default Workspace mailbox.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", sender: "bob", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
 
         // act
@@ -681,7 +681,7 @@ public sealed class MailStateTests
         // read state).
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+            "m-1", sender: "bob", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
         var state = CreateState(store);
 
         // act

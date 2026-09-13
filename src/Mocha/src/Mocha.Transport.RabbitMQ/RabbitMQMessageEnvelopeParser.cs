@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System.Text;
 using Mocha.Middlewares;
-using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Mocha.Transport.RabbitMQ;

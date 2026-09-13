@@ -1,7 +1,6 @@
 using System.Data.Common;
 using System.Linq.Expressions;
 using System.Text.Json;
-using CookieCrumble;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Processing;
@@ -1712,7 +1711,7 @@ public class IntegrationTests : IClassFixture<AuthorFixture>
         if (cacheDiagnostics is not null)
         {
             builder.ConfigureSchemaServices(
-                services => services.AddSingleton<CacheDiagnostics>(cacheDiagnostics));
+                services => services.AddSingleton(cacheDiagnostics));
         }
 
         var services = builder

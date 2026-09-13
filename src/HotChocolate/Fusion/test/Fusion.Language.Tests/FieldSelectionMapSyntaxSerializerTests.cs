@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-
 namespace HotChocolate.Fusion.Language;
 
 public sealed class FieldSelectionMapSyntaxSerializerTests
@@ -396,10 +394,7 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
         // arrange
         var node = new ArgumentNode(
             new NameNode("l"),
-            new ListValueNode(
-                ImmutableArray.Create<IValueNode>(
-                    new IntValueNode("1"),
-                    new IntValueNode("2"))));
+            new ListValueNode([new IntValueNode("1"), new IntValueNode("2")]));
 
         // act
         _serializerNoIndent.Serialize(node, _writer);
@@ -415,12 +410,12 @@ public sealed class FieldSelectionMapSyntaxSerializerTests
         var node = new ArgumentNode(
             new NameNode("o"),
             new ObjectValueNode(
-                ImmutableArray.Create(
+                [
                     new ObjectFieldNode(new NameNode("a"), new IntValueNode("1")),
                     new ObjectFieldNode(
                         new NameNode("b"),
-                        new ListValueNode(
-                            ImmutableArray.Create<IValueNode>(new IntValueNode("2")))))));
+                        new ListValueNode([new IntValueNode("2")]))
+                ]));
 
         // act
         _serializerNoIndent.Serialize(node, _writer);

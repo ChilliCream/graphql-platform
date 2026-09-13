@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -16,11 +15,11 @@ public class OperationPlannerBenchmark : FusionBenchmarkBase
 {
     private const string Id = "123456789101112";
 
-    private OperationPlanner _planner;
+    private OperationPlanner _planner = null!;
 
-    private OperationDefinitionNode _simpleQueryWithRequirements;
-    private OperationDefinitionNode _complexQuery;
-    private OperationDefinitionNode _conditionalRedundancyQuery;
+    private OperationDefinitionNode _simpleQueryWithRequirements = null!;
+    private OperationDefinitionNode _complexQuery = null!;
+    private OperationDefinitionNode _conditionalRedundancyQuery = null!;
 
     [GlobalSetup]
     public void GlobalSetup()

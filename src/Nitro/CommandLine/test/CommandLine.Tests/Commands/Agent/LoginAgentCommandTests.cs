@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Services.Workspace;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>

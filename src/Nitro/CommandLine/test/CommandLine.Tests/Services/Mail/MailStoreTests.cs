@@ -465,7 +465,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var generations = messages.Select(m => Assert.Single(m.WakeReceipts).Generation).Order().ToArray();
         Assert.Equal(Enumerable.Range(1, concurrentSends).Select(i => (long)i), generations);
         var row = await ReadOutboxRowAsync("bob", cancellationToken);
-        Assert.Equal((long)concurrentSends, row!.Value.RequestedGeneration);
+        Assert.Equal(concurrentSends, row!.Value.RequestedGeneration);
     }
 
     [Fact]

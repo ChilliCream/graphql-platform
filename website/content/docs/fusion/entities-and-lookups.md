@@ -406,6 +406,17 @@ builder
     .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true);
 ```
 
+Set `ApplyInaccessibleToNodeFields` if you want the generated `node` and `nodes` fields to remain in your source schema while being hidden from the client-facing composite schema. They are marked `@inaccessible` and `@shareable`, since several source schemas can contribute them, and `node` keeps working as a lookup for entity resolution. This hides them under standard composition settings, while a composition with global object identification enabled keeps the gateway's own `node` field.
+
+**C# configuration**
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddGlobalObjectIdentification(o => o.MarkNodeFieldAsLookup = true)
+    .ModifyOptions(o => o.ApplyInaccessibleToNodeFields = true);
+```
+
 > If GraphQL Global Object Identification is enabled at the gateway level, every entity resolvable through the `node` field becomes a public entry point. Use explicit internal lookups for entities you do not want exposed as public entry points.
 
 # Next Steps

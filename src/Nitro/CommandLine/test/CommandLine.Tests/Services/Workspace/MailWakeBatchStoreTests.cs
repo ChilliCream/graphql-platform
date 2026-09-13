@@ -18,7 +18,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     private const string InstanceId = "instance-a";
     private const string Actor = "claude";
 
-    private static readonly AgentSessionGeneration Target =
+    private static readonly AgentSessionGeneration s_target =
         new("claude-code", "session-1", "host-a");
 
     private readonly DirectoryInfo _tempRoot;
@@ -49,7 +49,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var claim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.Null(claim);
@@ -69,7 +69,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var claim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.Null(claim);
@@ -90,7 +90,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var claim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.Null(claim);
@@ -110,12 +110,12 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var claim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.NotNull(claim);
         Assert.Equal(3, claim.ClaimedGeneration);
-        Assert.Equal([Target], claim.Targets);
+        Assert.Equal([s_target], claim.Targets);
 
         await using var connection = await ConnectAsync(cancellationToken);
         var targetCount = await ExecuteScalarLongAsync(
@@ -137,11 +137,11 @@ public sealed class MailWakeBatchStoreTests : IDisposable
             await SeedOutboxAsync(connection, requestedGeneration: 2, settledGeneration: 0, dueAt: now, cancellationToken);
         }
         var firstClaim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
         var secondClaim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-2", "attempt-2", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            InstanceId, Actor, "owner-2", "attempt-2", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.NotNull(firstClaim);
@@ -158,7 +158,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act: a second owner tries to claim 5s later, before expiry.
         var secondClaim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-2", "attempt-2", [Target], now + TimeSpan.FromSeconds(5),
+            InstanceId, Actor, "owner-2", "attempt-2", [s_target], now + TimeSpan.FromSeconds(5),
             TimeSpan.FromSeconds(10), cancellationToken);
 
         // assert
@@ -176,7 +176,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act: a new owner claims 11s later, after the lease expired.
         var secondClaim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-2", "attempt-2", [Target], now + TimeSpan.FromSeconds(11),
+            InstanceId, Actor, "owner-2", "attempt-2", [s_target], now + TimeSpan.FromSeconds(11),
             TimeSpan.FromSeconds(10), cancellationToken);
 
         // assert
@@ -196,7 +196,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         var firstClaim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
         await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-2", "attempt-2", [Target], now + TimeSpan.FromSeconds(11),
+            InstanceId, Actor, "owner-2", "attempt-2", [s_target], now + TimeSpan.FromSeconds(11),
             TimeSpan.FromSeconds(10), cancellationToken);
 
         // act: the stale owner tries to complete the batch it no longer holds.
@@ -229,7 +229,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         // act
         var results = await Task.WhenAll(Enumerable.Range(1, 6).Select(i =>
             new MailWakeBatchStore(_fileSystem, _database).TryClaimAsync(
-                InstanceId, Actor, $"owner-{i}", $"attempt-{i}", [Target], now, TimeSpan.FromSeconds(30), cancellationToken)));
+                InstanceId, Actor, $"owner-{i}", $"attempt-{i}", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken)));
 
         // assert: exactly one caller claimed the batch.
         Assert.Single(results, claim => claim is not null);
@@ -357,7 +357,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         var released = await _batches.TryReleaseAsync(
             claim.BatchId, "owner-1", "attempt-1", now, retryAt: null, lastError: "spawn-failed", cancellationToken);
         var reclaimed = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-2", "attempt-2", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            InstanceId, Actor, "owner-2", "attempt-2", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.True(released);
@@ -416,7 +416,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var recorded = await _batches.TryRecordTargetOutcomeAsync(
-            claim.BatchId, Target, "owner-1", "attempt-1", "delivered",
+            claim.BatchId, s_target, "owner-1", "attempt-1", "delivered",
             offeredGeneration: null, acceptedGeneration: 1, lastError: null, now, cancellationToken);
 
         // assert
@@ -440,7 +440,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
 
         // act
         var recorded = await _batches.TryRecordTargetOutcomeAsync(
-            claim.BatchId, Target, "owner-1", "attempt-stale", "delivered",
+            claim.BatchId, s_target, "owner-1", "attempt-stale", "delivered",
             offeredGeneration: null, acceptedGeneration: 1, lastError: null, now, cancellationToken);
 
         // assert
@@ -465,11 +465,11 @@ public sealed class MailWakeBatchStoreTests : IDisposable
                 instanceId: otherInstanceId);
         }
         var claimA = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-a", "attempt-a", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            InstanceId, Actor, "owner-a", "attempt-a", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
         var claimB = await _batches.TryClaimAsync(
-            otherInstanceId, Actor, "owner-b", "attempt-b", [Target], now, TimeSpan.FromSeconds(30), cancellationToken);
+            otherInstanceId, Actor, "owner-b", "attempt-b", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert: two independent batches, and instance-b's owner cannot
         // renew or complete instance-a's batch.
@@ -500,7 +500,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         }
 
         var claim = await _batches.TryClaimAsync(
-            InstanceId, Actor, "owner-1", "attempt-1", [Target], now, leaseDuration, cancellationToken);
+            InstanceId, Actor, "owner-1", "attempt-1", [s_target], now, leaseDuration, cancellationToken);
 
         return claim ?? throw new InvalidOperationException("Failed to seed a claimed batch for the test.");
     }

@@ -140,7 +140,7 @@ public class CacheOfTKeyTests
         // act
         // assert
         Assert.Throws<ArgumentNullException>(
-            () => cache.GetOrCreate<int>(new CacheKey(1), null!, 1));
+            () => cache.GetOrCreate(new CacheKey(1), null!, 1));
     }
 
     [Fact]

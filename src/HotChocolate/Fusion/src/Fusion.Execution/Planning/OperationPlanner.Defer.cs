@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Planning.Partitioners;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Rewriters;
@@ -351,7 +350,11 @@ public sealed partial class OperationPlanner
         var remainingCost = PlannerCostEstimator.EstimateRemainingCost(
             _options,
             currentMaxDepth: 0,
+#if NET10_0_OR_GREATER
+            [],
+#else
             ImmutableDictionary<int, int>.Empty,
+#endif
             backlog.Cost);
 
         return new PlanNode

@@ -1,4 +1,6 @@
+#if !NET11_0_OR_GREATER
 using System.Net.Http.Json;
+#endif
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 

@@ -62,7 +62,7 @@ internal sealed class SseReader(HttpResponseMessage message)
             {
                 if (eventType != NextEvent || data.Length == 0)
                 {
-                    return (SourceResultDocument?)null;
+                    return null;
                 }
 
                 return FillAndParse(arenaSource.GetNextArena(), data);
@@ -121,7 +121,7 @@ internal sealed class SseReader(HttpResponseMessage message)
             var spaceInCurrentChunk = chunkSize - currentChunkPosition;
             var bytesToCopy = Math.Min(spaceInCurrentChunk, data.Length - dataOffset);
 
-            data.Slice(dataOffset, bytesToCopy).CopyTo(current.Span.Slice(currentChunkPosition));
+            data.Slice(dataOffset, bytesToCopy).CopyTo(current.Span[currentChunkPosition..]);
             currentChunkPosition += bytesToCopy;
             dataOffset += bytesToCopy;
 

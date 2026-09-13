@@ -8,9 +8,9 @@ namespace ChilliCream.Nitro.CommandLine.Smoke.Tests;
 
 public class SmokeTests
 {
-    private static readonly string ProjectPath = ResolveProjectPath();
-    private static readonly string TargetFramework = ResolveTargetFramework();
-    private static readonly string Configuration = ResolveConfiguration();
+    private static readonly string s_projectPath = ResolveProjectPath();
+    private static readonly string s_targetFramework = ResolveTargetFramework();
+    private static readonly string s_configuration = ResolveConfiguration();
 
     [Fact]
     public async Task Version_Flag_Prints_Version()
@@ -132,7 +132,15 @@ public class SmokeTests
         // not exist and every smoke test would fail with exit code 1.
         var args = new[]
         {
-            "run", "--project", ProjectPath, "-c", Configuration, "--framework", TargetFramework, "--no-build", "--"
+            "run",
+            "--project",
+            s_projectPath,
+            "-c",
+            s_configuration,
+            "--framework",
+            s_targetFramework,
+            "--no-build",
+            "--"
         }.Concat(SplitArguments(arguments));
 
         var command = Cli.Wrap("dotnet")

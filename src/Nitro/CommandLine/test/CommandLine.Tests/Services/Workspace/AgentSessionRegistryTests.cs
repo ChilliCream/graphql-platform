@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using Microsoft.Extensions.Time.Testing;
@@ -1432,16 +1431,6 @@ public sealed class AgentSessionRegistryTests : IDisposable
         command.Parameters.AddWithValue("$harness", generation.Harness);
         command.Parameters.AddWithValue("$sessionId", generation.SessionId);
         command.Parameters.AddWithValue("$host", generation.Host);
-
-        return Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
-    }
-
-    private async Task<long> CountAllSessionRowsAsync(
-        string workspaceDirectory, CancellationToken cancellationToken)
-    {
-        await using var connection = await _database.ConnectAsync(workspaceDirectory, cancellationToken);
-        await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT COUNT(*) FROM agent_sessions;";
 
         return Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
     }

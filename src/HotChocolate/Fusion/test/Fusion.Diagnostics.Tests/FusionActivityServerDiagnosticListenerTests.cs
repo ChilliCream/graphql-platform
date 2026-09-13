@@ -1,10 +1,15 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 using HotChocolate.Diagnostics;
+using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
@@ -66,6 +71,78 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             // act
             using var result = await client.PostAsync(request, s_url, TestContext.Current.CancellationToken);
             await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Post_PersistedOperationEndpoint_Default()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var storage = new OperationStorage();
+            storage.AddOperation("f743cef3f2cab195023341bebed276d2", "query SayHello { sayHello }");
+
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureApplication: MapPersistedOperationEndpoint,
+                configureGatewayBuilder: b => b
+                    .ConfigureSchemaServices((_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                    .UsePersistedOperationPipeline()
+                    .AddInstrumentation());
+
+            using var client = gateway.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000");
+
+            // act
+            using var content = new StringContent("{ }", Encoding.UTF8, "application/json");
+            using var response = await client.PostAsync(
+                "/graphql/persisted/f743cef3f2cab195023341bebed276d2/SayHello",
+                content,
+                TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task Http_Get_PersistedOperationEndpoint_Default()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var storage = new OperationStorage();
+            storage.AddOperation("f743cef3f2cab195023341bebed276d2", "query SayHello { sayHello }");
+
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureApplication: MapPersistedOperationEndpoint,
+                configureGatewayBuilder: b => b
+                    .ConfigureSchemaServices((_, s) => s.AddSingleton<IOperationDocumentStorage>(storage))
+                    .UsePersistedOperationPipeline()
+                    .AddInstrumentation());
+
+            using var client = gateway.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000");
+
+            // act
+            using var response = await client.GetAsync(
+                "/graphql/persisted/f743cef3f2cab195023341bebed276d2/SayHello",
+                TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot(Postfix([NET11_0]));
@@ -706,6 +783,37 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             // expected: the aborted request yields an empty response that cannot be
             // read as a GraphQL result
         }
+    }
+
+    private static void MapPersistedOperationEndpoint(IApplicationBuilder app)
+    {
+        app.UseRouting();
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapGraphQLPersistedOperations();
+            endpoints.MapGraphQL();
+        });
+    }
+
+    private sealed class OperationStorage : IOperationDocumentStorage
+    {
+        private readonly Dictionary<string, OperationDocument> _cache = new(StringComparer.Ordinal);
+
+        public ValueTask<IOperationDocument?> TryReadAsync(
+            OperationDocumentId documentId,
+            CancellationToken cancellationToken = default)
+            => _cache.TryGetValue(documentId.Value, out var value)
+                ? new ValueTask<IOperationDocument?>(value)
+                : new ValueTask<IOperationDocument?>(default(IOperationDocument));
+
+        public ValueTask SaveAsync(
+            OperationDocumentId documentId,
+            IOperationDocument document,
+            CancellationToken cancellationToken = default)
+            => throw new NotSupportedException();
+
+        public void AddOperation(string key, string sourceText)
+            => _cache.Add(key, new OperationDocument(Utf8GraphQLParser.Parse(sourceText)));
     }
 
     public class Query

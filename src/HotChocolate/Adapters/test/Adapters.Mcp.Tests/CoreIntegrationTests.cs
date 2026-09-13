@@ -81,6 +81,44 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
     }
 
     [Fact]
+    public void MapGraphQLMcp_Should_NotBuildSchema_When_Mapping()
+    {
+        // arrange
+        var schemaBuilt = false;
+        var schemaBuiltWhileMapping = false;
+        var builder = new WebHostBuilder()
+            .ConfigureServices(
+                services => services
+                    .AddRouting()
+                    .AddGraphQLServer()
+                    .ConfigureSchemaServices(_ => schemaBuilt = true)
+                    .AddAuthorization()
+                    .AddQueryType<TestSchema.Query>()
+                    .AddMutationType<TestSchema.Mutation>()
+                    .AddInterfaceType<TestSchema.IPet>()
+                    .AddUnionType<TestSchema.IPet>()
+                    .AddObjectType<TestSchema.Cat>()
+                    .AddObjectType<TestSchema.Dog>()
+                    .AddMcp()
+                    .AddMcpStorage(new TestMcpStorage()))
+            .Configure(
+                app => app
+                    .UseRouting()
+                    .UseEndpoints(
+                        endpoints =>
+                        {
+                            endpoints.MapGraphQLMcp();
+                            schemaBuiltWhileMapping = schemaBuilt;
+                        }));
+
+        // act
+        _ = new TestServer(builder);
+
+        // assert
+        Assert.False(schemaBuiltWhileMapping);
+    }
+
+    [Fact]
     public async Task ListTools_AfterSchemaUpdate_ReturnsUpdatedTools()
     {
         // arrange
