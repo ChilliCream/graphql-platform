@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.CostAnalysis;
@@ -108,7 +107,7 @@ internal sealed class OperationExecutionMiddleware
                         throw;
                     }
 
-                    context.Result = new OperationResultBatch(ImmutableList.CreateRange(completedResults));
+                    context.Result = new OperationResultBatch([.. completedResults]);
                 }
                 else if (!operationPlan.IncrementalPlans.IsEmpty)
                 {

@@ -11,7 +11,7 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 public class ListSizeResolverTests
 {
-    private static readonly IReadOnlyDictionary<string, SlicingArgumentValue> NoSlicingArguments =
+    private static readonly IReadOnlyDictionary<string, SlicingArgumentValue> s_noSlicingArguments =
         new Dictionary<string, SlicingArgumentValue>();
 
     // -- Non-list fields never enter the chain --------------------------------------------------
@@ -24,7 +24,7 @@ public class ListSizeResolverTests
             isListField: false,
             metadata: null,
             inheritedSizes: default,
-            NoSlicingArguments,
+            s_noSlicingArguments,
             variableValues: null,
             defaultListSize: double.PositiveInfinity);
 
@@ -42,7 +42,7 @@ public class ListSizeResolverTests
             isListField: true,
             metadata: null,
             inheritedSizes: [5.0],
-            NoSlicingArguments,
+            s_noSlicingArguments,
             variableValues: null,
             defaultListSize: double.PositiveInfinity);
 
@@ -58,7 +58,7 @@ public class ListSizeResolverTests
             isListField: true,
             metadata: null,
             inheritedSizes: [5.0, 9.0, 2.0],
-            NoSlicingArguments,
+            s_noSlicingArguments,
             variableValues: null,
             defaultListSize: double.PositiveInfinity);
 
@@ -290,7 +290,7 @@ public class ListSizeResolverTests
             true,
             metadata,
             inheritedSizes: default,
-            NoSlicingArguments,
+            s_noSlicingArguments,
             variableValues: null,
             defaultListSize: double.PositiveInfinity);
 
@@ -311,7 +311,7 @@ public class ListSizeResolverTests
             true,
             metadata,
             inheritedSizes: default,
-            NoSlicingArguments,
+            s_noSlicingArguments,
             variableValues: null,
             defaultListSize: double.PositiveInfinity);
 
@@ -352,7 +352,7 @@ public class ListSizeResolverTests
             true,
             metadata: null,
             inheritedSizes: default,
-            NoSlicingArguments,
+            s_noSlicingArguments,
             variableValues: null,
             defaultListSize: double.PositiveInfinity);
 
@@ -371,7 +371,7 @@ public class ListSizeResolverTests
             true,
             metadata,
             inheritedSizes: default,
-            NoSlicingArguments,
+            s_noSlicingArguments,
             variableValues: null,
             defaultListSize: 10.0);
 
@@ -415,7 +415,7 @@ public class ListSizeResolverTests
             true,
             metadata,
             inheritedSizes: default,
-            NoSlicingArguments,
+            s_noSlicingArguments,
             variableValues: null,
             defaultListSize: 10.0);
 
@@ -434,7 +434,7 @@ public class ListSizeResolverTests
             true,
             metadata,
             inheritedSizes: [7.0],
-            NoSlicingArguments,
+            s_noSlicingArguments,
             variableValues: null,
             defaultListSize: 10.0);
 
@@ -639,7 +639,7 @@ public class ListSizeResolverTests
 
         // act
         var resolved = ListSizeResolver.TryResolveSizedFieldSize(
-            metadata, NoSlicingArguments, variableValues: null, defaultListSize: double.PositiveInfinity, out var size);
+            metadata, s_noSlicingArguments, variableValues: null, defaultListSize: double.PositiveInfinity, out _);
 
         // assert
         Assert.False(resolved);
