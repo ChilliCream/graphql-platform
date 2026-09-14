@@ -3,6 +3,7 @@ using HotChocolate.Execution.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using Squadron;
 
 namespace HotChocolate.Types.BatchResolvers;
@@ -31,6 +32,36 @@ internal static class EfTestSupport
         await context.SaveChangesAsync(cancellationToken);
 
         return connectionString;
+    }
+
+    /// <summary>
+    /// Drops the database <paramref name="connectionString"/> points at (as returned by
+    /// <see cref="CreateSeededDatabaseAsync"/>), so a per-test Postgres database never outlives
+    /// its test. Terminates any other backend still connected to it first, since Postgres refuses
+    /// to drop a database with active connections.
+    /// </summary>
+    public static async Task DropDatabaseAsync(
+        this PostgreSqlResource resource,
+        string connectionString,
+        CancellationToken cancellationToken)
+    {
+        var databaseName = new NpgsqlConnectionStringBuilder(connectionString).Database!;
+
+        await using var connection = resource.GetConnection();
+        await connection.OpenAsync(cancellationToken);
+
+        await using (var terminate = connection.CreateCommand())
+        {
+            terminate.CommandText =
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity "
+                + "WHERE datname = @name AND pid <> pg_backend_pid()";
+            terminate.Parameters.AddWithValue("name", databaseName);
+            await terminate.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        await using var drop = connection.CreateCommand();
+        drop.CommandText = $"DROP DATABASE IF EXISTS \"{databaseName}\"";
+        await drop.ExecuteNonQueryAsync(cancellationToken);
     }
 
     /// <summary>

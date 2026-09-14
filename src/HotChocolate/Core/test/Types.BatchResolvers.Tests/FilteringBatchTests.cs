@@ -28,6 +28,11 @@ public sealed partial class FilteringBatchTests(PostgreSqlResource resource) : B
         Fluent = new Declaration(ConfigureFluent)
     };
 
+    protected override Task DisposeDatabaseAsync()
+        => _connectionString is null
+            ? Task.CompletedTask
+            : _resource.DropDatabaseAsync(_connectionString, TestContext.Current.CancellationToken);
+
     [Theory]
     [BatchMatrix]
     public async Task UseFiltering_Should_Expose_WhereArgument_When_FieldIsBatchResolved(DeclarationStyle style)

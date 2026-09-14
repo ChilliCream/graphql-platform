@@ -110,5 +110,13 @@ public abstract class BatchScenarioTests : IAsyncLifetime
         {
             await services.DisposeAsync();
         }
+
+        await DisposeDatabaseAsync();
     }
+
+    /// <summary>
+    /// Drops any per-test database a Postgres-backed family seeded, so the container never
+    /// accumulates one database per test run. A no-op for every non-Postgres family.
+    /// </summary>
+    protected virtual Task DisposeDatabaseAsync() => Task.CompletedTask;
 }

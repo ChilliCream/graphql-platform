@@ -31,6 +31,11 @@ public sealed partial class ProjectionBatchTests(PostgreSqlResource resource) : 
         Fluent = new Declaration(ConfigureFluent)
     };
 
+    protected override Task DisposeDatabaseAsync()
+        => _connectionString is null
+            ? Task.CompletedTask
+            : _resource.DropDatabaseAsync(_connectionString, TestContext.Current.CancellationToken);
+
     [Theory]
     [BatchMatrix]
     public async Task BatchResolver_Should_Execute_When_ParentUsesProjection_And_FieldUsesFiltering(

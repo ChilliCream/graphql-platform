@@ -29,6 +29,11 @@ public sealed partial class OffsetPagingBatchTests(PostgreSqlResource resource) 
         Fluent = new Declaration(ConfigureFluent)
     };
 
+    protected override Task DisposeDatabaseAsync()
+        => _connectionString is null
+            ? Task.CompletedTask
+            : _resource.DropDatabaseAsync(_connectionString, TestContext.Current.CancellationToken);
+
     // The offset paging batch twin: two brands under one query still slice correctly per parent
     // once the batch partition key reads "take" instead of unconditionally assuming "first"
     // (PagingHelper.cs, hc-0-bpl.4).

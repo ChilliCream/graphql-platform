@@ -32,6 +32,11 @@ public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) 
         Fluent = new Declaration(ConfigureFluent)
     };
 
+    protected override Task DisposeDatabaseAsync()
+        => _connectionString is null
+            ? Task.CompletedTask
+            : _resource.DropDatabaseAsync(_connectionString, TestContext.Current.CancellationToken);
+
     protected override IReadOnlyDictionary<string, string> ScenarioNotApplicableReasons { get; } =
         new Dictionary<string, string>
         {

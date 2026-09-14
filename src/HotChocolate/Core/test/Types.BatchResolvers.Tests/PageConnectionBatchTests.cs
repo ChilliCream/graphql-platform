@@ -33,6 +33,11 @@ public sealed partial class PageConnectionBatchTests(PostgreSqlResource resource
             + "Types.CursorPagination")
     };
 
+    protected override Task DisposeDatabaseAsync()
+        => _connectionString is null
+            ? Task.CompletedTask
+            : _resource.DropDatabaseAsync(_connectionString, TestContext.Current.CancellationToken);
+
     [Theory]
     [BatchMatrix]
     public async Task UseConnection_Should_Map_PagingArguments_When_ReturnTypeIsPageConnection(DeclarationStyle style)

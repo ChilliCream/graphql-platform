@@ -28,6 +28,11 @@ public sealed partial class SortingBatchTests(PostgreSqlResource resource) : Bat
         Fluent = new Declaration(ConfigureFluent)
     };
 
+    protected override Task DisposeDatabaseAsync()
+        => _connectionString is null
+            ? Task.CompletedTask
+            : _resource.DropDatabaseAsync(_connectionString, TestContext.Current.CancellationToken);
+
     [Theory]
     [BatchMatrix]
     public async Task UseSorting_Should_Expose_OrderArgument_When_FieldIsBatchResolved(DeclarationStyle style)
