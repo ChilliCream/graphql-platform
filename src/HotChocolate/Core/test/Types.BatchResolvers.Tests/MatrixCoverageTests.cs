@@ -16,7 +16,7 @@ public sealed class MatrixCoverageTests
 
         foreach (var family in families)
         {
-            var instance = (BatchScenarioTests)Activator.CreateInstance(family)!;
+            var instance = CreateForCoverage(family);
 
             try
             {
@@ -86,6 +86,27 @@ public sealed class MatrixCoverageTests
 
         // assert
         Assert.Empty(violations);
+    }
+
+    /// <summary>
+    /// Builds a family instance for coverage inspection only: <c>Declarations</c> is read
+    /// but never configured, so a family that needs a Squadron fixture (for example a
+    /// <see cref="Xunit.CollectionAttribute"/> constructor parameter) can be constructed here with
+    /// a <see langword="null"/> fixture instead of a live one. Picks the constructor with the
+    /// fewest parameters and supplies <see langword="null"/> (or the declared default) for each.
+    /// </summary>
+    private static BatchScenarioTests CreateForCoverage(Type family)
+    {
+        var constructor = family
+            .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+            .OrderBy(c => c.GetParameters().Length)
+            .First();
+
+        var arguments = constructor.GetParameters()
+            .Select(p => p.HasDefaultValue ? p.DefaultValue : null)
+            .ToArray();
+
+        return (BatchScenarioTests)constructor.Invoke(arguments);
     }
 
     private static IReadOnlyList<Type> DiscoverFamilies()
