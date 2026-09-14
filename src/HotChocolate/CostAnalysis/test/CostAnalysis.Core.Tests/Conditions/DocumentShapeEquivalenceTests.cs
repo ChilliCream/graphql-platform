@@ -59,7 +59,7 @@ public class DocumentShapeEquivalenceTests
     }
 
     [Fact]
-    public void ExtractOperation_Should_Produce_Identical_Tree_For_Inline_And_Named_Fragments_When_C4_Duplicate_Response_Name()
+    public void ExtractOperation_Should_Produce_Identical_Tree_When_C4_Duplicate_Response_Name()
     {
         // arrange & act
         var inline = ExtractResultBoundary(DuplicateResponseNameSdl, DuplicateResponseNameInline, "Result", "A");
