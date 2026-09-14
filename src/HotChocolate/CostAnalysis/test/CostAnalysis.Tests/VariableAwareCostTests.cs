@@ -261,7 +261,7 @@ public sealed class VariableAwareCostTests
     }
 
     [Fact]
-    public async Task Evaluate_Should_ExposeEveryEstimateAndRejectOnlyExpensiveSet_When_LaterSetExceedsLimit()
+    public async Task Evaluate_Should_ExposeEveryEstimateAndRejectWholeRequest_When_SummedCostExceedsLimit()
     {
         // arrange
         var snapshot = new Snapshot();
@@ -299,10 +299,8 @@ public sealed class VariableAwareCostTests
         Assert.Equal(3d, analysisResult.Estimates[0].TypeCost);
         Assert.Equal(22d, analysisResult.Estimates[1].TypeCost);
         Assert.Equal(3d, firstMetrics!.TypeCost);
-        var batch = response.ExpectOperationResultBatch();
         await snapshot
-            .AddResult((OperationResult)batch.Results[0], "CheapSet")
-            .AddResult((OperationResult)batch.Results[1], "ExpensiveSet")
+            .AddResult(response.ExpectOperationResult(), "Result")
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 

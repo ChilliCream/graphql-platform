@@ -108,36 +108,6 @@ internal static class ResultHelper
         }
     }
 
-    public static IExecutionResult SetVariableIndex(
-        this IExecutionResult result,
-        int variableIndex)
-    {
-        if (result is not OperationResult operationResult
-            || operationResult.Data.HasValue)
-        {
-            return ErrorHelper.StateInvalidForCostAnalysis();
-        }
-
-        if (operationResult.Errors.Count > 0)
-        {
-            return new OperationResult(operationResult.Errors, operationResult.Extensions)
-            {
-                ContextData = operationResult.ContextData,
-                RequestIndex = operationResult.RequestIndex,
-                VariableIndex = variableIndex,
-                Document = operationResult.Document
-            };
-        }
-
-        return new OperationResult(operationResult.Extensions)
-        {
-            ContextData = operationResult.ContextData,
-            RequestIndex = operationResult.RequestIndex,
-            VariableIndex = variableIndex,
-            Document = operationResult.Document
-        };
-    }
-
     public static IExecutionResult AddCostMetrics(
         this IExecutionResult? result,
         ImmutableArray<CostMetrics> costMetrics)

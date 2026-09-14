@@ -210,6 +210,43 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
     }
 
     [Fact]
+    public async Task VariableBatch_SummedCostExceeded_ReturnsSingleBadRequest_For_GraphQLResponseJson()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services => services
+                .AddGraphQLServer()
+                .AddHttpRequestInterceptor<VariableBatchCostInterceptor>());
+
+        var uri = new Uri("http://localhost:5000/graphql");
+
+        const string requestBody =
+            """
+            {
+                "query" : "query Test($id: String!){human(id: $id){name}}",
+                "variables" : [{ "id" : "1000" }, { "id" : "1001" }]
+            }
+            """;
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+        };
+        request.Headers.TryAddWithoutValidation("Accept", "application/graphql-response+json");
+
+        // act
+        using var httpClient = server.CreateClient();
+        using var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
+        Assert.NotNull(result);
+        Assert.Equal(JsonValueKind.Object, result!.RootElement.ValueKind);
+        result.RootElement.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Request_Validate_Cost_Header_Without_Variables_Returns_Ok_ExtensionsOnly()
     {
         // arrange
@@ -250,6 +287,19 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         {
             var costOptions = requestExecutor.GetCostOptions();
             requestBuilder.SetCostOptions(costOptions with { MaxTypeCost = 1 });
+            return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
+        }
+    }
+    public class VariableBatchCostInterceptor : DefaultHttpRequestInterceptor
+    {
+        public override ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            OperationRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
+        {
+            var costOptions = requestExecutor.GetCostOptions();
+            requestBuilder.SetCostOptions(costOptions with { MaxTypeCost = 2 });
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }
