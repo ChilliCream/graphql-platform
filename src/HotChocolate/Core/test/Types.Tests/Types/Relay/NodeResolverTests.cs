@@ -1513,6 +1513,50 @@ public class NodeResolverTests
     }
 
     [Fact]
+    public async Task Nodes_Should_Isolate_Type_Group_When_Inner_Partition_Key_Resolver_Throws_For_One_Entry()
+    {
+        // arrange
+        // The inner partition key delegate itself throws while computing the key for the second
+        // FailingBatchEntity id, before any slice of that type group is dispatched. The whole
+        // type group is isolated through the outer DispatchTypeGroupAsync boundary while the
+        // sibling BatchEntity group still resolves.
+        var collector = new BatchNodeCollector();
+        var executor = await new ServiceCollection()
+            .AddSingleton(collector)
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode()
+                .ResolveNodeBatchWith<FluentBatchNodeResolver>(r => r.Resolve(default!, default!)))
+            .AddObjectType<FailingBatchEntity>(d => d.ImplementsNode()
+                .ResolveNodeBatchWith<FluentBatchNodeResolver>(r => r.PartitionKeyThrowing(default!, default!)))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: [
+                    "RmFpbGluZ0JhdGNoRW50aXR5OjE=",
+                    "QmF0Y2hFbnRpdHk6eA==",
+                    "RmFpbGluZ0JhdGNoRW50aXR5OjI=",
+                    "QmF0Y2hFbnRpdHk6eQ=="
+                ]) {
+                    ... on BatchEntity { name }
+                    ... on FailingBatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot()
+            .Add(result, "Result")
+            .Add(new { collector.InvocationCount, collector.BatchSizes, collector.ReceivedIds }, "Dispatch")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Nodes_Should_Error_Whole_Field_When_List_Contains_Int_Literal()
     {
         // arrange
@@ -1782,6 +1826,13 @@ public class NodeResolverTests
             return id.Select(value => new BatchEntity { Name = value }).ToArray();
         }
 
+        [NodeBatchPartitionKeyThrowing]
+        public List<FailingBatchEntity> PartitionKeyThrowing(List<string> id, [Service] BatchNodeCollector collector)
+        {
+            collector.Record(id);
+            return id.Select(value => new FailingBatchEntity { Name = value }).ToList();
+        }
+
         [BatchResolver]
         public List<BatchEntity> Resolve(IReadOnlyList<string> id, [Service] BatchNodeCollector collector)
         {
@@ -1847,6 +1898,22 @@ public class NodeResolverTests
         {
             descriptor.Extend().Configuration.BatchPartitionKeyResolver =
                 c => c.GetLocalState<string>(WellKnownContextData.InternalId) == "x" ? 0UL : 1UL;
+        }
+    }
+
+    private sealed class NodeBatchPartitionKeyThrowingAttribute : ObjectFieldDescriptorAttribute
+    {
+        protected override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo? member)
+        {
+            // The key delegate itself throws for the second entry, before any slice of the
+            // group is dispatched, so the failure escapes the partition-building loop entirely.
+            descriptor.Extend().Configuration.BatchPartitionKeyResolver =
+                c => c.GetLocalState<string>(WellKnownContextData.InternalId) == "2"
+                    ? throw new InvalidOperationException("The partition key resolver failed.")
+                    : 0UL;
         }
     }
 
