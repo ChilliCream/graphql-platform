@@ -1367,6 +1367,152 @@ public class NodeResolverTests
     }
 
     [Fact]
+    public async Task Nodes_Should_Isolate_Type_Group_When_Batch_Resolver_Throws_For_One_Type()
+    {
+        // arrange
+        // Two node types share one nodes() call. The failing type's batch resolver throws for
+        // its whole slice while the healthy type's batch resolver still dispatches and resolves.
+        var okCollector = new BatchNodeCollector();
+        var failingCollector = new BatchNodeCollector();
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode().IdField(n => n.Id)
+                .ResolveNodeBatch((_, ids) =>
+                {
+                    okCollector.Record(ids);
+                    return Task.FromResult<IReadOnlyList<BatchEntity?>>(
+                        ids.Select(id => new BatchEntity { Name = id }).ToArray());
+                }))
+            .AddObjectType<FailingBatchEntity>(d => d.ImplementsNode().IdField(n => n.Id)
+                .ResolveNodeBatch((_, ids) =>
+                {
+                    failingCollector.Record(ids);
+                    throw new InvalidOperationException("The batch resolver failed.");
+                }))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: [
+                    "RmFpbGluZ0JhdGNoRW50aXR5OjE=",
+                    "QmF0Y2hFbnRpdHk6eA==",
+                    "RmFpbGluZ0JhdGNoRW50aXR5OjI=",
+                    "QmF0Y2hFbnRpdHk6eQ=="
+                ]) {
+                    ... on BatchEntity { name }
+                    ... on FailingBatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot()
+            .Add(result, "Result")
+            .Add(
+                new
+                {
+                    OkInvocationCount = okCollector.InvocationCount,
+                    FailingInvocationCount = failingCollector.InvocationCount
+                },
+                "Dispatch")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_Should_Leave_Sibling_Alias_Untouched_When_Other_Alias_Batch_Resolver_Throws()
+    {
+        // arrange
+        // Aliased nodes fields dispatch independently. A failing type's batch resolver in one
+        // alias must not affect a sibling alias that never references that type.
+        var okCollector = new BatchNodeCollector();
+        var failingCollector = new BatchNodeCollector();
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode().IdField(n => n.Id)
+                .ResolveNodeBatch((_, ids) =>
+                {
+                    okCollector.Record(ids);
+                    return Task.FromResult<IReadOnlyList<BatchEntity?>>(
+                        ids.Select(id => new BatchEntity { Name = id }).ToArray());
+                }))
+            .AddObjectType<FailingBatchEntity>(d => d.ImplementsNode().IdField(n => n.Id)
+                .ResolveNodeBatch((_, ids) =>
+                {
+                    failingCollector.Record(ids);
+                    throw new InvalidOperationException("The batch resolver failed.");
+                }))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                a: nodes(ids: ["RmFpbGluZ0JhdGNoRW50aXR5OjE=", "QmF0Y2hFbnRpdHk6eA=="]) {
+                    ... on BatchEntity { name }
+                    ... on FailingBatchEntity { name }
+                }
+                b: nodes(ids: ["QmF0Y2hFbnRpdHk6eQ=="]) {
+                    ... on BatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot()
+            .Add(result, "Result")
+            .Add(
+                new
+                {
+                    OkInvocationCount = okCollector.InvocationCount,
+                    FailingInvocationCount = failingCollector.InvocationCount
+                },
+                "Dispatch")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Nodes_Should_Isolate_Partition_When_Inner_Partition_Batch_Resolver_Throws_For_One_Key()
+    {
+        // arrange
+        // The resolver partitions its slice by internal id. The partition holding "x" throws
+        // while the sibling partition holding "y" still resolves.
+        var collector = new BatchNodeCollector();
+        var executor = await new ServiceCollection()
+            .AddSingleton(collector)
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode()
+                .ResolveNodeBatchWith<FluentBatchNodeResolver>(r => r.PartitionedThrowing(default!, default!)))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ=="]) {
+                    ... on BatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot()
+            .Add(result, "Result")
+            .Add(new { collector.InvocationCount, collector.BatchSizes, collector.ReceivedIds }, "Dispatch")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Nodes_Should_Error_Whole_Field_When_List_Contains_Int_Literal()
     {
         // arrange
@@ -1579,6 +1725,17 @@ public class NodeResolverTests
         public required string Name { get; set; }
     }
 
+    public class FailingBatchEntity
+    {
+        public string Id
+        {
+            get => Name;
+            set => Name = value;
+        }
+
+        public required string Name { get; set; }
+    }
+
     public sealed class BatchNodeCollector
     {
         private readonly List<string> _receivedIds = [];
@@ -1611,6 +1768,19 @@ public class NodeResolverTests
         [NodeBatchPartition]
         public BatchEntity[] Partitioned(List<string> id, [Service] BatchNodeCollector collector)
             => Resolve(id, collector).ToArray();
+
+        [NodeBatchPartition]
+        public BatchEntity[] PartitionedThrowing(List<string> id, [Service] BatchNodeCollector collector)
+        {
+            collector.Record(id);
+
+            if (id.Contains("x"))
+            {
+                throw new InvalidOperationException("The partition resolver failed.");
+            }
+
+            return id.Select(value => new BatchEntity { Name = value }).ToArray();
+        }
 
         [BatchResolver]
         public List<BatchEntity> Resolve(IReadOnlyList<string> id, [Service] BatchNodeCollector collector)
