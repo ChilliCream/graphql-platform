@@ -1,4 +1,4 @@
-namespace HotChocolate.Fusion.Planning;
+namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class OperationShortHashTests
 {
