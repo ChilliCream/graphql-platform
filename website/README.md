@@ -11,7 +11,8 @@ The ChilliCream website and documentation, built on Next.js (MDX-based docs).
 
 Website dependencies and tooling run only inside the frontend container.
 `yarn install` on the host is blocked by design. The Docker daemon (OrbStack
-on macOS) must be running.
+on macOS) must be running. The wrapper paths below are relative to the
+repository root, not to `website/`.
 
 ```bash
 website/scripts/frontend-container.sh up

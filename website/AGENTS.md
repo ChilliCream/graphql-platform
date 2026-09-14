@@ -2,7 +2,8 @@
 
 Website dependencies and tooling run only inside the frontend container.
 `yarn install` on the host is blocked by design. Run commands through the
-wrapper, from the repo root:
+wrapper. The paths below are relative to the repository root, not to
+`website/`:
 
 ```bash
 website/scripts/frontend-container.sh up

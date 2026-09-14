@@ -11,7 +11,7 @@ Website dependencies and tooling run only inside the frontend container.
 
 ```bash
 website/scripts/frontend-container.sh up
-website/scripts/frontend-container.sh exec -- yarn dev
+website/scripts/frontend-container.sh dev
 ```
 
 The dev server is at http://localhost:3031. The Docker daemon (OrbStack on
