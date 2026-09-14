@@ -607,12 +607,6 @@ The same as `transports.http.devUrl`, for the WebSocket URL of the source schema
 
 The named HTTP client the gateway uses to communicate with this subgraph. Must match what the gateway configures via `builder.Services.AddHttpClient("fusion")`.
 
-### `transports.subscriptions.transport`
-
-**Type:** `"sse"` | `"ws"` (optional)
-
-The transport protocol for real-time subscriptions. Defaults to `"sse"` (Server-Sent Events).
-
 ### `extensions.nitro.apiId`
 
 **Type:** `string` (optional)

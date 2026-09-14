@@ -116,7 +116,7 @@ internal sealed class GraphQLOverWebSocketProtocolHandler(
 
             var operationMessageObj =
                 TryGetPayload(root, out var payload)
-                    ? new ConnectionInitMessage(payload)
+                    ? new ConnectionInitMessage(payload.Clone())
                     : ConnectionInitMessage.Default;
 
             var connectionStatus =

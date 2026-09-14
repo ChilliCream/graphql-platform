@@ -31,6 +31,10 @@
     <PackageReference Include="System.Net.ServerSentEvents" Condition="'$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net9.0'" />
   </ItemGroup>
 
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0' or '$(TargetFramework)' == 'net9.0' or '$(TargetFramework)' == 'net10.0'">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
   </ItemGroup>
@@ -172,6 +176,37 @@
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\RequestDeduplicationHttpClientBuilderExtensions.cs">
       <Link>Transport\Http\RequestDeduplicationHttpClientBuilderExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets\Delimiter.cs"><Link>Transport\Sockets\Delimiter.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets\IMessageHandler.cs"><Link>Transport\Sockets\IMessageHandler.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets\ISocket.cs"><Link>Transport\Sockets\ISocket.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets\MessagePipeline.cs"><Link>Transport\Sockets\MessagePipeline.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets\MessageProcessor.cs"><Link>Transport\Sockets\MessageProcessor.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets\MessageReceiver.cs"><Link>Transport\Sockets\MessageReceiver.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets\SocketDefaults.cs"><Link>Transport\Sockets\SocketDefaults.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets\WebSocketExtensions.cs"><Link>Transport\Sockets\WebSocketExtensions.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets\WellKnownProtocols.cs"><Link>Transport\Sockets\WellKnownProtocols.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\SocketClient.cs"><Link>Transport\Sockets\Client\SocketClient.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\SocketClosedException.cs"><Link>Transport\Sockets\Client\SocketClosedException.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\SocketResult.cs"><Link>Transport\Sockets\Client\SocketResult.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\ThrowHelper.cs"><Link>Transport\Sockets\Client\ThrowHelper.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Extensions\ArrayWriterExtensions.cs"><Link>Transport\Sockets\Client\Extensions\ArrayWriterExtensions.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\ConnectionMessageObserver.cs"><Link>Transport\Sockets\Client\Protocols\ConnectionMessageObserver.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\DataMessageObserver.cs"><Link>Transport\Sockets\Client\Protocols\DataMessageObserver.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\IDataCompletion.cs"><Link>Transport\Sockets\Client\Protocols\IDataCompletion.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\IDataMessage.cs"><Link>Transport\Sockets\Client\Protocols\IDataMessage.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\IOperationMessage.cs"><Link>Transport\Sockets\Client\Protocols\IOperationMessage.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\IProtocolHandler.cs"><Link>Transport\Sockets\Client\Protocols\IProtocolHandler.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\MessageStream.cs"><Link>Transport\Sockets\Client\Protocols\MessageStream.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\SocketClientContext.cs"><Link>Transport\Sockets\Client\Protocols\SocketClientContext.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\GraphQLOverWebSocket\ConnectionAcceptMessage.cs"><Link>Transport\Sockets\Client\Protocols\GraphQLOverWebSocket\ConnectionAcceptMessage.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\GraphQLOverWebSocket\GraphQLOverWebSocketProtocolHandler.cs"><Link>Transport\Sockets\Client\Protocols\GraphQLOverWebSocket\GraphQLOverWebSocketProtocolHandler.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\GraphQLOverWebSocket\MessageHelper.cs"><Link>Transport\Sockets\Client\Protocols\GraphQLOverWebSocket\MessageHelper.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\GraphQLOverWebSocket\Utf8MessageProperties.cs"><Link>Transport\Sockets\Client\Protocols\GraphQLOverWebSocket\Utf8MessageProperties.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\GraphQLOverWebSocket\Utf8Messages.cs"><Link>Transport\Sockets\Client\Protocols\GraphQLOverWebSocket\Utf8Messages.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\GraphQLOverWebSocket\Messages\CompleteMessage.cs"><Link>Transport\Sockets\Client\Protocols\GraphQLOverWebSocket\Messages\CompleteMessage.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\GraphQLOverWebSocket\Messages\ErrorMessage.cs"><Link>Transport\Sockets\Client\Protocols\GraphQLOverWebSocket\Messages\ErrorMessage.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\GraphQLOverWebSocket\Messages\Messages.cs"><Link>Transport\Sockets\Client\Protocols\GraphQLOverWebSocket\Messages\Messages.cs</Link></Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Protocols\GraphQLOverWebSocket\Messages\NextMessage.cs"><Link>Transport\Sockets\Client\Protocols\GraphQLOverWebSocket\Messages\NextMessage.cs</Link></Compile>
     <Compile Update="Text\Json\SourceResultElement.ObjectEnumerator.cs">
       <DependentUpon>SourceResultElement.cs</DependentUpon>
     </Compile>
@@ -265,6 +300,17 @@
       <Link>Transport\Http\HttpResources.resx</Link>
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>HttpResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Properties\SocketClientResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <Link>Transport\Sockets\Client\Properties\SocketClientResources.Designer.cs</Link>
+      <DependentUpon>SocketClientResources.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="..\..\..\AspNetCore\src\Transport.Sockets.Client\Properties\SocketClientResources.resx">
+      <Link>Transport\Sockets\Client\Properties\SocketClientResources.resx</Link>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SocketClientResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 
