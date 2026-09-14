@@ -10,13 +10,45 @@ public sealed class CostOptions
 
     /// <summary>
     /// Gets or sets the maximum allowed field cost.
+    /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
-    public double MaxFieldCost { get; set; } = 1_000;
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
+    public double MaxFieldCost
+    {
+        get;
+        set
+        {
+            if (double.IsNaN(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(MaxFieldCost), value);
+            }
+
+            field = value;
+        }
+    } = 1_000;
 
     /// <summary>
     /// Gets or sets the maximum allowed type cost.
+    /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
-    public double MaxTypeCost { get; set; } = 1_000;
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
+    public double MaxTypeCost
+    {
+        get;
+        set
+        {
+            if (double.IsNaN(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(MaxTypeCost), value);
+            }
+
+            field = value;
+        }
+    } = 1_000;
 
     /// <summary>
     /// Defines if the analyzer shall enforce cost limits.
@@ -79,8 +111,24 @@ public sealed class CostOptions
     /// <summary>
     /// Gets or sets the assumed size of a list field that has no applicable
     /// <c>@listSize</c> information. <see cref="double.PositiveInfinity"/> by default.
+    /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
-    public double DefaultListSize { get; set; } = double.PositiveInfinity;
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
+    public double DefaultListSize
+    {
+        get;
+        set
+        {
+            if (double.IsNaN(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(DefaultListSize), value);
+            }
+
+            field = value;
+        }
+    } = double.PositiveInfinity;
 
     /// <summary>
     /// Gets or sets the maximum number of compiled cost plans cached per schema.
@@ -91,8 +139,24 @@ public sealed class CostOptions
     /// <summary>
     /// Gets or sets the maximum allowed response size. <c>null</c> disables the check.
     /// <c>null</c> by default.
+    /// A non-null value must be a non-negative finite number or positive infinity.
     /// </summary>
-    public double? MaxResponseSize { get; set; }
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
+    public double? MaxResponseSize
+    {
+        get;
+        set
+        {
+            if (value is { } size && (double.IsNaN(size) || size < 0))
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(MaxResponseSize), size);
+            }
+
+            field = value;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the maximum number of exact cases the cost engine evaluates

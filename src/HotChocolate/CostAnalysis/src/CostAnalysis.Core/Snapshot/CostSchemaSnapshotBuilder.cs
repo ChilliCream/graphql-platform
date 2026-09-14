@@ -18,6 +18,14 @@ internal static class CostSchemaSnapshotBuilder
     public static CostSchemaSnapshot Build(ISchemaDefinition schema, CostEngineOptions options)
     {
         var defaultListSize = options.DefaultListSize;
+
+        if (double.IsNaN(defaultListSize) || defaultListSize < 0)
+        {
+            throw ThrowHelper.InvalidCostOptionValue(
+                nameof(CostEngineOptions.DefaultListSize),
+                defaultListSize);
+        }
+
         var caseBudget = options.CaseBudget;
         var objectTypeIndex = IndexObjectTypes(schema, out var objectTypesByIndex);
         var objectTypeCount = objectTypesByIndex.Length;

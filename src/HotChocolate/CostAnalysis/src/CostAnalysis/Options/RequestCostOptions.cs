@@ -8,6 +8,9 @@ public record RequestCostOptions
     private bool _enforceCostLimits;
     private bool _skipAnalyzer;
     private int? _filterVariableMultiplier;
+    private double _maxFieldCost;
+    private double _maxTypeCost;
+    private double? _maxResponseSize;
 
     /// <summary>
     /// Request options for cost analysis.
@@ -110,13 +113,45 @@ public record RequestCostOptions
 
     /// <summary>
     /// Gets the maximum allowed field cost.
+    /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
-    public double MaxFieldCost { get; init; }
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
+    public double MaxFieldCost
+    {
+        get => _maxFieldCost;
+        init
+        {
+            if (double.IsNaN(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(MaxFieldCost), value);
+            }
+
+            _maxFieldCost = value;
+        }
+    }
 
     /// <summary>
     /// Gets the maximum allowed type cost.
+    /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
-    public double MaxTypeCost { get; init; }
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
+    public double MaxTypeCost
+    {
+        get => _maxTypeCost;
+        init
+        {
+            if (double.IsNaN(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(MaxTypeCost), value);
+            }
+
+            _maxTypeCost = value;
+        }
+    }
 
     /// <summary>
     /// Defines if the analyzer shall enforce cost limits.
@@ -154,8 +189,24 @@ public record RequestCostOptions
 
     /// <summary>
     /// Gets the maximum allowed response size. <c>null</c> disables the check.
+    /// A non-null value must be a non-negative finite number or positive infinity.
     /// </summary>
-    public double? MaxResponseSize { get; init; }
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
+    public double? MaxResponseSize
+    {
+        get => _maxResponseSize;
+        init
+        {
+            if (value is { } size && (double.IsNaN(size) || size < 0))
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(MaxResponseSize), size);
+            }
+
+            _maxResponseSize = value;
+        }
+    }
 
     /// <summary>
     /// Gets the filter variable multiplier.
