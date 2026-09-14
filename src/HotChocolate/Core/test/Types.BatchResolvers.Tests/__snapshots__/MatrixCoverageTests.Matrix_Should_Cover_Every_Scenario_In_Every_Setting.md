@@ -24,6 +24,12 @@
 | AuthorizationBatchTests | Authorize_Should_Resolve_When_PolicyAllows | Attribute | Declared |
 | AuthorizationBatchTests | Authorize_Should_Resolve_When_PolicyAllows | SourceGenerated | Declared |
 | AuthorizationBatchTests | Authorize_Should_Resolve_When_PolicyAllows | Fluent | Declared |
+| BatchMiddlewareBatchTests | UseBatch_Should_ComposeInOrder_When_ClassAndFactoryMiddlewareAreStacked | Attribute | Declared |
+| BatchMiddlewareBatchTests | UseBatch_Should_ComposeInOrder_When_ClassAndFactoryMiddlewareAreStacked | SourceGenerated | Declared |
+| BatchMiddlewareBatchTests | UseBatch_Should_ComposeInOrder_When_ClassAndFactoryMiddlewareAreStacked | Fluent | Declared |
+| BatchMiddlewareBatchTests | UseBatch_Should_ComposeInOrder_When_DirectiveMiddlewareIsRepeated | Attribute | Declared |
+| BatchMiddlewareBatchTests | UseBatch_Should_ComposeInOrder_When_DirectiveMiddlewareIsRepeated | SourceGenerated | Declared |
+| BatchMiddlewareBatchTests | UseBatch_Should_ComposeInOrder_When_DirectiveMiddlewareIsRepeated | Fluent | Declared |
 | CursorPagingBatchTests | UsePaging_Should_Coalesce_When_OmittedMatchesClampedDefault | Attribute | Declared |
 | CursorPagingBatchTests | UsePaging_Should_Coalesce_When_OmittedMatchesClampedDefault | SourceGenerated | Declared |
 | CursorPagingBatchTests | UsePaging_Should_Coalesce_When_OmittedMatchesClampedDefault | Fluent | Declared |
