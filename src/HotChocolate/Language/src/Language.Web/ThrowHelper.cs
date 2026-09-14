@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
 using static HotChocolate.Language.Properties.LangWebResources;
 
@@ -51,12 +50,6 @@ internal static class ThrowHelper
             CultureInfo.InvariantCulture,
             ThrowHelper_InvalidExtensionsValue,
             tokenType));
-
-    public static InvalidGraphQLRequestException UnknownRequestProperty(ReadOnlySpan<byte> propertyName)
-        => new(string.Format(
-            CultureInfo.InvariantCulture,
-            ThrowHelper_UnknownRequestProperty,
-            Encoding.UTF8.GetString(propertyName)));
 
     public static InvalidGraphQLRequestException InvalidOperationTypeValue(JsonTokenType tokenType)
         => new(string.Format(
