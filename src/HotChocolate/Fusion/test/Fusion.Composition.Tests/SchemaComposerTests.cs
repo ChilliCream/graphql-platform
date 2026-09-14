@@ -1070,6 +1070,7 @@ public sealed class SchemaComposerTests
                 "KeyInvalidArgumentsRule",
                 "KeyInvalidFieldsTypeRule",
                 "KeyInvalidSyntaxRule",
+                "ListSizeDirectiveArgumentRule",
                 "LookupMustHaveArgumentsRule",
                 "LookupReturnsListRule",
                 "LookupReturnsNonNullableTypeRule",

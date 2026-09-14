@@ -414,6 +414,9 @@
   <data name="LogEntryHelper_InvalidGraphQLInExtensions" xml:space="preserve">
     <value>Invalid GraphQL in source schema extensions. Exception message: {0}.</value>
   </data>
+  <data name="LogEntryHelper_InvalidListSizeArgument" xml:space="preserve">
+    <value>The argument '{0}' of the @listSize directive on field '{1}' in schema '{2}' must not be negative ({3}).</value>
+  </data>
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">
     <value>The field '{0}' in schema '{1}' must not be marked as shareable.</value>
   </data>
