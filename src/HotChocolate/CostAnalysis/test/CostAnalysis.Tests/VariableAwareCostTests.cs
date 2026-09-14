@@ -309,7 +309,8 @@ public sealed class VariableAwareCostTests
         IOperationRequest request)
     {
         var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
-        var operationCost = (IReadOnlyDictionary<string, object?>)response.ExpectOperationResult().Extensions["operationCost"]!;
+        var operationCost =
+            (IReadOnlyDictionary<string, object?>)response.ExpectOperationResult().Extensions["operationCost"]!;
         return (Convert.ToDouble(operationCost["typeCost"]), Convert.ToDouble(operationCost["fieldCost"]));
     }
 

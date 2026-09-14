@@ -71,7 +71,9 @@ namespace HotChocolate.CostAnalysis.Properties {
 
         internal static string ErrorHelper_StateInvalidForCostAnalysisMissingVariableValues {
             get {
-                return ResourceManager.GetString("ErrorHelper_StateInvalidForCostAnalysisMissingVariableValues", resourceCulture);
+                return ResourceManager.GetString(
+                    "ErrorHelper_StateInvalidForCostAnalysisMissingVariableValues",
+                    resourceCulture);
             }
         }
 
