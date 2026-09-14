@@ -468,9 +468,9 @@ internal static class NodeFieldResolvers
     }
 
     /// <summary>
-    /// Invokes a batch node resolver for one dispatched slice (a type group or one of its inner
-    /// partitions), isolating an unhandled exception to that slice's entries instead of letting
-    /// it fail sibling slices of the same type group.
+    /// Invokes a batch node resolver for one inner partition of a type group, isolating an
+    /// unhandled exception to that partition's entries instead of letting it fail sibling
+    /// partitions of the same type group.
     /// </summary>
     private static async ValueTask InvokeBatchSliceAsync(
         BatchFieldDelegate batchPipeline,
