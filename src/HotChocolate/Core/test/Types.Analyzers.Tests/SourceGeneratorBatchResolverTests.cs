@@ -1092,9 +1092,14 @@ public class SourceGeneratorBatchResolverTests
         // a static [BatchResolver] method declared inside an [InterfaceType<T>] partial must
         // dispatch through a BatchFieldDelegate once per partition for every implementing object
         // type resolved through the interface, not once per parent (HC0053 parent-cast failure).
+        // The batch pipeline partitions by concrete object type, so mixing Person and Robot
+        // behind the same [Parent] List<IPerson> guard proves both that Person's two parents
+        // still share a single call and that adding a second implementing type does not regress
+        // that into one call per parent.
         var assembly = TestHelper.CompileBatchAssembly(
             """
             using System.Collections.Generic;
+            using System.Linq;
             using HotChocolate;
             using HotChocolate.Types;
 
@@ -1105,6 +1110,7 @@ public class SourceGeneratorBatchResolverTests
             public static class InvocationCounter
             {
                 public static int Count;
+                public static List<string> Calls { get; } = new();
             }
 
             public interface IPerson
@@ -1118,11 +1124,17 @@ public class SourceGeneratorBatchResolverTests
                 public string Name { get; } = name;
             }
 
+            public sealed class Robot(int id, string name) : IPerson
+            {
+                public int Id { get; } = id;
+                public string Name { get; } = name;
+            }
+
             [QueryType]
             public static partial class Query
             {
                 public static List<IPerson> GetPeople()
-                    => new() { new Person(1, "Alice"), new Person(2, "Bob") };
+                    => new() { new Person(1, "Alice"), new Robot(2, "Wall-E"), new Person(3, "Bob") };
             }
 
             [InterfaceType<IPerson>]
@@ -1132,33 +1144,51 @@ public class SourceGeneratorBatchResolverTests
                 public static List<string> GetGreeting([Parent] List<IPerson> people)
                 {
                     InvocationCounter.Count++;
+                    InvocationCounter.Calls.Add(string.Join(",", people.Select(p => p.Name)));
                     return people.ConvertAll(p => $"Hello, {p.Name}!");
                 }
             }
 
             [ObjectType<Person>]
             public static partial class PersonNode;
+
+            [ObjectType<Robot>]
+            public static partial class RobotNode;
             """,
             "SourceGeneratorInterfaceBatchRepro");
 
         // act
-        var result = await TestHelper.ExecuteSourceGeneratedAsync(assembly, "{ people { name greeting } }");
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(
+            assembly,
+            "{ people { __typename name greeting } }");
 
         // assert
         var invocationCount = (int)assembly.GetType("Repro.InvocationCounter")!
             .GetField("Count")!
             .GetValue(null)!;
-        Assert.Equal(1, invocationCount);
+        var calls = (List<string>)assembly.GetType("Repro.InvocationCounter")!
+            .GetProperty("Calls")!
+            .GetValue(null)!;
+        Assert.Equal(2, invocationCount);
+        Assert.Contains("Alice,Bob", calls);
+        Assert.Contains("Wall-E", calls);
         result.MatchInlineSnapshot(
             """
             {
               "data": {
                 "people": [
                   {
+                    "__typename": "Person",
                     "name": "Alice",
                     "greeting": "Hello, Alice!"
                   },
                   {
+                    "__typename": "Robot",
+                    "name": "Wall-E",
+                    "greeting": "Hello, Wall-E!"
+                  },
+                  {
+                    "__typename": "Person",
                     "name": "Bob",
                     "greeting": "Hello, Bob!"
                   }
