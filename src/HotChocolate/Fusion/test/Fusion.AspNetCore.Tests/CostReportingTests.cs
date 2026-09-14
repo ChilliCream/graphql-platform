@@ -588,12 +588,16 @@ public class CostReportingTests : FusionTestBase
         using var server = CreateSourceSchema("A", Schema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
-            configureGatewayBuilder: b => b.ModifyCostOptions(o =>
+            configureGatewayBuilder: b =>
             {
-                o.MaxFieldCost = double.PositiveInfinity;
-                o.MaxTypeCost = double.PositiveInfinity;
-                o.MaxResponseSize = 100;
-            }));
+                b.ModifyServerOptions(o => o.Batching = AllowedBatching.All);
+                b.ModifyCostOptions(o =>
+                {
+                    o.MaxFieldCost = double.PositiveInfinity;
+                    o.MaxTypeCost = double.PositiveInfinity;
+                    o.MaxResponseSize = 100;
+                });
+            });
         var batch = new VariableBatchRequest(
             ItemsQuery,
             variables:
