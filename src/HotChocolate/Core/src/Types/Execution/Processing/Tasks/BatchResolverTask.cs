@@ -604,12 +604,14 @@ internal sealed class BatchResolverTask : IResolverTask
     }
 
     /// <summary>
-    /// Sorts out every context whose result slot was already erased by null propagation, either
-    /// by an eagerly completed partitioner failure in this batch or by a concurrent task
-    /// elsewhere in the operation. A sorted-out context needs no error and no result because its
-    /// slot is gone, but it stays in the task lifecycle for cleanup. The check is per context
-    /// against its own result document so it is always scoped to the matching request and
-    /// variable set even when the batch task merges across variable sets.
+    /// Sorts out every context whose result slot was already replaced with null by null
+    /// propagation, either by an eagerly completed partitioner failure in this batch or by a
+    /// concurrent task elsewhere in the operation. A sorted-out context needs no error and no
+    /// result because its slot is gone, but it stays in the task lifecycle for cleanup. An
+    /// ancestor that only carries the invalidation flag keeps its own slot intact and does not
+    /// sort out a context under it. The check is per context against its own result document so
+    /// it is always scoped to the matching request and variable set even when the batch task
+    /// merges across variable sets.
     /// </summary>
     private ImmutableArray<IMiddlewareContext> SweepInvalidated(
         ImmutableArray<IMiddlewareContext> contexts)
@@ -680,7 +682,15 @@ internal sealed class BatchResolverTask : IResolverTask
             {
                 if (value.IsParentNullOrInvalidated)
                 {
-                    return true;
+                    // A parent object that only carries the invalidation flag from non-null
+                    // propagation still keeps its own result slot intact, so a sibling field
+                    // under it owns a valid, independent slot and is not dead work. Only a
+                    // parent whose slot was actually replaced with null (an already collapsed
+                    // list or nullable ancestor) makes this context truly unreachable.
+                    if (!value.Parent.IsInvalidated)
+                    {
+                        return true;
+                    }
                 }
 
                 value = value.Parent;

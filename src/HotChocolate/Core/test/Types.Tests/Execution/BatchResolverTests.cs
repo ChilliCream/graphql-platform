@@ -2556,4 +2556,34 @@ public class BatchResolverTests
         public ImmutableArray<string> GetGreeting([Parent] List<User> users)
             => default;
     }
+
+    [Fact]
+    public async Task ResolveBatch_Should_Report_Every_Alias_Error_When_NonNull_Root_Field_Fails()
+    {
+        // arrange & act
+        // productById is a non-null attribute batch root field. Two aliases both fail, so data
+        // collapses to null, but each alias must still keep its own reported error.
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<NonNullProductByIdQuery>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        a: productById(id: 1) { name }
+                        b: productById(id: 2) { name }
+                    }
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchMarkdownSnapshot();
+    }
+
+    public class NonNullProductByIdQuery
+    {
+        [BatchResolver]
+        public List<Product> GetProductById(List<int> id)
+            => throw new InvalidOperationException("Access denied.");
+    }
 }
