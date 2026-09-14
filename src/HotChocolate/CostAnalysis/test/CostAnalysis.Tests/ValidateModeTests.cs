@@ -65,45 +65,6 @@ public sealed class ValidateModeTests
     }
 
     [Fact]
-    public async Task Validate_Should_CoerceVariables()
-    {
-        // arrange
-        var requestExecutor = await CreateRequestExecutorBuilder()
-            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        var request = OperationRequestBuilder.New()
-            .SetDocument(RequiredVariableOperation)
-            .ValidateCost()
-            .Build();
-
-        // act
-        var result = (await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken))
-            .ExpectOperationResult();
-
-        // assert
-        result.MatchInlineSnapshot(
-            """
-            {
-              "errors": [
-                {
-                  "message": "Variable `first` is required.",
-                  "locations": [
-                    {
-                      "line": 1,
-                      "column": 7
-                    }
-                  ],
-                  "extensions": {
-                    "code": "HC0018",
-                    "variable": "first"
-                  }
-                }
-              ]
-            }
-            """);
-    }
-
-    [Fact]
     public async Task Validate_Should_ReportEvaluatedCost_When_VariablesAreSupplied()
     {
         // arrange
@@ -116,6 +77,33 @@ public sealed class ValidateModeTests
             OperationRequestBuilder.New()
                 .SetDocument(Operation)
                 .SetVariableValues("""{ "first": 3 }""")
+                .ValidateCost()
+                .Build();
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var result = response.ExpectOperationResult();
+
+        // assert
+        Assert.True(result.Data is null or { IsValueNull: true });
+        Assert.Equal(200, result.ContextData[ExecutionContextData.HttpStatusCode]);
+        await snapshot
+            .AddResult(result, "Result")
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Validate_Should_ReportEvaluatedCost_When_OptionalVariableIsOmitted()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(Operation)
                 .ValidateCost()
                 .Build();
 
@@ -244,6 +232,9 @@ public sealed class ValidateModeTests
         // sets (an explicit empty variable batch) must never fall back to the static
         // bound; it fails with a state-invalid error instead.
         Assert.Equal(ErrorCodes.Execution.CostStateInvalid, result.Errors[0].Code);
+        Assert.Equal(
+            "The cost analysis requires at least one coerced variable value set.",
+            result.Errors[0].Message);
     }
 
     [Fact]
