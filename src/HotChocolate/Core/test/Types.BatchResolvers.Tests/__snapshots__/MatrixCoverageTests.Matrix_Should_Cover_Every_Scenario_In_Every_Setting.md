@@ -117,6 +117,15 @@
 | PerParentMiddlewareBatchTests | Use_Should_Fail_Schema_Build_When_FieldIsBatchResolved | Attribute | Declared |
 | PerParentMiddlewareBatchTests | Use_Should_Fail_Schema_Build_When_FieldIsBatchResolved | SourceGenerated | Declared |
 | PerParentMiddlewareBatchTests | Use_Should_Fail_Schema_Build_When_FieldIsBatchResolved | Fluent | Declared |
+| ProjectionBatchTests | BatchResolver_Should_Execute_When_ParentUsesProjection_And_FieldUsesFiltering | Attribute | Declared |
+| ProjectionBatchTests | BatchResolver_Should_Execute_When_ParentUsesProjection_And_FieldUsesFiltering | SourceGenerated | Declared |
+| ProjectionBatchTests | BatchResolver_Should_Execute_When_ParentUsesProjection_And_FieldUsesFiltering | Fluent | Declared |
+| ProjectionBatchTests | BatchResolver_Should_Execute_When_ParentUsesProjection_And_FieldUsesSorting | Attribute | Declared |
+| ProjectionBatchTests | BatchResolver_Should_Execute_When_ParentUsesProjection_And_FieldUsesSorting | SourceGenerated | Declared |
+| ProjectionBatchTests | BatchResolver_Should_Execute_When_ParentUsesProjection_And_FieldUsesSorting | Fluent | Declared |
+| ProjectionBatchTests | UseProjection_Should_Project_PerParent_When_FieldIsBatchResolved | Attribute | Declared |
+| ProjectionBatchTests | UseProjection_Should_Project_PerParent_When_FieldIsBatchResolved | SourceGenerated | Declared |
+| ProjectionBatchTests | UseProjection_Should_Project_PerParent_When_FieldIsBatchResolved | Fluent | Declared |
 | SortingBatchTests | UseSorting_Should_Expose_OrderArgument_When_FieldIsBatchResolved | Attribute | Declared |
 | SortingBatchTests | UseSorting_Should_Expose_OrderArgument_When_FieldIsBatchResolved | SourceGenerated | Declared |
 | SortingBatchTests | UseSorting_Should_Expose_OrderArgument_When_FieldIsBatchResolved | Fluent | Declared |
