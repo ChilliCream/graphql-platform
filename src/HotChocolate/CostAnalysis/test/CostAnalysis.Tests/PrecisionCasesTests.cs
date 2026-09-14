@@ -56,7 +56,8 @@ public sealed class PrecisionCasesTests
 
         // act
         var result = await requestExecutor.ExecuteAsync(requestBuilder.Build(), TestContext.Current.CancellationToken);
-        var operationCost = (IReadOnlyDictionary<string, object?>)result.ExpectOperationResult().Extensions["operationCost"]!;
+        var operationCost =
+            (IReadOnlyDictionary<string, object?>)result.ExpectOperationResult().Extensions["operationCost"]!;
 
         // assert
         Assert.Equal(fixture.Expected.TypeCost, Convert.ToDouble(operationCost["typeCost"]));
