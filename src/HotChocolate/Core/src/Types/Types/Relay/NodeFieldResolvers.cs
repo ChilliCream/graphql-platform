@@ -496,7 +496,25 @@ internal static class NodeFieldResolvers
     {
         if (nodeResolver.BatchPipeline is { } batchPipeline)
         {
-            await batchPipeline(contexts).ConfigureAwait(false);
+            // Isolate a throwing batch node resolver to this dispatched slice (the homogeneous
+            // fast-path contexts, or one type group's contexts), the same boundary used for the
+            // nodes() type-group dispatch, so a failing type does not fail every parent context
+            // sharing this node(id:) batch call. The boundary is inlined here, rather than
+            // delegated to a shared helper, so the dominant single-slice dispatch adds no extra
+            // async state machine.
+            try
+            {
+                await batchPipeline(contexts).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (!contexts[0].RequestAborted.IsCancellationRequested)
+            {
+                for (var i = 0; i < contexts.Length; i++)
+                {
+                    contexts[i].ReportError(ex);
+                    contexts[i].Result = null;
+                }
+            }
+
             return;
         }
 
