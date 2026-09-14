@@ -1024,7 +1024,13 @@ gatewayBuilder
 
 ### OpenTelemetry instrumentation for the gateway
 
-v16 adds a `HotChocolate.Fusion.Diagnostics` package that instruments the gateway itself. Enable it on the gateway builder and register its activity source with OpenTelemetry:
+v16 adds a `HotChocolate.Fusion.Diagnostics` package that instruments the gateway itself. It is not pulled in by `HotChocolate.Fusion.AspNetCore`, so add the reference explicitly:
+
+```xml
+<PackageReference Include="HotChocolate.Fusion.Diagnostics" Version="16.x.x" />
+```
+
+Then enable it on the gateway builder and register its activity source with OpenTelemetry:
 
 ```csharp
 builder.Services
@@ -1045,7 +1051,7 @@ Two spans are specific to the gateway:
 | `GraphQL Operation Planning` | Covers planning the operation. Carries `graphql.processing.type=plan`.                                                                                                                                                                                                                                                      |
 | `GraphQL Step Execution`     | One span per execution node. Carries `graphql.processing.type=step_execute`, `graphql.operation.step.id`, `graphql.operation.step.kind`, `graphql.operation.step.plan.id`, `graphql.source_schema.name`, and, depending on the node, the `graphql.source_schema.operation.*` or `graphql.source_schema.batch.*` attributes. |
 
-`graphql.source_schema.operation.name` carries the generated operation name described in [Generated subgraph operation names changed](#generated-subgraph-operation-names-changed), which makes it the join key between a gateway trace and the matching subgraph log line.
+On a step that sends a single operation, `graphql.source_schema.operation.name` carries the generated operation name described in [Generated subgraph operation names changed](#generated-subgraph-operation-names-changed), which makes it the join key between a gateway trace and the matching subgraph log line. A batched step does not carry it: those spans get `graphql.source_schema.batch.operation_count` instead, so join them on `graphql.source_schema.name` and the span timing.
 
 # Aspire
 

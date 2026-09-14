@@ -1245,6 +1245,8 @@ The last two are no longer span attributes. They are attributes of the `graphql.
 | `graphql.subscription.id`                     | Correlates every event span of one subscription.                                                                                                                                                           |
 | `graphql.document.locations`                  | The document locations of an error, as an array of `line` / `column` pairs.                                                                                                                                |
 | `graphql.operation.step.id`                   | Gateway only. The ID of the plan step a `GraphQL Step Execution` span covers.                                                                                                                              |
+| `graphql.operation.step.kind`                 | Gateway only. The kind of plan step: `operation`, `operation_batch`, `event_stream`, `introspection`, or `node`.                                                                                           |
+| `graphql.source_schema.name`                  | Gateway only. The name of the source schema a step targets.                                                                                                                                                |
 | `graphql.operation.step.plan.id`              | Gateway only. The ID of the operation plan the step belongs to.                                                                                                                                            |
 | `graphql.source_schema.operation.name`        | Gateway only. The name of the operation sent to the source schema.                                                                                                                                         |
 | `graphql.source_schema.operation.hash`        | Gateway only. The SHA-256 of the operation document sent to the source schema, prefixed with `sha256:`.                                                                                                    |
@@ -1261,7 +1263,11 @@ The last two are no longer span attributes. They are attributes of the `graphql.
 
 ### Error events
 
-Errors are now reported as `graphql.error` events on the root `GraphQL Operation` span, rather than only as span attributes. Each event carries `graphql.error.message`, and where available `graphql.error.code`, `graphql.field.path`, `graphql.field.schema_coordinate`, `graphql.document.locations`, and the operation and document attributes. The number of events per span is capped by `MaxErrorEvents` (default `10`); the total is always available on the `graphql.error.count` attribute.
+Errors are now reported as `graphql.error` events, rather than only as span attributes. Each event carries `graphql.error.message`, and where available `graphql.error.code`, `graphql.field.path`, `graphql.field.schema_coordinate`, `graphql.document.locations`, and the operation and document attributes.
+
+Each error is emitted on the span that observed it. Errors in the operation result land on the root `GraphQL Operation` span, HTTP parse and request errors on their HTTP spans, and subscription resolver errors on the `GraphQL Subscription Event` span for that event.
+
+`MaxErrorEvents` (default `10`) and the `graphql.error.count` attribute apply to the operation-result errors on the root span only. The other spans emit an event per error with no cap and no count attribute.
 
 ### Cancellation is no longer an error
 
