@@ -223,6 +223,30 @@ public sealed class ValidateModeTests
     }
 
     [Fact]
+    public async Task Validate_Should_ReturnStateInvalid_When_VariableBatchIsEmpty()
+    {
+        // arrange
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(Operation)
+            .SetVariableValues("[]")
+            .ValidateCost()
+            .Build();
+
+        // act
+        var result = (await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken))
+            .ExpectOperationResult();
+
+        // assert
+        // A non-warmup request that reaches the analyzer with zero coerced variable
+        // sets (an explicit empty variable batch) must never fall back to the static
+        // bound; it fails with a state-invalid error instead.
+        Assert.Equal(ErrorCodes.Execution.CostStateInvalid, result.Errors[0].Code);
+    }
+
+    [Fact]
     public void SetVariableValues_Should_RejectScalarPayload_When_ValidateModeIsRequested()
     {
         // arrange
