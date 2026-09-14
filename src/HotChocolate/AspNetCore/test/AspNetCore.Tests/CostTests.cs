@@ -247,7 +247,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
     }
 
     [Fact]
-    public async Task Request_Validate_Cost_Header_Without_Variables_Returns_Ok_ExtensionsOnly()
+    public async Task Request_Validate_Cost_Header_Without_Variables_Returns_CoercionError()
     {
         // arrange
         var server = CreateStarWarsServer();
@@ -269,9 +269,10 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         using var response = await httpClient.PostAsync(uri, content, TestContext.Current.CancellationToken);
 
         // assert
-        // Validate without variables never reaches coercion, so a required
-        // variable that was never supplied does not fail the request (R-VALIDATE-MODE).
-        response.EnsureSuccessStatusCode();
+        // `validate` always coerces variables like `execute`/`report`, so a required
+        // variable that was never supplied fails with the ordinary coercion error
+        // instead of reporting a static bound (2026-09-14 user ruling).
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         Assert.NotNull(result);
         result!.RootElement.MatchSnapshot();

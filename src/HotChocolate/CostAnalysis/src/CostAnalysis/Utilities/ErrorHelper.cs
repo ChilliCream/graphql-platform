@@ -73,6 +73,14 @@ internal static class ErrorHelper
                 .Build(),
             null);
 
+    public static IExecutionResult StateInvalidForCostAnalysisMissingVariableValues()
+        => ResultHelper.CreateError(
+            ErrorBuilder.New()
+                .SetMessage(CostAnalysisResources.ErrorHelper_StateInvalidForCostAnalysisMissingVariableValues)
+                .SetCode(ErrorCodes.Execution.CostStateInvalid)
+                .Build(),
+            null);
+
     public static IError ExactlyOneSlicingArgMustBeDefined(
         FieldNode fieldNode,
         IList<ISyntaxNode> path)

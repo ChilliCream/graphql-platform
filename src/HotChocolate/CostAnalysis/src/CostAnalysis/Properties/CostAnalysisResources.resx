@@ -33,4 +33,7 @@
   <data name="ErrorHelper_StateInvalidForCostAnalysis" xml:space="preserve">
     <value>The query request contains no document or no document id.</value>
   </data>
+  <data name="ErrorHelper_StateInvalidForCostAnalysisMissingVariableValues" xml:space="preserve">
+    <value>The cost analysis requires at least one coerced variable value set.</value>
+  </data>
 </root>

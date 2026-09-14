@@ -5,8 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// <c>GraphQL-Cost: validate</c> reports cost without executing an operation. An empty
-/// variable payload uses the static bound only while an active cost analyzer will consume it.
+/// <c>GraphQL-Cost: validate</c> reports cost without executing an operation. It always runs
+/// variable coercion first, exactly like <c>execute</c>/<c>report</c>; a required variable that
+/// was never supplied fails with the ordinary variable coercion error rather than falling back
+/// to a static bound.
 /// </summary>
 public sealed class ValidateModeTests
 {
@@ -17,13 +19,16 @@ public sealed class ValidateModeTests
     [Theory]
     [InlineData(null)]
     [InlineData("{}")]
-    public async Task Validate_Should_ReportStaticBound_When_VariablePayloadIsEmpty(string? variableValues)
+    public async Task Validate_Should_ReturnCoercionError_When_RequiredVariablesAreMissing(
+        string? variableValues)
     {
         // arrange
         var requestExecutor = await CreateRequestExecutorBuilder()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var requestBuilder = OperationRequestBuilder.New().SetDocument(Operation).ValidateCost();
+        var requestBuilder = OperationRequestBuilder.New()
+            .SetDocument(RequiredVariableOperation)
+            .ValidateCost();
 
         if (variableValues is not null)
         {
@@ -35,13 +40,67 @@ public sealed class ValidateModeTests
             requestBuilder.Build(),
             TestContext.Current.CancellationToken);
         var result = response.ExpectOperationResult();
-        var operationCost = (IReadOnlyDictionary<string, object?>)result.Extensions["operationCost"]!;
 
         // assert
-        Assert.True(result.Data is null or { IsValueNull: true });
-        Assert.Equal(200, result.ContextData[ExecutionContextData.HttpStatusCode]);
-        Assert.Equal(52d, Convert.ToDouble(operationCost["typeCost"]));
-        Assert.Equal(11d, Convert.ToDouble(operationCost["fieldCost"]));
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Variable `first` is required.",
+                  "locations": [
+                    {
+                      "line": 1,
+                      "column": 7
+                    }
+                  ],
+                  "extensions": {
+                    "code": "HC0018",
+                    "variable": "first"
+                  }
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Validate_Should_CoerceVariables()
+    {
+        // arrange
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(RequiredVariableOperation)
+            .ValidateCost()
+            .Build();
+
+        // act
+        var result = (await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken))
+            .ExpectOperationResult();
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "Variable `first` is required.",
+                  "locations": [
+                    {
+                      "line": 1,
+                      "column": 7
+                    }
+                  ],
+                  "extensions": {
+                    "code": "HC0018",
+                    "variable": "first"
+                  }
+                }
+              ]
+            }
+            """);
     }
 
     [Fact]
@@ -138,58 +197,6 @@ public sealed class ValidateModeTests
               ]
             }
             """);
-    }
-
-    [Fact]
-    public async Task Validate_Should_CoerceVariables_When_RequestAnalyzerIsSkipped()
-    {
-        // arrange
-        var requestExecutor = await CreateRequestExecutorBuilder()
-            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        var request = OperationRequestBuilder.New()
-            .SetDocument(RequiredVariableOperation)
-            .SetCostOptions(
-                new RequestCostOptions(
-                    maxFieldCost: 1_000,
-                    maxTypeCost: 1_000,
-                    enforceCostLimits: false,
-                    skipAnalyzer: true,
-                    maxResponseSize: null))
-            .ValidateCost()
-            .Build();
-
-        // act
-        var result = (await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken))
-            .ExpectOperationResult();
-
-        // assert
-        Assert.Equal(ErrorCodes.Execution.NonNullViolation, result.Errors[0].Code);
-    }
-
-    [Fact]
-    public async Task Validate_Should_CoerceVariables_When_AnalyzerIsAbsent()
-    {
-        // arrange
-        var requestExecutor = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<PagingTests.Query>()
-            .AddFiltering()
-            .AddSorting()
-            .UseDefaultPipeline()
-            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        var request = OperationRequestBuilder.New()
-            .SetDocument(RequiredVariableOperation)
-            .ValidateCost()
-            .Build();
-
-        // act
-        var result = (await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken))
-            .ExpectOperationResult();
-
-        // assert
-        Assert.Equal(ErrorCodes.Execution.NonNullViolation, result.Errors[0].Code);
     }
 
     [Fact]
