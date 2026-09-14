@@ -8,22 +8,22 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Fusion;
 
 /// <summary>
-/// Runs the graphql-lean/IBM cost-precision article fixtures against a single-source Fusion gateway.
+/// Runs the IBM cost-precision fixtures against a single-source Fusion gateway.
 /// Each request validates cost against the fixture's expected type and field values.
 /// </summary>
-public class ArticleCasesTests : FusionTestBase
+public class PrecisionCasesTests : FusionTestBase
 {
     private const string CostHeader = "GraphQL-Cost";
     private const string ValidateCost = "validate";
 
-    public static TheoryData<string> FixturePaths => ArticleCaseFixture.DiscoverPaths();
+    public static TheoryData<string> FixturePaths => PrecisionCaseFixture.DiscoverPaths();
 
     [Theory]
     [MemberData(nameof(FixturePaths))]
     public async Task Fixture_Should_ReportExpectedCost_When_Validated(string path)
     {
         // arrange
-        var fixture = ArticleCaseFixture.Load(path);
+        var fixture = PrecisionCaseFixture.Load(path);
         using var server = CreateSourceSchema(
             "A",
             builder =>
@@ -71,40 +71,40 @@ public class ArticleCasesTests : FusionTestBase
     }
 
     /// <summary>
-    /// Contains the serialized inputs and expected output for one article fixture.
+    /// Contains the serialized inputs and expected output for one precision fixture.
     /// </summary>
-    private sealed record ArticleCaseFixtureData(
+    private sealed record PrecisionCaseFixtureData(
         [property: JsonPropertyName("id")] string Id,
         [property: JsonPropertyName("sdl")] string Sdl,
         [property: JsonPropertyName("operation")] string Operation,
         [property: JsonPropertyName("operationName")] string? OperationName,
         [property: JsonPropertyName("variables")] JsonElement? Variables,
         [property: JsonPropertyName("defaultListSize")] JsonElement DefaultListSizeValue,
-        [property: JsonPropertyName("expected")] ArticleCaseExpected Expected);
+        [property: JsonPropertyName("expected")] PrecisionCaseExpected Expected);
 
     /// <summary>
-    /// The expected typeCost/fieldCost pair of an <see cref="ArticleCaseFixture"/>.
+    /// The expected typeCost/fieldCost pair of a <see cref="PrecisionCaseFixture"/>.
     /// </summary>
-    private sealed record ArticleCaseExpected(
+    private sealed record PrecisionCaseExpected(
         [property: JsonPropertyName("typeCost")] double TypeCost,
         [property: JsonPropertyName("fieldCost")] double FieldCost);
 
     /// <summary>
-    /// Provides request-ready values for one article fixture.
+    /// Provides request-ready values for one precision fixture.
     /// </summary>
-    private sealed class ArticleCaseFixture
+    private sealed class PrecisionCaseFixture
     {
         private const string ResourcesDirectoryName = "__resources__";
-        private const string ArticleDirectoryName = "article";
+        private const string PrecisionDirectoryName = "precision";
 
-        private ArticleCaseFixture(
+        private PrecisionCaseFixture(
             string id,
             string sdl,
             string operation,
             string? operationName,
             IReadOnlyDictionary<string, object?>? variables,
             double defaultListSize,
-            ArticleCaseExpected expected)
+            PrecisionCaseExpected expected)
         {
             Id = id;
             Sdl = sdl;
@@ -127,12 +127,12 @@ public class ArticleCasesTests : FusionTestBase
 
         public double DefaultListSize { get; }
 
-        public ArticleCaseExpected Expected { get; }
+        public PrecisionCaseExpected Expected { get; }
 
         public static TheoryData<string> DiscoverPaths()
         {
             var data = new TheoryData<string>();
-            var directory = System.IO.Path.Combine(ResourcesDirectoryName, ArticleDirectoryName);
+            var directory = System.IO.Path.Combine(ResourcesDirectoryName, PrecisionDirectoryName);
 
             foreach (var path in Directory
                 .EnumerateFiles(directory, "*.json")
@@ -144,13 +144,13 @@ public class ArticleCasesTests : FusionTestBase
             return data;
         }
 
-        public static ArticleCaseFixture Load(string path)
+        public static PrecisionCaseFixture Load(string path)
         {
             var json = File.ReadAllText(path);
-            var data = JsonSerializer.Deserialize<ArticleCaseFixtureData>(json)
+            var data = JsonSerializer.Deserialize<PrecisionCaseFixtureData>(json)
                 ?? throw new InvalidOperationException($"Fixture '{path}' deserialized to null.");
 
-            return new ArticleCaseFixture(
+            return new PrecisionCaseFixture(
                 data.Id,
                 data.Sdl,
                 data.Operation,
