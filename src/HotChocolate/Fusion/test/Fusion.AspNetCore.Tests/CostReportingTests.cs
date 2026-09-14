@@ -582,6 +582,66 @@ public class CostReportingTests : FusionTestBase
     }
 
     [Fact]
+    public async Task VariableBatch_Should_ReportFirstResponseSizeViolation_When_MultipleSetsExceedLimit()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", Schema);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(o =>
+            {
+                o.MaxFieldCost = double.PositiveInfinity;
+                o.MaxTypeCost = double.PositiveInfinity;
+                o.MaxResponseSize = 100;
+            }));
+        var batch = new VariableBatchRequest(
+            ItemsQuery,
+            variables:
+            [
+                new Dictionary<string, object?> { ["n"] = 1000 },
+                new Dictionary<string, object?> { ["n"] = 2000 }
+            ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(batch, s_endpoint)
+            {
+                OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ReportCost)
+            },
+            TestContext.Current.CancellationToken);
+        var results = await ReadResultsAsync(response);
+
+        // assert
+        Assert.Empty(gateway.Interactions);
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The maximum allowed response size was exceeded.",
+                      "extensions": {
+                        "code": "HC0047",
+                        "maxResponseSize": 1001,
+                        "maxAllowedResponseSize": 100
+                      }
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 15002,
+                      "typeCost": 3002,
+                      "maxResponseSize": 1001
+                    }
+                  }
+                }
+                """
+            ]);
+        DisposeResults(results);
+    }
+
+    [Fact]
     public async Task UnannotatedList_Should_ReportInfiniteTypeCost_When_DefaultListSizeIsInfinite()
     {
         // arrange
