@@ -763,10 +763,10 @@ public class BatchResolverMiddlewareTests
     }
 
     [Fact]
-    public async Task BatchResolver_Should_Skip_Dispatch_When_SharedParentInvalidatedBySibling()
+    public async Task BatchResolver_Should_Dispatch_Surviving_Contexts_When_SharedParentInvalidatedBySibling()
     {
         // arrange
-        // One partition fault invalidates the shared non-null list before dispatch.
+        // One partition fault collapses data to null while the surviving siblings still dispatch under the flagged root object.
         var invocationCount = 0;
 
         var resultTask =
@@ -823,7 +823,7 @@ public class BatchResolverMiddlewareTests
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(0, invocationCount);
+        Assert.Equal(1, invocationCount);
         result.MatchInlineSnapshot(
             """
             {
