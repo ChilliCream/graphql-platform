@@ -296,7 +296,23 @@ internal static class NodeFieldResolvers
         {
             foreach (var group in typeGroups.Values)
             {
-                await DispatchTypeGroupAsync(group.Entries, group.Resolver).ConfigureAwait(false);
+                try
+                {
+                    await DispatchTypeGroupAsync(group.Entries, group.Resolver).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (!contexts[0].RequestAborted.IsCancellationRequested)
+                {
+                    // A dispatch failure that escapes the type group (for example an inner
+                    // partition key resolver throwing before any slice was dispatched) is
+                    // isolated to this type group's entries; other type groups and other
+                    // parents still resolve and return their data.
+                    for (var k = 0; k < group.Entries.Count; k++)
+                    {
+                        var entry = group.Entries[k];
+                        entry.Context.ReportError(ex);
+                        entry.Context.Result = null;
+                    }
+                }
 
                 for (var k = 0; k < group.Entries.Count; k++)
                 {
@@ -372,7 +388,7 @@ internal static class NodeFieldResolvers
                     {
                         slice.Add(group[i].Context);
                     }
-                    await batchPipeline(slice.MoveToImmutable()).ConfigureAwait(false);
+                    await InvokeBatchSliceAsync(batchPipeline, slice.MoveToImmutable()).ConfigureAwait(false);
                     return;
                 }
 
@@ -383,7 +399,7 @@ internal static class NodeFieldResolvers
                     {
                         slice.Add(partition[i].Context);
                     }
-                    await batchPipeline(slice.MoveToImmutable()).ConfigureAwait(false);
+                    await InvokeBatchSliceAsync(batchPipeline, slice.MoveToImmutable()).ConfigureAwait(false);
                 }
 
                 return;
@@ -395,7 +411,7 @@ internal static class NodeFieldResolvers
                 contextsBuilder.Add(group[i].Context);
             }
 
-            await batchPipeline(contextsBuilder.MoveToImmutable()).ConfigureAwait(false);
+            await InvokeBatchSliceAsync(batchPipeline, contextsBuilder.MoveToImmutable()).ConfigureAwait(false);
             return;
         }
 
@@ -442,6 +458,29 @@ internal static class NodeFieldResolvers
         {
             context.ReportError(ex);
             context.Result = null;
+        }
+    }
+
+    /// <summary>
+    /// Invokes a batch node resolver for one dispatched slice (a type group or one of its inner
+    /// partitions), isolating an unhandled exception to that slice's entries instead of letting
+    /// it fail sibling slices of the same type group.
+    /// </summary>
+    private static async ValueTask InvokeBatchSliceAsync(
+        BatchFieldDelegate batchPipeline,
+        ImmutableArray<IMiddlewareContext> slice)
+    {
+        try
+        {
+            await batchPipeline(slice).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (!slice[0].RequestAborted.IsCancellationRequested)
+        {
+            for (var i = 0; i < slice.Length; i++)
+            {
+                slice[i].ReportError(ex);
+                slice[i].Result = null;
+            }
         }
     }
 
