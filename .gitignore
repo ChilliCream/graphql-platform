@@ -4,6 +4,7 @@ obj/
 
 # Tests
 BenchmarkDotNet.Artifacts/
+src/HotChocolate/CostAnalysis/benchmarks/results/
 TestResults/
 __mismatch__/
 coverage.json
