@@ -662,19 +662,6 @@ file static class Extensions
         return false;
     }
 
-    public static bool IsBatchResolver(this IMethodSymbol methodSymbol)
-    {
-        foreach (var attribute in methodSymbol.GetAttributes())
-        {
-            if (attribute.AttributeClass?.ToDisplayString() == BatchResolverAttribute)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     public static bool Skip(this IMethodSymbol methodSymbol)
     {
         foreach (var attribute in methodSymbol.GetAttributes())

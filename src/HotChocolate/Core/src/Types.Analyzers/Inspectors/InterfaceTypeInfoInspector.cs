@@ -161,7 +161,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
         var parameters = resolverMethod.Parameters;
         var buffer = new ResolverParameter[parameters.Length];
         var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
-        var isBatchResolver = IsBatchResolverMethod(resolverMethod);
+        var isBatchResolver = resolverMethod.IsBatchResolver();
 
         for (var i = 0; i < parameters.Length; i++)
         {
@@ -193,18 +193,5 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             kind: isBatchResolver
                 ? ResolverKind.BatchResolver
                 : ResolverKind.Default);
-    }
-
-    private static bool IsBatchResolverMethod(IMethodSymbol methodSymbol)
-    {
-        foreach (var attribute in methodSymbol.GetAttributes())
-        {
-            if (attribute.AttributeClass?.ToDisplayString() == WellKnownAttributes.BatchResolverAttribute)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

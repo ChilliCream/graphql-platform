@@ -1842,6 +1842,19 @@ public static class SymbolExtensions
             .Any(attr => attr.AttributeClass?.ToDisplayString()
                 == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
 
+    internal static bool IsBatchResolver(this IMethodSymbol methodSymbol)
+    {
+        foreach (var attribute in methodSymbol.GetAttributes())
+        {
+            if (attribute.AttributeClass?.ToDisplayString() == WellKnownAttributes.BatchResolverAttribute)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static IEnumerable<ISymbol> AllPublicInstanceMembers(this ITypeSymbol type)
     {
         var processed = PooledObjects.GetStringSet();
