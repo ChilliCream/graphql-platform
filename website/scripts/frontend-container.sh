@@ -84,8 +84,13 @@ require_docker() {
   fi
 }
 
+# The container path used as this checkout's identity mount for check_mount.
+# CONTAINER_WORKSPACE itself is never a single bind-mount destination (see
+# run_container: every checkout entry is bound individually), so .git --
+# always present, always bound from this exact checkout's .git -- stands in
+# for it.
 container_root() {
-  printf '%s' "${CONTAINER_WORKSPACE}"
+  printf '%s/.git' "${CONTAINER_WORKSPACE}"
 }
 
 # Translate a host path under this checkout into the equivalent path inside
@@ -127,15 +132,15 @@ container_port_holder_name() {
 }
 
 # Compares the running container's bind mount for the container_root()
-# destination against this checkout. A container started from another
-# checkout (or a decoy) mounts a different source at that destination;
-# reusing it silently would serve the wrong tree, so this exits 1 instead of
-# ever replacing a running container automatically.
+# destination (this checkout's .git) against this checkout. A container
+# started from another checkout (or a decoy) mounts a different source at
+# that destination; reusing it silently would serve the wrong tree, so this
+# exits 1 instead of ever replacing a running container automatically.
 check_mount() {
   local workspace actual
   workspace="$(container_root)"
   actual="$(docker inspect -f '{{range .Mounts}}{{.Destination}} {{.Source}}{{"\n"}}{{end}}' "${CONTAINER_NAME}" | awk -v dest="${workspace}" '$1 == dest { print $2; exit }')"
-  if [ "${actual}" != "${CHECKOUT}" ]; then
+  if [ "${actual}" != "${CHECKOUT}/.git" ]; then
     echo "error: ${CONTAINER_NAME} is mounted from '${actual:-<none>}' at ${workspace}, not this checkout '${CHECKOUT}'. Run \`frontend-container.sh down\` first." >&2
     exit 1
   fi
@@ -154,22 +159,45 @@ ensure_running() {
 # port publishes), appended before the image tag; passing none starts the
 # container without published ports.
 #
-# The checkout's .git is mounted read-only on top of the read-write toplevel
-# mount so code running in the container cannot plant host-executed commands
-# (git hooks, core.hooksPath/core.fsmonitor, filter drivers in .git/config).
-# .claude is mounted read-only the same way, when the checkout has one, since
+# Every checkout entry is bound individually (see the `find` loop below)
+# rather than bind-mounting the whole checkout at CONTAINER_WORKSPACE in one
+# shot, so CONTAINER_WORKSPACE itself is never a bind-mount destination.
+# That matters for .claude: a bind or tmpfs destination that does not yet
+# exist is created as a mountpoint by the container runtime, and when that
+# destination sits under a directory bind-mounted straight from the host,
+# creating the mountpoint creates a real directory on the host (verified
+# against this Docker daemon) even though the mount layered on top ends up
+# read-only and empty. Only a container-native parent directory (nothing
+# bound at CONTAINER_WORKSPACE itself) keeps that mountpoint creation
+# inside the container's own filesystem instead of the checkout.
+#
+# The checkout's .git is mounted read-only so code running in the container
+# cannot plant host-executed commands (git hooks, core.hooksPath/
+# core.fsmonitor, filter drivers in .git/config). .claude is mounted
+# read-only the same way, when the checkout has one, since
 # .claude/settings.local.json can define hooks host Claude Code sessions
-# execute. Website sources under the toplevel mount stay read-write.
+# execute. When the checkout has no .claude, a read-only tmpfs is mounted
+# at that path instead of leaving it exposed as a plain read-write
+# directory, so the container can never create .claude/settings.local.json
+# on the host; no host directory is created either way. Every other
+# checkout entry, website/ included, stays a plain read-write bind.
 run_container() {
   local mount_flags=(
-    -v "${CHECKOUT}:${CONTAINER_WORKSPACE}"
     -v "${CHECKOUT}/.git:${CONTAINER_WORKSPACE}/.git:ro"
     -v "${NODE_MODULES_VOLUME}:${CONTAINER_WORKSPACE}/website/node_modules"
     -v "${NEXT_VOLUME}:${CONTAINER_WORKSPACE}/website/.next"
   )
   if [ -e "${CHECKOUT}/.claude" ]; then
     mount_flags+=(-v "${CHECKOUT}/.claude:${CONTAINER_WORKSPACE}/.claude:ro")
+  else
+    mount_flags+=(--mount "type=tmpfs,destination=${CONTAINER_WORKSPACE}/.claude,readonly")
   fi
+
+  local entry name
+  while IFS= read -r -d '' entry; do
+    name="$(basename "${entry}")"
+    mount_flags+=(-v "${entry}:${CONTAINER_WORKSPACE}/${name}")
+  done < <(find "${CHECKOUT}" -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.claude' -print0)
 
   docker run -d \
     --name "${CONTAINER_NAME}" \
