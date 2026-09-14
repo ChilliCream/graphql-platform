@@ -1,8 +1,10 @@
 using System.Text.Json;
 using HotChocolate.CostAnalysis;
+using HotChocolate.Caching.Memory;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -126,7 +128,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Request_Should_RejectBeforePlanning_When_AllVariableSetsExceedLimit()
+    public async Task VariableBatch_Should_Execute_When_SummedTypeCostIsWithinLimit()
     {
         // arrange
         var observation = new CostObservation();
@@ -139,59 +141,61 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
             observation);
         var executor = await services.GetRequestExecutorAsync(
             cancellationToken: TestContext.Current.CancellationToken);
-        using var variables = JsonDocument.Parse("""[{ "n": 11 }, { "n": 1000 }]""");
+        using var variables = JsonDocument.Parse("""[{ "n": 4 }, { "n": 4 }]""");
         using var request = VariableBatchRequest.FromSourceText(ItemsQuery, variables);
 
         // act
         var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        var batch = result.ExpectOperationResultBatch();
-        batch.Results.MatchInlineSnapshots(
-            [
-                """
-                {
-                  "errors": [
-                    {
-                      "message": "The maximum allowed type cost was exceeded.",
-                      "extensions": {
-                        "code": "HC0047",
-                        "typeCost": 12,
-                        "maxTypeCost": 10
-                      }
-                    }
-                  ],
-                  "extensions": {
-                    "operationCost": {
-                      "fieldCost": 1,
-                      "typeCost": 12
-                    }
-                  }
-                }
-                """,
-                """
-                {
-                  "errors": [
-                    {
-                      "message": "The maximum allowed type cost was exceeded.",
-                      "extensions": {
-                        "code": "HC0047",
-                        "typeCost": 1001,
-                        "maxTypeCost": 10
-                      }
-                    }
-                  ],
-                  "extensions": {
-                    "operationCost": {
-                      "fieldCost": 1,
-                      "typeCost": 1001
-                    }
-                  }
-                }
-                """
-            ]);
+        Assert.Empty(result.ExpectOperationResult().Errors);
         Assert.Equal(2, observation.Result!.Estimates.Length);
         Assert.False(observation.Result.IsStaticBound);
+        Assert.Equal(1, observation.DownstreamCalls);
+    }
+
+    [Fact]
+    public async Task Request_Should_RejectBeforePlanning_When_SummedTypeCostExceedsLimit()
+    {
+        // arrange
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            options =>
+            {
+                options.MaxFieldCost = double.PositiveInfinity;
+                options.MaxTypeCost = 10;
+            },
+            observation);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var variables = JsonDocument.Parse("""[{ "n": 4 }, { "n": 5 }]""");
+        using var request = VariableBatchRequest.FromSourceText(ItemsQuery, variables);
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.ExpectOperationResult().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The maximum allowed type cost was exceeded.",
+                  "extensions": {
+                    "code": "HC0047",
+                    "typeCost": 11,
+                    "maxTypeCost": 10
+                  }
+                }
+              ]
+            }
+            """);
+        Assert.Equal(2, observation.Result!.Estimates.Length);
+        Assert.False(observation.Result.IsStaticBound);
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        var costPlanCache = executor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
+        Assert.Equal(0, operationPlanCache.Count);
+        Assert.Equal(1, costPlanCache.Count);
         Assert.Equal(0, observation.DownstreamCalls);
     }
 
