@@ -643,6 +643,62 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Empty(response.Content.Headers.Allow);
     }
 
+    [Theory]
+    [InlineData("application/json;q=1.0, application/graphql-response+json;q=0.1", ContentType.Json)]
+    [InlineData("application/graphql-response+json;q=0.1, application/json", ContentType.Json)]
+    [InlineData("application/json;q=0.1, application/graphql-response+json;q=1.0", ContentType.GraphQLResponse)]
+    [InlineData("application/graphql-response+json;q=0, application/json", ContentType.Json)]
+    [InlineData("application/json, application/graphql-response+json", ContentType.GraphQLResponse)]
+    public async Task SingleResult_Should_SelectHighestQualityMediaType(
+        string acceptHeader,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    [Theory]
+    [InlineData("application/graphql-response+json;q=0")]
+    [InlineData("application/json;q=0, application/graphql-response+json;q=0")]
+    public async Task SingleResult_Should_ReturnNotAcceptable_When_EveryMediaTypeIsRejected(
+        string acceptHeader)
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: NotAcceptable
+                -------------------------->
+                {"errors":[{"message":"None of the `Accept` header values is supported.","extensions":{"code":"HC0063"}}]}
+                """);
+    }
+
     // Content suppression for HEAD is the HTTP server's responsibility and TestServer,
     // unlike Kestrel, does not emulate it, so only the status and headers are compared.
     [Fact]

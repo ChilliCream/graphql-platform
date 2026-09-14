@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -148,6 +149,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         for (var i = 0; i < acceptMediaTypes.Length; i++)
         {
             var acceptMediaType = Unsafe.Add(ref searchSpace, i);
+
+            // RFC 9110, section 12.4.2: a media type with q=0 is not acceptable. Excluding it
+            // here leaves the request with no usable media type, which the middleware answers
+            // with 406 before a response is ever formatted.
+            if (GetQuality(acceptMediaType) is 0)
+            {
+                continue;
+            }
+
             flags |= CreateRequestFlags(acceptMediaType);
 
             if (flags is RequestFlags.AllowAll)
@@ -670,7 +680,132 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             _ => ResultKind.Stream
         };
 
-        ref var start = ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes);
+        // RFC 9110, section 12.4.2: a media type with q=0 is not acceptable, and the server
+        // selects from the acceptable media types in descending order of quality.
+        if (RequiresQualityOrdering(acceptMediaTypes))
+        {
+            var ordered = ArrayPool<AcceptMediaType>.Shared.Rent(length);
+
+            try
+            {
+                var count = OrderByDescendingQuality(acceptMediaTypes, ordered);
+                var offset = 0;
+
+                while (offset < count)
+                {
+                    var quality = GetQuality(ordered[offset]);
+                    var tierLength = 1;
+
+                    while (offset + tierLength < count
+                        && GetQuality(ordered[offset + tierLength]).Equals(quality))
+                    {
+                        tierLength++;
+                    }
+
+                    if (TrySelectFormat(
+                        ordered,
+                        offset,
+                        tierLength,
+                        resultKind,
+                        out selectedAcceptMediaType,
+                        out format))
+                    {
+                        return true;
+                    }
+
+                    offset += tierLength;
+                }
+
+                return false;
+            }
+            finally
+            {
+                ArrayPool<AcceptMediaType>.Shared.Return(ordered, clearArray: true);
+            }
+        }
+
+        return TrySelectFormat(
+            acceptMediaTypes,
+            0,
+            length,
+            resultKind,
+            out selectedAcceptMediaType,
+            out format);
+    }
+
+    private static double GetQuality(AcceptMediaType mediaType)
+        => mediaType.Quality ?? 1.0;
+
+    /// <summary>
+    /// Copies the acceptable media types into <paramref name="buffer"/>, ordered by descending
+    /// quality and, within one quality, in the order the client listed them. Media types with
+    /// q=0 are dropped.
+    /// </summary>
+    private static int OrderByDescendingQuality(
+        AcceptMediaType[] acceptMediaTypes,
+        AcceptMediaType[] buffer)
+    {
+        var count = 0;
+        var quality = double.PositiveInfinity;
+
+        while (true)
+        {
+            var next = double.NegativeInfinity;
+
+            foreach (var acceptMediaType in acceptMediaTypes)
+            {
+                var candidate = GetQuality(acceptMediaType);
+
+                if (candidate > 0 && candidate < quality && candidate > next)
+                {
+                    next = candidate;
+                }
+            }
+
+            if (double.IsNegativeInfinity(next))
+            {
+                return count;
+            }
+
+            foreach (var acceptMediaType in acceptMediaTypes)
+            {
+                if (GetQuality(acceptMediaType).Equals(next))
+                {
+                    buffer[count++] = acceptMediaType;
+                }
+            }
+
+            quality = next;
+        }
+    }
+
+    private static bool RequiresQualityOrdering(AcceptMediaType[] acceptMediaTypes)
+    {
+        var quality = GetQuality(acceptMediaTypes[0]);
+
+        for (var i = 1; i < acceptMediaTypes.Length; i++)
+        {
+            if (!GetQuality(acceptMediaTypes[i]).Equals(quality))
+            {
+                return true;
+            }
+        }
+
+        return quality is 0;
+    }
+
+    private bool TrySelectFormat(
+        AcceptMediaType[] acceptMediaTypes,
+        int offset,
+        int length,
+        ResultKind resultKind,
+        out AcceptMediaType selectedAcceptMediaType,
+        [NotNullWhen(true)] out FormatInfo? format)
+    {
+        selectedAcceptMediaType = default;
+        format = null;
+
+        ref var start = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes), offset);
 
         // If we just have one Accept header value, we will try to determine which formatter to take.
         // We should only be unable to find a match if there was a previous validation skipped.
