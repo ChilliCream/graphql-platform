@@ -2586,4 +2586,33 @@ public class BatchResolverTests
         public List<Product> GetProductById(List<int> id)
             => throw new InvalidOperationException("Access denied.");
     }
+
+    [Fact]
+    public async Task ResolveField_Should_Report_Every_Alias_Error_When_NonNull_Root_Field_Fails()
+    {
+        // arrange & act
+        // Per-parent control: a regular, non-batch non-null root field pins the same
+        // every-alias-error contract that the batch case above must also honor.
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType<NonNullProductByIdRegularQuery>()
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        a: productById(id: 1) { name }
+                        b: productById(id: 2) { name }
+                    }
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchMarkdownSnapshot();
+    }
+
+    public class NonNullProductByIdRegularQuery
+    {
+        public Product GetProductById(int id)
+            => throw new InvalidOperationException("Access denied.");
+    }
 }
