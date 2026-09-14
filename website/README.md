@@ -34,6 +34,10 @@ Stop the container with `website/scripts/frontend-container.sh down`. Add
 `--purge` to also remove its `node_modules`/`.next` volumes, or `--all` to
 stop every checkout's container.
 
+The container mounts the checkout's `.git` and, when present, `.claude`
+read-only, but it can still modify website sources because Prettier and
+ESLint need write access, so review diffs before committing.
+
 ## Authoring Markdown Content
 
 Docs live in `content/docs/<product>/...` as Markdown (`.md`) files and are

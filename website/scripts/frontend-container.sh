@@ -153,16 +153,31 @@ ensure_running() {
 # Starts this checkout's container. "$@" are extra `docker run` flags (the
 # port publishes), appended before the image tag; passing none starts the
 # container without published ports.
+#
+# The checkout's .git is mounted read-only on top of the read-write toplevel
+# mount so code running in the container cannot plant host-executed commands
+# (git hooks, core.hooksPath/core.fsmonitor, filter drivers in .git/config).
+# .claude is mounted read-only the same way, when the checkout has one, since
+# .claude/settings.local.json can define hooks host Claude Code sessions
+# execute. Website sources under the toplevel mount stay read-write.
 run_container() {
+  local mount_flags=(
+    -v "${CHECKOUT}:${CONTAINER_WORKSPACE}"
+    -v "${CHECKOUT}/.git:${CONTAINER_WORKSPACE}/.git:ro"
+    -v "${NODE_MODULES_VOLUME}:${CONTAINER_WORKSPACE}/website/node_modules"
+    -v "${NEXT_VOLUME}:${CONTAINER_WORKSPACE}/website/.next"
+  )
+  if [ -e "${CHECKOUT}/.claude" ]; then
+    mount_flags+=(-v "${CHECKOUT}/.claude:${CONTAINER_WORKSPACE}/.claude:ro")
+  fi
+
   docker run -d \
     --name "${CONTAINER_NAME}" \
     --shm-size=512m \
     -e CHILLICREAM_FRONTEND_ENV=devcontainer \
     -e NEXT_TELEMETRY_DISABLED=1 \
     --user node \
-    -v "${CHECKOUT}:${CONTAINER_WORKSPACE}" \
-    -v "${NODE_MODULES_VOLUME}:${CONTAINER_WORKSPACE}/website/node_modules" \
-    -v "${NEXT_VOLUME}:${CONTAINER_WORKSPACE}/website/.next" \
+    "${mount_flags[@]}" \
     -w "$(container_website_dir)" \
     "$@" \
     "${IMAGE_TAG}" \
