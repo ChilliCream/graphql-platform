@@ -340,7 +340,7 @@ public class NodeResolverTests
     }
 
     [Fact]
-    public async Task ResolveNodeBatch_Should_Report_Error_At_Indexed_Path_When_Typed_Delegate_Reports_Error_For_One_Entry()
+    public async Task ResolveNodeBatch_Should_Index_Error_Path_When_Typed_Delegate_Reports_Error_For_One_Entry()
     {
         // arrange
         var calls = 0;
@@ -412,6 +412,39 @@ public class NodeResolverTests
             """
             {
                 nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ=="]) {
+                    ... on BatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot().Add(result, "Result").Add(calls, "Calls").MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task ResolveNodeBatch_Should_Index_Error_Path_When_One_Id_Has_No_Node_Resolver()
+    {
+        // arrange
+        var calls = 0;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode().IdField(n => n.Id)
+                .ResolveNodeBatch((_, ids) =>
+                {
+                    calls++;
+                    return Task.FromResult<IReadOnlyList<BatchEntity?>>(
+                        ids.Select(id => new BatchEntity { Name = id }).ToArray());
+                }))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "UXVlcnk6MQ=="]) {
                     ... on BatchEntity { name }
                 }
             }

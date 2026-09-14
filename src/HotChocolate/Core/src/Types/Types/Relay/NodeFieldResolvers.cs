@@ -250,7 +250,7 @@ internal static class NodeFieldResolvers
                     if (!schema.Types.TryGetType<ObjectType>(typeName, out var type)
                         || type.Features.Get<NodeTypeFeature>() is not { NodeResolver: { } nodeResolver })
                     {
-                        parent.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, parent.Path));
+                        parent.ReportError(ErrorHelper.Relay_NoNodeResolver(typeName, parent.Path.Append(i)));
                         results[i] = null;
                         continue;
                     }
@@ -413,7 +413,7 @@ internal static class NodeFieldResolvers
         {
             for (var i = 0; i < group.Count; i++)
             {
-                tasks[i] = InvokeChildPipelineAsync(pipeline, group[i].Context);
+                tasks[i] = InvokeChildPipelineAsync(pipeline, group[i].Context).AsTask();
             }
 
 #if NET9_0_OR_GREATER
@@ -432,7 +432,7 @@ internal static class NodeFieldResolvers
     /// Runs a staged child's classic node resolver pipeline, isolating an unhandled exception
     /// to that child's own indexed path instead of letting it fail every entry in the batch.
     /// </summary>
-    private static async Task InvokeChildPipelineAsync(FieldDelegate pipeline, IMiddlewareContext context)
+    private static async ValueTask InvokeChildPipelineAsync(FieldDelegate pipeline, IMiddlewareContext context)
     {
         try
         {
