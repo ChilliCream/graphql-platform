@@ -352,6 +352,13 @@ internal static class BatchResolverCompiler
             return;
         }
 
+        // A default(ImmutableArray<T>) result has no backing array; it still passes the IList
+        // check below, so Count must be guarded ahead of it to avoid a NullReferenceException.
+        if (IsDefaultImmutableArray(result))
+        {
+            throw ThrowHelper.BatchResolver_ResultCountMismatch(contexts.Length, 0);
+        }
+
         if (result is System.Collections.IList list)
         {
             var count = list.Count;
@@ -370,6 +377,28 @@ internal static class BatchResolverCompiler
         {
             throw ThrowHelper.BatchResolver_ResultMustBeList(result.GetType());
         }
+    }
+
+    /// <summary>
+    /// Checks whether a batch result is the uninitialized default value of an
+    /// <c>ImmutableArray&lt;T&gt;</c> return type, whose backing array is null.
+    /// </summary>
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2090",
+        Justification =
+            "T is only ever the statically known ImmutableArray<TElement> return type this method "
+            + "is specialized for via MakeGenericMethod; its public properties are never trimmed.")]
+    private static bool IsDefaultImmutableArray<T>(T result)
+    {
+        var type = typeof(T);
+
+        if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(ImmutableArray<>))
+        {
+            return false;
+        }
+
+        return (bool)type.GetProperty(nameof(ImmutableArray<object>.IsDefault))!.GetValue(result)!;
     }
 
     /// <summary>

@@ -1214,13 +1214,15 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
 
         using (Writer.IncreaseIndent())
         {
-            // IsSelected, QueryContext, ConnectionFlags and PagingArguments parameters bind over
-            // the union of every context's include condition flags in the batch.
+            // IsSelected, QueryContext, ConnectionFlags, PagingArguments and custom/selection
+            // (Unknown-kind) parameters bind over the union of every context's include condition
+            // flags in the batch.
             if (resolver.Parameters.Any(
                 p => p.Kind is ResolverParameterKind.IsSelected
                     or ResolverParameterKind.QueryContext
                     or ResolverParameterKind.ConnectionFlags
-                    or ResolverParameterKind.PagingArguments))
+                    or ResolverParameterKind.PagingArguments
+                    or ResolverParameterKind.Unknown))
             {
                 Writer.WriteIndentedLine(
                     "var batchSelectionContext = global::{0}.CreateBatchSelectionContext(contexts);",
@@ -1289,7 +1291,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                             using (Writer.IncreaseIndent())
                             {
                                 Writer.WriteIndentedLine(
-                                    "? _binding_{0}_{1}.Execute<{2}>(contexts[0])",
+                                    "? _binding_{0}_{1}.Execute<{2}>(batchSelectionContext)",
                                     resolver.Member.Name,
                                     parameter.Name,
                                     parameterType);
@@ -1602,7 +1604,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                     using (Writer.IncreaseIndent())
                     {
                         Writer.WriteIndentedLine(
-                            "? _binding_{0}_{1}.Execute<{2}>(contexts[0])",
+                            "? _binding_{0}_{1}.Execute<{2}>(batchSelectionContext)",
                             resolver.Member.Name,
                             parameter.Name,
                             parameterType);
@@ -1690,6 +1692,18 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     {
         if (resultIsNonNullableValueType)
         {
+            // A default(ImmutableArray<T>) result has no backing array; it still passes the
+            // IList check below, so Count must be guarded ahead of it to avoid a
+            // NullReferenceException.
+            Writer.WriteIndentedLine("if (result.IsDefault)");
+            Writer.WriteIndentedLine("{");
+            using (Writer.IncreaseIndent())
+            {
+                WriteBatchResolverResultCountMismatchThrow("0");
+            }
+
+            Writer.WriteIndentedLine("}");
+            Writer.WriteLine();
             Writer.WriteIndentedLine("if (result is global::{0} list)", WellKnownTypes.IList);
         }
         else
@@ -1719,22 +1733,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             Writer.WriteIndentedLine("{");
             using (Writer.IncreaseIndent())
             {
-                Writer.WriteIndentedLine(
-                    "throw new global::{0}(",
-                    WellKnownTypes.InvalidOperationException);
-                using (Writer.IncreaseIndent())
-                {
-                    Writer.WriteIndentedLine(
-                        "global::System.String.Format(");
-                    using (Writer.IncreaseIndent())
-                    {
-                        Writer.WriteIndentedLine(
-                            "\"A batch resolver must return exactly one result per context. "
-                            + "Expected {0} results but got {1}.\",");
-                        Writer.WriteIndentedLine("contexts.Length,");
-                        Writer.WriteIndentedLine("list.Count));");
-                    }
-                }
+                WriteBatchResolverResultCountMismatchThrow("list.Count");
             }
 
             Writer.WriteIndentedLine("}");
@@ -1766,6 +1765,30 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         }
 
         Writer.WriteIndentedLine("}");
+    }
+
+    /// <summary>
+    /// Emits the count-mismatch throw shared by the default-<c>ImmutableArray&lt;T&gt;</c> guard
+    /// and the list-length check; <paramref name="actualCountExpression"/> supplies the actual
+    /// count expression for each call site.
+    /// </summary>
+    private void WriteBatchResolverResultCountMismatchThrow(string actualCountExpression)
+    {
+        Writer.WriteIndentedLine(
+            "throw new global::{0}(",
+            WellKnownTypes.InvalidOperationException);
+        using (Writer.IncreaseIndent())
+        {
+            Writer.WriteIndentedLine("global::System.String.Format(");
+            using (Writer.IncreaseIndent())
+            {
+                Writer.WriteIndentedLine(
+                    "\"A batch resolver must return exactly one result per context. "
+                    + "Expected {0} results but got {1}.\",");
+                Writer.WriteIndentedLine("contexts.Length,");
+                Writer.WriteIndentedLine("{0}));", actualCountExpression);
+            }
+        }
     }
 
     private static string GetListElementType(ITypeSymbol type)
