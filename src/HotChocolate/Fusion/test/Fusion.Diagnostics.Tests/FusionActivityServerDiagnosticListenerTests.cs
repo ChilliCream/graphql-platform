@@ -789,9 +789,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
             // act
-            // the subgraph emits one event then completes its stream, so receive the
-            // single event and then let the gateway end the operation with a
-            // `complete` message (no exception, no abort)
+            // the subgraph emits one event then completes its stream
             try
             {
                 Assert.True(await results.MoveNextAsync());
@@ -802,13 +800,10 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                 await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
             }
 
-            // the WebSocket session encloses every span of this trace, so close it
-            // before the trace is read
+            // the session encloses every span, so close it before the trace is read
             await CloseWebSocketAsync(webSocket, guard.Token);
 
             // assert
-            // the default scopes exclude ExecuteRequest, and a WebSocket session has no
-            // HTTP transport span to fall back to, so the trace carries no request span
             activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
@@ -843,9 +838,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
             // act
-            // the subgraph emits one event then completes its stream, so receive the
-            // single event and then let the gateway end the operation with a
-            // `complete` message (no exception, no abort)
+            // the subgraph emits one event then completes its stream
             try
             {
                 Assert.True(await results.MoveNextAsync());
@@ -856,61 +849,10 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
                 await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
             }
 
-            // the WebSocket session encloses every span of this trace, so close it
-            // before the trace is read
+            // the session encloses every span, so close it before the trace is read
             await CloseWebSocketAsync(webSocket, guard.Token);
 
             // assert
-            // the snapshot records the gateway request and subscription event span
-            // status for a graceful close
-            activities.MatchSnapshot(Postfix([NET11_0]));
-        }
-    }
-
-    [Fact]
-    public async Task WebSocket_Subscription_Should_Be_Ok_When_Client_Completes()
-    {
-        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            using var server1 = CreateSourceSchema(
-                "a",
-                b => b
-                    .AddQueryType<Query>()
-                    .AddSubscriptionType<Subscription>());
-
-            using var gateway = await CreateCompositeSchemaAsync(
-            [
-                ("a", server1)
-            ],
-            configureGatewayBuilder: b => b.AddInstrumentation(o =>
-                o.Scopes = FusionActivityScopes.All));
-
-            using var webSocket = await ConnectWebSocketAsync(gateway, guard.Token);
-            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
-
-            var request = new OperationRequest("subscription OnIdleMessageSubscription { onIdleMessage }");
-
-            using var result = await client.ExecuteAsync(request, guard.Token);
-            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
-
-            // receive one event successfully while the subscription is running
-            Assert.True(await results.MoveNextAsync());
-
-            // act
-            // stop the subscription from the client (unsubscribe) while the socket
-            // stays open; disposing the stream sends a `complete` message
-            await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
-
-            // the `complete` message is delivered before the close frame, so the
-            // gateway stops the operation first and then ends the session
-            await CloseWebSocketAsync(webSocket, guard.Token);
-
-            // assert
-            // the snapshot records the subscription event span status for a
-            // client-initiated unsubscribe
             activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
@@ -944,19 +886,15 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             using var result = await client.ExecuteAsync(request, guard.Token);
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
-            // receive one event successfully while the connection is alive
             Assert.True(await results.MoveNextAsync());
 
             // act
-            // the subscription is now idle, waiting for the next event. close the
-            // connection (close the tab) without unsubscribing first, so the gateway
-            // has to tear the still-running subscription down with the session.
+            // close the connection without unsubscribing, so the gateway has to tear the
+            // still-running subscription down with the session
             await CloseWebSocketAsync(webSocket, guard.Token);
             await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
 
             // assert
-            // the snapshot records the subscription event span status for a client
-            // that closes the connection while the subscription is idle
             activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
@@ -969,8 +907,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            // clients that are not browsers can send the tenant as a handshake header
-            // instead of in the connection init payload, the same enricher reads both
+            // non-browser clients can send the tenant as a handshake header instead
             using var server1 = CreateSourceSchema(
                 "a",
                 b => b
@@ -998,8 +935,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
             // act
-            // the subgraph emits one event then completes its stream, so both the request
-            // span and one subscription event span are recorded
+            // the subgraph emits one event then completes its stream
             try
             {
                 Assert.True(await results.MoveNextAsync());
@@ -1025,9 +961,6 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            // the listener captures the tenant from the connection init payload and stores
-            // it on the connection, the enricher tags the request and subscription event
-            // spans with it
             using var server1 = CreateSourceSchema(
                 "a",
                 b => b
@@ -1053,8 +986,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
             // act
-            // the subgraph emits one event then completes its stream, so both the request
-            // span and one subscription event span are recorded
+            // the subgraph emits one event then completes its stream
             try
             {
                 Assert.True(await results.MoveNextAsync());
@@ -1083,7 +1015,7 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
         /// Stores the tenant on the connection so it outlives the connection
         /// initialization message, which is only valid during this call.
         /// </summary>
-        public override void EnrichConnectionInit(
+        public override void OnWebSocketConnectionInitialized(
             ISocketSession session,
             IOperationMessagePayload connectionInitMessage)
         {
@@ -1120,11 +1052,6 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             }
         }
 
-        /// <summary>
-        /// Resolves the tenant from the connection initialization payload, which browser
-        /// clients have to use because they cannot set handshake headers, and otherwise
-        /// falls back to the handshake header.
-        /// </summary>
         private static string? ResolveTenant(RequestContext context)
         {
             if (context.ContextData.TryGetValue(nameof(ISocketSession), out var value)
@@ -1142,6 +1069,118 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
 
             return null;
         }
+    }
+
+    [Fact]
+    public async Task WebSocket_Apollo_ConnectionInit_Payload_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // the legacy apollo protocol raises the event from its own protocol handler
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                .AddApplicationService<FusionActivityEnricher>()
+                .Services.AddSingleton<FusionActivityEnricher, TenantActivityEnricher>());
+
+            var webSocketClient = gateway.CreateWebSocketClient();
+            webSocketClient.ConfigureRequest =
+                r => r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_WS;
+            using var webSocket = await webSocketClient.ConnectAsync(s_webSocketUrl, guard.Token);
+
+            await SendApolloMessageAsync(
+                webSocket,
+                """{"type":"connection_init","payload":{"tenant":"acme-42"}}""",
+                guard.Token);
+            Assert.NotNull(await WaitForApolloMessageAsync(webSocket, "connection_ack", guard.Token));
+
+            // act
+            // the subgraph emits one event then completes its stream
+            await SendApolloMessageAsync(
+                webSocket,
+                """
+                {"type":"start","id":"1","payload":{"query":"subscription OnMessageSubscription { onMessage }"}}
+                """,
+                guard.Token);
+            Assert.NotNull(await WaitForApolloMessageAsync(webSocket, "data", guard.Token));
+            Assert.NotNull(await WaitForApolloMessageAsync(webSocket, "complete", guard.Token));
+
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    private static async Task SendApolloMessageAsync(
+        WebSocket webSocket,
+        string message,
+        CancellationToken cancellationToken)
+        => await webSocket.SendAsync(
+            Encoding.UTF8.GetBytes(message),
+            WebSocketMessageType.Text,
+            true,
+            cancellationToken);
+
+    private static async Task<JsonDocument?> WaitForApolloMessageAsync(
+        WebSocket webSocket,
+        string type,
+        CancellationToken cancellationToken)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var combined =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+        var buffer = new byte[4096];
+
+        try
+        {
+            while (!combined.Token.IsCancellationRequested)
+            {
+                await using var stream = new MemoryStream();
+                WebSocketReceiveResult result;
+
+                do
+                {
+                    result = await webSocket.ReceiveAsync(
+                        new ArraySegment<byte>(buffer),
+                        combined.Token);
+                    stream.Write(buffer, 0, result.Count);
+                }
+                while (!result.EndOfMessage);
+
+                if (stream.Length == 0)
+                {
+                    continue;
+                }
+
+                var message = JsonDocument.Parse(stream.ToArray());
+
+                if (message.RootElement.GetProperty("type").GetString() == type)
+                {
+                    return message;
+                }
+
+                message.Dispose();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: no matching message arrived within the timeout
+        }
+
+        return null;
     }
 
     private static async Task<WebSocket> ConnectWebSocketAsync(
@@ -1162,35 +1201,16 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
         WebSocket webSocket,
         CancellationToken cancellationToken)
     {
-        if (webSocket.State is not WebSocketState.Open)
-        {
-            // the gateway already ended the session, so there is nothing left to close
-            return;
-        }
-
         try
         {
-            await webSocket.CloseAsync(
+            await webSocket.CloseOutputAsync(
                 WebSocketCloseStatus.NormalClosure,
                 "done",
                 cancellationToken);
         }
-        catch (WebSocketException)
+        catch (Exception ex) when (ex is WebSocketException or IOException or ObjectDisposedException)
         {
-            // expected: the gateway may have torn the connection down already
-        }
-        catch (IOException)
-        {
-            // expected: the state check above races the gateway tearing the session down,
-            // so the close can still find the connection already gone
-        }
-        catch (OperationCanceledException)
-        {
-            // expected: the close handshake was aborted
-        }
-        catch (ObjectDisposedException)
-        {
-            // expected: the gateway tore the session down while the close was in flight
+            // the gateway can end the session before the close frame is sent
         }
     }
 

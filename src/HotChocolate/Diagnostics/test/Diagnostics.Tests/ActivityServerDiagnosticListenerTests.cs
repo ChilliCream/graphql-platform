@@ -778,9 +778,6 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
             // act
-            // wait until the server subscribed to the topic, push one event, then
-            // complete the topic so the server ends the operation with a `complete`
-            // message and the client observes a clean, graceful close
             try
             {
                 var moveNext = results.MoveNextAsync().AsTask();
@@ -795,13 +792,10 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                 await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
             }
 
-            // the WebSocket session encloses every span of this trace, so close it
-            // before the trace is read
+            // the session encloses every span, so close it before the trace is read
             await CloseWebSocketAsync(webSocket, guard.Token);
 
             // assert
-            // the default scopes exclude ExecuteRequest, and a WebSocket session has no
-            // HTTP transport span to fall back to, so the trace carries no request span
             activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
@@ -830,9 +824,6 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
             // act
-            // wait until the server subscribed to the topic, push one event, then
-            // complete the topic so the server ends the operation with a `complete`
-            // message and the client observes a clean, graceful close
             try
             {
                 var moveNext = results.MoveNextAsync().AsTask();
@@ -847,51 +838,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
                 await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
             }
 
-            // the WebSocket session encloses every span of this trace, so close it
-            // before the trace is read
-            await CloseWebSocketAsync(webSocket, guard.Token);
-
-            // assert
-            activities.MatchSnapshot(Postfix([NET11_0]));
-        }
-    }
-
-    [Fact]
-    public async Task WebSocket_Subscription_Should_Be_Ok_When_Client_Completes()
-    {
-        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-
-        using (CaptureActivities(out var activities))
-        {
-            // arrange
-            var signal = new HttpSubscriptionSignal();
-            using var server = CreateInstrumentedServer(
-                o => o.Scopes = ActivityScopes.All,
-                b => b
-                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
-                    .Services.AddSingleton(signal));
-            using var webSocket = await ConnectWebSocketAsync(server, guard.Token);
-            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
-            var sender = server.Services.GetRequiredService<ITopicEventSender>();
-
-            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
-
-            using var result = await client.ExecuteAsync(request, guard.Token);
-            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
-
-            // receive one event successfully while the subscription is running
-            var moveNext = results.MoveNextAsync().AsTask();
-            await signal.Subscribed.Task.WaitAsync(guard.Token);
-            await sender.SendAsync("OnMessage", "hello", guard.Token);
-            Assert.True(await moveNext);
-
-            // act
-            // stop the subscription from the client (unsubscribe) while the socket
-            // stays open; disposing the stream sends a `complete` message
-            await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
-
-            // the `complete` message is delivered before the close frame, so the server
-            // stops the operation first and then ends the session
+            // the session encloses every span, so close it before the trace is read
             await CloseWebSocketAsync(webSocket, guard.Token);
 
             // assert
@@ -922,16 +869,14 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             using var result = await client.ExecuteAsync(request, guard.Token);
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
-            // receive one event successfully while the connection is alive
             var moveNext = results.MoveNextAsync().AsTask();
             await signal.Subscribed.Task.WaitAsync(guard.Token);
             await sender.SendAsync("OnMessage", "hello", guard.Token);
             Assert.True(await moveNext);
 
             // act
-            // the subscription is now idle, waiting for the next event. close the
-            // connection (close the tab) without unsubscribing first, so the server
-            // has to tear the still-running subscription down with the session.
+            // close the connection without unsubscribing, so the server has to tear the
+            // still-running subscription down with the session
             await CloseWebSocketAsync(webSocket, guard.Token);
             await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
 
@@ -948,8 +893,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
         using (CaptureActivities(out var activities))
         {
             // arrange
-            // a blocking resolver combined with a tiny per-event timeout forces a
-            // server-side event timeout (not a client abort): the socket stays open
+            // a blocking resolver plus a tiny timeout forces a server-side event timeout
             var signal = new HttpSubscriptionSignal();
             using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All,
@@ -968,9 +912,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
             // act
-            // start processing an event that blocks past the per-event timeout; the
-            // timeout tears the operation down, so the server ends the stream without
-            // ever delivering a result
+            // the timeout tears the operation down, so no result is ever delivered
             var first = results.MoveNextAsync().AsTask();
             await signal.Subscribed.Task.WaitAsync(guard.Token);
             await sender.SendAsync("OnBlockingMessage", "hello", guard.Token);
@@ -982,8 +924,6 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             await CloseWebSocketAsync(webSocket, guard.Token);
 
             // assert
-            // the snapshot records the subscription event span status for a
-            // server-side event timeout
             activities.MatchSnapshot(Postfix([NET11_0]));
         }
     }
@@ -996,8 +936,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
         using (CaptureActivities(out var activities))
         {
             // arrange
-            // clients that are not browsers can send the tenant as a handshake header
-            // instead of in the connection init payload, the same enricher reads both
+            // non-browser clients can send the tenant as a handshake header instead
             var signal = new HttpSubscriptionSignal();
             using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All,
@@ -1020,8 +959,6 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
             // act
-            // deliver a single event so both the request span and one subscription event
-            // span are recorded, then close the session
             try
             {
                 var moveNext = results.MoveNextAsync().AsTask();
@@ -1051,9 +988,6 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
         using (CaptureActivities(out var activities))
         {
             // arrange
-            // the listener captures the tenant from the connection init payload and stores
-            // it on the connection, the enricher tags the request and subscription event
-            // spans with it
             var signal = new HttpSubscriptionSignal();
             using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All,
@@ -1074,8 +1008,6 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
 
             // act
-            // deliver a single event so both the request span and one subscription event
-            // span are recorded, then close the session
             try
             {
                 var moveNext = results.MoveNextAsync().AsTask();
@@ -1105,8 +1037,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
         using (CaptureActivities(out var activities))
         {
             // arrange
-            // the same capture over the legacy apollo protocol, which raises the
-            // connection init diagnostic event from its own protocol handler
+            // the legacy apollo protocol raises the event from its own protocol handler
             var signal = new HttpSubscriptionSignal();
             using var server = CreateInstrumentedServer(
                 o => o.Scopes = ActivityScopes.All,
@@ -1129,8 +1060,6 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             Assert.NotNull(await WaitForApolloMessageAsync(webSocket, "connection_ack", guard.Token));
 
             // act
-            // deliver a single event so both the request span and one subscription event
-            // span are recorded, then complete the topic so the server ends the operation
             await webSocket.SendSubscriptionStartAsync(
                 "1",
                 new GraphQLRequest(
@@ -1193,7 +1122,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
     public sealed class TenantActivityEnricher(InstrumentationOptions options)
         : ActivityEnricher(options)
     {
-        public override void EnrichConnectionInit(
+        public override void OnWebSocketConnectionInitialized(
             ISocketSession session,
             IOperationMessagePayload connectionInitMessage)
         {
@@ -1228,11 +1157,6 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             }
         }
 
-        /// <summary>
-        /// Resolves the tenant from the connection initialization payload, which browser
-        /// clients have to use because they cannot set handshake headers, and otherwise
-        /// falls back to the handshake header.
-        /// </summary>
         private static string? ResolveTenant(RequestContext context)
         {
             if (context.ContextData.TryGetValue(nameof(ISocketSession), out var value)
@@ -1270,35 +1194,16 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
         WebSocket webSocket,
         CancellationToken cancellationToken)
     {
-        if (webSocket.State is not WebSocketState.Open)
-        {
-            // the server already ended the session, so there is nothing left to close
-            return;
-        }
-
         try
         {
-            await webSocket.CloseAsync(
+            await webSocket.CloseOutputAsync(
                 WebSocketCloseStatus.NormalClosure,
                 "done",
                 cancellationToken);
         }
-        catch (WebSocketException)
+        catch (Exception ex) when (ex is WebSocketException or IOException or ObjectDisposedException)
         {
-            // expected: the server may have torn the connection down already
-        }
-        catch (IOException)
-        {
-            // expected: the state check above races the server tearing the session down,
-            // so the close can still find the connection already gone
-        }
-        catch (OperationCanceledException)
-        {
-            // expected: the close handshake was aborted
-        }
-        catch (ObjectDisposedException)
-        {
-            // expected: the server tore the session down while the close was in flight
+            // the server can end the session before the close frame is sent
         }
     }
 

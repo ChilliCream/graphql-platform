@@ -68,11 +68,15 @@
             },
             {
               "Key": "graphql.operation.name",
-              "Value": "OnIdleMessageSubscription"
+              "Value": "OnMessageSubscription"
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
+              "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
+            },
+            {
+              "Key": "test.tenant",
+              "Value": "acme-42"
             }
           ],
           "event": [
@@ -98,7 +102,7 @@
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
+                  "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                 }
               ],
               "event": []
@@ -115,7 +119,7 @@
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
+                  "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                 },
                 {
                   "Key": "graphql.operation.type",
@@ -123,7 +127,7 @@
                 },
                 {
                   "Key": "graphql.operation.name",
-                  "Value": "OnIdleMessageSubscription"
+                  "Value": "OnMessageSubscription"
                 }
               ],
               "event": []
@@ -144,11 +148,11 @@
                 },
                 {
                   "Key": "graphql.operation.name",
-                  "Value": "OnIdleMessageSubscription"
+                  "Value": "OnMessageSubscription"
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
+                  "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                 }
               ],
               "event": [],
@@ -169,11 +173,11 @@
                     },
                     {
                       "Key": "graphql.operation.name",
-                      "Value": "OnIdleMessageSubscription"
+                      "Value": "OnMessageSubscription"
                     },
                     {
                       "Key": "graphql.document.hash",
-                      "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
+                      "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                     },
                     {
                       "Key": "graphql.operation.step.id",
@@ -185,7 +189,7 @@
                     },
                     {
                       "Key": "graphql.operation.step.plan.id",
-                      "Value": "8fef749a1b041aca849173d1dd38a6022e142b1ebbf92aeb666766e3a0654610"
+                      "Value": "bb94346d204b2f13a21dcba79a06b47065115db28b9ba2c04bce67382b50cef0"
                     },
                     {
                       "Key": "graphql.source_schema.name",
@@ -193,11 +197,11 @@
                     },
                     {
                       "Key": "graphql.source_schema.operation.name",
-                      "Value": "OnIdleMessageSubscription_51d9b3bc_1"
+                      "Value": "OnMessageSubscription_ef859b98_1"
                     },
                     {
                       "Key": "graphql.source_schema.operation.hash",
-                      "Value": "sha256:6b6ed56d2f50e7e614c9096e8e46d789db0e605355b6baf21ab088bde107ca0e"
+                      "Value": "sha256:f9abddbb651ad8e118793eb7c4a7c8db7fe43cae95faba710a0ff35b26b17136"
                     }
                   ],
                   "event": []
@@ -220,15 +224,19 @@
                 },
                 {
                   "Key": "graphql.operation.name",
-                  "Value": "OnIdleMessageSubscription"
+                  "Value": "OnMessageSubscription"
                 },
                 {
                   "Key": "graphql.document.hash",
-                  "Value": "md5:51d9b3bca5722d3209429e79f8ee6435"
+                  "Value": "md5:ef859b98c9d8c17038c8fd9aeecdb1e2"
                 },
                 {
                   "Key": "graphql.subscription.id",
                   "Value": "<id>"
+                },
+                {
+                  "Key": "test.tenant",
+                  "Value": "acme-42"
                 }
               ],
               "event": []

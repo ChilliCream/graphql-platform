@@ -108,7 +108,7 @@ internal sealed class ActivityServerDiagnosticListener(
     public override void WebSocketConnectionInitialized(
         ISocketSession session,
         IOperationMessagePayload connectionInitMessage)
-        => enricher.EnrichConnectionInit(session, connectionInitMessage);
+        => enricher.OnWebSocketConnectionInitialized(session, connectionInitMessage);
 
     public override IDisposable FormatHttpResponse(HttpContext context, OperationResult result)
     {
