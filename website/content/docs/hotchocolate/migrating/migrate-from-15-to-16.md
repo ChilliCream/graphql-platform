@@ -1117,6 +1117,8 @@ If you prefer, you can still register the remaining scalar types individually in
 - `RenameRootActivity` was removed. See [Recreating `RenameRootActivity`](#recreating-renamerootactivity) to reproduce the previous behavior in user code.
 - `RequestDetails.Operation` was renamed to `RequestDetails.OperationName`.
 - `RequestDetails.Query` was renamed to `RequestDetails.Document`.
+- `IncludeOperationNameInSpanName` was added. It defaults to `false`, which is what produces the low-cardinality root span name described below. Set it to `true` to name the root span `{graphql.operation.type} {graphql.operation.name}`, and only do so for operation domains with bounded cardinality, such as persisted operations.
+- `MaxErrorEvents` was added. It caps the number of `graphql.error` events emitted on the root span and defaults to `10`. Set it to `0` to suppress the events entirely; `graphql.error.count` is unaffected by this setting.
 
 ### Recreating `RenameRootActivity`
 
@@ -1183,25 +1185,70 @@ If you have dashboards or alerts that filter on the old attribute names or value
 
 Besides changes to the attributes, the most notable change is that the name of the root GraphQL span has been changed to just include the operation type (`query`, `mutation` or `subscription`), and no longer the operation name, to keep the cardinality low. The operation name can still be retrieved from the `graphql.operation.name` span attribute.
 
+### Renamed spans
+
+Every pipeline stage span was renamed, not just the root span:
+
+| v15                                              | v16                                     |
+| ------------------------------------------------ | --------------------------------------- |
+| `Execute Request`                                | `GraphQL Operation`                     |
+| `Parse Document`                                 | `GraphQL Document Parsing`              |
+| `Validate Document`                              | `GraphQL Document Validation`           |
+| `Analyze Operation Complexity`                   | `GraphQL Complexity Analysis`           |
+| `Coerce Variable`                                | `GraphQL Variable Coercion`             |
+| `Compile Operation`                              | `GraphQL Operation Planning`            |
+| `Execute Operation` / `Execute Operation <name>` | `GraphQL Operation Execution`           |
+| `Execute <DataLoader> Batch`                     | `GraphQL DataLoader Batch <DataLoader>` |
+
+The field resolver span is now named after the schema coordinate of the resolved field, for example `Query.hero`, rather than the response path of the field. The subscription event span is now explicitly named `GraphQL Subscription Event`, and a new `GraphQL DataLoader Dispatch` span covers the batch dispatch coordinator. `Parse HTTP Request` and `Format HTTP Response` are unchanged.
+
 ### Removed attributes
 
-| Attribute                     |
-| ----------------------------- |
-| `graphql.operation.id`        |
-| `graphql.selection.type`      |
-| `graphql.selection.hierarchy` |
+| Attribute                              |
+| -------------------------------------- |
+| `graphql.document.valid`               |
+| `graphql.operation.id`                 |
+| `graphql.schema.isDefault`             |
+| `graphql.selection.type`               |
+| `graphql.selection.hierarchy`          |
+| `graphql.selection.field.isDeprecated` |
 
 ### Renamed attributes
 
-| Old Attribute                           | New Attribute                         |
-| --------------------------------------- | ------------------------------------- |
-| `graphql.operation.kind`                | `graphql.operation.type`              |
-| `graphql.selection.field.declaringType` | `graphql.selection.field.parent_type` |
-| `graphql.dataLoader.keys.count`         | `graphql.dataloader.batch.size`       |
-| `graphql.dataLoader.keys`               | `graphql.dataloader.batch.keys`       |
-| `graphql.fusion.node.schema`            | `graphql.source.name`                 |
-| `graphql.fusion.node.type`              | `graphql.operation.step.kind`         |
-| `graphql.error.location.line/column`    | `graphql.error.locations`             |
+The `graphql.selection.*` family was replaced by `graphql.field.*`:
+
+| Old Attribute                           | New Attribute                     |
+| --------------------------------------- | --------------------------------- |
+| `graphql.operation.kind`                | `graphql.operation.type`          |
+| `graphql.errors.count`                  | `graphql.error.count`             |
+| `graphql.selection.name`                | `graphql.field.alias`             |
+| `graphql.selection.path`                | `graphql.field.path`              |
+| `graphql.selection.field.name`          | `graphql.field.name`              |
+| `graphql.selection.field.coordinate`    | `graphql.field.schema_coordinate` |
+| `graphql.selection.field.declaringType` | `graphql.field.parent_type`       |
+| `graphql.dataLoader.keys.count`         | `graphql.dataloader.batch.size`   |
+| `graphql.dataLoader.keys`               | `graphql.dataloader.batch.keys`   |
+| `graphql.error.path`                    | `graphql.field.path`              |
+| `graphql.error.location.line/column`    | `graphql.document.locations`      |
+
+The last two are no longer span attributes. They are attributes of the `graphql.error` event described in [Error events](#error-events).
+
+### New attributes
+
+| Attribute                                     | Description                                                                                                                                                                                                |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `error.type`                                  | The kind of failure a span ended with, for example a GraphQL error code or an exception type name.                                                                                                         |
+| `server.address` / `server.port`              | The host the request was addressed to, taken from the HTTP request when one is available.                                                                                                                  |
+| `graphql.processing.type`                     | Identifies the stage a span covers: `request`, `parse`, `validate`, `variable_coercion`, `plan`, `execute`, `step_execute`, `resolve`, `dataloader_dispatch`, `dataloader_batch`, or `subscription_event`. |
+| `graphql.field.alias`                         | The response name of the resolved field.                                                                                                                                                                   |
+| `graphql.dataloader.name`                     | The name of the DataLoader a batch span belongs to.                                                                                                                                                        |
+| `graphql.subscription.id`                     | Correlates every event span of one subscription.                                                                                                                                                           |
+| `graphql.document.locations`                  | The document locations of an error, as an array of `line` / `column` pairs.                                                                                                                                |
+| `graphql.operation.step.id`                   | Gateway only. The ID of the plan step a `GraphQL Step Execution` span covers.                                                                                                                              |
+| `graphql.operation.step.plan.id`              | Gateway only. The ID of the operation plan the step belongs to.                                                                                                                                            |
+| `graphql.source_schema.operation.name`        | Gateway only. The name of the operation sent to the source schema.                                                                                                                                         |
+| `graphql.source_schema.operation.hash`        | Gateway only. The SHA-256 of the operation document sent to the source schema, prefixed with `sha256:`.                                                                                                    |
+| `graphql.source_schema.batch.operation_count` | Gateway only. The number of operations in a batched step.                                                                                                                                                  |
 
 ### Changed attribute values
 
@@ -1211,6 +1258,14 @@ Besides changes to the attributes, the most notable change is that the name of t
 | `graphql.http.kind`      | `operation-batch`                     | `operation_batch`                                   |
 | `graphql.document.hash`  | `<hash>`                              | `<hash-algorithm>:<hash>` , e.g. `md5:<hash>`       |
 | `graphql.document.id`    | -                                     | Value is only set if document is a trusted document |
+
+### Error events
+
+Errors are now reported as `graphql.error` events on the root `GraphQL Operation` span, rather than only as span attributes. Each event carries `graphql.error.message`, and where available `graphql.error.code`, `graphql.field.path`, `graphql.field.schema_coordinate`, `graphql.document.locations`, and the operation and document attributes. The number of events per span is capped by `MaxErrorEvents` (default `10`); the total is always available on the `graphql.error.count` attribute.
+
+### Cancellation is no longer an error
+
+A caller cancellation, such as a closed browser tab or a dropped connection, leaves the span status `Unset` with no `error.type` attribute and no error event, per the OpenTelemetry semantic conventions. A server-side execution timeout is not a client cancellation and continues to be reported as an error.
 
 ### Custom enricher changes
 
