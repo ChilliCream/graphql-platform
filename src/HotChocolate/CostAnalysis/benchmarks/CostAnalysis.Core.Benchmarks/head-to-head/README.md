@@ -11,3 +11,7 @@ bash src/HotChocolate/CostAnalysis/benchmarks/CostAnalysis.Core.Benchmarks/head-
 ```
 
 Use `--all` to include the schema-size, query-size, and pathological-Boolean series. Rust stable 1.90 or later is required.
+
+## Results
+
+The script writes its CSVs and `provenance.json` under `../results/head-to-head/`. That directory is generated and git-ignored: benchmark results are machine dependent, so a comparison means running both sides on the same machine and reading the freshly generated output, not comparing against a committed number from a different machine.

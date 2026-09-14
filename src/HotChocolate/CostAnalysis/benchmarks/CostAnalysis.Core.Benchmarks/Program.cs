@@ -11,12 +11,6 @@ if (HeadToHeadPointRunner.TryRun(args, out var headToHeadExitCode))
     return;
 }
 
-if (args.Length > 0 && args[0].Equals("gate", StringComparison.OrdinalIgnoreCase))
-{
-    Environment.ExitCode = GateCommand.Run();
-    return;
-}
-
 BenchmarkSwitcher
     .FromAssembly(typeof(Program).Assembly)
     .Run(args, config);

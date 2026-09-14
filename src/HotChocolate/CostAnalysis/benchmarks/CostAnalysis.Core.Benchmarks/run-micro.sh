@@ -13,6 +13,7 @@ reports=(
 )
 
 rm -rf "${artifacts}"
+mkdir -p "${results}"
 for report in "${reports[@]}"; do
   rm -f "${results}/${report}"
 done
