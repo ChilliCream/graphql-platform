@@ -371,7 +371,7 @@ public class CostAlgebraTests
     [Fact]
     public void CostAlgebra_Field_Should_ApplyZeroInfinityGuard_When_ListOfLeavesCarriesNoAnnotation()
     {
-        // arrange: R-DEFAULT-LIST-SIZE addendum, a list of leaves costs 0 through the 0 * inf guard
+        // arrange
         const string sdl = "type Query { names: [String] }";
         var (algebra, members, field) = ParseRootField(sdl, "{ names }", "Query", "names");
 

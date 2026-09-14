@@ -9,7 +9,7 @@ namespace HotChocolate.CostAnalysis;
 /// <summary>
 /// An unannotated composite list falls through the list-size priority chain to
 /// <see cref="CostOptions.DefaultListSize"/>, which defaults to
-/// <see cref="double.PositiveInfinity"/> (R-DEFAULT-LIST-SIZE). Infinite values in
+/// <see cref="double.PositiveInfinity"/>. Infinite values in
 /// extensions/error payloads are emitted as the JSON string <c>"Infinity"</c>.
 /// </summary>
 public sealed class InfinityReportingTests

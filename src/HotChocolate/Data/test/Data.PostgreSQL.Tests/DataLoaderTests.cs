@@ -110,8 +110,6 @@ public class DataLoaderTests(PostgreSqlResource resource)
 
         services
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddCustomTypes()
             .AddGlobalObjectIdentification()

@@ -311,9 +311,6 @@ public sealed class StaticQueryAnalysisTests
             .ModifyCostOptions(o =>
             {
                 o.DefaultResolverCost = null;
-                // Indices 0, 1, 3, 4 and 7 of ListQueryData have no applicable @listSize
-                // information, so pin the assumed list size ahead of cost enforcement
-                // going live (R-DEFAULT-LIST-SIZE).
                 o.DefaultListSize = 1;
             })
             .AddResolver(

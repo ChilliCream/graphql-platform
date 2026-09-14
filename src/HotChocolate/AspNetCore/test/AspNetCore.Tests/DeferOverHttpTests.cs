@@ -1374,8 +1374,6 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
-                // This test schema relies on the former implicit list-size fallback
-                // (R-DEFAULT-LIST-SIZE).
                 .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddQueryType<Query>()
                 .AddType<Droid>()

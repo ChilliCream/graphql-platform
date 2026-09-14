@@ -36,8 +36,6 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .AddSingleton(mockHostEnvironment.Object)
                     .AddRouting()
                     .AddGraphQLServer()
-                    // The StarWars types carry no @listSize, so pin the assumed list size
-                    // ahead of cost enforcement going live (R-DEFAULT-LIST-SIZE).
                     .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddHttpResponseFormatter()
                     .AddStarWarsTypes()
@@ -74,8 +72,6 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                             o.EnableStream = true;
                         })
                     .AddGraphQLServer("StarWars")
-                    // The StarWars types carry no @listSize, so pin the assumed list size
-                    // ahead of cost enforcement going live (R-DEFAULT-LIST-SIZE).
                     .ModifyCostOptions(o => o.DefaultListSize = 1)
                     .AddStarWarsTypes()
                     .AddGraphQLServer("evict")
@@ -150,8 +146,6 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
-                // The StarWars types carry no @listSize, so pin the assumed list size
-                // ahead of cost enforcement going live (R-DEFAULT-LIST-SIZE).
                 .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddHttpResponseFormatter()
                 .AddStarWarsTypes()

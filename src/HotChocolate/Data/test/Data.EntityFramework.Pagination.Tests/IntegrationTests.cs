@@ -30,8 +30,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
@@ -66,8 +64,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
@@ -102,8 +98,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
@@ -139,8 +133,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
@@ -170,8 +162,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddTypeExtension(typeof(ProductConnectionExtensions))
@@ -202,8 +192,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
@@ -238,8 +226,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddDbContextCursorPagingProvider()
@@ -274,8 +260,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
@@ -312,8 +296,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
@@ -350,8 +332,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
@@ -389,8 +369,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
@@ -428,8 +406,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
@@ -505,8 +481,6 @@ public class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new CatalogContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType<Query>()
             .AddSorting()
