@@ -7,9 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A <see cref="VariableBatchRequest"/> is one request: every coerced variable set is
-/// evaluated and reported on its own result, and only an over-limit set is rejected
-/// (R-BATCH-REPORTING, R-HC-BATCH).
+/// A <see cref="VariableBatchRequest"/> sums field and type costs across every coerced variable set for request-level enforcement.
+/// Successful and validate batches keep per-result reporting; a limit violation rejects the whole request (R-BATCH-REPORTING, R-BATCH-SUM).
 /// </summary>
 public sealed class BatchReportingTests
 {
@@ -175,6 +174,45 @@ public sealed class BatchReportingTests
                     {
                         new Dictionary<string, object?> { ["n"] = 1000 },
                         new Dictionary<string, object?> { ["n"] = 1 }
+                    })
+                .ReportCost()
+                .Build();
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var result = response.ExpectOperationResult();
+
+        // assert
+        Assert.Equal(0, _executionCount);
+        await snapshot
+            .AddResult(result, "Result")
+            .MatchMarkdownAsync(TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public async Task Batch_Should_RejectWholeRequestAtFirstResponseSizeViolation_When_MultipleSetsExceedLimit()
+    {
+        // arrange
+        var snapshot = new Snapshot();
+
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .ModifyCostOptions(
+                o =>
+                {
+                    o.MaxFieldCost = 1_000;
+                    o.MaxTypeCost = 1_000;
+                    o.MaxResponseSize = 5;
+                })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request =
+            OperationRequestBuilder.New()
+                .SetDocument(Operation)
+                .SetVariableValues(
+                    new List<IReadOnlyDictionary<string, object?>>
+                    {
+                        new Dictionary<string, object?> { ["n"] = 10 },
+                        new Dictionary<string, object?> { ["n"] = 20 }
                     })
                 .ReportCost()
                 .Build();
