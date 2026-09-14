@@ -30,7 +30,9 @@ website/scripts/frontend-container.sh exec -- yarn format
 website/scripts/frontend-container.sh exec -- yarn format:check
 ```
 
-Stop the container with `website/scripts/frontend-container.sh down`.
+Stop the container with `website/scripts/frontend-container.sh down`. Add
+`--purge` to also remove its `node_modules`/`.next` volumes, or `--all` to
+stop every checkout's container.
 
 ## Authoring Markdown Content
 

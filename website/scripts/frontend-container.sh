@@ -3,39 +3,70 @@
 # same "ChilliCream Frontend" devcontainer image that VS Code users get, from
 # a plain host shell that has no devcontainer CLI, node, or yarn installed.
 #
+# Each git checkout (the main tree, or any linked worktree) gets its own
+# container and its own named volumes for node_modules and .next, so
+# dependency files never land on the checkout's host disk and two checkouts
+# never share a dependency tree.
+#
 # Usage:
 #   website/scripts/frontend-container.sh up
 #   website/scripts/frontend-container.sh playwright-setup
 #   website/scripts/frontend-container.sh dev
 #   website/scripts/frontend-container.sh exec -- <cmd...>
 #   website/scripts/frontend-container.sh status
-#   website/scripts/frontend-container.sh down
+#   website/scripts/frontend-container.sh down [--purge|--all]
 set -euo pipefail
 
 IMAGE_TAG="hc-0-frontend:dev"
-CONTAINER_NAME="hc-0-frontend"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WEBSITE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DEVCONTAINER_DIR="${WEBSITE_DIR}/../.devcontainer/frontend"
+
+# The checkout this copy of the script lives in: the main tree, or the
+# linked worktree it was invoked from. Each checkout gets its own container
+# and volumes, named after a slug derived from this path, so per-worktree
+# runs never share a dependency tree.
+CHECKOUT="$(cd "${WEBSITE_DIR}" && git rev-parse --show-toplevel)"
+SLUG="$(basename "${CHECKOUT}")-$(printf '%s' "${CHECKOUT}" | shasum | cut -c1-8)"
+CONTAINER_NAME="hc-0-frontend-${SLUG}"
+NODE_MODULES_VOLUME="${CONTAINER_NAME}-node_modules"
+NEXT_VOLUME="${CONTAINER_NAME}-next"
+
+# Fixed mount point inside the container. It does not vary by checkout: each
+# checkout has its own container under its own name, so the path only needs
+# to be unique per-container, not per-checkout.
+CONTAINER_WORKSPACE="/workspaces/hc-0"
 
 usage() {
   cat <<'EOF'
 Usage: frontend-container.sh <command> [args...]
 
 Commands:
-  up                    Build the image and start the long-lived container.
-                        Publishes the dev server on 127.0.0.1:3031 and
-                        Storybook on 127.0.0.1:6006. Loopback only.
+  up                    Build the image and start this checkout's
+                        container, with named volumes for
+                        website/node_modules and website/.next. Publishes
+                        the dev server on 127.0.0.1:3031 and Storybook on
+                        127.0.0.1:6006, loopback only, unless another
+                        hc-0-frontend-* container already holds those ports
+                        (then it starts unpublished and prints the holder).
   playwright-setup      Install the Playwright Chromium browser (lazy, not
                         run automatically by `up`).
   dev                   Run `yarn dev` inside the container and print the
-                        host URL.
+                        host URL. Exits 1 if this container has no
+                        published ports (another checkout's container holds
+                        them).
   exec -- <cmd...>      Run an arbitrary command inside the container, in
                         the caller's current directory translated into the
                         container mount.
-  status                Show the container's docker ps entry.
-  down                  Stop and remove the container.
+  status                Show docker ps for all hc-0-frontend-* containers
+                        and this checkout's two volumes.
+  down                  Stop and remove this checkout's container. Its
+                        node_modules/.next volumes are kept.
+  down --purge          Also remove this checkout's node_modules/.next
+                        volumes.
+  down --all            Stop and remove every hc-0-frontend-* container
+                        (all checkouts). Volumes are kept.
 EOF
 }
 
@@ -47,43 +78,29 @@ require_docker() {
   fi
 }
 
-# The repository root to bind-mount. Using the common git dir's parent
-# (rather than --show-toplevel) means this also resolves correctly when the
-# script is invoked from a linked worktree that lives under the repo root:
-# the common dir is always the main repo's `.git`, so its parent is the one
-# true repo root regardless of which worktree we are standing in.
-repo_root() {
-  local common_dir
-  common_dir="$(cd "${WEBSITE_DIR}" && git rev-parse --path-format=absolute --git-common-dir)"
-  dirname "${common_dir}"
-}
-
 container_root() {
-  printf '/workspaces/%s' "$(basename "$(repo_root)")"
+  printf '%s' "${CONTAINER_WORKSPACE}"
 }
 
-# Translate a host path under the repo root into the equivalent path inside
-# the container mount. A path outside the website directory (e.g. the repo
-# root or a worktree root) falls back to the website directory itself, since
-# every command this wrapper runs (yarn install/dev/lint/format) needs to run
-# from website/ regardless of where the wrapper was invoked from.
+# Translate a host path under this checkout into the equivalent path inside
+# the container mount. A path outside the website directory (e.g. the
+# checkout root) falls back to the website directory itself, since every
+# command this wrapper runs (yarn install/dev/lint/format) needs to run from
+# website/ regardless of where the wrapper was invoked from.
 translate_cwd() {
-  local host_path="$1" root container base rel
-  root="$(repo_root)"
-  container="$(container_root)"
+  local host_path="$1" base rel
   case "${host_path}" in
     "${WEBSITE_DIR}" | "${WEBSITE_DIR}"/*) base="${host_path}" ;;
     *) base="${WEBSITE_DIR}" ;;
   esac
-  rel="${base#"${root}"}"
-  printf '%s%s' "${container}" "${rel}"
+  rel="${base#"${CHECKOUT}"}"
+  printf '%s%s' "${CONTAINER_WORKSPACE}" "${rel}"
 }
 
 # The container path for *this script's* website directory (the main tree's
 # website/ or a worktree's website/, whichever copy of the script is
 # running). Reusing translate_cwd keeps this in sync with a single source of
-# truth for the mount layout instead of assuming repo_root's child is always
-# named "website".
+# truth for the mount layout.
 container_website_dir() {
   translate_cwd "${WEBSITE_DIR}"
 }
@@ -96,18 +113,24 @@ container_exists() {
   [ -n "$(docker ps -a --filter "name=^/${CONTAINER_NAME}$" -q)" ]
 }
 
+# Prints the name of a running hc-0-frontend-* container that currently
+# publishes host port 3031, or nothing if none does. Used both to decide
+# whether `up` can publish ports and to tell `dev` who is holding them.
+container_port_holder_name() {
+  docker ps --filter "name=^/hc-0-frontend-" --filter "publish=3031" --format '{{.Names}}' | head -n1
+}
+
 # Compares the running container's bind mount for the container_root()
-# destination against this checkout's repo_root(). A container started from
-# another clone (or a decoy) mounts a different source at that destination;
+# destination against this checkout. A container started from another
+# checkout (or a decoy) mounts a different source at that destination;
 # reusing it silently would serve the wrong tree, so this exits 1 instead of
 # ever replacing a running container automatically.
 check_mount() {
-  local root workspace actual
-  root="$(repo_root)"
+  local workspace actual
   workspace="$(container_root)"
   actual="$(docker inspect -f '{{range .Mounts}}{{.Destination}} {{.Source}}{{"\n"}}{{end}}' "${CONTAINER_NAME}" | awk -v dest="${workspace}" '$1 == dest { print $2; exit }')"
-  if [ "${actual}" != "${root}" ]; then
-    echo "error: ${CONTAINER_NAME} is mounted from '${actual:-<none>}' at ${workspace}, not this checkout's repo root '${root}'. Run \`frontend-container.sh down\` first." >&2
+  if [ "${actual}" != "${CHECKOUT}" ]; then
+    echo "error: ${CONTAINER_NAME} is mounted from '${actual:-<none>}' at ${workspace}, not this checkout '${CHECKOUT}'. Run \`frontend-container.sh down\` first." >&2
     exit 1
   fi
 }
@@ -119,6 +142,25 @@ ensure_running() {
     exit 1
   fi
   check_mount
+}
+
+# Starts this checkout's container. "$@" are extra `docker run` flags (the
+# port publishes), appended before the image tag; passing none starts the
+# container without published ports.
+run_container() {
+  docker run -d \
+    --name "${CONTAINER_NAME}" \
+    --shm-size=512m \
+    -e CHILLICREAM_FRONTEND_ENV=devcontainer \
+    -e NEXT_TELEMETRY_DISABLED=1 \
+    --user node \
+    -v "${CHECKOUT}:${CONTAINER_WORKSPACE}" \
+    -v "${NODE_MODULES_VOLUME}:${CONTAINER_WORKSPACE}/website/node_modules" \
+    -v "${NEXT_VOLUME}:${CONTAINER_WORKSPACE}/website/.next" \
+    -w "$(container_website_dir)" \
+    "$@" \
+    "${IMAGE_TAG}" \
+    sleep infinity >/dev/null
 }
 
 cmd_up() {
@@ -141,23 +183,20 @@ cmd_up() {
       docker rm -f "${CONTAINER_NAME}" >/dev/null
     fi
 
-    local root workspace
-    root="$(repo_root)"
-    workspace="$(container_root)"
+    echo "==> Starting ${CONTAINER_NAME} (mounting ${CHECKOUT} at ${CONTAINER_WORKSPACE})"
+    local holder
+    holder="$(container_port_holder_name)"
+    if [ -n "${holder}" ]; then
+      echo "==> port 3031 is already published by ${holder}; starting ${CONTAINER_NAME} without published ports" >&2
+      run_container
+    else
+      run_container -p 127.0.0.1:3031:3001 -p 127.0.0.1:6006:6006
+    fi
 
-    echo "==> Starting ${CONTAINER_NAME} (mounting ${root} at ${workspace})"
-    docker run -d \
-      --name "${CONTAINER_NAME}" \
-      --shm-size=512m \
-      -e CHILLICREAM_FRONTEND_ENV=devcontainer \
-      -e NEXT_TELEMETRY_DISABLED=1 \
-      --user node \
-      -v "${root}:${workspace}" \
-      -w "$(container_website_dir)" \
-      -p 127.0.0.1:3031:3001 \
-      -p 127.0.0.1:6006:6006 \
-      "${IMAGE_TAG}" \
-      sleep infinity >/dev/null
+    echo "==> Fixing ownership of the node_modules and .next volumes"
+    docker exec --user root "${CONTAINER_NAME}" chown node:node \
+      "${CONTAINER_WORKSPACE}/website/node_modules" \
+      "${CONTAINER_WORKSPACE}/website/.next"
   fi
 
   echo "==> Running yarn install --immutable inside the container"
@@ -201,6 +240,17 @@ cmd_dev() {
 
   ensure_running
 
+  local holder
+  holder="$(container_port_holder_name)"
+  if [ "${holder}" != "${CONTAINER_NAME}" ]; then
+    if [ -n "${holder}" ]; then
+      echo "error: ${CONTAINER_NAME} has no published ports; port 3031 is held by ${holder}. Run \`frontend-container.sh down\` there, then \`frontend-container.sh up\` here again." >&2
+    else
+      echo "error: ${CONTAINER_NAME} has no published ports. Run \`frontend-container.sh down\` then \`frontend-container.sh up\` again here to reclaim port 3031." >&2
+    fi
+    exit 1
+  fi
+
   if docker exec "${CONTAINER_NAME}" pgrep -f 'next dev' >/dev/null 2>&1; then
     echo "error: a dev server is already running in ${CONTAINER_NAME}; run \`frontend-container.sh down\` or \`frontend-container.sh exec -- pkill -f \"next dev\"\` first" >&2
     exit 1
@@ -234,13 +284,37 @@ cmd_exec() {
 
 cmd_status() {
   require_docker
-  docker ps -a --filter "name=^/${CONTAINER_NAME}$"
+  docker ps -a --filter "name=^/hc-0-frontend-"
+  echo
+  echo "Volumes for ${CHECKOUT}:"
+  docker volume ls --filter "name=${NODE_MODULES_VOLUME}" --filter "name=${NEXT_VOLUME}"
 }
 
 cmd_down() {
   require_docker
-  docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
-  echo "==> ${CONTAINER_NAME} stopped and removed"
+
+  case "${1:-}" in
+    "")
+      docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+      echo "==> ${CONTAINER_NAME} stopped and removed"
+      ;;
+    --purge)
+      docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
+      docker volume rm -f "${NODE_MODULES_VOLUME}" "${NEXT_VOLUME}" >/dev/null 2>&1 || true
+      echo "==> ${CONTAINER_NAME} stopped and removed, along with its node_modules and .next volumes"
+      ;;
+    --all)
+      local name
+      for name in $(docker ps -a --filter "name=^/hc-0-frontend-" --format '{{.Names}}'); do
+        docker rm -f "${name}" >/dev/null 2>&1 || true
+        echo "==> ${name} stopped and removed"
+      done
+      ;;
+    *)
+      echo "error: unknown down option '$1'" >&2
+      exit 2
+      ;;
+  esac
 }
 
 main() {
