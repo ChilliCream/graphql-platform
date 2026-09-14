@@ -10,13 +10,22 @@ public sealed class FusionCostOptions
     /// <summary>
     /// Gets or sets the maximum allowed field cost.
     /// <c>1000</c> by default.
+    /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
     public double MaxFieldCost
     {
         get;
         set
         {
             ExpectMutableOptions();
+
+            if (double.IsNaN(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(MaxFieldCost), value);
+            }
 
             field = value;
         }
@@ -25,13 +34,22 @@ public sealed class FusionCostOptions
     /// <summary>
     /// Gets or sets the maximum allowed type cost.
     /// <c>1000</c> by default.
+    /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
     public double MaxTypeCost
     {
         get;
         set
         {
             ExpectMutableOptions();
+
+            if (double.IsNaN(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(MaxTypeCost), value);
+            }
 
             field = value;
         }
@@ -70,13 +88,22 @@ public sealed class FusionCostOptions
     /// <summary>
     /// Gets or sets the maximum allowed response size. <c>null</c> disables the check.
     /// <c>null</c> by default.
+    /// A non-null value must be a non-negative finite number or positive infinity.
     /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
     public double? MaxResponseSize
     {
         get;
         set
         {
             ExpectMutableOptions();
+
+            if (value is { } size && (double.IsNaN(size) || size < 0))
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(MaxResponseSize), size);
+            }
 
             field = value;
         }
@@ -85,13 +112,22 @@ public sealed class FusionCostOptions
     /// <summary>
     /// Gets or sets the assumed size of a list field that has no applicable
     /// <c>@listSize</c> information. <see cref="double.PositiveInfinity"/> by default.
+    /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is NaN, negative, or negative infinity.
+    /// </exception>
     public double DefaultListSize
     {
         get;
         set
         {
             ExpectMutableOptions();
+
+            if (double.IsNaN(value) || value < 0)
+            {
+                throw ThrowHelper.InvalidCostOptionValue(nameof(DefaultListSize), value);
+            }
 
             field = value;
         }

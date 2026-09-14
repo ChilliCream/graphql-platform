@@ -33,6 +33,14 @@ internal static class ThrowHelper
     public static ArgumentOutOfRangeException InvalidAnalyses(CostAnalyses analyses)
         => new(nameof(analyses), analyses, "At least one known cost analysis must be requested.");
 
+    public static ArgumentOutOfRangeException InvalidCostOptionValue(
+        string optionName,
+        double value)
+        => new(
+            optionName,
+            value,
+            "The value must be a non-negative finite number or positive infinity.");
+
     public static InvalidOperationException UnexpectedDecision()
         => new("The compiled Boolean decision has an unsupported node type.");
 }

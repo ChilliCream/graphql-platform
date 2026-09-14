@@ -53,6 +53,14 @@ internal static class ThrowHelper
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)
         => new($"Expected client configuration of type '{expected.Name}' but received '{actual.Name}'.");
 
+    public static ArgumentOutOfRangeException InvalidCostOptionValue(
+        string optionName,
+        double value)
+        => new(
+            optionName,
+            value,
+            "The value must be a non-negative finite number or positive infinity.");
+
     public static InvalidOperationException InvalidTargetValueKind(
         SelectionPath selectionPath,
         Path resultPath,
