@@ -1215,7 +1215,7 @@ The field resolver span is now named after the schema coordinate of the resolved
 
 ### Renamed attributes
 
-The `graphql.selection.*` family was replaced by `graphql.field.*`:
+The field-related `graphql.selection.*` attributes were replaced by `graphql.field.*`. The rest of that family was removed outright and is listed above:
 
 | Old Attribute                           | New Attribute                     |
 | --------------------------------------- | --------------------------------- |
@@ -1261,7 +1261,7 @@ The last two rows describe where the error path and error locations moved to: bo
 
 ### Error events
 
-GraphQL errors are now reported as `graphql.error` events, rather than only as span attributes. Each event carries `graphql.error.message`, and where available `graphql.error.code`, `graphql.field.path`, `graphql.field.schema_coordinate`, `graphql.document.locations`, and the operation and document attributes. On the Hot Chocolate server, failures represented as exceptions remain standard `exception` events. The gateway is the exception: its execution node, source schema transport, source schema store, and subscription event callbacks pass the exception to a `graphql.error` event, which then carries the exception fields.
+GraphQL errors are now reported as `graphql.error` events, rather than only as span attributes. Each event carries `graphql.error.message`, and where available `graphql.error.code`, `graphql.field.path`, `graphql.field.schema_coordinate`, `graphql.document.locations`, and the operation and document attributes. An exception that reaches the pipeline as a GraphQL error is reported this way too, with `exception.type`, `exception.message`, and `exception.stacktrace` added to the event. Only exceptions handled directly by a request or transport callback, such as `RequestError`, are recorded as a standard `exception` event instead.
 
 The span that records an error status is not always the span that carries the event. A failing field resolver marks its own span with `error.type` and an error status, but its `graphql.error` event is emitted on the root `GraphQL Operation` span along with the rest of the operation result. The event is emitted elsewhere in only a few places: the HTTP spans for parse and request failures, the `GraphQL Subscription Event` span for a per-event subscription error, and, on the gateway, the execution node, source schema transport, source schema store, and subscription event error callbacks.
 
