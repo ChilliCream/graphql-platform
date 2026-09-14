@@ -1,5 +1,7 @@
 using HotChocolate.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Composite;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using static HotChocolate.Properties.TypeResources;
@@ -66,6 +68,16 @@ internal class CollectionSegmentType : ObjectType, IPageType
     {
         var typeRef = context.TypeInspector.GetOutputTypeRef(typeof(CollectionSegmentInfoType));
         context.Dependencies.Add(new(typeRef));
+
+        if (context.DescriptorContext.Options.ApplyShareableToCollectionSegments)
+        {
+            context.Dependencies.Add(new TypeDependency(
+                context.TypeInspector.GetOutputTypeRef(typeof(Shareable))));
+
+            var config = (ObjectTypeConfiguration)configuration;
+            config.AddDirective(Shareable.Instance, context.TypeInspector);
+        }
+
         base.OnBeforeRegisterDependencies(context, configuration);
     }
 

@@ -1,0 +1,110 @@
+title: Node_Field_Should_BeSelectable_When_MarkedInaccessibleAndGoiIsEnabled
+request:
+  document: |
+    {
+      node(id: "UmV2aWV3OjE=") {
+        __typename
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "__typename": "Review"
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        "Fetches an object given its ID."
+        node("ID of the object." id: ID!): Node @lookup @shareable @inaccessible
+        "Lookup nodes by a list of IDs."
+        nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @inaccessible
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+      }
+
+      "The node interface is implemented by entities that have a global unique identifier."
+      interface Node {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_deb478b6_2 {
+              node(id: "UmV2aWV3OjE=") {
+                __typename
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Review"
+                  }
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        "Fetches an object given its ID."
+        node("ID of the object." id: ID!): Node @lookup @shareable @inaccessible
+        "Lookup nodes by a list of IDs."
+        nodes("The list of node IDs." ids: [ID!]!): [Node]! @shareable @inaccessible
+        publisher: String!
+      }
+
+      type Review implements Node {
+        id: ID!
+        stars: Int!
+      }
+
+      "The node interface is implemented by entities that have a global unique identifier."
+      interface Node {
+        id: ID!
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node(id: "UmV2aWV3OjE=") {
+            __typename
+          }
+        }
+      hash: deb478b6850400c66a260dc42341d399
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Node
+      idValue: "UmV2aWV3OjE="
+      responseName: node
+      fallback: 2
+    - id: 2
+      type: Operation
+      operation: |
+        query Op_deb478b6_2 {
+          node(id: "UmV2aWV3OjE=") {
+            __typename
+          }
+        }
+      dependencies:
+        - id: 1

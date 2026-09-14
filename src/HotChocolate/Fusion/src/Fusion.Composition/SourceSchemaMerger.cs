@@ -302,6 +302,8 @@ internal sealed partial class SourceSchemaMerger
         }
     }
 
+    // The canonical node field belongs to the gateway, so @inaccessible on a source schema's node
+    // field does not hide it when global object identification is enabled.
     private void AddNodeField(MutableSchemaDefinition mergedSchema)
     {
         if (_options.EnableGlobalObjectIdentification
@@ -367,15 +369,15 @@ internal sealed partial class SourceSchemaMerger
         }
 
         return argument.Type is NonNullType
+        {
+            NullableType: ListType
             {
-                NullableType: ListType
+                ElementType: NonNullType
                 {
-                    ElementType: NonNullType
-                    {
-                        NullableType: var idElementType
-                    }
+                    NullableType: var idElementType
                 }
             }
+        }
             && idElementType.NamedType() == idType
             && idElementType.Kind == TypeKind.Scalar;
     }
@@ -534,11 +536,7 @@ internal sealed partial class SourceSchemaMerger
         {
             var enumValueInfo = enumValueGroup[i];
             description ??= enumValueInfo.EnumValue.Description;
-
-            if (deprecationReason is null)
-            {
-                deprecationReason = enumValueInfo.EnumValue.DeprecationReason;
-            }
+            deprecationReason ??= enumValueInfo.EnumValue.DeprecationReason;
         }
 
         var enumValue = new MutableEnumValue(valueName)
@@ -658,11 +656,7 @@ internal sealed partial class SourceSchemaMerger
             fieldType = MostRestrictiveType(fieldType, inputFieldInfo.Field.Type).ExpectInputType();
             description ??= inputFieldInfo.Field.Description;
             defaultValue ??= inputFieldInfo.Field.DefaultValue;
-
-            if (deprecationReason is null)
-            {
-                deprecationReason = inputFieldInfo.Field.DeprecationReason;
-            }
+            deprecationReason ??= inputFieldInfo.Field.DeprecationReason;
         }
 
         var inputField = new MutableInputFieldDefinition(fieldName)
@@ -812,11 +806,7 @@ internal sealed partial class SourceSchemaMerger
         {
             var currentType = (MutableObjectTypeDefinition)typeGroup[i].Type;
             description ??= currentType.Description;
-
-            if (deprecationReason is null)
-            {
-                deprecationReason = currentType.DeprecationReason;
-            }
+            deprecationReason ??= currentType.DeprecationReason;
         }
 
         objectType.Description = description;
@@ -931,11 +921,7 @@ internal sealed partial class SourceSchemaMerger
         {
             var fieldInfo = fieldGroup[i];
             description ??= fieldInfo.Field.Description;
-
-            if (deprecationReason is null)
-            {
-                deprecationReason = fieldInfo.Field.DeprecationReason;
-            }
+            deprecationReason ??= fieldInfo.Field.DeprecationReason;
         }
 
         var outputField = new MutableOutputFieldDefinition(fieldName)
@@ -2077,7 +2063,7 @@ internal sealed partial class SourceSchemaMerger
             {
                 var currentMetadata =
                     enumValue.Directives.FirstOrDefault(DirectiveNames.FusionSchemaMetadata);
-                List<ArgumentAssignment> arguments = currentMetadata is null
+                var arguments = currentMetadata is null
                     ? [new ArgumentAssignment(ArgumentNames.Name, schema.Name)]
                     : currentMetadata.Arguments
                         .Select(static t => new ArgumentAssignment(t.Name, t.Value))
@@ -2142,7 +2128,7 @@ internal sealed partial class SourceSchemaMerger
 
     private static bool IsInterfaceObjectStandIn(ITypeDefinition type)
         => type is MutableObjectTypeDefinition objectType
-            && objectType.Directives.ContainsName(WellKnownDirectiveNames.InterfaceObject);
+            && objectType.Directives.ContainsName(DirectiveNames.InterfaceObject);
 
     private static void Assert(bool condition)
     {

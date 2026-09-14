@@ -165,6 +165,12 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
+        internal static string WebSocketConnection_MessageTooBig {
+            get {
+                return ResourceManager.GetString("WebSocketConnection_MessageTooBig", resourceCulture);
+            }
+        }
+        
         internal static string DataStartMessageHandler_Not_A_SubscriptionResult {
             get {
                 return ResourceManager.GetString("DataStartMessageHandler_Not_A_SubscriptionResult", resourceCulture);
@@ -276,6 +282,18 @@ namespace HotChocolate.AspNetCore.Properties {
         internal static string ErrorHelper_BatchSizeExceeded {
             get {
                 return ResourceManager.GetString("ErrorHelper_BatchSizeExceeded", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_VariableBatchingDisabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_VariableBatchingDisabled", resourceCulture);
+            }
+        }
+        
+        internal static string ErrorHelper_RequestBatchingDisabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequestBatchingDisabled", resourceCulture);
             }
         }
     }

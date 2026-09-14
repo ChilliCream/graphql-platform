@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
-using static System.StringSplitOptions;
 
 namespace Mocha.Transport.RabbitMQ;
 

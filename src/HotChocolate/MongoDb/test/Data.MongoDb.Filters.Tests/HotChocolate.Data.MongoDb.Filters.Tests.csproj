@@ -9,10 +9,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Data\HotChocolate.Data.MongoDb.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.Mongo\CookieCrumble.Resources.Mongo.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" />
-    <PackageReference Include="Squadron.Mongo" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using HotChocolate.Types.Analyzers.Inspectors;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;

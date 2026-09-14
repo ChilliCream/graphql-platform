@@ -172,5 +172,17 @@ public sealed class ConsumeContextTests
         public IMessagingRuntime Runtime { get; set; } = null!;
         public CancellationToken CancellationToken { get; set; }
         public IServiceProvider Services { get; set; } = null!;
+
+        public IConsumeContext Clone(IServiceProvider services)
+        {
+            var clone = new StubConsumeContext { Services = services };
+
+            if (_features.Get<MessageParsingFeature>() is { Message: { } message })
+            {
+                clone.SetMessage(message);
+            }
+
+            return clone;
+        }
     }
 }

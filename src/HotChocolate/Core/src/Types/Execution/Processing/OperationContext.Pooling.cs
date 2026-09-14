@@ -107,9 +107,9 @@ internal sealed partial class OperationContext
                     : executorOptions.DefaultErrorHandlingMode;
         _propagateNullValues = errorHandlingMode is Language.ErrorHandlingMode.Propagate;
 
-        IncludeFlags = operation.CreateIncludeFlags(variables);
-        DeferFlags = operation.CreateDeferFlags(variables);
-        Result.Data = new ResultDocument(_memory, operation, IncludeFlags);
+        IncludeConditionFlags = operation.CreateIncludeConditionFlags(variables);
+        DeferConditionFlags = operation.CreateDeferConditionFlags(variables);
+        Result.Data = new ResultDocument(_memory, operation, IncludeConditionFlags);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = variableIndex;
 
@@ -153,16 +153,16 @@ internal sealed partial class OperationContext
         _branchId = executionBranchId;
         _isInitialized = true;
 
-        IncludeFlags = context.IncludeFlags;
-        DeferFlags = context.DeferFlags;
+        IncludeConditionFlags = context.IncludeConditionFlags;
+        DeferConditionFlags = context.DeferConditionFlags;
 
         Result.Data = new ResultDocument(
             context._memory!,
             context.Operation,
             selectionSet,
             selectionPath,
-            context.IncludeFlags,
-            context.DeferFlags,
+            context.IncludeConditionFlags,
+            context.DeferConditionFlags,
             deferUsage);
         Result.RequestIndex = _requestContext.RequestIndex;
         Result.VariableIndex = context._variableIndex;
@@ -205,6 +205,8 @@ internal sealed partial class OperationContext
             _branchId = int.MinValue;
             _propagateNullValues = false;
             _isInitialized = false;
+            IncludeConditionFlags = default;
+            DeferConditionFlags = default;
             Result.Reset();
         }
     }

@@ -5,7 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// <summary>
 /// Wraps a real <see cref="ISessionDeliveryLedger"/>, delegating every call
 /// while capturing the <c>messageIds</c> argument of the most recent
-/// <see cref="ReserveAsync"/> call.
+/// <c>ReserveAsync</c> call.
 /// </summary>
 internal sealed class ReserveCapturingSessionDeliveryLedger(ISessionDeliveryLedger inner) : ISessionDeliveryLedger
 {

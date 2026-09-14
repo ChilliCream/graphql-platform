@@ -1,8 +1,8 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
 

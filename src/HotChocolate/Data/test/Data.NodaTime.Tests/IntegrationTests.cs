@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Data.NodaTime.TestContext;
 using HotChocolate.Execution;
@@ -5,7 +6,6 @@ using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
 using NodaTime.Extensions;
-using Squadron;
 
 namespace HotChocolate.Data.NodaTime;
 

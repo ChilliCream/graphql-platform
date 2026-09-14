@@ -11,12 +11,12 @@
     <ProjectReference Include="..\..\..\Data\src\Data\HotChocolate.Data.csproj" />
     <ProjectReference Include="..\..\..\Spatial\src\Types\HotChocolate.Types.Spatial.csproj" />
     <ProjectReference Include="..\..\..\Spatial\src\Data\HotChocolate.Data.Spatial.csproj" />
+    <ProjectReference Include="..\..\..\..\CookieCrumble\src\CookieCrumble.Resources.PostgreSql\CookieCrumble.Resources.PostgreSql.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" />
-    <PackageReference Include="Squadron.PostgreSql" />
   </ItemGroup>
 
 </Project>

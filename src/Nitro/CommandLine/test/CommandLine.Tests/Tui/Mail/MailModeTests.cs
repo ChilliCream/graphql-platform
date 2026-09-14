@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Threading.Channels;
-using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
@@ -18,7 +17,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
 public sealed class MailModeTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static MailMode CreateMode(
         FakeMailStore store,
@@ -28,7 +27,7 @@ public sealed class MailModeTests
             store,
             actor,
             agentRegistry ?? new FakeAgentRegistry(),
-            new FakeTimeProvider(Now));
+            new FakeTimeProvider(s_now));
 
     private static AgentRecord Agent(string name) => new()
     {
@@ -36,8 +35,8 @@ public sealed class MailModeTests
         Role = "",
         Client = "",
         Implicit = false,
-        RegisteredAt = Now,
-        LastSeenAt = Now
+        RegisteredAt = s_now,
+        LastSeenAt = s_now
     };
 
     private static void AddMessage(FakeMailStore store, string id, DateTimeOffset createdAt, string actor = "alice")
@@ -63,7 +62,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store, actor: null);
         mode.OnEnter();
 
@@ -81,7 +80,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store, actor: null);
         mode.OnEnter();
 
@@ -99,8 +98,8 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now, actor: "alice");
-        AddMessage(store, "m-2", Now.AddMinutes(1), actor: "bob");
+        AddMessage(store, "m-1", s_now, actor: "alice");
+        AddMessage(store, "m-2", s_now.AddMinutes(1), actor: "bob");
 
         // act
         var mode = CreateMode(store, actor: null);
@@ -117,8 +116,8 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
-        AddMessage(store, "m-2", Now.AddMinutes(1));
+        AddMessage(store, "m-1", s_now);
+        AddMessage(store, "m-2", s_now.AddMinutes(1));
         var mode = CreateMode(store);
         mode.OnEnter();
 
@@ -136,7 +135,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
 
@@ -152,9 +151,9 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
-        AddMessage(store, "m-2", Now.AddMinutes(1));
-        AddMessage(store, "m-3", Now.AddMinutes(2));
+        AddMessage(store, "m-1", s_now);
+        AddMessage(store, "m-2", s_now.AddMinutes(1));
+        AddMessage(store, "m-3", s_now.AddMinutes(2));
         var mode = CreateMode(store);
         mode.OnEnter();
 
@@ -170,8 +169,8 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
-        AddMessage(store, "m-2", Now.AddMinutes(1));
+        AddMessage(store, "m-1", s_now);
+        AddMessage(store, "m-2", s_now.AddMinutes(1));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
@@ -220,7 +219,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
 
@@ -241,7 +240,7 @@ public sealed class MailModeTests
         Assert.Empty(mode.State.Messages);
 
         // act
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         mode.Handle(new TuiMessage.RefreshRequested());
 
         // assert
@@ -268,7 +267,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         // Threads mode (the default) already defaults a single-message
@@ -306,7 +305,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         // Threads mode (the default) already defaults a single-message
@@ -327,7 +326,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
 
@@ -363,7 +362,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         var console = new TestConsole().Width(100).Height(20);
@@ -385,7 +384,7 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var registry = new FakeAgentRegistry();
         registry.Agents.Add(Agent("bob") with { Client = "codex" });
         var mode = CreateMode(store, agentRegistry: registry);
@@ -410,7 +409,7 @@ public sealed class MailModeTests
         // the duplicate the way ToDictionary would.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var registry = new FakeAgentRegistry();
         registry.Agents.Add(Agent("bob") with { Client = "codex" });
         registry.Agents.Add(Agent("Bob") with { Client = "claude-code" });
@@ -429,7 +428,7 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var mode = CreateMode(store, agentRegistry: new FakeAgentRegistry());
         mode.OnEnter();
         mode.State.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
@@ -465,8 +464,8 @@ public sealed class MailModeTests
         // would show only alice's; this is the epic's user ruling that
         // Workspace, not Inbox, is the mail board's default mailbox.
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
-        AddMessage(store, "m-2", Now, actor: "bob");
+        AddMessage(store, "m-1", s_now);
+        AddMessage(store, "m-2", s_now, actor: "bob");
         var mode = CreateMode(store, actor: "alice");
 
         // act
@@ -482,8 +481,8 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
-        AddMessage(store, "m-2", Now, actor: "bob");
+        AddMessage(store, "m-1", s_now);
+        AddMessage(store, "m-2", s_now, actor: "bob");
         var mode = CreateMode(store, actor: "alice");
         mode.OnEnter();
 
@@ -499,7 +498,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
@@ -517,7 +516,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
@@ -537,7 +536,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
@@ -572,7 +571,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
@@ -607,7 +606,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
@@ -628,7 +627,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
@@ -735,7 +734,7 @@ public sealed class MailModeTests
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested());
@@ -973,7 +972,7 @@ public sealed class MailModeTests
             store,
             "alice",
             new FakeAgentRegistry(),
-            new FakeTimeProvider(Now),
+            new FakeTimeProvider(s_now),
             effectCts.Token);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested());
@@ -1168,7 +1167,7 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested());
@@ -1189,7 +1188,7 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectSentRequested());
@@ -1211,7 +1210,7 @@ public sealed class MailModeTests
         // effect there - the store exposes no filtered thread query) at
         // least names itself in the header.
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested());
@@ -1233,9 +1232,9 @@ public sealed class MailModeTests
         // read for her.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested());
@@ -1254,7 +1253,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested());
@@ -1277,7 +1276,7 @@ public sealed class MailModeTests
         // row on it and the store would reject a read/unread write.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectSentRequested());
@@ -1296,7 +1295,7 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectSentRequested());
@@ -1317,7 +1316,7 @@ public sealed class MailModeTests
         // message_recipients row exists and the write should go through.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectSentRequested());
@@ -1336,7 +1335,7 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectSentRequested());
@@ -1371,7 +1370,7 @@ public sealed class MailModeTests
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now); // sender defaults to "sender", to "alice"
+        AddMessage(store, "m-1", s_now); // sender defaults to "sender", to "alice"
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
@@ -1395,7 +1394,7 @@ public sealed class MailModeTests
         // otherwise succeed; Workspace refuses it anyway, regardless of
         // recipient status, since it shows every agent's mail.
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
@@ -1418,7 +1417,7 @@ public sealed class MailModeTests
         // otherwise succeed; Workspace must stay inert regardless, since
         // opening a message there is an implicit side effect, not a gesture.
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
@@ -1446,7 +1445,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
@@ -1489,7 +1488,7 @@ public sealed class MailModeTests
         // the actor participates in.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
@@ -1511,7 +1510,7 @@ public sealed class MailModeTests
         // mailbox uses, so neither is the only signal the mode has
         // changed meaning.
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
@@ -1654,11 +1653,11 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-2", sender: "carol", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-3", sender: "carol", createdAt: Now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("dave")]));
+            "m-3", sender: "carol", createdAt: s_now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("dave")]));
         var registry = new FakeAgentRegistry();
         registry.Agents.Add(Agent("bob"));
         var mode = CreateMode(store, agentRegistry: registry);
@@ -1684,9 +1683,9 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("dave")]));
+            "m-2", sender: "carol", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("dave")]));
         var registry = new FakeAgentRegistry();
         registry.Agents.Add(Agent("bob"));
         var mode = CreateMode(store, agentRegistry: registry);
@@ -1715,7 +1714,7 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
         var registry = new FakeAgentRegistry();
         registry.Agents.Add(Agent("bob"));
         var mode = CreateMode(store, agentRegistry: registry);
@@ -1741,7 +1740,7 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
         var registry = new FakeAgentRegistry();
         registry.Agents.Add(Agent("bob"));
         var mode = CreateMode(store, agentRegistry: registry);
@@ -1765,7 +1764,7 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var registry = new FakeAgentRegistry();
         registry.Agents.Add(Agent("bob"));
         var mode = CreateMode(store, agentRegistry: registry);
@@ -1794,8 +1793,8 @@ public sealed class MailModeTests
         // selection.highlight's background into one ANSI sequence, which
         // would not match a token's style checked in isolation.
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
-        AddMessage(store, "m-2", Now.AddMinutes(1));
+        AddMessage(store, "m-1", s_now);
+        AddMessage(store, "m-2", s_now.AddMinutes(1));
         var mode = CreateMode(store);
         mode.OnEnter();
         var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(100).Height(20);
@@ -1823,9 +1822,9 @@ public sealed class MailModeTests
         // mail.row.from.me token instead of the plain mail.row.from one.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "alice", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-2", sender: "alice", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectSentRequested());
@@ -1851,7 +1850,7 @@ public sealed class MailModeTests
         // header text uninterrupted by any escape sequence, rather than
         // requiring the escape sequence literally right in front of it.
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
@@ -1880,7 +1879,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         Assert.Equal(MailListMode.Threads, mode.State.ListMode);
@@ -1903,7 +1902,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
 
@@ -1920,7 +1919,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.Handle(new TuiMessage.ToggleListModeRequested());
@@ -1942,9 +1941,9 @@ public sealed class MailModeTests
         // extra row.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         Assert.Single(mode.State.Rows); // one collapsed thread row
@@ -1964,9 +1963,9 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         mode.State.ExpandThread("t-1");
@@ -1986,9 +1985,9 @@ public sealed class MailModeTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var mode = CreateMode(store);
         mode.OnEnter();
 
@@ -2009,8 +2008,8 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
-        AddMessage(store, "m-2", Now.AddMinutes(1));
+        AddMessage(store, "m-1", s_now);
+        AddMessage(store, "m-2", s_now.AddMinutes(1));
         var mode = CreateMode(store);
         mode.OnEnter();
         Assert.Equal(2, mode.State.Rows.Count); // two collapsed singleton threads
@@ -2039,7 +2038,7 @@ public sealed class MailModeTests
     {
         // arrange
         var store = new FakeMailStore();
-        AddMessage(store, "m-1", Now);
+        AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
 
@@ -2064,9 +2063,9 @@ public sealed class MailModeTests
         // agent's read state).
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("dave")]));
+            "m-2", sender: "carol", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("dave")]));
         var mode = CreateMode(store);
         mode.OnEnter();
         Assert.Equal(MailMailbox.Workspace, mode.State.Mailbox);

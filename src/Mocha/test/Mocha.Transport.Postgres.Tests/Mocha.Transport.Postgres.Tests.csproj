@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Squadron.PostgreSql" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Using Include="Mocha.TestHelpers" />
   </ItemGroup>
 
@@ -24,5 +20,6 @@
       Include="..\..\..\CookieCrumble\src\CookieCrumble.Analyzers\CookieCrumble.Analyzers.csproj"
       OutputItemType="Analyzer"
     />
+    <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble.Resources.PostgreSql\CookieCrumble.Resources.PostgreSql.csproj" />
   </ItemGroup>
 </Project>

@@ -17,6 +17,7 @@ public sealed partial class ResultDocument : IDisposable
     private readonly IMemoryArena _arena;
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
+    private readonly ulong[]? _wideIncludeFlags;
     private readonly Path _rootPath = Path.Root;
     internal MetaDb _metaDb;
     private long _dataHead;
@@ -34,6 +35,14 @@ public sealed partial class ResultDocument : IDisposable
         IMemoryArena arena,
         Operation operation,
         ulong includeFlags)
+        : this(arena, operation, new ConditionFlags(includeFlags))
+    {
+    }
+
+    public ResultDocument(
+        IMemoryArena arena,
+        Operation operation,
+        ConditionFlags includeFlags)
     {
         ArgumentNullException.ThrowIfNull(arena);
         ArgumentNullException.ThrowIfNull(operation);
@@ -42,7 +51,8 @@ public sealed partial class ResultDocument : IDisposable
         _metaDb = MetaDb.Create(arena);
         _data = RentDataChunks();
         _operation = operation;
-        _includeFlags = includeFlags;
+        _includeFlags = includeFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
 
         Data = CreateObject(Cursor.CreateZero(), operation.RootSelectionSet);
     }
@@ -52,8 +62,8 @@ public sealed partial class ResultDocument : IDisposable
         Operation operation,
         SelectionSet selectionSet,
         Path path,
-        ulong includeFlags,
-        ulong deferFlags,
+        ConditionFlags includeFlags,
+        ConditionFlags deferFlags,
         DeferUsage deferUsage)
     {
         ArgumentNullException.ThrowIfNull(arena);
@@ -65,10 +75,18 @@ public sealed partial class ResultDocument : IDisposable
         _metaDb = MetaDb.Create(arena);
         _data = RentDataChunks();
         _operation = operation;
-        _includeFlags = includeFlags;
+        _includeFlags = includeFlags.Word0;
+        _wideIncludeFlags = includeFlags.Overflow;
         _rootPath = path;
 
-        Data = CreateObject(Cursor.CreateZero(), selectionSet, includeFlags, deferFlags, deferUsage);
+        Data = CreateObject(
+            Cursor.CreateZero(),
+            selectionSet,
+            includeFlags.Word0,
+            deferFlags.Word0,
+            deferUsage,
+            includeFlags.Overflow,
+            deferFlags.Overflow);
     }
 
     private static MemorySegment[] RentDataChunks()
@@ -471,10 +489,21 @@ public sealed partial class ResultDocument : IDisposable
             var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
 
             var selectionCount = 0;
-            foreach (var selection in selectionSet.Selections)
+            if (_wideIncludeFlags is null)
             {
-                WriteEmptyProperty(startObjectCursor, selection);
-                selectionCount++;
+                foreach (var selection in selectionSet.Selections)
+                {
+                    WriteEmptyProperty(startObjectCursor, selection);
+                    selectionCount++;
+                }
+            }
+            else
+            {
+                foreach (var selection in selectionSet.Selections)
+                {
+                    WriteEmptyPropertyWide(startObjectCursor, selection);
+                    selectionCount++;
+                }
             }
 
             WriteEndObject(startObjectCursor, selectionCount);
@@ -488,21 +517,39 @@ public sealed partial class ResultDocument : IDisposable
         SelectionSet selectionSet,
         ulong includeFlags,
         ulong deferFlags,
-        DeferUsage deferUsage)
+        DeferUsage deferUsage,
+        ulong[]? wideIncludeFlags,
+        ulong[]? wideDeferFlags)
     {
         lock (_dataChunkLock)
         {
             var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
 
             var selectionCount = 0;
-            foreach (var selection in selectionSet.Selections)
+            if (wideIncludeFlags is null && wideDeferFlags is null)
             {
-                if (selection.IsIncluded(includeFlags)
-                    && selection.IsDeferred(deferFlags)
-                    && selection.HasActiveDeferUsage(deferFlags, deferUsage))
+                foreach (var selection in selectionSet.Selections)
                 {
-                    WriteEmptyProperty(startObjectCursor, selection);
-                    selectionCount++;
+                    if (selection.IsIncludedNarrow(includeFlags)
+                        && selection.IsDeferredNarrow(deferFlags)
+                        && selection.HasActiveDeferUsageNarrow(deferFlags, deferUsage))
+                    {
+                        WriteEmptyProperty(startObjectCursor, selection);
+                        selectionCount++;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var selection in selectionSet.Selections)
+                {
+                    if (selection.IsIncludedWide(includeFlags, wideIncludeFlags)
+                        && selection.IsDeferredWide(deferFlags, wideDeferFlags)
+                        && selection.HasActiveDeferUsage(deferFlags, wideDeferFlags, deferUsage))
+                    {
+                        WriteEmptyPropertyWide(startObjectCursor, selection);
+                        selectionCount++;
+                    }
                 }
             }
 
@@ -847,7 +894,7 @@ public sealed partial class ResultDocument : IDisposable
     private void WriteEndArray() => _metaDb.Append(ElementTokenType.EndArray);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEmptyProperty(Cursor parent, ISelection selection)
+    private void WriteEmptyProperty(Cursor parent, Selection selection)
     {
         var flags = ElementFlags.None;
 
@@ -856,7 +903,49 @@ public sealed partial class ResultDocument : IDisposable
             flags = ElementFlags.IsInternal;
         }
 
-        if (!selection.IsIncluded(_includeFlags))
+        if (!selection.IsIncludedUnchecked(_includeFlags))
+        {
+            flags |= ElementFlags.IsExcluded;
+        }
+
+        if (selection.Type.Kind is not TypeKind.NonNull)
+        {
+            flags |= ElementFlags.IsNullable;
+        }
+
+        if (selection.Type.IsListType())
+        {
+            flags |= ElementFlags.IsList;
+        }
+
+        if (selection.Type.NamedType().IsCompositeType())
+        {
+            flags |= ElementFlags.IsObject;
+        }
+
+        var prop = _metaDb.Append(
+            ElementTokenType.PropertyName,
+            parent: parent.Value,
+            operationReferenceId: selection.Id,
+            operationReferenceType: OperationReferenceType.Selection,
+            flags: flags);
+
+        _metaDb.Append(
+            ElementTokenType.None,
+            parent: prop.Value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void WriteEmptyPropertyWide(Cursor parent, Selection selection)
+    {
+        var flags = ElementFlags.None;
+
+        if (selection.IsInternal)
+        {
+            flags = ElementFlags.IsInternal;
+        }
+
+        if (!selection.IsIncludedWide(_includeFlags, _wideIncludeFlags))
         {
             flags |= ElementFlags.IsExcluded;
         }

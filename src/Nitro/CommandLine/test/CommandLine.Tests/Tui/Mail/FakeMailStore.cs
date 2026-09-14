@@ -18,8 +18,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 /// does, so mode-level tests against this fake do not independently prove
 /// the real store's SQL-level recipient, reply-recipient, and thread-rollup
 /// semantics; <c>MailModeRealStoreTests</c> covers those against a real
-/// <see cref="Services.Mail.MailStore"/>. Every other member throws
-/// <see cref="NotSupportedException"/>.
+/// <see cref="MailStore"/>. Every other member throws <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeMailStore : IMailStore
 {
@@ -54,7 +53,7 @@ internal sealed class FakeMailStore : IMailStore
         MailInboxFilter filter,
         CancellationToken cancellationToken)
     {
-        IEnumerable<MailMessage> query = Messages.Where(m => MailRecipientView.FindRecipient(m, filter.Actor) is not null);
+        var query = Messages.Where(m => MailRecipientView.FindRecipient(m, filter.Actor) is not null);
 
         if (filter.UnreadOnly)
         {
@@ -111,15 +110,12 @@ internal sealed class FakeMailStore : IMailStore
         => throw new NotSupportedException();
 
     /// <summary>
-    /// Sends a message: every given recipient becomes a "to" recipient.
-    /// Unlike the real store, no unknown-recipient validation happens here;
-    /// that store-owned behavior is covered against a real
-    /// <see cref="Services.Mail.MailStore"/> instead. When
-    /// <see cref="MailMessageCreation.WakePolicy"/> is
-    /// <see cref="MailWakePolicy.Enqueue"/>, every recipient gets a
-    /// <see cref="MailWakeReceipt"/> (an incrementing generation, mirroring
-    /// the real store's own per-recipient counter), matching the shape
-    /// <see cref="Commands.Mail.MailWakeDispatch.RunAsync"/> expects.
+    /// Sends a message: every given recipient becomes a "to" recipient. Unlike the real store, no
+    /// unknown-recipient validation happens here; that store-owned behavior is covered against a
+    /// real <see cref="MailStore"/> instead. When <see cref="MailMessageCreation.WakePolicy"/> is
+    /// <see cref="MailWakePolicy.Enqueue"/>, every recipient gets a <see cref="MailWakeReceipt"/>
+    /// (an incrementing generation, mirroring the real store's own per-recipient counter), matching
+    /// the shape <see cref="MailMessage.WakeReceipts"/> carries.
     /// </summary>
     public async Task<MailMessage> SendMessageAsync(MailMessageCreation creation, CancellationToken cancellationToken)
     {
@@ -161,11 +157,10 @@ internal sealed class FakeMailStore : IMailStore
     }
 
     /// <summary>
-    /// Replies to a message: the reply's only recipient is the original
-    /// message's sender. Unlike the real store, cc recipients and the
-    /// actor-exclusion rule are not reproduced here; that store-owned
-    /// behavior is covered against a real <see cref="Services.Mail.MailStore"/>
-    /// instead. See <see cref="SendMessageAsync"/> for <paramref name="wakePolicy"/>.
+    /// Replies to a message: the reply's only recipient is the original message's sender. Unlike
+    /// the real store, cc recipients and the actor-exclusion rule are not reproduced here; that
+    /// store-owned behavior is covered against a real <see cref="MailStore"/> instead. See
+    /// <see cref="SendMessageAsync"/> for <paramref name="wakePolicy"/>.
     /// </summary>
     public async Task<MailMessage> ReplyMessageAsync(
         string inReplyToId, string sender, string body, MailWakePolicy wakePolicy, CancellationToken cancellationToken)

@@ -16,7 +16,11 @@ public static partial class RequestExecutorBuilderExtensions
             static (sp, schemaName) =>
             {
                 var optionsMonitor = sp.GetRequiredService<IOptionsMonitor<RequestExecutorSetup>>();
+#if NET11_0_OR_GREATER
+                var setup = optionsMonitor.Get((string)schemaName);
+#else
                 var setup = optionsMonitor.Get((string)schemaName!);
+#endif
                 var options = setup.CreateSchemaOptions();
 
                 return new DefaultDocumentCache(options.OperationDocumentCacheSize);

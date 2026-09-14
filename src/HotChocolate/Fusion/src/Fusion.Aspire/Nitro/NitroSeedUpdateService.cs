@@ -181,7 +181,7 @@ internal sealed class NitroSeedUpdateService
         string stage,
         NitroSeedCandidate candidate)
     {
-        var shouldNotify = false;
+        bool shouldNotify;
         lock (_sync)
         {
             shouldNotify = MarkVersionNotified(gatewayName, candidate.VersionIdentity);

@@ -37,16 +37,14 @@ internal sealed class KeyDispatcher
     }
 
     /// <summary>
-    /// Combines <paramref name="contextHints"/> with <see cref="GlobalKeyMap"/>'s
-    /// own hints appended after, mirroring how <see cref="Dispatch"/> checks
-    /// the mode table first and falls back to the global table. A global
-    /// hint already present among <paramref name="contextHints"/> (for
-    /// example a mode's own back-to-global Escape binding) is not repeated.
-    /// A global hint present in <paramref name="suppressedGlobalHints"/> is
-    /// dropped entirely: a mode's
-    /// <see cref="ChilliCream.Nitro.CommandLine.Tui.Shell.ITuiMode.SuppressedGlobalHints"/>
-    /// override for a global gesture its current state makes inert (for
-    /// example the mail mode's Workspace mailbox refusing u/a/c/r).
+    /// Combines <paramref name="contextHints"/> with <see cref="GlobalKeyMap"/>'s own hints
+    /// appended after, mirroring how <see cref="Dispatch"/> checks the mode table first and falls
+    /// back to the global table. A global hint already present among
+    /// <paramref name="contextHints"/> (for example a mode's own back-to-global Escape binding) is
+    /// not repeated. A global hint present in <paramref name="suppressedGlobalHints"/> is dropped
+    /// entirely: a mode's <see cref="Shell.ITuiMode.SuppressedGlobalHints"/> override for a global
+    /// gesture its current state makes inert (for example the mail mode's Workspace mailbox
+    /// refusing u/a/c/r).
     /// </summary>
     public IReadOnlyList<KeyHint> CombineHints(
         IReadOnlyList<KeyHint> contextHints, IReadOnlyCollection<KeyHint> suppressedGlobalHints)

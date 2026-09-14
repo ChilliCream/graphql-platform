@@ -103,5 +103,5 @@ public sealed class AzureServiceBusQueueDescriptorConfiguration : MessagingConfi
     /// <summary>
     /// Gets the explicitly declared source topics.
     /// </summary>
-    public List<Uri> SourceTopics { get; } = [];
+    public List<AzureServiceBusQueueSourceTopicConfiguration> SourceTopics { get; } = [];
 }

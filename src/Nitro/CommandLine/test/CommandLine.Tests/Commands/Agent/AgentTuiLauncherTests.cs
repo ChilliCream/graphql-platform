@@ -1,10 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
-using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Notify;
-using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
 using ChilliCream.Nitro.CommandLine.Tests.Tui.Board;
@@ -27,27 +24,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent;
 /// </summary>
 public sealed class AgentTuiLauncherTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
-
-    private static Mock<IEnvironmentVariableProvider> CreateEnvironment() => new();
-
-    private static TuiShell BuildShell(TuiTab mailTab)
-    {
-        var taskStore = new FakeTaskStore();
-        var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(Now));
-        var boardMode = new BoardMode(loader);
-        var tasksTab = new TuiTab("Tasks", mnemonic: 'T', boardMode, new KeyDispatcher(KeyMap.CreateDefaultGlobal()));
-
-        return new TuiShell(
-            [tasksTab, mailTab],
-            80,
-            24,
-            tasksTabIndex: 0,
-            new SearchMode(taskStore),
-            new DependencyTreeView(taskStore, rootId: ""),
-            taskStore,
-            actor: "tasks-actor");
-    }
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static string RenderToText(TuiShell shell, int width = 80)
     {
@@ -63,8 +40,8 @@ public sealed class AgentTuiLauncherTests
 
         var mailTab = AgentTuiLauncher.BuildMailTab(
             store,
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
-            new FakeTimeProvider(Now), TestContext.Current.CancellationToken);
+            new Tui.Agents.FakeAgentRegistry(),
+            new FakeTimeProvider(s_now), TestContext.Current.CancellationToken);
 
         var mailMode = Assert.IsType<MailMode>(mailTab.RootMode);
         Assert.Null(mailMode.State.Actor);
@@ -78,7 +55,7 @@ public sealed class AgentTuiLauncherTests
 
         // act
         var mailTab = AgentTuiLauncher.BuildMailTab(
-            store, new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(Now),
+            store, new Tui.Agents.FakeAgentRegistry(), new FakeTimeProvider(s_now),
             TestContext.Current.CancellationToken);
 
         // assert: today's behavior, unchanged: a working MailMode, badge-free
@@ -94,8 +71,8 @@ public sealed class AgentTuiLauncherTests
         // fourth tab exists.
         var taskStore = new FakeTaskStore();
         var mailStore = new FakeMailStore();
-        var agentRegistry = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry();
-        var timeProvider = new FakeTimeProvider(Now);
+        var agentRegistry = new Tui.Agents.FakeAgentRegistry();
+        var timeProvider = new FakeTimeProvider(s_now);
 
         var tempRoot = Directory.CreateTempSubdirectory("nitro-agent-tui-launcher-tests");
 
@@ -104,7 +81,7 @@ public sealed class AgentTuiLauncherTests
             var workingDirectory = Path.Combine(tempRoot.FullName, "acme");
             Directory.CreateDirectory(workingDirectory);
             var memoryStore = new MemoryStore(
-                new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
+                new Agents.TestFileSystem(workingDirectory),
                 timeProvider,
                 new AgentDatabase());
 
@@ -113,8 +90,8 @@ public sealed class AgentTuiLauncherTests
                 mailStore,
                 memoryStore,
                 agentRegistry,
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
+                new Tui.Agents.FakeAgentSessionRegistry(),
+                new Tui.Agents.FakeClaudeSessionActivityReader(),
                 timeProvider,
                 TestContext.Current.CancellationToken);
 
@@ -161,7 +138,7 @@ public sealed class AgentTuiLauncherTests
         var state = Enum.Parse<MailWakeDaemonState>(stateName);
         const int width = 160;
         var taskStore = new FakeTaskStore();
-        var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(Now));
+        var loader = new BoardDataLoader(taskStore, new FakeTimeProvider(s_now));
         var boardMode = new BoardMode(loader);
         var shell = new TuiShell(
             new KeyDispatcher(KeyMap.CreateDefaultGlobal()),
@@ -196,8 +173,8 @@ public sealed class AgentTuiLauncherTests
             Directory.CreateDirectory(workspaceDirectory);
 
             var memoryStore = new MemoryStore(
-                new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
-                new FakeTimeProvider(Now),
+                new Agents.TestFileSystem(workingDirectory),
+                new FakeTimeProvider(s_now),
                 new AgentDatabase());
 
             var outConsole = new TestConsole();
@@ -223,10 +200,10 @@ public sealed class AgentTuiLauncherTests
                 new FakeTaskStore(),
                 new FakeMailStore(),
                 memoryStore,
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
-                new FakeTimeProvider(Now),
+                new Tui.Agents.FakeAgentRegistry(),
+                new Tui.Agents.FakeAgentSessionRegistry(),
+                new Tui.Agents.FakeClaudeSessionActivityReader(),
+                new FakeTimeProvider(s_now),
                 workspaceDirectory,
                 coordinator.Object,
                 runCts.Token);
@@ -263,8 +240,8 @@ public sealed class AgentTuiLauncherTests
             Directory.CreateDirectory(workspaceDirectory);
 
             var memoryStore = new MemoryStore(
-                new ChilliCream.Nitro.CommandLine.Tests.Agents.TestFileSystem(workingDirectory),
-                new FakeTimeProvider(Now),
+                new Agents.TestFileSystem(workingDirectory),
+                new FakeTimeProvider(s_now),
                 new AgentDatabase());
 
             var outConsole = new TestConsole();
@@ -291,10 +268,10 @@ public sealed class AgentTuiLauncherTests
                 new FakeTaskStore(),
                 new FakeMailStore(),
                 memoryStore,
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry(),
-                new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader(),
-                new FakeTimeProvider(Now),
+                new Tui.Agents.FakeAgentRegistry(),
+                new Tui.Agents.FakeAgentSessionRegistry(),
+                new Tui.Agents.FakeClaudeSessionActivityReader(),
+                new FakeTimeProvider(s_now),
                 workspaceDirectory,
                 coordinator.Object,
                 alreadyCancelled.Token).WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);

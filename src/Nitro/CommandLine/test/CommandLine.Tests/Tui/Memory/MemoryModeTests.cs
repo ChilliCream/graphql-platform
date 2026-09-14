@@ -57,7 +57,6 @@ public sealed class MemoryModeTests : MemoryTestBase
         // arrange: OnEnter only marks a refresh pending; the actual store
         // read happens lazily on the first Render or Handle call, so a
         // manual refresh stands in for the shell rendering the tab.
-        var cancellationToken = TestContext.Current.CancellationToken;
         await SaveAsync("First.");
         var mode = CreateMode();
 

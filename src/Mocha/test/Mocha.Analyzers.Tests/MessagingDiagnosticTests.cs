@@ -500,10 +500,10 @@ public class MessagingDiagnosticTests
         }
         """;
 
-    private static void AssertNoErrors(IReadOnlyCollection<Microsoft.CodeAnalysis.Diagnostic> diagnostics)
+    private static void AssertNoErrors(IReadOnlyCollection<Diagnostic> diagnostics)
     {
         var errors = diagnostics
-            .Where(static d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+            .Where(static d => d.Severity == DiagnosticSeverity.Error)
             .ToArray();
 
         Assert.True(errors.Length == 0, string.Join(Environment.NewLine, errors.Select(static d => d.ToString())));

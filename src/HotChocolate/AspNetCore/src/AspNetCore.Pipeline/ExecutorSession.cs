@@ -99,6 +99,9 @@ public sealed class ExecutorSession
         {
             if (!options.Batching.HasFlag(AllowedBatching.VariableBatching))
             {
+                _diagnosticEvents.HttpRequestError(
+                    context,
+                    Handle(ErrorHelper.VariableBatchingDisabled()));
                 var error = Handle(ErrorHelper.InvalidRequest());
                 return OperationResult.FromError(error);
             }
@@ -108,6 +111,7 @@ public sealed class ExecutorSession
                 && variableBatch.VariableValues.Document.RootElement.GetArrayLength() > maxBatchSize)
             {
                 var error = Handle(ErrorHelper.BatchSizeExceeded(maxBatchSize));
+                _diagnosticEvents.HttpRequestError(context, error);
                 return OperationResult.FromError(error);
             }
         }

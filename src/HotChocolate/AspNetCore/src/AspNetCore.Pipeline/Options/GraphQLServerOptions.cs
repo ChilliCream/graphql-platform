@@ -84,7 +84,8 @@ public sealed class GraphQLServerOptions
             Sockets = new GraphQLSocketOptions
             {
                 ConnectionInitializationTimeout = Sockets.ConnectionInitializationTimeout,
-                KeepAliveInterval = Sockets.KeepAliveInterval
+                KeepAliveInterval = Sockets.KeepAliveInterval,
+                MaxAllowedMessageSize = Sockets.MaxAllowedMessageSize
             },
             AllowedGetOperations = AllowedGetOperations,
             EnableSchemaFileSupport = EnableSchemaFileSupport,

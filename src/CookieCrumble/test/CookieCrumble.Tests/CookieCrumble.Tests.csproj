@@ -3,7 +3,6 @@
   <PropertyGroup>
     <AssemblyName>CookieCrumble.Tests</AssemblyName>
     <RootNamespace>CookieCrumble</RootNamespace>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <OutputType>Exe</OutputType>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
   </PropertyGroup>

@@ -1,7 +1,6 @@
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using NetTopologySuite.Geometries;
-using Squadron;
 using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Spatial.Filters;
@@ -36,7 +35,7 @@ public class QueryableFilterVisitorDistanceTests
         new() { Id = 2, Bar = s_falsePolygon }
     ];
 
-    public QueryableFilterVisitorDistanceTests(PostgreSqlResource<PostgisConfig> resource)
+    public QueryableFilterVisitorDistanceTests(PostgisResource resource)
         : base(resource)
     {
     }

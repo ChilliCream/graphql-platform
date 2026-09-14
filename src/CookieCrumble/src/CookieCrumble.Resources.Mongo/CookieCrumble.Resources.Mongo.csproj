@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>CookieCrumble.Resources.Mongo</AssemblyName>
+    <RootNamespace>CookieCrumble.Resources</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Driver" />
+    <PackageReference Include="Testcontainers.MongoDb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../CookieCrumble.Resources/CookieCrumble.Resources.csproj" />
+  </ItemGroup>
+
+</Project>

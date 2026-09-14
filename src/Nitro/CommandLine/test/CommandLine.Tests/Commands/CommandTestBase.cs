@@ -15,7 +15,6 @@ using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
-using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,7 +45,7 @@ public abstract class CommandTestBase
     private Services.Hook.ICodexPathResolver? _codexPathResolverOverride;
     private Services.Hook.ICodexQueueClient? _codexQueueClientOverride;
     private Services.Notify.IClaudePeerClient? _claudePeerClientOverride;
-    private Services.Workspace.IActingActorResolver? _actingActorResolverOverride;
+    private IActingActorResolver? _actingActorResolverOverride;
     protected readonly FakeTimeProvider FakeTime =
         new(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
@@ -91,12 +90,6 @@ public abstract class CommandTestBase
     {
         _fileSystemOverride = fileSystem;
     }
-
-    /// <summary>
-    /// Points the global memory store at a fixed directory instead of the
-    /// real machine's application data directory, so tests that exercise
-    /// <c>--scope global</c> stay isolated to their own temp directory.
-    /// </summary>
 
     /// <summary>
     /// Points the Nitro instance id resolution at a fixed value instead of
@@ -185,10 +178,9 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Drops the fixed <see cref="Services.Workspace.IActingActorResolver"/>
-    /// so the real one runs, including its guard that the actor was actually
-    /// allocated. For tests about that guard itself; every other test keeps
-    /// the fixed resolver so it does not have to seed an actor first.
+    /// Drops the fixed <see cref="IActingActorResolver"/> so the real one runs, including its guard
+    /// that the actor was actually allocated. For tests about that guard itself; every other test
+    /// keeps the fixed resolver so it does not have to seed an actor first.
     /// </summary>
     protected void SetupRealActingActor()
     {

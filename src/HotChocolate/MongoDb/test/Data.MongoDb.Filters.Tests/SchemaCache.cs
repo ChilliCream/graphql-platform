@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 

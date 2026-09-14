@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
-using Mocha.Features;
 using Mocha.Inbox;
 using Mocha.Middlewares;
 
@@ -203,8 +202,6 @@ public class ConsumeInboxMiddlewareTests
         context.MessageId = messageId;
         context.Services = provider;
 
-        // Set up the ReceiveConsumerFeature with a mock consumer identity
-        // so the inbox middleware can determine the consumer type.
         var consumerFeature = context.Features.GetOrSet<ReceiveConsumerFeature>();
         consumerFeature.CurrentConsumer = new TestConsumer();
 

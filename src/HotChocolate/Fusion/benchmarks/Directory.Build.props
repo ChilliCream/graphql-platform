@@ -2,6 +2,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
 
   <PropertyGroup>
+    <TargetFramework>$(BenchmarkTargetFramework)</TargetFramework>
+    <TargetFrameworks>$(BenchmarkTargetFramework)</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 

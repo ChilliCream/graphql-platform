@@ -39,7 +39,7 @@ internal readonly partial struct SourceResultElementBuilder
 
     public JsonValueKind ValueKind => TokenType.ToValueKind();
 
-    public SourceResultElementBuilder CreateObjectValue(Selection parent, ulong includeFlags)
+    public SourceResultElementBuilder CreateObjectValue(Selection parent)
     {
         AssertValidInstance();
 
@@ -48,7 +48,7 @@ internal readonly partial struct SourceResultElementBuilder
             or ElementTokenType.Reference);
 
         var selectionSet = parent.DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(parent);
-        var objectIndex = _builder.CreateObjectValue(selectionSet.Selections, includeFlags);
+        var objectIndex = _builder.CreateObjectValue(selectionSet.Selections);
         var element = new SourceResultElementBuilder(_builder, objectIndex);
         _builder.AssignReference(this, element);
         return element;
@@ -56,8 +56,7 @@ internal readonly partial struct SourceResultElementBuilder
 
     public SourceResultElementBuilder CreateObjectValue(
         Selection parent,
-        IObjectTypeDefinition typeContext,
-        ulong includeFlags)
+        IObjectTypeDefinition typeContext)
     {
         AssertValidInstance();
 
@@ -66,7 +65,7 @@ internal readonly partial struct SourceResultElementBuilder
             or ElementTokenType.Reference);
 
         var selectionSet = parent.DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(parent, typeContext);
-        var objectIndex = _builder.CreateObjectValue(selectionSet.Selections, includeFlags);
+        var objectIndex = _builder.CreateObjectValue(selectionSet.Selections);
         var element = new SourceResultElementBuilder(_builder, objectIndex);
         _builder.AssignReference(this, element);
         return element;

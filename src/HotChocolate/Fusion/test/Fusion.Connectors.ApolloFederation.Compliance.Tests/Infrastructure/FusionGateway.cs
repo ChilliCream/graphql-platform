@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion;
 
 /// <summary>
 /// A composed Fusion gateway over a set of Apollo Federation subgraph
-/// <see cref="WebApplication"/>s running in-process under
+/// <see cref="Microsoft.AspNetCore.Builder.WebApplication"/>s running in-process under
 /// <see cref="Microsoft.AspNetCore.TestHost.TestServer"/>. Disposing the gateway tears
 /// down the subgraph hosts and the gateway service provider.
 /// </summary>

@@ -355,6 +355,10 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
     private static async ValueTask DefaultPipeline(IReceiveContext context)
     {
+        // The parsing feature has to live on the receive context so consumer attempts, which run
+        // on clones that fall back to the receive context's features, share one lazily deserialized message.
+        context.Features.GetOrSet<MessageParsingFeature>();
+
         var feature = context.Features.GetOrSet<ReceiveConsumerFeature>();
         var consumers = feature.Consumers;
 

@@ -648,7 +648,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
 
     /// <summary>
     /// Creates a fully initialized, current-schema board at the given
-    /// prefix directly in the directory above <see cref="WorkingDirectory"/>,
+    /// prefix directly in the directory above <c>WorkingDirectory</c>,
     /// bypassing the CLI so the test's own working directory is untouched.
     /// Returns the created workspace directory.
     /// </summary>

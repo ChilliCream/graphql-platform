@@ -23,5 +23,9 @@ internal readonly record struct BacklogCost(
     /// Gets an empty backlog cost state with no projected operations.
     /// </summary>
     public static BacklogCost Empty { get; } =
+#if NET10_0_OR_GREATER
+        new(0.0, 0, []);
+#else
         new(0.0, 0, ImmutableDictionary<int, int>.Empty);
+#endif
 }

@@ -22,7 +22,7 @@ internal static class LogEntryCodes
     public const string EmptyEnumType = "HCV0015";
     public const string EmptyInputObjectType = "HCV0016";
     public const string InvalidOneOfField = "HCV0017";
-    public const string InputObjectCycle = "HCV0018";
+    public const string InputObjectUnbreakableCycle = "HCV0018";
     public const string InputObjectDefaultValueCycle = "HCV0019";
     public const string DirectiveDefinitionMissingLocation = "HCV0020";
     public const string UndefinedFieldType = "HCV0021";

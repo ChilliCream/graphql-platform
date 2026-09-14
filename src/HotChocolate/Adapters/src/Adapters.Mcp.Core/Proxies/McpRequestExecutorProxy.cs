@@ -17,16 +17,6 @@ internal sealed class McpRequestExecutorProxy(
 {
     private McpExecutorSession? _session;
 
-    public McpExecutorSession GetOrCreateSession()
-    {
-        return _session
-            ?? Task.Factory
-                .StartNew(async () => await GetOrCreateSessionAsync(CancellationToken.None))
-                .Unwrap()
-                .GetAwaiter()
-                .GetResult();
-    }
-
     public async ValueTask<McpExecutorSession> GetOrCreateSessionAsync(
         CancellationToken cancellationToken)
     {

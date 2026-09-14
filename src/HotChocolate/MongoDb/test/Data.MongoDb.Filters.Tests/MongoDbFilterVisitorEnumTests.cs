@@ -1,14 +1,13 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Filters;
 using HotChocolate.Execution;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using Squadron;
 
 namespace HotChocolate.Data.MongoDb.Filters;
 
 public class MongoDbFilterVisitorEnumTests
     : SchemaCache
-    , IClassFixture<MongoResource>
 {
     private static readonly Foo[] s_fooEntities =
     [

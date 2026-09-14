@@ -90,13 +90,22 @@ internal sealed record PlanNode
     /// <summary>
     /// Number of operation steps per depth level.
     /// </summary>
-    public ImmutableDictionary<int, int> OpsPerLevel { get; init; } = ImmutableDictionary<int, int>.Empty;
+    public ImmutableDictionary<int, int> OpsPerLevel { get; init; }
+#if NET10_0_OR_GREATER
+        = [];
+#else
+        = ImmutableDictionary<int, int>.Empty;
+#endif
 
     /// <summary>
     /// Depth lookup for operation step ids.
     /// </summary>
     public ImmutableDictionary<int, int> OperationStepDepths { get; init; }
+#if NET10_0_OR_GREATER
+        = [];
+#else
         = ImmutableDictionary<int, int>.Empty;
+#endif
 
     public uint LastRequirementId { get; init; }
 

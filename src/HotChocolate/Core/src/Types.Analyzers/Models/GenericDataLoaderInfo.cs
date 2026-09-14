@@ -301,7 +301,10 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
                     wellKnownTypes.ReadOnlyDictionary)
                 || SymbolEqualityComparer.Default.Equals(
                     namedType.ConstructedFrom,
-                    wellKnownTypes.DictionaryInterface))
+                    wellKnownTypes.DictionaryInterface)
+                || SymbolEqualityComparer.Default.Equals(
+                    namedType.ConstructedFrom,
+                    wellKnownTypes.Dictionary))
             && namedType.TypeArguments[0].Equals(keyType, SymbolEqualityComparer.Default)
             && namedType.TypeArguments[1].Equals(valueType, SymbolEqualityComparer.Default);
 
@@ -329,6 +332,7 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
         INamedTypeSymbol readOnlyList,
         INamedTypeSymbol readOnlyDictionary,
         INamedTypeSymbol dictionaryInterface,
+        INamedTypeSymbol dictionary,
         INamedTypeSymbol task,
         INamedTypeSymbol valueTask)
     {
@@ -343,6 +347,8 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
         public INamedTypeSymbol ReadOnlyDictionary { get; } = readOnlyDictionary;
 
         public INamedTypeSymbol DictionaryInterface { get; } = dictionaryInterface;
+
+        public INamedTypeSymbol Dictionary { get; } = dictionary;
 
         public INamedTypeSymbol Task { get; } = task;
 
@@ -360,6 +366,8 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
                 "System.Collections.Generic.IReadOnlyDictionary`2");
             var dictionaryInterface = compilation.GetTypeByMetadataName(
                 "System.Collections.Generic.IDictionary`2");
+            var dictionary = compilation.GetTypeByMetadataName(
+                "System.Collections.Generic.Dictionary`2");
             var task = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
             var valueTask = compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
 
@@ -369,6 +377,7 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
                 && readOnlyList is not null
                 && readOnlyDictionary is not null
                 && dictionaryInterface is not null
+                && dictionary is not null
                 && task is not null
                 && valueTask is not null
                 ? new DataLoaderSymbols(
@@ -378,6 +387,7 @@ public sealed class GenericDataLoaderInfo : SyntaxInfo
                     readOnlyList,
                     readOnlyDictionary,
                     dictionaryInterface,
+                    dictionary,
                     task,
                     valueTask)
                 : null;

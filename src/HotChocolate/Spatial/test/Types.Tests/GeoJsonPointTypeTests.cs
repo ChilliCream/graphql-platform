@@ -72,7 +72,7 @@ public class GeoJsonPointTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ test { ... on Point { type coordinates bbox crs }}}",
+            "{ test { ... on GeoJSONPointType { type coordinates bbox crs }}}",
             TestContext.Current.CancellationToken);
 
         // assert

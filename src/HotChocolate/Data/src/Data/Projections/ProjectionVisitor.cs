@@ -116,7 +116,7 @@ public class ProjectionVisitor<TContext>
         if (field.Type.NamedType() is IPageType and ObjectType pageType
             && context.Selections.Peek() is { } pagingFieldSelection)
         {
-            var includeFlags = context.IncludeFlags;
+            var includeFlags = context.IncludeConditionFlags;
             var selections = context.Operation.GetSelectionSet(pagingFieldSelection, pageType).Selections;
 
             for (var i = selections.Length - 1; i >= 0; i--)

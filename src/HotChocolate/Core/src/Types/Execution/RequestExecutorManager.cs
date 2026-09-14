@@ -299,11 +299,17 @@ internal sealed partial class RequestExecutorManager
             static sp => new InputParser(sp.GetRequiredService<ITypeConverter>()));
 
         serviceCollection.AddSingleton(
-            static sp => new OperationCompiler(
-                sp.GetRequiredService<Schema>(),
-                sp.GetRequiredService<InputParser>(),
-                sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
-                sp.GetRequiredService<OperationCompilerOptimizers>()));
+            static sp =>
+            {
+                var options = sp.GetRequiredService<RequestExecutorOptions>();
+                return new OperationCompiler(
+                    sp.GetRequiredService<Schema>(),
+                    sp.GetRequiredService<InputParser>(),
+                    sp.GetRequiredService<ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>>(),
+                    sp.GetRequiredService<OperationCompilerOptimizers>(),
+                    options.MaxAllowedIncludeConditions,
+                    options.MaxAllowedDeferConditions);
+            });
 
         serviceCollection.AddSingleton<ObjectPoolProvider>(
             static _ => new DefaultObjectPoolProvider());
@@ -439,11 +445,14 @@ internal sealed partial class RequestExecutorManager
         serviceCollection.AddSingleton(sp =>
         {
             var rootServices = sp.GetRootServiceProvider();
+            // The document validator is resolved after the schema is assigned to LazySchema.
+            var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
 
             var builder =
                 DocumentValidatorBuilder.New()
                     .SetServices(rootServices)
-                    .AddDefaultRules();
+                    .AddDefaultRules()
+                    .ModifyOptions(o => o.EnableEmptySelectionSets = options.EnableEmptySelectionSets);
 
             foreach (var hook in hooks)
             {

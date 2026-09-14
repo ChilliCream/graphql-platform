@@ -1084,7 +1084,7 @@ public sealed partial class OperationPlanner
             // Apollo lookup nodes always carry a concrete schema name because
             // the routing in CreateOperationExecutionNode rejects dynamic ones.
             var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
-            var key = (node.SchemaName!, depth);
+            var key = (node.SchemaName, depth);
 
             if (!batchGroups.TryGetValue(key, out var group))
             {
@@ -2298,7 +2298,7 @@ public sealed partial class OperationPlanner
 
     private static bool DoVariablesContainUploadScalar(
         IReadOnlyList<VariableDefinitionNode> variables,
-        ISchemaDefinition schema)
+        FusionSchemaDefinition schema)
     {
         var inputObjectTypes = new Queue<IInputObjectTypeDefinition>();
         var visited = new HashSet<IInputObjectTypeDefinition>(ReferenceEqualityComparer.Instance);
@@ -2306,7 +2306,11 @@ public sealed partial class OperationPlanner
         foreach (var variable in variables)
         {
             var variableTypeName = variable.Type.NamedType().Name.Value;
-            var variableType = schema.Types[variableTypeName];
+
+            if (!schema.Types.TryGetType(variableTypeName, allowInaccessibleFields: true, out var variableType))
+            {
+                continue;
+            }
 
             if (variableType is IScalarTypeDefinition { Name: UploadScalarName })
             {

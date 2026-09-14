@@ -530,7 +530,7 @@ internal sealed class NitroSeedCoordinator
         ArgumentException.ThrowIfNullOrWhiteSpace(gatewayName);
         ArgumentNullException.ThrowIfNull(adoption);
 
-        var deleteCandidate = false;
+        bool deleteCandidate;
         lock (_sync)
         {
             if (!_statesByGateway.TryGetValue(gatewayName, out var state)
@@ -560,7 +560,7 @@ internal sealed class NitroSeedCoordinator
         ArgumentException.ThrowIfNullOrWhiteSpace(gatewayName);
         ArgumentNullException.ThrowIfNull(adoption);
 
-        var deletePrevious = false;
+        bool deletePrevious;
         lock (_sync)
         {
             deletePrevious = _statesByGateway.TryGetValue(gatewayName, out var state)

@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using HotChocolate.Data.Sorting;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -6,7 +7,6 @@ using HotChocolate.Types;
 using Marten;
 using Marten.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Data;
 

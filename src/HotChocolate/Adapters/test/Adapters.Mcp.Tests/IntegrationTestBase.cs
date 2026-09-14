@@ -1,5 +1,7 @@
 using System.Collections.Concurrent;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -10,6 +12,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol;
 using ModelContextProtocol.Client;
@@ -661,6 +664,89 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public async Task ListTools_StatelessTransport_ReturnsTools()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        var server =
+            await CreateTestServerAsync(
+                storage,
+                configureMcpServer: b => b.WithHttpTransport(o => o.Stateless = true));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("get_books_with_title1", Assert.Single(tools).Name);
+    }
+
+    [Fact]
+    public async Task GetRequest_StatelessTransport_ReturnsMethodNotAllowed()
+    {
+        // arrange
+        var server =
+            await CreateTestServerAsync(
+                new TestMcpStorage(),
+                configureMcpServer: b => b.WithHttpTransport(o => o.Stateless = true));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.GetAsync(
+            "/graphql/mcp",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal("POST", Assert.Single(response.Content.Headers.Allow));
+    }
+
+    [Fact]
+    public async Task DeleteRequest_StatelessTransport_ReturnsMethodNotAllowed()
+    {
+        // arrange
+        var server =
+            await CreateTestServerAsync(
+                new TestMcpStorage(),
+                configureMcpServer: b => b.WithHttpTransport(o => o.Stateless = true));
+        var client = server.CreateClient();
+
+        // act
+        using var response = await client.DeleteAsync(
+            "/graphql/mcp",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal("POST", Assert.Single(response.Content.Headers.Allow));
+    }
+
+    [Fact]
+    public async Task GetRequest_StatefulTransportWithoutSessionId_ReturnsBadRequest()
+    {
+        // arrange
+        var server = await CreateTestServerAsync(new TestMcpStorage());
+        var client = server.CreateClient();
+        client.DefaultRequestHeaders.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("text/event-stream"));
+
+        // act
+        using var response = await client.GetAsync(
+            "/graphql/mcp",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task ListTools_AfterToolsUpdate_ReturnsUpdatedTools()
     {
         // arrange
@@ -970,6 +1056,47 @@ public abstract class IntegrationTestBase
                 Assert.Equal("The field `doesNotExist1` does not exist on the type `Query`.", firstError.Message),
             secondError =>
                 Assert.Equal("The field `doesNotExist2` does not exist on the type `Query`.", secondError.Message));
+    }
+
+    [Fact]
+    public async Task ListTools_InitializeToolsToolCreationFails_SurfacesBothToolsAndLogsFailure()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        // A document that passes validation but that the tool factory cannot build a tool
+        // for: the operation is anonymous, so no tool title can be derived from it.
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(Utf8GraphQLParser.Parse("{ books { title } }"))
+            {
+                Name = "failing"
+            },
+            TestContext.Current.CancellationToken);
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse("query Valid { books { title } }")),
+            TestContext.Current.CancellationToken);
+        var listener = new TestMcpDiagnosticEventListener();
+        var server = await CreateTestServerAsync(storage, diagnosticEventListener: listener);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var listResult = await mcpClient.ListToolsAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var callResult = await mcpClient.CallToolAsync(
+            "failing",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, listResult.Count);
+        Assert.Contains(listResult, tool => tool.Name == "valid");
+        Assert.Contains(listResult, tool => tool.Name == "failing");
+        var (toolName, _) = Assert.Single(listener.ToolCreationFailureLog);
+        Assert.Equal("failing", toolName);
+        Assert.Equal(true, callResult.IsError);
+        var content = Assert.Single(callResult.Content);
+        Assert.Equal(
+            "The tool 'failing' is currently unavailable.",
+            Assert.IsType<TextContentBlock>(content).Text);
     }
 
     [Fact]
@@ -1327,6 +1454,33 @@ public abstract class IntegrationTestBase
     }
 
     [Fact]
+    public async Task CallTool_StatelessTransport_ReturnsExpectedResult()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        var server =
+            await CreateTestServerAsync(
+                storage,
+                configureMcpServer: b => b.WithHttpTransport(o => o.Stateless = true));
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+
+        // act
+        var result = await mcpClient.CallToolAsync(
+            "get_books_with_title1",
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        result.StructuredContent.MatchSnapshot(extension: ".json");
+    }
+
+    [Fact]
     public async Task ReadResource_Valid_ReturnsResource()
     {
         // arrange
@@ -1395,6 +1549,38 @@ public abstract class IntegrationTestBase
         Assert.EndsWith("Resource not found.", exception.Message);
         Assert.Equal(-32002, (int)exception.ErrorCode);
         Assert.Equal("ui://views/missing.html", exception.Data["uri"]);
+    }
+
+    [Fact]
+    public async Task ListTools_ServerOptionsMaterializedInScope_ReturnsTools()
+    {
+        // arrange
+        var storage = new TestMcpStorage();
+        await storage.AddOrUpdateToolAsync(
+            new OperationToolDefinition(
+                Utf8GraphQLParser.Parse(
+                    await File.ReadAllTextAsync(
+                        "__resources__/GetBooksWithTitle1.graphql",
+                        TestContext.Current.CancellationToken))),
+            TestContext.Current.CancellationToken);
+        var server = await CreateTestServerAsync(storage);
+        var mcpClient = await CreateMcpClientAsync(server.CreateClient());
+        await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var executor = await server.Services.GetRequiredService<IRequestExecutorProvider>().GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // arrange: materialize the server options in a scope that is disposed again
+        using (var scope = executor.Schema.Services.CreateScope())
+        {
+            _ = scope.ServiceProvider
+                .GetRequiredService<IOptionsSnapshot<McpServerOptions>>().Value;
+        }
+
+        // act
+        var tools = await mcpClient.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal("get_books_with_title1", Assert.Single(tools).Name);
     }
 
     [Fact]
@@ -1485,7 +1671,14 @@ public abstract class IntegrationTestBase
 
 public sealed class TestMcpDiagnosticEventListener : McpDiagnosticEventListener
 {
+    public List<(string ToolName, Exception Exception)> ToolCreationFailureLog { get; } = [];
+
     public List<IError> ValidationErrorLog { get; } = [];
+
+    public override void ToolCreationFailed(string toolName, Exception exception)
+    {
+        ToolCreationFailureLog.Add((toolName, exception));
+    }
 
     public override void ValidationErrors(IReadOnlyList<IError> errors)
     {

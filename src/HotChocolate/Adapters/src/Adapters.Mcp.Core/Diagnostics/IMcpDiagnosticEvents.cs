@@ -38,6 +38,13 @@ public interface IMcpDiagnosticEvents
     IDisposable UpdateTools();
 
     /// <summary>
+    /// Called when creating a tool from a validated tool document fails.
+    /// </summary>
+    /// <param name="toolName">The name of the tool.</param>
+    /// <param name="exception">The exception that occurred.</param>
+    void ToolCreationFailed(string toolName, Exception exception);
+
+    /// <summary>
     /// Called when errors occur while validating a tool document.
     /// </summary>
     /// <param name="errors">The validation errors.</param>

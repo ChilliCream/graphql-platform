@@ -1,8 +1,8 @@
+using CookieCrumble.Resources;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using NATS.Extensions.Microsoft.DependencyInjection;
-using Squadron;
 
 namespace HotChocolate.Subscriptions.Nats;
 

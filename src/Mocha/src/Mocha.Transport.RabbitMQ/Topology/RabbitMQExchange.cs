@@ -44,7 +44,12 @@ public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfigur
     /// <summary>
     /// Gets the additional exchange arguments for advanced configuration (e.g., alternate-exchange).
     /// </summary>
-    public ImmutableDictionary<string, object?> Arguments { get; private set; } = ImmutableDictionary<string, object?>.Empty;
+    public ImmutableDictionary<string, object?> Arguments { get; private set; }
+#if NET10_0_OR_GREATER
+        = [];
+#else
+        = ImmutableDictionary<string, object?>.Empty;
+#endif
 
     /// <summary>
     /// Gets the bindings attached to this exchange (both outgoing and incoming).
@@ -58,7 +63,12 @@ public sealed class RabbitMQExchange : TopologyResource<RabbitMQExchangeConfigur
         Durable = configuration.Durable ?? true;
         Type = configuration.Type ?? "fanout";
         AutoDelete = configuration.AutoDelete ?? false;
-        Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value) ?? ImmutableDictionary<string, object?>.Empty;
+        Arguments = configuration.Arguments?.ToImmutableDictionary(kv => kv.Key, kv => (object?)kv.Value)
+#if NET10_0_OR_GREATER
+            ?? [];
+#else
+            ?? ImmutableDictionary<string, object?>.Empty;
+#endif
         AutoProvision = configuration.AutoProvision;
     }
 

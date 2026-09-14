@@ -200,6 +200,9 @@ public sealed class ConsumerInstrumentationMiddlewareTests
         public ReadOnlyMemory<byte> Body => ReadOnlyMemory<byte>.Empty;
         public MessageEnvelope? Envelope { get; set; }
         public IRemoteHostInfo Host { get; set; } = null!;
+
+        public IConsumeContext Clone(IServiceProvider services)
+            => new StubConsumeContext { Services = services };
     }
 
     private sealed class MockMessagingDiagnosticEvents : IMessagingDiagnosticEvents

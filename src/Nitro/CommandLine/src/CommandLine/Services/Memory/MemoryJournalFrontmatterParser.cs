@@ -19,7 +19,7 @@ internal static class MemoryJournalFrontmatterParser
     private const string Delimiter = "---";
 
     private static readonly string[] s_requiredKeys = ["schema", "id", "created_at", "created_by"];
-    private static readonly HashSet<string> s_knownKeys = new(s_requiredKeys);
+    private static readonly HashSet<string> s_knownKeys = [.. s_requiredKeys];
 
     public static bool TryParse(
         string content,

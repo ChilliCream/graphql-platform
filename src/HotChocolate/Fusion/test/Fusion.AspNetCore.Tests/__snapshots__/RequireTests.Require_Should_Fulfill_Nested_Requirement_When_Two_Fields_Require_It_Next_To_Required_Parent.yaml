@@ -1,0 +1,251 @@
+title: Require_Should_Fulfill_Nested_Requirement_When_Two_Fields_Require_It_Next_To_Required_Parent
+request:
+  document: |
+    {
+      item {
+        unitPrice
+        lineTotal
+        product {
+          id
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item": {
+          "unitPrice": 5,
+          "lineTotal": 15,
+          "product": {
+            "id": 1
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: cart
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        item: CartItem!
+        cartItemById(id: Int!): CartItem @lookup @internal
+      }
+
+      type CartItem @key(fields: "id") {
+        unitPrice(price: Float! @require(field: "product.discountedPrice")): Float!
+        lineTotal(price: Float! @require(field: "product.discountedPrice")): Float!
+        id: Int!
+        quantity: Int!
+        product: Product!
+      }
+
+      type Product {
+        id: Int! @shareable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d59199f1_2(
+              $__fusion_1_price: Float!
+              $__fusion_2_id: Int!
+              $__fusion_4_price: Float!
+            ) {
+              cartItemById(id: $__fusion_2_id) {
+                lineTotal(price: $__fusion_1_price)
+                unitPrice(price: $__fusion_4_price)
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_price": 5,
+              "__fusion_2_id": 1,
+              "__fusion_4_price": 5
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "cartItemById": {
+                    "lineTotal": 15,
+                    "unitPrice": 5
+                  }
+                }
+              }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_d59199f1_1 {
+                  item {
+                    product {
+                      id
+                    }
+                  }
+                }
+            - document: |
+                query Op_d59199f1_5 {
+                  item {
+                    id
+                  }
+                }
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "item": {
+                    "product": {
+                      "id": 1
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "item": {
+                    "id": 1
+                  }
+                }
+              }
+  - name: promotions
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        productById(id: Int!): Product @lookup @internal
+      }
+
+      type Product @key(fields: "id") {
+        discountedPrice: Float!
+        id: Int!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_d59199f1_3($__fusion_3_id: Int!) {
+              productById(id: $__fusion_3_id) {
+                discountedPrice
+              }
+            }
+          variables: |
+            {
+              "__fusion_3_id": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "discountedPrice": 5
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          item {
+            unitPrice
+            lineTotal
+            product {
+              id
+            }
+            product @fusion__requirement {
+              discountedPrice @fusion__requirement
+              id @fusion__requirement
+            }
+            id @fusion__requirement
+          }
+        }
+      hash: d59199f16408e91778f6578aefb97905
+      searchSpace: 3
+      expandedNodes: 14
+  nodes:
+    - id: 2
+      type: Operation
+      schema: cart
+      operation: |
+        query Op_d59199f1_2(
+          $__fusion_1_price: Float!
+          $__fusion_2_id: Int!
+          $__fusion_4_price: Float!
+        ) {
+          cartItemById(id: $__fusion_2_id) {
+            lineTotal(price: $__fusion_1_price)
+            unitPrice(price: $__fusion_4_price)
+          }
+        }
+      source: $.cartItemById
+      target: $.item
+      requirements:
+        - name: __fusion_1_price
+          selectionMap: >-
+            product.discountedPrice
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+        - name: __fusion_4_price
+          selectionMap: >-
+            product.discountedPrice
+      dependencies:
+        - id: 8
+        - id: 9
+    - id: 1
+      type: OperationBatch
+      schema: cart
+      operation: |
+        query Op_d59199f1_1 {
+          item {
+            product {
+              id
+            }
+          }
+        }
+      targets:
+        - $
+        - $
+        - $
+      batchingGroupId: 8
+    - id: 5
+      type: Operation
+      schema: cart
+      operation: |
+        query Op_d59199f1_5 {
+          item {
+            id
+          }
+        }
+      batchingGroupId: 8
+    - id: 3
+      type: OperationBatch
+      schema: promotions
+      operation: |
+        query Op_d59199f1_3($__fusion_3_id: Int!) {
+          productById(id: $__fusion_3_id) {
+            discountedPrice
+          }
+        }
+      source: $.productById
+      targets:
+        - $.item.product
+        - $.item.product
+      batchingGroupId: 9
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

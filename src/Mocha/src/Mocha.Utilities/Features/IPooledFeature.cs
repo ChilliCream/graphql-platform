@@ -6,10 +6,10 @@ namespace Mocha.Features;
 public interface IPooledFeature
 {
     /// <summary>
-    /// Initializes the feature when the <see cref="PooledFeatureCollection"/> is rented out.
+    /// Initializes the feature when it becomes active in a <see cref="PooledFeatureCollection"/>.
     /// </summary>
     /// <param name="state">
-    /// The state of the <see cref="PooledFeatureCollection"/> that is being rented out.
+    /// The state of the <see cref="PooledFeatureCollection"/> that owns the feature.
     /// </param>
     void Initialize(object state);
 

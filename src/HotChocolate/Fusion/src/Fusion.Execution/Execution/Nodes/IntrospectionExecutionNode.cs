@@ -1,5 +1,4 @@
 using System.Text.Json;
-using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -91,7 +90,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         var resultBuilder = new SourceResultDocumentBuilder(
             context.Memory,
             context.OperationPlan.Operation,
-            context.IncludeFlags,
+            context.IncludeConditionFlags,
             _selections);
 
         foreach (var (selection, property) in resultBuilder.Root.EnumerateProperties())
@@ -140,7 +139,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         var fieldContext = new ReusableFieldContext(
             context.Schema,
             context.Variables,
-            context.IncludeFlags,
+            context.IncludeConditionFlags,
             context.CreateRentedBuffer(),
             cancellationToken);
 

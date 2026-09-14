@@ -149,18 +149,26 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                 {
                     string? operationNames = context.Request.Query[BatchOperations];
 
-                    if (!string.IsNullOrEmpty(operationNames)
-                        && TryParseOperations(operationNames, out var ops)
-                        && options.Batching.HasFlag(AllowedBatching.RequestBatching))
+                    if (!options.Batching.HasFlag(AllowedBatching.RequestBatching))
                     {
-                        result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
+                        var error = session.Handle(ErrorHelper.InvalidRequest());
+                        statusCode = HttpStatusCode.BadRequest;
+                        result = OperationResult.FromError(error);
+                        session.DiagnosticEvents.HttpRequestError(
+                            context,
+                            session.Handle(ErrorHelper.RequestBatchingDisabled()));
                     }
-                    else
+                    else if (string.IsNullOrEmpty(operationNames)
+                        || !TryParseOperations(operationNames, out var ops))
                     {
                         var error = session.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
                         result = OperationResult.FromError(error);
                         session.DiagnosticEvents.HttpRequestError(context, error);
+                    }
+                    else
+                    {
+                        result = await session.ExecuteOperationBatchAsync(context, requests[0], requestFlags, ops);
                     }
 
                     break;
@@ -189,7 +197,9 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                         var error = session.Handle(ErrorHelper.InvalidRequest());
                         statusCode = HttpStatusCode.BadRequest;
                         result = OperationResult.FromError(error);
-                        session.DiagnosticEvents.HttpRequestError(context, error);
+                        session.DiagnosticEvents.HttpRequestError(
+                            context,
+                            session.Handle(ErrorHelper.RequestBatchingDisabled()));
                     }
                     break;
             }

@@ -504,7 +504,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             codexGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
             envActor: "pascal", cancellationToken);
 
-        var message = await _mail.SendMessageAsync(
+        await _mail.SendMessageAsync(
             new MailMessageCreation
             {
                 Sender = "codex-worker",
@@ -921,23 +921,6 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         // assert
         Assert.IsType<ActorWakeDispatcher>(dispatcher);
-    }
-
-    private static async Task<long> ScalarCountAsync(
-        Microsoft.Data.Sqlite.SqliteConnection connection,
-        string sql,
-        string? sessionId,
-        CancellationToken cancellationToken)
-    {
-        await using var command = connection.CreateCommand();
-        command.CommandText = sql;
-
-        if (sessionId is not null)
-        {
-            command.Parameters.AddWithValue("@sessionId", sessionId);
-        }
-
-        return (long)(await command.ExecuteScalarAsync(cancellationToken))!;
     }
 
     private DateTimeOffset Deadline() => _timeProvider.GetUtcNow() + WakeDispatchPolicy.BatchDeadline;

@@ -1,4 +1,4 @@
-using Squadron;
+using CookieCrumble.Resources;
 
 namespace HotChocolate.Data;
 

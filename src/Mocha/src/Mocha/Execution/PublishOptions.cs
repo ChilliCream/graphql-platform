@@ -1,7 +1,8 @@
 namespace Mocha;
 
 /// <summary>
-/// Options controlling the behavior of a publish operation, such as scheduling, expiration, and custom headers.
+/// Options controlling the behavior of a publish operation, including scheduling, expiration, fault routing,
+/// and custom headers.
 /// </summary>
 public readonly struct PublishOptions
 {
@@ -19,6 +20,11 @@ public readonly struct PublishOptions
     /// Gets the absolute time after which the message should be considered expired, or <c>null</c> for no expiration.
     /// </summary>
     public DateTimeOffset? ExpirationTime { get; init; }
+
+    /// <summary>
+    /// Gets the endpoint address where fault notifications should be sent, or <c>null</c> to use the default.
+    /// </summary>
+    public Uri? FaultEndpoint { get; init; }
 
     /// <summary>
     /// Gets custom headers to include with the published message, or <c>null</c> if none.

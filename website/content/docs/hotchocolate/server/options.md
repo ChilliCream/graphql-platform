@@ -42,6 +42,7 @@ builder
 | `EnableFlagEnums`                         | `bool`                       | `false`             | Treats `[Flags]` enums as flag enums in GraphQL.                                                             |
 | `EnableDefer`                             | `bool`                       | `false`             | Enables the `@defer` directive.                                                                              |
 | `EnableStream`                            | `bool`                       | `false`             | Enables the `@stream` directive.                                                                             |
+| `EnableEmptySelectionSets`                | `bool`                       | `false`             | Enables empty selection sets (`{ }`) on composite fields and on query and mutation roots.                    |
 | `EnableSemanticNonNull`                   | `bool`                       | `false`             | Enables the semantic non-null feature.                                                                       |
 | `StripLeadingIFromInterface`              | `bool`                       | `false`             | Strips the leading `I` from C# interface names when generating GraphQL interface type names.                 |
 | `EnableTag`                               | `bool`                       | `true`              | Enables the `@tag` directive for schema metadata.                                                            |
@@ -141,10 +142,11 @@ builder
     });
 ```
 
-| Property                          | Type        | Default    | Description                                                                                                    |
-| --------------------------------- | ----------- | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| `ConnectionInitializationTimeout` | `TimeSpan`  | 10 seconds | The time a client has to send a `connection_init` message before the server closes the connection.             |
-| `KeepAliveInterval`               | `TimeSpan?` | 5 seconds  | The interval at which the server sends keep-alive ping messages. Set to `null` to disable keep-alive messages. |
+| Property                          | Type        | Default          | Description                                                                                                                                                                                                                         |
+| --------------------------------- | ----------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ConnectionInitializationTimeout` | `TimeSpan`  | 10 seconds       | The time a client has to send a `connection_init` message before the server closes the connection.                                                                                                                                  |
+| `KeepAliveInterval`               | `TimeSpan?` | 5 seconds        | The interval at which the server sends keep-alive ping messages. Set to `null` to disable keep-alive messages.                                                                                                                      |
+| `MaxAllowedMessageSize`           | `int`       | 20,480,000 bytes | The maximum size in bytes of a single incoming WebSocket message. When exceeded, the server closes the connection with close status `1009` (Message Too Big). The default (`20 * 1000 * 1024`) matches the HTTP request size limit. |
 
 # Paging Options (ModifyPagingOptions)
 

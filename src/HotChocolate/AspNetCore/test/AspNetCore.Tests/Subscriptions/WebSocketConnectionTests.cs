@@ -1,6 +1,8 @@
 using System.Net.WebSockets;
+using System.Text;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
@@ -46,6 +48,32 @@ public class WebSocketConnectionTests(TestServerFactory serverFactory)
 
         // assert
         Assert.Equal(WebSocketCloseStatus.ProtocolError, webSocket.CloseStatus);
+    }
+
+    [Theory]
+    [InlineData("graphql-transport-ws")]
+    [InlineData("graphql-ws")]
+    public async Task ReadMessageAsync_Should_CloseWithMessageTooBig_When_MessageExceedsMaxAllowedMessageSize(
+        string protocol)
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        using var testServer = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQL()
+                .ModifyServerOptions(o => o.Sockets.MaxAllowedMessageSize = 1024));
+        var client = CreateWebSocketClient(testServer, [protocol]);
+        using var webSocket = await client.ConnectAsync(s_subscriptionUri, ct);
+
+        // act
+        var padding = new string('X', 64 * 1024);
+        var message = Encoding.UTF8.GetBytes(
+            $$$"""{"type":"connection_init","payload":{"data":"{{{padding}}}"}}""");
+        await webSocket.SendAsync(message, WebSocketMessageType.Text, endOfMessage: true, ct);
+        await webSocket.ReceiveAsync(new byte[4096], ct);
+
+        // assert
+        Assert.Equal(WebSocketCloseStatus.MessageTooBig, webSocket.CloseStatus);
     }
 
     private static WebSocketClient CreateWebSocketClient(

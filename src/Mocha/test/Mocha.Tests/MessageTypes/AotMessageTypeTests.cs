@@ -163,7 +163,7 @@ public class AotMessageTypeTests
                 {
                     descriptor.AddSerializer(new StubMessageSerializer());
                     descriptor.Extend().Configuration.EnclosedTypes =
-                        ImmutableArray.Create<Type>(enclosedTypes);
+                        ImmutableArray.Create(enclosedTypes);
                 }));
     }
 

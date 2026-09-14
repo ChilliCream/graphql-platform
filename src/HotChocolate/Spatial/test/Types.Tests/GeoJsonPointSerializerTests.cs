@@ -66,7 +66,7 @@ public class GeoJsonPointSerializerTests
     }
 
     [Theory]
-    [InlineData(PointInputName, Skip = "TODO: Pascal needs to review this one")]
+    [InlineData(PointInputName)]
     [InlineData(GeometryTypeName)]
     public void ParseLiteral_Should_Throw_When_NoGeometryType(string typeName)
     {

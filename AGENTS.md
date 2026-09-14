@@ -2,6 +2,10 @@
 
 This file provides guidance to coding agents when working with this repository.
 
+## Attribution
+
+- Do not add `Co-authored-by` trailers or other co-author attribution for agents.
+
 ## Build
 
 ### Website
@@ -15,16 +19,18 @@ yarn
 
 ### C# Source Code
 
+Always pass `-p:EnforceCodeStyleInBuild=true` when building or testing. It reports IDE code-style violations (`IDE*`) as build errors, the same as CI does. Fix every reported style error.
+
 Build the full solution:
 
 ```bash
-dotnet build src/All.slnx
+dotnet build src/All.slnx -p:EnforceCodeStyleInBuild=true
 ```
 
 Each area has its own solution file, so you can build or test a subset directly:
 
 ```bash
-dotnet test src/HotChocolate/Fusion
+dotnet test src/HotChocolate/Fusion -p:EnforceCodeStyleInBuild=true
 ```
 
 ## Code Quality

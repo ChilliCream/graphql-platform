@@ -1,20 +1,18 @@
 {
-  "errors": [
-    {
-      "message": "Unknown type `Point`.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 10
-        }
+  "data": {
+    "test": {
+      "type": "Point",
+      "coordinates": [
+        30,
+        10
       ],
-      "path": [
-        "test"
+      "bbox": [
+        30,
+        10,
+        30,
+        10
       ],
-      "extensions": {
-        "typeCondition": "Point",
-        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Fragment-Spread-Type-Existence"
-      }
+      "crs": 4326
     }
-  ]
+  }
 }

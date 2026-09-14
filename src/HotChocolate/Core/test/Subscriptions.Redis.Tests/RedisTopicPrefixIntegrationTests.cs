@@ -1,13 +1,13 @@
-﻿using HotChocolate.Execution;
+﻿using CookieCrumble.Resources;
+using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using StackExchange.Redis;
 
 namespace HotChocolate.Subscriptions.Redis;
 
 public class RedisTopicPrefixIntegrationTests(RedisResource redisResource, ITestOutputHelper output)
-    : SubscriptionIntegrationTestBase(output), IClassFixture<RedisResource>
+    : SubscriptionIntegrationTestBase(output)
 {
     private const string TopicPrefix = "prefix:";
 

@@ -1,3 +1,4 @@
+using CookieCrumble.Resources;
 using System.Text.Json;
 using GreenDonut.Data;
 using HotChocolate.Data.Data;
@@ -9,7 +10,6 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Squadron;
 using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;

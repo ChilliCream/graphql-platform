@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Language.Utilities;
 using static HotChocolate.Diagnostics.SemanticConventions;

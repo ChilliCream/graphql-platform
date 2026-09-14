@@ -385,10 +385,10 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         foreach (var info in callSiteInfos)
         {
             if (info
-                    is CallSiteMessageTypeInfo
-                    {
-                        Kind: CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery
-                    } callSite
+                is CallSiteMessageTypeInfo
+                {
+                    Kind: CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery
+                } callSite
                 && !handlerMessageTypes.Contains(callSite.MessageTypeName))
             {
                 var location = ReconstructLocation(callSite.Location);

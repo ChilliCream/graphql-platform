@@ -4,7 +4,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Language;
@@ -143,6 +142,12 @@ internal static class FusionGatewayBuilder
     /// </param>
     /// <param name="nodeResolution">
     /// Determines how the gateway resolves the <c>Query.node</c> field.
+    /// </param>
+    /// <param name="allowNonResolvableInterfaceObjects">
+    /// Allows <c>@interfaceObject</c> stand-ins whose keys are not resolvable.
+    /// </param>
+    /// <param name="shareableFieldRuntimeTypeRouting">
+    /// Determines how runtime types are routed for shareable fields with an abstract result type.
     /// </param>
     /// <param name="subgraphs">Named subgraph factories.</param>
     public static Task<FusionGateway> ComposeAsync(

@@ -32,7 +32,6 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     private readonly AgentSessionRegistry _sessions;
     private readonly SessionDeliveryLedger _ledger;
     private readonly MailStore _mail;
-    private readonly FixedEnvironmentVariableProvider _environmentVariables;
     private readonly ClaudeHookHandler _handler;
 
     public ClaudeHookHandlerTests()
@@ -54,7 +53,6 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
         _ledger = new SessionDeliveryLedger(_fileSystem, _database);
         _mail = new MailStore(_fileSystem, _timeProvider, _database, _agentRegistry);
-        _environmentVariables = new FixedEnvironmentVariableProvider();
 
         _handler = new ClaudeHookHandler(
             _fileSystem,

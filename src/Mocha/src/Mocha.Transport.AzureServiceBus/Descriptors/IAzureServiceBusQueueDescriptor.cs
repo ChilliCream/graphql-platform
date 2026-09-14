@@ -96,4 +96,13 @@ public interface IAzureServiceBusQueueDescriptor : IMessagingDescriptor<AzureSer
     /// Declares an explicit topic from which this queue receives messages.
     /// </summary>
     IAzureServiceBusQueueDescriptor BindFrom(Uri source);
+
+    /// <summary>
+    /// Declares an explicit topic from which this queue receives messages, with an explicit
+    /// provisioning opt-in or opt-out for the derived subscription, overriding the queue's setting.
+    /// </summary>
+    /// <param name="source">The source topic address.</param>
+    /// <param name="autoProvision">Whether the subscription is provisioned on the broker.</param>
+    /// <returns>The queue descriptor for chaining.</returns>
+    IAzureServiceBusQueueDescriptor BindFrom(Uri source, bool autoProvision);
 }

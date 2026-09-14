@@ -435,7 +435,7 @@ public static class ResolverContextExtensions
             {
                 foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
                 {
-                    var includeFlags = context.IncludeFlags;
+                    var includeFlags = context.IncludeConditionFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
                     foreach (var selection in selectionSet.Selections)
@@ -450,7 +450,7 @@ public static class ResolverContextExtensions
             }
             else
             {
-                var includeFlags = context.IncludeFlags;
+                var includeFlags = context.IncludeConditionFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
                 foreach (var selection in selectionSet.Selections)
@@ -498,7 +498,7 @@ public static class ResolverContextExtensions
             {
                 foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
                 {
-                    var includeFlags = context.IncludeFlags;
+                    var includeFlags = context.IncludeConditionFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
                     foreach (var selection in selectionSet.Selections)
@@ -517,7 +517,7 @@ public static class ResolverContextExtensions
             }
             else
             {
-                var includeFlags = context.IncludeFlags;
+                var includeFlags = context.IncludeConditionFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
                 foreach (var selection in selectionSet.Selections)
@@ -574,7 +574,7 @@ public static class ResolverContextExtensions
             {
                 foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
                 {
-                    var includeFlags = context.IncludeFlags;
+                    var includeFlags = context.IncludeConditionFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
                     foreach (var selection in selectionSet.Selections)
@@ -595,7 +595,7 @@ public static class ResolverContextExtensions
             }
             else
             {
-                var includeFlags = context.IncludeFlags;
+                var includeFlags = context.IncludeConditionFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
                 foreach (var selection in selectionSet.Selections)
@@ -644,7 +644,7 @@ public static class ResolverContextExtensions
             {
                 foreach (var possibleType in context.Schema.GetPossibleTypes(namedType))
                 {
-                    var includeFlags = context.IncludeFlags;
+                    var includeFlags = context.IncludeConditionFlags;
                     var selectionSet = context.Operation.GetSelectionSet(context.Selection, possibleType);
 
                     foreach (var selection in selectionSet.Selections)
@@ -659,7 +659,7 @@ public static class ResolverContextExtensions
             }
             else
             {
-                var includeFlags = context.IncludeFlags;
+                var includeFlags = context.IncludeConditionFlags;
                 var selectionSet = context.Operation.GetSelectionSet(context.Selection, (ObjectType)namedType);
 
                 foreach (var selection in selectionSet.Selections)

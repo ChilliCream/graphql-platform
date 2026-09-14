@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 /// <summary>
 /// Renders one sent-message row for the agent detail view's sent mail
 /// section as a single Spectre markup line: age, subject, and recipients.
-/// Read-only: unlike the mail board's own row rendering (<see cref="ChilliCream.Nitro.CommandLine.Tui.Mail.MailTable"/>)
+/// Read-only: unlike the mail board's own row rendering (<see cref="MailTable"/>)
 /// there is no selection prefix or unread marker, since this section has no
 /// drill-in.
 /// </summary>

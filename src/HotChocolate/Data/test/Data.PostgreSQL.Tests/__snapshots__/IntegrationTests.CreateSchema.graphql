@@ -129,14 +129,20 @@ type Brand implements Node @key(fields: "id") {
 }
 
 type BrandConnection @shareable {
+  "A list of edges."
   edges: [BrandEdge!]!
+  "A flattened list of the nodes."
   nodes: [Brand!]!
+  "Information to aid in pagination."
   pageInfo: ConnectionPageInfo!
+  "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
 }
 
 type BrandEdge @shareable {
+  "The item at the end of the edge."
   node: Brand!
+  "A cursor for use in pagination."
   cursor: String!
 }
 
@@ -234,19 +240,28 @@ type Product implements Node @key(fields: "id") {
   availableStock: Int!
   restockThreshold: Int!
   maxStockThreshold: Int!
+  "True if item is on reorder"
   onReorder: Boolean!
 }
 
+"A connection to a list of items."
 type ProductConnection @shareable {
+  "A list of edges."
   edges: [ProductEdge!]
+  "A flattened list of the nodes."
   nodes: [Product!]
+  "Information to aid in pagination."
   pageInfo: ConnectionPageInfo!
+  "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
   endCursors(count: Int!): [String!]!
 }
 
+"An edge in a connection."
 type ProductEdge @shareable {
+  "The item at the end of the edge."
   node: Product!
+  "A cursor for use in pagination."
   cursor: String!
 }
 
@@ -256,14 +271,20 @@ type ProductType {
 }
 
 type ProductTypeConnection @shareable {
+  "A list of edges."
   edges: [ProductTypeEdge!]!
+  "A flattened list of the nodes."
   nodes: [ProductType!]!
+  "Information to aid in pagination."
   pageInfo: ConnectionPageInfo!
+  "Identifies the total count of items in the connection."
   totalCount: Int! @cost(weight: "10")
 }
 
 type ProductTypeEdge @shareable {
+  "The item at the end of the edge."
   node: ProductType!
+  "A cursor for use in pagination."
   cursor: String!
 }
 
@@ -369,6 +390,7 @@ input ProductFilterInput {
   availableStock: IntOperationFilterInput
   restockThreshold: IntOperationFilterInput
   maxStockThreshold: IntOperationFilterInput
+  "True if item is on reorder"
   onReorder: BooleanOperationFilterInput
 }
 

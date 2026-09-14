@@ -48,7 +48,7 @@ public class OperationCompilerTests : FusionTestBase
 
         var product = root.Selections[0];
         Assert.Equal("product", product.Field.Name);
-        Assert.True(product.IsIncluded(0));
+        Assert.True(product.IsIncluded(new ConditionFlags(0)));
 
         var productSelectionSet =
             operation.GetSelectionSet(
@@ -58,7 +58,7 @@ public class OperationCompilerTests : FusionTestBase
 
         var id = productSelectionSet.Selections[0];
         Assert.Equal("id", id.Field.Name);
-        Assert.True(id.IsIncluded(0));
+        Assert.True(id.IsIncluded(new ConditionFlags(0)));
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class OperationCompilerTests : FusionTestBase
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = compiler.Compile("1", "1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         // assert
         Assert.Equal("1", operation.Id);
@@ -139,7 +139,7 @@ public class OperationCompilerTests : FusionTestBase
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = compiler.Compile("1", "1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         // assert
         Assert.Equal("1", operation.Id);
@@ -226,7 +226,7 @@ public class OperationCompilerTests : FusionTestBase
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = compiler.Compile("1", "1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         // assert
         var product = GetSelection(operation.RootSelectionSet, "product");
@@ -266,7 +266,7 @@ public class OperationCompilerTests : FusionTestBase
         // act
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = compiler.Compile("1", "1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         // assert
         var product = GetSelection(operation.RootSelectionSet, "product");
@@ -450,7 +450,7 @@ public class OperationCompilerTests : FusionTestBase
 
         var compiler = new OperationCompiler(schema, _fieldMapPool);
         var operation = compiler.Compile("1", "1", "1", operationDefinition);
-        var flags = operation.CreateIncludeFlags(variableValues);
+        var flags = operation.CreateIncludeConditionFlags(variableValues);
 
         var series = GetSelection(operation.RootSelectionSet, "series");
         var seriesSelectionSet = operation.GetSelectionSet(series);
@@ -471,7 +471,7 @@ public class OperationCompilerTests : FusionTestBase
             $"The selection set does not contain a `{responseName}` selection.");
     }
 
-    private static string GetIncludedResponseNames(SelectionSet selectionSet, ulong flags)
+    private static string GetIncludedResponseNames(SelectionSet selectionSet, ConditionFlags flags)
     {
         var result = new StringBuilder();
 

@@ -18,14 +18,15 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             }
             """);
 
-        using var builder = new SourceResultDocumentBuilder(CommonTestExtensions.CreateArena(), operation, includeFlags: 0);
+        using var builder = new SourceResultDocumentBuilder(
+            CommonTestExtensions.CreateArena(), operation, default);
 
         // Root is already set up with the operation structure, now fill in values
         var userSelection = operation.RootSelectionSet.Selections[0];
         var userProperty = builder.Root.CreateProperty(userSelection, 0);
 
         // Create the user object
-        var userObject = userProperty.CreateObjectValue(userSelection, 0);
+        var userObject = userProperty.CreateObjectValue(userSelection);
 
         // Set the name property
         var userSelectionSet = operation.GetSelectionSet(userSelection);
@@ -60,12 +61,13 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             }
             """);
 
-        using var builder = new SourceResultDocumentBuilder(CommonTestExtensions.CreateArena(), operation, includeFlags: 0);
+        using var builder = new SourceResultDocumentBuilder(
+            CommonTestExtensions.CreateArena(), operation, default);
         var userProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
 
         var userSelection = operation.RootSelectionSet.Selections[0];
         var userSelectionSet = operation.GetSelectionSet(userSelection);
-        var userObject = userProperty.CreateObjectValue(userSelection, 0);
+        var userObject = userProperty.CreateObjectValue(userSelection);
 
         var nameProperty = userObject.CreateProperty(userSelectionSet.Selections[0], 0);
         nameProperty.SetStringValue("John");
@@ -101,7 +103,8 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             }
             """);
 
-        using var builder = new SourceResultDocumentBuilder(CommonTestExtensions.CreateArena(), operation, includeFlags: 0);
+        using var builder = new SourceResultDocumentBuilder(
+            CommonTestExtensions.CreateArena(), operation, default);
         var userProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
         userProperty.SetNullValue();
 
@@ -129,12 +132,13 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             }
             """);
 
-        using var builder = new SourceResultDocumentBuilder(CommonTestExtensions.CreateArena(), operation, includeFlags: 0);
+        using var builder = new SourceResultDocumentBuilder(
+            CommonTestExtensions.CreateArena(), operation, default);
         var userProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
 
         var userSelection = operation.RootSelectionSet.Selections[0];
         var userSelectionSet = operation.GetSelectionSet(userSelection);
-        var userObject = userProperty.CreateObjectValue(userSelection, 0);
+        var userObject = userProperty.CreateObjectValue(userSelection);
 
         var idProperty = userObject.CreateProperty(userSelectionSet.Selections[0], 0);
         idProperty.SetStringValue("user-1");
@@ -174,12 +178,13 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
             }
             """);
 
-        using var builder = new SourceResultDocumentBuilder(CommonTestExtensions.CreateArena(), operation, includeFlags: 0);
+        using var builder = new SourceResultDocumentBuilder(
+            CommonTestExtensions.CreateArena(), operation, default);
         var usersProperty = builder.Root.CreateProperty(operation.RootSelectionSet.Selections[0], 0);
 
         var usersSelection = operation.RootSelectionSet.Selections[0];
         var usersSelectionSet = operation.GetSelectionSet(usersSelection);
-        var usersObject = usersProperty.CreateObjectValue(usersSelection, 0);
+        var usersObject = usersProperty.CreateObjectValue(usersSelection);
 
         var nodesProperty = usersObject.CreateProperty(usersSelectionSet.Selections[0], 0);
         var nodesArray = nodesProperty.CreateListValue(2);
@@ -188,12 +193,12 @@ public class SourceResultDocumentBuilderTests : FusionTestBase
         // First user
         var nodesSelection = usersSelectionSet.Selections[0];
         var nodeSelectionSet = operation.GetSelectionSet(nodesSelection);
-        var user1 = arrayElements[0].CreateObjectValue(nodesSelection, 0);
+        var user1 = arrayElements[0].CreateObjectValue(nodesSelection);
         var name1 = user1.CreateProperty(nodeSelectionSet.Selections[0], 0);
         name1.SetStringValue("Alice");
 
         // Second user
-        var user2 = arrayElements[1].CreateObjectValue(nodesSelection, 0);
+        var user2 = arrayElements[1].CreateObjectValue(nodesSelection);
         var name2 = user2.CreateProperty(nodeSelectionSet.Selections[0], 0);
         name2.SetStringValue("Bob");
 

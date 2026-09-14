@@ -460,11 +460,11 @@ internal sealed class MailWakeDaemonCoordinator(
 
     private async Task<IReadOnlyList<string>?> FindDueActorsWithRetryAsync(
         string nitroInstanceId, DateTimeOffset now, CancellationToken cancellationToken)
-        => await RunWithBusyRetryAsync<IReadOnlyList<string>>(
+        => await RunWithBusyRetryAsync(
             async ct => await FindDueActorsAsync(nitroInstanceId, now, ct), cancellationToken);
 
     private async Task ReleaseWithRetryAsync(string nitroInstanceId, long epoch, CancellationToken cancellationToken)
-        => await RunWithBusyRetryAsync<bool>(
+        => await RunWithBusyRetryAsync(
             async ct => await leaderStore.TryReleaseAsync(
                 nitroInstanceId, _ownerId, epoch, timeProvider.GetUtcNow(), ct),
             cancellationToken);

@@ -148,14 +148,28 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         => _executionState.IsNodeSkipped(nodeId);
 
     /// <summary>
-    /// Gets the evaluated include flags derived from <c>@skip</c> and <c>@include</c> directives.
+    /// Gets the include condition flags for the current request.
     /// </summary>
-    public ulong IncludeFlags { get; private set; }
+    public ConditionFlags IncludeConditionFlags { get; private set; }
 
     /// <summary>
-    /// Gets the evaluated defer flags derived from <c>@defer</c> directives.
+    /// Gets the defer condition flags for the current request.
     /// </summary>
-    public ulong DeferFlags { get; private set; }
+    public ConditionFlags DeferConditionFlags { get; private set; }
+
+    /// <summary>
+    /// Gets include condition flags word 0 for the current request.
+    /// This property exposes conditions 0-63 only.
+    /// </summary>
+    [Obsolete("Use IncludeConditionFlags instead. This property only exposes conditions 0-63.")]
+    public ulong IncludeFlags => IncludeConditionFlags.Word0;
+
+    /// <summary>
+    /// Gets defer condition flags word 0 for the current request.
+    /// This property exposes conditions 0-63 only.
+    /// </summary>
+    [Obsolete("Use DeferConditionFlags instead. This property only exposes conditions 0-63.")]
+    public ulong DeferFlags => DeferConditionFlags.Word0;
 
     /// <summary>
     /// Gets a value indicating whether operation plan telemetry is being collected for this request.

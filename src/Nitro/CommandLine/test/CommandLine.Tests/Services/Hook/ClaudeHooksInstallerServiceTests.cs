@@ -13,7 +13,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// </summary>
 public sealed class ClaudeHooksInstallerServiceTests : IDisposable
 {
-    private static readonly LaunchDescriptor Descriptor = new("/home/agent/.dotnet/tools/nitro", []);
+    private static readonly LaunchDescriptor s_descriptor = new("/home/agent/.dotnet/tools/nitro", []);
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _settingsPath;
@@ -145,7 +145,7 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         var serviceB = new ClaudeHooksInstallerService(
             _fileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathB),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
@@ -163,7 +163,7 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         var serviceA = new ClaudeHooksInstallerService(
             injectingFileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathA),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(injectingFileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
@@ -186,7 +186,7 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         var preInstallService = new ClaudeHooksInstallerService(
             _fileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathA),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
         await preInstallService.InstallAsync(HookInstallScopes.User, ct);
@@ -194,7 +194,7 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         var serviceB = new ClaudeHooksInstallerService(
             _fileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathB),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
@@ -209,7 +209,7 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
         var serviceA = new ClaudeHooksInstallerService(
             injectingFileSystem,
             new FixedClaudeSettingsPathResolver(settingsPathA),
-            new FixedLaunchDescriptorResolver(Descriptor),
+            new FixedLaunchDescriptorResolver(s_descriptor),
             new ClaudeHooksSidecarStore(injectingFileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
@@ -226,7 +226,7 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
     private ClaudeHooksInstallerService CreateService(IFileSystem fileSystem) => new(
         fileSystem,
         new FixedClaudeSettingsPathResolver(_settingsPath),
-        new FixedLaunchDescriptorResolver(Descriptor),
+        new FixedLaunchDescriptorResolver(s_descriptor),
         new ClaudeHooksSidecarStore(fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
         _timeProvider);
 

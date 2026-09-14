@@ -34,7 +34,7 @@ public class Product
     // Maximum number of units that can be in-stock at any time (due to physicial/logistical constraints in warehouses)
     public int MaxStockThreshold { get; set; }
 
-    /// <summary>Optional embedding for the catalog item's description.</summary>
+    // Optional embedding for the catalog item's description.
     // [JsonIgnore]
     // public Vector Embedding { get; set; }
 

@@ -114,17 +114,14 @@
   <data name="LogEntryHelper_InputFieldDefaultValueUnknownFieldAtPath" xml:space="preserve">
     <value>The default value of input field '{0}' specifies the unknown input field '{1}' at path '{2}'.</value>
   </data>
-  <data name="LogEntryHelper_InputObjectCycle_Direct" xml:space="preserve">
-    <value>Invalid circular reference. The Input Object '{0}' references itself in the non-null field '{1}'.</value>
-  </data>
-  <data name="LogEntryHelper_InputObjectCycle_Indirect" xml:space="preserve">
-    <value>Invalid circular reference. The Input Object '{0}' references itself via the non-null fields: {1}.</value>
-  </data>
   <data name="LogEntryHelper_InputObjectDefaultValueCycle_Direct" xml:space="preserve">
     <value>Invalid circular reference. The default value of Input Object field '{0}' references itself.</value>
   </data>
   <data name="LogEntryHelper_InputObjectDefaultValueCycle_Indirect" xml:space="preserve">
     <value>Invalid circular reference. The default value of Input Object field '{0}' references itself via the default values of: {1}.</value>
+  </data>
+  <data name="LogEntryHelper_InputObjectUnbreakableCycle" xml:space="preserve">
+    <value>Input Object '{0}' cannot be provided a finite value because it references itself through fields: {1}.</value>
   </data>
   <data name="LogEntryHelper_InvalidArgumentDeprecation" xml:space="preserve">
     <value>The required argument '{0}' cannot be deprecated.</value>

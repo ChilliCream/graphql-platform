@@ -160,7 +160,7 @@ The connector kind only sets the starting value, so partial settings mix with it
 - `{ "variableBatching": false, "requestBatching": false }` on an Apollo Federation subgraph still leaves alias batching on. Declare `"aliasBatching": false` as well to turn batching off completely.
 
 > [!NOTE]
-> The settings template a Hot Chocolate subgraph exports declares all three flags explicitly, so a gateway that uses it does not fall back to the defaults.
+> The settings template a Hot Chocolate subgraph exports declares all three flags explicitly, so a gateway that uses it does not fall back to the defaults. `variableBatching` and `requestBatching` mirror the batching the subgraph's server options allow, which `AddSourceSchemaDefaults()` turns on, and `aliasBatching` is always `true`.
 
 # Apollo Federation Subgraphs
 

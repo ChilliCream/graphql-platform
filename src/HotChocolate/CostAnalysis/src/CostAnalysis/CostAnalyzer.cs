@@ -14,11 +14,9 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
 {
     public CostMetrics Analyze(OperationDefinitionNode operation, DocumentValidatorContext context)
     {
-        var feature = context.Features.GetOrSet<CostContext>();
-
         Visit(operation, context);
 
-        var summary = feature.SelectionSetCost[operation.SelectionSet];
+        var summary = context.GetSelectionSetCost(operation.SelectionSet);
 
         return new CostMetrics { TypeCost = summary.TypeCost, FieldCost = summary.FieldCost };
     }
@@ -27,7 +25,8 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
         OperationDefinitionNode node,
         DocumentValidatorContext context)
     {
-        context.GetFieldSets().Clear();
+        var costContext = context.Features.GetOrSet<CostContext>();
+        costContext.FieldSets.Clear();
         context.SelectionSets.Clear();
 
         return base.Enter(node, context);
@@ -38,10 +37,9 @@ internal sealed class CostAnalyzer(RequestCostOptions options) : TypeDocumentVal
         DocumentValidatorContext context)
     {
         // add operation cost
-        var costContext = context.GetCostContext();
         var type = context.Types.Peek();
         var cost = type.GetTypeWeight();
-        var summary = costContext.SelectionSetCost[node.SelectionSet];
+        var summary = context.GetSelectionSetCost(node.SelectionSet);
         summary.TypeCost += cost;
 
         return base.Leave(node, context);
@@ -416,7 +414,9 @@ file static class DocumentValidatorContextExtensions
     public static CostSummary GetSelectionSetCost(
         this DocumentValidatorContext context,
         SelectionSetNode selectionSetNode)
-        => context.GetCostContext().SelectionSetCost[selectionSetNode];
+        => context.GetCostContext().SelectionSetCost.TryGetValue(selectionSetNode, out var cost)
+            ? cost
+            : new CostSummary();
 }
 
 file sealed class CostSummary

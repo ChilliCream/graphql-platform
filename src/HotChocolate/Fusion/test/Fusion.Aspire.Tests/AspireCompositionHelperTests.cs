@@ -127,7 +127,10 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001/",
             settings,
-            ProductsSchemaText) with { GraphQLPath = "/api/graphql" };
+            ProductsSchemaText) with
+        {
+            GraphQLPath = "/api/graphql"
+        };
 
         // act
         var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
@@ -162,7 +165,10 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001",
             settings,
-            ProductsSchemaText) with { GraphQLPath = "/declared/graphql" };
+            ProductsSchemaText) with
+        {
+            GraphQLPath = "/declared/graphql"
+        };
 
         // act
         var success = AspireCompositionHelper.TryBuildLocalSourceSchemas(
@@ -249,7 +255,11 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001",
             settings,
-            ProductsSchemaText) with { ResourceName = "products", GraphQLPath = null };
+            ProductsSchemaText) with
+        {
+            ResourceName = "products",
+            GraphQLPath = null
+        };
         var logger = new RecordingLogger<SchemaComposition>();
 
         // act
@@ -275,17 +285,27 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001",
             settings,
-            ProductsSchemaText) with { ResourceName = "products" };
+            ProductsSchemaText) with
+        {
+            ResourceName = "products"
+        };
         var legacy = CreateSourceSchema(
             "Reviews",
             "http://localhost:5002",
             settings,
-            "type Query { review: String }") with { ResourceName = "reviews", GraphQLPath = null };
+            "type Query { review: String }") with
+        {
+            ResourceName = "reviews",
+            GraphQLPath = null
+        };
         var alsoLegacy = CreateSourceSchema(
             "Orders",
             allocatedHttpEndpointUrl: null,
             settings,
-            "type Query { order: String }") with { GraphQLPath = null };
+            "type Query { order: String }") with
+        {
+            GraphQLPath = null
+        };
         var logger = new RecordingLogger<SchemaComposition>();
 
         // act
@@ -319,7 +339,11 @@ public sealed class AspireCompositionHelperTests
             "Products",
             "http://localhost:5001",
             settings,
-            ProductsSchemaText) with { ResourceName = "products", GraphQLPath = null };
+            ProductsSchemaText) with
+        {
+            ResourceName = "products",
+            GraphQLPath = null
+        };
         var logger = new RecordingLogger<SchemaComposition>();
 
         try

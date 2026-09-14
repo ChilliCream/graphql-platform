@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
+using CookieCrumble.Resources;
 using HotChocolate.Fusion.Subscriptions.NATS;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
@@ -10,7 +9,6 @@ using HotChocolate.Types.Composite;
 using Microsoft.Extensions.DependencyInjection;
 using NATS.Client.Core;
 using NATS.Client.JetStream;
-using NATS.Client.JetStream.Models;
 
 namespace HotChocolate.Fusion;
 
@@ -22,7 +20,8 @@ namespace HotChocolate.Fusion;
 /// the executor-level event-stream tests, these tests prove the reception, cross-schema entity
 /// resolution, and operation-plan extension behavior on the wire.
 /// </summary>
-public class NatsEventStreamOverHttpTests : FusionTestBase
+[Collection(NatsCollectionFixture.DefinitionName)]
+public class NatsEventStreamOverHttpTests(NatsResource nats) : FusionTestBase
 {
     private const string BrokerName = "nats";
 
@@ -35,11 +34,9 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
     public async Task Subscribe_Should_DeliverEvent_When_PublishedToNatsOverHttp()
     {
         // arrange
-        await using var nats = await JetStreamNatsFixture.StartAsync();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
+        await using var stream = await nats.CreateStreamAsync([Topic], cts.Token);
 
         using var events = CreateSourceSchema(
             "EVENTS",
@@ -54,8 +51,8 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 BrokerName,
                 o =>
                 {
-                    o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
+                    o.Url = nats.NatsConnectionString;
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream.Name };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -75,8 +72,12 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // Open the SSE response first so the gateway has subscribed to NATS, then publish a single
         // event. The first stream sequence is 1, whose base64 cursor is deterministically "MQ==".
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
-        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
-        await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
+        await WaitForConsumerAsync(
+            nats.NatsConnectionString,
+            stream.Name,
+            expectedCount: 1,
+            cts.Token);
+        await PublishAsync(nats.NatsConnectionString, Topic, """{"user":{"id":"u1"}}""", cts.Token);
 
         // assert
         var received = false;
@@ -106,11 +107,9 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
     public async Task Subscribe_Should_ResolveConcreteTypename_When_QueriedOverHttp()
     {
         // arrange
-        await using var nats = await JetStreamNatsFixture.StartAsync();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
+        await using var stream = await nats.CreateStreamAsync([Topic], cts.Token);
 
         using var events = CreateSourceSchema(
             "EVENTS",
@@ -125,8 +124,8 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 BrokerName,
                 o =>
                 {
-                    o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
+                    o.Url = nats.NatsConnectionString;
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream.Name };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -150,8 +149,12 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // The published payload carries no __typename, so the concrete type names below are
         // synthesized by the gateway at every nesting level rather than echoed from the broker.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
-        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
-        await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
+        await WaitForConsumerAsync(
+            nats.NatsConnectionString,
+            stream.Name,
+            expectedCount: 1,
+            cts.Token);
+        await PublishAsync(nats.NatsConnectionString, Topic, """{"user":{"id":"u1"}}""", cts.Token);
 
         // assert
         var received = false;
@@ -183,11 +186,9 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
     public async Task Subscribe_Should_ResolveCrossSchemaEntityField_When_QueriedOverHttp()
     {
         // arrange
-        await using var nats = await JetStreamNatsFixture.StartAsync();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
+        await using var stream = await nats.CreateStreamAsync([Topic], cts.Token);
 
         using var eventsServer = CreateSourceSchema(
             "EVENTS",
@@ -209,8 +210,8 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 BrokerName,
                 o =>
                 {
-                    o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
+                    o.Url = nats.NatsConnectionString;
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream.Name };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -233,8 +234,12 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // EVENTS emits only the entity key (id); the gateway fetches name from ACCOUNTS by lookup
         // for each event, so name must resolve non-null over the wire.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
-        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
-        await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
+        await WaitForConsumerAsync(
+            nats.NatsConnectionString,
+            stream.Name,
+            expectedCount: 1,
+            cts.Token);
+        await PublishAsync(nats.NatsConnectionString, Topic, """{"user":{"id":"u1"}}""", cts.Token);
 
         // assert
         var received = false;
@@ -265,11 +270,9 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
     public async Task Subscribe_Should_ResolveNestedAbstractEntityTypename_When_PerTypeLookupOverHttp()
     {
         // arrange
-        await using var nats = await JetStreamNatsFixture.StartAsync();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
+        await using var stream = await nats.CreateStreamAsync([Topic], cts.Token);
 
         using var eventsServer = CreateSourceSchema(
             "EVENTS",
@@ -296,8 +299,8 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 BrokerName,
                 o =>
                 {
-                    o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
+                    o.Url = nats.NatsConnectionString;
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream.Name };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -323,9 +326,21 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // and the gateway must fire the per-concrete-type lookup against CONTENT to fetch the
         // type-owned field (headline/caption) at the nested level.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
-        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
-        await PublishAsync(nats.Url, Topic, """{"item":{"__typename":"Article","id":"a1"}}""", cts.Token);
-        await PublishAsync(nats.Url, Topic, """{"item":{"__typename":"Video","id":"v1"}}""", cts.Token);
+        await WaitForConsumerAsync(
+            nats.NatsConnectionString,
+            stream.Name,
+            expectedCount: 1,
+            cts.Token);
+        await PublishAsync(
+            nats.NatsConnectionString,
+            Topic,
+            """{"item":{"__typename":"Article","id":"a1"}}""",
+            cts.Token);
+        await PublishAsync(
+            nats.NatsConnectionString,
+            Topic,
+            """{"item":{"__typename":"Video","id":"v1"}}""",
+            cts.Token);
 
         // assert
         // Each event reports the concrete entity __typename at the nested level, selects only its
@@ -384,11 +399,9 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
     public async Task Subscribe_Should_ResolveRootAbstractEntityTypename_When_PerTypeLookupOverHttp()
     {
         // arrange
-        await using var nats = await JetStreamNatsFixture.StartAsync();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
+        await using var stream = await nats.CreateStreamAsync([Topic], cts.Token);
 
         using var eventsServer = CreateSourceSchema(
             "EVENTS",
@@ -415,8 +428,8 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 BrokerName,
                 o =>
                 {
-                    o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
+                    o.Url = nats.NatsConnectionString;
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream.Name };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -438,9 +451,21 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // Each event resolves to a different concrete entity (Author then Book), and the gateway must
         // fire that type's lookup against DETAILS to fetch the type-owned field (name/title).
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
-        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
-        await PublishAsync(nats.Url, Topic, """{"__typename":"Author","id":"a1"}""", cts.Token);
-        await PublishAsync(nats.Url, Topic, """{"__typename":"Book","id":"b1"}""", cts.Token);
+        await WaitForConsumerAsync(
+            nats.NatsConnectionString,
+            stream.Name,
+            expectedCount: 1,
+            cts.Token);
+        await PublishAsync(
+            nats.NatsConnectionString,
+            Topic,
+            """{"__typename":"Author","id":"a1"}""",
+            cts.Token);
+        await PublishAsync(
+            nats.NatsConnectionString,
+            Topic,
+            """{"__typename":"Book","id":"b1"}""",
+            cts.Token);
 
         // assert
         // Each event reports the concrete entity __typename, selects only its matching fragment, and
@@ -489,11 +514,9 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
     public async Task Subscribe_Should_IncludeOperationPlanExtension_When_OptedInOverHttp()
     {
         // arrange
-        await using var nats = await JetStreamNatsFixture.StartAsync();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
+        await using var stream = await nats.CreateStreamAsync([Topic], cts.Token);
 
         using var events = CreateSourceSchema(
             "EVENTS",
@@ -510,8 +533,8 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 BrokerName,
                 o =>
                 {
-                    o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
+                    o.Url = nats.NatsConnectionString;
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream.Name };
                 }));
 
         var httpClient = gateway.CreateClient();
@@ -530,8 +553,12 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
 
         // act
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
-        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
-        await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
+        await WaitForConsumerAsync(
+            nats.NatsConnectionString,
+            stream.Name,
+            expectedCount: 1,
+            cts.Token);
+        await PublishAsync(nats.NatsConnectionString, Topic, """{"user":{"id":"u1"}}""", cts.Token);
 
         // assert
         var received = false;
@@ -555,11 +582,9 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
     public async Task Subscribe_Should_OmitOperationPlanExtension_When_NotAllowedOverHttp()
     {
         // arrange
-        await using var nats = await JetStreamNatsFixture.StartAsync();
-        var stream = "S" + Guid.NewGuid().ToString("N");
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 
-        await CreateStreamAsync(nats.Url, stream, Topic, cts.Token);
+        await using var stream = await nats.CreateStreamAsync([Topic], cts.Token);
 
         using var events = CreateSourceSchema(
             "EVENTS",
@@ -574,8 +599,8 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
                 BrokerName,
                 o =>
                 {
-                    o.Url = nats.Url;
-                    o.JetStream = new NatsJetStreamOptions { Stream = stream };
+                    o.Url = nats.NatsConnectionString;
+                    o.JetStream = new NatsJetStreamOptions { Stream = stream.Name };
                 }),
             configureGatewayBuilder: b => b.ModifyRequestOptions(o => o.AllowOperationPlanRequests = false));
 
@@ -597,8 +622,12 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         // The Fusion-Operation-Plan header is sent, but the schema disallows operation-plan
         // requests, so the plan must not appear regardless of the header.
         using var response = await client.PostAsync(request, new Uri(GatewayUrl), cts.Token);
-        await WaitForConsumerAsync(nats.Url, stream, expectedCount: 1, cts.Token);
-        await PublishAsync(nats.Url, Topic, """{"user":{"id":"u1"}}""", cts.Token);
+        await WaitForConsumerAsync(
+            nats.NatsConnectionString,
+            stream.Name,
+            expectedCount: 1,
+            cts.Token);
+        await PublishAsync(nats.NatsConnectionString, Topic, """{"user":{"id":"u1"}}""", cts.Token);
 
         // assert
         var received = false;
@@ -612,23 +641,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
         }
 
         Assert.True(received, "Expected at least one SSE event over the wire.");
-    }
-
-    private static async Task CreateStreamAsync(
-        string url,
-        string stream,
-        string subject,
-        CancellationToken cancellationToken)
-    {
-        await using var connection = new NatsConnection(new NatsOpts { Url = url });
-        var js = new NatsJSContext(connection);
-        await js.CreateStreamAsync(
-            new StreamConfig
-            {
-                Name = stream,
-                Subjects = [subject]
-            },
-            cancellationToken);
     }
 
     private static async Task PublishAsync(
@@ -821,58 +833,6 @@ public class NatsEventStreamOverHttpTests : FusionTestBase
 
             [Internal, Lookup]
             public Video GetVideoById(string id) => new(id, $"Video {id}");
-        }
-    }
-
-    private sealed class JetStreamNatsFixture : IAsyncDisposable
-    {
-        private readonly IContainer _container;
-
-        private JetStreamNatsFixture(IContainer container)
-        {
-            _container = container;
-        }
-
-        public string Url => $"nats://localhost:{_container.GetMappedPublicPort(4222)}";
-
-        public static async Task<JetStreamNatsFixture> StartAsync()
-        {
-            var fixture = new JetStreamNatsFixture(
-                new ContainerBuilder("nats:2.10-alpine")
-                    .WithPortBinding(4222, assignRandomHostPort: true)
-                    .WithCommand("-js")
-                    .WithWaitStrategy(Wait.ForUnixContainer().UntilInternalTcpPortIsAvailable(4222))
-                    .Build());
-
-            await fixture._container.StartAsync();
-
-            // The internal TCP-port wait can pass before the mapped host port is connectable, so we
-            // establish a real connection (with retries) before handing the broker to the test.
-            await fixture.WaitForConnectionAsync();
-
-            return fixture;
-        }
-
-        private async Task WaitForConnectionAsync()
-        {
-            for (var attempt = 1; ; attempt++)
-            {
-                try
-                {
-                    await using var connection = new NatsConnection(new NatsOpts { Url = Url });
-                    await connection.ConnectAsync();
-                    return;
-                }
-                catch (NatsException) when (attempt < 20)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(250));
-                }
-            }
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await _container.DisposeAsync();
         }
     }
 }

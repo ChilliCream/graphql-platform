@@ -8,7 +8,7 @@ namespace HotChocolate.Fusion.Suites.SimpleEntityCall.Nickname;
 /// SDL declares no user-facing query fields, but HotChocolate requires a Query type
 /// to exist so the Apollo Federation type interceptor can attach
 /// <c>_service { sdl }</c> and <c>_entities(...)</c> fields. Applying
-/// <see cref="ApolloFederationObjectTypeDescriptorExtensions.ExtendServiceType"/>
+/// <see cref="ExtendServiceTypeDescriptorExtensions.ExtendServiceType(IObjectTypeDescriptor)"/>
 /// marks this type as extending the federated <c>Query</c>, so composition treats it
 /// as a pure entity provider.
 /// </summary>

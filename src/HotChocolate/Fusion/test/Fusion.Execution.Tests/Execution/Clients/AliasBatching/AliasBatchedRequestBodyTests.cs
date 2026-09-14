@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
-using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using static HotChocolate.Fusion.Execution.Clients.AliasBatching.AliasBatchTestData;

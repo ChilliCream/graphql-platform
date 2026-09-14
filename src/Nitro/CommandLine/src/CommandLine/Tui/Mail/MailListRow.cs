@@ -14,7 +14,7 @@ internal abstract record MailListRow
     }
 
     /// <summary>
-    /// A thread rollup row. <see cref="Thread.Expanded"/> mirrors whether
+    /// A thread rollup row. <see cref="Expanded"/> mirrors whether
     /// the thread's messages follow as indented <see cref="MessageRow"/>
     /// rows immediately after this one in <see cref="MailState.Rows"/>.
     /// </summary>

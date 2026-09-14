@@ -1,7 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Features;
 using Mocha.Transport.AzureServiceBus.Features;
 
 namespace Mocha.Transport.AzureServiceBus;

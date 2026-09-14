@@ -87,7 +87,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             if (configure is not null)
             {
                 ConfigureDescriptorContext(context =>
-                    context.Configurations.Add<IConsumerDescriptor>(handlerType, configure));
+                    context.Configurations.Add(handlerType, configure));
             }
 
             return this;
@@ -134,7 +134,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         if (configure is not null)
         {
             ConfigureDescriptorContext(context =>
-                context.Configurations.Add<IConsumerDescriptor>(handlerType, configure));
+                context.Configurations.Add(handlerType, configure));
         }
 
         return this;
@@ -203,7 +203,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         AddMessage<TMessage>();
 
         ConfigureDescriptorContext(context =>
-            context.Configurations.Add<IMessageTypeDescriptor>(typeof(TMessage), configure));
+            context.Configurations.Add(typeof(TMessage), configure));
 
         return this;
     }

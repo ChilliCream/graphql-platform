@@ -27,7 +27,7 @@ internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
         string agentName, CancellationToken cancellationToken)
         => Task.FromResult(LiveSessionsByAgentName.TryGetValue(agentName, out var sessions)
             ? sessions
-            : (IReadOnlyList<AgentSessionRecord>)[]);
+            : []);
 
     public Task<IReadOnlyList<AgentSessionView>> ListAsync(CancellationToken cancellationToken)
         => throw new NotSupportedException();

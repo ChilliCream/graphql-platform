@@ -5,8 +5,8 @@ namespace Mocha;
 
 internal sealed class BatchConsumeContext<TMessage> : IBatchConsumeContext<TMessage>
 {
-    private readonly Headers _headers = new(0);
-    private readonly FeatureCollection _features = new();
+    private readonly Headers _headers;
+    private readonly FeatureCollection _features;
 
     public BatchConsumeContext(
         MessageBatch<TMessage> message,
@@ -16,6 +16,8 @@ internal sealed class BatchConsumeContext<TMessage> : IBatchConsumeContext<TMess
         MessageType? itemMessageType,
         CancellationToken cancellationToken)
     {
+        _headers = new Headers(0);
+        _features = new FeatureCollection();
         Message = message;
         Services = services;
         Runtime = firstContext.Runtime;
@@ -25,6 +27,35 @@ internal sealed class BatchConsumeContext<TMessage> : IBatchConsumeContext<TMess
         BatchId = batchId;
         ItemMessageType = itemMessageType;
         CancellationToken = cancellationToken;
+    }
+
+    private BatchConsumeContext(BatchConsumeContext<TMessage> context, IServiceProvider services)
+    {
+        _headers = new Headers(context._headers);
+        _features = new FeatureCollection(context._features);
+        Message = context.Message;
+        BatchId = context.BatchId;
+        ItemMessageType = context.ItemMessageType;
+        Services = services;
+        Runtime = context.Runtime;
+        Transport = context.Transport;
+        Endpoint = context.Endpoint;
+        Host = context.Host;
+        MessageId = context.MessageId;
+        CorrelationId = context.CorrelationId;
+        ConversationId = context.ConversationId;
+        CausationId = context.CausationId;
+        SourceAddress = context.SourceAddress;
+        DestinationAddress = context.DestinationAddress;
+        ResponseAddress = context.ResponseAddress;
+        FaultAddress = context.FaultAddress;
+        ContentType = context.ContentType;
+        MessageType = context.MessageType;
+        SentAt = context.SentAt;
+        DeliverBy = context.DeliverBy;
+        DeliveryCount = context.DeliveryCount;
+        Envelope = context.Envelope is { } envelope ? new MessageEnvelope(envelope) : null;
+        CancellationToken = context.CancellationToken;
     }
 
     public IMessageBatch<TMessage> Message { get; }
@@ -78,4 +109,7 @@ internal sealed class BatchConsumeContext<TMessage> : IBatchConsumeContext<TMess
     public CancellationToken CancellationToken { get; set; }
 
     public IServiceProvider Services { get; set; }
+
+    public IConsumeContext Clone(IServiceProvider services)
+        => new BatchConsumeContext<TMessage>(this, services);
 }

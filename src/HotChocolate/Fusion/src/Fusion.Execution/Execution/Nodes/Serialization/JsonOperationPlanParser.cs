@@ -863,7 +863,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         string[]? forwardedVariables = null;
         SelectionSetNode? resultSelectionSet = null;
         int[]? dependencies = null;
-        int[]? parentDependencies = null;
         int? batchingGroupId = null;
 
         if (nodeElement.TryGetProperty("source", out var sourceElement))
@@ -921,7 +920,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             throw new InvalidOperationException("The resultSelectionSet is required in a valid operation plan.");
         }
 
-        dependencies = TryParseDependencies(nodeElement, out parentDependencies);
+        dependencies = TryParseDependencies(nodeElement, out var parentDependencies);
 
         if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
         {
