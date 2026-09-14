@@ -10,7 +10,3 @@ the disagreement to one schema, operation, variables object, and default list
 size. Copy the workflow artifact into this directory before fixing the engine.
 The fixture must stay vendored after the fix so the conformance theory guards
 the regression without Rust.
-
-Do not promote cases containing introspection meta-fields, `@defer`, or
-`@stream`. Those constructs are outside the bit-exact agreement scope and the
-generator rejects them before emission.
