@@ -153,10 +153,40 @@ cmd_playwright_setup() {
   docker exec -w "$(container_website_dir)" "${CONTAINER_NAME}" yarn playwright install chromium
 }
 
+# Populates the global TTY_FLAGS array with the `docker exec` flags for the
+# current stdio: always interactive, plus a tty when both stdin and stdout
+# are terminals (so an interactive Ctrl+C reaches the exec'd process
+# directly). Shared by cmd_exec and cmd_dev.
+compute_tty_flags() {
+  TTY_FLAGS=(-i)
+  if [ -t 0 ] && [ -t 1 ]; then
+    TTY_FLAGS+=(-t)
+  fi
+}
+
+stop_dev() {
+  docker exec "${CONTAINER_NAME}" pkill -f 'next dev' >/dev/null 2>&1 || true
+}
+
 cmd_dev() {
   ensure_running
+
+  if docker exec "${CONTAINER_NAME}" pgrep -f 'next dev' >/dev/null 2>&1; then
+    echo "error: a dev server is already running in ${CONTAINER_NAME}; run \`frontend-container.sh down\` or \`frontend-container.sh exec -- pkill -f \"next dev\"\` first" >&2
+    exit 1
+  fi
+
   echo "==> Dev server: http://localhost:3031"
-  docker exec -w "$(container_website_dir)" "${CONTAINER_NAME}" yarn dev
+
+  compute_tty_flags
+  local tty_flags=("${TTY_FLAGS[@]}")
+  docker exec "${tty_flags[@]}" -w "$(container_website_dir)" "${CONTAINER_NAME}" yarn dev &
+  local child=$!
+
+  trap 'kill "${child}" 2>/dev/null || true; stop_dev' INT TERM
+  trap stop_dev EXIT
+
+  wait "${child}"
 }
 
 cmd_exec() {
@@ -166,10 +196,8 @@ cmd_exec() {
   fi
   ensure_running
 
-  local tty_flags=(-i)
-  if [ -t 0 ] && [ -t 1 ]; then
-    tty_flags+=(-t)
-  fi
+  compute_tty_flags
+  local tty_flags=("${TTY_FLAGS[@]}")
 
   local container_cwd
   container_cwd="$(translate_cwd "$(pwd)")"
