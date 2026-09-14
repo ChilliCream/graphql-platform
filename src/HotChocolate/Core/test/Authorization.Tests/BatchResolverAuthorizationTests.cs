@@ -15,7 +15,9 @@ public class BatchResolverAuthorizationTests
     // REPRO (security): [Authorize] (default BeforeResolver) on a [BatchResolver] field is
     // silently bypassed because the auth directive middleware lives only in the regular
     // pipeline which a batch-strategy selection never runs. An unauthorized user must get an
-    // AUTH_NOT_AUTHORIZED error and null data, not the protected secret values.
+    // AUTH_NOT_AUTHORIZED error and null data, not the protected secret values. The field is
+    // non-null, so this also covers that both denied aliases keep their own error even though
+    // the non-null violation collapses the whole response data to null.
     [Fact]
     public async Task Authorize_BeforeResolver_On_Batch_Field_Should_Deny_When_NotAllowed()
     {
@@ -63,10 +65,7 @@ public class BatchResolverAuthorizationTests
                   }
                 }
               ],
-              "data": {
-                "a": null,
-                "b": null
-              }
+              "data": null
             }
             """);
     }
@@ -624,10 +623,10 @@ public class BatchResolverAuthorizationTests
 
         [BatchResolver]
         [Authorize("READ_SECRET", ApplyPolicy.BeforeResolver)]
-        public List<Secret?> GetSecretById(List<int> id)
+        public List<Secret> GetSecretById(List<int> id)
         {
             ResolverInvoked = true;
-            return id.Select(i => (Secret?)new Secret(i, $"secret-{i}")).ToList();
+            return id.Select(i => new Secret(i, $"secret-{i}")).ToList();
         }
     }
 
