@@ -26,7 +26,7 @@ internal sealed class DocumentNormalizationMiddleware
         if (document is null)
         {
             throw new InvalidOperationException(
-                "The operation document info is not available in the context.");
+                "The operation document is not available in the context.");
         }
 
         CachedDocument? cachedDocument = null;

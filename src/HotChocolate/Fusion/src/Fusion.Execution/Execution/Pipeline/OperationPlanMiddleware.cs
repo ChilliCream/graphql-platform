@@ -2,6 +2,7 @@ using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
@@ -37,14 +38,23 @@ internal sealed class OperationPlanMiddleware
             return next(context);
         }
 
-        PlanOperation(context, operationDocumentInfo);
+        // The document has already been de-fragmentized and had its statically excluded
+        // selections removed by the DocumentNormalizationMiddleware.
+        if (!context.TryGetNormalizedOperation(out var operation))
+        {
+            context.Result = ErrorHelper.StateInvalidForOperationPlanning();
+            return default;
+        }
+
+        PlanOperation(context, operationDocumentInfo, operation);
 
         return next(context);
     }
 
     private void PlanOperation(
         RequestContext context,
-        OperationDocumentInfo operationDocumentInfo)
+        OperationDocumentInfo operationDocumentInfo,
+        OperationDefinitionNode operation)
     {
         var operationId = context.GetOperationId();
         var operationHash = context.OperationDocumentInfo.Hash.Value;
@@ -54,14 +64,6 @@ internal sealed class OperationPlanMiddleware
 
         try
         {
-            // The document has already been de-fragmentized and had its statically excluded
-            // selections removed by the DocumentNormalizationMiddleware.
-            if (!context.TryGetNormalizedOperation(out var operation))
-            {
-                throw new InvalidOperationException(
-                    "The normalized operation is not available in the context.");
-            }
-
             // After optimizing the query structure we can begin the planning process.
             var operationPlan =
                 _planner.CreatePlan(
