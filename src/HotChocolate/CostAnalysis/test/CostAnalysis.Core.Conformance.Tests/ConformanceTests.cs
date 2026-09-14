@@ -9,7 +9,7 @@ namespace HotChocolate.CostAnalysis;
 
 public sealed class ConformanceTests
 {
-    public static TheoryData<string> ArticleFixtures => FixtureLoader.Family("article");
+    public static TheoryData<string> PrecisionFixtures => FixtureLoader.Family("precision");
 
     public static TheoryData<string> RustUnitFixtures => FixtureLoader.Family("rust-unit");
 
@@ -18,8 +18,8 @@ public sealed class ConformanceTests
     public static TheoryData<string> CorpusFixtures => FixtureLoader.RustCorpus();
 
     [Theory(SkipTestWithoutData = true)]
-    [MemberData(nameof(ArticleFixtures))]
-    public void Article_Fixture_Should_MatchOracle_When_Evaluated(string path)
+    [MemberData(nameof(PrecisionFixtures))]
+    public void Precision_Fixture_Should_MatchOracle_When_Evaluated(string path)
         => AssertFixture(Fixture.Load(path));
 
     [Theory(SkipTestWithoutData = true)]

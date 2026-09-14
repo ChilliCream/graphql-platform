@@ -23,7 +23,7 @@
     },
     "source": {
       "type": "string",
-      "enum": ["article", "rust-unit", "rust-corpus", "fuzz-found"],
+      "enum": ["precision", "rust-unit", "rust-corpus", "fuzz-found"],
       "description": "Where this fixture originates from."
     },
     "sdl": {

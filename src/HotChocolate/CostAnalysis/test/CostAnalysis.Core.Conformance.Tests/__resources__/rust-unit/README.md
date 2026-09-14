@@ -28,8 +28,4 @@ Source: [graphql-static-analysis-rs](https://github.com/duckki/graphql-static-an
 `fec57fd7a980b5399637fa464a9bdce0781d91dd` (v0.2.0).
 
 Copyright 2026 graphql-static-analysis contributors. Licensed under the
-MIT License. The repository's `__resources__/NOTICE.md` records the license
-and source provenance.
-
-No fixture in this directory is copied from the unlicensed
-`graphql-lean` repository.
+MIT License.
