@@ -50,7 +50,7 @@ internal sealed class CostAnalysisMiddleware
         // warmup requests and must not leak back into the request path.
         if (!isWarmup && context.VariableValues.IsDefaultOrEmpty)
         {
-            context.Result = ErrorHelper.StateInvalidForCostAnalysis();
+            context.Result = ErrorHelper.StateInvalidForCostAnalysisMissingVariableValues();
             return default;
         }
 
