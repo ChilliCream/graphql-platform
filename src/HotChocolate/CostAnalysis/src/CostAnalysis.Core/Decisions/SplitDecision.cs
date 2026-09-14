@@ -3,7 +3,10 @@ namespace HotChocolate.CostAnalysis;
 /// <summary>
 /// A <see cref="BooleanDecision{T}"/> split on one Boolean variable.
 /// </summary>
-internal sealed class SplitDecision<T>(string variable, BooleanDecision<T> whenFalse, BooleanDecision<T> whenTrue) : BooleanDecision<T>
+internal sealed class SplitDecision<T>(
+    string variable,
+    BooleanDecision<T> whenFalse,
+    BooleanDecision<T> whenTrue) : BooleanDecision<T>
 {
     /// <summary>
     /// Gets the variable this node splits on.

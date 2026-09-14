@@ -34,13 +34,17 @@ public sealed class TupledAlgebra : IAnalysisAlgebra<CostEstimate>
     public CostEstimate Combine(CostEstimate left, CostEstimate right)
         => WithResponseSize(
             _cost.Combine(WithoutResponseSize(left), WithoutResponseSize(right)),
-            _responseSize.Combine(left.MaxResponseSize ?? ResponseSizeFieldRule.Empty, right.MaxResponseSize ?? ResponseSizeFieldRule.Empty));
+            _responseSize.Combine(
+                left.MaxResponseSize ?? ResponseSizeFieldRule.Empty,
+                right.MaxResponseSize ?? ResponseSizeFieldRule.Empty));
 
     /// <inheritdoc />
     public CostEstimate Join(CostEstimate left, CostEstimate right)
         => WithResponseSize(
             _cost.Join(WithoutResponseSize(left), WithoutResponseSize(right)),
-            _responseSize.Join(left.MaxResponseSize ?? ResponseSizeFieldRule.Empty, right.MaxResponseSize ?? ResponseSizeFieldRule.Empty));
+            _responseSize.Join(
+                left.MaxResponseSize ?? ResponseSizeFieldRule.Empty,
+                right.MaxResponseSize ?? ResponseSizeFieldRule.Empty));
 
     /// <inheritdoc />
     public CostEstimate Root(double rootTypeWeight, CostEstimate selection)

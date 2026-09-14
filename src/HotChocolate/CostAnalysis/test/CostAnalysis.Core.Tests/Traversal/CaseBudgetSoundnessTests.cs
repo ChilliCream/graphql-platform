@@ -23,7 +23,11 @@ public class CaseBudgetSoundnessTests
             var (sdl, operationText, variableNames) = GenerateOperation(random);
             var algebra = new TestCostAlgebra();
 
-            var unbudgeted = TraversalTestHelpers.EvaluateOperation(sdl, operationText, algebra, caseBudget: int.MaxValue);
+            var unbudgeted = TraversalTestHelpers.EvaluateOperation(
+                sdl,
+                operationText,
+                algebra,
+                caseBudget: int.MaxValue);
             var budgeted = TraversalTestHelpers.EvaluateOperation(sdl, operationText, algebra, caseBudget: 1);
 
             foreach (var assignment in EveryAssignment(variableNames))
@@ -68,7 +72,9 @@ public class CaseBudgetSoundnessTests
         for (var j = 0; j < variableCount; j++)
         {
             var typeWeight = random.Next(-8, 9).ToString(CultureInfo.InvariantCulture);
-            sdl.Append("type Leaf").Append(j).Append(" @cost(weight: \"").Append(typeWeight).Append("\") { x: Int }").AppendLine();
+            sdl
+                .Append("type Leaf").Append(j).Append(" @cost(weight: \"").Append(typeWeight)
+                .Append("\") { x: Int }").AppendLine();
         }
 
         var interfaceFields = new StringBuilder();
@@ -87,7 +93,9 @@ public class CaseBudgetSoundnessTests
             for (var j = 0; j < variableCount; j++)
             {
                 var weight = random.Next(-8, 9).ToString(CultureInfo.InvariantCulture);
-                fields.Append(" v").Append(j).Append(": Leaf").Append(j).Append(" @cost(weight: \"").Append(weight).Append("\")");
+                fields
+                    .Append(" v").Append(j).Append(": Leaf").Append(j)
+                    .Append(" @cost(weight: \"").Append(weight).Append("\")");
             }
 
             sdl.Append("type T").Append(i).Append(" implements Node {").Append(fields).AppendLine(" }");

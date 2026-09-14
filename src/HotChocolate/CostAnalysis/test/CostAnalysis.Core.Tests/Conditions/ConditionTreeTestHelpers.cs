@@ -46,7 +46,9 @@ internal static class ConditionTreeTestHelpers
             if (node.Branches.Count > 0)
             {
                 line.Append(" branches=");
-                line.Append(string.Join(",", node.Branches.Select(branch => $"{DescribeBranch(branch.Condition)}->{branch.TargetNodeId}")));
+                line.Append(string.Join(
+                    ",",
+                    node.Branches.Select(branch => $"{DescribeBranch(branch.Condition)}->{branch.TargetNodeId}")));
             }
 
             lines.Add(line.ToString());

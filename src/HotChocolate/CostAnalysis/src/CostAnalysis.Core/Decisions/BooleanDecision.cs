@@ -67,7 +67,12 @@ internal abstract class BooleanDecision<T>
     /// <paramref name="budget"/> and collapses both sides with
     /// <paramref name="join"/> into a leaf once the budget is exhausted.
     /// </summary>
-    public static BooleanDecision<T> ZipWith(BooleanDecision<T> left, BooleanDecision<T> right, Func<T, T, T> op, Func<T, T, T> join, CaseBudget budget)
+    public static BooleanDecision<T> ZipWith(
+        BooleanDecision<T> left,
+        BooleanDecision<T> right,
+        Func<T, T, T> op,
+        Func<T, T, T> join,
+        CaseBudget budget)
     {
         if (TryCollapseResolved(left, out var leftValue)
             && TryCollapseResolved(right, out var rightValue))
@@ -84,7 +89,10 @@ internal abstract class BooleanDecision<T>
         var (leftFalse, leftTrue) = Branches(left, pivot);
         var (rightFalse, rightTrue) = Branches(right, pivot);
 
-        return Split(pivot, ZipWith(leftFalse, rightFalse, op, join, budget), ZipWith(leftTrue, rightTrue, op, join, budget));
+        return Split(
+            pivot,
+            ZipWith(leftFalse, rightFalse, op, join, budget),
+            ZipWith(leftTrue, rightTrue, op, join, budget));
     }
 
     private static string PickPivot(BooleanDecision<T> left, BooleanDecision<T> right)
@@ -121,7 +129,9 @@ internal abstract class BooleanDecision<T>
     /// false and true branches, eliminating every split on that variable
     /// anywhere in the subtree rather than only at its top.
     /// </summary>
-    private static (BooleanDecision<T> WhenFalse, BooleanDecision<T> WhenTrue) Branches(BooleanDecision<T> node, string variable)
+    private static (BooleanDecision<T> WhenFalse, BooleanDecision<T> WhenTrue) Branches(
+        BooleanDecision<T> node,
+        string variable)
         => (Restrict(node, variable, false), Restrict(node, variable, true));
 
     private static BooleanDecision<T> Restrict(BooleanDecision<T> node, string variable, bool value)
@@ -129,7 +139,10 @@ internal abstract class BooleanDecision<T>
         {
             LeafDecision<T> => node,
             SplitDecision<T> split when split.Variable == variable => value ? split.WhenTrue : split.WhenFalse,
-            SplitDecision<T> split => Split(split.Variable, Restrict(split.WhenFalse, variable, value), Restrict(split.WhenTrue, variable, value)),
+            SplitDecision<T> split => Split(
+                split.Variable,
+                Restrict(split.WhenFalse, variable, value),
+                Restrict(split.WhenTrue, variable, value)),
             JoinDecision<T> joined => Join(
                 Restrict(joined.Left, variable, value),
                 Restrict(joined.Right, variable, value),

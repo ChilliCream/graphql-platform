@@ -147,7 +147,8 @@ internal static class CostSchemaSnapshotBuilder
 
         foreach (var directiveDefinition in schema.DirectiveDefinitions)
         {
-            var builder = ImmutableArray.CreateBuilder<DirectiveArgumentDefinition>(directiveDefinition.Arguments.Count);
+            var builder = ImmutableArray.CreateBuilder<DirectiveArgumentDefinition>(
+                directiveDefinition.Arguments.Count);
             var metadataBuilder = ImmutableArray.CreateBuilder<InputValueMetadata>(directiveDefinition.Arguments.Count);
 
             foreach (var argument in directiveDefinition.Arguments)
