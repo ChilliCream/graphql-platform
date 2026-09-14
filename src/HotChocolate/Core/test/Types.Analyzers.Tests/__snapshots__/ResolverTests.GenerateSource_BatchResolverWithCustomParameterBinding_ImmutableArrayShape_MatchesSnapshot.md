@@ -143,6 +143,7 @@ namespace TestNamespace
 
             private global::System.Threading.Tasks.ValueTask GetGreeting(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
+                var batchSelectionContext = global::HotChocolate.ResolverContextExtensions.CreateBatchSelectionContext(contexts);
                 var args0 = new global::System.Collections.Generic.List<global::TestNamespace.User>(contexts.Length);
                 var args1_arguments = _binding_GetGreeting_tags_kind is global::HotChocolate.Internal.ArgumentKind.Argument
                     ? new global::System.Collections.Generic.List<string>(contexts.Length)
@@ -157,7 +158,7 @@ namespace TestNamespace
                     }
                 }
                 var args1 = args1_arguments is null
-                    ? _binding_GetGreeting_tags.Execute<global::System.Collections.Immutable.ImmutableArray<string>>(contexts[0])
+                    ? _binding_GetGreeting_tags.Execute<global::System.Collections.Immutable.ImmutableArray<string>>(batchSelectionContext)
                     : global::System.Collections.Immutable.ImmutableArray.ToImmutableArray(args1_arguments!);
 
                 var result = global::TestNamespace.UserType.GetGreeting(args0, args1);

@@ -185,17 +185,18 @@ namespace TestNamespace
 
             private global::System.Threading.Tasks.ValueTask RenameProducts(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
+                var batchSelectionContext = global::HotChocolate.ResolverContextExtensions.CreateBatchSelectionContext(contexts);
                 var args0_arguments = _binding_RenameProducts_id_kind is global::HotChocolate.Internal.ArgumentKind.Argument
                     ? new global::System.Collections.Generic.List<int>(contexts.Length)
                     : null;
                 var args0 = args0_arguments is null
-                    ? _binding_RenameProducts_id.Execute<global::System.Collections.Generic.List<int>>(contexts[0])
+                    ? _binding_RenameProducts_id.Execute<global::System.Collections.Generic.List<int>>(batchSelectionContext)
                     : (global::System.Collections.Generic.List<int>)(object)args0_arguments;
                 var args1_arguments = _binding_RenameProducts_name_kind is global::HotChocolate.Internal.ArgumentKind.Argument
                     ? new global::System.Collections.Generic.List<string>(contexts.Length)
                     : null;
                 var args1 = args1_arguments is null
-                    ? _binding_RenameProducts_name.Execute<global::System.Collections.Generic.List<string>>(contexts[0])
+                    ? _binding_RenameProducts_name.Execute<global::System.Collections.Generic.List<string>>(batchSelectionContext)
                     : (global::System.Collections.Generic.List<string>)(object)args1_arguments;
 
                 for (var i = 0; i < contexts.Length; i++)

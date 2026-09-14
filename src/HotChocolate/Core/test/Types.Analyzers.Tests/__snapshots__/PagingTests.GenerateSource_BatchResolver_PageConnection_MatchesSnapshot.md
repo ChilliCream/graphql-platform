@@ -168,7 +168,7 @@ namespace TestNamespace
                     ? new global::System.Collections.Generic.List<global::TestNamespace.ProductContext>(contexts.Length)
                     : null;
                 var args2 = args2_arguments is null
-                    ? _binding_GetProductsAsync_context.Execute<global::TestNamespace.ProductContext>(contexts[0])
+                    ? _binding_GetProductsAsync_context.Execute<global::TestNamespace.ProductContext>(batchSelectionContext)
                     : (global::TestNamespace.ProductContext)(object)args2_arguments;
                 var args3 = contexts[0].RequestAborted;
 

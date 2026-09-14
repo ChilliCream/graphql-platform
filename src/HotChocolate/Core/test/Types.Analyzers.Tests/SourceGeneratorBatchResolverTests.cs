@@ -1,6 +1,9 @@
 using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
+using HotChocolate.Internal;
 using HotChocolate.Resolvers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
@@ -522,6 +525,65 @@ public class SourceGeneratorBatchResolverTests
     }
 
     [Fact]
+    public async Task BatchResolver_Should_ThrowResultCountMismatch_When_ImmutableArrayResultIsDefault()
+    {
+        // arrange
+        // a default(ImmutableArray<T>) result has no backing array; it must be reported as the
+        // same count mismatch as any other wrong-length result, never a NullReferenceException.
+        var assembly = TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Generic;
+            using System.Collections.Immutable;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<Brand> GetBrands()
+                    => new()
+                    {
+                        new Brand { Id = 1, Name = "Acme" },
+                        new Brand { Id = 2, Name = "Globex" }
+                    };
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static ImmutableArray<string> GetLabel([Parent] List<Brand> brands)
+                    => default;
+            }
+            """,
+            "SourceGeneratorBatchImmutableArrayDefaultRepro");
+
+        // act
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(assembly, "{ brands { name label } }");
+
+        // assert
+        // the mismatch is reported as a field error on the response, not a NullReferenceException.
+        var operationResult = result.ExpectOperationResult();
+        Assert.NotNull(operationResult.Errors);
+        Assert.Contains(
+            operationResult.Errors!,
+            error => error.Exception is InvalidOperationException
+                && error.Exception.Message.Equals(
+                    "A batch resolver must return exactly one result per context. Expected 2 results but got 0.",
+                    StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task BatchResolver_Should_AssignNullToEveryContext_When_ResultIsNull()
     {
         // arrange
@@ -758,6 +820,126 @@ public class SourceGeneratorBatchResolverTests
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task BatchResolver_Should_Bind_CustomParameter_From_Union_SelectionContext_When_SourceGenerated()
+    {
+        // arrange
+        // a custom IParameterBindingFactory (ArgumentKind.Custom) must read IsSelected flags
+        // from the union batch selection context, not contexts[0], so it sees every variable
+        // set's own selection rather than only the first context's.
+        var assembly = TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public sealed class Brand
+            {
+                public int Id { get; set; }
+                public string Name { get; set; } = default!;
+            }
+
+            public sealed class Manager
+            {
+                public string Name { get; set; } = default!;
+                public string Email { get; set; } = default!;
+                public bool BothSelected { get; set; }
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<Brand> GetBrands()
+                    => new() { new Brand { Id = 1, Name = "Acme" } };
+            }
+
+            [ObjectType<Brand>]
+            public static partial class BrandNode
+            {
+                [BatchResolver]
+                public static List<Manager> GetManager(
+                    [Parent] List<Brand> brands,
+                    bool bothSelected)
+                    => brands
+                        .Select(b => new Manager
+                        {
+                            Name = b.Name,
+                            Email = $"{b.Name}@example.com",
+                            BothSelected = bothSelected
+                        })
+                        .ToList();
+            }
+            """,
+            "SourceGeneratorBatchCustomParameterUnionRepro");
+
+        var builder = new ServiceCollection().AddGraphQLServer(disableDefaultSecurity: true);
+
+        // matched by parameter type (bool), so it binds the unattributed "bothSelected"
+        // parameter above; its binding observes only what the union selection context reports.
+        builder.Services.AddSingleton<IParameterExpressionBuilder>(
+            new CustomParameterExpressionBuilder<bool>(
+                ctx => ctx.IsSelected("name") && ctx.IsSelected("email")));
+
+        var addModuleMethod = assembly
+            .GetTypes()
+            .Where(t => t is { IsAbstract: true, IsSealed: true }
+                && t.Namespace == "Microsoft.Extensions.DependencyInjection")
+            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            .Single(m =>
+            {
+                var p = m.GetParameters();
+                return m.Name.StartsWith("Add", StringComparison.Ordinal)
+                    && m.ReturnType == typeof(IRequestExecutorBuilder)
+                    && p.Length == 1
+                    && p[0].ParameterType == typeof(IRequestExecutorBuilder);
+            });
+
+        addModuleMethod.Invoke(null, [builder]);
+
+        var executor = await builder.BuildRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        // one brand, two variable sets sharing the same "manager" selection occurrence: set 0
+        // includes only "name", set 1 includes only "email". Both land in a single batch call.
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    query($wantsName: Boolean!, $wantsEmail: Boolean!) {
+                        brands {
+                            manager {
+                                name @include(if: $wantsName)
+                                email @include(if: $wantsEmail)
+                                bothSelected
+                            }
+                        }
+                    }
+                    """)
+                .SetVariableValues(new List<IReadOnlyDictionary<string, object?>>
+                {
+                    new Dictionary<string, object?> { ["wantsName"] = true, ["wantsEmail"] = false },
+                    new Dictionary<string, object?> { ["wantsName"] = false, ["wantsEmail"] = true }
+                })
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        // both variable sets must observe "bothSelected: true", proving the custom binding saw
+        // the union of both sets' selections rather than only its own set's context.
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        Assert.Equal(2, batch.Results.Count);
+        new Snapshot()
+            .Add(batch.Results[0], "Set 0 (wantsName)")
+            .Add(batch.Results[1], "Set 1 (wantsEmail)")
+            .MatchMarkdownSnapshot();
     }
 
     private static Assembly CompileIsSelectedRepro(string assemblyName)

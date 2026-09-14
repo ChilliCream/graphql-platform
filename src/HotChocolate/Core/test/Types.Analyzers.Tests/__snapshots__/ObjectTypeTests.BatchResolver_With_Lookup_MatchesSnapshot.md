@@ -163,11 +163,12 @@ namespace TestNamespace
 
             private global::System.Threading.Tasks.ValueTask GetUserById(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
+                var batchSelectionContext = global::HotChocolate.ResolverContextExtensions.CreateBatchSelectionContext(contexts);
                 var args0_arguments = _binding_GetUserById_id_kind is global::HotChocolate.Internal.ArgumentKind.Argument
                     ? new global::System.Collections.Generic.List<int>(contexts.Length)
                     : null;
                 var args0 = args0_arguments is null
-                    ? _binding_GetUserById_id.Execute<global::System.Collections.Generic.List<int>>(contexts[0])
+                    ? _binding_GetUserById_id.Execute<global::System.Collections.Generic.List<int>>(batchSelectionContext)
                     : (global::System.Collections.Generic.List<int>)(object)args0_arguments;
 
                 for (var i = 0; i < contexts.Length; i++)

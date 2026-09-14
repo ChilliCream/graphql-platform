@@ -143,12 +143,13 @@ namespace TestNamespace
 
             private global::System.Threading.Tasks.ValueTask GetGreeting(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
+                var batchSelectionContext = global::HotChocolate.ResolverContextExtensions.CreateBatchSelectionContext(contexts);
                 var args0 = new global::System.Collections.Generic.List<global::TestNamespace.User>(contexts.Length);
                 var args1_arguments = _binding_GetGreeting_prefix_kind is global::HotChocolate.Internal.ArgumentKind.Argument
                     ? new global::System.Collections.Generic.List<string>(contexts.Length)
                     : null;
                 var args1 = args1_arguments is null
-                    ? _binding_GetGreeting_prefix.Execute<global::System.Collections.Generic.List<string>>(contexts[0])
+                    ? _binding_GetGreeting_prefix.Execute<global::System.Collections.Generic.List<string>>(batchSelectionContext)
                     : (global::System.Collections.Generic.List<string>)(object)args1_arguments;
 
                 for (var i = 0; i < contexts.Length; i++)

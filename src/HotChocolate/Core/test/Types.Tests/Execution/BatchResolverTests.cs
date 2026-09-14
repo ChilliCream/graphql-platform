@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Text.Json.Nodes;
 using GreenDonut;
 using HotChocolate.Resolvers;
@@ -928,6 +929,51 @@ public class BatchResolverTests
               }
             }
             """);
+    }
+
+    [Fact]
+    public async Task ResolveBatchWith_Should_ReportResultCountMismatch_When_ImmutableArrayResultIsDefault()
+    {
+        // arrange
+        // a default(ImmutableArray<T>) result has no backing array; it must be reported as the
+        // same count mismatch as any other wrong-length result, never a NullReferenceException.
+        var result =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddQueryType(d =>
+                {
+                    d.Name("Query");
+                    d.Field("users")
+                        .Type<ListType<ObjectType<User>>>()
+                        .Resolve(new List<User> { new(1, "Alice"), new(2, "Bob") });
+                })
+                .AddObjectType<User>(d =>
+                {
+                    d.Field(u => u.Name);
+                    d.Field("greeting")
+                        .ResolveBatchWith<UserExtensionsWithDefaultImmutableArrayResult>(
+                            t => t.GetGreeting(default!));
+                })
+                .ExecuteRequestAsync(
+                    """
+                    {
+                        users {
+                            name
+                            greeting
+                        }
+                    }
+                    """,
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = Assert.IsType<OperationResult>(result);
+        Assert.NotNull(operationResult.Errors);
+        Assert.Contains(
+            operationResult.Errors!,
+            error => error.Exception is InvalidOperationException
+                && error.Exception.Message.Equals(
+                    string.Format(HotChocolate.Properties.TypeResources.BatchResolver_ResultCountMismatch, 2, 0),
+                    StringComparison.Ordinal));
     }
 
     [Fact]
@@ -2501,5 +2547,13 @@ public class BatchResolverTests
 
             return result;
         }
+    }
+
+    [ExtendObjectType<User>]
+    public class UserExtensionsWithDefaultImmutableArrayResult
+    {
+        [BatchResolver]
+        public ImmutableArray<string> GetGreeting([Parent] List<User> users)
+            => default;
     }
 }
