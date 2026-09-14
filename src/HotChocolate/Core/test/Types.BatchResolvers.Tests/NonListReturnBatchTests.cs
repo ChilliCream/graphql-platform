@@ -1,3 +1,5 @@
+using HotChocolate.Resolvers;
+
 namespace HotChocolate.Types.BatchResolvers;
 
 public sealed partial class NonListReturnBatchTests : BatchScenarioTests
@@ -17,8 +19,15 @@ public sealed partial class NonListReturnBatchTests : BatchScenarioTests
         var exception = await ExpectSchemaErrorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // assert
+        var declaringType = style switch
+        {
+            DeclarationStyle.Attribute => typeof(NonListReturnUserAttributeExtension),
+            DeclarationStyle.SourceGenerated => typeof(NonListReturnUserNode),
+            DeclarationStyle.Fluent => typeof(FluentNonListReturnResolvers),
+            _ => throw ThrowHelper.UnknownDeclarationStyle(style)
+        };
+        var expected = BatchResolverErrors.ReturnTypeMustBeList(declaringType, "GetGreeting").Errors[0].Message;
         var error = Assert.Single(exception.Errors);
-        Assert.Contains("must return a list type", error.Message);
-        Assert.Contains("GetGreeting", error.Message);
+        Assert.Contains(expected, error.Message);
     }
 }
