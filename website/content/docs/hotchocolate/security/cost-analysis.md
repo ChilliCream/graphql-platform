@@ -188,7 +188,7 @@ Send the `GraphQL-Cost` HTTP request header to inspect operation cost:
 | `report`     | Yes       | Evaluated cost for the supplied variables.                                    |
 | `validate`   | No        | Evaluated cost with variables, or the static bound when variables are absent. |
 
-`validate` returns an extensions-only response with HTTP status `200`, including when the reported values exceed configured limits. A variable batch reports the cost for each variable set on its corresponding result.
+`validate` returns an extensions-only response with HTTP status `200`, including when the reported values exceed configured limits. A variable batch returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in `report` mode also includes one `operationCost` per result.
 
 The response contains the values used by enforcement:
 
@@ -266,7 +266,11 @@ The HTTP status depends on the accepted response media type:
 | `application/graphql-response+json` | `400`            |
 | `application/json`                  | `200`            |
 
-In `report` mode, a rejected response also contains `extensions.operationCost` with the evaluated values.
+In `report` mode, a rejected response also contains `extensions.operationCost` with the evaluated values. For a rejected variable batch, the single rejection result contains one `operationCost`: its `fieldCost` and `typeCost` are the sums across all variable sets, and it contains `maxResponseSize` only for a response-size rejection, using the first violating set's value.
+
+One request is one invocation of the request pipeline, and a variable batch is one request. Cost enforcement sums the field cost and type cost across all variable sets and compares those sums with `MaxFieldCost` and `MaxTypeCost`. If either sum exceeds its limit, the whole request is rejected before any variable set executes, with one `HC0047` result and the HTTP status shown above. Maximum response size remains enforced per variable set. `MaxResponseSize` is checked per variable set, not summed. If any set exceeds `MaxResponseSize`, the whole request is likewise rejected before any set executes, with one `HC0047` result. When multiple sets violate this limit, the first violating set determines the reported `maxResponseSize`.
+
+Summing the costs prevents a client from splitting an expensive workload among variable sets that each stay under the limit. Request batching is an array of independent requests in one HTTP request. Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
 
 # Options Reference
 
