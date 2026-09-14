@@ -93,9 +93,14 @@ internal sealed class CostAnalyzerMiddleware(
                             return;
                         }
                     }
-                    else if (CreateRejectedResults(requestOptions, costMetrics) is { } rejectedResults)
+                    else if (TryCreateVariableBatchEnforcementError(
+                        requestOptions,
+                        costMetrics,
+                        (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report,
+                        out var error))
                     {
-                        context.Features.Set(new VariableBatchExecutionFeature(rejectedResults));
+                        context.Result = error;
+                        return;
                     }
                 }
             }
@@ -163,31 +168,67 @@ internal sealed class CostAnalyzerMiddleware(
         return builder.MoveToImmutable();
     }
 
-    private static ImmutableArray<IExecutionResult?>? CreateRejectedResults(
+    private static bool TryCreateVariableBatchEnforcementError(
         RequestCostOptions requestOptions,
-        ImmutableArray<CostMetrics> costMetrics)
+        ImmutableArray<CostMetrics> costMetrics,
+        bool reportMetrics,
+        [NotNullWhen(true)]
+        out IExecutionResult? error)
     {
-        var builder = ImmutableArray.CreateBuilder<IExecutionResult?>(costMetrics.Length);
-        var hasRejectedResult = false;
+        // A request is one invocation of the request pipeline. A variable batch is one request,
+        // so its allowed field and type cost is the sum over every variable set.
+        var fieldCost = 0d;
+        var typeCost = 0d;
 
-        for (var i = 0; i < costMetrics.Length; i++)
+        foreach (var current in costMetrics)
         {
-            if (TryCreateEnforcementError(
-                requestOptions,
-                costMetrics[i],
-                reportMetrics: false,
-                out var error))
+            fieldCost += current.FieldCost;
+            typeCost += current.TypeCost;
+        }
+
+        var requestCostMetrics = new CostMetrics
+        {
+            FieldCost = fieldCost,
+            TypeCost = typeCost
+        };
+
+        if (requestCostMetrics.FieldCost > requestOptions.MaxFieldCost)
+        {
+            error = ErrorHelper.MaxFieldCostReached(
+                requestCostMetrics,
+                requestOptions.MaxFieldCost,
+                reportMetrics);
+            return true;
+        }
+
+        if (requestCostMetrics.TypeCost > requestOptions.MaxTypeCost)
+        {
+            error = ErrorHelper.MaxTypeCostReached(
+                requestCostMetrics,
+                requestOptions.MaxTypeCost,
+                reportMetrics);
+            return true;
+        }
+
+        if (requestOptions.MaxResponseSize is { } maxResponseSize)
+        {
+            foreach (var current in costMetrics)
             {
-                builder.Add(error.SetVariableIndex(i));
-                hasRejectedResult = true;
-            }
-            else
-            {
-                builder.Add(null);
+                if (current.MaxResponseSize is { } responseSize
+                    && responseSize > maxResponseSize)
+                {
+                    error = ErrorHelper.MaxResponseSizeReached(
+                        requestCostMetrics with { MaxResponseSize = responseSize },
+                        responseSize,
+                        maxResponseSize,
+                        reportMetrics);
+                    return true;
+                }
             }
         }
 
-        return hasRejectedResult ? builder.MoveToImmutable() : null;
+        error = null;
+        return false;
     }
 
     private static bool TryCreateEnforcementError(
