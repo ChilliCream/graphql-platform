@@ -354,6 +354,24 @@ public class OperationCompilerTests : FusionTestBase
         Assert.False(ValueCompletion.TryResolveType(default, interfaceType, out _));
     }
 
+    [Fact]
+    public void Compile_Should_KeepTheShortHash_When_ItHoldsANonNameCharacter()
+    {
+        // arrange
+        var schema = CreateSchema();
+        var operationDefinition = Utf8GraphQLParser.Parse("{ product { id } }")
+            .Definitions
+            .OfType<OperationDefinitionNode>()
+            .First();
+        var compiler = new OperationCompiler(schema, _fieldMapPool);
+
+        // act
+        var operation = compiler.Compile("1", "0123456789abcdef", "BnjEJe8-", operationDefinition);
+
+        // assert
+        Assert.Equal("BnjEJe8-", operation.ShortHash);
+    }
+
     public static FusionSchemaDefinition CreateSchema()
     {
         const string sourceText =
