@@ -13,11 +13,7 @@ public sealed partial class PerParentMiddlewareBatchTests : BatchScenarioTests
     [BatchMatrix]
     public async Task Use_Should_Fail_Schema_Build_When_FieldIsBatchResolved(DeclarationStyle style)
     {
-        // arrange & act
-        // per-parent field middleware (a plain .Use(...) pipeline step) has no counterpart in the
-        // batch pipeline, so declaring it on a batch-resolved field is a schema error in every
-        // declaration style, including source-generated: the UseWrap attribute here carries no
-        // well-known middleware key, so it raises no compile-time HC0138 diagnostic.
+        // arrange & act, per-parent middleware has no batch-pipeline counterpart in any declaration style
         var exception = await ExpectSchemaErrorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // assert
