@@ -34,6 +34,10 @@ Stop the container with `website/scripts/frontend-container.sh down`. Add
 `--purge` to also remove its `node_modules`/`.next` volumes, or `--all` to
 stop every checkout's container.
 
+Yarn's package cache lives in `hc-0-frontend-yarn-cache`, a volume shared by
+every checkout's container. `down --purge` keeps it. Remove it with
+`docker volume rm hc-0-frontend-yarn-cache`.
+
 The container mounts the checkout's `.git` and, when present, `.claude`
 read-only, but it can still modify website sources because Prettier and
 ESLint need write access, so review diffs before committing.

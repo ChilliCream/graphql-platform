@@ -33,6 +33,10 @@ CONTAINER_NAME="hc-0-frontend-${SLUG}"
 NODE_MODULES_VOLUME="${CONTAINER_NAME}-node_modules"
 NEXT_VOLUME="${CONTAINER_NAME}-next"
 
+# Yarn's global package cache is content-addressed, so it is safe to share
+# across every checkout: one volume, fixed name, never per-checkout.
+YARN_CACHE_VOLUME="hc-0-frontend-yarn-cache"
+
 # Fixed mount point inside the container. It does not vary by checkout: each
 # checkout has its own container under its own name, so the path only needs
 # to be unique per-container, not per-checkout.
@@ -186,6 +190,7 @@ run_container() {
     -v "${CHECKOUT}/.git:${CONTAINER_WORKSPACE}/.git:ro"
     -v "${NODE_MODULES_VOLUME}:${CONTAINER_WORKSPACE}/website/node_modules"
     -v "${NEXT_VOLUME}:${CONTAINER_WORKSPACE}/website/.next"
+    -v "${YARN_CACHE_VOLUME}:/home/node/.yarn/berry/cache"
   )
   if [ -e "${CHECKOUT}/.claude" ]; then
     mount_flags+=(-v "${CHECKOUT}/.claude:${CONTAINER_WORKSPACE}/.claude:ro")
@@ -242,10 +247,19 @@ cmd_up() {
       run_container -p 127.0.0.1:3031:3001 -p 127.0.0.1:6006:6006
     fi
 
-    echo "==> Fixing ownership of the node_modules and .next volumes"
+    echo "==> Fixing ownership of the node_modules, .next, and yarn cache volumes"
+    # Mounting a volume below /home/node/.yarn/berry/cache creates its
+    # parent directories too, /home/node/.yarn and /home/node/.yarn/berry,
+    # which Docker materializes as root:root since neither exists in the
+    # image. Yarn also writes a sibling of cache under berry/ (its
+    # immutable-cache index), so both parents need to be node-owned too,
+    # not just the cache volume's own root.
     docker exec --user root "${CONTAINER_NAME}" chown node:node \
       "${CONTAINER_WORKSPACE}/website/node_modules" \
-      "${CONTAINER_WORKSPACE}/website/.next"
+      "${CONTAINER_WORKSPACE}/website/.next" \
+      /home/node/.yarn \
+      /home/node/.yarn/berry \
+      /home/node/.yarn/berry/cache
   fi
 
   echo "==> Running yarn install --immutable inside the container"
@@ -333,14 +347,34 @@ cmd_exec() {
 
 cmd_status() {
   require_docker
-  docker ps -a --filter "name=^/hc-0-frontend-"
+  # hc-0-frontend (no trailing dash) is the retired single-container name
+  # from before per-checkout containers (hc-0-rou); included as a one-time
+  # migration so a leftover from that version is still visible.
+  docker ps -a --filter "name=^/hc-0-frontend-" --filter "name=^/hc-0-frontend$"
   echo
   echo "Volumes for ${CHECKOUT}:"
   docker volume ls --filter "name=${NODE_MODULES_VOLUME}" --filter "name=${NEXT_VOLUME}"
 }
 
+# Removes one volume if it exists, leaving a volume that was never created
+# (already purged, or never populated) as a no-op rather than an error.
+# A `docker volume rm` that fails on a volume which does exist (still
+# attached to a container, say) is left to fail loudly: its stderr reaches
+# the caller and `set -e` stops the script with that non-zero exit status.
+purge_volume() {
+  local vol="$1"
+  if [ -n "$(docker volume ls -q --filter "name=^${vol}$")" ]; then
+    docker volume rm "${vol}"
+  fi
+}
+
 cmd_down() {
   require_docker
+
+  if [ "$#" -gt 1 ]; then
+    echo "error: 'down' takes at most one argument (--purge or --all)" >&2
+    exit 2
+  fi
 
   case "${1:-}" in
     "")
@@ -349,12 +383,16 @@ cmd_down() {
       ;;
     --purge)
       docker rm -f "${CONTAINER_NAME}" >/dev/null 2>&1 || true
-      docker volume rm -f "${NODE_MODULES_VOLUME}" "${NEXT_VOLUME}" >/dev/null 2>&1 || true
+      purge_volume "${NODE_MODULES_VOLUME}"
+      purge_volume "${NEXT_VOLUME}"
       echo "==> ${CONTAINER_NAME} stopped and removed, along with its node_modules and .next volumes"
       ;;
     --all)
       local name
-      for name in $(docker ps -a --filter "name=^/hc-0-frontend-" --format '{{.Names}}'); do
+      # hc-0-frontend (no trailing dash) is the retired single-container
+      # name from before per-checkout containers (hc-0-rou); included as a
+      # one-time migration so a leftover from that version is removed too.
+      for name in $(docker ps -a --filter "name=^/hc-0-frontend-" --filter "name=^/hc-0-frontend$" --format '{{.Names}}'); do
         docker rm -f "${name}" >/dev/null 2>&1 || true
         echo "==> ${name} stopped and removed"
       done
