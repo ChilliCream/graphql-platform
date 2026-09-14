@@ -51,6 +51,13 @@ internal static class ErrorHelper
                 .SetCode(ErrorCodes.Execution.CostStateInvalid)
                 .Build());
 
+    public static OperationResult StateInvalidForOperationPlanning()
+        => RequestError(
+            ErrorBuilder.New()
+                .SetMessage("The operation planner requires a normalized operation document.")
+                .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
+                .Build());
+
     public static OperationResult MaxFieldCostReached(
         CostEstimate estimate,
         double maxFieldCost)

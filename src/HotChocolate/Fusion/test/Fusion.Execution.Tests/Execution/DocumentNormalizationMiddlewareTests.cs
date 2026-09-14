@@ -1,5 +1,6 @@
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -182,6 +183,40 @@ public class DocumentNormalizationMiddlewareTests : FusionTestBase
             query B {
               bar
             }
+            """);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_ThrowCorrectMessage_When_DocumentIsMissing()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        var builder = services.AddGraphQLGateway();
+        FusionSetupUtilities.ClearPipeline(builder);
+
+        var executor = await builder
+            .UseDocumentNormalization()
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      foo: String
+                    }
+                    """))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            async () => await executor.ExecuteAsync(
+                "{ foo }",
+                TestContext.Current.CancellationToken));
+
+        // assert
+        exception.Message.MatchInlineSnapshot(
+            """
+            The operation document is not available in the context.
             """);
     }
 }
