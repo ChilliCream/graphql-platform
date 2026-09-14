@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.Pagination;
@@ -16,7 +15,7 @@ namespace HotChocolate.Types.Pagination;
 public class PagingHelperTests
 {
     [Fact]
-    public async Task GetPagingBatchPartitionKey_Should_Not_Read_Skip_Argument()
+    public async Task GetPagingBatchPartitionKey_Should_Not_Read_SkipArgument_When_FieldUsesCursorPaging()
     {
         // arrange
         ulong? partitionKey = null;
@@ -44,7 +43,7 @@ public class PagingHelperTests
     }
 
     [Fact]
-    public async Task GetOffsetPagingBatchPartitionKey_Should_Not_Read_First_Argument()
+    public async Task GetOffsetPagingBatchPartitionKey_Should_Not_Read_FirstArgument_When_FieldUsesOffsetPaging()
     {
         // arrange
         ulong? partitionKey = null;
