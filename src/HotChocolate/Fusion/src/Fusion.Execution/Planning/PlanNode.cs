@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Types.Directives;
 using HotChocolate.Language;
 
@@ -129,11 +130,13 @@ internal sealed record PlanNode
 
     public string CreateOperationName(int stepId)
     {
+        var shortHash = OperationShortHash.ToNameSafe(ShortHash);
+
         if (OperationDefinition.Name is null)
         {
-            return $"Op_{ShortHash}_{stepId}";
+            return $"Op_{shortHash}_{stepId}";
         }
 
-        return $"{OperationDefinition.Name.Value}_{ShortHash}_{stepId}";
+        return $"{OperationDefinition.Name.Value}_{shortHash}_{stepId}";
     }
 }

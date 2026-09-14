@@ -148,18 +148,37 @@ public sealed class AliasBatchedRequestBodyTests
         Assert.EndsWith("""},"onError":"NULL"}""", json, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void WriteTo_Should_ReplaceTheCharacter_When_TheShortHashHoldsANonNameCharacter()
+    {
+        // arrange
+        using var memory = new ChunkedArrayWriter();
+        using var document = ParseLookup(Lookup);
+        var items = new[] { CreateItem(memory, document, """{"__fusion_1_id":"1"}""") };
+
+        // act
+        var json = Write(items, [], operationShortHash: "0123456-");
+
+        // assert
+        Assert.StartsWith(
+            "query Op_0123456__Batch_0123456789abcdef(",
+            ReadQuery(json),
+            StringComparison.Ordinal);
+    }
+
     private static string Write(
         AliasBatchItem[] items,
         List<Utf8VariableDefinitionNode> sharedVariables,
         ErrorHandlingMode? onError = null,
-        string? operationName = null)
+        string? operationName = null,
+        string operationShortHash = OperationShortHash)
     {
         var body = new AliasBatchedRequestBody(
             items,
             items.Length,
             sharedVariables,
             operationName,
-            OperationShortHash,
+            operationShortHash,
             CompositionHash,
             onError);
         using var buffer = new PooledArrayWriter();
