@@ -1,7 +1,4 @@
 using System.Linq.Expressions;
-#if NET11_0_OR_GREATER
-using Microsoft.Extensions.DependencyInjection;
-#endif
 
 namespace HotChocolate.Utilities;
 
