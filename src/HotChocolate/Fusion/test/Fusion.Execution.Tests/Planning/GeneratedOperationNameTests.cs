@@ -21,6 +21,32 @@ public sealed class GeneratedOperationNameTests : FusionTestBase
         Assert.Equal("Op_abcdef12_1", GetOperationName(plan));
     }
 
+    [Fact]
+    public void CreatePlan_Should_ReplaceTheCharacter_When_TheShortHashHoldsANonNameCharacter()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        // act
+        var plan = CreatePlan(schema, "BnjEJe8-");
+
+        // assert
+        Assert.Equal("Op_BnjEJe8__1", GetOperationName(plan));
+    }
+
+    [Fact]
+    public void CreatePlan_Should_ReplaceTheCharacter_When_TheOperationShortHashIsRead()
+    {
+        // arrange
+        var schema = CreateCompositeSchema();
+
+        // act
+        var plan = CreatePlan(schema, "BnjEJe8-");
+
+        // assert
+        Assert.Equal("BnjEJe8_", plan.Operation.ShortHash);
+    }
+
     private static string GetOperationName(OperationPlan plan)
         => plan.AllNodes.OfType<OperationExecutionNode>().First().Operation.Name;
 

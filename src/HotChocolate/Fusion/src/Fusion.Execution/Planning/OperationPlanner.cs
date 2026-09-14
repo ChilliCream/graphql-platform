@@ -79,6 +79,9 @@ public sealed partial class OperationPlanner
         ArgumentException.ThrowIfNullOrEmpty(shortHash);
         ArgumentNullException.ThrowIfNull(operationDefinition);
 
+        // The generated source schema operation names embed the short hash verbatim.
+        shortHash = OperationShortHash.ToNameSafe(shortHash);
+
         // We make sire that the cancellation token is observed right at the beginning of the method,
         // so that if the caller passed in an already canceled token we don't do any unnecessary work.
         cancellationToken.ThrowIfCancellationRequested();
