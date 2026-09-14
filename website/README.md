@@ -7,14 +7,29 @@ The ChilliCream website and documentation, built on Next.js (MDX-based docs).
 > and file structure may differ. Read the relevant guide in
 > `node_modules/next/dist/docs/` before writing app/build code.
 
-## Development
+## Development environment
 
-Use `yarn` (not `npm`):
+Website dependencies and tooling run only inside the frontend container.
+`yarn install` on the host is blocked by design. The Docker daemon (OrbStack
+on macOS) must be running.
 
 ```bash
-yarn
-yarn dev
+website/scripts/frontend-container.sh up
+website/scripts/frontend-container.sh dev
 ```
+
+The dev server is at http://localhost:3031. VS Code users can instead open
+the `ChilliCream Frontend` devcontainer, which uses the same image.
+
+Other commands run through the wrapper the same way, for example:
+
+```bash
+website/scripts/frontend-container.sh exec -- yarn lint
+website/scripts/frontend-container.sh exec -- yarn format
+website/scripts/frontend-container.sh exec -- yarn format:check
+```
+
+Stop the container with `website/scripts/frontend-container.sh down`.
 
 ## Authoring Markdown Content
 
