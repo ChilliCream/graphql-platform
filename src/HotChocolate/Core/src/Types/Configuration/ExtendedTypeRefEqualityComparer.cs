@@ -19,9 +19,7 @@ internal sealed class ExtendedTypeRefEqualityComparer : IEqualityComparer<Extend
             return false;
         }
 
-        if (x.Context != y.Context
-            && x.Context != TypeContext.None
-            && y.Context != TypeContext.None)
+        if (x.Context != y.Context)
         {
             return false;
         }
@@ -59,10 +57,11 @@ internal sealed class ExtendedTypeRefEqualityComparer : IEqualityComparer<Extend
         unchecked
         {
             var hashCode = GetHashCode(obj.Type);
+            hashCode = (hashCode * 397) ^ obj.Context.GetHashCode();
 
             if (obj.Scope is not null)
             {
-                hashCode ^= obj.GetHashCode() * 397;
+                hashCode = (hashCode * 397) ^ StringComparer.Ordinal.GetHashCode(obj.Scope);
             }
 
             return hashCode;
