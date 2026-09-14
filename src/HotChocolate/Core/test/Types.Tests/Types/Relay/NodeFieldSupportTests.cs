@@ -36,8 +36,6 @@ public class NodeFieldSupportTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
-                // This test schema relies on the former implicit list-size fallback
-                // (R-DEFAULT-LIST-SIZE).
                 .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo>()
@@ -63,8 +61,6 @@ public class NodeFieldSupportTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
-                // This test schema relies on the former implicit list-size fallback
-                // (R-DEFAULT-LIST-SIZE).
                 .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddGlobalObjectIdentification(o => o.MaxAllowedNodeBatchSize = 1)
                 .AddQueryType<Foo>()
@@ -90,8 +86,6 @@ public class NodeFieldSupportTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
-                // This test schema relies on the former implicit list-size fallback
-                // (R-DEFAULT-LIST-SIZE).
                 .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddGlobalObjectIdentification()
                 .AddQueryType<Foo>()

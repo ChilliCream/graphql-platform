@@ -25,8 +25,6 @@ public sealed class IntegrationTests(PostgreSqlResource resource)
         var executor = await new ServiceCollection()
             .AddScoped(_ => new BookContext(connectionString))
             .AddGraphQLServer()
-            // No @listSize on this schema, so pin the assumed list size ahead of
-            // cost enforcement going live (R-DEFAULT-LIST-SIZE).
             .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddQueryType()
             .AddTypeExtension(typeof(Query))
