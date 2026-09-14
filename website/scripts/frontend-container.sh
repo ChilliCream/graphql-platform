@@ -8,7 +8,6 @@
 #   website/scripts/frontend-container.sh playwright-setup
 #   website/scripts/frontend-container.sh dev
 #   website/scripts/frontend-container.sh exec -- <cmd...>
-#   website/scripts/frontend-container.sh logs
 #   website/scripts/frontend-container.sh status
 #   website/scripts/frontend-container.sh down
 set -euo pipefail
@@ -35,7 +34,6 @@ Commands:
   exec -- <cmd...>      Run an arbitrary command inside the container, in
                         the caller's current directory translated into the
                         container mount.
-  logs                  Follow the container's logs.
   status                Show the container's docker ps entry.
   down                  Stop and remove the container.
 EOF
@@ -98,12 +96,29 @@ container_exists() {
   [ -n "$(docker ps -a --filter "name=^/${CONTAINER_NAME}$" -q)" ]
 }
 
+# Compares the running container's bind mount for the container_root()
+# destination against this checkout's repo_root(). A container started from
+# another clone (or a decoy) mounts a different source at that destination;
+# reusing it silently would serve the wrong tree, so this exits 1 instead of
+# ever replacing a running container automatically.
+check_mount() {
+  local root workspace actual
+  root="$(repo_root)"
+  workspace="$(container_root)"
+  actual="$(docker inspect -f '{{range .Mounts}}{{.Destination}} {{.Source}}{{"\n"}}{{end}}' "${CONTAINER_NAME}" | awk -v dest="${workspace}" '$1 == dest { print $2; exit }')"
+  if [ "${actual}" != "${root}" ]; then
+    echo "error: ${CONTAINER_NAME} is mounted from '${actual:-<none>}' at ${workspace}, not this checkout's repo root '${root}'. Run \`frontend-container.sh down\` first." >&2
+    exit 1
+  fi
+}
+
 ensure_running() {
   require_docker
   if ! container_running; then
     echo "error: ${CONTAINER_NAME} is not running. Run \`frontend-container.sh up\` first." >&2
     exit 1
   fi
+  check_mount
 }
 
 cmd_up() {
@@ -118,6 +133,7 @@ cmd_up() {
   docker build -t "${IMAGE_TAG}" -f "${DEVCONTAINER_DIR}/dockerfile" "${DEVCONTAINER_DIR}"
 
   if container_running; then
+    check_mount
     echo "==> ${CONTAINER_NAME} is already running, reusing it"
   else
     if container_exists; then
@@ -169,6 +185,20 @@ stop_dev() {
 }
 
 cmd_dev() {
+  # spawned/child are set only once the background `docker exec` below is
+  # actually started. The traps are installed here, before that spawn (and
+  # before the "already running" check can exit early), so a signal in that
+  # gap has nothing to clean up: the guard keeps the early exit path from
+  # killing a dev server this invocation did not start.
+  local spawned=0
+  local child=0
+  trap '
+    if [ "${spawned}" -eq 1 ]; then
+      kill "${child}" 2>/dev/null || true
+      stop_dev
+    fi
+  ' INT TERM EXIT
+
   ensure_running
 
   if docker exec "${CONTAINER_NAME}" pgrep -f 'next dev' >/dev/null 2>&1; then
@@ -181,10 +211,8 @@ cmd_dev() {
   compute_tty_flags
   local tty_flags=("${TTY_FLAGS[@]}")
   docker exec "${tty_flags[@]}" -w "$(container_website_dir)" "${CONTAINER_NAME}" yarn dev &
-  local child=$!
-
-  trap 'kill "${child}" 2>/dev/null || true; stop_dev' INT TERM
-  trap stop_dev EXIT
+  child=$!
+  spawned=1
 
   wait "${child}"
 }
@@ -202,11 +230,6 @@ cmd_exec() {
   local container_cwd
   container_cwd="$(translate_cwd "$(pwd)")"
   docker exec "${tty_flags[@]}" -w "${container_cwd}" "${CONTAINER_NAME}" "$@"
-}
-
-cmd_logs() {
-  require_docker
-  docker logs -f "${CONTAINER_NAME}"
 }
 
 cmd_status() {
@@ -239,7 +262,6 @@ main() {
       fi
       cmd_exec "$@"
       ;;
-    logs) cmd_logs "$@" ;;
     status) cmd_status "$@" ;;
     down) cmd_down "$@" ;;
     -h | --help | help)
