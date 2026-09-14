@@ -766,7 +766,7 @@ public class BatchResolverMiddlewareTests
     public async Task BatchResolver_Should_Dispatch_Surviving_Contexts_When_SharedParentInvalidatedBySibling()
     {
         // arrange
-        // One partition fault collapses data to null while the surviving siblings still dispatch under the flagged root object.
+        // Surviving siblings dispatch and report errors when a sibling's non-null propagation flags the parent.
         var invocationCount = 0;
 
         var resultTask =
