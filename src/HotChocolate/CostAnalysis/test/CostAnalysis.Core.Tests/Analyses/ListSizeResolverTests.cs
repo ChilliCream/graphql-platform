@@ -687,7 +687,7 @@ public class ListSizeResolverTests
     }
 
     [Fact]
-    public void TryResolveSizedFieldSize_Should_UseAssumedSize_When_SlicingArgumentIsVariableBound_And_StaticPathHasAssumedSize()
+    public void TryResolveSizedFieldSize_Should_UseAssumedSize_When_VariableBound_And_PathHasAssumedSize()
     {
         // arrange: static path, no coercion available; a variable-bound slicing argument reads assumedSize first
         var metadata = CreateMetadata(slicingArguments: ["first"], assumedSize: 40.0, sizedFields: ["items"]);
@@ -706,7 +706,7 @@ public class ListSizeResolverTests
     }
 
     [Fact]
-    public void TryResolveSizedFieldSize_Should_UseDefaultListSize_When_SlicingArgumentIsVariableBound_And_StaticPathHasNoAssumedSize()
+    public void TryResolveSizedFieldSize_Should_UseDefaultListSize_When_VariableBound_And_NoAssumedSize()
     {
         // arrange: spec.md:158 - a variable-bound slicing argument on the static path reads assumedSize then
         // DefaultListSize, never slicingArgumentDefaultValue, same as Resolve
