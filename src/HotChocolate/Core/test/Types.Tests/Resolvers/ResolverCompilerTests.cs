@@ -9,7 +9,6 @@ using HotChocolate.Language;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using Moq;
 using EmptyServiceProvider = HotChocolate.Utilities.EmptyServiceProvider;
 
