@@ -33,6 +33,9 @@
 | CursorPagingBatchTests | UsePaging_Should_Map_PagingArguments_PerSelection_When_ParameterIsPagingArguments | Attribute | Declared |
 | CursorPagingBatchTests | UsePaging_Should_Map_PagingArguments_PerSelection_When_ParameterIsPagingArguments | SourceGenerated | Declared |
 | CursorPagingBatchTests | UsePaging_Should_Map_PagingArguments_PerSelection_When_ParameterIsPagingArguments | Fluent | Declared |
+| CursorPagingBatchTests | UsePaging_Should_Never_Split_When_IncludeTotalCountIsFalse | Attribute | NotApplicable(IncludeTotalCount=false omits totalCount from the schema (ConnectionType.cs:200); no selection to split) |
+| CursorPagingBatchTests | UsePaging_Should_Never_Split_When_IncludeTotalCountIsFalse | SourceGenerated | NotApplicable(IncludeTotalCount=false omits totalCount from the schema (ConnectionType.cs:200); no selection to split) |
+| CursorPagingBatchTests | UsePaging_Should_Never_Split_When_IncludeTotalCountIsFalse | Fluent | NotApplicable(IncludeTotalCount=false omits totalCount from the schema (ConnectionType.cs:200); no selection to split) |
 | CursorPagingBatchTests | UsePaging_Should_Partition_PerAlias_When_FirstDiffers | Attribute | Declared |
 | CursorPagingBatchTests | UsePaging_Should_Partition_PerAlias_When_FirstDiffers | SourceGenerated | Declared |
 | CursorPagingBatchTests | UsePaging_Should_Partition_PerAlias_When_FirstDiffers | Fluent | Declared |

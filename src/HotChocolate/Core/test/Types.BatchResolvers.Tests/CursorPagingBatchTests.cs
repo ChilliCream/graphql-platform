@@ -32,6 +32,14 @@ public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) 
         Fluent = new Declaration(ConfigureFluent)
     };
 
+    protected override IReadOnlyDictionary<string, string> ScenarioNotApplicableReasons { get; } =
+        new Dictionary<string, string>
+        {
+            [nameof(UsePaging_Should_Never_Split_When_IncludeTotalCountIsFalse)] =
+                "IncludeTotalCount=false omits totalCount from the schema (ConnectionType.cs:200); "
+                + "no selection to split"
+        };
+
     // PROVES-WORKS: PagingHelper.UsePaging already registers a BatchFieldMiddleware and a
     // partition key, so a plain [UsePaging][BatchResolver] field dispatches once per distinct
     // effective `first`/`after` and every alias keeps its own page.
@@ -437,11 +445,22 @@ public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) 
         Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
-    // hc-0-6cq.13 "IncludeTotalCount=false never splits" is not expressible here: with the option
-    // disabled, ConnectionType/CollectionSegmentType (withTotalCount: false) drop the `totalCount`
-    // field from the schema entirely, so selecting it is a document validation error (`The field
-    // 'totalCount' does not exist...`) for every variable set alike, not a runtime dispatch
-    // decision. See the NEEDS-PLANNER task comment recording this; the "on" side of this
-    // requirement is already proven above by
+    // hc-0-6cq.13 "IncludeTotalCount=false never splits" carries no runtime dispatch decision
+    // under any declaration style: with the option disabled, ConnectionType (ConnectionType.cs:200)
+    // drops the `totalCount` field from the schema entirely, so selecting it is a document
+    // validation error for every variable set alike, before any batch dispatch happens. The "on"
+    // side of this requirement is already proven above by
     // UsePaging_Should_Dispatch_PerVariableSet_When_IncludeConditionsDiffer.
+    [Theory]
+    [BatchMatrix]
+    public Task UsePaging_Should_Never_Split_When_IncludeTotalCountIsFalse(DeclarationStyle style)
+    {
+        // arrange
+        var reason = GetScenarioNotApplicableReason();
+
+        // assert
+        Assert.Null(GetNotApplicableReason(style));
+        Assert.NotNull(reason);
+        return Task.CompletedTask;
+    }
 }

@@ -21,12 +21,18 @@ public sealed class MatrixCoverageTests
             try
             {
                 var declarations = GetDeclarations(family, instance);
+                var scenarioReasons = GetScenarioNotApplicableReasons(family, instance);
 
                 foreach (var scenario in DiscoverScenarios(family))
                 {
+                    var scenarioReason = scenarioReasons.GetValueOrDefault(scenario.Name);
+
                     foreach (var style in Enum.GetValues<DeclarationStyle>())
                     {
-                        rows.Add((family.Name, scenario.Name, style, DescribeCell(declarations[style])));
+                        var cell = scenarioReason is not null
+                            ? $"NotApplicable({scenarioReason})"
+                            : DescribeCell(declarations[style]);
+                        rows.Add((family.Name, scenario.Name, style, cell));
                     }
                 }
             }
@@ -110,6 +116,19 @@ public sealed class MatrixCoverageTests
                 $"{family.Name} does not override BatchScenarioTests.Declarations.");
 
         return (BatchDeclarations)property.GetValue(instance)!;
+    }
+
+    private static IReadOnlyDictionary<string, string> GetScenarioNotApplicableReasons(
+        Type family,
+        BatchScenarioTests instance)
+    {
+        var property = family.GetProperty(
+                "ScenarioNotApplicableReasons",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+            ?? throw new InvalidOperationException(
+                $"{family.Name} does not expose BatchScenarioTests.ScenarioNotApplicableReasons.");
+
+        return (IReadOnlyDictionary<string, string>)property.GetValue(instance)!;
     }
 
     private static string DescribeCell(Declaration declaration)

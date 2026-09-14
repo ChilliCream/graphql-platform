@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,9 +7,21 @@ namespace HotChocolate.Types.BatchResolvers;
 
 public abstract class BatchScenarioTests : IAsyncLifetime
 {
+    private static readonly IReadOnlyDictionary<string, string> EmptyScenarioNotApplicableReasons =
+        new Dictionary<string, string>();
+
     private readonly List<ServiceProvider> _services = [];
 
     protected abstract BatchDeclarations Declarations { get; }
+
+    /// <summary>
+    /// Scenario method names mapped to the reason that scenario carries no runtime dispatch
+    /// decision under any declaration style, so <see cref="MatrixCoverageTests"/> renders it as
+    /// <c>NotApplicable</c> for every style instead of the family's per-style
+    /// <see cref="Declarations"/>. Most families never override this.
+    /// </summary>
+    protected virtual IReadOnlyDictionary<string, string> ScenarioNotApplicableReasons
+        => EmptyScenarioNotApplicableReasons;
 
     protected BatchProbe Probe { get; } = new();
 
@@ -68,6 +81,14 @@ public abstract class BatchScenarioTests : IAsyncLifetime
     /// <see cref="Declaration.NotApplicable"/> throws once <c>Configure</c> actually runs.
     /// </summary>
     protected string? GetNotApplicableReason(DeclarationStyle style) => Declarations[style].NotApplicableReason;
+
+    /// <summary>
+    /// Returns the reason the calling scenario carries no runtime dispatch decision under any
+    /// declaration style, or <see langword="null"/> when it does. See
+    /// <see cref="ScenarioNotApplicableReasons"/>.
+    /// </summary>
+    protected string? GetScenarioNotApplicableReason([CallerMemberName] string scenarioName = "")
+        => ScenarioNotApplicableReasons.GetValueOrDefault(scenarioName);
 
     protected Task<SchemaException> ExpectSchemaErrorAsync(
         DeclarationStyle style,
