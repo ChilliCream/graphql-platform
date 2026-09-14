@@ -96,6 +96,41 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     }
 
     [Fact]
+    public async Task ValidateCost_Should_ReturnStateInvalid_When_VariableBatchIsEmpty()
+    {
+        // arrange
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            options =>
+            {
+                options.MaxFieldCost = 0;
+                options.MaxTypeCost = 0;
+            },
+            observation);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var request = OperationRequestBuilder.New()
+            .SetDocument(ItemsQuery)
+            .SetVariableValues("[]")
+            .AddGlobalState(ExecutionContextData.ValidateCost, true)
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        var error = Assert.Single(operationResult.Errors);
+        Assert.Equal(ErrorCodes.Execution.CostStateInvalid, error.Code);
+        Assert.Equal(
+            "The cost analysis requires at least one coerced variable value set.",
+            error.Message);
+        Assert.False(operationResult.Extensions?.ContainsKey("operationCost") ?? false);
+        Assert.Null(observation.Result);
+        Assert.Equal(0, observation.DownstreamCalls);
+    }
+
+    [Fact]
     public async Task ValidateCost_Should_EvaluateWithoutEnforcing_When_VariablesAreProvided()
     {
         // arrange
