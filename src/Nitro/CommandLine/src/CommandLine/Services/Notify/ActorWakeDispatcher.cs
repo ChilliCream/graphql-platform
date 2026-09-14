@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -281,7 +282,8 @@ internal sealed class ActorWakeDispatcher(
             }
 
             if (session.EndpointKind is not AgentSessionEndpointKind.ClaudePeer
-                and not AgentSessionEndpointKind.CodexThread)
+                and not AgentSessionEndpointKind.CodexThread
+                and not AgentSessionEndpointKind.OpencodeServer)
             {
                 return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "unsupported");
             }
@@ -298,18 +300,91 @@ internal sealed class ActorWakeDispatcher(
 
             var held = reservation.Reservation;
             var success = false;
+            var idlePushClaimed = false;
+            var idlePushSettled = false;
 
             try
             {
+                if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer
+                    && !await sessionRegistry.ClaimIdlePushAsync(target, dispatchToken))
+                {
+                    // Not currently idle-armed: a nitro-pushed turn is still
+                    // active, or an earlier idle transition already used its
+                    // one push (see IAgentSessionRegistry.ClaimIdlePushAsync,
+                    // the same gate OpencodeHookHandler.HandleSessionIdleAsync
+                    // consumes). Claimed only now, after the gate reservation
+                    // is already held, so a busy gate or a dropped capacity
+                    // slot never spends this session's one-shot claim. Offer
+                    // the target so the next idle transition, once a genuine
+                    // prompt rearms it, gets a fresh attempt instead of
+                    // failing outright. `success` stays false, so the
+                    // `finally` below releases the reservation immediately
+                    // rather than starting a cooldown.
+                    return await RecordOfferedAsync(
+                        batchId, target, ownerId, batchAttemptId, claimedGeneration, "idle-not-armed");
+                }
+
+                if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
+                {
+                    // ClaimIdlePushAsync returned true above (the branch that
+                    // spends a failed claim already returned): this attempt
+                    // now owns the one-shot idle-push claim and must hand it
+                    // back if it never reaches the outcome-based rearm below.
+                    idlePushClaimed = true;
+                }
+
+                // Durably stamps pingAttemptId onto the row's own
+                // last_ping_attempt, exactly as the retired manual ping
+                // command used to before every dispatch. With no cooldown of
+                // its own (the gate reservation above already owns cooldown)
+                // this only fences the executor's later result write against
+                // a stale completion; a false return means the row for this
+                // harness/session/host is gone or its last_ping_at is ahead
+                // of now, so no transport call follows and nothing is left
+                // to durably record.
+                var stamped = await sessionRegistry.TryClaimPingCooldownAsync(
+                    session, pingAttemptId, now, TimeSpan.Zero, dispatchToken);
+
+                if (!stamped)
+                {
+                    return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "session-gone");
+                }
+
                 var attemptDeadline = ClampDeadline(now, batchDeadline);
 
-                var outcome = session.EndpointKind == AgentSessionEndpointKind.ClaudePeer
-                    ? await executor.ExecuteClaudePeerAsync(
+                var outcome = session.EndpointKind switch
+                {
+                    AgentSessionEndpointKind.ClaudePeer => await executor.ExecuteClaudePeerAsync(
                         session.Harness, session.SessionId, actor, pingAttemptId, held.Slot,
-                        attemptDeadline, dispatchToken)
-                    : await executor.ExecuteCodexThreadAsync(
+                        attemptDeadline, dispatchToken),
+                    AgentSessionEndpointKind.CodexThread => await executor.ExecuteCodexThreadAsync(
                         session.Harness, session.SessionId, actor, session.EndpointAddr, pingAttemptId, held.Slot,
-                        attemptDeadline, dispatchToken);
+                        attemptDeadline, dispatchToken),
+                    AgentSessionEndpointKind.OpencodeServer => await executor.ExecuteOpencodeServerAsync(
+                        session.Harness, session.SessionId, actor, session.EndpointAddr, session.EndpointSecret,
+                        pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
+                    _ => throw new UnreachableException(
+                        $"Endpoint kind '{session.EndpointKind}' passed the earlier supported-kind guard.")
+                };
+
+                if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer
+                    && (outcome.Reason != PingAttemptReason.Ok
+                        || outcome.Detail == PingSessionExecutor.HealthOnlyDetail))
+                {
+                    // Nothing was actually delivered: a terminal failure, an
+                    // access-denied offer, or a health-only ping that found
+                    // no digest left to push (the mail it targeted was read
+                    // out from under it). The idle-push claim taken above was
+                    // spent for nothing, so give it back. A Timeout may still
+                    // land after this returns (the push could have already
+                    // reached the server), so this can cause a double push on
+                    // the following idle transition; that is preferred over
+                    // suppressing pushes until a human prompt rearms the
+                    // session by hand.
+                    await sessionRegistry.RearmIdlePushAsync(target, CancellationToken.None);
+                }
+
+                idlePushSettled = true;
 
                 if (outcome.Reason == PingAttemptReason.AccessDenied)
                 {
@@ -332,6 +407,16 @@ internal sealed class ActorWakeDispatcher(
             }
             finally
             {
+                if (idlePushClaimed && !idlePushSettled)
+                {
+                    // The dispatch aborted mid-flight (lost lease renewal or
+                    // caller shutdown) before the outcome-based rearm above
+                    // ever ran: hand the claim back rather than stranding the
+                    // session unarmed. This accepts a possible double push on
+                    // the next idle transition, per the policy stated above.
+                    await sessionRegistry.RearmIdlePushAsync(target, CancellationToken.None);
+                }
+
                 // Never on dispatchToken: the reservation this attempt holds
                 // must be released (or extended into cooldown) even when
                 // dispatchToken itself is the reason the transport call just

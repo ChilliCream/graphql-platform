@@ -52,7 +52,7 @@ internal static class MailWakeSchema
     private const string MailWakeTargetsColumns =
         """
             batch_id TEXT NOT NULL REFERENCES mail_wake_batches (batch_id) ON DELETE CASCADE,
-            harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'nitro-board')),
+            harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
             session_id TEXT NOT NULL,
             host TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'pending'

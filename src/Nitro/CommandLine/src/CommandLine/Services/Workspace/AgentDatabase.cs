@@ -20,7 +20,7 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 11;
+    public const int CurrentVersion = 13;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
@@ -30,10 +30,14 @@ internal sealed class AgentDatabase
     /// <c>agent_sessions</c> gained its v5 role, harness_version, and
     /// process_scope columns), v5, v6 (before the v7
     /// <see cref="MailWakeSchema"/> and <see cref="SessionPingGateSchema"/>
-    /// tables), and v7 (before <c>agent_sessions</c>', <c>mail_wake_targets</c>'
+    /// tables), v7 (before <c>agent_sessions</c>', <c>mail_wake_targets</c>'
     /// and <c>session_ping_gates</c>' <c>harness</c> CHECK constraints, and
     /// <c>agent_sessions</c>' <c>endpoint_kind</c> CHECK constraint, accepted
-    /// the v8 <c>nitro-board</c> and <c>db-watch</c> values). A v3 database's
+    /// the v8 <c>nitro-board</c> and <c>db-watch</c> values), v8, v9, v10,
+    /// v11 (before the v12 <c>opencode</c> harness, its endpoint kind, and
+    /// the endpoint credential column), and v12 (before the v13
+    /// <c>announcement_pending</c> and <c>idle_push_armed</c> columns). A v3
+    /// database's
     /// agents table already carries every column
     /// <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading it only
     /// means applying the new v4 tables and bumping the stamped version. A
@@ -57,7 +61,12 @@ internal sealed class AgentDatabase
     /// one-session/one-actor invariant starts from a consistent state. The
     /// v10-to-v11 upgrade adds the memory tables and carries any markdown
     /// memory store found beside the workspace into them; see
-    /// <see cref="MemoryMarkdownImport"/>. The
+    /// <see cref="MemoryMarkdownImport"/>. The v11-to-v12 upgrade adds the
+    /// opencode harness and endpoint constraints and the nullable endpoint
+    /// credential. The v12-to-v13 upgrade adds the <c>announcement_pending</c>
+    /// and <c>idle_push_armed</c> columns
+    /// <see cref="UpgradeAgentSessionsMetadataColumnsAsync"/> also carries
+    /// forward for a database that predates them. The
     /// v9-to-v10 upgrade drops the <c>pid</c> and <c>proc_start</c> columns
     /// (and <c>agent_sessions</c>' <c>process_scope</c> and
     /// <c>proc_start_legacy</c>) from all three tables that carried them:
@@ -67,7 +76,7 @@ internal sealed class AgentDatabase
     /// constraint also triggers on a surviving <c>pid</c> column and copies
     /// every row across without it.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -175,6 +184,7 @@ internal sealed class AgentDatabase
         // foreign_keys or running in its own transaction afterward.
         await RebuildMailWakeTargetsHarnessCheckConstraintIfStaleAsync(connection, transaction);
         await RebuildSessionPingGatesHarnessCheckConstraintIfStaleAsync(connection, transaction);
+        await RebuildAgentSessionIdentitiesHarnessCheckConstraintIfStaleAsync(connection, transaction);
 
         // Column-by-column, not gated on version == UpgradableVersion: the
         // client column shipped after CurrentVersion was last bumped to 3,
@@ -273,10 +283,9 @@ internal sealed class AgentDatabase
     }
 
     /// <summary>
-    /// Adds the <c>agent_sessions</c> table's v5 <c>role</c> and
-    /// <c>harness_version</c> columns when the database on hand's table
-    /// predates either of them, checked column by column so this is safe to
-    /// run against a table that already carries both.
+    /// Adds the <c>agent_sessions</c> metadata columns when the database on
+    /// hand predates any of them, checked column by column so this is safe
+    /// to run against a table that already carries every column.
     /// </summary>
     private static async Task UpgradeAgentSessionsMetadataColumnsAsync(
         SqliteConnection connection,
@@ -297,6 +306,29 @@ internal sealed class AgentDatabase
         {
             await connection.ExecuteAsync(
                 "ALTER TABLE agent_sessions ADD COLUMN harness_version TEXT NOT NULL DEFAULT '';",
+                transaction: transaction);
+        }
+
+        if (!columns.Contains("endpoint_secret"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agent_sessions ADD COLUMN endpoint_secret TEXT NULL;",
+                transaction: transaction);
+        }
+
+        if (!columns.Contains("announcement_pending"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agent_sessions ADD COLUMN announcement_pending INTEGER NOT NULL DEFAULT 0 "
+                + "CHECK (announcement_pending IN (0, 1));",
+                transaction: transaction);
+        }
+
+        if (!columns.Contains("idle_push_armed"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agent_sessions ADD COLUMN idle_push_armed INTEGER NOT NULL DEFAULT 0 "
+                + "CHECK (idle_push_armed IN (0, 1));",
                 transaction: transaction);
         }
     }
@@ -424,8 +456,10 @@ internal sealed class AgentDatabase
             "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'agent_sessions';");
 
         if (createTableSql is null
-            || (createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
-                && createTableSql.Contains("'db-watch'", StringComparison.Ordinal)
+            || (createTableSql.Contains("'opencode'", StringComparison.Ordinal)
+                && createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
+                && createTableSql.Contains("'opencode-server'", StringComparison.Ordinal)
+                && createTableSql.Contains("endpoint_secret", StringComparison.Ordinal)
                 && !createTableSql.Contains("pid INTEGER", StringComparison.Ordinal)))
         {
             return;
@@ -447,13 +481,13 @@ internal sealed class AgentDatabase
                 $"""
                 INSERT INTO "{rebuildTableName}" (
                     harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, endpoint_secret, started_at, last_beat_at,
                     block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
                     role, harness_version
                 )
                 SELECT
                     harness, session_id, agent_name, binding_kind, host,
-                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, endpoint_secret, started_at, last_beat_at,
                     block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
                     role, harness_version
                 FROM agent_sessions;
@@ -473,6 +507,48 @@ internal sealed class AgentDatabase
         {
             await connection.ExecuteAsync("PRAGMA foreign_keys = ON;");
         }
+    }
+
+    /// <summary>
+    /// Rebuilds <c>agent_session_identities</c> when its harness CHECK
+    /// constraint predates the <c>opencode</c> harness value.
+    /// </summary>
+    private static async Task RebuildAgentSessionIdentitiesHarnessCheckConstraintIfStaleAsync(
+        SqliteConnection connection,
+        DbTransaction transaction)
+    {
+        var createTableSql = await connection.ExecuteScalarAsync<string?>(
+            "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'agent_session_identities';",
+            transaction: transaction);
+
+        if (createTableSql is null || createTableSql.Contains("'opencode'", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        const string rebuildTableName = "agent_session_identities_harness_rebuild";
+
+        await connection.ExecuteAsync(
+            $"""DROP TABLE IF EXISTS "{rebuildTableName}";""", transaction: transaction);
+        await connection.ExecuteAsync(
+            AgentSessionIdentitySchema.CreateAgentSessionIdentitiesTable(rebuildTableName), transaction: transaction);
+        await connection.ExecuteAsync(
+            $"""
+            INSERT INTO "{rebuildTableName}" (
+                harness, session_id, actor, role, actor_revision, created_at, last_seen_at
+            )
+            SELECT
+                harness, session_id, actor, role, actor_revision, created_at, last_seen_at
+            FROM agent_session_identities;
+            """,
+            transaction: transaction);
+        await connection.ExecuteAsync("DROP TABLE agent_session_identities;", transaction: transaction);
+        await connection.ExecuteAsync(
+            $"""ALTER TABLE "{rebuildTableName}" RENAME TO agent_session_identities;""", transaction: transaction);
+        await connection.ExecuteAsync(
+            "CREATE INDEX IF NOT EXISTS idx_agent_session_identities_actor "
+            + "ON agent_session_identities (actor);",
+            transaction: transaction);
     }
 
     /// <summary>
@@ -505,7 +581,8 @@ internal sealed class AgentDatabase
             transaction: transaction);
 
         if (createTableSql is null
-            || (createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
+            || (createTableSql.Contains("'opencode'", StringComparison.Ordinal)
+                && createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
                 && !createTableSql.Contains("pid INTEGER", StringComparison.Ordinal)))
         {
             return;
@@ -561,7 +638,8 @@ internal sealed class AgentDatabase
             transaction: transaction);
 
         if (createTableSql is null
-            || (createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
+            || (createTableSql.Contains("'opencode'", StringComparison.Ordinal)
+                && createTableSql.Contains("'nitro-board'", StringComparison.Ordinal)
                 && !createTableSql.Contains("pid INTEGER", StringComparison.Ordinal)))
         {
             return;

@@ -161,6 +161,157 @@ public sealed class AgentDatabaseTests : IDisposable
         Assert.Equal(AgentDatabase.CurrentVersion, version);
     }
 
+    [Fact]
+    public async Task InitializeAsync_Should_UpgradeAgentSessionIdentityHarnessConstraint_When_ExistingVersionIsV11()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                DROP TABLE agent_session_identities;
+                CREATE TABLE agent_session_identities (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
+                    session_id TEXT NOT NULL,
+                    actor TEXT NOT NULL UNIQUE REFERENCES agents (name),
+                    role TEXT NOT NULL DEFAULT '',
+                    actor_revision INTEGER NOT NULL DEFAULT 1 CHECK (actor_revision > 0),
+                    created_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    PRIMARY KEY (harness, session_id)
+                );
+                CREATE INDEX idx_agent_session_identities_actor
+                    ON agent_session_identities (actor);
+                PRAGMA user_version = 11;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+        await ExecuteAsync(
+            upgraded,
+            """
+            INSERT INTO agents (name, registered_at, last_seen_at)
+            VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO agent_session_identities (
+                harness, session_id, actor, created_at, last_seen_at
+            ) VALUES (
+                'opencode', 'session-1', 'maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'
+            );
+            """,
+            cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+        Assert.Equal("opencode", await QueryScalarStringAsync(
+            upgraded,
+            "SELECT harness FROM agent_session_identities WHERE session_id = 'session-1'",
+            cancellationToken));
+    }
+
+    /// <summary>
+    /// Seeds a raw v12-shaped <c>agent_sessions</c> table, predating the v13
+    /// <c>announcement_pending</c> and <c>idle_push_armed</c> columns, with
+    /// one populated row. InitializeAsync must add both columns defaulted
+    /// to <c>0</c>, without losing the existing row, and stamp the current
+    /// version.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_AddAnnouncementAndIdlePushColumns_When_ExistingVersionIsV12()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agents (
+                    name TEXT PRIMARY KEY,
+                    registered_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT '',
+                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
+                    client TEXT NOT NULL DEFAULT ''
+                );
+
+                CREATE TABLE agent_sessions (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
+                    session_id TEXT NOT NULL,
+                    agent_name TEXT NULL REFERENCES agents (name),
+                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
+                    host TEXT NOT NULL,
+                    cwd TEXT NOT NULL,
+                    workspace_path TEXT NOT NULL,
+                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'opencode-server', 'db-watch', 'none')),
+                    endpoint_addr TEXT NOT NULL,
+                    endpoint_secret TEXT NULL,
+                    started_at TEXT NOT NULL,
+                    last_beat_at TEXT NOT NULL,
+                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
+                    last_ping_at TEXT NULL,
+                    last_ping_attempt TEXT NULL,
+                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
+                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
+                    role TEXT NOT NULL DEFAULT '',
+                    harness_version TEXT NOT NULL DEFAULT '',
+                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
+                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
+                    PRIMARY KEY (harness, session_id)
+                );
+
+                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
+                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'opencode');
+
+                INSERT INTO agent_sessions (
+                    harness, session_id, agent_name, binding_kind, host,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+                ) VALUES (
+                    'opencode', 'session-v12', 'maya', 'explicit', 'host-a',
+                    '/tmp/work', '/tmp/work/.nitro/agents', 'opencode-server', 'http://127.0.0.1:4096',
+                    '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'
+                );
+
+                PRAGMA user_version = 12;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+
+        var columns = (await QueryColumnNamesAsync(upgraded, "agent_sessions", cancellationToken))
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.Contains("announcement_pending", columns);
+        Assert.Contains("idle_push_armed", columns);
+
+        var survivingIdentity = await QueryScalarStringAsync(
+            upgraded,
+            """
+            SELECT agent_name || '|' || host || '|' || endpoint_addr
+            FROM agent_sessions
+            WHERE session_id = 'session-v12'
+            """,
+            cancellationToken);
+        Assert.Equal("maya|host-a|http://127.0.0.1:4096", survivingIdentity);
+
+        var armedFlags = await QueryScalarLongAsync(
+            upgraded,
+            "SELECT announcement_pending + idle_push_armed FROM agent_sessions WHERE session_id = 'session-v12'",
+            cancellationToken);
+        Assert.Equal(0, armedFlags);
+    }
+
     /// <summary>
     /// Seeds a raw v2-shaped agents table, predating the role and implicit
     /// columns, with one row, mirroring a database left by a pre-.8 CLI.

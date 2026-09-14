@@ -44,4 +44,25 @@ internal interface IPingSessionExecutor
         int slot,
         DateTimeOffset deadline,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Runs one opencode server attempt and returns the typed outcome this
+    /// attempt wrote, with the same never-throws and deadline contract as
+    /// <see cref="ExecuteCodexThreadAsync"/>. Pushes the mail digest as a
+    /// real prompt when unread mail remains, or performs a health-only ping
+    /// against <paramref name="endpointAddr"/> when it does not, so a
+    /// session with nothing left to deliver still surfaces a gone or timed
+    /// out endpoint instead of a blind <c>ok</c>. Every health-only outcome
+    /// is written to the row like any other attempt.
+    /// </summary>
+    Task<PingAttemptOutcome> ExecuteOpencodeServerAsync(
+        string harness,
+        string sessionId,
+        string actorName,
+        string endpointAddr,
+        string? endpointSecret,
+        string attemptId,
+        int slot,
+        DateTimeOffset deadline,
+        CancellationToken cancellationToken);
 }

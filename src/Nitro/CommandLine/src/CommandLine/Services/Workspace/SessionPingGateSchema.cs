@@ -33,7 +33,7 @@ internal static class SessionPingGateSchema
     /// </summary>
     private const string SessionPingGatesColumns =
         """
-            harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'nitro-board')),
+            harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
             session_id TEXT NOT NULL,
             host TEXT NOT NULL,
             attempt_id TEXT NOT NULL,

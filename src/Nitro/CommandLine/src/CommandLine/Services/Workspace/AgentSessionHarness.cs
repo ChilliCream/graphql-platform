@@ -9,6 +9,7 @@ internal static class AgentSessionHarness
     public const string ClaudeCode = "claude-code";
     public const string Codex = "codex";
     public const string Copilot = "copilot";
+    public const string Opencode = "opencode";
 
     /// <summary>
     /// A running unified Nitro agent TUI, bound to the durable human mail
