@@ -383,6 +383,7 @@ public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) 
         // assert
         var operationResult = result.ExpectOperationResult();
         Assert.NotEmpty(operationResult.Errors);
+        Assert.All(operationResult.Errors, e => Assert.Contains("omitted", e.Path?.ToString()));
         result.MatchSnapshot();
     }
 
@@ -413,6 +414,7 @@ public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) 
         // assert
         var operationResult = result.ExpectOperationResult();
         Assert.NotEmpty(operationResult.Errors);
+        Assert.All(operationResult.Errors, e => Assert.Contains("invalid", e.Path?.ToString()));
         result.MatchSnapshot();
     }
 
@@ -455,12 +457,17 @@ public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) 
     [BatchMatrix]
     public Task UsePaging_Should_Never_Split_When_IncludeTotalCountIsFalse(DeclarationStyle style)
     {
-        // arrange
-        var reason = GetScenarioNotApplicableReason();
-
-        // assert
+        // arrange, assert: every style declares this scenario plainly; only the scenario itself
+        // (not any one style) is not applicable, so guard on that and stop.
         Assert.Null(GetNotApplicableReason(style));
-        Assert.NotNull(reason);
-        return Task.CompletedTask;
+
+        if (GetScenarioNotApplicableReason() is not null)
+        {
+            return Task.CompletedTask;
+        }
+
+        throw new InvalidOperationException(
+            $"Expected {nameof(UsePaging_Should_Never_Split_When_IncludeTotalCountIsFalse)} to be "
+            + "scenario-NotApplicable.");
     }
 }

@@ -25,7 +25,7 @@ internal static class EfTestSupport
     {
         var connectionString = resource.GetConnectionString($"batch_{Guid.NewGuid():N}");
 
-        await using var context = new BatchDbContext(CreateOptions(connectionString, capturedSql: null));
+        await using var context = new BatchDbContext(CreateOptions(connectionString));
         await context.Database.EnsureCreatedAsync(cancellationToken);
         await seed(context, cancellationToken);
         await context.SaveChangesAsync(cancellationToken);
@@ -51,17 +51,8 @@ internal static class EfTestSupport
         return builder;
     }
 
-    private static DbContextOptions<BatchDbContext> CreateOptions(string connectionString, List<string>? capturedSql)
-    {
-        var builder = new DbContextOptionsBuilder<BatchDbContext>().UseNpgsql(connectionString);
-
-        if (capturedSql is not null)
-        {
-            builder.AddInterceptors(new SqlCaptureInterceptor(capturedSql));
-        }
-
-        return builder.Options;
-    }
+    private static DbContextOptions<BatchDbContext> CreateOptions(string connectionString)
+        => new DbContextOptionsBuilder<BatchDbContext>().UseNpgsql(connectionString).Options;
 
     /// <summary>
     /// Records the parameterized SQL text of every command HotChocolate issues through EF Core,

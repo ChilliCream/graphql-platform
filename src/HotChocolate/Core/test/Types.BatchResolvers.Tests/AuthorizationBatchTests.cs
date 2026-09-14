@@ -166,6 +166,12 @@ public sealed partial class AuthorizationBatchTests : BatchScenarioTests
     public async Task Authorize_Should_Resolve_When_PolicyAllows(DeclarationStyle style)
     {
         // arrange
+        var observedPolicies = new List<string>();
+        AuthHandler.Resolver = (_, directive) =>
+        {
+            observedPolicies.Add(directive.Policy!);
+            return AuthorizeResult.Allowed;
+        };
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act
@@ -174,6 +180,7 @@ public sealed partial class AuthorizationBatchTests : BatchScenarioTests
 
         // assert
         Assert.Single(Probe.Invocations);
+        Assert.Equal(["READ_ALLOWED"], observedPolicies);
         result.MatchInlineSnapshot(
             """
             {
