@@ -47,7 +47,7 @@ public sealed partial class CursorPagingBatchTests
             {
                 d.Name("Query");
                 d.Field("brands")
-                    .Type<ListType<ObjectType<CursorBrand>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<CursorBrand>>>>>()
                     .Resolve(ctx => ctx.Service<BatchDbContext>().CursorBrands
                         .Include(b => b.Products)
                         .OrderBy(b => b.Id)

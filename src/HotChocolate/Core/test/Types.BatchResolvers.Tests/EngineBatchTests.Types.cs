@@ -63,7 +63,7 @@ public sealed partial class EngineBatchTests
             {
                 d.Name("Query");
                 d.Field("users")
-                    .Type<ListType<ObjectType<EngineUser>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<EngineUser>>>>>()
                     .Resolve(async ctx =>
                     {
                         ctx.ScopedContextData = ctx.ScopedContextData.SetItem("suffix", "!!!");
@@ -74,7 +74,7 @@ public sealed partial class EngineBatchTests
                     .Argument("id", a => a.Type<IntType>())
                     .ResolveBatchWith<FluentEngineQueryResolvers>(t => t.GetProductById(null!, null!));
                 d.Field("asyncUsers")
-                    .Type<ListType<ObjectType<EngineUser>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<EngineUser>>>>>()
                     .Resolve(async _ =>
                     {
                         await Task.Delay(1);
@@ -139,7 +139,9 @@ public sealed partial class EngineBatchTests
             .AddObjectType<EngineParent>(d =>
             {
                 d.Field(p => p.Id);
-                d.Field("children").Type<ListType<ObjectType<EngineChild>>>().Resolve(async ctx =>
+                d.Field("children")
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<EngineChild>>>>>()
+                    .Resolve(async ctx =>
                 {
                     await Task.Delay(25, ctx.RequestAborted);
                     return EngineChild.CreateFor(ctx.Parent<EngineParent>().Id);

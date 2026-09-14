@@ -29,7 +29,7 @@ public sealed partial class OffsetPagingBatchTests
             {
                 d.Name("Query");
                 d.Field("brands")
-                    .Type<ListType<ObjectType<OffsetBrand>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<OffsetBrand>>>>>()
                     .Resolve(ctx => ctx.Service<BatchDbContext>().OffsetBrands
                         .Include(b => b.Products)
                         .OrderBy(b => b.Id)

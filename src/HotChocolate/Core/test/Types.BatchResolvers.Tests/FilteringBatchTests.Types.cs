@@ -41,7 +41,7 @@ public sealed partial class FilteringBatchTests
             {
                 d.Name("Query");
                 d.Field("brands")
-                    .Type<ListType<ObjectType<FilteringBrand>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<FilteringBrand>>>>>()
                     .Resolve(ctx => ctx.Service<BatchDbContext>().FilteringBrands
                         .Include(b => b.Products)
                         .OrderBy(b => b.Id)
@@ -65,7 +65,7 @@ public sealed partial class FilteringBatchTests
                         return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                     });
                 d.Field("predicateProducts")
-                    .Type<ListType<ObjectType<FilteringProduct>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<FilteringProduct>>>>>()
                     .UseFiltering<FilteringProduct>()
                     .ResolveBatch(contexts =>
                     {

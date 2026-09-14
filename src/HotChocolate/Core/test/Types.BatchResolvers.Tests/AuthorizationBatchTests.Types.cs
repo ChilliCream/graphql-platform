@@ -44,9 +44,10 @@ public sealed partial class AuthorizationBatchTests
                     .Argument("id", a => a.Type<NonNullType<IntType>>())
                     .Authorize("READ_ALLOWED")
                     .ResolveBatchWith<FluentAuthResolvers>(t => t.GetAllowedById(null!, null!));
-                d.Field("users").Type<ListType<ObjectType<AuthUser>>>().Resolve(Users);
+                d.Field("users")
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<AuthUser>>>>>()
+                    .Resolve(Users);
             })
-            .AddObjectType<ProtectedFriend>(d => d.Authorize("READ_FRIEND"))
             .AddObjectType<AuthUser>(d =>
                 d.Field("friend")
                     .ResolveBatchWith<FluentAuthResolvers>(t => t.GetFriend(null!, null!)));

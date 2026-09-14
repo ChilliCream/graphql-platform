@@ -46,7 +46,7 @@ public sealed partial class ProjectionBatchTests
             .AddType(new ObjectType<ProjectionBrand>(d =>
             {
                 d.Field("filteredProducts")
-                    .Type<ListType<ObjectType<ProjectionProduct>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<ProjectionProduct>>>>>()
                     .UseFiltering<ProjectionProduct>()
                     .ResolveBatch(contexts =>
                     {
@@ -58,7 +58,7 @@ public sealed partial class ProjectionBatchTests
                         return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                     });
                 d.Field("sortedProducts")
-                    .Type<ListType<ObjectType<ProjectionProduct>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<ProjectionProduct>>>>>()
                     .UseSorting<ProjectionProduct>()
                     .ResolveBatch(contexts =>
                     {
@@ -70,7 +70,7 @@ public sealed partial class ProjectionBatchTests
                         return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                     });
                 d.Field("projectedProducts")
-                    .Type<ListType<ObjectType<ProjectionProduct>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<ProjectionProduct>>>>>()
                     .UseProjection<ProjectionProduct>()
                     .ResolveBatch(contexts =>
                     {

@@ -482,9 +482,8 @@ public sealed partial class EngineBatchTests : BatchScenarioTests
             executor, "{ users { name mismatchGreeting } }", TestContext.Current.CancellationToken);
 
         // assert
-        // every style raises the identical count-mismatch cause; the per-style snapshot below
-        // records each style's own null-propagation shape (fluent's users list stays nullable
-        // per item, so a per-user error nulls only that item, unlike the other two styles).
+        // every style raises the identical count-mismatch cause and shares the same
+        // non-null-propagation shape: the errored field nulls its parent up to the root.
         var operation = Assert.IsType<OperationResult>(result);
         Assert.Equal(3, operation.Errors?.Count);
         Assert.All(

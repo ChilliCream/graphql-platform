@@ -40,7 +40,7 @@ public sealed partial class SortingBatchTests
             {
                 d.Name("Query");
                 d.Field("brands")
-                    .Type<ListType<ObjectType<SortingBrand>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<SortingBrand>>>>>()
                     .Resolve(ctx => ctx.Service<BatchDbContext>().SortingBrands
                         .Include(b => b.Products)
                         .OrderBy(b => b.Id)

@@ -28,12 +28,6 @@
       ]
     }
   ],
-  "data": {
-    "users": [
-      null,
-      null,
-      null
-    ]
-  }
+  "data": null
 }
 ```

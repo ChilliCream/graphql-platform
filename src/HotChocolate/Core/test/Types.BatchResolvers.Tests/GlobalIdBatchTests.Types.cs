@@ -43,7 +43,9 @@ public sealed partial class GlobalIdBatchTests
             .AddQueryType(d =>
             {
                 d.Name("Query");
-                d.Field("products").Type<ListType<ObjectType<IdProduct>>>().Resolve(Products);
+                d.Field("products")
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<IdProduct>>>>>()
+                    .Resolve(Products);
                 d.Field("productById")
                     .ResolveBatchWith<FluentIdResolvers>(t => t.GetProductById(null!, null!))
                     .Argument("id", a => a.Type<IntType>().ID("IdProduct"));
