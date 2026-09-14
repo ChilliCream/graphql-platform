@@ -153,6 +153,64 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     }
 
     /// <inheritdoc />
+    public virtual TypeReference GetBatchReturnTypeRef(
+        MethodInfo method,
+        TypeContext context = TypeContext.None,
+        string? scope = null)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+
+        var returnType = GetReturnType(method, ignoreAttributes: true);
+
+        if (!returnType.IsArrayOrList)
+        {
+            throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(method);
+        }
+
+        if (TryGetAttribute(method, out GraphQLTypeAttribute? typeAttribute)
+            && typeAttribute.TypeSyntax is not null)
+        {
+            return TypeReference.Create(typeAttribute.TypeSyntax, context, scope);
+        }
+
+        var elementType = ApplyBatchTypeAttributes(returnType.ElementType, method);
+
+        return TypeReference.Create(elementType, context, scope);
+    }
+
+    /// <summary>
+    /// Applies the type attributes of a batch resolver method to its list element type.
+    /// </summary>
+    private IExtendedType ApplyBatchTypeAttributes(
+        IExtendedType elementType,
+        MethodInfo method)
+    {
+        var resultType = elementType;
+        var hasGraphQLTypeAttribute = false;
+
+        if (TryGetAttribute(method, out GraphQLTypeAttribute? typeAttribute)
+            && typeAttribute.Type is { } attributeType)
+        {
+            hasGraphQLTypeAttribute = true;
+            resultType = ChangeNullability(GetType(attributeType), CollectNullability(elementType));
+        }
+
+        if (TryGetAttribute(method, out GraphQLNonNullTypeAttribute? nullAttribute))
+        {
+            resultType = ChangeNullabilityInternal(resultType, nullAttribute.Nullable);
+        }
+
+        if (!IgnoreRequiredAttribute
+            && !hasGraphQLTypeAttribute
+            && TryGetAttribute(method, out RequiredAttribute? _))
+        {
+            resultType = ChangeNullability(resultType, false);
+        }
+
+        return resultType;
+    }
+
+    /// <inheritdoc />
     public TypeReference GetArgumentTypeRef(
         ParameterInfo parameter,
         string? scope = null,

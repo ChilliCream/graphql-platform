@@ -68,7 +68,7 @@ public class ObjectFieldDescriptor
                     var elementType = BatchResolverCompiler.GetResultElementType(m.ReturnType)
                         ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
                     Configuration.ResultType = elementType;
-                    Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Output);
+                    Configuration.Type = context.TypeInspector.GetBatchReturnTypeRef(m, TypeContext.Output);
                 }
                 else
                 {
@@ -126,7 +126,7 @@ public class ObjectFieldDescriptor
                         Configuration.SetBatchResolverFlags();
                         var elementType = BatchResolverCompiler.GetResultElementType(m.ReturnType)
                             ?? throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(m);
-                        Configuration.Type = context.TypeInspector.GetTypeRef(elementType, TypeContext.Output);
+                        Configuration.Type = context.TypeInspector.GetBatchReturnTypeRef(m, TypeContext.Output);
                         Configuration.ResultType = elementType;
                     }
                     else
