@@ -1084,4 +1084,87 @@ public class SourceGeneratorBatchResolverTests
         // exactly 20 edges (ids 0-19) come back for each even though first/last were omitted.
         result.MatchMarkdownSnapshot();
     }
+
+    [Fact]
+    public async Task BatchResolver_Should_ResolveOnce_When_DeclaredOnInterfacePartial()
+    {
+        // arrange
+        // a static [BatchResolver] method declared inside an [InterfaceType<T>] partial must
+        // dispatch through a BatchFieldDelegate once per partition for every implementing object
+        // type resolved through the interface, not once per parent (HC0053 parent-cast failure).
+        var assembly = TestHelper.CompileBatchAssembly(
+            """
+            using System.Collections.Generic;
+            using HotChocolate;
+            using HotChocolate.Types;
+
+            [assembly: Module("Demo")]
+
+            namespace Repro;
+
+            public static class InvocationCounter
+            {
+                public static int Count;
+            }
+
+            public interface IPerson
+            {
+                string Name { get; }
+            }
+
+            public sealed class Person(int id, string name) : IPerson
+            {
+                public int Id { get; } = id;
+                public string Name { get; } = name;
+            }
+
+            [QueryType]
+            public static partial class Query
+            {
+                public static List<IPerson> GetPeople()
+                    => new() { new Person(1, "Alice"), new Person(2, "Bob") };
+            }
+
+            [InterfaceType<IPerson>]
+            public static partial class PersonInterface
+            {
+                [BatchResolver]
+                public static List<string> GetGreeting([Parent] List<IPerson> people)
+                {
+                    InvocationCounter.Count++;
+                    return people.ConvertAll(p => $"Hello, {p.Name}!");
+                }
+            }
+
+            [ObjectType<Person>]
+            public static partial class PersonNode;
+            """,
+            "SourceGeneratorInterfaceBatchRepro");
+
+        // act
+        var result = await TestHelper.ExecuteSourceGeneratedAsync(assembly, "{ people { name greeting } }");
+
+        // assert
+        var invocationCount = (int)assembly.GetType("Repro.InvocationCounter")!
+            .GetField("Count")!
+            .GetValue(null)!;
+        Assert.Equal(1, invocationCount);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "people": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hello, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hello, Bob!"
+                  }
+                ]
+              }
+            }
+            """);
+    }
 }
