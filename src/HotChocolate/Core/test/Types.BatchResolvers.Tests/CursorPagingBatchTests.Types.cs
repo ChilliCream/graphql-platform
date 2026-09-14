@@ -139,15 +139,21 @@ public sealed class FluentCursorResolvers
         [Service] BatchProbe probe)
     {
         probe.Record("GetPagedProducts", brands.Select(b => b.Id));
+        probe.Record<object?>(
+            "PagingArguments",
+            [pagingArguments.First, pagingArguments.After, pagingArguments.Last, pagingArguments.Before]);
         return brands.ConvertAll(b => CursorProductFactory.PagedProductsFor(b, pagingArguments));
     }
 }
 
 internal static class CursorProductFactory
 {
+    // Contract: classic [UsePaging] re-pages the returned Page<T> as a plain list and recomputes
+    // totalCount/pageInfo from the enumerated items, so the outer result reflects the page size,
+    // not brand.Products.Count.
     public static Page<CursorProduct> PagedProductsFor(CursorBrand brand, PagingArguments pagingArguments)
     {
-        var count = pagingArguments.First ?? 2;
+        var count = pagingArguments.First ?? throw new InvalidOperationException("first was not bound");
         var products = brand.Products.Take(count).ToImmutableArray();
 
         return Page<CursorProduct>.Create(
@@ -186,6 +192,9 @@ public sealed class CursorBrandAttributeExtension
         [Service] BatchProbe probe)
     {
         probe.Record("GetPagedProducts", brands.Select(b => b.Id));
+        probe.Record<object?>(
+            "PagingArguments",
+            [pagingArguments.First, pagingArguments.After, pagingArguments.Last, pagingArguments.Before]);
         return brands.ConvertAll(b => CursorProductFactory.PagedProductsFor(b, pagingArguments));
     }
 }
@@ -218,6 +227,9 @@ public static partial class CursorBrandNode
         [Service] BatchProbe probe)
     {
         probe.Record("GetPagedProducts", brands.Select(b => b.Id));
+        probe.Record<object?>(
+            "PagingArguments",
+            [pagingArguments.First, pagingArguments.After, pagingArguments.Last, pagingArguments.Before]);
         return brands.ConvertAll(b => CursorProductFactory.PagedProductsFor(b, pagingArguments));
     }
 }

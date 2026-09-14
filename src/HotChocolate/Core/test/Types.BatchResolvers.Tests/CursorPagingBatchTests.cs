@@ -169,56 +169,16 @@ public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) 
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(2, Probe.Invocations.Count);
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "brands": [
-                  {
-                    "name": "Brand 1",
-                    "small": {
-                      "nodes": [
-                        {
-                          "name": "Brand 1 P1"
-                        }
-                      ]
-                    },
-                    "large": {
-                      "nodes": [
-                        {
-                          "name": "Brand 1 P1"
-                        },
-                        {
-                          "name": "Brand 1 P2"
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "name": "Brand 2",
-                    "small": {
-                      "nodes": [
-                        {
-                          "name": "Brand 2 P1"
-                        }
-                      ]
-                    },
-                    "large": {
-                      "nodes": [
-                        {
-                          "name": "Brand 2 P1"
-                        },
-                        {
-                          "name": "Brand 2 P2"
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            }
-            """);
+        Assert.Equal(2, Probe.Invocations.Count(i => i.MemberName == "GetPagedProducts"));
+        var args = Probe.Invocations
+            .Where(i => i.MemberName == "PagingArguments")
+            .OrderBy(i => (int?)i.Keys[0])
+            .Select(i => new { First = i.Keys[0], After = i.Keys[1], Last = i.Keys[2], Before = i.Keys[3] })
+            .ToArray();
+        new Snapshot()
+            .Add(result)
+            .Add(args, "Observed PagingArguments per dispatch")
+            .MatchMarkdownSnapshot();
     }
 
     // Execution proof for the union ConnectionFlags/PagingArguments wiring deferred from
@@ -266,7 +226,9 @@ public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) 
         new Snapshot()
             .Add(batch.Results[0], "Without totalCount")
             .Add(batch.Results[1], "With totalCount")
-            .Add(Probe.Invocations.Count, "Observed batch dispatch count")
+            .Add(
+                Probe.Invocations.Count(i => i.MemberName == "GetPagedProducts"),
+                "Observed batch dispatch count")
             .MatchMarkdownSnapshot();
     }
 
