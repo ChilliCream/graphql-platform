@@ -126,6 +126,12 @@
 | NonListReturnBatchTests | BatchResolver_Should_Fail_Schema_Build_When_ReturnTypeIsNotList | Attribute | Declared |
 | NonListReturnBatchTests | BatchResolver_Should_Fail_Schema_Build_When_ReturnTypeIsNotList | SourceGenerated | Declared |
 | NonListReturnBatchTests | BatchResolver_Should_Fail_Schema_Build_When_ReturnTypeIsNotList | Fluent | Declared |
+| OffsetPagingBatchTests | UseOffsetPaging_Should_Partition_PerAlias_When_SkipDiffers | Attribute | Declared |
+| OffsetPagingBatchTests | UseOffsetPaging_Should_Partition_PerAlias_When_SkipDiffers | SourceGenerated | Declared |
+| OffsetPagingBatchTests | UseOffsetPaging_Should_Partition_PerAlias_When_SkipDiffers | Fluent | Declared |
+| OffsetPagingBatchTests | UseOffsetPaging_Should_Slice_PerParent_When_FieldIsBatchResolved | Attribute | Declared |
+| OffsetPagingBatchTests | UseOffsetPaging_Should_Slice_PerParent_When_FieldIsBatchResolved | SourceGenerated | Declared |
+| OffsetPagingBatchTests | UseOffsetPaging_Should_Slice_PerParent_When_FieldIsBatchResolved | Fluent | Declared |
 | PageConnectionBatchTests | UseConnection_Should_Map_PagingArguments_When_ReturnTypeIsPageConnection | Attribute | Declared |
 | PageConnectionBatchTests | UseConnection_Should_Map_PagingArguments_When_ReturnTypeIsPageConnection | SourceGenerated | Declared |
 | PageConnectionBatchTests | UseConnection_Should_Map_PagingArguments_When_ReturnTypeIsPageConnection | Fluent | Declared |
