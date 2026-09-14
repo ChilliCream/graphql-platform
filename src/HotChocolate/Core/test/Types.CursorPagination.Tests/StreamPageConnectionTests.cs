@@ -26,13 +26,14 @@ public class StreamPageConnectionTests
         }
 
         var info = await pageInfo;
+        var totalCount = await connection.TotalCount;
 
         // assert
         Assert.True(pageInfo.IsCompleted);
         Assert.Equal(["a:a", "b:b"], edges.Select(t => $"{t.Node}:{t.Cursor}"));
         Assert.Equal(
             (true, true, "a", "b", (int?)3),
-            (info.HasNextPage, info.HasPreviousPage, info.StartCursor, info.EndCursor, connection.TotalCount));
+            (info.HasNextPage, info.HasPreviousPage, info.StartCursor, info.EndCursor, totalCount));
     }
 
     [Fact]
@@ -152,12 +153,42 @@ public class StreamPageConnectionTests
         }
 
         var info = await connection.PageInfo;
+        var totalCount = await connection.TotalCount;
 
         // assert
         Assert.Empty(edges);
         Assert.Equal(
             (false, false, (string?)null, (string?)null, (int?)0),
-            (info.HasNextPage, info.HasPreviousPage, info.StartCursor, info.EndCursor, connection.TotalCount));
+            (info.HasNextPage, info.HasPreviousPage, info.StartCursor, info.EndCursor, totalCount));
+    }
+
+    [Fact]
+    public async Task TotalCount_Should_ResolveLate_When_PageCountSettlesAfterTheStream()
+    {
+        // arrange
+        var countSource = new TaskCompletionSource<int?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var connection = new StreamPageConnection<string>(
+            new StreamPage<string>(
+                CreateItems("a", "b"),
+                new PagingArguments(first: 2),
+                static item => item,
+                countSource.Task));
+        List<string> nodes = [];
+
+        // act
+        await foreach (var node in connection.Nodes!)
+        {
+            nodes.Add(node);
+        }
+
+        var pending = connection.TotalCount.IsCompleted;
+        countSource.SetResult(2);
+        var totalCount = await connection.TotalCount;
+
+        // assert
+        Assert.Equal(["a", "b"], nodes);
+        Assert.False(pending);
+        Assert.Equal(2, totalCount);
     }
 
     [Fact]

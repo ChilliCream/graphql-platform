@@ -38,6 +38,31 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         PagingArguments arguments,
         Func<T, string> createCursor,
         int? totalCount = null)
+        : this(items, arguments, createCursor, Task.FromResult(totalCount))
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StreamPage{T}"/> class.
+    /// </summary>
+    /// <param name="items">
+    /// The items in the page window, including one additional item when one is available.
+    /// </param>
+    /// <param name="arguments">
+    /// The paging arguments that bound the page stream.
+    /// </param>
+    /// <param name="createCursor">
+    /// Creates a cursor for an item.
+    /// </param>
+    /// <param name="totalCount">
+    /// A task that resolves the total count of items in the dataset, or <see langword="null"/>
+    /// when it is unknown. See <see cref="TotalCount"/> for the contract the task must honor.
+    /// </param>
+    public StreamPage(
+        IAsyncEnumerable<T> items,
+        PagingArguments arguments,
+        Func<T, string> createCursor,
+        Task<int?> totalCount)
         : this(items, arguments, entry => createCursor(entry.Node), totalCount)
     {
         ArgumentNullException.ThrowIfNull(createCursor);
@@ -63,9 +88,35 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
         PagingArguments arguments,
         Func<EdgeEntry<T>, string> createCursor,
         int? totalCount = null)
+        : this(items, arguments, createCursor, Task.FromResult(totalCount))
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="StreamPage{T}"/> class.
+    /// </summary>
+    /// <param name="items">
+    /// The items in the page window, including one additional item when one is available.
+    /// </param>
+    /// <param name="arguments">
+    /// The paging arguments that bound the page stream.
+    /// </param>
+    /// <param name="createCursor">
+    /// Creates a cursor for an item and its positional metadata.
+    /// </param>
+    /// <param name="totalCount">
+    /// A task that resolves the total count of items in the dataset, or <see langword="null"/>
+    /// when it is unknown. See <see cref="TotalCount"/> for the contract the task must honor.
+    /// </param>
+    public StreamPage(
+        IAsyncEnumerable<T> items,
+        PagingArguments arguments,
+        Func<EdgeEntry<T>, string> createCursor,
+        Task<int?> totalCount)
     {
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(createCursor);
+        ArgumentNullException.ThrowIfNull(totalCount);
         ArgumentOutOfRangeException.ThrowIfNegative(arguments.First ?? 0);
 
         if (arguments.Last is not null || arguments.Before is not null)
@@ -85,9 +136,17 @@ public sealed class StreamPage<T> : IAsyncEnumerable<StreamPageEdge<T>>
     public IAsyncEnumerable<T> Items => new ItemsEnumerable(this);
 
     /// <summary>
-    /// Gets the total count of items in the dataset.
+    /// Gets the task that resolves the total count of items in the dataset, or
+    /// <see langword="null"/> when the count is unknown.
     /// </summary>
-    public int? TotalCount { get; }
+    /// <remarks>
+    /// A provider that pairs the count with the items in a single combined count and item query
+    /// must settle this task on every exit path: the first row, an empty source, an exception, and
+    /// cancellation before the first row. Awaiting the count reads and parks the first row behind a
+    /// single-flight gate, enumerating the page first settles the count from the first row it
+    /// reads, and an empty source falls back to a count query and disposes the source.
+    /// </remarks>
+    public Task<int?> TotalCount { get; }
 
     /// <summary>
     /// Gets the completion signal for the streamed page.

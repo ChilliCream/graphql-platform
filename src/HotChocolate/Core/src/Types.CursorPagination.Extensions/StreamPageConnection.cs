@@ -50,11 +50,11 @@ public class StreamPageConnection<TNode>
     public override Task<PageInfo> PageInfo => _pageInfo ??= GetPageInfoAsync(_page);
 
     /// <summary>
-    /// Identifies the total count of items in the connection.
+    /// Identifies the total count of items in the connection once the count is resolved.
     /// </summary>
     [GraphQLDescription("Identifies the total count of items in the connection.")]
     [GraphQLType<NonNullType<IntType>>]
-    public int? TotalCount => _page.TotalCount;
+    public Task<int?> TotalCount => _page.TotalCount;
 
     /// <summary>
     /// Converts a <see cref="StreamPage{TNode}"/> to a <see cref="StreamPageConnection{TNode}"/>.
