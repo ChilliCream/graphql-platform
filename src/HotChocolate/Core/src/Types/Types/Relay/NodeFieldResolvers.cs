@@ -296,23 +296,7 @@ internal static class NodeFieldResolvers
         {
             foreach (var group in typeGroups.Values)
             {
-                try
-                {
-                    await DispatchTypeGroupAsync(group.Entries, group.Resolver).ConfigureAwait(false);
-                }
-                catch (Exception ex) when (!contexts[0].RequestAborted.IsCancellationRequested)
-                {
-                    // A dispatch failure that escapes the type group (for example an inner
-                    // partition key resolver throwing before any slice was dispatched) is
-                    // isolated to this type group's entries; other type groups and other
-                    // parents still resolve and return their data.
-                    for (var k = 0; k < group.Entries.Count; k++)
-                    {
-                        var entry = group.Entries[k];
-                        entry.Context.ReportError(ex);
-                        entry.Context.Result = null;
-                    }
-                }
+                await DispatchTypeGroupAsync(group.Entries, group.Resolver).ConfigureAwait(false);
 
                 for (var k = 0; k < group.Entries.Count; k++)
                 {
@@ -344,103 +328,125 @@ internal static class NodeFieldResolvers
         List<ChildEntry> group,
         NodeResolverInfo nodeResolver)
     {
-        if (nodeResolver.BatchPipeline is { } batchPipeline)
+        // The dominant case is a single slice for the whole type group (no inner partition key,
+        // or every entry falls into the same partition), so that slice is dispatched directly
+        // and any failure is caught by the one boundary below without an extra async state
+        // machine per slice. Only when an inner partition key actually splits the group into more
+        // than one slice does each of those slices get its own boundary, isolating a failing
+        // partition (for example its own batch pipeline call throwing) from its siblings.
+        try
         {
-            // The nodes field has no engine-level partitioner, so when the node resolver exposes
-            // an inner partition key we sub-partition the per-type group here by that key.
-            if (nodeResolver.BatchPartitionKey is { } innerPartitioner && group.Count > 1)
+            if (nodeResolver.BatchPipeline is { } batchPipeline)
             {
-                Dictionary<ulong, List<ChildEntry>>? partitions = null;
-                var firstKey = innerPartitioner(group[0].Context);
-
-                for (var i = 1; i < group.Count; i++)
+                // The nodes field has no engine-level partitioner, so when the node resolver
+                // exposes an inner partition key we sub-partition the per-type group here by
+                // that key.
+                if (nodeResolver.BatchPartitionKey is { } innerPartitioner && group.Count > 1)
                 {
-                    var key = innerPartitioner(group[i].Context);
+                    Dictionary<ulong, List<ChildEntry>>? partitions = null;
+                    var firstKey = innerPartitioner(group[0].Context);
+
+                    for (var i = 1; i < group.Count; i++)
+                    {
+                        var key = innerPartitioner(group[i].Context);
+
+                        if (partitions is null)
+                        {
+                            if (key == firstKey)
+                            {
+                                continue;
+                            }
+
+                            partitions = [];
+                            var firstPartition = new List<ChildEntry>(i);
+                            for (var j = 0; j < i; j++)
+                            {
+                                firstPartition.Add(group[j]);
+                            }
+                            partitions[firstKey] = firstPartition;
+                        }
+
+                        if (!partitions.TryGetValue(key, out var partition))
+                        {
+                            partition = [];
+                            partitions[key] = partition;
+                        }
+                        partition.Add(group[i]);
+                    }
 
                     if (partitions is null)
                     {
-                        if (key == firstKey)
+                        var slice = ImmutableArray.CreateBuilder<IMiddlewareContext>(group.Count);
+                        for (var i = 0; i < group.Count; i++)
                         {
-                            continue;
+                            slice.Add(group[i].Context);
                         }
+                        await batchPipeline(slice.MoveToImmutable()).ConfigureAwait(false);
+                        return;
+                    }
 
-                        partitions = [];
-                        var firstPartition = new List<ChildEntry>(i);
-                        for (var j = 0; j < i; j++)
+                    foreach (var partition in partitions.Values)
+                    {
+                        var slice = ImmutableArray.CreateBuilder<IMiddlewareContext>(partition.Count);
+                        for (var i = 0; i < partition.Count; i++)
                         {
-                            firstPartition.Add(group[j]);
+                            slice.Add(partition[i].Context);
                         }
-                        partitions[firstKey] = firstPartition;
+                        await InvokeBatchSliceAsync(batchPipeline, slice.MoveToImmutable()).ConfigureAwait(false);
                     }
 
-                    if (!partitions.TryGetValue(key, out var partition))
-                    {
-                        partition = [];
-                        partitions[key] = partition;
-                    }
-                    partition.Add(group[i]);
-                }
-
-                if (partitions is null)
-                {
-                    var slice = ImmutableArray.CreateBuilder<IMiddlewareContext>(group.Count);
-                    for (var i = 0; i < group.Count; i++)
-                    {
-                        slice.Add(group[i].Context);
-                    }
-                    await InvokeBatchSliceAsync(batchPipeline, slice.MoveToImmutable()).ConfigureAwait(false);
                     return;
                 }
 
-                foreach (var partition in partitions.Values)
+                var contextsBuilder = ImmutableArray.CreateBuilder<IMiddlewareContext>(group.Count);
+                for (var i = 0; i < group.Count; i++)
                 {
-                    var slice = ImmutableArray.CreateBuilder<IMiddlewareContext>(partition.Count);
-                    for (var i = 0; i < partition.Count; i++)
-                    {
-                        slice.Add(partition[i].Context);
-                    }
-                    await InvokeBatchSliceAsync(batchPipeline, slice.MoveToImmutable()).ConfigureAwait(false);
+                    contextsBuilder.Add(group[i].Context);
                 }
 
+                await batchPipeline(contextsBuilder.MoveToImmutable()).ConfigureAwait(false);
                 return;
             }
 
-            var contextsBuilder = ImmutableArray.CreateBuilder<IMiddlewareContext>(group.Count);
-            for (var i = 0; i < group.Count; i++)
+            var pipeline = nodeResolver.Pipeline!;
+
+            if (group.Count == 1)
             {
-                contextsBuilder.Add(group[i].Context);
+                await InvokeChildPipelineAsync(pipeline, group[0].Context).ConfigureAwait(false);
+                return;
             }
 
-            await InvokeBatchSliceAsync(batchPipeline, contextsBuilder.MoveToImmutable()).ConfigureAwait(false);
-            return;
-        }
+            var tasks = ArrayPool<Task>.Shared.Rent(group.Count);
 
-        var pipeline = nodeResolver.Pipeline!;
-
-        if (group.Count == 1)
-        {
-            await InvokeChildPipelineAsync(pipeline, group[0].Context).ConfigureAwait(false);
-            return;
-        }
-
-        var tasks = ArrayPool<Task>.Shared.Rent(group.Count);
-
-        try
-        {
-            for (var i = 0; i < group.Count; i++)
+            try
             {
-                tasks[i] = InvokeChildPipelineAsync(pipeline, group[i].Context).AsTask();
-            }
+                for (var i = 0; i < group.Count; i++)
+                {
+                    tasks[i] = InvokeChildPipelineAsync(pipeline, group[i].Context).AsTask();
+                }
 
 #if NET9_0_OR_GREATER
-            await Task.WhenAll(tasks.AsSpan(0, group.Count)).ConfigureAwait(false);
+                await Task.WhenAll(tasks.AsSpan(0, group.Count)).ConfigureAwait(false);
 #else
-            await ObserveAllAsync(tasks, group.Count).ConfigureAwait(false);
+                await ObserveAllAsync(tasks, group.Count).ConfigureAwait(false);
 #endif
+            }
+            finally
+            {
+                ArrayPool<Task>.Shared.Return(tasks, true);
+            }
         }
-        finally
+        catch (Exception ex) when (!group[0].Context.RequestAborted.IsCancellationRequested)
         {
-            ArrayPool<Task>.Shared.Return(tasks, true);
+            // A dispatch failure that escapes the dominant, non-partitioned slice (for example an
+            // inner partition key resolver throwing before any slice was dispatched) is isolated
+            // to this type group's entries; other type groups and other parents still resolve and
+            // return their data.
+            for (var k = 0; k < group.Count; k++)
+            {
+                group[k].Context.ReportError(ex);
+                group[k].Context.Result = null;
+            }
         }
     }
 
