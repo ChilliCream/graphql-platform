@@ -1,5 +1,4 @@
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.BatchResolvers;
 
@@ -476,16 +475,16 @@ public sealed partial class EngineBatchTests : BatchScenarioTests
     public async Task BatchResolver_Should_Fail_All_Contexts_When_ResultCountMismatches(DeclarationStyle style)
     {
         // arrange, deliberately returns fewer results than contexts so every context must fail
-        var executor = await CreateExecutorAsync(
-            style,
-            b => b.ModifyRequestOptions(o => o.IncludeExceptionDetails = true),
-            TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act
         await using var result = await ExecuteAsync(
             executor, "{ users { name mismatchGreeting } }", TestContext.Current.CancellationToken);
 
         // assert
+        // every style raises the identical count-mismatch cause; the per-style snapshot below
+        // records each style's own null-propagation shape (fluent's users list stays nullable
+        // per item, so a per-user error nulls only that item, unlike the other two styles).
         var operation = Assert.IsType<OperationResult>(result);
         Assert.Equal(3, operation.Errors?.Count);
         Assert.All(
@@ -493,10 +492,7 @@ public sealed partial class EngineBatchTests : BatchScenarioTests
             error => Assert.Contains(
                 "A batch resolver must return exactly one result per context. Expected 3 results but got 2.",
                 error.Exception?.Message));
-        var json = result.ToJson();
-        Assert.True(
-            json.Contains("\"mismatchGreeting\": null", StringComparison.Ordinal)
-            || json.Contains("\"data\": null", StringComparison.Ordinal));
+        result.MatchMarkdownSnapshot(style);
     }
 
     [Theory]
