@@ -450,7 +450,11 @@ internal sealed partial class SourceSchemaMerger
                 var memberDefinitions =
                     argumentGroup.Select(g => new DirectivesProviderInfo(g.Argument, g.Schema)).ToImmutableArray();
                 DeriveCostDirectives(
-                    mergedArgument, memberDefinitions, mergedSchema, CostCoordinateKind.InputValue, mergedArgument.Type);
+                    mergedArgument,
+                    memberDefinitions,
+                    mergedSchema,
+                    CostCoordinateKind.InputValue,
+                    mergedArgument.Type);
                 _directiveMergers[DirectiveNames.RequiresOptIn]
                     .MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
                 _directiveMergers[DirectiveNames.Tag].MergeDirectives(mergedArgument, memberDefinitions, mergedSchema);
