@@ -4,25 +4,25 @@ schema {
 
 type Query {
   intId(id: ID!): Int!
-  intIdList(ids: [ID!]!): [Int!]! @cost(weight: "1")
+  intIdList(ids: [ID!]!): [Int!]!
   nullableIntId(id: ID): Int
-  nullableIntIdList(ids: [ID]!): [Int]! @cost(weight: "1")
+  nullableIntIdList(ids: [ID]!): [Int]!
   optionalIntId(id: ID = "UXVlcnk6MA=="): Int
-  optionalIntIdList(ids: [ID!] = []): [Int!] @cost(weight: "1")
+  optionalIntIdList(ids: [ID!] = []): [Int!]
   stringId(id: ID!): String!
-  stringIdList(ids: [ID!]!): [String!]! @cost(weight: "1")
+  stringIdList(ids: [ID!]!): [String!]!
   nullableStringId(id: ID): String
-  nullableStringIdList(ids: [ID]!): [String]! @cost(weight: "1")
+  nullableStringIdList(ids: [ID]!): [String]!
   optionalStringId(id: ID = "UXVlcnk6"): String
-  optionalStringIdList(ids: [ID] = []): [String!] @cost(weight: "1")
+  optionalStringIdList(ids: [ID] = []): [String!]
   guidId(id: ID!): UUID!
-  guidIdList(ids: [ID!]!): [UUID!]! @cost(weight: "1")
+  guidIdList(ids: [ID!]!): [UUID!]!
   nullableGuidId(id: ID): UUID
-  nullableGuidIdList(ids: [ID]!): [UUID]! @cost(weight: "1")
+  nullableGuidIdList(ids: [ID]!): [UUID]!
   optionalGuidId(id: ID = "UXVlcnk6AAAAAAAAAAAAAAAAAAAAAA=="): UUID
-  optionalGuidIdList(ids: [ID] = []): [UUID!] @cost(weight: "1")
+  optionalGuidIdList(ids: [ID] = []): [UUID!]
   interceptedId(id: ID!): Int!
-  interceptedIds(ids: [ID!]!): [Int!]! @cost(weight: "1")
+  interceptedIds(ids: [ID!]!): [Int!]!
   customId(id: ID!): String!
   nullableCustomId(id: ID): String!
   customIds(ids: [ID!]!): String!
@@ -32,11 +32,11 @@ type Query {
 
 type FooPayload implements IFooPayload {
   someId: ID!
-  someIds: [ID!]! @cost(weight: "1")
+  someIds: [ID!]!
   someNullableId: ID
-  someNullableIds: [ID] @cost(weight: "1")
+  someNullableIds: [ID]
   interceptedId: Int
-  interceptedIds: [Int!] @cost(weight: "1")
+  interceptedIds: [Int!]
   raw: String!
 }
 
@@ -64,15 +64,3 @@ input FooInput {
 "The `UUID` scalar type represents a Universally Unique Identifier (UUID) as defined by RFC 9562."
 scalar UUID
   @specifiedBy(url: "https://scalars.graphql.org/chillicream/uuid.html")
-
-"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
-directive @cost(
-  "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
-  weight: String!
-) on
-  | SCALAR
-  | OBJECT
-  | FIELD_DEFINITION
-  | ARGUMENT_DEFINITION
-  | ENUM
-  | INPUT_FIELD_DEFINITION

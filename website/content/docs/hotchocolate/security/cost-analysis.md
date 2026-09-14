@@ -23,12 +23,12 @@ The default cost weights are:
 | Object, interface, and union types                  | `1`            |
 | Fields returning a scalar or enum                   | `0`            |
 | Fields returning an object, interface, or union     | `1`            |
-| Output fields returning a list of scalars or enums  | `1`            |
+| Output fields returning a list of scalars or enums  | `0`            |
 | Arguments and input fields with leaf values         | `0`            |
 | Arguments and input fields with input-object values | `1`            |
 | Fields without a pure resolver                      | `10`           |
 
-The list-of-scalars output weight and the resolver weight are written as explicit `@cost` directives when `ApplyCostDefaults` is enabled.
+The resolver weight is written as an explicit `@cost` directive when `ApplyCostDefaults` is enabled.
 
 ## Variable-Aware Evaluation
 

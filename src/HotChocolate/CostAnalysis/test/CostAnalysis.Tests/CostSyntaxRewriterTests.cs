@@ -23,7 +23,7 @@ public sealed class CostSyntaxRewriterTests
 
             type CompositeType @cost(weight: "1") {                # OBJECT
                 listField: [ElementType] @cost(weight: "1")        # FIELD_DEFINITION (list of composite type)
-                listOfScalarsField: [Scalar] @cost(weight: "1")    # FIELD_DEFINITION (list of leaf type)
+                listOfScalarsField: [Scalar] @cost(weight: "0")    # FIELD_DEFINITION (list of leaf type)
             }
 
             type ElementType {
