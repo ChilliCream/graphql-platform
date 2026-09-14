@@ -165,6 +165,9 @@
 | MutationRootBatchTests | BatchResolver_Should_Fail_Schema_Build_When_DeclaredOnMutationRootField | Attribute | Declared |
 | MutationRootBatchTests | BatchResolver_Should_Fail_Schema_Build_When_DeclaredOnMutationRootField | SourceGenerated | NotApplicable(compile-time diagnostic HC0137; see BatchResolverOnMutationFieldAnalyzerTests.BatchResolver_Should_RaiseError_When_HostedOnMutationTypeClass) |
 | MutationRootBatchTests | BatchResolver_Should_Fail_Schema_Build_When_DeclaredOnMutationRootField | Fluent | Declared |
+| NodeResolverBatchTests | Authorize_Should_Deny_Entry_At_IndexedPath_When_NodesContainProtectedType | Attribute | Declared |
+| NodeResolverBatchTests | Authorize_Should_Deny_Entry_At_IndexedPath_When_NodesContainProtectedType | SourceGenerated | Declared |
+| NodeResolverBatchTests | Authorize_Should_Deny_Entry_At_IndexedPath_When_NodesContainProtectedType | Fluent | Declared |
 | NodeResolverBatchTests | Authorize_Should_Deny_Node_When_BatchNodeTypeIsProtected | Attribute | Declared |
 | NodeResolverBatchTests | Authorize_Should_Deny_Node_When_BatchNodeTypeIsProtected | SourceGenerated | Declared |
 | NodeResolverBatchTests | Authorize_Should_Deny_Node_When_BatchNodeTypeIsProtected | Fluent | Declared |
@@ -183,6 +186,9 @@
 | NodeResolverBatchTests | NodeResolver_Should_Dispatch_Separately_When_AliasedFieldsShareType | Attribute | Declared |
 | NodeResolverBatchTests | NodeResolver_Should_Dispatch_Separately_When_AliasedFieldsShareType | SourceGenerated | Declared |
 | NodeResolverBatchTests | NodeResolver_Should_Dispatch_Separately_When_AliasedFieldsShareType | Fluent | Declared |
+| NodeResolverBatchTests | NodeResolver_Should_Report_At_FieldPath_When_NodesContainMalformedId | Attribute | Declared |
+| NodeResolverBatchTests | NodeResolver_Should_Report_At_FieldPath_When_NodesContainMalformedId | SourceGenerated | Declared |
+| NodeResolverBatchTests | NodeResolver_Should_Report_At_FieldPath_When_NodesContainMalformedId | Fluent | Declared |
 | NodeResolverBatchTests | NodeResolver_Should_Resolve_When_FetchedThroughNodeField | Attribute | Declared |
 | NodeResolverBatchTests | NodeResolver_Should_Resolve_When_FetchedThroughNodeField | SourceGenerated | Declared |
 | NodeResolverBatchTests | NodeResolver_Should_Resolve_When_FetchedThroughNodeField | Fluent | Declared |

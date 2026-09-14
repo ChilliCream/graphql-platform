@@ -114,7 +114,7 @@ public sealed partial class NodeResolverBatchTests : BatchScenarioTests
     public async Task NodeResolver_Should_Dispatch_Once_When_NodesIdsContainDuplicates(DeclarationStyle style)
     {
         // arrange
-        // a repeated id still reaches the batch node resolver once, positionally (hc-0-bpl.9)
+        // a repeated id still reaches the batch node resolver once, positionally (hc-0-6cq.15)
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
         var x = Convert.ToBase64String("NodeEntity:x"u8);
         var y = Convert.ToBase64String("NodeEntity:y"u8);
@@ -153,6 +153,106 @@ public sealed partial class NodeResolverBatchTests : BatchScenarioTests
                   }
                 ]
               }
+            }
+            """);
+    }
+
+    [Theory]
+    [BatchMatrix]
+    public async Task Authorize_Should_Deny_Entry_At_IndexedPath_When_NodesContainProtectedType(
+        DeclarationStyle style)
+    {
+        // arrange
+        // a denied entry in a nodes() batch lands at its own indexed path, not the whole field (hc-0-bpl.7)
+        AuthHandler.Resolver = (_, directive) => directive.Policy == "READ_PROTECTED_NODE"
+            ? AuthorizeResult.NotAllowed
+            : AuthorizeResult.Allowed;
+        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
+        var x = Convert.ToBase64String("NodeEntity:x"u8);
+        var protectedId = Convert.ToBase64String("ProtectedNode:abc"u8);
+
+        // act
+        var result = await ExecuteAsync(
+            executor,
+            $$"""
+            {
+                nodes(ids: ["{{x}}", "{{protectedId}}"]) {
+                    __typename
+                    ... on NodeEntity { id name }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(Probe.Invocations);
+        result.MatchInlineSnapshot(
+            $$"""
+            {
+              "errors": [
+                {
+                  "message": "The current user is not authorized to access this resource.",
+                  "path": [
+                    "nodes",
+                    1
+                  ],
+                  "extensions": {
+                    "code": "AUTH_NOT_AUTHORIZED"
+                  }
+                }
+              ],
+              "data": {
+                "nodes": [
+                  {
+                    "__typename": "NodeEntity",
+                    "id": "{{x}}",
+                    "name": "x"
+                  },
+                  null
+                ]
+              }
+            }
+            """);
+    }
+
+    [Theory]
+    [BatchMatrix]
+    public async Task NodeResolver_Should_Report_At_FieldPath_When_NodesContainMalformedId(DeclarationStyle style)
+    {
+        // arrange
+        // a malformed id fails before any child is staged: the error path is the whole field
+        // ["nodes"], not an indexed entry, and nodes' NonNull type nulls the whole response (bpl.7)
+        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
+        var x = Convert.ToBase64String("NodeEntity:x"u8);
+
+        // act
+        var result = await ExecuteAsync(
+            executor,
+            $$"""
+            {
+                nodes(ids: ["{{x}}", "garbage"]) {
+                    ... on NodeEntity { id name }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The node ID string has an invalid format.",
+                  "path": [
+                    "nodes"
+                  ],
+                  "extensions": {
+                    "originalValue": "garbage"
+                  }
+                }
+              ],
+              "data": null
             }
             """);
     }
