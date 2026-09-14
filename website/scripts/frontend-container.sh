@@ -38,6 +38,12 @@ NEXT_VOLUME="${CONTAINER_NAME}-next"
 # to be unique per-container, not per-checkout.
 CONTAINER_WORKSPACE="/workspaces/hc-0"
 
+# State for cmd_dev's INT/TERM/EXIT trap. Script-scoped (not function-local)
+# so the trap body can reference them under `set -u` even on a normal return
+# from cmd_dev, when the function's own locals would already be unset.
+DEV_SPAWNED=0
+DEV_CHILD=''
+
 usage() {
   cat <<'EOF'
 Usage: frontend-container.sh <command> [args...]
@@ -224,17 +230,17 @@ stop_dev() {
 }
 
 cmd_dev() {
-  # spawned/child are set only once the background `docker exec` below is
-  # actually started. The traps are installed here, before that spawn (and
-  # before the "already running" check can exit early), so a signal in that
-  # gap has nothing to clean up: the guard keeps the early exit path from
-  # killing a dev server this invocation did not start.
-  local spawned=0
-  local child=0
+  # DEV_SPAWNED/DEV_CHILD are set only once the background `docker exec`
+  # below is actually started. The traps are installed here, before that
+  # spawn (and before the "already running" check can exit early), so a
+  # signal in that gap has nothing to clean up: the guard keeps the early
+  # exit path from killing a dev server this invocation did not start.
   trap '
-    if [ "${spawned}" -eq 1 ]; then
-      kill "${child}" 2>/dev/null || true
+    if [ "${DEV_SPAWNED:-0}" -eq 1 ]; then
+      kill "${DEV_CHILD:-}" 2>/dev/null || true
       stop_dev
+      DEV_SPAWNED=0
+      DEV_CHILD=''
     fi
   ' INT TERM EXIT
 
@@ -261,10 +267,10 @@ cmd_dev() {
   compute_tty_flags
   local tty_flags=("${TTY_FLAGS[@]}")
   docker exec "${tty_flags[@]}" -w "$(container_website_dir)" "${CONTAINER_NAME}" yarn dev &
-  child=$!
-  spawned=1
+  DEV_CHILD=$!
+  DEV_SPAWNED=1
 
-  wait "${child}"
+  wait "${DEV_CHILD}"
 }
 
 cmd_exec() {
