@@ -16,9 +16,7 @@ public sealed partial class VariableBatchBatchTests
     ];
 
     private void ConfigureAttribute(IRequestExecutorBuilder builder)
-        => builder.AddQueryType<VariableBatchAttributeQuery>(d =>
-            d.Field(q => q.GetProductById(default!, default!))
-                .Type<NonNullType<ObjectType<VariableBatchProduct>>>());
+        => builder.AddQueryType<VariableBatchAttributeQuery>();
 
     private void ConfigureSourceGenerated(IRequestExecutorBuilder builder)
         => builder.AddQueryType(VariableBatchQuery.Initialize);
@@ -54,9 +52,9 @@ public sealed class FluentVariableBatchResolvers
 }
 
 /// <summary>
-/// Attribute-style root query with a non-null batch resolver. A missing id resolves to
-/// <c>null!</c>, which the fluent-forced non-null field turns into a violation scoped to that
-/// entry's own variable set.
+/// Attribute-style root query whose non-nullable element type alone makes the field non-null.
+/// A missing id resolves to <c>null!</c>, which the inferred non-null field turns into a
+/// violation scoped to that entry's own variable set.
 /// </summary>
 public sealed class VariableBatchAttributeQuery
 {
