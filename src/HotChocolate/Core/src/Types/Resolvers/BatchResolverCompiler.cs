@@ -294,6 +294,10 @@ internal static class BatchResolverCompiler
 
         var body = Block(returnType, variables, bodyStatements);
 
+        var distributeType = typeof(Action<,>).MakeGenericType(
+            typeof(ImmutableArray<IMiddlewareContext>), unwrappedType);
+        var distribute = Delegate.CreateDelegate(distributeType, GetDistributeMethod(unwrappedType));
+
         if (returnType.GetGenericTypeDefinition() == typeof(Task<>))
         {
             var funcType = typeof(Func<,>).MakeGenericType(
@@ -304,7 +308,7 @@ internal static class BatchResolverCompiler
                 .GetMethod(nameof(WrapAsyncTask), BindingFlags.NonPublic | BindingFlags.Static)!
                 .MakeGenericMethod(unwrappedType);
 
-            return (BatchFieldDelegate)wrapMethod.Invoke(null, [invoker])!;
+            return (BatchFieldDelegate)wrapMethod.Invoke(null, [invoker, distribute])!;
         }
         else
         {
@@ -316,27 +320,29 @@ internal static class BatchResolverCompiler
                 .GetMethod(nameof(WrapAsyncValueTask), BindingFlags.NonPublic | BindingFlags.Static)!
                 .MakeGenericMethod(unwrappedType);
 
-            return (BatchFieldDelegate)wrapMethod.Invoke(null, [invoker])!;
+            return (BatchFieldDelegate)wrapMethod.Invoke(null, [invoker, distribute])!;
         }
     }
 
     private static BatchFieldDelegate WrapAsyncTask<TResult>(
-        Func<ImmutableArray<IMiddlewareContext>, Task<TResult>> invoker)
+        Func<ImmutableArray<IMiddlewareContext>, Task<TResult>> invoker,
+        Action<ImmutableArray<IMiddlewareContext>, TResult> distribute)
     {
         return async contexts =>
         {
             var result = await invoker(contexts).ConfigureAwait(false);
-            DistributeList(contexts, result);
+            distribute(contexts, result);
         };
     }
 
     private static BatchFieldDelegate WrapAsyncValueTask<TResult>(
-        Func<ImmutableArray<IMiddlewareContext>, ValueTask<TResult>> invoker)
+        Func<ImmutableArray<IMiddlewareContext>, ValueTask<TResult>> invoker,
+        Action<ImmutableArray<IMiddlewareContext>, TResult> distribute)
     {
         return async contexts =>
         {
             var result = await invoker(contexts).ConfigureAwait(false);
-            DistributeList(contexts, result);
+            distribute(contexts, result);
         };
     }
 
@@ -350,13 +356,6 @@ internal static class BatchResolverCompiler
             }
 
             return;
-        }
-
-        // A default(ImmutableArray<T>) result has no backing array; it still passes the IList
-        // check below, so Count must be guarded ahead of it to avoid a NullReferenceException.
-        if (IsDefaultImmutableArray(result))
-        {
-            throw ThrowHelper.BatchResolver_ResultCountMismatch(contexts.Length, 0);
         }
 
         if (result is System.Collections.IList list)
@@ -380,25 +379,26 @@ internal static class BatchResolverCompiler
     }
 
     /// <summary>
-    /// Checks whether a batch result is the uninitialized default value of an
-    /// <c>ImmutableArray&lt;T&gt;</c> return type, whose backing array is null.
+    /// Distributes an <see cref="ImmutableArray{TElement}"/> batch result to its contexts.
     /// </summary>
-    [UnconditionalSuppressMessage(
-        "ReflectionAnalysis",
-        "IL2090",
-        Justification =
-            "T is only ever the statically known ImmutableArray<TElement> return type this method "
-            + "is specialized for via MakeGenericMethod; its public properties are never trimmed.")]
-    private static bool IsDefaultImmutableArray<T>(T result)
+    private static void DistributeImmutableArray<TElement>(
+        ImmutableArray<IMiddlewareContext> contexts,
+        ImmutableArray<TElement> result)
     {
-        var type = typeof(T);
-
-        if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(ImmutableArray<>))
+        if (result.IsDefault)
         {
-            return false;
+            throw ThrowHelper.BatchResolver_ResultCountMismatch(contexts.Length, 0);
         }
 
-        return (bool)type.GetProperty(nameof(ImmutableArray<object>.IsDefault))!.GetValue(result)!;
+        if (result.Length != contexts.Length)
+        {
+            throw ThrowHelper.BatchResolver_ResultCountMismatch(contexts.Length, result.Length);
+        }
+
+        for (var i = 0; i < contexts.Length; i++)
+        {
+            contexts[i].Result = result[i];
+        }
     }
 
     /// <summary>
@@ -474,11 +474,24 @@ internal static class BatchResolverCompiler
         ParameterExpression resultVar,
         Type resultType)
     {
-        var distributeMethod = typeof(BatchResolverCompiler)
+        return Call(GetDistributeMethod(resultType), contextsParam, resultVar);
+    }
+
+    /// <summary>
+    /// Resolves the batch result distributor for the given static result type.
+    /// </summary>
+    private static MethodInfo GetDistributeMethod(Type resultType)
+    {
+        if (resultType.IsGenericType && resultType.GetGenericTypeDefinition() == typeof(ImmutableArray<>))
+        {
+            return typeof(BatchResolverCompiler)
+                .GetMethod(nameof(DistributeImmutableArray), BindingFlags.NonPublic | BindingFlags.Static)!
+                .MakeGenericMethod(resultType.GetGenericArguments()[0]);
+        }
+
+        return typeof(BatchResolverCompiler)
             .GetMethod(nameof(DistributeList), BindingFlags.NonPublic | BindingFlags.Static)!
             .MakeGenericMethod(resultType);
-
-        return Call(distributeMethod, contextsParam, resultVar);
     }
 
     private static (Type unwrapped, bool isAsync) UnwrapAsyncType(Type type)
