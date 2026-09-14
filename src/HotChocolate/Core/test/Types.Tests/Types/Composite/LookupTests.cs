@@ -208,7 +208,7 @@ public static class LookupTests
             }
 
             type Query6 {
-              bookById(id: Int!): Book6 @lookup
+              bookById(id: Int!): Book6! @lookup
             }
 
             type Book6 {
