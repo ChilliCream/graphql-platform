@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 #if !NET9_0_OR_GREATER
 using System.Runtime.ExceptionServices;
 #endif
+using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -254,7 +255,7 @@ internal static class NodeFieldResolvers
                         continue;
                     }
 
-                    var child = parent.Clone();
+                    var child = ((MiddlewareContext)parent).Clone(parent.Path.Append(i));
                     SetLocalContext(child, nodeId, deserializedId, type);
                     TryReplaceArguments(child, nodeResolver, Ids, nodeId);
 
@@ -402,7 +403,7 @@ internal static class NodeFieldResolvers
 
         if (group.Count == 1)
         {
-            await pipeline(group[0].Context).ConfigureAwait(false);
+            await InvokeChildPipelineAsync(pipeline, group[0].Context).ConfigureAwait(false);
             return;
         }
 
@@ -412,7 +413,7 @@ internal static class NodeFieldResolvers
         {
             for (var i = 0; i < group.Count; i++)
             {
-                tasks[i] = pipeline(group[i].Context).AsTask();
+                tasks[i] = InvokeChildPipelineAsync(pipeline, group[i].Context);
             }
 
 #if NET9_0_OR_GREATER
@@ -424,6 +425,23 @@ internal static class NodeFieldResolvers
         finally
         {
             ArrayPool<Task>.Shared.Return(tasks, true);
+        }
+    }
+
+    /// <summary>
+    /// Runs a staged child's classic node resolver pipeline, isolating an unhandled exception
+    /// to that child's own indexed path instead of letting it fail every entry in the batch.
+    /// </summary>
+    private static async Task InvokeChildPipelineAsync(FieldDelegate pipeline, IMiddlewareContext context)
+    {
+        try
+        {
+            await pipeline(context).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (!context.RequestAborted.IsCancellationRequested)
+        {
+            context.ReportError(ex);
+            context.Result = null;
         }
     }
 

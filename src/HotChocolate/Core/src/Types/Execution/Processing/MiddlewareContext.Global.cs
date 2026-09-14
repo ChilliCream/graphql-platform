@@ -237,6 +237,20 @@ internal partial class MiddlewareContext : IMiddlewareContext
         => _operationContext.GetQueryRoot<T>();
 
     public IMiddlewareContext Clone()
+        => CloneCore(null);
+
+    /// <summary>
+    /// Clones this context with an explicit path, so errors reported through the clone
+    /// carry that path instead of inheriting the parent's result path.
+    /// </summary>
+    internal IMiddlewareContext Clone(Path path)
+    {
+        ArgumentNullException.ThrowIfNull(path);
+
+        return CloneCore(path);
+    }
+
+    private IMiddlewareContext CloneCore(Path? path)
     {
         // The middleware context is bound to a resolver task,
         // so we need to create a resolver task to clone
@@ -250,6 +264,11 @@ internal partial class MiddlewareContext : IMiddlewareContext
 
         // We need to manually copy the local state.
         resolverTask.Context.LocalContextData = LocalContextData;
+
+        if (path is not null)
+        {
+            resolverTask.Context._path = path;
+        }
 
         // Since resolver tasks are pooled and returned to the pool after they are executed,
         // we need to complete the task manually when the resolver task of the current context
