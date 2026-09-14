@@ -173,41 +173,9 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return TypeReference.Create(typeAttribute.TypeSyntax, context, scope);
         }
 
-        var elementType = ApplyBatchTypeAttributes(returnType.ElementType, method);
+        var elementType = ApplyTypeAttributes(returnType.ElementType, method);
 
         return TypeReference.Create(elementType, context, scope);
-    }
-
-    /// <summary>
-    /// Applies the type attributes of a batch resolver method to its list element type.
-    /// </summary>
-    private IExtendedType ApplyBatchTypeAttributes(
-        IExtendedType elementType,
-        MethodInfo method)
-    {
-        var resultType = elementType;
-        var hasGraphQLTypeAttribute = false;
-
-        if (TryGetAttribute(method, out GraphQLTypeAttribute? typeAttribute)
-            && typeAttribute.Type is { } attributeType)
-        {
-            hasGraphQLTypeAttribute = true;
-            resultType = GetType(attributeType);
-        }
-
-        if (TryGetAttribute(method, out GraphQLNonNullTypeAttribute? nullAttribute))
-        {
-            resultType = ChangeNullabilityInternal(resultType, nullAttribute.Nullable);
-        }
-
-        if (!IgnoreRequiredAttribute
-            && !hasGraphQLTypeAttribute
-            && TryGetAttribute(method, out RequiredAttribute? _))
-        {
-            resultType = ChangeNullability(resultType, false);
-        }
-
-        return resultType;
     }
 
     /// <inheritdoc />

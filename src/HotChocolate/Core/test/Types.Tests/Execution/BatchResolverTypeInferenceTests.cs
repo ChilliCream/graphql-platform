@@ -5,6 +5,8 @@ using HotChocolate.Internal;
 using HotChocolate.Tests;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Configurations;
+using HotChocolate.Types.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution;
@@ -120,6 +122,49 @@ public class BatchResolverTypeInferenceTests
     }
 
     [Fact]
+    public async Task BatchResolver_Should_KeepExplicitType_From_Type_When_ResolveBatchWith()
+    {
+        // arrange & act & assert
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("nonNullProducts")
+                    .Type<StringType>()
+                    .ResolveBatchWith<ResolveBatchWithProducts>(r => r.GetNonNullProducts(default!));
+            })
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
+    public async Task BatchResolver_Should_KeepExplicitType_From_Type_When_InterfaceResolveBatchWith()
+    {
+        // arrange & act & assert
+        await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d =>
+            {
+                d.Name("Query");
+                d.Field("items")
+                    .Type<ListType<InterfaceType<IInterfaceBatchQuery>>>()
+                    .Resolve(new List<IInterfaceBatchQuery>());
+            })
+            .AddInterfaceType<IInterfaceBatchQuery>(d =>
+            {
+                d.Name("InterfaceBatchQuery");
+                d.Field("nonNullProducts")
+                    .Type<StringType>()
+                    .ResolveBatchWith<InterfaceResolveBatchWithProducts>(r => r.GetNonNullProducts(default!));
+            })
+            .AddObjectType<ObjectImplementingInterfaceBatchQuery>(
+                d => d.Implements<InterfaceType<IInterfaceBatchQuery>>())
+            .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken)
+            .MatchSnapshotAsync();
+    }
+
+    [Fact]
     public void GetBatchReturnTypeRef_Should_Throw_NotSupportedException_When_TypeInspector_Does_Not_Override_It()
     {
         // arrange
@@ -132,6 +177,24 @@ public class BatchResolverTypeInferenceTests
         // assert
         Assert.Contains(nameof(ForeignTypeInspector), exception.Message, StringComparison.Ordinal);
         Assert.Contains(nameof(ITypeInspector.GetBatchReturnTypeRef), exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SetMoreSpecificType_Should_Throw_NotSupportedException_When_TypeReference_Kind_Is_Unhandled()
+    {
+        // arrange
+        ITypeInspector inspector = new SchemaTypeReturningTypeInspector();
+        var method = typeof(AttributeBatchQuery).GetMethod(nameof(AttributeBatchQuery.GetNonNullProducts))!;
+        var configuration = new ObjectFieldConfiguration();
+        var typeReference = inspector.GetBatchReturnTypeRef(method);
+
+        // act
+        var exception = Assert.Throws<NotSupportedException>(
+            () => configuration.SetMoreSpecificType(typeReference, inspector, method));
+
+        // assert
+        Assert.Contains(nameof(SchemaTypeReturningTypeInspector), exception.Message, StringComparison.Ordinal);
+        Assert.Contains(nameof(AttributeBatchQuery.GetNonNullProducts), exception.Message, StringComparison.Ordinal);
     }
 
     public record BatchProduct(int Id, string Name);
@@ -342,5 +405,19 @@ public class BatchResolverTypeInferenceTests
 
         public bool TryCreateTypeInfo(IExtendedType type, [NotNullWhen(true)] out ITypeInfo? typeInfo)
             => _inner.TryCreateTypeInfo(type, out typeInfo);
+    }
+
+    /// <summary>
+    /// A <see cref="ITypeInspector"/> whose batch return type inference yields a
+    /// <see cref="SchemaTypeReference"/>, exercising the unhandled type reference kind guard
+    /// in <c>DescriptorHelpers.SetMoreSpecificType</c>.
+    /// </summary>
+    public sealed class SchemaTypeReturningTypeInspector : DefaultTypeInspector
+    {
+        public override TypeReference GetBatchReturnTypeRef(
+            MethodInfo method,
+            TypeContext context = TypeContext.None,
+            string? scope = null)
+            => new SchemaTypeReference(new StringType());
     }
 }

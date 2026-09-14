@@ -2744,6 +2744,15 @@ namespace HotChocolate.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The type inspector `{0}` returned an unsupported type reference kind for the batch resolver `{1}.{2}`..
+        /// </summary>
+        internal static string ThrowHelper_DescriptorHelpers_SetMoreSpecificType_NotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DescriptorHelpers_SetMoreSpecificType_NotSupported", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The list runtime value of {0} must implement IEnumerable or IList but is of the type {1}..
         /// </summary>
         internal static string ThrowHelper_FormatValueList_InvalidObjectKind {

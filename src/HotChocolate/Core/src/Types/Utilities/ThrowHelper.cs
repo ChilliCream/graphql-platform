@@ -53,6 +53,16 @@ internal static class ThrowHelper
                 typeInspector.GetType().FullName,
                 nameof(ITypeInspector.GetBatchReturnTypeRef)));
 
+    public static NotSupportedException DescriptorHelpers_SetMoreSpecificType_NotSupported(
+        ITypeInspector typeInspector,
+        MethodInfo resolverMember)
+        => new(
+            string.Format(
+                ThrowHelper_DescriptorHelpers_SetMoreSpecificType_NotSupported,
+                typeInspector.GetType().FullName,
+                resolverMember.DeclaringType?.FullName ?? resolverMember.DeclaringType?.Name,
+                resolverMember.Name));
+
     public static SchemaException ObjectDeprecationNotEnabled(string typeName)
         => new SchemaException(
             SchemaErrorBuilder.New()

@@ -801,6 +801,9 @@ Type: `{0}`</value>
   <data name="ThrowHelper_TypeInspector_GetBatchReturnTypeRef_NotSupported" xml:space="preserve">
     <value>The type inspector `{0}` does not implement `{1}` and cannot infer batch resolver field types.</value>
   </data>
+  <data name="ThrowHelper_DescriptorHelpers_SetMoreSpecificType_NotSupported" xml:space="preserve">
+    <value>The type inspector `{0}` returned an unsupported type reference kind for the batch resolver `{1}.{2}`.</value>
+  </data>
   <data name="ThrowHelper_FormatValueList_InvalidObjectKind" xml:space="preserve">
     <value>The list runtime value of {0} must implement IEnumerable or IList but is of the type {1}.</value>
   </data>
