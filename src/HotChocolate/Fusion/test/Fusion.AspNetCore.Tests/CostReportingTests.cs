@@ -212,7 +212,7 @@ public class CostReportingTests : FusionTestBase
     }
 
     [Fact]
-    public async Task VariableBatch_Should_ExecuteCheapIndicesAndRejectOnlyOffendingIndices()
+    public async Task VariableBatch_Should_RejectWholeRequest_When_SummedTypeCostExceedsLimit()
     {
         // arrange
         using var server = CreateSourceSchema(
@@ -244,82 +244,56 @@ public class CostReportingTests : FusionTestBase
             ItemsQuery,
             variables:
             [
-                new Dictionary<string, object?> { ["n"] = 1 },
-                new Dictionary<string, object?> { ["n"] = 1000 }
+                new Dictionary<string, object?> { ["n"] = 4 },
+                new Dictionary<string, object?> { ["n"] = 5 }
             ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         using var response = await client.SendAsync(
-            new GraphQLHttpRequest(batch, s_endpoint),
+            new GraphQLHttpRequest(batch, s_endpoint)
+            {
+                OnMessageCreated = (_, message, _) =>
+                {
+                    message.Headers.Add(CostHeader, ReportCost);
+                    message.Headers.Accept.Add(
+                        new MediaTypeWithQualityHeaderValue("application/graphql-response+json"));
+                }
+            },
             TestContext.Current.CancellationToken);
+        var results = await ReadResultsAsync(response);
 
         // assert
-        var results = new List<OperationResult>();
-        await foreach (var result in response.ReadAsResultStreamAsync()
-            .WithCancellation(TestContext.Current.CancellationToken))
-        {
-            results.Add(result);
-        }
-
-        var cheap = results[0];
-        var offending = results[1];
-        var offendingError = Assert.Single(offending.Errors.EnumerateArray());
-        var offendingErrorExtensions = offendingError.GetProperty("extensions");
-        var cheapCost = cheap.Extensions.GetProperty("operationCost");
-        var offendingCost = offending.Extensions.GetProperty("operationCost");
-        new
-        {
-            Cheap = new
-            {
-                Values = cheap.Data
-                    .GetProperty("items")
-                    .EnumerateArray()
-                    .Select(item => item.GetProperty("value").GetInt32())
-                    .ToArray(),
-                ErrorKind = cheap.Errors.ValueKind,
-                FieldCost = cheapCost.GetProperty("fieldCost").GetDouble(),
-                TypeCost = cheapCost.GetProperty("typeCost").GetDouble()
-            },
-            Offending = new
-            {
-                DataKind = offending.Data.ValueKind,
-                Message = offendingError.GetProperty("message").GetString(),
-                Code = offendingErrorExtensions.GetProperty("code").GetString(),
-                TypeCost = offendingErrorExtensions.GetProperty("typeCost").GetDouble(),
-                MaxTypeCost = offendingErrorExtensions.GetProperty("maxTypeCost").GetDouble(),
-                ReportedFieldCost = offendingCost.GetProperty("fieldCost").GetDouble(),
-                ReportedTypeCost = offendingCost.GetProperty("typeCost").GetDouble()
-            }
-        }.MatchInlineSnapshot(
-            """
-            {
-              "Cheap": {
-                "Values": [
-                  123
-                ],
-                "ErrorKind": "Undefined",
-                "FieldCost": 6.0,
-                "TypeCost": 2.0
-              },
-              "Offending": {
-                "DataKind": "Undefined",
-                "Message": "The maximum allowed type cost was exceeded.",
-                "Code": "HC0047",
-                "TypeCost": 1001.0,
-                "MaxTypeCost": 10.0,
-                "ReportedFieldCost": 5001.0,
-                "ReportedTypeCost": 1001.0
-              }
-            }
-            """);
-
+        Assert.Equal(HttpStatusCode.BadRequest, response.HttpResponseMessage.StatusCode);
+        Assert.Empty(gateway.Interactions);
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The maximum allowed type cost was exceeded.",
+                      "extensions": {
+                        "code": "HC0047",
+                        "typeCost": 11,
+                        "maxTypeCost": 10
+                      }
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 47,
+                      "typeCost": 11
+                    }
+                  }
+                }
+                """
+            ]);
         DisposeResults(results);
-        Assert.Single(gateway.Interactions["A"]);
     }
 
     [Fact]
-    public async Task VariableBatch_Should_ReportEachAcceptedSet_When_ModeIsReport()
+    public async Task VariableBatch_Should_ExecuteAndReportEachSet_When_SummedTypeCostIsWithinLimit()
     {
         // arrange
         using var server = CreateSourceSchema(
@@ -338,7 +312,15 @@ public class CostReportingTests : FusionTestBase
                     context => context.Parent<AcceptedItem>().Value));
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
-            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+            configureGatewayBuilder: b =>
+            {
+                b.ModifyServerOptions(o => o.Batching = AllowedBatching.All);
+                b.ModifyCostOptions(o =>
+                {
+                    o.MaxFieldCost = double.PositiveInfinity;
+                    o.MaxTypeCost = 10;
+                });
+            });
         var batch = new VariableBatchRequest(
             ItemsQuery,
             variables:
@@ -597,6 +579,66 @@ public class CostReportingTests : FusionTestBase
               "maxAllowedResponseSize": 100
             }
             """);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_ReportFirstResponseSizeViolation_When_MultipleSetsExceedLimit()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", Schema);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.ModifyCostOptions(o =>
+            {
+                o.MaxFieldCost = double.PositiveInfinity;
+                o.MaxTypeCost = double.PositiveInfinity;
+                o.MaxResponseSize = 100;
+            }));
+        var batch = new VariableBatchRequest(
+            ItemsQuery,
+            variables:
+            [
+                new Dictionary<string, object?> { ["n"] = 1000 },
+                new Dictionary<string, object?> { ["n"] = 2000 }
+            ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(batch, s_endpoint)
+            {
+                OnMessageCreated = (_, message, _) => message.Headers.Add(CostHeader, ReportCost)
+            },
+            TestContext.Current.CancellationToken);
+        var results = await ReadResultsAsync(response);
+
+        // assert
+        Assert.Empty(gateway.Interactions);
+        results.MatchInlineSnapshots(
+            [
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The maximum allowed response size was exceeded.",
+                      "extensions": {
+                        "code": "HC0047",
+                        "maxResponseSize": 1001,
+                        "maxAllowedResponseSize": 100
+                      }
+                    }
+                  ],
+                  "extensions": {
+                    "operationCost": {
+                      "fieldCost": 15002,
+                      "typeCost": 3002,
+                      "maxResponseSize": 1001
+                    }
+                  }
+                }
+                """
+            ]);
+        DisposeResults(results);
     }
 
     [Fact]

@@ -53,31 +53,6 @@ internal static class CostResultHelper
         };
     }
 
-    public static OperationResultBatch CreateErrorBatch(
-        ImmutableArray<CostEstimate> estimates,
-        ImmutableArray<CostLimitViolation?> violations,
-        bool report)
-    {
-        if (estimates.IsDefaultOrEmpty || estimates.Length != violations.Length)
-        {
-            return new OperationResultBatch([ErrorHelper.StateInvalidForCostAnalysis()]);
-        }
-
-        var results = ImmutableList.CreateBuilder<IExecutionResult>();
-
-        for (var i = 0; i < estimates.Length; i++)
-        {
-            if (violations[i] is not { } violation)
-            {
-                return new OperationResultBatch([ErrorHelper.StateInvalidForCostAnalysis()]);
-            }
-
-            results.Add(CreateError(estimates[i], violation.Kind, violation.Limit, report));
-        }
-
-        return new OperationResultBatch(results.ToImmutable());
-    }
-
     public static OperationResult CreateError(
         CostEstimate estimate,
         CostLimitKind limitKind,

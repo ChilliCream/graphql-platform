@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
-using HotChocolate.Fusion.Execution.CostAnalysis;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,27 +64,14 @@ internal sealed class OperationExecutionMiddleware
 
                     var variableValues = ImmutableCollectionsMarshal.AsArray(context.VariableValues).AsSpan();
                     var tasks = new Task<IExecutionResult>[variableValues.Length];
-                    context.Features.TryGet<CostBatchEnforcementResult>(out var costEnforcement);
 
                     for (var i = 0; i < variableValues.Length; i++)
                     {
-                        if (costEnforcement?.Violations[i] is { } violation)
-                        {
-                            tasks[i] = Task.FromResult<IExecutionResult>(
-                                CostResultHelper.CreateError(
-                                    costEnforcement.Estimates[i],
-                                    violation.Kind,
-                                    violation.Limit,
-                                    report: false));
-                        }
-                        else
-                        {
-                            tasks[i] = OperationPlanExecutor.ExecuteAsync(
-                                context,
-                                variableValues[i],
-                                operationPlan,
-                                cancellationToken);
-                        }
+                        tasks[i] = OperationPlanExecutor.ExecuteAsync(
+                            context,
+                            variableValues[i],
+                            operationPlan,
+                            cancellationToken);
                     }
 
                     IExecutionResult[] completedResults;
