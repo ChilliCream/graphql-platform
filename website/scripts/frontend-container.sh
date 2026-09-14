@@ -4,7 +4,7 @@
 # a plain host shell that has no devcontainer CLI, node, or yarn installed.
 #
 # Usage:
-#   website/scripts/frontend-container.sh up [--public]
+#   website/scripts/frontend-container.sh up
 #   website/scripts/frontend-container.sh playwright-setup
 #   website/scripts/frontend-container.sh dev
 #   website/scripts/frontend-container.sh exec -- <cmd...>
@@ -25,9 +25,9 @@ usage() {
 Usage: frontend-container.sh <command> [args...]
 
 Commands:
-  up [--public]        Build the image and start the long-lived container.
-                        Binds dev/Storybook ports to 127.0.0.1 unless
-                        --public (or WEBSITE_BIND=0.0.0.0) is given.
+  up                    Build the image and start the long-lived container.
+                        Publishes the dev server on 127.0.0.1:3031 and
+                        Storybook on 127.0.0.1:6006. Loopback only.
   playwright-setup      Install the Playwright Chromium browser (lazy, not
                         run automatically by `up`).
   dev                   Run `yarn dev` inside the container and print the
@@ -107,23 +107,12 @@ ensure_running() {
 }
 
 cmd_up() {
-  local public=0
-  for arg in "$@"; do
-    case "${arg}" in
-      --public) public=1 ;;
-      *)
-        echo "error: unknown option '${arg}' for up" >&2
-        exit 2
-        ;;
-    esac
-  done
+  if [ "$#" -gt 0 ]; then
+    echo "error: 'up' takes no arguments" >&2
+    exit 2
+  fi
 
   require_docker
-
-  local bind_host="${WEBSITE_BIND:-127.0.0.1}"
-  if [ "${public}" -eq 1 ]; then
-    bind_host="0.0.0.0"
-  fi
 
   echo "==> Building ${IMAGE_TAG} from ${DEVCONTAINER_DIR}"
   docker build -t "${IMAGE_TAG}" -f "${DEVCONTAINER_DIR}/dockerfile" "${DEVCONTAINER_DIR}"
@@ -149,8 +138,8 @@ cmd_up() {
       --user node \
       -v "${root}:${workspace}" \
       -w "$(container_website_dir)" \
-      -p "${bind_host}:3001:3001" \
-      -p "${bind_host}:6006:6006" \
+      -p 127.0.0.1:3031:3001 \
+      -p 127.0.0.1:6006:6006 \
       "${IMAGE_TAG}" \
       sleep infinity >/dev/null
   fi
@@ -166,7 +155,7 @@ cmd_playwright_setup() {
 
 cmd_dev() {
   ensure_running
-  echo "==> Dev server: http://localhost:3001"
+  echo "==> Dev server: http://localhost:3031"
   docker exec -w "$(container_website_dir)" "${CONTAINER_NAME}" yarn dev
 }
 
