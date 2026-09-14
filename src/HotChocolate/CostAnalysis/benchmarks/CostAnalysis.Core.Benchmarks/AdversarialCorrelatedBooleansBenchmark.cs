@@ -38,7 +38,7 @@ public class AdversarialCorrelatedBooleansBenchmark
         var expectedToHitBudget = requiredSplits > options.CaseBudget;
         if (plan.HitCaseBudget != expectedToHitBudget)
         {
-            throw GateThrowHelper.UnexpectedBudgetResult(
+            ThrowHelper.UnexpectedBudgetResult(
                 VariableCount,
                 options.CaseBudget,
                 expectedToHitBudget,

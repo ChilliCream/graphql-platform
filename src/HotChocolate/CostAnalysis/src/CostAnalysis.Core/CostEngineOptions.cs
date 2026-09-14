@@ -31,8 +31,7 @@ public sealed class CostEngineOptions
     /// <summary>
     /// Gets or sets the maximum number of exact splits evaluated while
     /// compiling one operation before the remainder falls back to a
-    /// conservative bound. The default is 510, the measured K8
-    /// full-operation boundary at revision <c>6c9945cc29</c>.
+    /// conservative bound. The default is 510.
     /// </summary>
     public int CaseBudget { get; set; } = 510;
 }
