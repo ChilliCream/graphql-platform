@@ -144,7 +144,7 @@ Update positional construction as follows:
      .UseOperationExecution();
 ```
 
-Warmup requests and `GraphQL-Cost: validate` requests without variables use the static-bound path without variable coercion.
+Warmup requests use the static-bound path without variable coercion. `GraphQL-Cost: validate` requests always run variable coercion, matching `execute`/`report` (2026-09-14 user ruling); a `validate` request without required variables now fails with the ordinary variable-coercion error instead of the static-bound path an earlier 16.7 preview used. The static bound is not exposed through the request pipeline.
 
 ## Omitted list-size requirement now enforces
 
@@ -218,7 +218,7 @@ When `MaxResponseSize` is enabled, `extensions.operationCost` includes `maxRespo
 
 ## Reporting and result access
 
-`GraphQL-Cost: validate` without variables reports the static bound. It does not execute the operation, returns no `data`, and remains HTTP 200 even when the reported value exceeds a configured limit. With variables, it reports the evaluated cost. A variable batch in validate mode returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in report mode also includes one `operationCost` per result.
+`GraphQL-Cost: validate` always coerces variables and reports the evaluated cost, exactly like `execute`/`report` (2026-09-14 user ruling; the value changes from an earlier 16.7 preview, where `validate` without variables reported the static bound instead of coercing). A required variable that is not supplied fails the request with the ordinary variable-coercion error. Coercion succeeding, `validate` does not execute the operation, returns no `data`, and remains HTTP 200 even when the reported value exceeds a configured limit. A variable batch in validate mode returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in report mode also includes one `operationCost` per result.
 
 Positive infinite values in `extensions.operationCost` and cost error extensions are serialized as the JSON string `"Infinity"`. A `GraphQL-Cost: report` rejection includes `operationCost` alongside the error. For a rejected variable batch, the single rejection result contains one `operationCost`: its `fieldCost` and `typeCost` are the sums across all variable sets, and it contains `maxResponseSize` only for a response-size rejection, using the first violating set's value.
 

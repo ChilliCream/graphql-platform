@@ -62,7 +62,7 @@ query GetBooks($first: Int) {
 
 The evaluated field cost is `11` and the type cost is `5`. The same selection without `first` uses `DefaultPageSize = 10`, producing field cost `11` and type cost `12`.
 
-`GraphQL-Cost: validate` without variables reports the static bound. For the variable-bound operation above, the static bound uses `assumedSize = 50`, producing field cost `11` and type cost `52`.
+`GraphQL-Cost: validate` always coerces variables, matching `execute`/`report`. An optional variable that is not supplied behaves like an absent argument, so the operation above without `$first` reports the same field cost `11` and type cost `12` shown for the argument-less selection. A required variable (`$first: Int!`) that is not supplied fails the request with the ordinary variable-coercion error; the static bound is not exposed through the request pipeline.
 
 # List Size
 
@@ -186,7 +186,7 @@ Send the `GraphQL-Cost` HTTP request header to inspect operation cost:
 | Header value | Execution | Reported value                                                                |
 | ------------ | --------- | ----------------------------------------------------------------------------- |
 | `report`     | Yes       | Evaluated cost for the supplied variables.                                    |
-| `validate`   | No        | Evaluated cost with variables, or the static bound when variables are absent. |
+| `validate`   | No        | Evaluated cost for the coerced variables, same coercion as `execute`.         |
 
 `validate` returns an extensions-only response with HTTP status `200`, including when the reported values exceed configured limits. A variable batch returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in `report` mode also includes one `operationCost` per result.
 
