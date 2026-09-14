@@ -77,6 +77,22 @@ public class FusionRequestOptionsTests : FusionTestBase
     }
 
     [Fact]
+    public void MakeReadOnly_Should_TakePrecedenceOverCostValidation_When_ValuesAreInvalid()
+    {
+        // arrange
+        var options = new FusionRequestOptions();
+
+        // act
+        options.MakeReadOnly();
+
+        // assert
+        Assert.Throws<InvalidOperationException>(() => options.Cost.MaxFieldCost = double.NaN);
+        Assert.Throws<InvalidOperationException>(() => options.Cost.MaxTypeCost = double.NaN);
+        Assert.Throws<InvalidOperationException>(() => options.Cost.MaxResponseSize = double.NaN);
+        Assert.Throws<InvalidOperationException>(() => options.Cost.DefaultListSize = double.NaN);
+    }
+
+    [Fact]
     public async Task ModifyCostOptions_Should_SetCostOptions_When_ConfiguredViaBuilder()
     {
         // arrange
