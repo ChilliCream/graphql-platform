@@ -51,6 +51,13 @@ internal static class ErrorHelper
                 .SetCode(ErrorCodes.Execution.CostStateInvalid)
                 .Build());
 
+    public static OperationResult StateInvalidForCostAnalysisMissingVariableValues()
+        => RequestError(
+            ErrorBuilder.New()
+                .SetMessage("The cost analysis requires at least one coerced variable value set.")
+                .SetCode(ErrorCodes.Execution.CostStateInvalid)
+                .Build());
+
     public static OperationResult StateInvalidForOperationPlanning()
         => RequestError(
             ErrorBuilder.New()

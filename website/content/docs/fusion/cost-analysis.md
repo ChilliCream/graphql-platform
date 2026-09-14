@@ -37,12 +37,12 @@ Set `SkipAnalyzer` to `true` to bypass analysis, enforcement, and reporting.
 
 Send the `GraphQL-Cost` HTTP request header to obtain cost metrics:
 
-| Header value | Execution | Reported value                                                                |
-| ------------ | --------- | ----------------------------------------------------------------------------- |
-| `report`     | Yes       | Evaluated cost for the supplied variables.                                    |
-| `validate`   | No        | Evaluated cost with variables, or the static bound when variables are absent. |
+| Header value | Execution | Reported value                             |
+| ------------ | --------- | ------------------------------------------ |
+| `report`     | Yes       | Evaluated cost for the supplied variables. |
+| `validate`   | No        | Evaluated cost for the supplied variables. |
 
-`validate` returns an extensions-only response with HTTP status `200`, including when the reported values exceed configured limits. A variable batch returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in `report` mode also includes one `operationCost` per result.
+`validate` requires the variables the operation declares, exactly like `execute` and `report`. Without them, the request fails with the ordinary variable coercion error; the static bound is not exposed through the request pipeline. With variables, `validate` returns an extensions-only response with HTTP status `200`, including when the reported values exceed configured limits. A variable batch returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in `report` mode also includes one `operationCost` per result.
 
 ```json
 {

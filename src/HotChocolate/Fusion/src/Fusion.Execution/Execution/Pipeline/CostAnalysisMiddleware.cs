@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
-internal sealed class CostAnalysisMiddleware : ICostValidationVariableCoercionPolicy
+internal sealed class CostAnalysisMiddleware
 {
     private readonly CostSchemaSnapshot _snapshot;
     private readonly Cache<CostPlan> _cache;
@@ -27,9 +27,6 @@ internal sealed class CostAnalysisMiddleware : ICostValidationVariableCoercionPo
         _diagnosticEvents = diagnosticEvents;
     }
 
-    public bool SkipVariableCoercion(RequestContext context)
-        => !_options.SkipAnalyzer;
-
     public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
         var mode = GetMode(context);
@@ -42,6 +39,18 @@ internal sealed class CostAnalysisMiddleware : ICostValidationVariableCoercionPo
         if (!context.TryGetNormalizedOperation(out var operation))
         {
             context.Result = ErrorHelper.StateInvalidForCostAnalysis();
+            return default;
+        }
+
+        var isWarmup = context.IsWarmupRequest();
+
+        // Coercion always precedes cost analysis and produces at least one variable set for a
+        // non-warmup request, except when a variable batch request's payload is an explicitly
+        // empty array. That state is invalid for cost analysis; the static bound is reserved for
+        // warmup requests and must not leak back into the request path.
+        if (!isWarmup && context.VariableValues.IsDefaultOrEmpty)
+        {
+            context.Result = ErrorHelper.StateInvalidForCostAnalysisMissingVariableValues();
             return default;
         }
 
@@ -71,7 +80,7 @@ internal sealed class CostAnalysisMiddleware : ICostValidationVariableCoercionPo
                 _cache.TryAdd(operationId, plan);
             }
 
-            var isStaticBound = context.IsWarmupRequest() || context.VariableValues.IsDefaultOrEmpty;
+            var isStaticBound = isWarmup;
 
             if (isStaticBound)
             {
@@ -292,7 +301,6 @@ internal sealed class CostAnalysisMiddleware : ICostValidationVariableCoercionPo
                 var diagnosticEvents =
                     fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
                 var middleware = new CostAnalysisMiddleware(snapshot, cache, options, diagnosticEvents);
-                fc.Features.Set<ICostValidationVariableCoercionPolicy>(middleware);
                 return context => middleware.InvokeAsync(context, next);
             },
             WellKnownRequestMiddleware.CostAnalyzerMiddleware);
