@@ -67,13 +67,16 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     }
 
     /// <inheritdoc />
-    public CostEstimate Combine(CostEstimate left, CostEstimate right) => CostFieldRule.Combine(left, right);
+    public CostEstimate Combine(CostEstimate left, CostEstimate right)
+        => CostFieldRule.Combine(left, right);
 
     /// <inheritdoc />
-    public CostEstimate Join(CostEstimate left, CostEstimate right) => CostFieldRule.Join(left, right);
+    public CostEstimate Join(CostEstimate left, CostEstimate right)
+        => CostFieldRule.Join(left, right);
 
     /// <inheritdoc />
-    public CostEstimate Root(double rootTypeWeight, CostEstimate selection) => CostFieldRule.Root(rootTypeWeight, selection);
+    public CostEstimate Root(double rootTypeWeight, CostEstimate selection)
+        => CostFieldRule.Root(rootTypeWeight, selection);
 
     /// <summary>
     /// Resolves the list multiplier for one member's field call over its own
@@ -109,7 +112,10 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     /// an argument with neither a supplied value nor a schema default is
     /// absent and contributes nothing.
     /// </summary>
-    private double ComputeArgumentsCost(string typeName, IOutputFieldDefinition field, IReadOnlyList<ArgumentNode> arguments)
+    private double ComputeArgumentsCost(
+        string typeName,
+        IOutputFieldDefinition field,
+        IReadOnlyList<ArgumentNode> arguments)
     {
         var cost = 0.0;
 

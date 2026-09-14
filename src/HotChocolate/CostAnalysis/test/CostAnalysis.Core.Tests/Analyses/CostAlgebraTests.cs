@@ -337,7 +337,9 @@ public class CostAlgebraTests
     public void CostAlgebra_Field_Should_ReturnEmpty_When_GroupIsDefault()
     {
         // arrange
-        var snapshot = CostSchemaSnapshot.Create(SchemaParser.Parse("type Query { value: Int }"), new CostEngineOptions());
+        var snapshot = CostSchemaSnapshot.Create(
+            SchemaParser.Parse("type Query { value: Int }"),
+            new CostEngineOptions());
         var algebra = new CostAlgebra(snapshot);
 
         // act

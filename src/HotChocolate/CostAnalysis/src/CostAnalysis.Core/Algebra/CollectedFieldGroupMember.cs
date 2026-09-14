@@ -13,4 +13,6 @@ namespace HotChocolate.CostAnalysis;
 /// The field definition <see cref="ParentType"/> resolves the selection to.
 /// </param>
 [Experimental(CostExperiments.AnalysisAlgebra)]
-public readonly record struct CollectedFieldGroupMember(IComplexTypeDefinition ParentType, IOutputFieldDefinition Field);
+public readonly record struct CollectedFieldGroupMember(
+    IComplexTypeDefinition ParentType,
+    IOutputFieldDefinition Field);

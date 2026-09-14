@@ -215,12 +215,16 @@ public sealed class CostSchemaSnapshot
     /// <see langword="false"/> when the directive is not defined in this
     /// schema.
     /// </summary>
-    internal bool TryGetDirectiveArguments(string directiveName, out ImmutableArray<DirectiveArgumentDefinition> arguments)
+    internal bool TryGetDirectiveArguments(
+        string directiveName,
+        out ImmutableArray<DirectiveArgumentDefinition> arguments)
         => _directiveArguments.TryGetValue(directiveName, out arguments);
 
     /// <summary>
     /// Gets a directive definition's arguments with their input metadata.
     /// </summary>
-    internal bool TryGetDirectiveArgumentMetadata(string directiveName, out ImmutableArray<InputValueMetadata> arguments)
+    internal bool TryGetDirectiveArgumentMetadata(
+        string directiveName,
+        out ImmutableArray<InputValueMetadata> arguments)
         => _directiveArgumentMetadata.TryGetValue(directiveName, out arguments);
 }

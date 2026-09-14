@@ -15,7 +15,9 @@ internal sealed class TestCostAlgebra : IAnalysisAlgebra<(double TypeCost, doubl
 {
     public (double TypeCost, double FieldCost) Empty => (0, 0);
 
-    public (double TypeCost, double FieldCost) Field(in CollectedFieldGroup group, (double TypeCost, double FieldCost) child)
+    public (double TypeCost, double FieldCost) Field(
+        in CollectedFieldGroup group,
+        (double TypeCost, double FieldCost) child)
     {
         if (group.Field is null || group.Member.ParentType is null || group.Member.Field is null)
         {
@@ -41,7 +43,9 @@ internal sealed class TestCostAlgebra : IAnalysisAlgebra<(double TypeCost, doubl
         (double TypeCost, double FieldCost) right)
         => (Math.Max(left.TypeCost, right.TypeCost), Math.Max(left.FieldCost, right.FieldCost));
 
-    public (double TypeCost, double FieldCost) Root(double rootTypeWeight, (double TypeCost, double FieldCost) selection)
+    public (double TypeCost, double FieldCost) Root(
+        double rootTypeWeight,
+        (double TypeCost, double FieldCost) selection)
         => (ClampZero(rootTypeWeight + selection.TypeCost), selection.FieldCost);
 
     private static double DefaultWeight(TypeKind kind)

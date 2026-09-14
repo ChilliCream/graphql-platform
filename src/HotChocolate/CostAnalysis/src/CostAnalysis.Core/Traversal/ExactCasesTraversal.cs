@@ -105,7 +105,10 @@ internal static class ExactCasesTraversal
         TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
-        var regions = TypeRegionPartitioner.Partition(snapshot, tree.Root.Condition.PossibleTypes, CollectTypeConditions(tree));
+        var regions = TypeRegionPartitioner.Partition(
+            snapshot,
+            tree.Root.Condition.PossibleTypes,
+            CollectTypeConditions(tree));
         BooleanDecision<TSummary>? combined = null;
 
         foreach (var region in regions)
@@ -438,7 +441,12 @@ internal static class ExactCasesTraversal
 
                     groupDecision = groupDecision is null
                         ? pairDecision
-                        : BooleanDecision<TSummary>.ZipWith(groupDecision, pairDecision, algebra.Join, algebra.Join, budget);
+                        : BooleanDecision<TSummary>.ZipWith(
+                            groupDecision,
+                            pairDecision,
+                            algebra.Join,
+                            algebra.Join,
+                            budget);
                 }
             }
 
@@ -982,8 +990,10 @@ internal static class ExactCasesTraversal
         CostSchemaSnapshot snapshot,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments)
     {
-        private readonly Dictionary<(PossibleTypeSet Region, string FieldName), CollectedFieldGroupMember[]> _members = [];
-        private readonly Dictionary<ChildBoundaryKey, ConditionTree> _childBoundaries = new(ChildBoundaryKeyComparer.Instance);
+        private readonly Dictionary<(PossibleTypeSet Region, string FieldName), CollectedFieldGroupMember[]>
+            _members = [];
+        private readonly Dictionary<ChildBoundaryKey, ConditionTree> _childBoundaries =
+            new(ChildBoundaryKeyComparer.Instance);
         private readonly Dictionary<ConditionTree, CanonicalScanState> _canonicalScans = [];
 
         public CanonicalScan BeginCanonicalScan(ConditionTree tree)

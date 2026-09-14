@@ -90,7 +90,10 @@ internal static class CaseBudgetFallback
         ExactCasesTraversal.TraversalCache cache,
         SizedFieldContext? parentSizeContext)
     {
-        var regions = TypeRegionPartitioner.Partition(snapshot, tree.Root.Condition.PossibleTypes, ExactCasesTraversal.CollectTypeConditions(tree));
+        var regions = TypeRegionPartitioner.Partition(
+            snapshot,
+            tree.Root.Condition.PossibleTypes,
+            ExactCasesTraversal.CollectTypeConditions(tree));
         TSummary? combined = default;
         var hasCombined = false;
 
@@ -243,7 +246,13 @@ internal static class CaseBudgetFallback
             {
                 if (tree.Nodes[branch.TargetNodeId].Condition.PossibleTypes.Contains(representative))
                 {
-                    CollectReachableWildcard(tree, representative, assignment, branch.TargetNodeId, visited, visitedSet);
+                    CollectReachableWildcard(
+                        tree,
+                        representative,
+                        assignment,
+                        branch.TargetNodeId,
+                        visited,
+                        visitedSet);
                 }
 
                 continue;

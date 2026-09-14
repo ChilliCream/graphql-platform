@@ -10,7 +10,10 @@ public class ConditionTreeTests
         type Book { title: String }
         """;
 
-    private static ConditionTree ExtractRoot(string sdl, string operation, IReadOnlyDictionary<string, bool>? known = null)
+    private static ConditionTree ExtractRoot(
+        string sdl,
+        string operation,
+        IReadOnlyDictionary<string, bool>? known = null)
     {
         var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
         var document = Utf8GraphQLParser.Parse(operation);

@@ -52,7 +52,8 @@ public sealed class StaticBoundSoundnessTests
                     out var error))
             {
                 failures.Add(
-                    $"seed {seed}: coercion failed: {error.Message}\noperation: {operationSource}\nvariables: {rawVariables}");
+                    $"seed {seed}: coercion failed: {error.Message}\noperation: {operationSource}"
+                    + $"\nvariables: {rawVariables}");
                 continue;
             }
 
@@ -64,7 +65,8 @@ public sealed class StaticBoundSoundnessTests
                 || bound.MaxResponseSize < evaluated.MaxResponseSize)
             {
                 failures.Add(
-                    $"seed {seed}: bound {bound}, evaluated {evaluated}\noperation: {operationSource}\nvariables: {rawVariables}");
+                    $"seed {seed}: bound {bound}, evaluated {evaluated}\noperation: {operationSource}"
+                    + $"\nvariables: {rawVariables}");
             }
         }
 

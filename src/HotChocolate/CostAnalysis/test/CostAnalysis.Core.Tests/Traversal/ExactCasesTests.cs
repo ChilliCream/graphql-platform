@@ -139,7 +139,8 @@ public class ExactCasesTests
 
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
-        var folded = decision.FoldWithJoin((a, b) => (Math.Max(a.TypeCost, b.TypeCost), Math.Max(a.FieldCost, b.FieldCost)));
+        var folded = decision.FoldWithJoin(
+            (a, b) => (Math.Max(a.TypeCost, b.TypeCost), Math.Max(a.FieldCost, b.FieldCost)));
 
         // assert: the true static bound is the max over the 4 real assignments (103),
         // never the decorrelated 104 that lets $x read false for `p` and true for `q`; typeCost
@@ -331,7 +332,8 @@ public class ExactCasesTests
                 "join(A.value(empty),B.value(empty)) + C.value(empty)",
                 "join(join(A.value(empty),B.value(empty)),C.value(empty)) + A.value(empty)",
                 "join(join(join(A.value(empty),B.value(empty)),C.value(empty)),A.value(empty)) + B.value(empty)",
-                "join(join(join(join(A.value(empty),B.value(empty)),C.value(empty)),A.value(empty)),B.value(empty)) + C.value(empty)"
+                "join(join(join(join(A.value(empty),B.value(empty)),C.value(empty))"
+                    + ",A.value(empty)),B.value(empty)) + C.value(empty)"
             ],
             joins);
     }

@@ -551,7 +551,8 @@ public class ListSizeResolverTests
         {
             ["first"] = new SlicingArgumentValue(new VariableNode("n"), new IntValueNode(10))
         };
-        var variableValues = new FakeCostVariableValues(new Dictionary<string, IValueNode?> { ["n"] = new IntValueNode(4) });
+        var variableValues = new FakeCostVariableValues(
+            new Dictionary<string, IValueNode?> { ["n"] = new IntValueNode(4) });
 
         // act
         var n = ListSizeResolver.Resolve(
@@ -575,7 +576,8 @@ public class ListSizeResolverTests
         {
             ["first"] = new SlicingArgumentValue(new VariableNode("n"), new IntValueNode(4))
         };
-        var variableValues = new FakeCostVariableValues(new Dictionary<string, IValueNode?> { ["n"] = NullValueNode.Default });
+        var variableValues = new FakeCostVariableValues(
+            new Dictionary<string, IValueNode?> { ["n"] = NullValueNode.Default });
 
         // act
         var n = ListSizeResolver.Resolve(
@@ -601,7 +603,8 @@ public class ListSizeResolverTests
         {
             ["first"] = new SlicingArgumentValue(new VariableNode("first"), SchemaDefaultValue: null)
         };
-        var variableValues = new FakeCostVariableValues(new Dictionary<string, IValueNode?> { ["first"] = new IntValueNode(3) });
+        var variableValues = new FakeCostVariableValues(
+            new Dictionary<string, IValueNode?> { ["first"] = new IntValueNode(3) });
 
         // act
         var resolved = ListSizeResolver.TryResolveSizedFieldSize(
@@ -707,7 +710,10 @@ public class ListSizeResolverTests
     {
         // arrange: spec.md:158 - a variable-bound slicing argument on the static path reads assumedSize then
         // DefaultListSize, never slicingArgumentDefaultValue, same as Resolve
-        var metadata = CreateMetadata(slicingArguments: ["first"], slicingArgumentDefaultValue: 25.0, sizedFields: ["items"]);
+        var metadata = CreateMetadata(
+            slicingArguments: ["first"],
+            slicingArgumentDefaultValue: 25.0,
+            sizedFields: ["items"]);
         var slicingArguments = new Dictionary<string, SlicingArgumentValue>
         {
             ["first"] = new SlicingArgumentValue(new VariableNode("n"), SchemaDefaultValue: null)

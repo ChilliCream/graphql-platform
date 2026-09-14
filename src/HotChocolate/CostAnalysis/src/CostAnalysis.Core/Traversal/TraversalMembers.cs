@@ -14,7 +14,10 @@ internal static class TraversalMembers
     /// <c>__typename</c> on a schema with no introspection field
     /// definitions).
     /// </summary>
-    public static CollectedFieldGroupMember[] Build(CostSchemaSnapshot snapshot, PossibleTypeSet region, string fieldName)
+    public static CollectedFieldGroupMember[] Build(
+        CostSchemaSnapshot snapshot,
+        PossibleTypeSet region,
+        string fieldName)
     {
         var members = new CollectedFieldGroupMember[region.Count];
         var count = 0;

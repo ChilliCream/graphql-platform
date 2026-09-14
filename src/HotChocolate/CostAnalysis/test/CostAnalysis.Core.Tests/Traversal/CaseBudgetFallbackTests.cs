@@ -31,8 +31,12 @@ public class CaseBudgetFallbackTests
 
         // assert: one leaf regardless of k, and it overestimates both extreme assignments
         Assert.IsType<LeafDecision<(double TypeCost, double FieldCost)>>(budgeted);
-        Assert.True(budgetedAllTrue.TypeCost >= unbudgetedAllTrue.TypeCost && budgetedAllTrue.FieldCost >= unbudgetedAllTrue.FieldCost);
-        Assert.True(budgetedAllFalse.TypeCost >= unbudgetedAllFalse.TypeCost && budgetedAllFalse.FieldCost >= unbudgetedAllFalse.FieldCost);
+        Assert.True(
+            budgetedAllTrue.TypeCost >= unbudgetedAllTrue.TypeCost
+                && budgetedAllTrue.FieldCost >= unbudgetedAllTrue.FieldCost);
+        Assert.True(
+            budgetedAllFalse.TypeCost >= unbudgetedAllFalse.TypeCost
+                && budgetedAllFalse.FieldCost >= unbudgetedAllFalse.FieldCost);
     }
 
     [Theory]
@@ -57,7 +61,8 @@ public class CaseBudgetFallbackTests
 
         for (var mask = 0; mask < 1 << variableCount; mask++)
         {
-            estimates.Add(decision.Resolve(name => (mask & (1 << int.Parse(name.AsSpan(1), CultureInfo.InvariantCulture))) != 0));
+            estimates.Add(decision.Resolve(
+                name => (mask & (1 << int.Parse(name.AsSpan(1), CultureInfo.InvariantCulture))) != 0));
             var fieldCost = 0.0;
 
             for (var variable = 0; variable < variableCount; variable++)
@@ -129,8 +134,12 @@ public class CaseBudgetFallbackTests
 
         // assert: the budgeted structure stays bounded and overestimates both extreme assignments
         Assert.True(CountNodes(budgeted) <= (2 * caseBudget) + 1);
-        Assert.True(budgetedAllTrue.TypeCost >= unbudgetedAllTrue.TypeCost && budgetedAllTrue.FieldCost >= unbudgetedAllTrue.FieldCost);
-        Assert.True(budgetedAllFalse.TypeCost >= unbudgetedAllFalse.TypeCost && budgetedAllFalse.FieldCost >= unbudgetedAllFalse.FieldCost);
+        Assert.True(
+            budgetedAllTrue.TypeCost >= unbudgetedAllTrue.TypeCost
+                && budgetedAllTrue.FieldCost >= unbudgetedAllTrue.FieldCost);
+        Assert.True(
+            budgetedAllFalse.TypeCost >= unbudgetedAllFalse.TypeCost
+                && budgetedAllFalse.FieldCost >= unbudgetedAllFalse.FieldCost);
     }
 
     [Fact]
@@ -146,7 +155,8 @@ public class CaseBudgetFallbackTests
             type Container { node: Node }
             type Query { container: Container }
             """;
-        const string operation = "query($include: Boolean!) { container { node { edges @include(if: $include) { value } } } }";
+        const string operation =
+            "query($include: Boolean!) { container { node { edges @include(if: $include) { value } } } }";
         var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
 
         // act
@@ -188,7 +198,9 @@ public class CaseBudgetFallbackTests
 
         // assert
         Assert.Equal([true, true], [first.HitCaseBudget, reordered.HitCaseBudget]);
-        Assert.Equal([new CostEstimate(12.0, 2.0, null), new CostEstimate(12.0, 2.0, null)], [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
+        Assert.Equal(
+            [new CostEstimate(12.0, 2.0, null), new CostEstimate(12.0, 2.0, null)],
+            [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
         Assert.Equal(expected, firstMatrix);
         Assert.Equal(expected, reorderedMatrix);
     }
@@ -226,7 +238,9 @@ public class CaseBudgetFallbackTests
 
         // assert
         Assert.Equal([true, true], [first.HitCaseBudget, reordered.HitCaseBudget]);
-        Assert.Equal([new CostEstimate(13.0, 3.0, null), new CostEstimate(13.0, 3.0, null)], [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
+        Assert.Equal(
+            [new CostEstimate(13.0, 3.0, null), new CostEstimate(13.0, 3.0, null)],
+            [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
         Assert.Equal(expected, firstMatrix);
         Assert.Equal(expected, reorderedMatrix);
     }
@@ -257,7 +271,9 @@ public class CaseBudgetFallbackTests
 
         // assert
         Assert.Equal([false, false], [first.HitCaseBudget, reordered.HitCaseBudget]);
-        Assert.Equal([new CostEstimate(13.0, 2.0, null), new CostEstimate(13.0, 2.0, null)], [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
+        Assert.Equal(
+            [new CostEstimate(13.0, 2.0, null), new CostEstimate(13.0, 2.0, null)],
+            [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
         Assert.Equal(expected, firstMatrix);
         Assert.Equal(expected, reorderedMatrix);
     }
@@ -276,9 +292,11 @@ public class CaseBudgetFallbackTests
             type Query { result: Result }
             """;
         const string firstOperation =
-            "query($a:Boolean!,$b:Boolean!,$y:Boolean!,$z:Boolean!){result{... on A{obj @include(if:$z){expensive} obj @include(if:$a){cheap}} ... on B{obj @include(if:$y){expensive} obj @include(if:$b){cheap}}}}";
+            "query($a:Boolean!,$b:Boolean!,$y:Boolean!,$z:Boolean!){result{... on A{obj @include(if:$z){expensive} "
+            + "obj @include(if:$a){cheap}} ... on B{obj @include(if:$y){expensive} obj @include(if:$b){cheap}}}}";
         const string reorderedOperation =
-            "query($a:Boolean!,$b:Boolean!,$y:Boolean!,$z:Boolean!){result{... on B{obj @include(if:$b){cheap} obj @include(if:$y){expensive}} ... on A{obj @include(if:$a){cheap} obj @include(if:$z){expensive}}}}";
+            "query($a:Boolean!,$b:Boolean!,$y:Boolean!,$z:Boolean!){result{... on B{obj @include(if:$b){cheap} "
+            + "obj @include(if:$y){expensive}} ... on A{obj @include(if:$a){cheap} obj @include(if:$z){expensive}}}}";
         var first = CompilePlan(sdl, firstOperation);
         var reordered = CompilePlan(sdl, reorderedOperation);
 
@@ -380,7 +398,11 @@ public class CaseBudgetFallbackTests
 
         sdl.Append(" }");
 
-        var operation = new StringBuilder("query(").Append(variableDeclarations).Append(") {").Append(selections).Append(" }");
+        var operation = new StringBuilder("query(")
+            .Append(variableDeclarations)
+            .Append(") {")
+            .Append(selections)
+            .Append(" }");
         return (sdl.ToString(), operation.ToString());
     }
 
@@ -413,7 +435,11 @@ public class CaseBudgetFallbackTests
 
         sdl.Append(" }");
 
-        var operation = new StringBuilder("query(").Append(variableDeclarations).Append(") {").Append(selections).Append(" }");
+        var operation = new StringBuilder("query(")
+            .Append(variableDeclarations)
+            .Append(") {")
+            .Append(selections)
+            .Append(" }");
         return (sdl.ToString(), operation.ToString());
     }
 
@@ -438,7 +464,9 @@ public class CaseBudgetFallbackTests
             }
 
             variableDeclarations.Append("$v").Append(i).Append(":Boolean!");
-            leftSelections.Append(" l").Append(i).Append(":f").Append(i).Append(" @include(if:$v").Append(i).Append(')');
+            leftSelections
+                .Append(" l").Append(i).Append(":f").Append(i)
+                .Append(" @include(if:$v").Append(i).Append(')');
             rightSelections.Append(" r").Append(i).Append(":f").Append(i).Append(" @skip(if:$v").Append(i).Append(')');
         }
 

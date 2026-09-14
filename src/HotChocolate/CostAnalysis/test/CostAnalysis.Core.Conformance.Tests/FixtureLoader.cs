@@ -47,7 +47,9 @@ internal static class FixtureLoader
             return data;
         }
 
-        foreach (var path in Directory.EnumerateFiles(directory, "*.json").OrderBy(path => path, StringComparer.Ordinal))
+        foreach (var path in Directory
+            .EnumerateFiles(directory, "*.json")
+            .OrderBy(path => path, StringComparer.Ordinal))
         {
             data.Add(path);
         }
