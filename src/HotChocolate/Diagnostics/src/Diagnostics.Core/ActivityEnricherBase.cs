@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
@@ -12,6 +14,16 @@ namespace HotChocolate.Diagnostics;
 /// </summary>
 public abstract class ActivityEnricherBase
 {
+    /// <summary>
+    /// Called once per WebSocket session after the client's connection initialization
+    /// message has been accepted. The payload of <paramref name="connectionInitMessage"/>
+    /// is only valid for the duration of this call.
+    /// </summary>
+    public virtual void EnrichConnectionInit(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage)
+    { }
+
     public virtual void EnrichExecuteHttpRequest(
         HttpContext httpContext,
         HttpRequestKind kind,

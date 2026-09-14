@@ -123,7 +123,8 @@ public static class FusionServerServiceCollectionExtensions
             (_, s) => s.AddSingleton<IProtocolHandler>(
                 sp => new ApolloSubscriptionProtocolHandler(
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
-                    sp.GetRequiredService<IWebSocketPayloadFormatter>())));
+                    sp.GetRequiredService<IWebSocketPayloadFormatter>(),
+                    sp.GetRequiredService<IServerDiagnosticEvents>())));
 
     private static IFusionGatewayBuilder AddGraphQLOverWebSocketProtocol(
         this IFusionGatewayBuilder builder)
@@ -134,5 +135,6 @@ public static class FusionServerServiceCollectionExtensions
                     sp.GetRequiredService<IWebSocketPayloadFormatter>(),
                     sp.GetRequiredService<IDocumentCache>(),
                     sp.GetRequiredService<IDocumentHashProvider>(),
-                    sp.GetRequiredService<ParserOptions>())));
+                    sp.GetRequiredService<ParserOptions>(),
+                    sp.GetRequiredService<IServerDiagnosticEvents>())));
 }

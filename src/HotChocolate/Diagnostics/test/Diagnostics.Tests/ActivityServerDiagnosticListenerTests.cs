@@ -1,12 +1,18 @@
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.Apollo;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
 using HotChocolate.Transport.Http;
@@ -749,6 +755,57 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
     }
 
     [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Server_Completes_Default()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                configureBuilder: b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .Services.AddSingleton(signal));
+            using var webSocket = await ConnectWebSocketAsync(server, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // wait until the server subscribed to the topic, push one event, then
+            // complete the topic so the server ends the operation with a `complete`
+            // message and the client observes a clean, graceful close
+            try
+            {
+                var moveNext = results.MoveNextAsync().AsTask();
+                await signal.Subscribed.Task.WaitAsync(guard.Token);
+                await sender.SendAsync("OnMessage", "hello", guard.Token);
+                Assert.True(await moveNext);
+                await sender.CompleteAsync("OnMessage");
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            // the WebSocket session encloses every span of this trace, so close it
+            // before the trace is read
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            // the default scopes exclude ExecuteRequest, and a WebSocket session has no
+            // HTTP transport span to fall back to, so the trace carries no request span
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
     public async Task WebSocket_Subscription_Should_Be_Ok_When_Server_Completes()
     {
         using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -927,6 +984,196 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
             // the snapshot records the subscription event span status for a
             // server-side event timeout
             activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_ConnectionInit_Payload_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // the listener captures the tenant from the connection init payload and stores
+            // it on the connection, the enricher tags the request and subscription event
+            // spans with it
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .AddApplicationService<ActivityEnricher>()
+                    .Services
+                        .AddSingleton(signal)
+                        .AddSingleton<ActivityEnricher, TenantActivityEnricher>());
+            using var webSocket = await ConnectWebSocketAsync(server, guard.Token);
+            var payload = JsonSerializer.SerializeToElement(new { tenant = "acme-42" });
+            await using var client = await SocketClient.ConnectAsync(webSocket, payload, guard.Token);
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // deliver a single event so both the request span and one subscription event
+            // span are recorded, then close the session
+            try
+            {
+                var moveNext = results.MoveNextAsync().AsTask();
+                await signal.Subscribed.Task.WaitAsync(guard.Token);
+                await sender.SendAsync("OnMessage", "hello", guard.Token);
+                Assert.True(await moveNext);
+                await sender.CompleteAsync("OnMessage");
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_Apollo_ConnectionInit_Payload_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // the same capture over the legacy apollo protocol, which raises the
+            // connection init diagnostic event from its own protocol handler
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .AddApplicationService<ActivityEnricher>()
+                    .Services
+                        .AddSingleton(signal)
+                        .AddSingleton<ActivityEnricher, TenantActivityEnricher>());
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var webSocketClient = server.CreateWebSocketClient();
+            webSocketClient.ConfigureRequest =
+                r => r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_WS;
+            using var webSocket = await webSocketClient.ConnectAsync(s_webSocketUrl, guard.Token);
+
+            await webSocket.SendConnectionInitializeAsync(
+                new Dictionary<string, object?> { ["tenant"] = "acme-42" },
+                guard.Token);
+            Assert.NotNull(await WaitForApolloMessageAsync(webSocket, "connection_ack", guard.Token));
+
+            // act
+            // deliver a single event so both the request span and one subscription event
+            // span are recorded, then complete the topic so the server ends the operation
+            await webSocket.SendSubscriptionStartAsync(
+                "1",
+                new GraphQLRequest(
+                    Utf8GraphQLParser.Parse("subscription OnMessageSubscription { onMessage }")));
+            await signal.Subscribed.Task.WaitAsync(guard.Token);
+            await sender.SendAsync("OnMessage", "hello", guard.Token);
+            Assert.NotNull(await WaitForApolloMessageAsync(webSocket, "data", guard.Token));
+
+            await sender.CompleteAsync("OnMessage");
+            Assert.NotNull(await WaitForApolloMessageAsync(webSocket, "complete", guard.Token));
+
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    private static async Task<JsonDocument?> WaitForApolloMessageAsync(
+        WebSocket webSocket,
+        string type,
+        CancellationToken cancellationToken)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var combined =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
+
+        try
+        {
+            while (!combined.Token.IsCancellationRequested)
+            {
+                var message = await webSocket.ReceiveServerMessageAsync(combined.Token);
+
+                if (message is null)
+                {
+                    await Task.Delay(5, combined.Token);
+                    continue;
+                }
+
+                if (message.RootElement.GetProperty("type").GetString() == type)
+                {
+                    return message;
+                }
+
+                message.Dispose();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // expected: no matching message arrived within the timeout
+        }
+
+        return null;
+    }
+
+    public sealed record TenantFeature(string Tenant);
+
+    public sealed class TenantActivityEnricher(InstrumentationOptions options)
+        : ActivityEnricher(options)
+    {
+        /// <summary>
+        /// Stores the tenant on the connection so it outlives the connection
+        /// initialization message, which is only valid during this call.
+        /// </summary>
+        public override void EnrichConnectionInit(
+            ISocketSession session,
+            IOperationMessagePayload connectionInitMessage)
+        {
+            if (connectionInitMessage.Payload is { ValueKind: JsonValueKind.Object } payload
+                && payload.TryGetProperty("tenant", out var tenant)
+                && tenant.ValueKind is JsonValueKind.String)
+            {
+                session.Connection.Features.Set(new TenantFeature(tenant.GetString()!));
+            }
+        }
+
+        public override void EnrichExecuteRequest(RequestContext context, Activity activity)
+        {
+            base.EnrichExecuteRequest(context, activity);
+            SetTenantTag(context, activity);
+        }
+
+        public override void EnrichOnSubscriptionEvent(
+            RequestContext context,
+            ulong subscriptionId,
+            Activity activity)
+        {
+            base.EnrichOnSubscriptionEvent(context, subscriptionId, activity);
+            SetTenantTag(context, activity);
+        }
+
+        private static void SetTenantTag(RequestContext context, Activity activity)
+        {
+            if (context.ContextData.TryGetValue(nameof(ISocketSession), out var value)
+                && value is ISocketSession session
+                && session.Connection.Features.Get<TenantFeature>() is { } tenant)
+            {
+                activity.SetTag("test.tenant", tenant.Tenant);
+            }
         }
     }
 

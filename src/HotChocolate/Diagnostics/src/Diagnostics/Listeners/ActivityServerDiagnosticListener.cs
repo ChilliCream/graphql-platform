@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
@@ -102,6 +104,11 @@ internal sealed class ActivityServerDiagnosticListener(
             span.RecordErrors(errors);
         }
     }
+
+    public override void WebSocketConnectionInitialized(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage)
+        => enricher.EnrichConnectionInit(session, connectionInitMessage);
 
     public override IDisposable FormatHttpResponse(HttpContext context, OperationResult result)
     {

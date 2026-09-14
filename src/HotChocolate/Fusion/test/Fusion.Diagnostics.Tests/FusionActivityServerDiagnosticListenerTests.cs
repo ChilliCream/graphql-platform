@@ -1,8 +1,15 @@
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
+using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using HotChocolate.Resolvers;
@@ -753,6 +760,59 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
+    public async Task WebSocket_Subscription_Should_Be_Ok_When_Server_Completes_Default()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b.AddInstrumentation());
+
+            using var webSocket = await ConnectWebSocketAsync(gateway, guard.Token);
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // the subgraph emits one event then completes its stream, so receive the
+            // single event and then let the gateway end the operation with a
+            // `complete` message (no exception, no abort)
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            // the WebSocket session encloses every span of this trace, so close it
+            // before the trace is read
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            // the default scopes exclude ExecuteRequest, and a WebSocket session has no
+            // HTTP transport span to fall back to, so the trace carries no request span
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
     public async Task WebSocket_Subscription_Should_Be_Ok_When_Server_Completes()
     {
         using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -897,6 +957,110 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
             // the snapshot records the subscription event span status for a client
             // that closes the connection while the subscription is idle
             activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
+    public async Task WebSocket_ConnectionInit_Payload_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // the listener captures the tenant from the connection init payload and stores
+            // it on the connection, the enricher tags the request and subscription event
+            // spans with it
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                .AddApplicationService<FusionActivityEnricher>()
+                .Services.AddSingleton<FusionActivityEnricher, TenantActivityEnricher>());
+
+            using var webSocket = await ConnectWebSocketAsync(gateway, guard.Token);
+            var payload = JsonSerializer.SerializeToElement(new { tenant = "acme-42" });
+            await using var client = await SocketClient.ConnectAsync(webSocket, payload, guard.Token);
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // the subgraph emits one event then completes its stream, so both the request
+            // span and one subscription event span are recorded
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    public sealed record TenantFeature(string Tenant);
+
+    public sealed class TenantActivityEnricher(InstrumentationOptions options)
+        : FusionActivityEnricher(options)
+    {
+        /// <summary>
+        /// Stores the tenant on the connection so it outlives the connection
+        /// initialization message, which is only valid during this call.
+        /// </summary>
+        public override void EnrichConnectionInit(
+            ISocketSession session,
+            IOperationMessagePayload connectionInitMessage)
+        {
+            if (connectionInitMessage.Payload is { ValueKind: JsonValueKind.Object } payload
+                && payload.TryGetProperty("tenant", out var tenant)
+                && tenant.ValueKind is JsonValueKind.String)
+            {
+                session.Connection.Features.Set(new TenantFeature(tenant.GetString()!));
+            }
+        }
+
+        public override void EnrichExecuteRequest(RequestContext context, Activity activity)
+        {
+            base.EnrichExecuteRequest(context, activity);
+            SetTenantTag(context, activity);
+        }
+
+        public override void EnrichOnSubscriptionEvent(
+            OperationPlanContext context,
+            ExecutionNode node,
+            string schemaName,
+            ulong subscriptionId,
+            Activity activity)
+        {
+            base.EnrichOnSubscriptionEvent(context, node, schemaName, subscriptionId, activity);
+            SetTenantTag(context.RequestContext, activity);
+        }
+
+        private static void SetTenantTag(RequestContext context, Activity activity)
+        {
+            if (context.ContextData.TryGetValue(nameof(ISocketSession), out var value)
+                && value is ISocketSession session
+                && session.Connection.Features.Get<TenantFeature>() is { } tenant)
+            {
+                activity.SetTag("test.tenant", tenant.Tenant);
+            }
         }
     }
 
