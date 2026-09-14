@@ -35,7 +35,7 @@ public sealed class GeneratedOperationNameTests : FusionTestBase
     }
 
     [Fact]
-    public void CreatePlan_Should_ReplaceTheCharacter_When_TheOperationShortHashIsRead()
+    public void CreatePlan_Should_KeepTheShortHash_When_TheOperationShortHashIsRead()
     {
         // arrange
         var schema = CreateCompositeSchema();
@@ -44,7 +44,7 @@ public sealed class GeneratedOperationNameTests : FusionTestBase
         var plan = CreatePlan(schema, "BnjEJe8-");
 
         // assert
-        Assert.Equal("BnjEJe8_", plan.Operation.ShortHash);
+        Assert.Equal("BnjEJe8-", plan.Operation.ShortHash);
     }
 
     private static string GetOperationName(OperationPlan plan)

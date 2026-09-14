@@ -61,11 +61,7 @@ public sealed class OperationCompiler
         OperationDefinitionNode operationDefinition)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
-        ArgumentException.ThrowIfNullOrWhiteSpace(shortHash);
         ArgumentNullException.ThrowIfNull(operationDefinition);
-
-        // Operation.ShortHash is embedded in the alias-batched source schema operation name.
-        shortHash = OperationShortHash.ToNameSafe(shortHash);
 
         var document = new DocumentNode(new IDefinitionNode[] { operationDefinition });
         document = _documentRewriter.RewriteDocument(document);

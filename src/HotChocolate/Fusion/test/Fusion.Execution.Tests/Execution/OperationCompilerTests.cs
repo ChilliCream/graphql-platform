@@ -355,7 +355,7 @@ public class OperationCompilerTests : FusionTestBase
     }
 
     [Fact]
-    public void Compile_Should_ReplaceTheCharacter_When_TheShortHashHoldsANonNameCharacter()
+    public void Compile_Should_KeepTheShortHash_When_ItHoldsANonNameCharacter()
     {
         // arrange
         var schema = CreateSchema();
@@ -369,7 +369,7 @@ public class OperationCompilerTests : FusionTestBase
         var operation = compiler.Compile("1", "0123456789abcdef", "BnjEJe8-", operationDefinition);
 
         // assert
-        Assert.Equal("BnjEJe8_", operation.ShortHash);
+        Assert.Equal("BnjEJe8-", operation.ShortHash);
     }
 
     public static FusionSchemaDefinition CreateSchema()

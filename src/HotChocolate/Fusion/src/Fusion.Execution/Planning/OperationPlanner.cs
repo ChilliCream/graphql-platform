@@ -83,9 +83,6 @@ public sealed partial class OperationPlanner
         // so that if the caller passed in an already canceled token we don't do any unnecessary work.
         cancellationToken.ThrowIfCancellationRequested();
 
-        // PlanNode.CreateOperationName embeds the short hash in each source schema operation name.
-        shortHash = OperationShortHash.ToNameSafe(shortHash);
-
         var eventSource = PlannerEventSource.Log;
         var eventSourceEnabled = eventSource.IsEnabled();
         var operationType = operationDefinition.Operation.ToString();
