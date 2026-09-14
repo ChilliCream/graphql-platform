@@ -247,26 +247,3 @@ internal sealed class PlanAlgebra :
                 value.Child);
     }
 }
-
-/// <summary>
-/// Receives unresolved inherited list-size metadata while compiling a plan.
-/// </summary>
-internal interface IInheritedSizePlanAlgebra<TSummary>
-{
-    TSummary Field(
-        in CollectedFieldGroup group,
-        SizedFieldContext? inheritedSizeContext,
-        TSummary child);
-}
-
-internal interface ILeafFieldBatchAlgebra<TSummary>
-{
-    void AccumulateField(
-        string responseName,
-        FieldNode field,
-        IReadOnlyList<CollectedFieldGroupMember> members,
-        SizedFieldContext? inheritedSizeContext,
-        TSummary child,
-        ref bool hasValue,
-        ref TSummary value);
-}
