@@ -269,4 +269,217 @@ public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) 
             .Add(Probe.Invocations.Count, "Observed batch dispatch count")
             .MatchMarkdownSnapshot();
     }
+
+    // hc-0-6cq.13 regression: the same selection occurrence normalizes an omitted `first` to the
+    // schema's effective default (min(DefaultPageSize, MaxPageSize) = min(10, 10) = 10 here), so
+    // it coalesces with an explicit `first: 10` into a single batch dispatch.
+    [Theory]
+    [BatchMatrix]
+    public async Task UsePaging_Should_Coalesce_When_OmittedMatchesExplicitFirst(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(
+            style,
+            builder => builder.ModifyPagingOptions(o => o.DefaultPageSize = 10),
+            TestContext.Current.CancellationToken);
+        IReadOnlyDictionary<string, object?>[] sets =
+        [
+            new Dictionary<string, object?>(),
+            new Dictionary<string, object?> { ["first"] = 10 }
+        ];
+
+        // act
+        await using var result = await ExecuteAsync(
+            executor,
+            OperationRequestBuilder.New()
+                .SetDocument("query($first:Int){ brands { name products(first:$first){ nodes { name } } } }")
+                .SetVariableValues(sets)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(Probe.Invocations);
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        Assert.Empty(batch.Results[0].ExpectOperationResult().Errors);
+        Assert.Empty(batch.Results[1].ExpectOperationResult().Errors);
+    }
+
+    // hc-0-6cq.13 regression: with a 100/20 DefaultPageSize/MaxPageSize pairing the effective
+    // default clamps to the max (min(100, 20) = 20), which the earlier 2/10 pairing never
+    // exercised since 2 < 10 there. An omitted `first` still coalesces with the clamped default.
+    [Theory]
+    [BatchMatrix]
+    public async Task UsePaging_Should_Coalesce_When_OmittedMatchesClampedDefault(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(
+            style,
+            builder => builder.ModifyPagingOptions(o =>
+            {
+                o.DefaultPageSize = 100;
+                o.MaxPageSize = 20;
+            }),
+            TestContext.Current.CancellationToken);
+        IReadOnlyDictionary<string, object?>[] sets =
+        [
+            new Dictionary<string, object?>(),
+            new Dictionary<string, object?> { ["first"] = 20 }
+        ];
+
+        // act
+        await using var result = await ExecuteAsync(
+            executor,
+            OperationRequestBuilder.New()
+                .SetDocument("query($first:Int){ brands { name products(first:$first){ nodes { name } } } }")
+                .SetVariableValues(sets)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(Probe.Invocations);
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        Assert.Empty(batch.Results[0].ExpectOperationResult().Errors);
+        Assert.Empty(batch.Results[1].ExpectOperationResult().Errors);
+    }
+
+    // hc-0-6cq.13 regression: with the 100/20 pairing, a `first` beyond the clamped max page size
+    // (20) errors; the error must stay isolated to its own alias/partition and never poison the
+    // valid alias sharing the same parents.
+    [Theory]
+    [BatchMatrix]
+    public async Task UsePaging_Should_Error_Alone_When_FirstExceedsClampedMaxPageSize(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(
+            style,
+            builder => builder.ModifyPagingOptions(o =>
+            {
+                o.DefaultPageSize = 100;
+                o.MaxPageSize = 20;
+            }),
+            TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = await ExecuteAsync(
+            executor,
+            """
+            {
+                brands {
+                    name
+                    valid: products(first: 20) { nodes { name } }
+                    invalid: products(first: 21) { nodes { name } }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.NotEmpty(operationResult.Errors);
+        Assert.All(operationResult.Errors, e => Assert.Contains("invalid", e.Path?.ToString()));
+        result.MatchSnapshot();
+    }
+
+    // hc-0-6cq.13 regression: RequirePagingBoundaries forces every dispatch to specify a
+    // boundary; an omitted `first`/`last` errors while an explicit sibling alias still returns.
+    [Theory]
+    [BatchMatrix]
+    public async Task UsePaging_Should_Error_Alone_When_RequirePagingBoundariesAndFirstOmitted(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(
+            style,
+            builder => builder.ModifyPagingOptions(o => o.RequirePagingBoundaries = true),
+            TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = await ExecuteAsync(
+            executor,
+            """
+            {
+                brands {
+                    name
+                    explicit: products(first: 2) { nodes { name } }
+                    omitted: products { nodes { name } }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.NotEmpty(operationResult.Errors);
+        result.MatchSnapshot();
+    }
+
+    // hc-0-6cq.13 regression: an empty-string cursor is hashed raw into its own partition and
+    // errors there, leaving a sibling alias without paging arguments untouched.
+    [Theory]
+    [BatchMatrix]
+    public async Task UsePaging_Should_Error_Alone_When_AfterIsEmptyString(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = await ExecuteAsync(
+            executor,
+            """
+            {
+                brands {
+                    name
+                    valid: products(first: 2) { nodes { name } }
+                    invalid: products(after: "") { nodes { name } }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.NotEmpty(operationResult.Errors);
+        result.MatchSnapshot();
+    }
+
+    // hc-0-6cq.13 regression: `last` and `first` normalize to different partition keys even when
+    // requesting the same page size, so the two aliases dispatch separately.
+    [Theory]
+    [BatchMatrix]
+    public async Task UsePaging_Should_Partition_When_LastDiffersFromFirst(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = await ExecuteAsync(
+            executor,
+            """
+            {
+                brands {
+                    name
+                    a: products(last: 2) { nodes { name } }
+                    b: products(first: 2) { nodes { name } }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, Probe.Invocations.Count);
+        Assert.Empty(result.ExpectOperationResult().Errors);
+    }
+
+    // hc-0-6cq.13 "IncludeTotalCount=false never splits" is not expressible here: with the option
+    // disabled, ConnectionType/CollectionSegmentType (withTotalCount: false) drop the `totalCount`
+    // field from the schema entirely, so selecting it is a document validation error (`The field
+    // 'totalCount' does not exist...`) for every variable set alike, not a runtime dispatch
+    // decision. See the NEEDS-PLANNER task comment recording this; the "on" side of this
+    // requirement is already proven above by
+    // UsePaging_Should_Dispatch_PerVariableSet_When_IncludeConditionsDiffer.
 }

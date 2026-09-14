@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using Squadron;
 
 namespace HotChocolate.Types.BatchResolvers;
@@ -154,5 +155,129 @@ public sealed partial class OffsetPagingBatchTests(PostgreSqlResource resource) 
               }
             }
             """);
+    }
+
+    // hc-0-6cq.13 regression: two aliases requesting a different page size normalize to
+    // different partition keys, so they dispatch separately even though they share a parent.
+    [Theory]
+    [BatchMatrix]
+    public async Task UseOffsetPaging_Should_Partition_When_TakeDiffers(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = await ExecuteAsync(
+            executor,
+            """
+            {
+                brands {
+                    name
+                    a: products(take: 1) { items { name } }
+                    b: products(take: 2) { items { name } }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, Probe.Invocations.Count);
+        Assert.Empty(result.ExpectOperationResult().Errors);
+    }
+
+    // hc-0-6cq.13 regression: the same selection occurrence with an identical explicit `take`
+    // across two variable sets shares one partition.
+    [Theory]
+    [BatchMatrix]
+    public async Task UseOffsetPaging_Should_Coalesce_When_TakeIsIdenticalAcrossVariableSets(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
+        IReadOnlyDictionary<string, object?>[] sets =
+        [
+            new Dictionary<string, object?> { ["take"] = 1 },
+            new Dictionary<string, object?> { ["take"] = 1 }
+        ];
+
+        // act
+        await using var result = await ExecuteAsync(
+            executor,
+            OperationRequestBuilder.New()
+                .SetDocument("query($take:Int){ brands { name products(take:$take){ items { name } } } }")
+                .SetVariableValues(sets)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(Probe.Invocations);
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        Assert.Empty(batch.Results[0].ExpectOperationResult().Errors);
+        Assert.Empty(batch.Results[1].ExpectOperationResult().Errors);
+    }
+
+    // hc-0-6cq.13 regression: the same selection occurrence normalizes an omitted `take` to the
+    // effective default (min(DefaultPageSize, MaxPageSize) = min(10, 50) = 10 with the paging
+    // defaults, since this family sets no schema-level override), coalescing with `take: 10`.
+    [Theory]
+    [BatchMatrix]
+    public async Task UseOffsetPaging_Should_Coalesce_When_OmittedMatchesExplicitTake(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
+        IReadOnlyDictionary<string, object?>[] sets =
+        [
+            new Dictionary<string, object?>(),
+            new Dictionary<string, object?> { ["take"] = 10 }
+        ];
+
+        // act
+        await using var result = await ExecuteAsync(
+            executor,
+            OperationRequestBuilder.New()
+                .SetDocument("query($take:Int){ brands { name products(take:$take){ items { name } } } }")
+                .SetVariableValues(sets)
+                .Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Single(Probe.Invocations);
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        Assert.Empty(batch.Results[0].ExpectOperationResult().Errors);
+        Assert.Empty(batch.Results[1].ExpectOperationResult().Errors);
+    }
+
+    // hc-0-6cq.13 regression: a `take` beyond the max page size (50 by default) errors; the error
+    // must stay isolated to its own alias/partition and never poison the valid alias sharing the
+    // same parents.
+    [Theory]
+    [BatchMatrix]
+    public async Task UseOffsetPaging_Should_Error_Alone_When_TakeExceedsMaxPageSize(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
+
+        // act
+        await using var result = await ExecuteAsync(
+            executor,
+            """
+            {
+                brands {
+                    name
+                    valid: products(take: 2) { items { name } }
+                    invalid: products(take: 51) { items { name } }
+                }
+            }
+            """,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.NotEmpty(operationResult.Errors);
+        Assert.All(operationResult.Errors, e => Assert.Contains("invalid", e.Path?.ToString()));
+        result.MatchSnapshot();
     }
 }
