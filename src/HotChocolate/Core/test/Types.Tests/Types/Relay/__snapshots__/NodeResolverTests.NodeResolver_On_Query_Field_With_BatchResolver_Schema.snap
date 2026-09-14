@@ -7,7 +7,7 @@ type QueryWithBatchNodeResolver {
   node("ID of the object." id: ID!): Node
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
-  batchEntity(id: ID!): BatchEntity @lookup
+  batchEntity(id: ID!): BatchEntity! @lookup
 }
 
 type BatchEntity implements Node {
