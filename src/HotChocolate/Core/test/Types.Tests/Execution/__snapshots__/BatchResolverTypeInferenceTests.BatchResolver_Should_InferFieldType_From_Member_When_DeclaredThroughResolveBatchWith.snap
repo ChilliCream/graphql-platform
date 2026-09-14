@@ -1,8 +1,8 @@
 schema {
-  query: FieldSelectorBatchQuery
+  query: Query
 }
 
-type FieldSelectorBatchQuery {
+type Query {
   nonNullProducts(id: Int!): BatchProduct!
   nullableProducts(id: Int!): BatchProduct
   forcedNonNullProducts(id: Int!): BatchProduct!

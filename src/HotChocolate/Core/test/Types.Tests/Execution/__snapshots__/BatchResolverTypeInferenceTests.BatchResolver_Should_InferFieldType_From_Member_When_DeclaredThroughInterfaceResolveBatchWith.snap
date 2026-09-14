@@ -1,0 +1,26 @@
+schema {
+  query: Query
+}
+
+type Query {
+  items: [InterfaceBatchQuery]
+}
+
+type BatchProduct {
+  id: Int!
+  name: String!
+}
+
+type ObjectImplementingInterfaceBatchQuery implements InterfaceBatchQuery {
+  nonNullProducts(id: Int!): BatchProduct!
+  nullableProducts(id: Int!): BatchProduct
+  forcedNonNullProducts(id: Int!): BatchProduct!
+  ids(id: Int!): ID
+}
+
+interface InterfaceBatchQuery {
+  nonNullProducts(id: Int!): BatchProduct!
+  nullableProducts(id: Int!): BatchProduct
+  forcedNonNullProducts(id: Int!): BatchProduct!
+  ids(id: Int!): ID
+}

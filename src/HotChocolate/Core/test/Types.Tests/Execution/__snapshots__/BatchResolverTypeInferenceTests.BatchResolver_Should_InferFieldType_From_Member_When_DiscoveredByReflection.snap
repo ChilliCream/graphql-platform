@@ -6,7 +6,7 @@ type AttributeBatchQuery {
   nonNullProducts(id: Int!): BatchProduct!
   nullableProducts(id: Int!): BatchProduct
   forcedNonNullProducts(id: Int!): BatchProduct!
-  ids(id: Int!): ID!
+  ids(id: Int!): ID
 }
 
 type BatchProduct {

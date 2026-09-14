@@ -1,0 +1,7 @@
+schema {
+  query: Query
+}
+
+type Query {
+  labels(id: Int!): String!
+}
