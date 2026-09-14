@@ -87,13 +87,13 @@
 | GlobalIdBatchTests | Id_Should_Encode_GlobalId_When_FieldIsBatchResolved | Attribute | Declared |
 | GlobalIdBatchTests | Id_Should_Encode_GlobalId_When_FieldIsBatchResolved | SourceGenerated | Declared |
 | GlobalIdBatchTests | Id_Should_Encode_GlobalId_When_FieldIsBatchResolved | Fluent | Declared |
-| InterfaceBatchTests | BatchResolver_Should_Bind_Argument_When_DeclaredOnInterface | Attribute | NotApplicable(interface batch fields are declared through ResolveBatchWith or [InterfaceType<T>] partials only) |
+| InterfaceBatchTests | BatchResolver_Should_Bind_Argument_When_DeclaredOnInterface | Attribute | NotApplicable(reflection over the interface's own members either drops the field (a static [BatchResolver] method) or wires no batch dispatch behind it (a default interface method runs once but its batched result is misassigned back per parent, surfacing null entries and leaf-coercion errors); InterfaceFieldDescriptor.cs:55-63 sets CoreFieldFlags.BatchResolver but nothing consumes it for either shape) |
 | InterfaceBatchTests | BatchResolver_Should_Bind_Argument_When_DeclaredOnInterface | SourceGenerated | Declared |
 | InterfaceBatchTests | BatchResolver_Should_Bind_Argument_When_DeclaredOnInterface | Fluent | Declared |
-| InterfaceBatchTests | BatchResolver_Should_Inject_Service_When_DeclaredOnInterface | Attribute | NotApplicable(interface batch fields are declared through ResolveBatchWith or [InterfaceType<T>] partials only) |
+| InterfaceBatchTests | BatchResolver_Should_Inject_Service_When_DeclaredOnInterface | Attribute | NotApplicable(reflection over the interface's own members either drops the field (a static [BatchResolver] method) or wires no batch dispatch behind it (a default interface method runs once but its batched result is misassigned back per parent, surfacing null entries and leaf-coercion errors); InterfaceFieldDescriptor.cs:55-63 sets CoreFieldFlags.BatchResolver but nothing consumes it for either shape) |
 | InterfaceBatchTests | BatchResolver_Should_Inject_Service_When_DeclaredOnInterface | SourceGenerated | Declared |
 | InterfaceBatchTests | BatchResolver_Should_Inject_Service_When_DeclaredOnInterface | Fluent | Declared |
-| InterfaceBatchTests | BatchResolver_Should_Resolve_When_DeclaredOnInterfaceAndInheritedByObjectType | Attribute | NotApplicable(interface batch fields are declared through ResolveBatchWith or [InterfaceType<T>] partials only) |
+| InterfaceBatchTests | BatchResolver_Should_Resolve_When_DeclaredOnInterfaceAndInheritedByObjectType | Attribute | NotApplicable(reflection over the interface's own members either drops the field (a static [BatchResolver] method) or wires no batch dispatch behind it (a default interface method runs once but its batched result is misassigned back per parent, surfacing null entries and leaf-coercion errors); InterfaceFieldDescriptor.cs:55-63 sets CoreFieldFlags.BatchResolver but nothing consumes it for either shape) |
 | InterfaceBatchTests | BatchResolver_Should_Resolve_When_DeclaredOnInterfaceAndInheritedByObjectType | SourceGenerated | Declared |
 | InterfaceBatchTests | BatchResolver_Should_Resolve_When_DeclaredOnInterfaceAndInheritedByObjectType | Fluent | Declared |
 | MutationRootBatchTests | BatchResolver_Should_Fail_Schema_Build_When_DeclaredOnMutationRootField | Attribute | Declared |

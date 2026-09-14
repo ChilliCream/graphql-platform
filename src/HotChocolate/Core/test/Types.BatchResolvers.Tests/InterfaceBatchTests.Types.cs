@@ -16,14 +16,20 @@ public sealed partial class InterfaceBatchTests
         => builder.Services.AddSingleton<InterfaceGreetingService>();
 
     /// <summary>
-    /// There is no attribute-driven equivalent for an interface-level batch field: the
-    /// generic interface type descriptor only binds a property or method of the interface
-    /// itself, never an external resolver class the way an object type descriptor's generic
-    /// field overload does. Interface batch fields are declared through ResolveBatchWith
-    /// (fluent) or an InterfaceType source-generated partial only.
+    /// Attribute-style reflection over the interface's own CLR members cannot express a batch
+    /// field: a static [BatchResolver] method yields no field at all, and a default interface
+    /// method yields a field but no batch dispatch. InterfaceFieldDescriptor.cs:55-63 does set
+    /// CoreFieldFlags.BatchResolver from a [BatchResolver] MethodInfo, but the default-method
+    /// resolver still runs once per selection and its single batched result is misassigned back
+    /// as every parent's own value, so each context surfaces null entries and leaf-coercion
+    /// errors instead of one resolved item per parent.
     /// </summary>
     private const string AttributeNotApplicableReason =
-        "interface batch fields are declared through ResolveBatchWith or [InterfaceType<T>] partials only";
+        "reflection over the interface's own members either drops the field (a static "
+        + "[BatchResolver] method) or wires no batch dispatch behind it (a default interface "
+        + "method runs once but its batched result is misassigned back per parent, surfacing "
+        + "null entries and leaf-coercion errors); InterfaceFieldDescriptor.cs:55-63 sets "
+        + "CoreFieldFlags.BatchResolver but nothing consumes it for either shape";
 
     private void ConfigureSourceGenerated(IRequestExecutorBuilder builder)
     {
