@@ -143,7 +143,7 @@ public sealed class DocumentShapeParityTests
 
     private static ParityFixture LoadFixture(string fixtureId)
     {
-        var path = System.IO.Path.Combine("__resources__", "article", fixtureId + ".json");
+        var path = System.IO.Path.Combine("__resources__", "precision", fixtureId + ".json");
         var fixture = JsonSerializer.Deserialize<ParityFixture>(
             File.ReadAllText(path),
             new JsonSerializerOptions(JsonSerializerDefaults.Web));

@@ -8,22 +8,22 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Executes the six graphql-lean cost-precision cases (plus their named-fragment and
+/// Executes the six hand-written cost-precision cases (plus their named-fragment and
 /// merged-control twins) as HotChocolate operations, from the same JSON fixtures the
 /// Core conformance suite reads. Every fixture's <c>extensions.operationCost</c> must
 /// equal its <c>expected</c> typeCost/fieldCost pair: this is the executable definition
 /// of done for HotChocolate 6/6 (hc-3-mmh.3).
 /// </summary>
-public sealed class ArticleCasesTests
+public sealed class PrecisionCasesTests
 {
-    public static TheoryData<string> ArticleFixturePaths => DiscoverArticleFixturePaths();
+    public static TheoryData<string> PrecisionFixturePaths => DiscoverPrecisionFixturePaths();
 
     [Theory]
-    [MemberData(nameof(ArticleFixturePaths))]
+    [MemberData(nameof(PrecisionFixturePaths))]
     public async Task Fixture_Should_ReportExpectedOperationCost_When_Evaluated(string path)
     {
         // arrange
-        var fixture = ArticleFixture.Load(path);
+        var fixture = PrecisionFixture.Load(path);
         var snapshot = new Snapshot(postFix: fixture.Id);
 
         var requestBuilder =
@@ -68,10 +68,10 @@ public sealed class ArticleCasesTests
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
-    private static TheoryData<string> DiscoverArticleFixturePaths()
+    private static TheoryData<string> DiscoverPrecisionFixturePaths()
     {
         var data = new TheoryData<string>();
-        var directory = System.IO.Path.Combine("__resources__", "article");
+        var directory = System.IO.Path.Combine("__resources__", "precision");
 
         foreach (var path in Directory.EnumerateFiles(directory, "*.json").OrderBy(p => p, StringComparer.Ordinal))
         {
@@ -141,28 +141,28 @@ public sealed class ArticleCasesTests
                     && !line.StartsWith("directive @listSize", StringComparison.Ordinal)));
 }
 
-file sealed record ArticleFixture(
+file sealed record PrecisionFixture(
     [property: JsonPropertyName("id")] string Id,
     [property: JsonPropertyName("sdl")] string Sdl,
     [property: JsonPropertyName("operation")] string Operation,
     [property: JsonPropertyName("operationName")] string? OperationName,
     [property: JsonPropertyName("variables")] JsonElement? Variables,
     [property: JsonPropertyName("defaultListSize")] JsonElement DefaultListSizeRaw,
-    [property: JsonPropertyName("expected")] ArticleFixtureExpected Expected)
+    [property: JsonPropertyName("expected")] PrecisionFixtureExpected Expected)
 {
     public double DefaultListSize
         => DefaultListSizeRaw.ValueKind == JsonValueKind.String
             ? double.PositiveInfinity
             : DefaultListSizeRaw.GetDouble();
 
-    public static ArticleFixture Load(string path)
+    public static PrecisionFixture Load(string path)
     {
         var json = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<ArticleFixture>(json)
+        return JsonSerializer.Deserialize<PrecisionFixture>(json)
             ?? throw new InvalidOperationException($"Fixture '{path}' deserialized to null.");
     }
 }
 
-file sealed record ArticleFixtureExpected(
+file sealed record PrecisionFixtureExpected(
     [property: JsonPropertyName("typeCost")] double TypeCost,
     [property: JsonPropertyName("fieldCost")] double FieldCost);
