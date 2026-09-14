@@ -17,7 +17,7 @@ public sealed partial class SortingBatchTests
     {
         Common(builder);
         builder
-            .AddBatchDbContext(_connectionString)
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType<SortingAttributeQuery>()
             .AddTypeExtension<SortingBrandAttributeExtension>();
     }
@@ -26,7 +26,7 @@ public sealed partial class SortingBatchTests
     {
         Common(builder);
         builder
-            .AddBatchDbContext(_connectionString)
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType(SortingQuery.Initialize)
             .AddObjectType<SortingBrand>(SortingBrandNode.Initialize);
     }
@@ -35,7 +35,7 @@ public sealed partial class SortingBatchTests
     {
         Common(builder);
         builder
-            .AddBatchDbContext(_connectionString)
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType(d =>
             {
                 d.Name("Query");

@@ -18,7 +18,7 @@ public sealed partial class FilteringBatchTests
     {
         Common(builder);
         builder
-            .AddBatchDbContext(_connectionString)
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType<FilteringAttributeQuery>()
             .AddTypeExtension<FilteringBrandAttributeExtension>();
     }
@@ -27,7 +27,7 @@ public sealed partial class FilteringBatchTests
     {
         Common(builder);
         builder
-            .AddBatchDbContext(_connectionString)
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType(FilteringQuery.Initialize)
             .AddObjectType<FilteringBrand>(FilteringBrandNode.Initialize);
     }
@@ -36,7 +36,7 @@ public sealed partial class FilteringBatchTests
     {
         Common(builder);
         builder
-            .AddBatchDbContext(_connectionString)
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType(d =>
             {
                 d.Name("Query");

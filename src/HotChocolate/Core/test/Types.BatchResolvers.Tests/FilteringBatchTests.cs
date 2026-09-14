@@ -12,6 +12,7 @@ namespace HotChocolate.Types.BatchResolvers;
 public sealed partial class FilteringBatchTests(PostgreSqlResource resource) : BatchScenarioTests
 {
     private readonly PostgreSqlResource _resource = resource;
+    private readonly List<string> _capturedSql = [];
     private string _connectionString = null!;
 
     protected override BatchDeclarations Declarations => new()
@@ -92,6 +93,8 @@ public sealed partial class FilteringBatchTests(PostgreSqlResource resource) : B
               }
             }
             """);
+        var sql = Assert.Single(_capturedSql);
+        new Snapshot().Add(sql, "Captured SQL (root brands query)").MatchMarkdownSnapshot();
     }
 
     [Theory]
