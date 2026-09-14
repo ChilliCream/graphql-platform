@@ -1,0 +1,353 @@
+{
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
+  "activities": [
+    {
+      "OperationName": "Microsoft.AspNetCore.Hosting.HttpRequestIn",
+      "DisplayName": "POST /graphql/{**slug}",
+      "Kind": "Server",
+      "Status": "Unset",
+      "tags": [
+        {
+          "Key": "server.address",
+          "Value": "localhost"
+        },
+        {
+          "Key": "server.port",
+          "Value": 5000
+        },
+        {
+          "Key": "http.request.method",
+          "Value": "POST"
+        },
+        {
+          "Key": "url.scheme",
+          "Value": "http"
+        },
+        {
+          "Key": "url.path",
+          "Value": "/graphql"
+        },
+        {
+          "Key": "network.protocol.version",
+          "Value": "1.1"
+        },
+        {
+          "Key": "http.route",
+          "Value": "/graphql/{**slug}"
+        },
+        {
+          "Key": "http.response.status_code",
+          "Value": 200
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "ExecuteHttpRequest",
+          "DisplayName": "GraphQL HTTP POST",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.http.kind",
+              "Value": "HttpPost"
+            },
+            {
+              "Key": "graphql.schema.name",
+              "Value": "_Default"
+            },
+            {
+              "Key": "graphql.http.request.type",
+              "Value": "batch"
+            },
+            {
+              "Key": "graphql.http.request[0].query.id",
+              "Value": {
+                "IsEmpty": false,
+                "HasValue": true,
+                "Value": "dbfe187a49b8b785c6471ccb9bb8c5e4"
+              }
+            },
+            {
+              "Key": "graphql.http.request[0].query.hash",
+              "Value": {
+                "Value": "dbfe187a49b8b785c6471ccb9bb8c5e4",
+                "AlgorithmName": "md5",
+                "Format": "Hex",
+                "IsEmpty": false
+              }
+            },
+            {
+              "Key": "graphql.http.request[1].query.id",
+              "Value": {
+                "IsEmpty": false,
+                "HasValue": true,
+                "Value": "659bc020d413f3107839ff0cbbaf3440"
+              }
+            },
+            {
+              "Key": "graphql.http.request[1].query.hash",
+              "Value": {
+                "Value": "659bc020d413f3107839ff0cbbaf3440",
+                "AlgorithmName": "md5",
+                "Format": "Hex",
+                "IsEmpty": false
+              }
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "Parse HTTP Request",
+              "DisplayName": "Parse HTTP Request",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Operation",
+              "DisplayName": "query",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "request"
+                },
+                {
+                  "Key": "server.address",
+                  "Value": "localhost"
+                },
+                {
+                  "Key": "server.port",
+                  "Value": 5000
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "A"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:dbfe187a49b8b785c6471ccb9bb8c5e4"
+                }
+              ],
+              "event": [
+                {
+                  "Name": "AddedOperationToCache",
+                  "Tags": []
+                },
+                {
+                  "Name": "AddedDocumentToCache",
+                  "Tags": []
+                }
+              ],
+              "activities": [
+                {
+                  "OperationName": "GraphQL Document Validation",
+                  "DisplayName": "GraphQL Document Validation",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "validate"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:dbfe187a49b8b785c6471ccb9bb8c5e4"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Operation Planning",
+                  "DisplayName": "GraphQL Operation Planning",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "plan"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:dbfe187a49b8b785c6471ccb9bb8c5e4"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "A"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "Query.hero",
+                  "DisplayName": "Query.hero",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.field.alias",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.field.path",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.field.name",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.field.schema_coordinate",
+                      "Value": "Query.hero"
+                    },
+                    {
+                      "Key": "graphql.field.parent_type",
+                      "Value": "Query"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            },
+            {
+              "OperationName": "GraphQL Operation",
+              "DisplayName": "query",
+              "Kind": "Internal",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "request"
+                },
+                {
+                  "Key": "server.address",
+                  "Value": "localhost"
+                },
+                {
+                  "Key": "server.port",
+                  "Value": 5000
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "B"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:659bc020d413f3107839ff0cbbaf3440"
+                }
+              ],
+              "event": [
+                {
+                  "Name": "AddedOperationToCache",
+                  "Tags": []
+                },
+                {
+                  "Name": "AddedDocumentToCache",
+                  "Tags": []
+                }
+              ],
+              "activities": [
+                {
+                  "OperationName": "GraphQL Document Validation",
+                  "DisplayName": "GraphQL Document Validation",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "validate"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:659bc020d413f3107839ff0cbbaf3440"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Operation Planning",
+                  "DisplayName": "GraphQL Operation Planning",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "plan"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:659bc020d413f3107839ff0cbbaf3440"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "B"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "Query.human",
+                  "DisplayName": "Query.human",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.field.alias",
+                      "Value": "human"
+                    },
+                    {
+                      "Key": "graphql.field.path",
+                      "Value": "human"
+                    },
+                    {
+                      "Key": "graphql.field.name",
+                      "Value": "human"
+                    },
+                    {
+                      "Key": "graphql.field.schema_coordinate",
+                      "Value": "Query.human"
+                    },
+                    {
+                      "Key": "graphql.field.parent_type",
+                      "Value": "Query"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

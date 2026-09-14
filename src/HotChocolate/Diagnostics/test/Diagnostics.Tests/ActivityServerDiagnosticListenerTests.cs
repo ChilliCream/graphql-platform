@@ -155,6 +155,37 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
     }
 
     [Fact]
+    public async Task Http_Post_BatchRequest_Should_Give_Every_Item_Its_Own_Request_Span_Default()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // batch items execute concurrently and share one transport span, so with the
+            // default scopes they must not fold their operation details into it
+            using var server = CreateInstrumentedServer();
+            using var client = server.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000");
+
+            const string batch =
+                """
+                [{"query":"query A { hero { name } }"},
+                 {"query":"query B { human(id: \"1000\") { name } }"}]
+                """;
+
+            // act
+            using var content = new StringContent(batch, Encoding.UTF8, "application/json");
+            using var response = await client.PostAsync(
+                "/graphql",
+                content,
+                TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
     public async Task Http_Post_Variables_Are_Not_Automatically_Added_To_Activities()
     {
         using (CaptureActivities(out var activities))
