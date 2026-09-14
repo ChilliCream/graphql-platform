@@ -67,7 +67,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     }
 
     [Fact]
-    public async Task ValidateCost_Should_UseStaticBoundWithoutEnforcing_When_VariablesAreOmitted()
+    public async Task ValidateCost_Should_ReturnCoercionError_When_RequiredVariablesAreMissing()
     {
         // arrange
         var observation = new CostObservation();
@@ -89,10 +89,9 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Empty(result.ExpectOperationResult().Errors);
-        Assert.True(observation.Result!.IsStaticBound);
-        Assert.Single(observation.Result.Estimates);
-        Assert.Equal(2d, observation.Result.Estimates[0].TypeCost);
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorCodes.Execution.NonNullViolation, error.Code);
+        Assert.Null(observation.Result);
         Assert.Equal(0, observation.DownstreamCalls);
     }
 

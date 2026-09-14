@@ -124,7 +124,7 @@ public class CostReportingTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Request_Should_ReportStaticBound_When_ValidatedWithoutVariables()
+    public async Task Request_Should_ReturnCoercionError_When_ValidatedWithoutVariables()
     {
         // arrange
         using var server = CreateSourceSchema("A", Schema);
@@ -138,19 +138,22 @@ public class CostReportingTests : FusionTestBase
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(HttpStatusCode.OK, response.HttpResponseMessage.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.HttpResponseMessage.StatusCode);
         await AssertAndMatchSnapshotAsync(
             gateway,
             request,
             response,
-            results => AssertOperationCost(
-                Assert.Single(results),
-                """
-                {
-                  "fieldCost": 6,
-                  "typeCost": 2
-                }
-                """));
+            results =>
+            {
+                var result = Assert.Single(results);
+                var error = Assert.Single(result.Errors.EnumerateArray());
+                Assert.Equal(
+                    ErrorCodes.Execution.NonNullViolation,
+                    error.GetProperty("extensions").GetProperty("code").GetString());
+                Assert.False(
+                    result.Extensions.ValueKind is JsonValueKind.Object
+                    && result.Extensions.TryGetProperty("operationCost", out _));
+            });
     }
 
     [Fact]

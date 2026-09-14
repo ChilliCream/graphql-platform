@@ -1,4 +1,4 @@
-title: Request_Should_ReportStaticBound_When_ValidatedWithoutVariables
+title: Request_Should_ReturnCoercionError_When_ValidatedWithoutVariables
 request:
   document: |
     query Items($n: Int!) {
@@ -8,7 +8,23 @@ request:
     }
 response:
   body: |
-    {}
+    {
+      "errors": [
+        {
+          "message": "Variable \u0060n\u0060 is required.",
+          "locations": [
+            {
+              "line": 1,
+              "column": 13
+            }
+          ],
+          "extensions": {
+            "code": "HC0018",
+            "variable": "n"
+          }
+        }
+      ]
+    }
 sourceSchemas:
   - name: A
     schema: |

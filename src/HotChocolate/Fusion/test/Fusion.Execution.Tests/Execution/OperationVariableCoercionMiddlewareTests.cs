@@ -1,4 +1,3 @@
-using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,22 +35,10 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_SkipCoercion_When_CostValidationHasNoVariablesAndAnalyzerIsEnabled()
+    public async Task InvokeAsync_Should_CoerceVariables_When_CostValidationHasNoVariablesAndAnalyzerIsEnabled()
     {
         // arrange
-        IReadOnlyList<IVariableValueCollection>? capturedVariableValues = null;
-
-        var executor = await CreateExecutorAsync(
-            builder => builder.UseRequest(
-                (_, _) => context =>
-                {
-                    capturedVariableValues = context.VariableValues;
-                    context.Result =
-                        new OperationResult(ImmutableOrderedDictionary<string, object?>.Empty.Add("probe", true));
-                    return ValueTask.CompletedTask;
-                },
-                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
-                allowMultiple: true));
+        var executor = await CreateExecutorAsync();
 
         var request = OperationRequestBuilder.New()
             .SetDocument(OperationText)
@@ -59,11 +46,11 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
             .Build();
 
         // act
-        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.NotNull(capturedVariableValues);
-        Assert.Empty(capturedVariableValues);
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorCodes.Execution.NonNullViolation, error.Code);
     }
 
     [Fact]
