@@ -624,10 +624,10 @@ public class BatchResolverAuthorizationTests
 
         [BatchResolver]
         [Authorize("READ_SECRET", ApplyPolicy.BeforeResolver)]
-        public List<Secret> GetSecretById(List<int> id)
+        public List<Secret?> GetSecretById(List<int> id)
         {
             ResolverInvoked = true;
-            return id.Select(i => new Secret(i, $"secret-{i}")).ToList();
+            return id.Select(i => (Secret?)new Secret(i, $"secret-{i}")).ToList();
         }
     }
 
@@ -635,8 +635,8 @@ public class BatchResolverAuthorizationTests
     {
         [BatchResolver]
         [Authorize("READ_SECRET_AFTER", ApplyPolicy.AfterResolver)]
-        public List<Secret> GetSecretAfterById(List<int> id)
-            => id.Select(i => new Secret(i, $"secret-{i}")).ToList();
+        public List<Secret?> GetSecretAfterById(List<int> id)
+            => id.Select(i => (Secret?)new Secret(i, $"secret-{i}")).ToList();
     }
 
     [Authorize("READ_FRIEND", ApplyPolicy.BeforeResolver)]
@@ -653,8 +653,8 @@ public class BatchResolverAuthorizationTests
     public sealed class AppUserExtensions
     {
         [BatchResolver]
-        public List<Person> GetFriend(List<string> key)
-            => key.Select(i => new Person(i)).ToList();
+        public List<Person?> GetFriend(List<string> key)
+            => key.Select(i => (Person?)new Person(i)).ToList();
     }
 
     [Authorize("READ_PROTECTED_PERSON", ApplyPolicy.BeforeResolver)]
