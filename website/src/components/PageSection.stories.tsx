@@ -15,7 +15,7 @@ const meta = {
   component: PageSection,
   parameters: { layout: "fullscreen" },
   argTypes: {
-    maxWidth: { control: "select", options: ["7xl", "5xl"] },
+    maxWidth: { control: "select", options: ["7xl", "6xl", "5xl"] },
     className: { control: "text" },
     children: { control: false },
   },
@@ -42,6 +42,12 @@ export const NarrowMaxWidth: Story = {
   args: {
     maxWidth: "5xl",
     className: "py-24 text-center sm:py-32",
+  },
+};
+
+export const MediumMaxWidth: Story = {
+  args: {
+    maxWidth: "6xl",
   },
 };
 

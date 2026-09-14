@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type MouseEvent, type ReactNode, useState } from "react";
+import { ProductArtworkIcon } from "@/src/components/ProductArtworkIcon";
 import { formatDate } from "@/src/helpers/formatDate";
 import type { BlogPostSummary } from "@/src/helpers/blogPosts";
 import { ChevronDownIcon } from "@/src/icons/ChevronDown";
@@ -201,6 +202,25 @@ function SubGroupBlock({
   );
 }
 
+/**
+ * Height of the whole drink sheet in a menu row, i.e. the height of its tallest
+ * drink (Strawberry Shake). Every product icon is scaled from it by the same
+ * units-per-rem, so the shake stands taller than the cups and the cups wider
+ * than the Nitro can, exactly like the start page hero. 1.625rem puts the
+ * 59x84 cups at 1.25rem, the height of the square icons in the other groups.
+ * The sheet is taller than the icon slot, so it overflows the row's padding
+ * evenly above and below while the set stays centred on the title line.
+ */
+const PRODUCT_ICON_SHEET_REM = 1.625;
+
+/**
+ * One menu row. The icon slot is `h-5`, the line-height of the `text-sm` title,
+ * and sits at the top of a row aligned with `items-start`, so it shares the
+ * title line's centre — no matter how long the description below it runs. A
+ * product icon is bottom-aligned inside a sheet-height box, which is itself
+ * centred in the slot: the drinks keep their bases on one line and the set as a
+ * whole is centred on the title line.
+ */
 function SubLinkRow({
   link,
   onNavigate,
@@ -213,6 +233,7 @@ function SubLinkRow({
     ? { target: "_blank" as const, rel: "noopener noreferrer" as const }
     : {};
   const Icon = link.icon;
+  const artwork = link.iconSize;
 
   return (
     <Link
@@ -223,8 +244,16 @@ function SubLinkRow({
       className="group/link text-cc-ink-dim hover:bg-cc-hover flex items-start gap-3 rounded-md px-2 py-2 no-underline transition-colors"
     >
       {Icon && (
-        <span className="text-cc-ink-dim group-hover/link:text-cc-ink mt-0.5 flex h-5 w-5 flex-none items-center justify-center transition-colors">
-          <Icon className="h-4 w-4 fill-current" />
+        <span className="text-cc-ink-dim group-hover/link:text-cc-ink flex h-5 w-5 flex-none items-center justify-center transition-colors">
+          {artwork ? (
+            <ProductArtworkIcon
+              Icon={Icon}
+              artwork={artwork}
+              slotHeightRem={PRODUCT_ICON_SHEET_REM}
+            />
+          ) : (
+            <Icon className="h-4 w-4 fill-current" />
+          )}
         </span>
       )}
       <div>

@@ -1,25 +1,37 @@
-import type { ComponentType, SVGProps } from "react";
 import { GITHUB_REPO_URL } from "@/src/helpers/github";
 import { BlogIcon } from "@/src/icons/Blog";
+import { FUSION_ARTWORK, Fusion } from "@/src/icons/Fusion";
 import { GitHubIcon } from "@/src/icons/GitHub";
+import { HOT_CHOCOLATE_ARTWORK, HotChocolate } from "@/src/icons/HotChocolate";
 import { LinkedInIcon } from "@/src/icons/LinkedIn";
-import { RobotIcon } from "@/src/icons/RobotIcon";
-import { SlackIcon } from "@/src/icons/Slack";
-import { XIcon } from "@/src/icons/X";
-import { YouTubeIcon } from "@/src/icons/YouTube";
+import { MOCHA_ARTWORK, Mocha } from "@/src/icons/Mocha";
 import {
   BuildingIcon,
   CloudIcon,
+  ColumnsCompareIcon,
   HandshakeAngleIcon,
+  NetworkIcon,
   NewspaperIcon,
-  RocketIcon,
   ServerIcon,
   SparklesIcon,
   WavePulseIcon,
 } from "@/src/icons/NavIcons";
+import { NITRO_ARTWORK, Nitro } from "@/src/icons/Nitro";
+import type { ProductArtworkSize } from "@/src/icons/productArtwork";
+import { RobotIcon } from "@/src/icons/RobotIcon";
+import { SKILLS_ARTWORK, Skills } from "@/src/icons/Skills";
+import { SlackIcon } from "@/src/icons/Slack";
+import {
+  STRAWBERRY_SHAKE_ARTWORK,
+  StrawberryShake,
+} from "@/src/icons/StrawberryShake";
+import { XIcon } from "@/src/icons/X";
+import { YouTubeIcon } from "@/src/icons/YouTube";
+import type { ComponentType, SVGProps } from "react";
 
 export const TOOLS = {
   blog: "/blog",
+  comparison: "/comparison",
   github: GITHUB_REPO_URL,
   linkedIn: "https://www.linkedin.com/company/chillicream",
   nitro: "https://nitro.chillicream.com",
@@ -38,6 +50,12 @@ export interface SubLink {
   label: string;
   description?: string;
   icon?: Icon;
+  /**
+   * Intrinsic size of the icon artwork in sheet units (e.g. `NITRO_ARTWORK`).
+   * Set it on product icons: the menu then sizes them all with one scale
+   * factor, bottom-aligned, instead of forcing them into a square box.
+   */
+  iconSize?: ProductArtworkSize;
 }
 
 export interface SubGroup {
@@ -76,16 +94,22 @@ export const NAV_ITEMS: NavItem[] = [
             icon: SparklesIcon,
           },
           {
-            href: "/platform/ecosystem",
-            label: "Ecosystem",
-            description: "An Ecosystem You Trust and Love.",
-            icon: CloudIcon,
-          },
-          {
             href: "/platform/agentic-coding",
             label: "Agentic Development",
             description: "Consistently Good Code, from Any Agent.",
             icon: RobotIcon,
+          },
+          {
+            href: "/platform/graphql-federation",
+            label: "GraphQL Federation",
+            description: "Many Services. One Graph.",
+            icon: NetworkIcon,
+          },
+          {
+            href: "/platform/ecosystem",
+            label: "Ecosystem",
+            description: "An Ecosystem You Trust and Love.",
+            icon: CloudIcon,
           },
         ],
       },
@@ -96,13 +120,22 @@ export const NAV_ITEMS: NavItem[] = [
             href: "/products/nitro",
             label: "Nitro",
             description: "Observability, governance, and delivery.",
-            icon: RocketIcon,
+            icon: Nitro,
+            iconSize: NITRO_ARTWORK,
+          },
+          {
+            href: "/products/fusion",
+            label: "Fusion",
+            description: "The gateway for GraphQL Federation.",
+            icon: Fusion,
+            iconSize: FUSION_ARTWORK,
           },
           {
             href: "/products/mocha",
             label: "Mocha",
             description: "Messaging for .NET.",
-            icon: RocketIcon,
+            icon: Mocha,
+            iconSize: MOCHA_ARTWORK,
           },
         ],
       },
@@ -151,23 +184,50 @@ export const NAV_ITEMS: NavItem[] = [
           {
             href: "/docs/hotchocolate",
             label: "Hot Chocolate",
-            icon: RocketIcon,
+            icon: HotChocolate,
+            iconSize: HOT_CHOCOLATE_ARTWORK,
           },
           {
             href: "/docs/strawberryshake",
             label: "Strawberry Shake",
-            icon: RocketIcon,
+            icon: StrawberryShake,
+            iconSize: STRAWBERRY_SHAKE_ARTWORK,
           },
-          { href: "/docs/mocha", label: "Mocha", icon: RocketIcon },
-          { href: "/docs/fusion", label: "Fusion", icon: RocketIcon },
-          { href: "/docs/nitro", label: "Nitro", icon: RocketIcon },
-          { href: "/docs/skills", label: "Skills", icon: RocketIcon },
+          {
+            href: "/docs/mocha",
+            label: "Mocha",
+            icon: Mocha,
+            iconSize: MOCHA_ARTWORK,
+          },
+          {
+            href: "/docs/fusion",
+            label: "Fusion",
+            icon: Fusion,
+            iconSize: FUSION_ARTWORK,
+          },
+          {
+            href: "/docs/nitro",
+            label: "Nitro",
+            icon: Nitro,
+            iconSize: NITRO_ARTWORK,
+          },
+          {
+            href: "/docs/skills",
+            label: "Skills",
+            icon: Skills,
+            iconSize: SKILLS_ARTWORK,
+          },
         ],
       },
       {
         title: "Additional Resources",
         links: [
           { href: TOOLS.blog, label: "Blog", icon: BlogIcon },
+          {
+            href: TOOLS.comparison,
+            label: "Comparison",
+            icon: ColumnsCompareIcon,
+          },
           { href: TOOLS.github, label: "GitHub", icon: GitHubIcon },
           { href: TOOLS.slack, label: "Slack / Community", icon: SlackIcon },
           { href: TOOLS.youtube, label: "YouTube Channel", icon: YouTubeIcon },
