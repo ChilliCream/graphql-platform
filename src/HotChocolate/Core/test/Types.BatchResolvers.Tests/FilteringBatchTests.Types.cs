@@ -50,7 +50,7 @@ public sealed partial class FilteringBatchTests
             .AddType(new ObjectType<FilteringBrand>(d =>
             {
                 d.Field("products")
-                    .Type<ListType<ObjectType<FilteringProduct>>>()
+                    .Type<NonNullType<ListType<NonNullType<ObjectType<FilteringProduct>>>>>()
                     .UseFiltering<FilteringProduct>()
                     .ResolveBatch(contexts =>
                     {

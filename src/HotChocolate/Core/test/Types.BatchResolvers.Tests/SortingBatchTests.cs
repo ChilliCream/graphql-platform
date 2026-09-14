@@ -41,10 +41,17 @@ public sealed partial class SortingBatchTests(PostgreSqlResource resource) : Bat
         var printed = products.ToSyntaxNode().Print(false);
 
         // assert
+        // The Attribute cell reflects the element type through
+        // TypeInspector.GetTypeRef(elementType, TypeContext.Output), which drops member
+        // nullability on this fork (314006441f predates 8011a504af's
+        // ObjectFieldDescriptor.GetTypeRef(elementType) fix on mst/fix-batch-resolver), so it
+        // still prints [SortingProduct] rather than [SortingProduct!]!; this arm flips once the
+        // wave merges onto mst/fix-batch-resolver (see hc-0-1aa.5 task comment).
         var expected = style switch
         {
             DeclarationStyle.SourceGenerated => "products(order: [SortingProductSortInput!]): [SortingProduct!]!",
-            _ => "products(order: [SortingProductSortInput!]): [SortingProduct]"
+            DeclarationStyle.Attribute => "products(order: [SortingProductSortInput!]): [SortingProduct]",
+            _ => "products(order: [SortingProductSortInput!]): [SortingProduct!]!"
         };
         printed.MatchInlineSnapshot(expected);
     }

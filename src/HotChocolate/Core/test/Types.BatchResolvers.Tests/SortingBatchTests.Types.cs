@@ -47,7 +47,7 @@ public sealed partial class SortingBatchTests
                         .ToListAsync(ctx.RequestAborted));
             })
             .AddType(new ObjectType<SortingBrand>(d => d.Field("products")
-                .Type<ListType<ObjectType<SortingProduct>>>()
+                .Type<NonNullType<ListType<NonNullType<ObjectType<SortingProduct>>>>>()
                 .UseSorting<SortingProduct>()
                 .ResolveBatch(contexts =>
                 {
