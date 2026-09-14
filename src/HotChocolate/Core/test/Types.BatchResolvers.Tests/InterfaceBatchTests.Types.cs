@@ -36,15 +36,6 @@ public sealed partial class InterfaceBatchTests
         + "so its single batched result is misassigned back per parent, surfacing null entries "
         + "and leaf-coercion errors";
 
-    /// <summary>
-    /// The source generator emits a plain per-context resolver for a [BatchResolver] method
-    /// declared inside an [InterfaceType&lt;T&gt;] partial, requesting a List&lt;IInterfaceUser&gt;
-    /// parent instead of a BatchFieldDelegate, so the generated parent cast fails against the
-    /// actual List&lt;InterfaceUser&gt; parent.
-    /// </summary>
-    private const string SourceGeneratedNotApplicableReason =
-        "hc-0-jyk.6: generator emits no batch wiring for [InterfaceType<T>] partials";
-
     private void ConfigureSourceGenerated(IRequestExecutorBuilder builder)
     {
         RegisterServices(builder);

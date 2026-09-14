@@ -5,7 +5,7 @@ public sealed partial class InterfaceBatchTests : BatchScenarioTests
     protected override BatchDeclarations Declarations => new()
     {
         Attribute = Declaration.NotApplicable(AttributeNotApplicableReason),
-        SourceGenerated = Declaration.NotApplicable(SourceGeneratedNotApplicableReason),
+        SourceGenerated = new Declaration(ConfigureSourceGenerated),
         Fluent = new Declaration(ConfigureFluent)
     };
 
