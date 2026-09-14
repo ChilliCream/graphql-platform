@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types.BatchResolvers;
 
@@ -52,10 +53,7 @@ public sealed partial class EngineBatchTests : BatchScenarioTests
     [BatchMatrix]
     public async Task BatchResolver_Should_Coalesce_Aliases_When_RootFieldHasLiteralArguments(DeclarationStyle style)
     {
-        // arrange
-        // three variable sets share one selection occurrence per alias even though the field
-        // arguments are literal, so each alias must coalesce across sets into a single batch
-        // while the two aliases must never meet in one batch (hc-0-6cq.15).
+        // arrange, three variable sets share one selection occurrence per alias, coalescing separately (hc-0-6cq.15)
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
         var request = OperationRequestBuilder.New()
             .SetDocument(
@@ -79,20 +77,17 @@ public sealed partial class EngineBatchTests : BatchScenarioTests
 
         // assert
         Assert.IsType<OperationResultBatch>(result);
-        Assert.Equal(2, Probe.Invocations.Count);
-        Assert.All(Probe.Invocations, invocation => Assert.Equal(3, invocation.Keys.Count));
-        Assert.Equal(new object?[] { 1, 1, 1 }, Probe.Invocations.Single(i => (int)i.Keys[0]! == 1).Keys);
-        Assert.Equal(new object?[] { 2, 2, 2 }, Probe.Invocations.Single(i => (int)i.Keys[0]! == 2).Keys);
+        Assert.Collection(
+            Probe.Invocations.OrderBy(i => i.Keys[0]),
+            invocation => Assert.Equal(new object?[] { 1, 1, 1 }, invocation.Keys),
+            invocation => Assert.Equal(new object?[] { 2, 2, 2 }, invocation.Keys));
     }
 
     [Theory]
     [BatchMatrix]
     public async Task BatchResolver_Should_Coalesce_Aliases_When_RootFieldHasVariableArguments(DeclarationStyle style)
     {
-        // arrange
-        // each alias's argument varies per variable set, yet still shares one selection
-        // occurrence across the sets, so it coalesces into a single batch spanning every set
-        // while the two aliases stay in separate batches (hc-0-6cq.15).
+        // arrange, each alias's argument varies per set but still shares one occurrence (hc-0-6cq.15)
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
         var request = OperationRequestBuilder.New()
             .SetDocument(
@@ -188,11 +183,7 @@ public sealed partial class EngineBatchTests : BatchScenarioTests
     public async Task BatchResolver_Should_Stay_Unconditional_When_MergedFromConditionalAndUnconditional(
         DeclarationStyle style)
     {
-        // arrange
-        // the same batch field is selected at the root twice with the same args: once
-        // unconditionally and once inside an @include(if: $flag) fragment. The two selections
-        // merge into one, which stays unconditional, so with flag=false the field is still
-        // resolved and the batch runs exactly once.
+        // arrange, the field is selected once unconditionally and once behind @include(if: $flag)
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
         var request = OperationRequestBuilder.New()
             .SetDocument(
@@ -484,10 +475,11 @@ public sealed partial class EngineBatchTests : BatchScenarioTests
     [BatchMatrix]
     public async Task BatchResolver_Should_Fail_All_Contexts_When_ResultCountMismatches(DeclarationStyle style)
     {
-        // arrange
-        // the batch resolver deliberately returns fewer results than contexts; every context
-        // must fail rather than silently misaligning results to parents.
-        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
+        // arrange, deliberately returns fewer results than contexts so every context must fail
+        var executor = await CreateExecutorAsync(
+            style,
+            b => b.ModifyRequestOptions(o => o.IncludeExceptionDetails = true),
+            TestContext.Current.CancellationToken);
 
         // act
         await using var result = await ExecuteAsync(
@@ -496,7 +488,15 @@ public sealed partial class EngineBatchTests : BatchScenarioTests
         // assert
         var operation = Assert.IsType<OperationResult>(result);
         Assert.Equal(3, operation.Errors?.Count);
-        Assert.All(operation.Errors!, error => Assert.Equal("Unexpected Execution Error", error.Message));
+        Assert.All(
+            operation.Errors!,
+            error => Assert.Contains(
+                "A batch resolver must return exactly one result per context. Expected 3 results but got 2.",
+                error.Exception?.Message));
+        var json = result.ToJson();
+        Assert.True(
+            json.Contains("\"mismatchGreeting\": null", StringComparison.Ordinal)
+            || json.Contains("\"data\": null", StringComparison.Ordinal));
     }
 
     [Theory]
@@ -649,18 +649,35 @@ public sealed partial class EngineBatchTests : BatchScenarioTests
     [BatchMatrix]
     public async Task BatchResolver_Should_Complete_When_ParentResolverIsAsync(DeclarationStyle style)
     {
-        // arrange
-        // representative of the #9892 regression: an async parent resolver feeding a nested
-        // batch field must complete without hanging.
+        // arrange, representative of the #9892 regression: an async parent feeds a nested batch field
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act
         await using var result = await ExecuteAsync(
-            executor, "{ users { name asyncGreeting } }", TestContext.Current.CancellationToken);
+            executor, "{ asyncUsers { name greeting } }", TestContext.Current.CancellationToken);
 
         // assert
-        var operation = Assert.IsType<OperationResult>(result);
-        Assert.True(operation.Errors is null or []);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "asyncUsers": [
+                  {
+                    "name": "Alice",
+                    "greeting": "Hello, Alice!"
+                  },
+                  {
+                    "name": "Bob",
+                    "greeting": "Hello, Bob!"
+                  },
+                  {
+                    "name": "Charlie",
+                    "greeting": "Hello, Charlie!"
+                  }
+                ]
+              }
+            }
+            """);
     }
 
     [Theory]
@@ -677,10 +694,7 @@ public sealed partial class EngineBatchTests : BatchScenarioTests
 
     private async Task AssertSerialBatchesAsync(DeclarationStyle style, bool aliasSameField)
     {
-        // arrange
-        // two aliases of a serial mutation root field must never let a batch below them span
-        // both serial steps: each step's batch dispatches and completes while its own mutation
-        // runs, before the next serial mutation starts (hc-0-6cq.18).
+        // arrange, each serial mutation step's batch must complete before the next step starts (hc-0-6cq.18)
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
         var secondField = aliasSameField ? "createParent" : "cloneParent";
 

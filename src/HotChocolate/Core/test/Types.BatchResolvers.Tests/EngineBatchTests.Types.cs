@@ -73,6 +73,13 @@ public sealed partial class EngineBatchTests
                 d.Field("productById")
                     .Argument("id", a => a.Type<IntType>())
                     .ResolveBatchWith<FluentEngineQueryResolvers>(t => t.GetProductById(null!, null!));
+                d.Field("asyncUsers")
+                    .Type<ListType<ObjectType<EngineUser>>>()
+                    .Resolve(async _ =>
+                    {
+                        await Task.Delay(1);
+                        return Users.ToList();
+                    });
             })
             .AddObjectType<EngineUser>(d =>
             {
@@ -329,6 +336,16 @@ public sealed class EngineAttributeQuery
         probe.Record(nameof(GetProductById), id);
         return id.ConvertAll(i => EngineBatchTests.Products.FirstOrDefault(p => p.Id == i));
     }
+
+    /// <summary>
+    /// A parent resolver dedicated to the #9892 regression: it is async and unshared with any
+    /// other row, so this family alone proves an async parent feeding a nested batch field.
+    /// </summary>
+    public async Task<List<EngineUser>> GetAsyncUsers()
+    {
+        await Task.Delay(1);
+        return EngineBatchTests.Users.ToList();
+    }
 }
 
 /// <summary>
@@ -479,6 +496,16 @@ public static partial class EngineQuery
     {
         probe.Record(nameof(GetProductById), id);
         return id.ConvertAll(i => EngineBatchTests.Products.FirstOrDefault(p => p.Id == i));
+    }
+
+    /// <summary>
+    /// A parent resolver dedicated to the #9892 regression: it is async and unshared with any
+    /// other row, so this family alone proves an async parent feeding a nested batch field.
+    /// </summary>
+    public static async Task<List<EngineUser>> GetAsyncUsers()
+    {
+        await Task.Delay(1);
+        return EngineBatchTests.Users.ToList();
     }
 }
 
