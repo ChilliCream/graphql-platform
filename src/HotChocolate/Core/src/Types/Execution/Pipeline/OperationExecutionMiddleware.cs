@@ -51,9 +51,15 @@ internal sealed class OperationExecutionMiddleware
 
         if (context.TryGetOperation(out var operation) && context.VariableValues.Length > 0)
         {
-            if (!IsOperationAllowed(operation, context.Request))
+            if (!IsOperationKindAllowed(operation, context.Request))
             {
                 context.Result = ErrorHelper.OperationKindNotAllowed();
+                return;
+            }
+
+            if (!IsIncrementalDeliveryAllowed(operation, context.Request))
+            {
+                context.Result = ErrorHelper.IncrementalDeliveryNotAcceptable();
                 return;
             }
 
@@ -319,27 +325,32 @@ internal sealed class OperationExecutionMiddleware
             ref _cachedMutation);
     }
 
-    private static bool IsOperationAllowed(Operation operation, IOperationRequest request)
+    private static bool IsOperationKindAllowed(Operation operation, IOperationRequest request)
     {
         if (request.Flags is AllowAll)
         {
             return true;
         }
 
-        var allowed = operation.Definition.Operation switch
+        return operation.Definition.Operation switch
         {
             OperationType.Query => (request.Flags & AllowQuery) == AllowQuery,
             OperationType.Mutation => (request.Flags & AllowMutation) == AllowMutation,
             OperationType.Subscription => (request.Flags & AllowSubscription) == AllowSubscription,
             _ => true
         };
+    }
 
-        if (allowed && operation.HasIncrementalParts)
+    // AllowStreams is granted by the accepted response content types alone, so a refusal here
+    // is a content negotiation failure rather than one the request method can resolve.
+    private static bool IsIncrementalDeliveryAllowed(Operation operation, IOperationRequest request)
+    {
+        if (request.Flags is AllowAll || !operation.HasIncrementalParts)
         {
-            return (request.Flags & AllowStreams) == AllowStreams;
+            return true;
         }
 
-        return allowed;
+        return (request.Flags & AllowStreams) == AllowStreams;
     }
 
     private static bool IsRequestTypeAllowed(

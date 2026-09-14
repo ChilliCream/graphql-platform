@@ -152,6 +152,20 @@ internal static class ErrorHelper
         return result;
     }
 
+    public static OperationResult IncrementalDeliveryNotAcceptable()
+    {
+        var result = OperationResult.FromError(
+            ErrorBuilder.New()
+                .SetMessage(ErrorHelper_IncrementalDeliveryNotAcceptable)
+                .Build());
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.NotAcceptable);
+
+        return result;
+    }
+
     public static OperationResult RequestTypeNotAllowed()
     {
         var result = OperationResult.FromError(
