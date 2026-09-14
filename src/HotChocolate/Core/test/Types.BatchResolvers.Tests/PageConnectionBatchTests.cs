@@ -28,7 +28,7 @@ public sealed partial class PageConnectionBatchTests(PostgreSqlResource resource
         Attribute = new Declaration(ConfigureAttribute),
         SourceGenerated = new Declaration(ConfigureSourceGenerated),
         Fluent = Declaration.NotApplicable(
-            "hc-0-1aa.5: no public fluent equivalent of UseConnectionAttribute; its batch paging "
+            "no public fluent equivalent of UseConnectionAttribute exists; its batch paging "
             + "validation middleware and partition key wiring are protected internal to "
             + "Types.CursorPagination")
     };

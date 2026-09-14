@@ -340,8 +340,7 @@ public sealed class EngineAttributeQuery
     }
 
     /// <summary>
-    /// A parent resolver dedicated to the #9892 regression: it is async and unshared with any
-    /// other row, so this family alone proves an async parent feeding a nested batch field.
+    /// An async parent resolver whose result feeds a nested batch field.
     /// </summary>
     public async Task<List<EngineUser>> GetAsyncUsers()
     {
@@ -501,8 +500,7 @@ public static partial class EngineQuery
     }
 
     /// <summary>
-    /// A parent resolver dedicated to the #9892 regression: it is async and unshared with any
-    /// other row, so this family alone proves an async parent feeding a nested batch field.
+    /// An async parent resolver whose result feeds a nested batch field.
     /// </summary>
     public static async Task<List<EngineUser>> GetAsyncUsers()
     {

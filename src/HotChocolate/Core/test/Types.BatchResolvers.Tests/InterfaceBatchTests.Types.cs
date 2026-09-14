@@ -16,25 +16,16 @@ public sealed partial class InterfaceBatchTests
         => builder.Services.AddSingleton<InterfaceGreetingService>();
 
     /// <summary>
-    /// Attribute-style reflection over the interface's own CLR members cannot express a batch
-    /// field either way. A static [BatchResolver] method registered through
-    /// AddInterfaceType&lt;T&gt;() inference is dropped entirely because implicit field
-    /// discovery only requests instance members, so the query fails with "The field `greeting`
-    /// does not exist on the type `IInterfaceUser`." A default interface method carrying
-    /// [BatchResolver] is picked up (InterfaceFieldDescriptor.cs:55-63 sets
-    /// CoreFieldFlags.BatchResolver from the MethodInfo), but the resolver still runs once per
-    /// selection and its single batched result is misassigned back as every parent's own value,
-    /// so each context surfaces null entries and leaf-coercion errors instead of one resolved
-    /// item per parent.
+    /// Static interface members are invisible to <c>AddInterfaceType&lt;T&gt;()</c>'s implicit
+    /// field discovery, so a static [BatchResolver] method declared on the interface itself can
+    /// never become a field under attribute-style reflection.
     /// </summary>
     private const string AttributeNotApplicableReason =
-        "reflection over the interface's own members cannot express a batch field either way: a "
-        + "static [BatchResolver] method registered through AddInterfaceType<T>() inference is "
-        + "dropped entirely (query fails with \"The field `greeting` does not exist on the type "
-        + "`IInterfaceUser`.\"), and a default interface method carrying [BatchResolver] is "
-        + "picked up by InterfaceFieldDescriptor.cs:55-63 but wires no batch dispatch behind it, "
-        + "so its single batched result is misassigned back per parent, surfacing null entries "
-        + "and leaf-coercion errors";
+        "implicit interface field discovery only requests instance members "
+        + "(FieldDescriptorUtilities.cs:66, DefaultTypeInspector.cs:62-64), so a static "
+        + "[BatchResolver] method declared directly on the interface is never offered as a field "
+        + "candidate; query fails with \"The field `greeting` does not exist on the type "
+        + "`IInterfaceUser`.\"";
 
     private void ConfigureSourceGenerated(IRequestExecutorBuilder builder)
     {
