@@ -1,4 +1,4 @@
-# ResolveNodeBatch_Should_Isolate_Error_And_Null_Entries_When_Delegate_Returns_Results
+# ResolveNodeBatch_Should_Report_Error_At_Indexed_Path_When_Classic_Resolver_Throws_For_One_Entry
 
 ## Result
 
@@ -6,7 +6,7 @@
 {
   "errors": [
     {
-      "message": "missing node",
+      "message": "Unexpected Execution Error",
       "path": [
         "nodes",
         1
@@ -18,11 +18,7 @@
       {
         "name": "x"
       },
-      null,
-      null,
-      {
-        "name": "x"
-      }
+      null
     ]
   }
 }
@@ -31,5 +27,5 @@
 ## Calls
 
 ```json
-1
+2
 ```
