@@ -74,8 +74,8 @@
 
 ```json
 [
-  "BeforeResolver:nodes",
-  "BeforeResolver:nodes"
+  "BeforeResolver:nodes[0]",
+  "BeforeResolver:nodes[1]"
 ]
 ```
 

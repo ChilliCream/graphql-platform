@@ -52,10 +52,10 @@
 
 ```json
 [
-  "AfterResolver:nodes",
-  "AfterResolver:nodes",
-  "AfterResolver:nodes",
-  "AfterResolver:nodes"
+  "AfterResolver:nodes[0]",
+  "AfterResolver:nodes[1]",
+  "AfterResolver:nodes[0]",
+  "AfterResolver:nodes[1]"
 ]
 ```
 
