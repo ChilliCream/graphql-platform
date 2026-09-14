@@ -200,6 +200,76 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     }
 
     [Fact]
+    public async Task VariableBatch_Should_RejectWholeRequest_When_OneSetExceedsTypeCostLimit()
+    {
+        // arrange
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            options =>
+            {
+                options.MaxFieldCost = double.PositiveInfinity;
+                options.MaxTypeCost = 10;
+            },
+            observation);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var variables = JsonDocument.Parse("""[{ "n": 1 }, { "n": 1000 }]""");
+        using var request = VariableBatchRequest.FromSourceText(ItemsQuery, variables);
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        result.ExpectOperationResult().MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The maximum allowed type cost was exceeded.",
+                  "extensions": {
+                    "code": "HC0047",
+                    "typeCost": 1003,
+                    "maxTypeCost": 10
+                  }
+                }
+              ]
+            }
+            """);
+        Assert.Equal(2, observation.Result!.Estimates.Length);
+        Assert.Equal(0, observation.DownstreamCalls);
+    }
+
+    [Fact]
+    public async Task VariableBatch_Should_RejectWholeRequest_When_OneSetExceedsResponseSizeLimit()
+    {
+        // arrange
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            options =>
+            {
+                options.MaxFieldCost = double.PositiveInfinity;
+                options.MaxTypeCost = double.PositiveInfinity;
+                options.MaxResponseSize = 100;
+            },
+            observation);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var variables = JsonDocument.Parse("""[{ "n": 1 }, { "n": 1000 }]""");
+        using var request = VariableBatchRequest.FromSourceText(ItemsQuery, variables);
+
+        // act
+        var result = await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorCodes.Execution.CostExceeded, error.Code);
+        Assert.Equal(1001d, error.Extensions!["maxResponseSize"]);
+        Assert.Equal(100d, error.Extensions["maxAllowedResponseSize"]);
+        Assert.Equal(2, observation.Result!.Estimates.Length);
+        Assert.Equal(0, observation.DownstreamCalls);
+    }
+
+    [Fact]
     public async Task Request_Should_RejectBeforePlanning_When_FieldCostExceedsLimit()
     {
         // arrange
