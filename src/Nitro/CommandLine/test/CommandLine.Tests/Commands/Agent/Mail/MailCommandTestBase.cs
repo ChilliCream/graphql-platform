@@ -1,7 +1,5 @@
-using System.Diagnostics;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Microsoft.Data.Sqlite;
 

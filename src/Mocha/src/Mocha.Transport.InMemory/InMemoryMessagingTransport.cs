@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Mocha.Middlewares;
-using static System.StringSplitOptions;
 
 namespace Mocha.Transport.InMemory;
 

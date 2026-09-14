@@ -26,7 +26,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     private const string Actor = "codex-worker";
     private const string InstanceId = "host-1";
 
-    private static readonly MailWakeDaemonPolicy FastPolicy = new(
+    private static readonly MailWakeDaemonPolicy s_fastPolicy = new(
         LeaderLeaseDuration: TimeSpan.FromMilliseconds(400),
         HeartbeatInterval: TimeSpan.FromMilliseconds(60),
         AdmissionPollInterval: TimeSpan.FromMilliseconds(30),
@@ -34,7 +34,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         MaxConcurrentActorExecutions: 4,
         ShutdownWait: TimeSpan.FromSeconds(2));
 
-    private static readonly TimeSpan WaitTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan s_waitTimeout = TimeSpan.FromSeconds(5);
 
     private readonly DirectoryInfo _tempRoot;
     private readonly string _workspaceDirectory;
@@ -107,7 +107,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
 
         // act
         await coordinator.StartAsync(cancellationToken);
-        await Task.Delay(FastPolicy.StandbyPollInterval * 5, cancellationToken);
+        await Task.Delay(s_fastPolicy.StandbyPollInterval * 5, cancellationToken);
 
         // assert: never became ready while the other owner's lease is live.
         Assert.Equal(MailWakeDaemonState.Standby, coordinator.Status.State);
@@ -156,7 +156,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             () => coordinatorA.Status.State == MailWakeDaemonState.Ready
                 || coordinatorB.Status.State == MailWakeDaemonState.Ready,
             cancellationToken);
-        await Task.Delay(FastPolicy.StandbyPollInterval * 5, cancellationToken);
+        await Task.Delay(s_fastPolicy.StandbyPollInterval * 5, cancellationToken);
 
         // assert: exactly one became ready with epoch 1, the other stayed
         // standby.
@@ -219,7 +219,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         // assert: degraded with the denial recorded, and it does not flap
         // back to ready on its own within a few more poll cycles.
         Assert.Equal("access-denied", coordinator.Status.LastError);
-        await Task.Delay(FastPolicy.StandbyPollInterval * 5, cancellationToken);
+        await Task.Delay(s_fastPolicy.StandbyPollInterval * 5, cancellationToken);
         Assert.NotEqual(MailWakeDaemonState.Ready, coordinator.Status.State);
 
         // a differently privileged standby (a second coordinator instance)
@@ -251,7 +251,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         // assert: returned well within the shutdown budget, and a fresh
         // acquire attempt succeeds immediately rather than waiting out the
         // lease duration.
-        Assert.True(stopwatch.Elapsed < FastPolicy.ShutdownWait, $"StopAsync took {stopwatch.Elapsed}.");
+        Assert.True(stopwatch.Elapsed < s_fastPolicy.ShutdownWait, $"StopAsync took {stopwatch.Elapsed}.");
         var leaderStore = new MailWakeDaemonLeaderStore(_fileSystem, _database);
         var reacquired = await leaderStore.TryAcquireAsync(
             InstanceId, "someone-else", DateTimeOffset.UtcNow, TimeSpan.FromSeconds(30), cancellationToken);
@@ -297,7 +297,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
 
         // act
         await coordinator.StartAsync(cancellationToken);
-        await executor.Entered.Task.WaitAsync(WaitTimeout, cancellationToken);
+        await executor.Entered.Task.WaitAsync(s_waitTimeout, cancellationToken);
         renewalLossStore.FailNextRenewal();
         await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Standby, cancellationToken);
 
@@ -366,7 +366,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         // act
         await coordinator.StartAsync(cancellationToken);
         await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Ready, cancellationToken);
-        await Task.Delay(FastPolicy.AdmissionPollInterval * 5, cancellationToken);
+        await Task.Delay(s_fastPolicy.AdmissionPollInterval * 5, cancellationToken);
 
         // assert: never dispatched to, or touched, the other instance's row.
         Assert.Empty(executor.Calls);
@@ -434,7 +434,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
         await InsertDueOutboxRowAsync(InstanceId, cancellationToken);
-        var shortShutdownPolicy = FastPolicy with { ShutdownWait = TimeSpan.FromMilliseconds(50) };
+        var shortShutdownPolicy = s_fastPolicy with { ShutdownWait = TimeSpan.FromMilliseconds(50) };
         var dispatcher = new HangingDispatcher();
         var coordinator = new MailWakeDaemonCoordinator(
             new MailWakeDaemonLeaderStore(_fileSystem, _database),
@@ -497,7 +497,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             _instanceIdProvider,
             _globalConfigDirectoryProvider,
             TimeProvider.System,
-            FastPolicy);
+            s_fastPolicy);
 
         // act
         await coordinator.StartAsync(cancellationToken);
@@ -556,7 +556,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             _instanceIdProvider,
             _globalConfigDirectoryProvider,
             TimeProvider.System,
-            FastPolicy);
+            s_fastPolicy);
 
         // act
         await coordinator.StartAsync(cancellationToken);
@@ -564,7 +564,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
 
         // assert: the gate's own capacity was actually reached, and never
         // exceeded, while draining all five actors.
-        Assert.Equal(FastPolicy.MaxConcurrentActorExecutions, dispatcher.MaxObservedConcurrency);
+        Assert.Equal(s_fastPolicy.MaxConcurrentActorExecutions, dispatcher.MaxObservedConcurrency);
 
         await coordinator.StopAsync(cancellationToken);
     }
@@ -587,7 +587,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
             _instanceIdProvider,
             _globalConfigDirectoryProvider,
             TimeProvider.System,
-            FastPolicy);
+            s_fastPolicy);
 
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
@@ -687,7 +687,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     private static async Task WaitUntilAsync(
         Func<bool> condition, CancellationToken cancellationToken, TimeSpan? timeout = null)
     {
-        var deadline = DateTime.UtcNow + (timeout ?? WaitTimeout);
+        var deadline = DateTime.UtcNow + (timeout ?? s_waitTimeout);
 
         while (!condition())
         {
@@ -702,7 +702,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
 
     private static async Task WaitUntilAsync(Func<Task<bool>> condition, CancellationToken cancellationToken)
     {
-        var deadline = DateTime.UtcNow + WaitTimeout;
+        var deadline = DateTime.UtcNow + s_waitTimeout;
 
         while (!await condition())
         {

@@ -232,7 +232,7 @@ public class RepresentationFillerTests
     private static ExternalSetter GetFiller(ObjectType type)
     {
         Assert.True(type.Features.TryGet(out ExternalSetter? setter));
-        return setter!;
+        return setter;
     }
 
     public sealed class Query

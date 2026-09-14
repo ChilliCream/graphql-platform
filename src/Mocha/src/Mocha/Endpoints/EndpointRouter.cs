@@ -169,8 +169,7 @@ public sealed class EndpointRouter : IEndpointRouter
         ArgumentNullException.ThrowIfNull(endpoint);
         ArgumentNullException.ThrowIfNull(address);
 
-        var changed = false;
-
+        bool changed;
         lock (_lock)
         {
             if (!_endpoints.TryGetValue(endpoint, out var addresses))
@@ -199,8 +198,7 @@ public sealed class EndpointRouter : IEndpointRouter
     {
         ArgumentNullException.ThrowIfNull(endpoint);
 
-        var changed = false;
-
+        bool changed;
         lock (_lock)
         {
             if (!_endpoints.TryGetValue(endpoint, out var addresses))

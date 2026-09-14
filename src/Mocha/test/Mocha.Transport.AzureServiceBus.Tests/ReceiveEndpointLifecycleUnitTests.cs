@@ -171,7 +171,7 @@ public sealed class ReceiveEndpointLifecycleUnitTests
                 MaxConcurrentSessions: 6,
                 MaxConcurrentCallsPerSession: 1,
                 MaxAutoLockRenewalDuration: TimeSpan.FromMinutes(5),
-                SessionIdleTimeout: (TimeSpan?)null,
+                SessionIdleTimeout: null,
                 ReceiveMode: ServiceBusReceiveMode.PeekLock,
                 AutoCompleteMessages: false),
             (created.Options.PrefetchCount,

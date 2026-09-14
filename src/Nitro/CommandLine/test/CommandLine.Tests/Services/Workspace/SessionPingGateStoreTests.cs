@@ -12,7 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// </summary>
 public sealed class SessionPingGateStoreTests : IDisposable
 {
-    private static readonly AgentSessionGeneration Generation =
+    private static readonly AgentSessionGeneration s_generation =
         new("claude-code", "session-1", "host-a");
 
     private readonly DirectoryInfo _tempRoot;
@@ -42,7 +42,7 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
 
         // act
-        var claimed = await _gates.TryAcquireAsync(Generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        var claimed = await _gates.TryAcquireAsync(s_generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.True(claimed);
@@ -55,10 +55,10 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _gates.TryAcquireAsync(Generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _gates.TryAcquireAsync(s_generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
-        var claimed = await _gates.TryAcquireAsync(Generation, "attempt-2", now, TimeSpan.FromSeconds(30), cancellationToken);
+        var claimed = await _gates.TryAcquireAsync(s_generation, "attempt-2", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.False(claimed);
@@ -72,8 +72,8 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _gates.TryAcquireAsync(Generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
-        var otherGeneration = Generation with { Host = "host-other" };
+        await _gates.TryAcquireAsync(s_generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        var otherGeneration = s_generation with { Host = "host-other" };
 
         // act
         var claimed =
@@ -90,11 +90,11 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _gates.TryAcquireAsync(Generation, "attempt-1", acquiredAt, TimeSpan.FromSeconds(30), cancellationToken);
+        await _gates.TryAcquireAsync(s_generation, "attempt-1", acquiredAt, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
         var later = acquiredAt + TimeSpan.FromSeconds(31);
-        var claimed = await _gates.TryAcquireAsync(Generation, "attempt-2", later, TimeSpan.FromSeconds(30), cancellationToken);
+        var claimed = await _gates.TryAcquireAsync(s_generation, "attempt-2", later, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.True(claimed);
@@ -107,18 +107,18 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _gates.TryAcquireAsync(Generation, "attempt-1", acquiredAt, TimeSpan.FromSeconds(10), cancellationToken);
+        await _gates.TryAcquireAsync(s_generation, "attempt-1", acquiredAt, TimeSpan.FromSeconds(10), cancellationToken);
         var justBeforeExpiry = acquiredAt + TimeSpan.FromSeconds(9);
 
         // act
         var renewed = await _gates.TryRenewAsync(
-            Generation, "attempt-1", justBeforeExpiry, TimeSpan.FromSeconds(10), cancellationToken);
+            s_generation, "attempt-1", justBeforeExpiry, TimeSpan.FromSeconds(10), cancellationToken);
 
         // assert: a caller trying to steal right after the original lease
         // would have expired now fails, proving the renewal took effect.
         Assert.True(renewed);
         var stillHeld = await _gates.TryAcquireAsync(
-            Generation, "attempt-2", acquiredAt + TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(10), cancellationToken);
+            s_generation, "attempt-2", acquiredAt + TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(10), cancellationToken);
         Assert.False(stillHeld);
     }
 
@@ -129,12 +129,12 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _gates.TryAcquireAsync(Generation, "attempt-1", acquiredAt, TimeSpan.FromSeconds(10), cancellationToken);
+        await _gates.TryAcquireAsync(s_generation, "attempt-1", acquiredAt, TimeSpan.FromSeconds(10), cancellationToken);
         var afterExpiry = acquiredAt + TimeSpan.FromSeconds(11);
 
         // act
         var renewed =
-            await _gates.TryRenewAsync(Generation, "attempt-1", afterExpiry, TimeSpan.FromSeconds(10), cancellationToken);
+            await _gates.TryRenewAsync(s_generation, "attempt-1", afterExpiry, TimeSpan.FromSeconds(10), cancellationToken);
 
         // assert
         Assert.False(renewed);
@@ -147,10 +147,10 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _gates.TryAcquireAsync(Generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _gates.TryAcquireAsync(s_generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
-        var renewed = await _gates.TryRenewAsync(Generation, "attempt-stale", now, TimeSpan.FromSeconds(30), cancellationToken);
+        var renewed = await _gates.TryRenewAsync(s_generation, "attempt-stale", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.False(renewed);
@@ -163,11 +163,11 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _gates.TryAcquireAsync(Generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _gates.TryAcquireAsync(s_generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
-        await _gates.ReleaseAsync(Generation, "attempt-1", cancellationToken);
-        var reclaimed = await _gates.TryAcquireAsync(Generation, "attempt-2", now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _gates.ReleaseAsync(s_generation, "attempt-1", cancellationToken);
+        var reclaimed = await _gates.TryAcquireAsync(s_generation, "attempt-2", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.True(reclaimed);
@@ -182,11 +182,11 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
-        await _gates.TryAcquireAsync(Generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _gates.TryAcquireAsync(s_generation, "attempt-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // act
-        await _gates.ReleaseAsync(Generation, "attempt-stale", cancellationToken);
-        var stillHeld = await _gates.TryAcquireAsync(Generation, "attempt-2", now, TimeSpan.FromSeconds(30), cancellationToken);
+        await _gates.ReleaseAsync(s_generation, "attempt-stale", cancellationToken);
+        var stillHeld = await _gates.TryAcquireAsync(s_generation, "attempt-2", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
         Assert.False(stillHeld);
@@ -204,7 +204,7 @@ public sealed class SessionPingGateStoreTests : IDisposable
         // act
         var results = await Task.WhenAll(Enumerable.Range(1, 6).Select(i =>
             new SessionPingGateStore(_fileSystem, _database)
-                .TryAcquireAsync(Generation, $"attempt-{i}", now, TimeSpan.FromSeconds(30), cancellationToken)));
+                .TryAcquireAsync(s_generation, $"attempt-{i}", now, TimeSpan.FromSeconds(30), cancellationToken)));
 
         // assert: exactly one caller claimed the gate.
         Assert.Equal(1, results.Count(claimed => claimed));

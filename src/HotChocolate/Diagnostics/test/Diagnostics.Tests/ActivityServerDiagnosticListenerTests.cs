@@ -1232,7 +1232,7 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
     }
 
     private static async Task DrainAsync(
-        IAsyncEnumerator<HotChocolate.Transport.OperationResult> results,
+        IAsyncEnumerator<Transport.OperationResult> results,
         CancellationToken cancellationToken)
     {
         try

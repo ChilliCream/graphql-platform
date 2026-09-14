@@ -4,9 +4,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
 /// An in-memory <see cref="IMailStore"/> exercising exactly the surface
-/// <see cref="ChilliCream.Nitro.CommandLine.Tui.Agents.AgentDetailModel"/>
-/// consumes (<see cref="QuerySentAsync"/>). Every other member throws
-/// <see cref="NotSupportedException"/>.
+/// <see cref="CommandLine.Tui.Agents.AgentDetailModel"/> consumes (<see cref="QuerySentAsync"/>).
+/// Every other member throws <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeMailStore : IMailStore
 {

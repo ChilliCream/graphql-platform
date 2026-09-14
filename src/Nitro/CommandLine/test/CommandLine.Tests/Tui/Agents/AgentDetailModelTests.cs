@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 public sealed class AgentDetailModelTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static AgentRecord Agent(string name, string role = "")
         => new()
@@ -15,8 +15,8 @@ public sealed class AgentDetailModelTests
             Role = role,
             Client = "",
             Implicit = false,
-            RegisteredAt = Now,
-            LastSeenAt = Now
+            RegisteredAt = s_now,
+            LastSeenAt = s_now
         };
 
     private static AgentDetailModel CreateModel(FakeTaskStore taskStore, FakeMailStore mailStore)
@@ -138,7 +138,7 @@ public sealed class AgentDetailModelTests
         for (var i = 0; i < 25; i++)
         {
             mailStore.Messages.Add(MailMessageBuilder.Create(
-                $"m-{i:D2}", sender: "agent-a", createdAt: Now.AddMinutes(i)));
+                $"m-{i:D2}", sender: "agent-a", createdAt: s_now.AddMinutes(i)));
         }
 
         var participant = AgentSessionParticipantBuilder.Participant(sessionId: "s-a", agentName: "agent-a");

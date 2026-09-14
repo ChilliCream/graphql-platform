@@ -108,7 +108,7 @@ public class ChunkedArrayWriterTests
         writer.Advance(7);
 
         // Act
-        writer.WriteAt(writer.Length, ReadOnlySpan<byte>.Empty);
+        writer.WriteAt(writer.Length, []);
 
         // Assert
         Assert.Equal(7, writer.Position);

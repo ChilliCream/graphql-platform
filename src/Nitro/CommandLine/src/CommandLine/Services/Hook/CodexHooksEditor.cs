@@ -124,9 +124,7 @@ internal static class CodexHooksEditor
 
         foreach (var codexEvent in CodexHooksTemplate.Events)
         {
-            var eventArray = hooks?[codexEvent] as JsonArray;
-
-            if (eventArray is null)
+            if (hooks?[codexEvent] is not JsonArray eventArray)
             {
                 outcomes.Add(new HookUninstallEventResult(codexEvent, HookUninstallOutcome.NotPresent));
                 continue;
@@ -155,7 +153,7 @@ internal static class CodexHooksEditor
 
             if (eventArray.Count == 0)
             {
-                hooks!.Remove(codexEvent);
+                hooks.Remove(codexEvent);
             }
         }
 

@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Aspire.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotChocolate.Fusion.Aspire.Nitro;

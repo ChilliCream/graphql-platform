@@ -44,8 +44,8 @@ internal sealed class RecentMemoryCommand : Command
         // handing each band the full limit and truncating the concatenation
         // afterward, which let curated results starve the journal band.
         var splitBands = collection is MemoryCollections.All;
-        int? curatedLimit = limit;
-        int? journalLimit = limit;
+        var curatedLimit = limit;
+        var journalLimit = limit;
 
         if (splitBands && limit is { } explicitLimit)
         {

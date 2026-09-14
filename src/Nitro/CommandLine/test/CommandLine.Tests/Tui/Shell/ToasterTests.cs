@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 
 public sealed class ToasterTests
 {
-    private static readonly DateTimeOffset Start = DateTimeOffset.UnixEpoch;
+    private static readonly DateTimeOffset s_start = DateTimeOffset.UnixEpoch;
 
     private static string RenderToText(Toaster toaster)
     {
@@ -41,7 +41,7 @@ public sealed class ToasterTests
         var toaster = new Toaster();
 
         // act
-        toaster.Enqueue("saved", ToastStyle.Success, Start);
+        toaster.Enqueue("saved", ToastStyle.Success, s_start);
 
         // assert
         Assert.Contains("saved", RenderToText(toaster));
@@ -52,10 +52,10 @@ public sealed class ToasterTests
     {
         // arrange
         var toaster = new Toaster();
-        toaster.Enqueue("first", ToastStyle.Info, Start);
+        toaster.Enqueue("first", ToastStyle.Info, s_start);
 
         // act
-        toaster.Enqueue("second", ToastStyle.Info, Start);
+        toaster.Enqueue("second", ToastStyle.Info, s_start);
 
         // assert
         var text = RenderToText(toaster);
@@ -68,10 +68,10 @@ public sealed class ToasterTests
     {
         // arrange
         var toaster = new Toaster();
-        toaster.Enqueue("saved", ToastStyle.Success, Start);
+        toaster.Enqueue("saved", ToastStyle.Success, s_start);
 
         // act
-        var dirty = toaster.Tick(Start + TimeSpan.FromSeconds(1));
+        var dirty = toaster.Tick(s_start + TimeSpan.FromSeconds(1));
 
         // assert
         Assert.False(dirty);
@@ -83,11 +83,11 @@ public sealed class ToasterTests
     {
         // arrange
         var toaster = new Toaster();
-        toaster.Enqueue("first", ToastStyle.Info, Start);
-        toaster.Enqueue("second", ToastStyle.Info, Start);
+        toaster.Enqueue("first", ToastStyle.Info, s_start);
+        toaster.Enqueue("second", ToastStyle.Info, s_start);
 
         // act
-        var dirty = toaster.Tick(Start + Toaster.Duration);
+        var dirty = toaster.Tick(s_start + Toaster.s_duration);
 
         // assert
         Assert.True(dirty);
@@ -101,10 +101,10 @@ public sealed class ToasterTests
     {
         // arrange
         var toaster = new Toaster();
-        toaster.Enqueue("saved", ToastStyle.Success, Start);
+        toaster.Enqueue("saved", ToastStyle.Success, s_start);
 
         // act
-        var dirty = toaster.Tick(Start + Toaster.Duration);
+        var dirty = toaster.Tick(s_start + Toaster.s_duration);
 
         // assert
         Assert.True(dirty);
@@ -118,7 +118,7 @@ public sealed class ToasterTests
         var toaster = new Toaster();
 
         // act
-        var dirty = toaster.Tick(Start);
+        var dirty = toaster.Tick(s_start);
 
         // assert
         Assert.False(dirty);
@@ -152,7 +152,7 @@ public sealed class ToasterTests
     {
         // arrange
         var toaster = new Toaster();
-        toaster.Enqueue("message", style, Start);
+        toaster.Enqueue("message", style, s_start);
 
         // act
         var text = RenderToText(toaster);

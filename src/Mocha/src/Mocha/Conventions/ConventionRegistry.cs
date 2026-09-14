@@ -10,7 +10,12 @@ public sealed class ConventionRegistry(IEnumerable<IConvention> conventions) : I
 {
     private readonly ImmutableArray<IConvention> _conventions = [.. conventions];
 
-    private ImmutableDictionary<Type, object> _conventionsByType = ImmutableDictionary<Type, object>.Empty;
+    private ImmutableDictionary<Type, object> _conventionsByType
+#if NET10_0_OR_GREATER
+        = [];
+#else
+        = ImmutableDictionary<Type, object>.Empty;
+#endif
 
     /// <inheritdoc />
     public ImmutableArray<TConvention> GetConventions<TConvention>() where TConvention : IConvention

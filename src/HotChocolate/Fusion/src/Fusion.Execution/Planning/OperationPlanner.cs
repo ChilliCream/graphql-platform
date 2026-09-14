@@ -1862,7 +1862,11 @@ public sealed partial class OperationPlanner
         var sourceField = compositeField.Sources[current.SchemaName];
         var requirements = mergeWithExistingStep
             ? existingStep.Requirements
+#if NET10_0_OR_GREATER
+            : [];
+#else
             : ImmutableDictionary<string, OperationRequirement>.Empty;
+#endif
         var arguments = new List<ArgumentNode>(workItem.Selection.Node.Arguments);
 
         for (var i = 0; i < sourceField.Requirements!.Arguments.Length; i++)

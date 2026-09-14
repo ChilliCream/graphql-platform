@@ -1084,7 +1084,7 @@ public sealed partial class OperationPlanner
             // Apollo lookup nodes always carry a concrete schema name because
             // the routing in CreateOperationExecutionNode rejects dynamic ones.
             var depth = depthLookup.TryGetValue(node.Id, out var d) ? d : 0;
-            var key = (node.SchemaName!, depth);
+            var key = (node.SchemaName, depth);
 
             if (!batchGroups.TryGetValue(key, out var group))
             {

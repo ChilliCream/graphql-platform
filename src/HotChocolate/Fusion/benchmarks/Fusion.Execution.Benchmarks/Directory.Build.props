@@ -3,8 +3,6 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <WarningsAsErrors />
   </PropertyGroup>
 
 </Project>

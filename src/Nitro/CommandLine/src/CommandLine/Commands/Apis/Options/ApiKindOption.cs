@@ -6,7 +6,7 @@ internal sealed class ApiKindOption : Option<string>
     {
         Description = "The kind of the API";
         Required = false;
-        this.AcceptOnlyFromAmong("collection", "service", "gateway");
+        AcceptOnlyFromAmong("collection", "service", "gateway");
         this.DefaultFromEnvironmentValue(EnvironmentVariables.ApiKind);
     }
 }

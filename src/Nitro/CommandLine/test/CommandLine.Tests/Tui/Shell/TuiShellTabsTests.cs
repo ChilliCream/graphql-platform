@@ -403,7 +403,7 @@ public sealed class TuiShellTabsTests
         var mailMode = new MailMode(
             mailStore,
             "actor",
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry());
+            new Agents.FakeAgentRegistry());
         var mailTab = new TuiTab(
             () => mailMode.UnreadCount > 0 ? $"Mail ({mailMode.UnreadCount})" : "Mail",
             mnemonic: 'M',
@@ -438,7 +438,7 @@ public sealed class TuiShellTabsTests
         var mailMode = new MailMode(
             mailStore,
             "alice",
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentRegistry());
+            new Agents.FakeAgentRegistry());
         var shell = new TuiShell([CreateTasksTab("Tasks", new FakeTuiMode()), CreateMailTab("Mail", mailMode)], 80, 24);
         mailMode.Handle(new TuiMessage.SelectInboxRequested());
         mailMode.Handle(new TuiMessage.ComposeRequested());
@@ -484,7 +484,7 @@ public sealed class TuiShellTabsTests
 
         while (!rendered.Contains("Sent", StringComparison.Ordinal))
         {
-            shell.Handle(new TuiEvent.TickEvent(DateTimeOffset.UtcNow + Toaster.Duration));
+            shell.Handle(new TuiEvent.TickEvent(DateTimeOffset.UtcNow + Toaster.s_duration));
             dirty = shell.Handle(new TuiEvent.DataChangedEvent());
             rendered = RenderToText(shell);
 
@@ -535,24 +535,23 @@ public sealed class TuiShellTabsTests
         // arrange: the detail pane sits next to the list, so the selected
         // participant's identity is already on screen before any key is
         // pressed.
-        var sessions = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry();
+        var sessions = new Agents.FakeAgentSessionRegistry();
         sessions.Participants.Add(
-            ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.AgentSessionParticipantBuilder.Participant(
+            Agents.AgentSessionParticipantBuilder.Participant(
                 sessionId: "s-a", agentName: "agent-a", role: "backend", agent: Agent("agent-a", role: "backend")));
         var taskStore = new FakeTaskStore();
-        var mailStore = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeMailStore();
+        var mailStore = new Agents.FakeMailStore();
         var agentsMode = new AgentsMode(
             taskStore,
             mailStore,
             sessions,
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader());
+            new Agents.FakeClaudeSessionActivityReader());
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
             100,
             24,
             tasksTabIndex: 0,
-            store: taskStore,
-            mailStore: mailStore);
+            store: taskStore);
         Assert.Contains("backend", RenderToText(shell, width: 100));
 
         // act: Enter no longer pushes a full-screen detail mode; it focuses
@@ -572,24 +571,23 @@ public sealed class TuiShellTabsTests
     {
         // arrange: there is no pushed mode to pop anymore, so Escape on the
         // Agents tab is inert rather than navigating anywhere.
-        var sessions = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeAgentSessionRegistry();
+        var sessions = new Agents.FakeAgentSessionRegistry();
         sessions.Participants.Add(
-            ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.AgentSessionParticipantBuilder.Participant(
+            Agents.AgentSessionParticipantBuilder.Participant(
                 sessionId: "s-a", agentName: "agent-a"));
         var taskStore = new FakeTaskStore();
-        var mailStore = new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeMailStore();
+        var mailStore = new Agents.FakeMailStore();
         var agentsMode = new AgentsMode(
             taskStore,
             mailStore,
             sessions,
-            new ChilliCream.Nitro.CommandLine.Tests.Tui.Agents.FakeClaudeSessionActivityReader());
+            new Agents.FakeClaudeSessionActivityReader());
         var shell = new TuiShell(
             [CreateAgentsTab("Agents", agentsMode)],
             80,
             24,
             tasksTabIndex: 0,
-            store: taskStore,
-            mailStore: mailStore);
+            store: taskStore);
 
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\x1b', ConsoleKey.Escape)));

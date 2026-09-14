@@ -1,4 +1,3 @@
-using HotChocolate.Execution;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
 
 namespace HotChocolate.Fusion.Planning;

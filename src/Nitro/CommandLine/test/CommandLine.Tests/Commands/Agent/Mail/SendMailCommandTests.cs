@@ -1,8 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Services.Notify;
-using ChilliCream.Nitro.CommandLine.Services.Workspace;
-using ChilliCream.Nitro.CommandLine.Tests.Agents;
-using ChilliCream.Nitro.CommandLine.Tests.Hook;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Mail;
 
 public sealed class SendMailCommandTests(NitroCommandFixture fixture)

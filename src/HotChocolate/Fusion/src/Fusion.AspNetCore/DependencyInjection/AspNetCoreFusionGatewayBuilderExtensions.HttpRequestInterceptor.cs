@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
-using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Transport.Formatters;

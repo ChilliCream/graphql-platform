@@ -45,9 +45,9 @@ public sealed class FusionRequestOptions : ICloneable
 
     /// <summary>
     /// Gets or sets whether the GraphQL operation kind is annotated onto outgoing subgraph HTTP
-    /// requests via <see cref="System.Net.Http.HttpRequestMessage.Options"/>, so that delegating handlers (such as the
-    /// RequestDeduplicationHandler) can consume it. <c>false</c> by default because materializing the
-    /// request options bag allocates per request.
+    /// requests via <see cref="HttpRequestMessage.Options"/>, so that delegating handlers (such as
+    /// the RequestDeduplicationHandler) can consume it. <c>false</c> by default because
+    /// materializing the request options bag allocates per request.
     /// </summary>
     public bool AnnotateOperationKind
     {

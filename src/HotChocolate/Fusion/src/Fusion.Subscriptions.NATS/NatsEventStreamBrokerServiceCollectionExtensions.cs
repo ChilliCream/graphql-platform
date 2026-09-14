@@ -110,7 +110,11 @@ public static class NatsEventStreamBrokerServiceCollectionExtensions
         services.TryAddKeyedSingleton<IEventStreamBrokerProvider>(
             key,
             static (sp, k) => new NatsEventStreamBrokerProvider(
+#if NET11_0_OR_GREATER
+                (string)k,
+#else
                 (string)k!,
+#endif
                 sp.GetRequiredService<IOptionsMonitor<NatsEventStreamOptions>>()));
 
         return services;

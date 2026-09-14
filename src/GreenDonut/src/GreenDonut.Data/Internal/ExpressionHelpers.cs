@@ -159,7 +159,7 @@ internal static class ExpressionHelpers
 
             if (adoptSecondNewExpression)
             {
-                var rebasedArguments = second.NewExpression.Arguments.Select(a => replacer.Visit(a)!);
+                var rebasedArguments = second.NewExpression.Arguments.Select(a => replacer.Visit(a));
                 newExpression = second.NewExpression.Update(rebasedArguments);
             }
         }
