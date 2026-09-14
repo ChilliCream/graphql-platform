@@ -58,6 +58,26 @@ public sealed class StaticQueryAnalysisTests
             .MatchMarkdownAsync(TestContext.Current.CancellationToken);
     }
 
+    [Fact]
+    public async Task Execute_ScalarListQuery_ReportsZeroCost()
+    {
+        // arrange
+        var request = OperationRequestBuilder.New().SetDocument("{ scalarValues }").ReportCost().Build();
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .AddDocumentFromString("type Query { scalarValues: [Int!]! }")
+            .AddResolver("Query", "scalarValues", _ => new[] { 1 })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var operationCost =
+            (IReadOnlyDictionary<string, object?>)response.ExpectOperationResult().Extensions["operationCost"]!;
+
+        // assert
+        Assert.Equal(1, Convert.ToDouble(operationCost["typeCost"]));
+        Assert.Equal(0, Convert.ToDouble(operationCost["fieldCost"]));
+    }
+
     [Theory]
     [MemberData(nameof(ConnectionQueryData))]
     public async Task Execute_ConnectionQuery_ReturnsExpectedResult(

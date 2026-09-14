@@ -82,8 +82,58 @@ public sealed class InterceptorTests
         Assert.Equal(13.0, orderCost.Weight);
     }
 
+    [Fact]
+    public async Task ListOfLeafTypeField_Should_HaveNoCostDirective_When_NothingClaimsIt()
+    {
+        // arrange
+        var schema = await CreateLeafListSchemaAsync();
+        var fields = schema.Types.GetType<ObjectType>(OperationTypeNames.Query).Fields;
+
+        // act
+        var integerValueDirectives = fields["integerValues"].Directives;
+        var enumValueDirectives = fields["enumValues"].Directives;
+
+        // assert
+        Assert.Equal(0, integerValueDirectives.Count(t => t.Type.Name == "cost"));
+        Assert.Equal(0, enumValueDirectives.Count(t => t.Type.Name == "cost"));
+        schema.ToSyntaxNode().MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              integerValues: [Int!]!
+              enumValues: [Status]
+            }
+
+            enum Status {
+              ACTIVE
+            }
+            """);
+    }
+
     private static ObjectField QueryField(Schema schema)
         => schema.Types.GetType<ObjectType>(OperationTypeNames.Query).Fields["books"];
+
+    private static async Task<Schema> CreateLeafListSchemaAsync()
+        => await new ServiceCollection()
+            .AddGraphQLServer()
+            .ModifyCostOptions(o => o.DefaultResolverCost = null)
+            .AddDocumentFromString(
+                """
+                type Query {
+                    integerValues: [Int!]!
+                    enumValues: [Status]
+                }
+
+                enum Status {
+                    ACTIVE
+                }
+                """)
+            .AddResolver("Query", "integerValues", _ => new[] { 1 })
+            .AddResolver("Query", "enumValues", _ => new[] { "ACTIVE" })
+            .BuildSchemaAsync();
 
     private static async Task<Schema> CreateSchemaAsync(
         Action<CostOptions> configureOptions,

@@ -174,7 +174,7 @@ The following calculation rules also change:
 - Fields are collected by response name before signed weights are applied. Clamping happens after the complete field-call sum and per-instance type sum are calculated.
 - An interface or union return weight is the signed maximum of its member object-type weights.
 - A field selected through an interface is priced through each possible object type's field metadata.
-- Output fields that return lists of scalars retain Hot Chocolate's weight `1`, now as an explicit `@cost(weight: "1")` in printed SDL.
+- Output fields returning lists of scalars or enums now default to weight `0`, as the [IBM cost specification](https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight) requires. In 16.x, they cost `1`; add `@cost(weight: "1")` to retain that cost.
 - Costs on arguments of directives used in the query contribute to field cost.
 - An inherited size from a parent's `@listSize(sizedFields:)` takes precedence over the child field's own `@listSize`.
 - Negative slicing values clamp to `0`. A slicing value of `0` remains `0`, while the field-call cost is still paid once.
