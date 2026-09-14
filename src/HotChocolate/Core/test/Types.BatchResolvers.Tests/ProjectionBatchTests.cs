@@ -54,7 +54,7 @@ public sealed partial class ProjectionBatchTests(PostgreSqlResource resource) : 
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Single(Probe.Invocations);
+        Assert.Single(Probe.Invocations, i => i.MemberName == "GetFilteredProducts");
         result.MatchInlineSnapshot(
             """
             {
@@ -105,7 +105,7 @@ public sealed partial class ProjectionBatchTests(PostgreSqlResource resource) : 
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Single(Probe.Invocations);
+        Assert.Single(Probe.Invocations, i => i.MemberName == "GetSortedProducts");
         result.MatchInlineSnapshot(
             """
             {
@@ -161,39 +161,17 @@ public sealed partial class ProjectionBatchTests(PostgreSqlResource resource) : 
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Single(Probe.Invocations);
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "brands": [
-                  {
-                    "name": "Brand 1",
-                    "projectedProducts": [
-                      {
-                        "name": "Brand 1 P1"
-                      },
-                      {
-                        "name": "Brand 1 P2"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "Brand 2",
-                    "projectedProducts": [
-                      {
-                        "name": "Brand 2 P1"
-                      },
-                      {
-                        "name": "Brand 2 P2"
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-            """);
+        Assert.Single(Probe.Invocations, i => i.MemberName == "GetProjectedProducts");
+        var expressions = Probe.Invocations
+            .Where(i => i.MemberName == "Expression")
+            .Select(i => i.Keys[0]?.ToString())
+            .ToArray();
+        Assert.Equal(2, expressions.Length);
         var sql = Assert.Single(_capturedSql);
-        new Snapshot().Add(sql, "Captured SQL (root brands query)").MatchMarkdownSnapshot();
+        new Snapshot()
+            .Add(result)
+            .Add(expressions, "Projected per-parent expressions")
+            .Add(sql, "Captured SQL (root brands query)")
+            .MatchMarkdownSnapshot();
     }
 }

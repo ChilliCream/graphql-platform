@@ -52,7 +52,8 @@ public sealed partial class ProjectionBatchTests
                     {
                         Probe.Record("GetFilteredProducts", contexts.Select(c => c.Parent<ProjectionBrand>().Id));
                         var results = contexts
-                            .Select(c => ResolverResult.Ok(ProjectionQuery.ProductsFor(c.Parent<ProjectionBrand>())))
+                            .Select(c => ResolverResult.Ok(
+                                ProjectionQuery.ProductsFor(c.Parent<ProjectionBrand>(), Probe)))
                             .ToArray();
                         return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                     });
@@ -63,7 +64,8 @@ public sealed partial class ProjectionBatchTests
                     {
                         Probe.Record("GetSortedProducts", contexts.Select(c => c.Parent<ProjectionBrand>().Id));
                         var results = contexts
-                            .Select(c => ResolverResult.Ok(ProjectionQuery.ProductsFor(c.Parent<ProjectionBrand>())))
+                            .Select(c => ResolverResult.Ok(
+                                ProjectionQuery.ProductsFor(c.Parent<ProjectionBrand>(), Probe)))
                             .ToArray();
                         return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                     });
@@ -74,7 +76,8 @@ public sealed partial class ProjectionBatchTests
                     {
                         Probe.Record("GetProjectedProducts", contexts.Select(c => c.Parent<ProjectionBrand>().Id));
                         var results = contexts
-                            .Select(c => ResolverResult.Ok(ProjectionQuery.ProductsFor(c.Parent<ProjectionBrand>())))
+                            .Select(c => ResolverResult.Ok(
+                                ProjectionQuery.ProductsFor(c.Parent<ProjectionBrand>(), Probe)))
                             .ToArray();
                         return new ValueTask<IReadOnlyList<ResolverResult>>(results);
                     });
@@ -101,12 +104,13 @@ public sealed partial class ProjectionBatchTests
 /// </summary>
 public static class ProjectionQuery
 {
-    public static IQueryable<ProjectionProduct> ProductsFor(ProjectionBrand brand)
-        => new[]
-        {
-            new ProjectionProduct { Name = $"{brand.Name} P1", Unselected = "secret" },
-            new ProjectionProduct { Name = $"{brand.Name} P2", Unselected = "secret" }
-        }.AsQueryable();
+    public static IQueryable<ProjectionProduct> ProductsFor(ProjectionBrand brand, BatchProbe probe)
+        => new RecordingQueryable<ProjectionProduct>(
+            [
+                new ProjectionProduct { Name = $"{brand.Name} P1", Unselected = "secret" },
+                new ProjectionProduct { Name = $"{brand.Name} P2", Unselected = "secret" }
+            ],
+            probe);
 }
 
 /// <summary>
@@ -144,7 +148,7 @@ public sealed class ProjectionBrandAttributeExtension
         BatchProbe probe)
     {
         probe.Record("GetFilteredProducts", brands.Select(b => b.Id));
-        return brands.ConvertAll(ProjectionQuery.ProductsFor);
+        return brands.ConvertAll(b => ProjectionQuery.ProductsFor(b, probe));
     }
 
     [UseSorting]
@@ -154,7 +158,7 @@ public sealed class ProjectionBrandAttributeExtension
         BatchProbe probe)
     {
         probe.Record("GetSortedProducts", brands.Select(b => b.Id));
-        return brands.ConvertAll(ProjectionQuery.ProductsFor);
+        return brands.ConvertAll(b => ProjectionQuery.ProductsFor(b, probe));
     }
 
     [UseProjection]
@@ -164,7 +168,7 @@ public sealed class ProjectionBrandAttributeExtension
         BatchProbe probe)
     {
         probe.Record("GetProjectedProducts", brands.Select(b => b.Id));
-        return brands.ConvertAll(ProjectionQuery.ProductsFor);
+        return brands.ConvertAll(b => ProjectionQuery.ProductsFor(b, probe));
     }
 }
 
@@ -185,7 +189,7 @@ public static partial class ProjectionBrandNode
         BatchProbe probe)
     {
         probe.Record("GetFilteredProducts", brands.Select(b => b.Id));
-        return brands.ConvertAll(ProjectionQuery.ProductsFor);
+        return brands.ConvertAll(b => ProjectionQuery.ProductsFor(b, probe));
     }
 
     [UseSorting]
@@ -195,7 +199,7 @@ public static partial class ProjectionBrandNode
         BatchProbe probe)
     {
         probe.Record("GetSortedProducts", brands.Select(b => b.Id));
-        return brands.ConvertAll(ProjectionQuery.ProductsFor);
+        return brands.ConvertAll(b => ProjectionQuery.ProductsFor(b, probe));
     }
 
     [UseProjection]
@@ -205,6 +209,6 @@ public static partial class ProjectionBrandNode
         BatchProbe probe)
     {
         probe.Record("GetProjectedProducts", brands.Select(b => b.Id));
-        return brands.ConvertAll(ProjectionQuery.ProductsFor);
+        return brands.ConvertAll(b => ProjectionQuery.ProductsFor(b, probe));
     }
 }
