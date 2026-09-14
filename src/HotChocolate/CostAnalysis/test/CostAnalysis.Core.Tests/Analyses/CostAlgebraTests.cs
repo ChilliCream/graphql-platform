@@ -222,7 +222,7 @@ public class CostAlgebraTests
     public void Field_Should_KeepZeroMultiplier_When_ListIsEmpty_And_StillPayFieldCallOnce()
     {
         // arrange
-        // article fixture c6-zero-length-list: items(limit: 0) { value }, Item.value @cost(weight: "3"),
+        // precision fixture c6-zero-length-list: items(limit: 0) { value }, Item.value @cost(weight: "3"),
         // Item and the items field both default to composite weight 1.0. A supplied slicing value of
         // 0 zeroes the multiplier but the field's own call cost is still paid once.
         var valueField = CostFieldRule.Field(

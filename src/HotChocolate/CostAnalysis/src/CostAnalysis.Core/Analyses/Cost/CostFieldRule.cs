@@ -3,7 +3,7 @@ namespace HotChocolate.CostAnalysis;
 /// <summary>
 /// The pure field-cost and type-cost arithmetic of the IBM cost algebra:
 /// whole-call clamping, list-multiplier scaling and the double-arithmetic
-/// guards, bit-for-bit against the lean model and its Rust port.
+/// guards, bit-for-bit against the reference implementation.
 /// </summary>
 /// <remarks>
 /// Every member is total over <see cref="double"/> and never throws.
