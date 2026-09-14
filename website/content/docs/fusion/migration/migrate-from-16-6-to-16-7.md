@@ -131,7 +131,9 @@ Composition accepts compatible IBM-spec `@cost` and `@listSize` definitions that
 
 ## Cost estimates use coerced request values
 
-Cost plans are compiled once and evaluated for each request. Supplied slicing variables, Boolean `@include` and `@skip` conditions, and variable-supplied input objects now affect the estimate that is reported and enforced. Supported variable batches in report or validate mode produce one result per variable set, with each result carrying that set's `operationCost`. When an executing variable batch enforces cost limits, only offending indices return `HC0047`; accepted query indices still execute and return their data.
+Cost plans are compiled once and evaluated for each request. Supplied slicing variables, Boolean `@include` and `@skip` conditions, and variable-supplied input objects now affect the estimate that is reported and enforced.
+
+In 16.7, one request is one invocation of the request pipeline, and a variable batch is one request. Cost enforcement sums the field cost and type cost across all variable sets and compares those sums with `MaxFieldCost` and `MaxTypeCost`. If either sum exceeds its limit, the whole request is rejected before any variable set executes, with one `HC0047` result. This prevents a client from splitting an expensive workload among variable sets that each stay under the limit. Maximum response size remains enforced per variable set.
 
 Fusion uses the same cost rules as Hot Chocolate:
 
@@ -175,10 +177,12 @@ When `MaxResponseSize` is enabled, `extensions.operationCost` includes `maxRespo
 
 ## Reporting and result access
 
-`GraphQL-Cost: validate` without variables reports the static bound. It does not execute the operation, returns no `data`, and remains HTTP 200 even when the reported value exceeds a configured limit. With variables, it reports the evaluated cost.
+`GraphQL-Cost: validate` without variables reports the static bound. It does not execute the operation, returns no `data`, and remains HTTP 200 even when the reported value exceeds a configured limit. With variables, it reports the evaluated cost. A variable batch in validate mode returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in report mode also includes one `operationCost` per result.
 
 Positive infinite values in `extensions.operationCost` and cost error extensions are serialized as the JSON string `"Infinity"`. A `GraphQL-Cost: report` rejection includes `operationCost` alongside the error.
 
-Single-result cost rejections are request errors. They return HTTP 400 when the response media type is `application/graphql-response+json`; legacy `application/json` responses remain HTTP 200. A Fusion variable batch with rejected indices returns an `OperationResultBatch` and remains HTTP 200 for either media type.
+Cost rejections, including the single result for a rejected variable batch, return HTTP 400 when the response media type is `application/graphql-response+json`; legacy `application/json` responses remain HTTP 200.
+
+Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
 
 Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan`, all estimates for the request, and whether the result is a static bound. Cost analysis and reporting return `HC0048` when required operation or document state is missing, or when metrics cannot be attached to the execution-result state.
