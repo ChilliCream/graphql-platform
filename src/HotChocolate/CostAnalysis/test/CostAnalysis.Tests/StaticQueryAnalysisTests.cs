@@ -59,7 +59,7 @@ public sealed class StaticQueryAnalysisTests
     }
 
     [Fact]
-    public async Task Execute_ScalarListQuery_ReportsZeroCost()
+    public async Task Execute_Should_ReportZeroCost_When_FieldReturnsScalarList()
     {
         // arrange
         var request = OperationRequestBuilder.New().SetDocument("{ scalarValues }").ReportCost().Build();
