@@ -1623,6 +1623,40 @@ public class NodeResolverTests
     }
 
     [Fact]
+    public async Task Nodes_Should_Report_Single_Error_When_Batch_Resolver_Reports_Error_Then_Throws()
+    {
+        // arrange
+        // The batch resolver reports a per-entry error for the first id through its context and
+        // then throws for the whole slice. The entry that already carries an error must not also
+        // receive the exception error; the other entry gets the exception error, both null.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode().IdField(n => n.Id)
+                .ResolveNodeBatch((contexts, _) =>
+                {
+                    contexts[0].ReportError("Entry 0 failed before the batch resolver threw.");
+                    throw new InvalidOperationException("The batch resolver failed.");
+                }))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ=="]) {
+                    ... on BatchEntity { name }
+                }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot().Add(result, "Result").MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Nodes_Should_Error_Whole_Field_When_List_Contains_Int_Literal()
     {
         // arrange

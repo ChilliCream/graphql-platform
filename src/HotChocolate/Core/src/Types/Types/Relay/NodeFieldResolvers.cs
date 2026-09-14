@@ -444,7 +444,11 @@ internal static class NodeFieldResolvers
             // return their data.
             for (var k = 0; k < group.Count; k++)
             {
-                group[k].Context.ReportError(ex);
+                if (!group[k].Context.HasErrors)
+                {
+                    group[k].Context.ReportError(ex);
+                }
+
                 group[k].Context.Result = null;
             }
         }
@@ -462,7 +466,11 @@ internal static class NodeFieldResolvers
         }
         catch (Exception ex) when (!context.RequestAborted.IsCancellationRequested)
         {
-            context.ReportError(ex);
+            if (!context.HasErrors)
+            {
+                context.ReportError(ex);
+            }
+
             context.Result = null;
         }
     }
@@ -484,7 +492,11 @@ internal static class NodeFieldResolvers
         {
             for (var i = 0; i < slice.Length; i++)
             {
-                slice[i].ReportError(ex);
+                if (!slice[i].HasErrors)
+                {
+                    slice[i].ReportError(ex);
+                }
+
                 slice[i].Result = null;
             }
         }
@@ -510,7 +522,11 @@ internal static class NodeFieldResolvers
             {
                 for (var i = 0; i < contexts.Length; i++)
                 {
-                    contexts[i].ReportError(ex);
+                    if (!contexts[i].HasErrors)
+                    {
+                        contexts[i].ReportError(ex);
+                    }
+
                     contexts[i].Result = null;
                 }
             }
