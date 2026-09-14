@@ -20,6 +20,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 using HotChocolate.Types.Relay;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using static CookieCrumble.TestEnvironment;
 using static HotChocolate.Fusion.Diagnostics.ActivityTestHelper;
@@ -961,6 +962,62 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
+    public async Task WebSocket_Header_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // clients that are not browsers can send the tenant as a handshake header
+            // instead of in the connection init payload, the same enricher reads both
+            using var server1 = CreateSourceSchema(
+                "a",
+                b => b
+                    .AddQueryType<Query>()
+                    .AddSubscriptionType<Subscription>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", server1)
+            ],
+            configureGatewayBuilder: b => b
+                .AddInstrumentation(o => o.Scopes = FusionActivityScopes.All)
+                .AddApplicationService<FusionActivityEnricher>()
+                .Services.AddSingleton<FusionActivityEnricher, TenantActivityEnricher>());
+
+            using var webSocket = await ConnectWebSocketAsync(
+                gateway,
+                guard.Token,
+                r => r.Headers[TenantHeaderName] = "acme-42");
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // the subgraph emits one event then completes its stream, so both the request
+            // span and one subscription event span are recorded
+            try
+            {
+                Assert.True(await results.MoveNextAsync());
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
     public async Task WebSocket_ConnectionInit_Payload_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
     {
         using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -1015,6 +1072,8 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
         }
     }
 
+    private const string TenantHeaderName = "X-Tenant";
+
     public sealed record TenantFeature(string Tenant);
 
     public sealed class TenantActivityEnricher(InstrumentationOptions options)
@@ -1055,22 +1114,47 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
 
         private static void SetTenantTag(RequestContext context, Activity activity)
         {
+            if (ResolveTenant(context) is { } tenant)
+            {
+                activity.SetTag("test.tenant", tenant);
+            }
+        }
+
+        /// <summary>
+        /// Resolves the tenant from the connection initialization payload, which browser
+        /// clients have to use because they cannot set handshake headers, and otherwise
+        /// falls back to the handshake header.
+        /// </summary>
+        private static string? ResolveTenant(RequestContext context)
+        {
             if (context.ContextData.TryGetValue(nameof(ISocketSession), out var value)
                 && value is ISocketSession session
                 && session.Connection.Features.Get<TenantFeature>() is { } tenant)
             {
-                activity.SetTag("test.tenant", tenant.Tenant);
+                return tenant.Tenant;
             }
+
+            if (context.Features.Get<HttpContext>() is { } httpContext
+                && httpContext.Request.Headers.TryGetValue(TenantHeaderName, out var header))
+            {
+                return header.ToString();
+            }
+
+            return null;
         }
     }
 
     private static async Task<WebSocket> ConnectWebSocketAsync(
         Gateway gateway,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Action<HttpRequest>? configureRequest = null)
     {
         var webSocketClient = gateway.CreateWebSocketClient();
-        webSocketClient.ConfigureRequest =
-            r => r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+        webSocketClient.ConfigureRequest = r =>
+        {
+            r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+            configureRequest?.Invoke(r);
+        };
         return await webSocketClient.ConnectAsync(s_webSocketUrl, cancellationToken);
     }
 
@@ -1094,6 +1178,11 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
         catch (WebSocketException)
         {
             // expected: the gateway may have torn the connection down already
+        }
+        catch (IOException)
+        {
+            // expected: the state check above races the gateway tearing the session down,
+            // so the close can still find the connection already gone
         }
         catch (OperationCanceledException)
         {

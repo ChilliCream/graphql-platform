@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -988,6 +989,61 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
     }
 
     [Fact]
+    public async Task WebSocket_Header_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
+    {
+        using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // clients that are not browsers can send the tenant as a handshake header
+            // instead of in the connection init payload, the same enricher reads both
+            var signal = new HttpSubscriptionSignal();
+            using var server = CreateInstrumentedServer(
+                o => o.Scopes = ActivityScopes.All,
+                b => b
+                    .AddTypeExtension<SubscriptionDiagnosticsExtension>()
+                    .AddApplicationService<ActivityEnricher>()
+                    .Services
+                        .AddSingleton(signal)
+                        .AddSingleton<ActivityEnricher, TenantActivityEnricher>());
+            using var webSocket = await ConnectWebSocketAsync(
+                server,
+                guard.Token,
+                r => r.Headers[TenantHeaderName] = "acme-42");
+            await using var client = await SocketClient.ConnectAsync(webSocket, guard.Token);
+            var sender = server.Services.GetRequiredService<ITopicEventSender>();
+
+            var request = new OperationRequest("subscription OnMessageSubscription { onMessage }");
+
+            using var result = await client.ExecuteAsync(request, guard.Token);
+            var results = result.ReadResultsAsync().GetAsyncEnumerator(guard.Token);
+
+            // act
+            // deliver a single event so both the request span and one subscription event
+            // span are recorded, then close the session
+            try
+            {
+                var moveNext = results.MoveNextAsync().AsTask();
+                await signal.Subscribed.Task.WaitAsync(guard.Token);
+                await sender.SendAsync("OnMessage", "hello", guard.Token);
+                Assert.True(await moveNext);
+                await sender.CompleteAsync("OnMessage");
+                Assert.False(await results.MoveNextAsync());
+            }
+            finally
+            {
+                await IgnoreSocketTeardownAsync(results.DisposeAsync().AsTask());
+            }
+
+            await CloseWebSocketAsync(webSocket, guard.Token);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
     public async Task WebSocket_ConnectionInit_Payload_Should_Be_Added_As_Tag_To_Request_And_Event_Spans()
     {
         using var guard = new CancellationTokenSource(TimeSpan.FromSeconds(10));
@@ -1130,15 +1186,13 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
         return null;
     }
 
+    private const string TenantHeaderName = "X-Tenant";
+
     public sealed record TenantFeature(string Tenant);
 
     public sealed class TenantActivityEnricher(InstrumentationOptions options)
         : ActivityEnricher(options)
     {
-        /// <summary>
-        /// Stores the tenant on the connection so it outlives the connection
-        /// initialization message, which is only valid during this call.
-        /// </summary>
         public override void EnrichConnectionInit(
             ISocketSession session,
             IOperationMessagePayload connectionInitMessage)
@@ -1168,22 +1222,47 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
 
         private static void SetTenantTag(RequestContext context, Activity activity)
         {
+            if (ResolveTenant(context) is { } tenant)
+            {
+                activity.SetTag("test.tenant", tenant);
+            }
+        }
+
+        /// <summary>
+        /// Resolves the tenant from the connection initialization payload, which browser
+        /// clients have to use because they cannot set handshake headers, and otherwise
+        /// falls back to the handshake header.
+        /// </summary>
+        private static string? ResolveTenant(RequestContext context)
+        {
             if (context.ContextData.TryGetValue(nameof(ISocketSession), out var value)
                 && value is ISocketSession session
                 && session.Connection.Features.Get<TenantFeature>() is { } tenant)
             {
-                activity.SetTag("test.tenant", tenant.Tenant);
+                return tenant.Tenant;
             }
+
+            if (context.Features.Get<HttpContext>() is { } httpContext
+                && httpContext.Request.Headers.TryGetValue(TenantHeaderName, out var header))
+            {
+                return header.ToString();
+            }
+
+            return null;
         }
     }
 
     private static async Task<WebSocket> ConnectWebSocketAsync(
         TestServer server,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Action<HttpRequest>? configureRequest = null)
     {
         var webSocketClient = server.CreateWebSocketClient();
-        webSocketClient.ConfigureRequest =
-            r => r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+        webSocketClient.ConfigureRequest = r =>
+        {
+            r.Headers.SecWebSocketProtocol = WellKnownProtocols.GraphQL_Transport_WS;
+            configureRequest?.Invoke(r);
+        };
         return await webSocketClient.ConnectAsync(s_webSocketUrl, cancellationToken);
     }
 
@@ -1207,6 +1286,11 @@ public class ActivityServerDiagnosticListenerTests(TestServerFactory serverFacto
         catch (WebSocketException)
         {
             // expected: the server may have torn the connection down already
+        }
+        catch (IOException)
+        {
+            // expected: the state check above races the server tearing the session down,
+            // so the close can still find the connection already gone
         }
         catch (OperationCanceledException)
         {
