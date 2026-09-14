@@ -1267,6 +1267,72 @@ public class NodeResolverTests
     }
 
     [Fact]
+    public async Task Node_Should_Isolate_Type_Group_When_Batch_Resolver_Throws_For_One_Variable_Batch_Set()
+    {
+        // arrange
+        // A variable batch shares one node(id:) selection across two virtual root contexts, so
+        // both sets dispatch through a single ResolveNodeBatchAsync call. The second set's id
+        // resolves to a type whose batch resolver throws; the first set's healthy type group
+        // must still resolve instead of being poisoned by the type group failure.
+        var okCollector = new BatchNodeCollector();
+        var failingCollector = new BatchNodeCollector();
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddGlobalObjectIdentification()
+            .AddQueryType(d => d.Field("ready").Resolve(true))
+            .AddObjectType<BatchEntity>(d => d.ImplementsNode().IdField(n => n.Id)
+                .ResolveNodeBatch((_, ids) =>
+                {
+                    okCollector.Record(ids);
+                    return Task.FromResult<IReadOnlyList<BatchEntity?>>(
+                        ids.Select(id => new BatchEntity { Name = id }).ToArray());
+                }))
+            .AddObjectType<FailingBatchEntity>(d => d.ImplementsNode().IdField(n => n.Id)
+                .ResolveNodeBatch((_, ids) =>
+                {
+                    failingCollector.Record(ids);
+                    throw new InvalidOperationException("The batch resolver failed.");
+                }))
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var sets = new List<IReadOnlyDictionary<string, object?>>
+        {
+            new Dictionary<string, object?> { ["id"] = "QmF0Y2hFbnRpdHk6eA==" },
+            new Dictionary<string, object?> { ["id"] = "RmFpbGluZ0JhdGNoRW50aXR5OjE=" }
+        };
+
+        // act
+        var result = await executor.ExecuteAsync(
+            OperationRequestBuilder.New()
+                .SetDocument(
+                    """
+                    query($id: ID!) {
+                        node(id: $id) {
+                            ... on BatchEntity { name }
+                            ... on FailingBatchEntity { name }
+                        }
+                    }
+                    """)
+                .SetVariableValues(sets)
+                .Build(),
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        new Snapshot()
+            .Add(batch.Results[0], "Set 0")
+            .Add(batch.Results[1], "Set 1")
+            .Add(
+                new
+                {
+                    OkInvocationCount = okCollector.InvocationCount,
+                    FailingInvocationCount = failingCollector.InvocationCount
+                },
+                "Dispatch")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
     public async Task Nodes_Should_Dispatch_Through_Batch_Node_Resolver_When_Ids_Contain_Duplicates()
     {
         // arrange
