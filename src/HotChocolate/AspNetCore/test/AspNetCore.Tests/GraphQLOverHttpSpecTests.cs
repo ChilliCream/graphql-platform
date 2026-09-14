@@ -643,6 +643,30 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Empty(response.Content.Headers.Allow);
     }
 
+    // Content suppression for HEAD is the HTTP server's responsibility and TestServer,
+    // unlike Kestrel, does not emulate it, so only the status and headers are compared.
+    [Fact]
+    public async Task Head_Should_AnswerAsGet_When_QueryIsSupplied()
+    {
+        // arrange
+        var client = GetClient(Latest);
+        var url = new Uri($"{s_url}?query={Uri.EscapeDataString("{ __typename }")}");
+
+        // act
+        using var getRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        using var getResponse = await client.SendAsync(getRequest, TestContext.Current.CancellationToken);
+
+        using var headRequest = new HttpRequestMessage(HttpMethod.Head, url);
+        using var headResponse = await client.SendAsync(headRequest, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, getResponse.StatusCode);
+        Assert.Equal(getResponse.StatusCode, headResponse.StatusCode);
+        Assert.Equal(
+            getResponse.Content.Headers.ContentType?.ToString(),
+            headResponse.Content.Headers.ContentType?.ToString());
+    }
+
     private HttpClient GetClient(HttpTransportVersion serverTransportVersion)
     {
         var server = CreateStarWarsServer(
