@@ -192,7 +192,7 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             && typeAttribute.Type is { } attributeType)
         {
             hasGraphQLTypeAttribute = true;
-            resultType = ChangeNullability(GetType(attributeType), CollectNullability(elementType));
+            resultType = GetType(attributeType);
         }
 
         if (TryGetAttribute(method, out GraphQLNonNullTypeAttribute? nullAttribute))

@@ -309,8 +309,7 @@ public class InterfaceFieldDescriptor
 
         Configuration.Flags |= CoreFieldFlags.BatchResolver;
         Configuration.SetMoreSpecificType(
-            Context.TypeInspector.GetType(elementType),
-            TypeContext.Output);
+            Context.TypeInspector.GetBatchReturnTypeRef(method, TypeContext.Output));
         Configuration.ResolverType = resolverType;
         Configuration.ResolverMember = propertyOrMethod;
         Configuration.DeclaringType = propertyOrMethod.ReflectedType ?? propertyOrMethod.DeclaringType;

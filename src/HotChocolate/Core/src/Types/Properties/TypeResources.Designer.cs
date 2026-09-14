@@ -2733,7 +2733,16 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_FormatResultObject_InvalidObjectKind", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The type inspector `{0}` does not implement `{1}` and cannot infer batch resolver field types..
+        /// </summary>
+        internal static string ThrowHelper_TypeInspector_GetBatchReturnTypeRef_NotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_TypeInspector_GetBatchReturnTypeRef_NotSupported", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The list runtime value of {0} must implement IEnumerable or IList but is of the type {1}..
         /// </summary>

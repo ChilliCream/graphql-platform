@@ -45,6 +45,14 @@ internal static class ThrowHelper
     public static SchemaException BatchResolver_ReturnTypeMustBeList(MethodInfo method)
         => HotChocolate.Resolvers.BatchResolverErrors.ReturnTypeMustBeList(method.DeclaringType!, method.Name);
 
+    public static NotSupportedException TypeInspector_GetBatchReturnTypeRef_NotSupported(
+        ITypeInspector typeInspector)
+        => new(
+            string.Format(
+                ThrowHelper_TypeInspector_GetBatchReturnTypeRef_NotSupported,
+                typeInspector.GetType().FullName,
+                nameof(ITypeInspector.GetBatchReturnTypeRef)));
+
     public static SchemaException ObjectDeprecationNotEnabled(string typeName)
         => new SchemaException(
             SchemaErrorBuilder.New()

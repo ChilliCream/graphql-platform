@@ -35,6 +35,22 @@ internal static class DescriptorHelpers
         return definition;
     }
 
+    /// <summary>
+    /// Applies a type reference produced by the type inspector as the field type
+    /// if it is more specific than the type already assigned, preserving an
+    /// explicit schema type assignment.
+    /// </summary>
+    public static TDefinition SetMoreSpecificType<TDefinition>(
+        this TDefinition definition,
+        TypeReference type)
+        where TDefinition : FieldConfiguration
+        => type switch
+        {
+            ExtendedTypeReference extended => definition.SetMoreSpecificType(extended.Type, extended.Context),
+            SyntaxTypeReference syntax => definition.SetMoreSpecificType(syntax.Type, syntax.Context),
+            _ => definition
+        };
+
     private static bool IsTypeMoreSpecific(
         TypeReference typeReference,
         IExtendedType type)

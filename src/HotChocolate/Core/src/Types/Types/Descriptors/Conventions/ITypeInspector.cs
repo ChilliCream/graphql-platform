@@ -110,10 +110,14 @@ public interface ITypeInspector : IConvention
     /// <returns>
     /// Returns a type reference describing the type of the batch resolver field.
     /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// The implementing type inspector does not support batch resolver field type inference.
+    /// </exception>
     TypeReference GetBatchReturnTypeRef(
         MethodInfo method,
         TypeContext context = TypeContext.None,
-        string? scope = null);
+        string? scope = null)
+        => throw HotChocolate.Utilities.ThrowHelper.TypeInspector_GetBatchReturnTypeRef_NotSupported(this);
 
     /// <summary>
     /// Gets the field argument type reference from a <see cref="ParameterInfo" />.

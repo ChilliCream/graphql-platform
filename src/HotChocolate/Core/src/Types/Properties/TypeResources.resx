@@ -798,6 +798,9 @@ Type: `{0}`</value>
   <data name="ThrowHelper_FormatResultObject_InvalidObjectKind" xml:space="preserve">
     <value>The input object `{1}` must to be of type `{2}` or serialized as `IReadOnlyDictionary&lt;string. object?&gt;` but not as `{0}`.</value>
   </data>
+  <data name="ThrowHelper_TypeInspector_GetBatchReturnTypeRef_NotSupported" xml:space="preserve">
+    <value>The type inspector `{0}` does not implement `{1}` and cannot infer batch resolver field types.</value>
+  </data>
   <data name="ThrowHelper_FormatValueList_InvalidObjectKind" xml:space="preserve">
     <value>The list runtime value of {0} must implement IEnumerable or IList but is of the type {1}.</value>
   </data>
