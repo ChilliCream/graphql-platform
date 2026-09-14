@@ -1,4 +1,6 @@
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
+using Squadron;
 
 namespace HotChocolate.Types.BatchResolvers;
 
@@ -10,8 +12,19 @@ namespace HotChocolate.Types.BatchResolvers;
 /// selection across variable sets that normalize to the same effective arguments, and maps
 /// per-selection paging arguments when the resolver takes a <c>PagingArguments</c> parameter.
 /// </summary>
-public sealed partial class CursorPagingBatchTests : BatchScenarioTests
+[Collection(PostgresCollectionFixture.DefinitionName)]
+public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) : BatchScenarioTests
 {
+    /// <summary>
+    /// Used only by coverage discovery (<c>MatrixCoverageTests</c>), which never configures an
+    /// executor and so never needs a live Postgres resource.
+    /// </summary>
+    private CursorPagingBatchTests() : this(null!) { }
+
+    private readonly PostgreSqlResource _resource = resource;
+    private readonly List<string> _capturedSql = [];
+    private string _connectionString = null!;
+
     protected override BatchDeclarations Declarations => new()
     {
         Attribute = new Declaration(ConfigureAttribute),
@@ -27,6 +40,7 @@ public sealed partial class CursorPagingBatchTests : BatchScenarioTests
     public async Task UsePaging_Should_Partition_PerAlias_When_FirstDiffers(DeclarationStyle style)
     {
         // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act
@@ -94,6 +108,8 @@ public sealed partial class CursorPagingBatchTests : BatchScenarioTests
               }
             }
             """);
+        var sql = Assert.Single(_capturedSql);
+        new Snapshot().Add(sql, "Captured SQL (root brands query)").MatchMarkdownSnapshot();
     }
 
     [Theory]
@@ -101,6 +117,7 @@ public sealed partial class CursorPagingBatchTests : BatchScenarioTests
     public async Task UsePaging_Should_Coalesce_When_PagingArgumentsAreIdentical(DeclarationStyle style)
     {
         // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
         IReadOnlyDictionary<string, object?>[] sets =
         [
@@ -134,6 +151,7 @@ public sealed partial class CursorPagingBatchTests : BatchScenarioTests
         DeclarationStyle style)
     {
         // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act
@@ -162,17 +180,17 @@ public sealed partial class CursorPagingBatchTests : BatchScenarioTests
                     "small": {
                       "nodes": [
                         {
-                          "name": "Brand 1 Product 1"
+                          "name": "Brand 1 P1"
                         }
                       ]
                     },
                     "large": {
                       "nodes": [
                         {
-                          "name": "Brand 1 Product 1"
+                          "name": "Brand 1 P1"
                         },
                         {
-                          "name": "Brand 1 Product 2"
+                          "name": "Brand 1 P2"
                         }
                       ]
                     }
@@ -182,17 +200,17 @@ public sealed partial class CursorPagingBatchTests : BatchScenarioTests
                     "small": {
                       "nodes": [
                         {
-                          "name": "Brand 2 Product 1"
+                          "name": "Brand 2 P1"
                         }
                       ]
                     },
                     "large": {
                       "nodes": [
                         {
-                          "name": "Brand 2 Product 1"
+                          "name": "Brand 2 P1"
                         },
                         {
-                          "name": "Brand 2 Product 2"
+                          "name": "Brand 2 P2"
                         }
                       ]
                     }
@@ -213,6 +231,7 @@ public sealed partial class CursorPagingBatchTests : BatchScenarioTests
     public async Task UsePaging_Should_Dispatch_PerVariableSet_When_IncludeConditionsDiffer(DeclarationStyle style)
     {
         // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
         IReadOnlyDictionary<string, object?>[] sets =
         [

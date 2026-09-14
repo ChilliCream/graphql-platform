@@ -1,7 +1,10 @@
+using System.ComponentModel.DataAnnotations;
 using HotChocolate.Data;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Squadron;
 
 namespace HotChocolate.Types.BatchResolvers;
 
@@ -13,13 +16,17 @@ public sealed partial class ProjectionBatchTests
     private void ConfigureAttribute(IRequestExecutorBuilder builder)
     {
         Common(builder);
-        builder.AddQueryType<ProjectionAttributeQuery>().AddTypeExtension<ProjectionBrandAttributeExtension>();
+        builder
+            .AddBatchDbContext(_connectionString, _capturedSql)
+            .AddQueryType<ProjectionAttributeQuery>()
+            .AddTypeExtension<ProjectionBrandAttributeExtension>();
     }
 
     private void ConfigureSourceGenerated(IRequestExecutorBuilder builder)
     {
         Common(builder);
         builder
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType(ProjectionRootQuery.Initialize)
             .AddObjectType<ProjectionBrand>(ProjectionBrandNode.Initialize);
     }
@@ -28,10 +35,13 @@ public sealed partial class ProjectionBatchTests
     {
         Common(builder);
         builder
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType(d =>
             {
                 d.Name("Query");
-                d.Field("brands").UseProjection().Resolve(_ => ProjectionQuery.Brands);
+                d.Field("brands")
+                    .UseProjection()
+                    .Resolve(ctx => ctx.Service<BatchDbContext>().ProjectionBrands);
             })
             .AddType(new ObjectType<ProjectionBrand>(d =>
             {
@@ -70,19 +80,27 @@ public sealed partial class ProjectionBatchTests
                     });
             }));
     }
+
+    private async Task<string> SeedAsync(CancellationToken cancellationToken)
+        => _connectionString = await _resource.CreateSeededDatabaseAsync(
+            static async (context, _) =>
+            {
+                context.ProjectionBrands.AddRange(
+                    new ProjectionBrand { Id = 1, Name = "Brand 1" },
+                    new ProjectionBrand { Id = 2, Name = "Brand 2" });
+                await Task.CompletedTask;
+            },
+            cancellationToken);
 }
 
 /// <summary>
-/// A shared plain (non-EF) IQueryable data source: only the batch children under it are the
-/// subject of these scenarios, so the parent stays the simplest possible projectable source in
-/// every declaration style.
+/// The batch children under a projected parent are not themselves EF-backed: only the root
+/// brands query is the subject of the projection assertion here (a real <c>IQueryable</c> from
+/// Postgres, captured as SQL), so the children stay the simplest possible plain in-memory
+/// <c>IQueryable</c> in every declaration style, unrelated to the <see cref="BatchDbContext"/>.
 /// </summary>
 public static class ProjectionQuery
 {
-    public static IQueryable<ProjectionBrand> Brands
-        => new[] { new ProjectionBrand { Id = 1, Name = "Brand 1" }, new ProjectionBrand { Id = 2, Name = "Brand 2" } }
-            .AsQueryable();
-
     public static IQueryable<ProjectionProduct> ProductsFor(ProjectionBrand brand)
         => new[]
         {
@@ -91,10 +109,15 @@ public static class ProjectionQuery
         }.AsQueryable();
 }
 
+/// <summary>
+/// A Postgres-backed brand whose <c>[UseProjection]</c> root query proves the native projection
+/// batch middleware (hc-0-bpl.3) alongside a real EF <c>IQueryable</c> pipeline.
+/// </summary>
 public sealed class ProjectionBrand
 {
     public int Id { get; set; }
 
+    [Required]
     public string Name { get; set; } = null!;
 }
 
@@ -108,7 +131,7 @@ public sealed class ProjectionProduct
 public sealed class ProjectionAttributeQuery
 {
     [UseProjection]
-    public IQueryable<ProjectionBrand> GetBrands() => ProjectionQuery.Brands;
+    public IQueryable<ProjectionBrand> GetBrands([Service] BatchDbContext db) => db.ProjectionBrands;
 }
 
 [ExtendObjectType<ProjectionBrand>]
@@ -149,7 +172,7 @@ public sealed class ProjectionBrandAttributeExtension
 public static partial class ProjectionRootQuery
 {
     [UseProjection]
-    public static IQueryable<ProjectionBrand> GetBrands() => ProjectionQuery.Brands;
+    public static IQueryable<ProjectionBrand> GetBrands([Service] BatchDbContext db) => db.ProjectionBrands;
 }
 
 [ObjectType<ProjectionBrand>]

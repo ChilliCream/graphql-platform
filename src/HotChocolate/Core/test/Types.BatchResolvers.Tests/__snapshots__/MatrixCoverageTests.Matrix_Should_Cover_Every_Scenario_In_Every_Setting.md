@@ -134,7 +134,7 @@
 | OffsetPagingBatchTests | UseOffsetPaging_Should_Slice_PerParent_When_FieldIsBatchResolved | Fluent | Declared |
 | PageConnectionBatchTests | UseConnection_Should_Map_PagingArguments_When_ReturnTypeIsPageConnection | Attribute | Declared |
 | PageConnectionBatchTests | UseConnection_Should_Map_PagingArguments_When_ReturnTypeIsPageConnection | SourceGenerated | Declared |
-| PageConnectionBatchTests | UseConnection_Should_Map_PagingArguments_When_ReturnTypeIsPageConnection | Fluent | Declared |
+| PageConnectionBatchTests | UseConnection_Should_Map_PagingArguments_When_ReturnTypeIsPageConnection | Fluent | NotApplicable(hc-0-1aa.5: no public fluent equivalent of UseConnectionAttribute; its batch paging validation middleware and partition key wiring are protected internal to Types.CursorPagination) |
 | PerParentMiddlewareBatchTests | Use_Should_Fail_Schema_Build_When_FieldIsBatchResolved | Attribute | Declared |
 | PerParentMiddlewareBatchTests | Use_Should_Fail_Schema_Build_When_FieldIsBatchResolved | SourceGenerated | Declared |
 | PerParentMiddlewareBatchTests | Use_Should_Fail_Schema_Build_When_FieldIsBatchResolved | Fluent | Declared |

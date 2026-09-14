@@ -11,6 +11,12 @@ namespace HotChocolate.Types.BatchResolvers;
 [Collection(PostgresCollectionFixture.DefinitionName)]
 public sealed partial class FilteringBatchTests(PostgreSqlResource resource) : BatchScenarioTests
 {
+    /// <summary>
+    /// Used only by coverage discovery (<c>MatrixCoverageTests</c>), which never configures an
+    /// executor and so never needs a live Postgres resource.
+    /// </summary>
+    private FilteringBatchTests() : this(null!) { }
+
     private readonly PostgreSqlResource _resource = resource;
     private readonly List<string> _capturedSql = [];
     private string _connectionString = null!;
@@ -182,7 +188,20 @@ public sealed partial class FilteringBatchTests(PostgreSqlResource resource) : B
             TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(2, Probe.Invocations.Count);
+        var dispatches = Probe.Invocations.Count(i => i.MemberName != "Predicate");
+        Assert.Equal(2, dispatches);
+        var predicates = Probe.Invocations
+            .Where(i => i.MemberName == "Predicate")
+            .Select(i => i.Keys[0]?.ToString())
+            .ToArray();
+        Assert.Equal(2, predicates.Length);
+        Assert.All(predicates, Assert.NotNull);
+        Assert.NotEqual(predicates[0], predicates[1]);
+        string.Join("\n", predicates).MatchInlineSnapshot(
+            """
+            _s0 => (_s0.Name == ExpressionParameter { p = P2 }.p)
+            _s0 => (_s0.Name == ExpressionParameter { p = P1 }.p)
+            """);
         result.MatchInlineSnapshot(
             """
             {

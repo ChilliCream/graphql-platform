@@ -70,13 +70,18 @@ public sealed partial class FilteringBatchTests
                     .ResolveBatch(contexts =>
                     {
                         Probe.Record("GetPredicateProducts", contexts.Select(c => c.Parent<FilteringBrand>().Id));
+                        // Every context in a partition shares the same predicate (same argument
+                        // value for the whole occurrence), so binding it once from the first
+                        // context is enough, mirroring the attribute/source-gen shape.
+                        var predicate = contexts.Count > 0
+                            ? contexts[0].GetFilterContext()?.AsPredicate<FilteringProduct>()
+                            : null;
+                        Probe.Record("Predicate", [predicate?.ToString()]);
                         var results = new ResolverResult[contexts.Count];
 
                         for (var i = 0; i < contexts.Count; i++)
                         {
-                            var context = contexts[i];
-                            var products = context.Parent<FilteringBrand>().Products;
-                            var predicate = context.GetFilterContext()?.AsPredicate<FilteringProduct>();
+                            var products = contexts[i].Parent<FilteringBrand>().Products;
 
                             results[i] = ResolverResult.Ok(predicate is null
                                 ? products.ToArray()
@@ -188,6 +193,7 @@ public sealed class FilteringBrandAttributeExtension
     {
         probe.Record("GetPredicateProducts", brands.Select(b => b.Id));
         var predicate = filterContext.AsPredicate<FilteringProduct>();
+        probe.Record("Predicate", [predicate?.ToString()]);
         return brands.ConvertAll(b => predicate is null
             ? b.Products.ToArray()
             : b.Products.Where(predicate.Compile()).ToArray());
@@ -221,6 +227,7 @@ public static partial class FilteringBrandNode
     {
         probe.Record("GetPredicateProducts", brands.Select(b => b.Id));
         var predicate = filterContext.AsPredicate<FilteringProduct>();
+        probe.Record("Predicate", [predicate?.ToString()]);
         return brands.ConvertAll(b => predicate is null
             ? b.Products.ToArray()
             : b.Products.Where(predicate.Compile()).ToArray());

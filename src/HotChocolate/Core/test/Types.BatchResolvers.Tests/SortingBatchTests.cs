@@ -11,6 +11,12 @@ namespace HotChocolate.Types.BatchResolvers;
 [Collection(PostgresCollectionFixture.DefinitionName)]
 public sealed partial class SortingBatchTests(PostgreSqlResource resource) : BatchScenarioTests
 {
+    /// <summary>
+    /// Used only by coverage discovery (<c>MatrixCoverageTests</c>), which never configures an
+    /// executor and so never needs a live Postgres resource.
+    /// </summary>
+    private SortingBatchTests() : this(null!) { }
+
     private readonly PostgreSqlResource _resource = resource;
     private readonly List<string> _capturedSql = [];
     private string _connectionString = null!;

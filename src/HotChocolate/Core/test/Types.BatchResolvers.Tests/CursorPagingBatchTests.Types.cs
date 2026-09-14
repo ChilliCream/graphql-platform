@@ -1,8 +1,12 @@
 using System.Collections.Immutable;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using GreenDonut.Data;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Squadron;
 
 namespace HotChocolate.Types.BatchResolvers;
 
@@ -19,23 +23,35 @@ public sealed partial class CursorPagingBatchTests
     private void ConfigureAttribute(IRequestExecutorBuilder builder)
     {
         Common(builder);
-        builder.AddQueryType<CursorAttributeQuery>().AddTypeExtension<CursorBrandAttributeExtension>();
+        builder
+            .AddBatchDbContext(_connectionString, _capturedSql)
+            .AddQueryType<CursorAttributeQuery>()
+            .AddTypeExtension<CursorBrandAttributeExtension>();
     }
 
     private void ConfigureSourceGenerated(IRequestExecutorBuilder builder)
     {
         Common(builder);
-        builder.AddQueryType(CursorQuery.Initialize).AddObjectType<CursorBrand>(CursorBrandNode.Initialize);
+        builder
+            .AddBatchDbContext(_connectionString, _capturedSql)
+            .AddQueryType(CursorQuery.Initialize)
+            .AddObjectType<CursorBrand>(CursorBrandNode.Initialize);
     }
 
     private void ConfigureFluent(IRequestExecutorBuilder builder)
     {
         Common(builder);
         builder
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType(d =>
             {
                 d.Name("Query");
-                d.Field("brands").Resolve(CursorFixture.Brands);
+                d.Field("brands")
+                    .Type<ListType<ObjectType<CursorBrand>>>()
+                    .Resolve(ctx => ctx.Service<BatchDbContext>().CursorBrands
+                        .Include(b => b.Products)
+                        .OrderBy(b => b.Id)
+                        .ToListAsync(ctx.RequestAborted));
             })
             .AddObjectType<CursorBrand>(d =>
             {
@@ -47,20 +63,65 @@ public sealed partial class CursorPagingBatchTests
                     .UsePaging<ObjectType<CursorProduct>>();
             });
     }
+
+    private async Task<string> SeedAsync(CancellationToken cancellationToken)
+        => _connectionString = await _resource.CreateSeededDatabaseAsync(
+            static async (context, _) =>
+            {
+                context.CursorBrands.AddRange(
+                    new CursorBrand
+                    {
+                        Id = 1,
+                        Name = "Brand 1",
+                        Products =
+                        [
+                            new CursorProduct { Name = "Brand 1 P1" },
+                            new CursorProduct { Name = "Brand 1 P2" },
+                            new CursorProduct { Name = "Brand 1 P3" }
+                        ]
+                    },
+                    new CursorBrand
+                    {
+                        Id = 2,
+                        Name = "Brand 2",
+                        Products =
+                        [
+                            new CursorProduct { Name = "Brand 2 P1" },
+                            new CursorProduct { Name = "Brand 2 P2" },
+                            new CursorProduct { Name = "Brand 2 P3" }
+                        ]
+                    });
+                await Task.CompletedTask;
+            },
+            cancellationToken);
 }
 
-public static class CursorFixture
+/// <summary>
+/// A Postgres-backed brand whose products are resolved through a native cursor paging batch
+/// middleware.
+/// </summary>
+public sealed class CursorBrand
 {
-    public static List<CursorBrand> Brands =>
-    [
-        new CursorBrand(1, "Brand 1"),
-        new CursorBrand(2, "Brand 2")
-    ];
+    public int Id { get; set; }
+
+    [Required]
+    public string Name { get; set; } = null!;
+
+    public List<CursorProduct> Products { get; set; } = [];
 }
 
-public sealed record CursorBrand(int Id, string Name);
+public sealed class CursorProduct
+{
+    public int Id { get; set; }
 
-public sealed record CursorProduct(int Id, string Name);
+    [Required]
+    public string Name { get; set; } = null!;
+
+    public int BrandId { get; set; }
+
+    [ForeignKey(nameof(BrandId))]
+    public CursorBrand? Brand { get; set; }
+}
 
 // -- Fluent -----------------------------------------------------------------------------------
 
@@ -69,7 +130,7 @@ public sealed class FluentCursorResolvers
     public List<List<CursorProduct>> GetProducts([Parent] List<CursorBrand> brands, BatchProbe probe)
     {
         probe.Record("GetProducts", brands.Select(b => b.Id));
-        return brands.ConvertAll(CursorProductFactory.PlainProductsFor);
+        return brands.ConvertAll(b => b.Products);
     }
 
     public List<Page<CursorProduct>> GetPagedProducts(
@@ -84,28 +145,17 @@ public sealed class FluentCursorResolvers
 
 internal static class CursorProductFactory
 {
-    public static List<CursorProduct> PlainProductsFor(CursorBrand brand)
-        =>
-        [
-            new CursorProduct(1, $"{brand.Name} P1"),
-            new CursorProduct(2, $"{brand.Name} P2"),
-            new CursorProduct(3, $"{brand.Name} P3")
-        ];
-
     public static Page<CursorProduct> PagedProductsFor(CursorBrand brand, PagingArguments pagingArguments)
     {
         var count = pagingArguments.First ?? 2;
-        var products = Enumerable
-            .Range(1, count)
-            .Select(i => new CursorProduct(i, $"{brand.Name} Product {i}"))
-            .ToImmutableArray();
+        var products = brand.Products.Take(count).ToImmutableArray();
 
         return Page<CursorProduct>.Create(
             products,
-            hasNextPage: false,
+            hasNextPage: count < brand.Products.Count,
             hasPreviousPage: false,
             createCursor: product => product.Id.ToString(),
-            totalCount: products.Length);
+            totalCount: brand.Products.Count);
     }
 }
 
@@ -113,7 +163,8 @@ internal static class CursorProductFactory
 
 public sealed class CursorAttributeQuery
 {
-    public List<CursorBrand> GetBrands() => CursorFixture.Brands;
+    public Task<List<CursorBrand>> GetBrands([Service] BatchDbContext db, CancellationToken cancellationToken)
+        => db.CursorBrands.Include(b => b.Products).OrderBy(b => b.Id).ToListAsync(cancellationToken);
 }
 
 [ExtendObjectType<CursorBrand>]
@@ -124,7 +175,7 @@ public sealed class CursorBrandAttributeExtension
     public List<List<CursorProduct>> GetProducts([Parent] List<CursorBrand> brands, BatchProbe probe)
     {
         probe.Record("GetProducts", brands.Select(b => b.Id));
-        return brands.ConvertAll(CursorProductFactory.PlainProductsFor);
+        return brands.ConvertAll(b => b.Products);
     }
 
     [UsePaging]
@@ -144,7 +195,8 @@ public sealed class CursorBrandAttributeExtension
 [QueryType]
 public static partial class CursorQuery
 {
-    public static List<CursorBrand> GetBrands() => CursorFixture.Brands;
+    public static Task<List<CursorBrand>> GetBrands([Service] BatchDbContext db, CancellationToken cancellationToken)
+        => db.CursorBrands.Include(b => b.Products).OrderBy(b => b.Id).ToListAsync(cancellationToken);
 }
 
 [ObjectType<CursorBrand>]
@@ -155,7 +207,7 @@ public static partial class CursorBrandNode
     public static List<List<CursorProduct>> GetProducts([Parent] List<CursorBrand> brands, BatchProbe probe)
     {
         probe.Record("GetProducts", brands.Select(b => b.Id));
-        return brands.ConvertAll(CursorProductFactory.PlainProductsFor);
+        return brands.ConvertAll(b => b.Products);
     }
 
     [UsePaging]

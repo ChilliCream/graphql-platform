@@ -12,10 +12,10 @@
         "pagedProducts": {
           "nodes": [
             {
-              "name": "Brand 1 Product 1"
+              "name": "Brand 1 P1"
             },
             {
-              "name": "Brand 1 Product 2"
+              "name": "Brand 1 P2"
             }
           ]
         }
@@ -25,10 +25,10 @@
         "pagedProducts": {
           "nodes": [
             {
-              "name": "Brand 2 Product 1"
+              "name": "Brand 2 P1"
             },
             {
-              "name": "Brand 2 Product 2"
+              "name": "Brand 2 P2"
             }
           ]
         }
@@ -50,10 +50,10 @@
         "pagedProducts": {
           "nodes": [
             {
-              "name": "Brand 1 Product 1"
+              "name": "Brand 1 P1"
             },
             {
-              "name": "Brand 1 Product 2"
+              "name": "Brand 1 P2"
             }
           ],
           "totalCount": 2
@@ -64,10 +64,10 @@
         "pagedProducts": {
           "nodes": [
             {
-              "name": "Brand 2 Product 1"
+              "name": "Brand 2 P1"
             },
             {
-              "name": "Brand 2 Product 2"
+              "name": "Brand 2 P2"
             }
           ],
           "totalCount": 2

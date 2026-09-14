@@ -1,3 +1,5 @@
+using Squadron;
+
 namespace HotChocolate.Types.BatchResolvers;
 
 /// <summary>
@@ -6,8 +8,19 @@ namespace HotChocolate.Types.BatchResolvers;
 /// arguments, slices each parent's already-loaded products in memory, and isolates aliases that
 /// pass different <c>skip</c> values into separate batch dispatches.
 /// </summary>
-public sealed partial class OffsetPagingBatchTests : BatchScenarioTests
+[Collection(PostgresCollectionFixture.DefinitionName)]
+public sealed partial class OffsetPagingBatchTests(PostgreSqlResource resource) : BatchScenarioTests
 {
+    /// <summary>
+    /// Used only by coverage discovery (<c>MatrixCoverageTests</c>), which never configures an
+    /// executor and so never needs a live Postgres resource.
+    /// </summary>
+    private OffsetPagingBatchTests() : this(null!) { }
+
+    private readonly PostgreSqlResource _resource = resource;
+    private readonly List<string> _capturedSql = [];
+    private string _connectionString = null!;
+
     protected override BatchDeclarations Declarations => new()
     {
         Attribute = new Declaration(ConfigureAttribute),
@@ -23,6 +36,7 @@ public sealed partial class OffsetPagingBatchTests : BatchScenarioTests
     public async Task UseOffsetPaging_Should_Slice_PerParent_When_FieldIsBatchResolved(DeclarationStyle style)
     {
         // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act
@@ -69,6 +83,8 @@ public sealed partial class OffsetPagingBatchTests : BatchScenarioTests
               }
             }
             """);
+        var sql = Assert.Single(_capturedSql);
+        new Snapshot().Add(sql, "Captured SQL (root brands query)").MatchMarkdownSnapshot();
     }
 
     [Theory]
@@ -76,6 +92,7 @@ public sealed partial class OffsetPagingBatchTests : BatchScenarioTests
     public async Task UseOffsetPaging_Should_Partition_PerAlias_When_SkipDiffers(DeclarationStyle style)
     {
         // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act

@@ -1,15 +1,29 @@
+using Squadron;
+
 namespace HotChocolate.Types.BatchResolvers;
 
 /// <summary>
 /// Proves the native projection batch middleware (hc-0-bpl.3) alongside filtering and sorting: a
 /// batch-resolved child field still applies its own where/order/select even though its parent is
 /// itself projected (the dead regular pipeline's SkipFilteringKey/SkipSortingKey optimizer never
-/// sees a batch child, so the batch middleware always applies its own arguments). The IQueryable
-/// parent is a shared plain <see cref="ProjectionQuery"/> in every declaration style; it is not
-/// itself the thing under test.
+/// sees a batch child, so the batch middleware always applies its own arguments). The root brands
+/// query is a real Postgres-backed <see cref="ProjectionBrand"/> <c>IQueryable</c>; the batch
+/// children under it are a shared plain <see cref="ProjectionQuery"/> in every declaration style,
+/// unrelated to the database, since they are not themselves the thing under test.
 /// </summary>
-public sealed partial class ProjectionBatchTests : BatchScenarioTests
+[Collection(PostgresCollectionFixture.DefinitionName)]
+public sealed partial class ProjectionBatchTests(PostgreSqlResource resource) : BatchScenarioTests
 {
+    /// <summary>
+    /// Used only by coverage discovery (<c>MatrixCoverageTests</c>), which never configures an
+    /// executor and so never needs a live Postgres resource.
+    /// </summary>
+    private ProjectionBatchTests() : this(null!) { }
+
+    private readonly PostgreSqlResource _resource = resource;
+    private readonly List<string> _capturedSql = [];
+    private string _connectionString = null!;
+
     protected override BatchDeclarations Declarations => new()
     {
         Attribute = new Declaration(ConfigureAttribute),
@@ -23,6 +37,7 @@ public sealed partial class ProjectionBatchTests : BatchScenarioTests
         DeclarationStyle style)
     {
         // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act
@@ -73,6 +88,7 @@ public sealed partial class ProjectionBatchTests : BatchScenarioTests
         DeclarationStyle style)
     {
         // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act
@@ -128,6 +144,7 @@ public sealed partial class ProjectionBatchTests : BatchScenarioTests
     public async Task UseProjection_Should_Project_PerParent_When_FieldIsBatchResolved(DeclarationStyle style)
     {
         // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act
@@ -176,5 +193,7 @@ public sealed partial class ProjectionBatchTests : BatchScenarioTests
               }
             }
             """);
+        var sql = Assert.Single(_capturedSql);
+        new Snapshot().Add(sql, "Captured SQL (root brands query)").MatchMarkdownSnapshot();
     }
 }

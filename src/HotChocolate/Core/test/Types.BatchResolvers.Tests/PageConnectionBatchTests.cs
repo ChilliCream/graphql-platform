@@ -1,3 +1,5 @@
+using Squadron;
+
 namespace HotChocolate.Types.BatchResolvers;
 
 /// <summary>
@@ -8,13 +10,27 @@ namespace HotChocolate.Types.BatchResolvers;
 /// note) because the two models resolve to the same GraphQL type name for a structurally
 /// different C# type. One paging model per schema, per that ruling.
 /// </summary>
-public sealed partial class PageConnectionBatchTests : BatchScenarioTests
+[Collection(PostgresCollectionFixture.DefinitionName)]
+public sealed partial class PageConnectionBatchTests(PostgreSqlResource resource) : BatchScenarioTests
 {
+    /// <summary>
+    /// Used only by coverage discovery (<c>MatrixCoverageTests</c>), which never configures an
+    /// executor and so never needs a live Postgres resource.
+    /// </summary>
+    private PageConnectionBatchTests() : this(null!) { }
+
+    private readonly PostgreSqlResource _resource = resource;
+    private readonly List<string> _capturedSql = [];
+    private string _connectionString = null!;
+
     protected override BatchDeclarations Declarations => new()
     {
         Attribute = new Declaration(ConfigureAttribute),
         SourceGenerated = new Declaration(ConfigureSourceGenerated),
-        Fluent = new Declaration(ConfigureFluent)
+        Fluent = Declaration.NotApplicable(
+            "hc-0-1aa.5: no public fluent equivalent of UseConnectionAttribute; its batch paging "
+            + "validation middleware and partition key wiring are protected internal to "
+            + "Types.CursorPagination")
     };
 
     [Theory]
@@ -22,6 +38,12 @@ public sealed partial class PageConnectionBatchTests : BatchScenarioTests
     public async Task UseConnection_Should_Map_PagingArguments_When_ReturnTypeIsPageConnection(DeclarationStyle style)
     {
         // arrange
+        if (GetNotApplicableReason(style) is not null)
+        {
+            return;
+        }
+
+        await SeedAsync(TestContext.Current.CancellationToken);
         var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
 
         // act
@@ -89,5 +111,7 @@ public sealed partial class PageConnectionBatchTests : BatchScenarioTests
               }
             }
             """);
+        var sql = Assert.Single(_capturedSql);
+        new Snapshot().Add(sql, "Captured SQL (root brands query)").MatchMarkdownSnapshot();
     }
 }

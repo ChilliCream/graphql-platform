@@ -1,11 +1,15 @@
 using System.Collections.Immutable;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using GreenDonut.Data;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Pagination;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Squadron;
 
 namespace HotChocolate.Types.BatchResolvers;
 
@@ -17,6 +21,7 @@ public sealed partial class PageConnectionBatchTests
     {
         Common(builder);
         builder
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType<PageConnectionAttributeQuery>()
             .AddTypeExtension<PageConnectionBrandAttributeExtension>();
     }
@@ -25,80 +30,86 @@ public sealed partial class PageConnectionBatchTests
     {
         Common(builder);
         builder
+            .AddBatchDbContext(_connectionString, _capturedSql)
             .AddQueryType(PageConnectionQuery.Initialize)
             .AddObjectType<PageConnectionBrand>(PageConnectionBrandNode.Initialize);
     }
 
-    private void ConfigureFluent(IRequestExecutorBuilder builder)
-    {
-        Common(builder);
-        builder
-            .AddQueryType(d =>
+    private async Task<string> SeedAsync(CancellationToken cancellationToken)
+        => _connectionString = await _resource.CreateSeededDatabaseAsync(
+            static async (context, _) =>
             {
-                d.Name("Query");
-                d.Field("brands").Resolve(PageConnectionFixture.Brands);
-            })
-            .AddType<PageConnectionProductConnectionType>()
-            .AddObjectType<PageConnectionBrand>(d =>
-            {
-                var field = d.Field("products")
-                    .Type<NonNullType<PageConnectionProductConnectionType>>()
-                    .Argument("first", a => a.Type<IntType>())
-                    .Argument("after", a => a.Type<StringType>())
-                    .Argument("last", a => a.Type<IntType>())
-                    .Argument("before", a => a.Type<StringType>())
-                    .ResolveBatchWith<FluentPageConnectionResolvers>(t => t.GetProducts(default!, default!, default!));
-                PageConnectionFixture.ApplyUseConnectionValidation(field);
-            });
-    }
+                context.PageConnectionBrands.AddRange(
+                    new PageConnectionBrand
+                    {
+                        Id = 1,
+                        Name = "Brand 1",
+                        Products =
+                        [
+                            new PageConnectionProduct { Name = "Brand 1 Product 1" },
+                            new PageConnectionProduct { Name = "Brand 1 Product 2" },
+                            new PageConnectionProduct { Name = "Brand 1 Product 3" }
+                        ]
+                    },
+                    new PageConnectionBrand
+                    {
+                        Id = 2,
+                        Name = "Brand 2",
+                        Products =
+                        [
+                            new PageConnectionProduct { Name = "Brand 2 Product 1" },
+                            new PageConnectionProduct { Name = "Brand 2 Product 2" },
+                            new PageConnectionProduct { Name = "Brand 2 Product 3" }
+                        ]
+                    });
+                await Task.CompletedTask;
+            },
+            cancellationToken);
 }
 
 public static class PageConnectionFixture
 {
-    /// <summary>
-    /// Applies the same paging-validation middleware, batch middleware, and partition key that
-    /// <see cref="UseConnectionAttribute"/> wires up for a reflection or source-generated
-    /// declaration, so the fluent declaration publishes the same
-    /// <see cref="GreenDonut.Data.PagingArguments"/> local state; there is no fluent-descriptor
-    /// equivalent of the attribute, and it is internal to Types.CursorPagination, so this reaches
-    /// it the same way the landed hc-0-bpl.4 dependency test reaches a batch-only internal member.
-    /// </summary>
-    public static void ApplyUseConnectionValidation(IObjectFieldDescriptor descriptor)
-    {
-        var attribute = new UseConnectionAttribute();
-        var method = typeof(UseConnectionAttribute).GetMethod(
-            "TryConfigure",
-            BindingFlags.Instance | BindingFlags.NonPublic)!;
-        method.Invoke(attribute, [descriptor.Extend().Context, descriptor, typeof(PageConnectionBrand)]);
-    }
-
-    public static List<PageConnectionBrand> Brands =>
-    [
-        new PageConnectionBrand(1, "Brand 1"),
-        new PageConnectionBrand(2, "Brand 2")
-    ];
-
     public static PageConnection<PageConnectionProduct> ProductsFor(PageConnectionBrand brand, PagingArguments args)
     {
         var count = args.First ?? 2;
-        var products = Enumerable
-            .Range(1, count)
-            .Select(i => new PageConnectionProduct(i, $"{brand.Name} Product {i}"))
-            .ToImmutableArray();
+        var products = brand.Products.Take(count).ToImmutableArray();
         var page = Page<PageConnectionProduct>.Create(
             products,
-            hasNextPage: false,
+            hasNextPage: count < brand.Products.Count,
             hasPreviousPage: false,
             createCursor: product => product.Id.ToString(),
-            totalCount: products.Length);
+            totalCount: brand.Products.Count);
 
         return new PageConnection<PageConnectionProduct>(page);
     }
 }
 
-public sealed record PageConnectionBrand(int Id, string Name);
+/// <summary>
+/// A Postgres-backed brand whose products are resolved through a batch-resolved
+/// <c>PageConnection&lt;T&gt;</c> field.
+/// </summary>
+public sealed class PageConnectionBrand
+{
+    public int Id { get; set; }
 
-public sealed record PageConnectionProduct(int Id, string Name);
+    [Required]
+    public string Name { get; set; } = null!;
+
+    public List<PageConnectionProduct> Products { get; set; } = [];
+}
+
+public sealed class PageConnectionProduct
+{
+    public int Id { get; set; }
+
+    [Required]
+    public string Name { get; set; } = null!;
+
+    public int BrandId { get; set; }
+
+    [ForeignKey(nameof(BrandId))]
+    public PageConnectionBrand? Brand { get; set; }
+}
 
 public sealed class PageConnectionProductConnectionType : ObjectType<PageConnection<PageConnectionProduct>>
 {
@@ -107,20 +118,6 @@ public sealed class PageConnectionProductConnectionType : ObjectType<PageConnect
         descriptor.BindFieldsExplicitly();
         descriptor.Name("PageConnectionProductConnection");
         descriptor.Field(t => t.Nodes);
-    }
-}
-
-// -- Fluent -----------------------------------------------------------------------------------
-
-public sealed class FluentPageConnectionResolvers
-{
-    public List<PageConnection<PageConnectionProduct>> GetProducts(
-        [Parent] List<PageConnectionBrand> brands,
-        PagingArguments pagingArguments,
-        [Service] BatchProbe probe)
-    {
-        probe.Record("GetProducts", brands.Select(b => b.Id));
-        return brands.ConvertAll(b => PageConnectionFixture.ProductsFor(b, pagingArguments));
     }
 }
 
@@ -149,7 +146,8 @@ public sealed class UsePageConnectionAttribute : ObjectFieldDescriptorAttribute
 
 public sealed class PageConnectionAttributeQuery
 {
-    public List<PageConnectionBrand> GetBrands() => PageConnectionFixture.Brands;
+    public Task<List<PageConnectionBrand>> GetBrands([Service] BatchDbContext db, CancellationToken cancellationToken)
+        => db.PageConnectionBrands.Include(b => b.Products).OrderBy(b => b.Id).ToListAsync(cancellationToken);
 }
 
 [ExtendObjectType<PageConnectionBrand>]
@@ -173,7 +171,10 @@ public sealed class PageConnectionBrandAttributeExtension
 [QueryType]
 public static partial class PageConnectionQuery
 {
-    public static List<PageConnectionBrand> GetBrands() => PageConnectionFixture.Brands;
+    public static Task<List<PageConnectionBrand>> GetBrands(
+        [Service] BatchDbContext db,
+        CancellationToken cancellationToken)
+        => db.PageConnectionBrands.Include(b => b.Products).OrderBy(b => b.Id).ToListAsync(cancellationToken);
 }
 
 /// <summary>
