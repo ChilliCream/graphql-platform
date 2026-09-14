@@ -732,6 +732,26 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    public static LogEntry InvalidListSizeArgument(
+        string argumentName,
+        IValueNode value,
+        MutableOutputFieldDefinition field,
+        MutableSchemaDefinition schema)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(
+                LogEntryHelper_InvalidListSizeArgument,
+                argumentName,
+                field.Coordinate.ToString(),
+                schema.Name,
+                value.ToString())
+            .SetCode(LogEntryCodes.InvalidGraphQL)
+            .SetSeverity(LogSeverity.Error)
+            .SetTypeSystemMember(field)
+            .SetSchema(schema)
+            .Build();
+    }
+
     public static LogEntry InvalidShareableUsage(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)

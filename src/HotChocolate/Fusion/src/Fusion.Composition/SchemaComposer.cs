@@ -273,6 +273,7 @@ internal sealed class SchemaComposer
         new KeyInvalidArgumentsRule(),
         new KeyInvalidFieldsTypeRule(),
         new KeyInvalidSyntaxRule(),
+        new ListSizeDirectiveArgumentRule(),
         new LookupMustHaveArgumentsRule(),
         new LookupReturnsListRule(),
         new LookupReturnsNonNullableTypeRule(),

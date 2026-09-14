@@ -1,10 +1,124 @@
 using HotChocolate.Fusion.Definitions;
+using HotChocolate.Fusion.Logging;
+using HotChocolate.Fusion.Options;
 using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion;
 
 public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMergerTestBase
 {
+    [Fact]
+    public void Compose_Should_Fail_When_AssumedSizeIsNegative()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    $$"""
+                    type Query {
+                        field: [Int] @listSize(assumedSize: -1)
+                    }
+
+                    {{s_listSizeDirective}}
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The argument 'assumedSize' of the @listSize directive on field 'Query.field' in schema 'A' must not be negative (-1).",
+                "code": "INVALID_GRAPHQL",
+                "severity": "Error",
+                "coordinate": "Query.field",
+                "member": "field",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_SlicingArgumentDefaultValueIsNegative()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    $$"""
+                    type Query {
+                        field: [Int] @listSize(slicingArgumentDefaultValue: -2)
+                    }
+
+                    {{s_listSizeDirective}}
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The argument 'slicingArgumentDefaultValue' of the @listSize directive on field 'Query.field' in schema 'A' must not be negative (-2).",
+                "code": "INVALID_GRAPHQL",
+                "severity": "Error",
+                "coordinate": "Query.field",
+                "member": "field",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Merge_Should_PreserveZero_When_ListSizeArgumentsAreZero()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Query {
+                    field: [Int]
+                        @listSize(assumedSize: 0, slicingArgumentDefaultValue: 0)
+                }
+
+                {{s_listSizeDirective}}
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              field: [Int]
+                @listSize(assumedSize: 0, slicingArgumentDefaultValue: 0)
+                @fusion__field(schema: A)
+                @fusion__listSize(schema: A, assumedSize: 0, slicingArgumentDefaultValue: 0)
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
     // Merge @listSize directives when the definitions match the canonical definition.
     [Fact]
     public void Merge_ListSizeDirectives_MatchesSnapshot()
