@@ -113,7 +113,7 @@ internal static class CompositionHelper
         if (mergedCompositionSettings.Merger.DefaultListSize is { } defaultListSize
             && defaultListSize < 0)
         {
-            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSetting(defaultListSize));
+            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize));
             return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
         }
 
@@ -275,7 +275,16 @@ internal static class CompositionHelper
             && (defaultListSize.ValueKind is not JsonValueKind.Number
                 || !defaultListSize.TryGetInt32(out _)))
         {
-            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSetting(defaultListSize.GetRawText()));
+            // A whole number that does not fit Int32 (for example, larger than
+            // int.MaxValue) is still an integer, just out of the supported range; only a
+            // value that isn't a whole number at all (a fraction, or a different JSON type)
+            // is reported as non-integer.
+            var logEntry = defaultListSize.ValueKind == JsonValueKind.Number
+                && defaultListSize.TryGetInt64(out _)
+                    ? LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize.GetRawText())
+                    : LogEntryHelper.InvalidDefaultListSizeSettingType(defaultListSize.GetRawText());
+
+            compositionLog.Write(logEntry);
             return (false, new CompositionSettings());
         }
 
