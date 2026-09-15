@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -9,9 +10,12 @@ namespace HotChocolate.CostAnalysis;
 public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
 {
     private readonly CostSchemaSnapshot _snapshot;
+    private readonly ICostVariableValues? _variableValues;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ResponseSizeAlgebra"/>.
+    /// Initializes a new instance of <see cref="ResponseSizeAlgebra"/> for
+    /// the static/assumed path: a variable-bound slicing argument falls back
+    /// to its schema-declared assumption instead of a coerced value.
     /// </summary>
     /// <param name="snapshot">
     /// The schema snapshot used to resolve list-size metadata.
@@ -20,6 +24,28 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         _snapshot = snapshot;
+        _variableValues = null;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ResponseSizeAlgebra"/> that
+    /// resolves a variable-bound slicing argument from
+    /// <paramref name="variableValues"/>, the same coerced values the
+    /// optimized <see cref="CostPlan"/> path receives at evaluation time.
+    /// </summary>
+    /// <param name="snapshot">
+    /// The schema snapshot used to resolve list-size metadata.
+    /// </param>
+    /// <param name="variableValues">
+    /// The coerced variable values of the request.
+    /// </param>
+    [Experimental(CostExperiments.AnalysisAlgebra)]
+    public ResponseSizeAlgebra(CostSchemaSnapshot snapshot, ICostVariableValues variableValues)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(variableValues);
+        _snapshot = snapshot;
+        _variableValues = variableValues;
     }
 
     /// <inheritdoc />
@@ -74,7 +100,7 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
             metadata,
             inheritedSizes,
             slicingArguments,
-            variableValues: null,
+            _variableValues,
             _snapshot.DefaultListSize);
     }
 }

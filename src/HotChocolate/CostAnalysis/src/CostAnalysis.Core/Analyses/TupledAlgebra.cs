@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
@@ -9,7 +11,10 @@ public sealed class TupledAlgebra : IAnalysisAlgebra<CostEstimate>
     private readonly ResponseSizeAlgebra _responseSize;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="TupledAlgebra"/>.
+    /// Initializes a new instance of <see cref="TupledAlgebra"/> for the
+    /// static/assumed path: a variable-bound slicing argument or input value
+    /// falls back to its schema-declared assumption instead of a coerced
+    /// value.
     /// </summary>
     /// <param name="snapshot">
     /// The schema snapshot used by both analyses.
@@ -19,6 +24,27 @@ public sealed class TupledAlgebra : IAnalysisAlgebra<CostEstimate>
         ArgumentNullException.ThrowIfNull(snapshot);
         _cost = new CostAlgebra(snapshot);
         _responseSize = new ResponseSizeAlgebra(snapshot);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="TupledAlgebra"/> that
+    /// resolves a variable-bound slicing argument or input value from
+    /// <paramref name="variableValues"/>, the same coerced values the
+    /// optimized <see cref="CostPlan"/> path receives at evaluation time.
+    /// </summary>
+    /// <param name="snapshot">
+    /// The schema snapshot used by both analyses.
+    /// </param>
+    /// <param name="variableValues">
+    /// The coerced variable values of the request.
+    /// </param>
+    [Experimental(CostExperiments.AnalysisAlgebra)]
+    public TupledAlgebra(CostSchemaSnapshot snapshot, ICostVariableValues variableValues)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(variableValues);
+        _cost = new CostAlgebra(snapshot, variableValues);
+        _responseSize = new ResponseSizeAlgebra(snapshot, variableValues);
     }
 
     /// <inheritdoc />
