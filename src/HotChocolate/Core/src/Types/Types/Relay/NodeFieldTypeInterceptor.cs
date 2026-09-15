@@ -252,7 +252,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         var typeBytes = Encoding.UTF8.GetByteCount(typeName);
         var length = sizeof(ulong) + typeBytes;
         byte[]? rented = null;
-        Span<byte> buffer = length <= MaxStackallocTypeNameSize
+        var buffer = length <= MaxStackallocTypeNameSize
             ? stackalloc byte[length]
             : rented = ArrayPool<byte>.Shared.Rent(length);
 

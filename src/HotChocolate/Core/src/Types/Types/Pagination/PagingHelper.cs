@@ -271,7 +271,7 @@ public static class PagingHelper
             + GetStringPartitionKeySize(before)
             + GetFlagsPartitionKeySize(flags);
         byte[]? rented = null;
-        Span<byte> buffer = length <= MaxStackallocPartitionKeySize
+        var buffer = length <= MaxStackallocPartitionKeySize
             ? stackalloc byte[length]
             : rented = ArrayPool<byte>.Shared.Rent(length);
 

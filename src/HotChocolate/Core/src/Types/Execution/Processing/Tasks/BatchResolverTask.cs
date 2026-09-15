@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using Microsoft.Extensions.ObjectPool;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Internal;
 using HotChocolate.Resolvers;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;

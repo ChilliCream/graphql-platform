@@ -32,9 +32,9 @@ internal static class ThrowHelper
 
     public static SchemaException BatchResolver_ArgumentMustBeList(ParameterInfo parameter)
         => HotChocolate.Resolvers.BatchResolverErrors.ArgumentMustBeList(
-            parameter.Member.DeclaringType!,
+            parameter.Member.DeclaringType,
             parameter.Member.Name,
-            parameter.Name!);
+            parameter.Name);
 
     public static InvalidOperationException BatchResolver_ResultCountMismatch(int expected, int actual)
         => new(string.Format(TypeResources.BatchResolver_ResultCountMismatch, expected, actual));
@@ -43,7 +43,7 @@ internal static class ThrowHelper
         => new($"Batch resolver must return a list type. Got: {type}.");
 
     public static SchemaException BatchResolver_ReturnTypeMustBeList(MethodInfo method)
-        => HotChocolate.Resolvers.BatchResolverErrors.ReturnTypeMustBeList(method.DeclaringType!, method.Name);
+        => HotChocolate.Resolvers.BatchResolverErrors.ReturnTypeMustBeList(method.DeclaringType, method.Name);
 
     public static NotSupportedException TypeInspector_GetBatchReturnTypeRef_NotSupported(
         ITypeInspector typeInspector)
