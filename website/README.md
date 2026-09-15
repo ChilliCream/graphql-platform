@@ -38,9 +38,11 @@ Yarn's package cache lives in `hc-0-frontend-yarn-cache`, a volume shared by
 every checkout's container. `down --purge` keeps it. Remove it with
 `docker volume rm hc-0-frontend-yarn-cache`.
 
-The container mounts the checkout's `.git` and, when present, `.claude`
-read-only, but it can still modify website sources because Prettier and
-ESLint need write access, so review diffs before committing.
+The container mounts only `website/` (read-write), the
+`../src/Mocha/src/mocha-visualizer` dependency, root `.editorconfig`, and the
+checkout's `.git`, the last three read-only. It can still modify website
+sources because Prettier and ESLint need write access, so review diffs
+before committing.
 
 ## Authoring Markdown Content
 

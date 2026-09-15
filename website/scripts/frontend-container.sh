@@ -89,12 +89,11 @@ require_docker() {
 }
 
 # The container path used as this checkout's identity mount for check_mount.
-# CONTAINER_WORKSPACE itself is never a single bind-mount destination (see
-# run_container: every checkout entry is bound individually), so .git --
-# always present, always bound from this exact checkout's .git -- stands in
-# for it.
+# website/ is the one read-write bind every invocation depends on, so it
+# stands in for "this checkout" when checking whether a running container
+# actually belongs to it.
 container_root() {
-  printf '%s/.git' "${CONTAINER_WORKSPACE}"
+  printf '%s/website' "${CONTAINER_WORKSPACE}"
 }
 
 # Translate a host path under this checkout into the equivalent path inside
@@ -144,7 +143,7 @@ check_mount() {
   local workspace actual
   workspace="$(container_root)"
   actual="$(docker inspect -f '{{range .Mounts}}{{.Destination}} {{.Source}}{{"\n"}}{{end}}' "${CONTAINER_NAME}" | awk -v dest="${workspace}" '$1 == dest { print $2; exit }')"
-  if [ "${actual}" != "${CHECKOUT}/.git" ]; then
+  if [ "${actual}" != "${CHECKOUT}/website" ]; then
     echo "error: ${CONTAINER_NAME} is mounted from '${actual:-<none>}' at ${workspace}, not this checkout '${CHECKOUT}'. Run \`frontend-container.sh down\` first." >&2
     exit 1
   fi
@@ -163,46 +162,29 @@ ensure_running() {
 # port publishes), appended before the image tag; passing none starts the
 # container without published ports.
 #
-# Every checkout entry is bound individually (see the `find` loop below)
-# rather than bind-mounting the whole checkout at CONTAINER_WORKSPACE in one
-# shot, so CONTAINER_WORKSPACE itself is never a bind-mount destination.
-# That matters for .claude: a bind or tmpfs destination that does not yet
-# exist is created as a mountpoint by the container runtime, and when that
-# destination sits under a directory bind-mounted straight from the host,
-# creating the mountpoint creates a real directory on the host (verified
-# against this Docker daemon) even though the mount layered on top ends up
-# read-only and empty. Only a container-native parent directory (nothing
-# bound at CONTAINER_WORKSPACE itself) keeps that mountpoint creation
-# inside the container's own filesystem instead of the checkout.
+# Only what the website tooling actually reads is bound in, each at its own
+# destination, so CONTAINER_WORKSPACE itself is never a bind-mount
+# destination: website/ (read-write, the one bind every command needs),
+# the file: dependency on ../src/Mocha/src/mocha-visualizer (read-only),
+# root .editorconfig (read-only, read by Prettier), and .git (read-only,
+# for repo metadata). A compromised dependency under website/ therefore
+# cannot reach src/, templates/, global.json, nuget.config, .github/ or the
+# root docs, and nothing mounts .claude at all, so the container can never
+# read or write the host's Claude Code configuration.
 #
 # The checkout's .git is mounted read-only so code running in the container
 # cannot plant host-executed commands (git hooks, core.hooksPath/
-# core.fsmonitor, filter drivers in .git/config). .claude is mounted
-# read-only the same way, when the checkout has one, since
-# .claude/settings.local.json can define hooks host Claude Code sessions
-# execute. When the checkout has no .claude, a read-only tmpfs is mounted
-# at that path instead of leaving it exposed as a plain read-write
-# directory, so the container can never create .claude/settings.local.json
-# on the host; no host directory is created either way. Every other
-# checkout entry, website/ included, stays a plain read-write bind.
+# core.fsmonitor, filter drivers in .git/config).
 run_container() {
   local mount_flags=(
+    -v "${CHECKOUT}/website:${CONTAINER_WORKSPACE}/website"
+    -v "${CHECKOUT}/src/Mocha/src/mocha-visualizer:${CONTAINER_WORKSPACE}/src/Mocha/src/mocha-visualizer:ro"
+    -v "${CHECKOUT}/.editorconfig:${CONTAINER_WORKSPACE}/.editorconfig:ro"
     -v "${CHECKOUT}/.git:${CONTAINER_WORKSPACE}/.git:ro"
     -v "${NODE_MODULES_VOLUME}:${CONTAINER_WORKSPACE}/website/node_modules"
     -v "${NEXT_VOLUME}:${CONTAINER_WORKSPACE}/website/.next"
     -v "${YARN_CACHE_VOLUME}:/home/node/.yarn/berry/cache"
   )
-  if [ -e "${CHECKOUT}/.claude" ]; then
-    mount_flags+=(-v "${CHECKOUT}/.claude:${CONTAINER_WORKSPACE}/.claude:ro")
-  else
-    mount_flags+=(--mount "type=tmpfs,destination=${CONTAINER_WORKSPACE}/.claude,readonly")
-  fi
-
-  local entry name
-  while IFS= read -r -d '' entry; do
-    name="$(basename "${entry}")"
-    mount_flags+=(-v "${entry}:${CONTAINER_WORKSPACE}/${name}")
-  done < <(find "${CHECKOUT}" -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.claude' -print0)
 
   docker run -d \
     --name "${CONTAINER_NAME}" \
@@ -353,7 +335,7 @@ cmd_status() {
   docker ps -a --filter "name=^/hc-0-frontend-" --filter "name=^/hc-0-frontend$"
   echo
   echo "Volumes for ${CHECKOUT}:"
-  docker volume ls --filter "name=${NODE_MODULES_VOLUME}" --filter "name=${NEXT_VOLUME}"
+  docker volume ls --filter "name=${NODE_MODULES_VOLUME}" --filter "name=${NEXT_VOLUME}" --filter "name=${YARN_CACHE_VOLUME}"
 }
 
 # Removes one volume if it exists, leaving a volume that was never created
@@ -369,12 +351,23 @@ purge_volume() {
 }
 
 cmd_down() {
-  require_docker
-
+  # Argument shape is checked before require_docker, so a bad invocation
+  # (wrong arg count, unknown option) exits 2 with usage even when the
+  # Docker daemon is unreachable.
   if [ "$#" -gt 1 ]; then
     echo "error: 'down' takes at most one argument (--purge or --all)" >&2
     exit 2
   fi
+
+  case "${1:-}" in
+    "" | --purge | --all) : ;;
+    *)
+      echo "error: unknown down option '$1'" >&2
+      exit 2
+      ;;
+  esac
+
+  require_docker
 
   case "${1:-}" in
     "")
@@ -396,10 +389,6 @@ cmd_down() {
         docker rm -f "${name}" >/dev/null 2>&1 || true
         echo "==> ${name} stopped and removed"
       done
-      ;;
-    *)
-      echo "error: unknown down option '$1'" >&2
-      exit 2
       ;;
   esac
 }
