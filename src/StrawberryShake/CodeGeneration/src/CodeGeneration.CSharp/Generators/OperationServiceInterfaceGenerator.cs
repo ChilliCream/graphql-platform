@@ -34,19 +34,18 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
                             CodeGenerationResources.OperationServiceDescriptor_Description,
                             descriptor.Name))
                     .AddCode(descriptor.BodyString))
-            .AddImplements(TypeNames.IOperationRequestFactory)
             .SetName(fileName);
 
         var runtimeTypeName = descriptor.ResultTypeReference.GetRuntimeType().Name;
 
         if (descriptor is not SubscriptionOperationDescriptor)
         {
-            foreach (var method in CreateWitherMethods(descriptor))
-            {
-                interfaceBuilder.AddMethod(method);
-            }
+            interfaceBuilder.AddImplements(TypeNames.IOperationRequestFactory.WithGeneric(descriptor.InterfaceType));
 
             interfaceBuilder.AddMethod(CreateExecuteMethod(descriptor, runtimeTypeName));
+        } else
+        {
+            interfaceBuilder.AddImplements(TypeNames.IOperationRequestFactory);
         }
 
         interfaceBuilder.AddMethod(CreateWatchMethod(descriptor, runtimeTypeName));
@@ -109,45 +108,5 @@ public class OperationServiceInterfaceGenerator : ClassBaseGenerator<OperationDe
             .SetDefault();
 
         return executeMethod;
-    }
-
-    private static IEnumerable<MethodBuilder> CreateWitherMethods(
-        OperationDescriptor operationDescriptor)
-    {
-        var withMethod = MethodBuilder
-            .New()
-            .SetOnlyDeclaration()
-            .SetReturnType(operationDescriptor.InterfaceType.ToString())
-            .SetName("With");
-
-        withMethod
-            .AddParameter("configure")
-            .SetType("global::System.Action<global::StrawberryShake.OperationRequest>");
-
-        yield return withMethod;
-
-        var withRequestUriMethod = MethodBuilder
-            .New()
-            .SetOnlyDeclaration()
-            .SetReturnType(operationDescriptor.InterfaceType.ToString())
-            .SetName("WithRequestUri");
-
-        withRequestUriMethod
-            .AddParameter("requestUri")
-            .SetType(TypeNames.Uri);
-
-        yield return withRequestUriMethod;
-
-        var withHttpClientMethod = MethodBuilder
-            .New()
-            .SetOnlyDeclaration()
-            .SetReturnType(operationDescriptor.InterfaceType.ToString())
-            .SetName("WithHttpClient");
-
-        withHttpClientMethod
-            .AddParameter("httpClient")
-            .SetType("global::System.Net.Http.HttpClient");
-
-        yield return withHttpClientMethod;
     }
 }
