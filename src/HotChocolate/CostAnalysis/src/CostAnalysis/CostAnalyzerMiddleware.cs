@@ -29,6 +29,16 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
+        // A request-level override only ever replaces a limit the schema already enforces
+        // (in either direction). If the schema never enabled the response-size analysis,
+        // honoring the override would silently promise a check that never runs, so this
+        // fails fast instead (2026-09-15 user ruling).
+        if (requestOptions.MaxResponseSize.HasValue && !options.MaxResponseSize.HasValue)
+        {
+            context.Result = ErrorHelper.ResponseSizeAnalysisNotEnabled();
+            return;
+        }
+
         if (!context.TryGetOperation(out var operation)
             || !context.TryGetOperationDocument(out var document, out var documentId)
             || documentId.IsEmpty)

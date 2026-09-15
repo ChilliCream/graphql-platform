@@ -36,4 +36,7 @@
   <data name="ErrorHelper_StateInvalidForCostAnalysisMissingVariableValues" xml:space="preserve">
     <value>The cost analysis requires at least one coerced variable value set.</value>
   </data>
+  <data name="ErrorHelper_ResponseSizeAnalysisNotEnabled" xml:space="preserve">
+    <value>The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.</value>
+  </data>
 </root>

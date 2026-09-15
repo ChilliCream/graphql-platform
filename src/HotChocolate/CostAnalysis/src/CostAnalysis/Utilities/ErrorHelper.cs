@@ -81,6 +81,14 @@ internal static class ErrorHelper
                 .Build(),
             null);
 
+    public static IExecutionResult ResponseSizeAnalysisNotEnabled()
+        => ResultHelper.CreateError(
+            ErrorBuilder.New()
+                .SetMessage(CostAnalysisResources.ErrorHelper_ResponseSizeAnalysisNotEnabled)
+                .SetCode(ErrorCodes.Execution.ResponseSizeAnalysisNotEnabled)
+                .Build(),
+            null);
+
     public static IError ExactlyOneSlicingArgMustBeDefined(
         FieldNode fieldNode,
         IList<ISyntaxNode> path)
