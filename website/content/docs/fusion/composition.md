@@ -122,7 +122,7 @@ var options = new SchemaComposerOptions
 };
 ```
 
-When set, composition writes the value onto the execution schema with a schema-level `@fusion__cost_options(defaultListSize:)` directive, and folds it into a serving source's effective `assumedSize` wherever a source contributes to a field without declaring its own size, so the public `@listSize` reflects the higher, sound bound. When absent (the default), no `@fusion__cost_options` usage is emitted and the gateway treats an unannotated list as unbounded.
+When set, composition writes the value onto the execution schema with a schema-level `@fusion__cost_options(defaultListSize:)` directive, and folds it into the effective `assumedSize` of a field for which at least one serving source declares a `@listSize`, so the public `@listSize` reflects the higher, sound bound. For a field no source annotates, composition emits no `@listSize` and the gateway applies the value directly from `@fusion__cost_options`. When absent (the default), no `@fusion__cost_options` usage is emitted and the gateway treats an unannotated list as unbounded.
 
 See [Cost Analysis](./cost-analysis.md) for gateway enforcement, reporting, and options.
 
