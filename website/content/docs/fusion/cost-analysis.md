@@ -42,7 +42,7 @@ Send the `GraphQL-Cost` HTTP request header to obtain cost metrics:
 | `report`     | Yes       | Evaluated cost for the supplied variables. |
 | `validate`   | No        | Evaluated cost for the supplied variables. |
 
-`validate` requires the variables the operation declares, exactly like `execute` and `report`. Without them, the request fails with the ordinary variable coercion error; the static bound is not exposed through the request pipeline. With variables, `validate` returns an extensions-only response with HTTP status `200`, including when the reported values exceed configured limits. A variable batch returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in `report` mode also includes one `operationCost` per result.
+`validate` requires the variables the operation declares, exactly like `execute` and `report`. Without them, the request fails with the ordinary variable coercion error; the assumed bound is not exposed through the request pipeline. With variables, `validate` returns an extensions-only response with HTTP status `200`, including when the reported values exceed configured limits. A variable batch returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in `report` mode also includes one `operationCost` per result.
 
 ```json
 {
@@ -147,7 +147,7 @@ An unannotated list falls through to `DefaultListSize`. With the default `Infini
 
 # Accessing the Analysis Result
 
-`RequestContext.TryGetCostAnalysisResult` provides the compiled `CostPlan`, every estimate for the request, and whether the estimates are a static bound. Read the result after the cost middleware has completed:
+`RequestContext.TryGetCostAnalysisResult` provides the compiled `CostPlan`, every estimate for the request, and whether the estimates are the assumed bound (warmup requests). Read the result after the cost middleware has completed:
 
 ```csharp
 builder.Services
@@ -161,7 +161,7 @@ builder.Services
             {
                 CostPlan plan = result.Plan;
                 IReadOnlyList<CostEstimate> estimates = result.Estimates;
-                bool isStaticBound = result.IsStaticBound;
+                bool isAssumedBound = result.IsAssumedBound;
             }
         },
         key: "ReadCostAnalysisResult",
