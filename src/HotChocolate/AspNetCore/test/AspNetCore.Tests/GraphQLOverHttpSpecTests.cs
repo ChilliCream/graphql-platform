@@ -606,6 +606,26 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 """);
     }
 
+    [Theory]
+    [InlineData("application/json-patch+json")]
+    [InlineData("multipart/form-data-extended")]
+    public async Task Post_Should_NotExecuteRequest_When_ContentTypeOnlySharesAPrefix(string contentType)
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent("""{"query":"{ __typename }"}""");
+        request.Content.Headers.Remove("Content-Type");
+        request.Content.Headers.TryAddWithoutValidation("Content-Type", contentType);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotFound, response.StatusCode);
+    }
+
     [Fact]
     public async Task Get_Should_ReturnAllowHeader_When_OperationKindIsNotAllowed()
     {
