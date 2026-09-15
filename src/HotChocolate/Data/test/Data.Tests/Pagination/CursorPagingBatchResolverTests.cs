@@ -238,9 +238,9 @@ public class CursorPagingBatchResolverTests
     // when the overflow selections still differ by includeTotalCount and when totalCount itself is
     // disabled (IncludeTotalCount=false), where the count flag stops driving dispatch grouping
     // entirely and same-shape sets coalesce. The declaration-style-observable arm of this contract
-    // (padding: 0, set reversal proving order-independent selection reuse) migrated to the matrix as
-    // CursorPagingBatchTests/OffsetPagingBatchTests.UsePaging(Should)_ReuseCompiledSelection_When_VariableSetsAreReversed
-    // (hc-0-1aa.10).
+    // (padding: 0, set reversal proving order-independent selection reuse) migrated to the matrix,
+    // as UsePaging/UseOffsetPaging_Should_ReuseCompiledSelection_When_VariableSetsAreReversed on
+    // CursorPagingBatchTests/OffsetPagingBatchTests (hc-0-1aa.10).
     [Theory]
     [InlineData(128, true)]
     [InlineData(128, false)]

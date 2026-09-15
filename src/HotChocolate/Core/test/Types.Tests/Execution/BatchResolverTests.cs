@@ -1848,7 +1848,8 @@ public class BatchResolverTests
         }
 
         [BatchResolver]
-        public async ValueTask<IReadOnlyList<string?>?> GetValueTaskValue([Parent] ImmutableArray<BatchDistributionUser> users)
+        public async ValueTask<IReadOnlyList<string?>?> GetValueTaskValue(
+            [Parent] ImmutableArray<BatchDistributionUser> users)
         {
             await Task.Yield();
             return GetValue(users.ToList());
