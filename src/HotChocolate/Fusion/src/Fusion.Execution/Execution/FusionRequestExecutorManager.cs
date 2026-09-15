@@ -421,9 +421,12 @@ internal sealed class FusionRequestExecutorManager
             static sp =>
             {
                 var cost = sp.GetRequiredService<FusionRequestOptions>().Cost;
+                var schema = sp.GetRequiredService<FusionSchemaDefinition>();
                 var engineOptions = new CostEngineOptions
                 {
-                    DefaultListSize = cost.DefaultListSize
+                    DefaultListSize = schema.DefaultListSize is { } defaultListSize
+                        ? defaultListSize
+                        : double.PositiveInfinity
                 };
 
                 if (cost.CaseBudget is { } caseBudget)
