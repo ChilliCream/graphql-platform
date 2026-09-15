@@ -104,6 +104,88 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
     }
 
     [Fact]
+    public void Compose_Should_Fail_When_SlicingArgumentsIsBareInt()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    $$"""
+                    type Query {
+                        field: [Int] @listSize(slicingArguments: 1)
+                    }
+
+                    {{s_listSizeDirective}}
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The argument 'slicingArguments' of the @listSize directive on field 'Query.field' in schema 'A' has an invalid value (1).",
+                "code": "INVALID_GRAPHQL",
+                "severity": "Error",
+                "coordinate": "Query.field",
+                "member": "field",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
+    public void Compose_Should_Fail_When_SlicingArgumentsListHasIntItem()
+    {
+        // arrange
+        var log = new CompositionLog();
+        var composer = new SchemaComposer(
+            [
+                new SourceSchemaText(
+                    "A",
+                    $$"""
+                    type Query {
+                        field: [Int] @listSize(slicingArguments: ["first", 1])
+                    }
+
+                    {{s_listSizeDirective}}
+                    """)
+            ],
+            new SchemaComposerOptions(),
+            log);
+
+        // act
+        var result = composer.Compose();
+
+        // assert
+        Assert.True(result.IsFailure);
+        log.Select(e => e.ToString()).MatchInlineSnapshots(
+        [
+            """
+            {
+                "message": "The argument 'slicingArguments' of the @listSize directive on field 'Query.field' in schema 'A' has an invalid value ([\"first\", 1]).",
+                "code": "INVALID_GRAPHQL",
+                "severity": "Error",
+                "coordinate": "Query.field",
+                "member": "field",
+                "schema": "A",
+                "extensions": {}
+            }
+            """
+        ]);
+    }
+
+    [Fact]
     public void Merge_Should_PreserveZero_When_ListSizeArgumentsAreZero()
     {
         AssertMatches(
@@ -320,6 +402,39 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
             modifySchema: s_removeListSizeDirective);
     }
 
+    // A single value in a list position is coerced to a one-element list (GraphQL list input
+    // coercion), so a singleton string is a valid shorthand for slicingArguments. The public
+    // directive reports the coerced list; the @fusion__listSize provenance entry echoes the
+    // source's own usage verbatim, as it does for every other argument shape.
+    [Fact]
+    public void Merge_ListSizeDirectiveSlicingArgumentsSingleton_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Query {
+                    field: [Int] @listSize(slicingArguments: "first")
+                }
+
+                {{s_listSizeDirective}}
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              field: [Int]
+                @listSize(slicingArguments: ["first"])
+                @fusion__field(schema: A)
+                @fusion__listSize(schema: A, slicingArguments: "first")
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
     // Merge the union of sized fields.
     [Fact]
     public void Merge_ListSizeDirectivesUnionSizedFields_MatchesSnapshot()
@@ -371,6 +486,39 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
                 @fusion__field(schema: B)
                 @fusion__listSize(schema: A, sizedFields: ["edges", "nodes"])
                 @fusion__listSize(schema: B, sizedFields: ["edges", "nodes", "another"])
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    // A single value in a list position is coerced to a one-element list (GraphQL list input
+    // coercion), so a singleton string is a valid shorthand for sizedFields. The public directive
+    // reports the coerced list; the @fusion__listSize provenance entry echoes the source's own
+    // usage verbatim, as it does for every other argument shape.
+    [Fact]
+    public void Merge_ListSizeDirectiveSizedFieldsSingleton_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A
+                type Query {
+                    field: [Int] @listSize(sizedFields: "edges")
+                }
+
+                {{s_listSizeDirective}}
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) {
+              field: [Int]
+                @listSize(sizedFields: ["edges"])
+                @fusion__field(schema: A)
+                @fusion__listSize(schema: A, sizedFields: "edges")
             }
             """,
             modifySchema: s_removeListSizeDirective);
