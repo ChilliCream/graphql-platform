@@ -36,7 +36,7 @@ internal static class ListSizeResolver
     /// </param>
     /// <param name="variableValues">
     /// Resolves a slicing argument's coerced variable value, or
-    /// <see langword="null"/> for the static bound, where a variable-bound
+    /// <see langword="null"/> for the assumed bound, where a variable-bound
     /// slicing argument reads its <c>assumedSize</c>, else the default list
     /// size, instead of being coerced.
     /// </param>
@@ -127,13 +127,13 @@ internal static class ListSizeResolver
     /// </param>
     /// <param name="variableValues">
     /// Resolves a slicing argument's coerced variable value, or
-    /// <see langword="null"/> for the static bound, where a variable-bound
+    /// <see langword="null"/> for the assumed bound, where a variable-bound
     /// slicing argument reads <see cref="ListSizeMetadata.AssumedSize"/> then
     /// <paramref name="defaultListSize"/>, matching <see cref="Resolve"/>.
     /// </param>
     /// <param name="defaultListSize">
     /// The engine's fallback list size, read by a variable-bound slicing
-    /// argument on the static path when <see cref="ListSizeMetadata.AssumedSize"/>
+    /// argument on the assumed path when <see cref="ListSizeMetadata.AssumedSize"/>
     /// is absent, same as <see cref="Resolve"/>.
     /// </param>
     /// <param name="size">

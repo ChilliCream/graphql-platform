@@ -9,7 +9,7 @@ namespace HotChocolate.CostAnalysis;
 public sealed class CostPlan
 {
     private readonly PlanNode _root;
-    private readonly CostEstimate _staticBound;
+    private readonly CostEstimate _assumedBound;
     private readonly CostAnalyses _analyses;
     private readonly bool _hitCaseBudget;
 
@@ -21,7 +21,7 @@ public sealed class CostPlan
         _root = root;
         _analyses = analyses;
         _hitCaseBudget = hitCaseBudget;
-        _staticBound = root.Evaluate(variableValues: null);
+        _assumedBound = root.Evaluate(variableValues: null);
     }
 
     /// <summary>
@@ -59,11 +59,14 @@ public sealed class CostPlan
     }
 
     /// <summary>
-    /// Evaluates this plan's worst-case bound without coerced variable
-    /// values.
+    /// Evaluates the plan under the schema's assumptions: variable-bound
+    /// slicing arguments resolve to <c>assumedSize</c> (else the default
+    /// list size), Boolean variables to the more expensive branch, and
+    /// variable-supplied input lists to one element. A request's evaluated
+    /// cost can exceed this value.
     /// </summary>
     /// <returns>
-    /// The static bound.
+    /// The assumed bound.
     /// </returns>
-    public CostEstimate EvaluateStaticBound() => _staticBound;
+    public CostEstimate EvaluateAssumedBound() => _assumedBound;
 }
