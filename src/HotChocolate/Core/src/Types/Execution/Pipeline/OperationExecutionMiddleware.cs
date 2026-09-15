@@ -51,15 +51,18 @@ internal sealed class OperationExecutionMiddleware
 
         if (context.TryGetOperation(out var operation) && context.VariableValues.Length > 0)
         {
-            if (!IsOperationKindAllowed(operation, context.Request))
-            {
-                context.Result = ErrorHelper.OperationKindNotAllowed();
-                return;
-            }
-
+            // The incremental delivery constraint comes from the accepted response content types
+            // alone, so no change of request method can resolve it. It is evaluated first so that
+            // its 406 wins over the 405 an operation kind refusal would otherwise produce.
             if (!IsIncrementalDeliveryAllowed(operation, context.Request))
             {
                 context.Result = ErrorHelper.IncrementalDeliveryNotAcceptable();
+                return;
+            }
+
+            if (!IsOperationKindAllowed(operation, context.Request))
+            {
+                context.Result = ErrorHelper.OperationKindNotAllowed(GetRequiredFlag(operation));
                 return;
             }
 
@@ -332,14 +335,24 @@ internal sealed class OperationExecutionMiddleware
             return true;
         }
 
-        return operation.Definition.Operation switch
-        {
-            OperationType.Query => (request.Flags & AllowQuery) == AllowQuery,
-            OperationType.Mutation => (request.Flags & AllowMutation) == AllowMutation,
-            OperationType.Subscription => (request.Flags & AllowSubscription) == AllowSubscription,
-            _ => true
-        };
+        var requiredFlag = GetRequiredFlag(operation);
+
+        return requiredFlag is None || (request.Flags & requiredFlag) == requiredFlag;
     }
+
+    /// <summary>
+    /// Translates an operation kind into the <see cref="RequestFlags"/> value that permits it.
+    /// This is the only place the two vocabularies meet, so a refusal is reported as the flag the
+    /// operation required rather than as its kind.
+    /// </summary>
+    private static RequestFlags GetRequiredFlag(Operation operation)
+        => operation.Definition.Operation switch
+        {
+            OperationType.Query => AllowQuery,
+            OperationType.Mutation => AllowMutation,
+            OperationType.Subscription => AllowSubscription,
+            _ => None
+        };
 
     // AllowStreams is granted by the accepted response content types alone, so a refusal here
     // is a content negotiation failure rather than one the request method can resolve.

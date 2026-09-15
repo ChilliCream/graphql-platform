@@ -216,7 +216,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             await FormatInternalAsync(
                 response,
                 result,
-                proposedStatusCode,
+                ProposeStatusCodeForRefusedOperationKind(result, acceptMediaTypes, proposedStatusCode),
                 format,
                 selectedAcceptMediaType,
                 cancellationToken);
@@ -225,6 +225,31 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             // if the request is aborted, we will fail gracefully.
         }
+    }
+
+    /// <summary>
+    /// Resolves the status code for an operation kind the executor refused. RFC 9110, section
+    /// 15.5.6 scopes a 405 to a method the target resource does not support, so a refusal no
+    /// change of method can resolve is a 406 instead. An operation kind the client's own
+    /// <c>Accept</c> header never granted is such a refusal, because every other method carries
+    /// the same header and is refused alike.
+    /// </summary>
+    private HttpStatusCode? ProposeStatusCodeForRefusedOperationKind(
+        IExecutionResult result,
+        AcceptMediaType[] acceptMediaTypes,
+        HttpStatusCode? proposedStatusCode)
+    {
+        if (proposedStatusCode.HasValue
+            || result.ContextData is not { } contextData
+            || !contextData.TryGetValue(ExecutionContextData.OperationNotAllowed, out var value)
+            || value is not RequestFlags requiredFlag)
+        {
+            return proposedStatusCode;
+        }
+
+        return (CreateRequestFlags(acceptMediaTypes) & requiredFlag) == requiredFlag
+            ? proposedStatusCode
+            : HttpStatusCode.NotAcceptable;
     }
 
     private async ValueTask FormatInternalAsync(

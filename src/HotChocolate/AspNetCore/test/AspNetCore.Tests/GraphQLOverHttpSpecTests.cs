@@ -785,6 +785,49 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(["POST"], response.Content.Headers.Allow);
     }
 
+    [Fact]
+    public async Task Get_Should_NotAdvertiseAllow_When_PostCannotServeTheOperationKind()
+    {
+        // arrange
+        var client = GetClient(Latest);
+        var query = Uri.EscapeDataString("subscription { delay(count: 2, delay: 15000) }");
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri($"{s_url}?query={query}"));
+        AddAcceptHeader(request, ContentType.GraphQLResponse);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotAcceptable, response.StatusCode);
+        Assert.Empty(response.Content.Headers.Allow);
+    }
+
+    [Fact]
+    public async Task Get_Should_ReturnNotAcceptable_When_DeferredMutationIsNotStreamable()
+    {
+        // arrange
+        var client = GetClient(Latest);
+        var query = Uri.EscapeDataString(
+            """
+            mutation {
+                createReview(episode: NEW_HOPE, review: { stars: 5, commentary: "good" }) {
+                    ... @defer { commentary }
+                }
+            }
+            """);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri($"{s_url}?query={query}"));
+        AddAcceptHeader(request, ContentType.GraphQLResponse);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotAcceptable, response.StatusCode);
+        Assert.Empty(response.Content.Headers.Allow);
+    }
+
     // Content suppression for HEAD is the HTTP server's responsibility and TestServer,
     // unlike Kestrel, does not emulate it, so only the status and headers are compared.
     [Fact]
