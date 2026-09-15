@@ -15,10 +15,10 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    1,
                     """
                     type Query {
                         field: String
@@ -81,10 +81,10 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    1,
                     """
                     type Query {
                         field: String
@@ -150,10 +150,10 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    1,
                     """
                     schema @optInFeatureStability(feature: "experimental", stability: "EXPERIMENTAL") {
                         query: Query
@@ -409,10 +409,10 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    1,
                     """
                     type Query {
                         field: String
@@ -483,10 +483,10 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    1,
                     """
                     type Query {
                         hero: Episode
@@ -557,10 +557,10 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    1,
                     """
                     type Query {
                         field(input: ExampleInput): String
@@ -631,10 +631,10 @@ public sealed class OptInFeaturesIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    1,
                     """
                     type Query {
                         field(

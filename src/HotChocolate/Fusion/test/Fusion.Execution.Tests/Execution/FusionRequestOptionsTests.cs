@@ -21,7 +21,6 @@ public class FusionRequestOptionsTests : FusionTestBase
               "EnforceCostLimits": true,
               "SkipAnalyzer": false,
               "MaxResponseSize": null,
-              "DefaultListSize": "Infinity",
               "CostPlanCacheSize": 256,
               "CaseBudget": null
             }
@@ -37,7 +36,6 @@ public class FusionRequestOptionsTests : FusionTestBase
         options.Cost.MaxTypeCost = 750;
         options.Cost.EnforceCostLimits = false;
         options.Cost.MaxResponseSize = 2_000;
-        options.Cost.DefaultListSize = 10;
         options.Cost.CostPlanCacheSize = 64;
         options.Cost.CaseBudget = 128;
 
@@ -56,7 +54,6 @@ public class FusionRequestOptionsTests : FusionTestBase
               "EnforceCostLimits": false,
               "SkipAnalyzer": false,
               "MaxResponseSize": 2000.0,
-              "DefaultListSize": 10.0,
               "CostPlanCacheSize": 64,
               "CaseBudget": 128
             }
@@ -89,7 +86,6 @@ public class FusionRequestOptionsTests : FusionTestBase
         Assert.Throws<InvalidOperationException>(() => options.Cost.MaxFieldCost = double.NaN);
         Assert.Throws<InvalidOperationException>(() => options.Cost.MaxTypeCost = double.NaN);
         Assert.Throws<InvalidOperationException>(() => options.Cost.MaxResponseSize = double.NaN);
-        Assert.Throws<InvalidOperationException>(() => options.Cost.DefaultListSize = double.NaN);
     }
 
     [Fact]

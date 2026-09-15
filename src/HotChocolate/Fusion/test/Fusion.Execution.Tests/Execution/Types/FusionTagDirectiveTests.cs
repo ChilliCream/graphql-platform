@@ -218,7 +218,6 @@ public sealed class FusionTagDirectiveTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(t => t.EnableOptInFeatures = enableOptInFeatures)
             .AddInMemoryConfiguration(ComposeSchemaDocument())
             .UseDefaultPipeline();
@@ -350,7 +349,13 @@ public sealed class FusionTagDirectiveTests : FusionTestBase
     {
         var sourceSchemas = new[] { new SourceSchemaText("a", SourceSchema) };
         var compositionLog = new CompositionLog();
-        var composerOptions = new SchemaComposerOptions();
+        var composerOptions = new SchemaComposerOptions
+        {
+            Merger =
+            {
+                DefaultListSize = 1
+            }
+        };
 
         if (tagMergeBehavior is { } value)
         {

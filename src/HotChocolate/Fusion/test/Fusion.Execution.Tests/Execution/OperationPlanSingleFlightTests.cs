@@ -235,7 +235,6 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             .UseDefaultPipeline()
             .ModifyCostOptions(options =>
             {
-                options.DefaultListSize = 1;
                 options.MaxFieldCost = double.PositiveInfinity;
                 options.MaxTypeCost = 10;
             })
@@ -256,7 +255,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
                 (_, _) => CreatePlanCaptureMiddleware(acceptedPlans),
                 before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                 allowMultiple: true)
-            .AddInMemoryConfiguration(ComposeSchemaDocument(VariableCostSchema))
+            .AddInMemoryConfiguration(ComposeSchemaDocument(1, VariableCostSchema))
             .Services
             .BuildServiceProvider()
             .GetRequestExecutorAsync(cancellationToken: cts.Token);

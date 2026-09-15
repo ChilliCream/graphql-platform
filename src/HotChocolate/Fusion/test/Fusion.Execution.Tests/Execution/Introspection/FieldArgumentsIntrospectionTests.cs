@@ -16,9 +16,9 @@ public sealed class FieldArgumentsIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    1,
                     """
                     type Query {
                         field(
