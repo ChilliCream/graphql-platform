@@ -232,6 +232,39 @@ public class CursorPagingBatchResolverTests
             .MatchMarkdownSnapshot();
     }
 
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(128, true)]
+    [InlineData(128, false)]
+    public async Task UsePaging_Should_EvaluateCountFlags_When_CompiledSelectionIsReused(
+        int padding, bool includeTotalCount)
+    {
+        // arrange
+        var log = new PagingBatchTestLog();
+        var executor = await PagingBatchTestLog.CreateExecutor(false,
+            new PagingOptions { IncludeTotalCount = includeTotalCount }, log);
+        var (document, sets) = PagingBatchTestLog.CountRequest(false, padding, includeTotalCount);
+
+        // act
+        await using var result = await executor.ExecuteAsync(OperationRequestBuilder.New()
+            .SetDocument(document).SetVariableValues(sets).Build(), TestContext.Current.CancellationToken);
+        sets.Reverse();
+        await using var reversed = await executor.ExecuteAsync(OperationRequestBuilder.New()
+            .SetDocument(document).SetVariableValues(sets).Build(), TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(includeTotalCount ? new[] { 1, 1, 1, 1 } : [2, 2], log.Batches.Select(b => b.Length));
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        var reverseBatch = Assert.IsType<OperationResultBatch>(reversed);
+        new Snapshot(postFix: $"{padding}_{includeTotalCount}")
+            .Add(batch.Results[0], "Without count")
+            .Add(batch.Results[1], "With count")
+            .Add(reverseBatch.Results[0], "Reused selection with count")
+            .Add(reverseBatch.Results[1], "Reused selection without count")
+            .Add(log.Batches, "Resolver batches")
+            .MatchMarkdownSnapshot();
+    }
+
     [Fact]
     public async Task UsePaging_Should_SeparateAliases_When_PlainListBatchResolverHasIdenticalArgs()
     {
