@@ -61,6 +61,10 @@ internal sealed class ExecuteHttpRequestSpan(
         return new ExecuteHttpRequestSpan(activity, httpContext, kind, enricher, options);
     }
 
+    public bool IsBatch { get; private set; }
+
+    public void MarkAsBatch() => IsBatch = true;
+
     public void SetSingleRequestDetails(GraphQLRequest request)
     {
         Activity.SetTag(GraphQL.Http.Request.Type, GraphQL.Http.Request.Types.Single);
@@ -122,13 +126,13 @@ internal sealed class ExecuteHttpRequestSpan(
             if (request.DocumentId is not null
                 && (options.RequestDetails & RequestDetails.Id) == RequestDetails.Id)
             {
-                Activity.SetTag(GraphQL.Http.Request.BatchRequest.QueryId(i), request.DocumentId.Value);
+                Activity.SetTag(GraphQL.Http.Request.BatchRequest.QueryId(i), request.DocumentId.Value.Value);
             }
 
             if (request.DocumentHash is not null
                 && (options.RequestDetails & RequestDetails.Hash) == RequestDetails.Hash)
             {
-                Activity.SetTag(GraphQL.Http.Request.BatchRequest.QueryHash(i), request.DocumentHash.Value);
+                Activity.SetTag(GraphQL.Http.Request.BatchRequest.QueryHash(i), request.DocumentHash.Value.Value);
             }
 
             if (request.Document is not null

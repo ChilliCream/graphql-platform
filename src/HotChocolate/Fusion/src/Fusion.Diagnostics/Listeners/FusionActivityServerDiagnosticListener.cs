@@ -44,8 +44,14 @@ internal sealed class FusionActivityServerDiagnosticListener(
 
     public override void StartBatchRequest(HttpContext context, IReadOnlyList<GraphQLRequest> batch)
     {
-        if (options.IncludeRequestDetails
-            && context.Features.Get<ExecuteHttpRequestSpan>() is { } span)
+        if (context.Features.Get<ExecuteHttpRequestSpan>() is not { } span)
+        {
+            return;
+        }
+
+        span.MarkAsBatch();
+
+        if (options.IncludeRequestDetails)
         {
             span.SetBatchRequestDetails(batch);
         }
@@ -56,8 +62,14 @@ internal sealed class FusionActivityServerDiagnosticListener(
         GraphQLRequest request,
         IReadOnlyList<string> operations)
     {
-        if (options.IncludeRequestDetails
-            && context.Features.Get<ExecuteHttpRequestSpan>() is { } span)
+        if (context.Features.Get<ExecuteHttpRequestSpan>() is not { } span)
+        {
+            return;
+        }
+
+        span.MarkAsBatch();
+
+        if (options.IncludeRequestDetails)
         {
             span.SetOperationBatchRequestDetails(request, operations);
         }
