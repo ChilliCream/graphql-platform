@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
+using EmptyServiceProvider = HotChocolate.Utilities.EmptyServiceProvider;
 using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Descriptors;

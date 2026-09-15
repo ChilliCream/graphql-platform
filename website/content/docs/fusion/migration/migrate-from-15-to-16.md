@@ -962,6 +962,32 @@ The v15 gateway forwarded every subgraph error. The v16 gateway only forwards er
 
 Update affected subgraphs as described in [GraphQL errors](#graphql-errors).
 
+### Generated subgraph operation names changed
+
+The gateway names every operation it sends to a source schema, and that name is what a subgraph records in its own logs and traces. In v15 the name was the client operation name followed by a counter that incremented once per subgraph request:
+
+```text
+GetProductReviews_1
+```
+
+In v16 the name carries a short hash of the client operation document, and the trailing number is the planner's step ID rather than a counter:
+
+```text
+GetProductReviews_94a407d5_1
+```
+
+The short hash is the first eight characters of the client operation document hash, which is MD5 in hex by default and therefore changes if you configure a different [document hash provider](#document-hash-provider-configuration). Characters that a GraphQL name cannot hold are rendered as underscores, so a hash in URL-safe Base64 has each `-` replaced in the name while the hash itself is unchanged. One request has one short hash, shared by every step of its main operation. When the client sends the document as source text, the hash is computed over those bytes as received rather than over a normalized form, so whitespace and comments change it. A request that carries a document ID or its own hash, such as a persisted operation, reuses the stored or supplied value instead.
+
+The step ID is assigned by the operation planner and is also the ID of the step in the operation plan, so a subgraph log line points back at the exact plan step that issued it. Because the planner assigns IDs over the plan it selects, a composition change can renumber the steps even when the client document is unchanged.
+
+Three further shapes replace their v15 equivalents:
+
+- An anonymous client operation produces `Op_<shortHash>_<stepId>` instead of v15's `fetch_<rootFieldNames>_<counter>`.
+- An incremental plan produced by `@defer` uses the literal `defer` in place of the short hash, for example `Op_defer_1`.
+- With subgraph alias batching enabled, the merged operation is named `<name>_<shortHash>_Batch_<compositionHash>`, or `Op_<shortHash>_Batch_<compositionHash>` for an anonymous client operation, where the trailing 16 hex digits identify the composition of the batch.
+
+Update any subgraph log parsing, dashboard grouping, or alert that matched the v15 name shape.
+
 ## Noteworthy changes
 
 ### Concurrent execution gate
@@ -995,6 +1021,37 @@ gatewayBuilder
 -await app.RunWithGraphQLCommandsAsync(args);
 +return await app.RunWithGraphQLCommandsAsync(args);
 ```
+
+### OpenTelemetry instrumentation for the gateway
+
+v16 adds a `HotChocolate.Fusion.Diagnostics` package that instruments the gateway itself. It is not pulled in by `HotChocolate.Fusion.AspNetCore`, so add the reference explicitly:
+
+```xml
+<PackageReference Include="HotChocolate.Fusion.Diagnostics" Version="16.x.x" />
+```
+
+Then enable it on the gateway builder and register its activity source with OpenTelemetry:
+
+```csharp
+builder.Services
+    .AddGraphQLGatewayServer()
+    .AddInstrumentation();
+
+builder.Services
+    .AddOpenTelemetry()
+    .WithTracing(tracing => tracing.AddHotChocolateFusionInstrumentation());
+```
+
+Spans and attributes follow the same conventions as the Hot Chocolate server. If you instrumented the v15 gateway through the underlying request executor, review [OpenTelemetry span and status changes](../../hotchocolate/migrating/migrate-from-15-to-16.md#opentelemetry-span-and-status-changes) for the renamed spans and attributes before updating dashboards.
+
+Two spans carry the gateway attributes:
+
+| Span                         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GraphQL Operation Planning` | Covers planning the operation. Carries `graphql.processing.type=plan`.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `GraphQL Step Execution`     | One span per execution node. Carries `graphql.processing.type=step_execute`, `graphql.operation.step.id`, `graphql.operation.step.kind`, and `graphql.operation.step.plan.id`. A step that sends an operation or an operation batch to a source schema also carries `graphql.source_schema.name` plus either the `graphql.source_schema.operation.*` or the `graphql.source_schema.batch.*` attributes; event stream, introspection, and node steps carry none of them. |
+
+On a step that sends a single operation, `graphql.source_schema.operation.name` carries the generated operation name described in [Generated subgraph operation names changed](#generated-subgraph-operation-names-changed), which makes it the join key between a gateway trace and the matching subgraph log line. A native operation batch step does not carry it: those spans get `graphql.source_schema.batch.operation_count` instead, so join them on `graphql.source_schema.name` and the span timing. Alias batching needs the same treatment for a different reason: it merges the operations as it writes the request, after the span has recorded the plan's name, so the subgraph logs a `_Batch_<compositionHash>` name that the span does not have.
 
 # Aspire
 

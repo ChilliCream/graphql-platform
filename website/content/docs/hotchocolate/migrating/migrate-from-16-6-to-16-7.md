@@ -1,10 +1,30 @@
 ---
 title: Migrate Hot Chocolate from 16.6 to 16.7
 metaTitle: "Hot Chocolate 16.7 Migration Guide"
-description: "Migration guide for Hot Chocolate v16.6 to v16.7: update cost analysis and replace raw condition masks with ConditionFlags."
+description: "Migration guide for Hot Chocolate v16.6 to v16.7: update cost analysis, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, and configure wide operation limits."
 ---
 
 Update every `HotChocolate.*` package in the application to version 16.7 before applying these changes.
+
+# Breaking changes
+
+Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
+
+## IServerDiagnosticEvents gained a WebSocket connection initialization event
+
+`IServerDiagnosticEvents` has a new `WebSocketConnectionInitialized` member. It is raised once per WebSocket session, for both the `graphql-transport-ws` and the legacy `graphql-ws` protocol, after the client's connection initialization message has been accepted.
+
+Listeners that derive from `ServerDiagnosticEventListener` need no change, because the base class provides a virtual no-op. Types that implement `IServerDiagnosticEvents` directly have to implement the new member:
+
+```csharp
+public void WebSocketConnectionInitialized(
+    ISocketSession session,
+    IOperationMessagePayload connectionInitMessage)
+{
+}
+```
+
+The payload of `connectionInitMessage` is only valid for the duration of the call. Read out any value that is needed later inside the callback, for example onto `ISocketConnection.Features`.
 
 # Deprecations
 
