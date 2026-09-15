@@ -98,6 +98,9 @@ public sealed class SourceSchemaMergerCostInteropTests : SourceSchemaMergerTestB
 
     // A source schema that applies @listSize without declaring its own directive definition
     // composes without error: the canonical definition is injected and the usage folds normally.
+    // Schema B serves the field without any @listSize usage at all, and no default list size is
+    // configured (unbounded), so the sound bound is unbounded and the public directive omits
+    // assumedSize (R-COMPOSITION-WEIGHT-FOLD) while the provenance entry for A is unaffected.
     [Fact]
     public void Merge_ListSizeDirective_UndeclaredUsageComposesWithoutError_MatchesSnapshot()
     {
@@ -123,7 +126,7 @@ public sealed class SourceSchemaMergerCostInteropTests : SourceSchemaMergerTestB
 
             type Query @fusion__type(schema: A) @fusion__type(schema: B) {
               field: [Int]
-                @listSize(assumedSize: 5)
+                @listSize
                 @fusion__field(schema: A)
                 @fusion__field(schema: B)
                 @fusion__listSize(schema: A, assumedSize: 5)
