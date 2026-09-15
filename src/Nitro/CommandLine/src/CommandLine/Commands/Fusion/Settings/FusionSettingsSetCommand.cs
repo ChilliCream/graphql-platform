@@ -1,11 +1,13 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System.Globalization;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.Settings;
@@ -86,7 +88,12 @@ internal sealed class FusionSettingsSetCommand : Command
                 {
                     unsetDefaultListSize = true;
                 }
-                else if (!int.TryParse(settingValue, out var defaultListSize) || defaultListSize < 0)
+                else if (!int.TryParse(
+                        settingValue,
+                        NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,
+                        out var defaultListSize)
+                    || defaultListSize < 0)
                 {
                     throw new ExitException(
                         $"Expected a non-negative integer or 'null' for setting '{settingName}'.");
@@ -243,12 +250,20 @@ internal sealed class FusionSettingsSetCommand : Command
         FusionArchive archive,
         CancellationToken cancellationToken)
     {
-        using var existingSettingsJson = await archive.GetCompositionSettingsAsync(cancellationToken);
+        var compositionLog = new CompositionLog();
 
-        var existingSettings = existingSettingsJson is null
-            ? new CompositionSettings()
-            : existingSettingsJson.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
-                ?? new CompositionSettings();
+        // Reuse the same raw-JSON validation ComposeAsync applies when reading the persisted
+        // settings, so an already-invalid persisted defaultListSize is reported with the same
+        // message here, instead of throwing a JsonException out of a blind Deserialize below.
+        var (settingsRead, existingSettings) = await CompositionHelper.TryGetCompositionSettingsAsync(
+            archive,
+            compositionLog,
+            cancellationToken);
+
+        if (!settingsRead)
+        {
+            throw new ExitException(string.Join(Environment.NewLine, compositionLog.Select(e => e.Message)));
+        }
 
         existingSettings.Merger.DefaultListSize = null;
 

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
@@ -263,6 +264,12 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         "cacheControlMergeBehavior",
         "\"Ignore\"")]
     [InlineData(
+        "default-list-size",
+        "5",
+        "merger",
+        "defaultListSize",
+        "5")]
+    [InlineData(
         "enum-values-merge-behavior",
         "union",
         "merger",
@@ -404,6 +411,46 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
                         .GetProperty("defaultListSize")
                         .GetRawText());
             }
+        }
+        finally
+        {
+            File.Delete(archiveFile);
+        }
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReturnError_When_UnsettingAlreadyInvalidPersistedDefaultListSize()
+    {
+        var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        File.Copy(
+            Path.Combine(AppContext.BaseDirectory, "__resources__", "fusion-archives", "gateway.far"),
+            archiveFile);
+        SetupFile(archiveFile, new MemoryStream(File.ReadAllBytes(archiveFile)));
+
+        try
+        {
+            using (var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update))
+            {
+                using var invalidCompositionSettings =
+                    JsonDocument.Parse("""{ "merger": { "defaultListSize": 9999999999 } }""");
+                await archive.SetCompositionSettingsAsync(
+                    invalidCompositionSettings,
+                    TestContext.Current.CancellationToken);
+                await archive.CommitAsync(TestContext.Current.CancellationToken);
+            }
+
+            var result = await ExecuteCommandAsync(
+                "fusion",
+                "settings",
+                "set",
+                "default-list-size",
+                "null",
+                "--archive",
+                archiveFile);
+
+            result.AssertError(
+                "The 'defaultListSize' composition setting must be a non-negative integer "
+                + "no larger than 2147483647 (9999999999).");
         }
         finally
         {
