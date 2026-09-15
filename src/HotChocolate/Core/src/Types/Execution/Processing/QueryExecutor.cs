@@ -40,7 +40,7 @@ internal sealed class QueryExecutor
         // method returns the stream, so the deferred closure below seals the captured arena.
         var memory = operationContext.Memory;
 
-        var execution = scheduler.ExecuteAsync1();
+        var execution = scheduler.ExecuteAsync();
         await scheduler.WaitForCompletionAsync(branchId).ConfigureAwait(false);
         var initialResult = operationContext.BuildResult();
 
@@ -88,7 +88,7 @@ internal sealed class QueryExecutor
             operationContext.Result.Data.Data,
             scopedContext);
 
-        await operationContext.Scheduler.ExecuteAsync1().ConfigureAwait(false);
+        await operationContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
         var result = operationContext.BuildResult();
 
@@ -127,7 +127,7 @@ internal sealed class QueryExecutor
 
         FillSchedulerWithWork(parentContext, operationContexts, length);
 
-        await parentContext.Scheduler.ExecuteAsync1().ConfigureAwait(false);
+        await parentContext.Scheduler.ExecuteAsync().ConfigureAwait(false);
 
         for (var i = 0; i < length; ++i)
         {
@@ -151,7 +151,7 @@ internal sealed class QueryExecutor
 
         FillSchedulerWithWork(parentContext, operationContexts, length);
 
-        var execution = parentContext.Scheduler.ExecuteAsync1();
+        var execution = parentContext.Scheduler.ExecuteAsync();
 
         // capture the shared arena now: the request executor detaches it once we return the
         // streams, so the completing closure below seals the captured arena.

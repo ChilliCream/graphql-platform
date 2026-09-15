@@ -1,5 +1,6 @@
 using System.Text;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +10,66 @@ namespace HotChocolate.Execution.Processing;
 
 public class OperationCompilerTests
 {
+    [Theory]
+    [InlineData(true, "none")]
+    [InlineData(true, "field")]
+    [InlineData(true, "type")]
+    [InlineData(false, "none")]
+    [InlineData(false, "field")]
+    [InlineData(false, "type")]
+    public async Task Compile_Should_PreservePipelineAndArguments_When_OptimizerRewritesSelection(
+        bool batch,
+        string copy)
+    {
+        // arrange
+        var optimizer = new ResolverRewriteOptimizer(copy);
+        var executor = await new ServiceCollection().AddGraphQL()
+            .AddQueryType(d => d.Field("root").Resolve(new Bar()).UseOptimizer(optimizer))
+            .AddObjectType<Bar>(d =>
+            {
+                d.BindFieldsExplicitly();
+                var field = d.Field(t => t.Text)
+                    .Argument("input", a => a.Type<NonNullType<StringType>>());
+                if (batch)
+                {
+                    field.UseBatch(next => async contexts =>
+                    {
+                        await next(contexts);
+                        foreach (var context in contexts)
+                        {
+                            context.Result = $"wrapped({context.Result})";
+                        }
+                    });
+                    field.ResolveBatch(contexts => new ValueTask<IReadOnlyList<ResolverResult>>(
+                        contexts.Select(c => ResolverResult.Ok(c.ArgumentValue<string>("input"))).ToArray()));
+                }
+                else
+                {
+                    field.Resolve(c => c.ArgumentValue<string>("input"));
+                }
+            })
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var document = Utf8GraphQLParser.Parse("{ root { text(input: \"argument\") } }");
+
+        // act
+        var schema = (Schema)executor.Schema;
+        var operation = OperationCompiler.Compile("test", document, schema);
+        var selection = operation.GetSelectionSet(operation.RootSelectionSet.Selections[0]).Selections[0];
+        await using var result = await executor.ExecuteAsync(document.ToString(),
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        new Snapshot(postFix: batch ? "batch" : "regular")
+            .Add(new
+            {
+                PipelinePreserved = ReferenceEquals(selection.Field.BatchResolver, selection.BatchResolverPipeline),
+                selection.Strategy,
+                optimizer.RegularInvocations
+            }, "Compiled binding")
+            .Add(result, "Execution result")
+            .MatchMarkdownSnapshot();
+    }
+
     [Fact]
     public void Prepare_One_Field()
     {
@@ -1931,6 +1992,34 @@ public class OperationCompilerTests
                     resolverPipeline: bazPipeline);
 
                 context.AddSelection(compiledSelection);
+            }
+        }
+    }
+
+    private sealed class ResolverRewriteOptimizer(string copy) : ISelectionSetOptimizer
+    {
+        public int RegularInvocations { get; private set; }
+
+        public void OptimizeSelectionSet(SelectionSetOptimizerContext context)
+        {
+            foreach (var selection in context.Selections)
+            {
+                var next = selection.ResolverPipeline!;
+                context.SetResolver(selection, async resolverContext =>
+                {
+                    RegularInvocations++;
+                    await next(resolverContext);
+                    resolverContext.Result = $"wrapped({resolverContext.Result})";
+                });
+
+                if (copy == "field")
+                {
+                    context.ReplaceSelection(selection.WithField(selection.Field));
+                }
+                else if (copy == "type")
+                {
+                    context.ReplaceSelection(selection.WithType(selection.Type));
+                }
             }
         }
     }

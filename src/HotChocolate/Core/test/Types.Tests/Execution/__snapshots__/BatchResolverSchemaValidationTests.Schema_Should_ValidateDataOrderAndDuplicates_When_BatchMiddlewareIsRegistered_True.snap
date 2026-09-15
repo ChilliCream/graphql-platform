@@ -1,0 +1,14 @@
+[
+  {
+    "Code": "HC0050",
+    "Message": "The field `Query.value` declares the data middleware `UseSorting` more than once.",
+    "Extensions": {
+      "field": {
+        "OfDirective": false,
+        "Name": "Query",
+        "MemberName": "value",
+        "ArgumentName": null
+      }
+    }
+  }
+]

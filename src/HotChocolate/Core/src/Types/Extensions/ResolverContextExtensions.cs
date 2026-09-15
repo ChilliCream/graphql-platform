@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Security.Claims;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -8,6 +10,14 @@ namespace HotChocolate;
 
 public static class ResolverContextExtensions
 {
+    /// <summary>
+    /// Creates the selection parameter binding context for a nonempty resolver batch or partition.
+    /// Selections are included when included by any member.
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IResolverContext CreateBatchSelectionContext(ImmutableArray<IMiddlewareContext> contexts)
+        => BatchSelectionContext.Create(contexts);
+
     extension(IResolverContext context)
     {
         /// <summary>

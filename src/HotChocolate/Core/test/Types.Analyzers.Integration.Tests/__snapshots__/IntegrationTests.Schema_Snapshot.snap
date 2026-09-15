@@ -5,6 +5,8 @@ schema {
 }
 
 type Query {
+  validationMarker: String! @authorize(policy: "UNSELECTED", apply: VALIDATION)
+  authorizationNodeById(id: String!): BatchAuthorizationNode @cost(weight: "10")
   someBooks(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -223,6 +225,27 @@ type AuthorsEdge {
   node: Author!
 }
 
+type BatchAuthorizationNode {
+  id: String!
+}
+
+type BatchAuthorizationParent {
+  before: String @authorize(policy: "READ") @cost(weight: "10")
+  after: String
+    @authorize(policy: "READ", apply: AFTER_RESOLVER)
+    @cost(weight: "10")
+  validation: String
+    @authorize(policy: "READ", apply: VALIDATION)
+    @cost(weight: "10")
+  anonymous: BatchAuthorizationSecret @allowAnonymous @cost(weight: "10")
+  protected: BatchAuthorizationSecret @cost(weight: "10")
+  id: Int!
+}
+
+type BatchAuthorizationSecret @authorize(policy: "READ") {
+  id: Int!
+}
+
 type Book implements Product {
   batchGreeting: String! @cost(weight: "10")
   title: String!
@@ -271,6 +294,12 @@ type FavoriteBooksEdge {
   cursor: String!
   "The item at the end of the edge."
   node: Book!
+}
+
+type FormatterProduct {
+  externalId: ID! @cost(weight: "10")
+  relatedIds: [ID!]! @cost(weight: "10")
+  id: Int!
 }
 
 "A connection to a list of items."
@@ -413,6 +442,17 @@ type Television implements Product {
   kind: String!
 }
 
+type ValidationItem {
+  value: String! @cost(weight: "10")
+  keyed: String! @cost(weight: "10")
+  directive: String! @cost(weight: "10")
+  id: Int!
+}
+
+type ValidationMutation {
+  value: String! @cost(weight: "10")
+}
+
 type Zoo {
   propertyAnimals: AnimalKind!
   animals: AnimalKind!
@@ -456,6 +496,16 @@ enum AnimalKind {
   CAT
 }
 
+"Defines when a policy shall be executed."
+enum ApplyPolicy {
+  "Before the resolver was executed."
+  BEFORE_RESOLVER
+  "After the resolver was executed."
+  AFTER_RESOLVER
+  "The policy is applied in the validation step before the execution."
+  VALIDATION
+}
+
 enum FauxFlagsKind {
   FIRST
   SECOND
@@ -464,6 +514,18 @@ enum FauxFlagsKind {
 scalar Version
 
 scalar Version2
+
+directive @allowAnonymous repeatable on FIELD_DEFINITION
+
+"The authorize directive."
+directive @authorize(
+  "The name of the authorization policy that determines access to the annotated resource."
+  policy: String
+  "Roles that are allowed to access the annotated resource."
+  roles: [String!]
+  "Defines when the authorize directive shall be applied. By default the authorize directive is applied before the resolver is executed."
+  apply: ApplyPolicy! = BEFORE_RESOLVER
+) repeatable on OBJECT | FIELD_DEFINITION
 
 "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
 directive @cost(

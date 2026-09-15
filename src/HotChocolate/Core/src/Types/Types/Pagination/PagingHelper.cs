@@ -1,6 +1,11 @@
+using System.Buffers;
+using System.Buffers.Binary;
+using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Hashing;
 using System.Reflection;
+using System.Text;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Internal;
@@ -8,6 +13,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
 using HotChocolate.Utilities;
+using ConditionFlags = HotChocolate.Execution.ConditionFlags;
 using static HotChocolate.WellKnownMiddleware;
 
 namespace HotChocolate.Types.Pagination;
@@ -17,6 +23,12 @@ namespace HotChocolate.Types.Pagination;
 /// </summary>
 public static class PagingHelper
 {
+    private const int MaxStackallocPartitionKeySize = 256;
+    private const string FirstArgumentName = "first";
+    private const string AfterArgumentName = "after";
+    private const string LastArgumentName = "last";
+    private const string BeforeArgumentName = "before";
+
     internal static IObjectFieldDescriptor UsePaging(
         IObjectFieldDescriptor descriptor,
         Type? entityType,
@@ -26,9 +38,11 @@ public static class PagingHelper
         ArgumentNullException.ThrowIfNull(descriptor);
 
         FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: Paging);
+        BatchFieldMiddlewareConfiguration batchPlaceholder = new(_ => _ => default, key: Paging);
 
         var definition = descriptor.Extend().Configuration;
         definition.MiddlewareConfigurations.Add(placeholder);
+        definition.BatchMiddlewareConfigurations.Add(batchPlaceholder);
         definition.Tasks.Add(
             new OnCompleteTypeSystemConfigurationTask<ObjectFieldConfiguration>(
                 (c, d) => ApplyConfiguration(
@@ -38,7 +52,8 @@ public static class PagingHelper
                     options?.ProviderName,
                     resolvePagingProvider,
                     options,
-                    placeholder),
+                    placeholder,
+                    batchPlaceholder),
                 definition,
                 ApplyConfigurationOn.BeforeCompletion));
 
@@ -52,7 +67,8 @@ public static class PagingHelper
         string? name,
         GetPagingProvider resolvePagingProvider,
         PagingOptions? options,
-        FieldMiddlewareConfiguration placeholder)
+        FieldMiddlewareConfiguration placeholder,
+        BatchFieldMiddlewareConfiguration batchPlaceholder)
     {
         options = context.GetPagingOptions(options);
         entityType ??= context.GetType<IOutputType>(definition.Type!).ToRuntimeType();
@@ -63,9 +79,16 @@ public static class PagingHelper
         var pagingProvider = resolvePagingProvider(context.Services, source, name);
         var pagingHandler = pagingProvider.CreateHandler(source, options);
         var middleware = CreateMiddleware(pagingHandler);
+        var batchMiddleware = CreateBatchMiddleware(pagingHandler, source);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: Paging);
+
+        var batchIndex = definition.BatchMiddlewareConfigurations.IndexOf(batchPlaceholder);
+        definition.BatchMiddlewareConfigurations[batchIndex] = new(batchMiddleware, key: Paging);
+        definition.BatchPartitionKeyResolver ??= (definition.Flags & CoreFieldFlags.CollectionSegment) != 0
+            ? GetOffsetPagingBatchPartitionKey
+            : GetPagingBatchPartitionKey;
         definition.Features.Set(options);
     }
 
@@ -114,6 +137,269 @@ public static class PagingHelper
             var middleware = new PagingMiddleware(next, handler);
             return context => middleware.InvokeAsync(context);
         };
+
+    private static BatchFieldMiddleware CreateBatchMiddleware(IPagingHandler handler, IExtendedType sourceType)
+        => next => async contexts =>
+        {
+            foreach (var context in contexts)
+            {
+                if (HasErrorResult(context) || (context.IsResultModified && context.Result is null))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    handler.ValidateContext(context);
+                    handler.PublishPagingArguments(context);
+                }
+                catch (Exception ex)
+                {
+                    ReportPagingError(context, ex);
+                }
+            }
+
+            await next(contexts).ConfigureAwait(false);
+
+            foreach (var context in contexts)
+            {
+                if (HasErrorResult(context))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    if (context.Result is IFieldResult fieldResult)
+                    {
+                        context.Result = fieldResult.Value;
+                    }
+
+                    if (context.Result is { } source and not IPage
+                        && (sourceType.Type.IsInstanceOfType(source)
+                            || (sourceType.IsArrayOrList && source is IEnumerable or IExecutable)))
+                    {
+                        context.Result = await handler
+                            .SliceAsync(context, source)
+                            .ConfigureAwait(false);
+                    }
+
+                    var observers = context.GetLocalStateOrDefault(
+                        WellKnownContextData.PagingObserver,
+                        ImmutableArray<IPageObserver>.Empty);
+
+                    if (context.Result is IPage page)
+                    {
+                        foreach (var observer in observers)
+                        {
+                            page.Accept(observer);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ReportPagingError(context, ex);
+                }
+            }
+        };
+
+    private static bool HasErrorResult(IMiddlewareContext context)
+        => context.Result is IError or IEnumerable<IError> or IFieldResult { IsError: true }
+            || (context.HasErrors && context.Result is null);
+
+    internal static void ReportPagingError(IMiddlewareContext context, Exception exception)
+    {
+        if (exception is GraphQLException graphQLException)
+        {
+            foreach (var error in graphQLException.Errors)
+            {
+                context.ReportError(error.WithPath(context.Path));
+            }
+        }
+        else
+        {
+            context.ReportError(exception);
+        }
+
+        context.Result = null;
+    }
+
+    /// <summary>
+    /// Gets the default page size bounded by the maximum page size.
+    /// Unspecified sizes use the paging defaults.
+    /// </summary>
+    public static int GetEffectiveDefaultPageSize(PagingOptions options)
+        => Math.Min(
+            options.DefaultPageSize ?? PagingDefaults.DefaultPageSize,
+            options.MaxPageSize ?? PagingDefaults.MaxPageSize);
+
+    internal static ulong GetPagingBatchPartitionKey(IMiddlewareContext context)
+    {
+        var options = GetPagingOptions(context.Schema, context.Selection.Field);
+        var first = context.ArgumentValue<int?>(FirstArgumentName);
+        var after = context.ArgumentValue<string?>(AfterArgumentName);
+        int? last = null;
+        string? before = null;
+
+        if (options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination)
+        {
+            last = context.ArgumentValue<int?>(LastArgumentName);
+            before = context.ArgumentValue<string?>(BeforeArgumentName);
+        }
+
+        if (first is null && last is null
+            && !(options.RequirePagingBoundaries ?? PagingDefaults.RequirePagingBoundaries))
+        {
+            first = GetEffectiveDefaultPageSize(options);
+        }
+
+        var flags = ConnectionFlagsHelper.GetConnectionFlags(context);
+
+        if (first is null
+            && after is null
+            && last is null
+            && before is null
+            && flags is ConnectionFlags.None)
+        {
+            return 0;
+        }
+
+        var length =
+            GetIntPartitionKeySize(first)
+            + GetStringPartitionKeySize(after)
+            + GetIntPartitionKeySize(last)
+            + GetStringPartitionKeySize(before)
+            + GetFlagsPartitionKeySize(flags);
+        byte[]? rented = null;
+        var buffer = length <= MaxStackallocPartitionKeySize
+            ? stackalloc byte[length]
+            : rented = ArrayPool<byte>.Shared.Rent(length);
+
+        try
+        {
+            var written = 0;
+            written = WriteIntPartitionKey(buffer, written, (byte)'f', first);
+            written = WriteStringPartitionKey(buffer, written, (byte)'a', after);
+            written = WriteIntPartitionKey(buffer, written, (byte)'l', last);
+            written = WriteStringPartitionKey(buffer, written, (byte)'b', before);
+            written = WriteFlagsPartitionKey(buffer, written, flags);
+
+            var hash = ComputePartitionKeyHash(buffer[..written]);
+            // This method returns 0 to signal "no paging arguments", so a computed hash must
+            // never equal 0 or it would merge into that default partition.
+            return hash == 0 ? 1 : hash;
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<byte>.Shared.Return(rented);
+            }
+        }
+    }
+
+    internal static ulong GetOffsetPagingBatchPartitionKey(IMiddlewareContext context)
+    {
+        var options = GetPagingOptions(context.Schema, context.Selection.Field);
+        var skip = context.ArgumentValue<int?>("skip");
+        var take = context.ArgumentValue<int?>("take");
+
+        if (take is null
+            && !(options.RequirePagingBoundaries ?? PagingDefaults.RequirePagingBoundaries))
+        {
+            take = GetEffectiveDefaultPageSize(options);
+        }
+
+        var flags = context.Selection.Features.GetOrSetSafe(
+            static c => new OffsetPagingFlags(c.IncludeConditionFlags, c.IsSelected("totalCount")),
+            context);
+        var totalCount = (options.IncludeTotalCount ?? PagingDefaults.IncludeTotalCount)
+            && (flags.Conditions.Word0 == context.IncludeConditionFlags.Word0
+                && flags.Conditions.Overflow.AsSpan().SequenceEqual(context.IncludeConditionFlags.Overflow)
+                ? flags.TotalCount
+                : context.IsSelected("totalCount"));
+
+        if (skip is null && take is null && !totalCount)
+        {
+            return 0;
+        }
+
+        Span<byte> buffer = stackalloc byte[11];
+        var written = WriteIntPartitionKey(buffer, 0, (byte)'s', skip);
+        written = WriteIntPartitionKey(buffer, written, (byte)'t', take);
+        if (totalCount)
+        {
+            buffer[written++] = 1;
+        }
+
+        var hash = ComputePartitionKeyHash(buffer[..written]);
+        return hash == 0 ? 1 : hash;
+    }
+
+    private readonly record struct OffsetPagingFlags(ConditionFlags Conditions, bool TotalCount);
+
+    private static int GetIntPartitionKeySize(int? value)
+        => value.HasValue ? 5 : 0;
+
+    private static int GetStringPartitionKeySize(string? value)
+        => value is null ? 0 : 5 + Encoding.UTF8.GetByteCount(value);
+
+    private static int GetFlagsPartitionKeySize(ConnectionFlags flags)
+        => flags is ConnectionFlags.None ? 0 : 5;
+
+    private static int WriteIntPartitionKey(
+        Span<byte> buffer,
+        int offset,
+        byte tag,
+        int? value)
+    {
+        if (!value.HasValue)
+        {
+            return offset;
+        }
+
+        buffer[offset++] = tag;
+        BinaryPrimitives.WriteInt32LittleEndian(buffer[offset..], value.GetValueOrDefault());
+        return offset + 4;
+    }
+
+    private static int WriteStringPartitionKey(
+        Span<byte> buffer,
+        int offset,
+        byte tag,
+        string? value)
+    {
+        if (value is null)
+        {
+            return offset;
+        }
+
+        buffer[offset++] = tag;
+        var length = Encoding.UTF8.GetByteCount(value);
+        BinaryPrimitives.WriteInt32LittleEndian(buffer[offset..], length);
+        offset += 4;
+        return offset + Encoding.UTF8.GetBytes(value, buffer[offset..]);
+    }
+
+    private static int WriteFlagsPartitionKey(
+        Span<byte> buffer,
+        int offset,
+        ConnectionFlags flags)
+    {
+        if (flags is ConnectionFlags.None)
+        {
+            return offset;
+        }
+
+        buffer[offset++] = (byte)'c';
+        BinaryPrimitives.WriteInt32LittleEndian(buffer[offset..], (int)flags);
+        return offset + 4;
+    }
+
+    private static ulong ComputePartitionKeyHash(ReadOnlySpan<byte> buffer)
+    {
+        return XxHash64.HashToUInt64(buffer);
+    }
 
     [RequiresDynamicCode("Uses MakeGenericType to create generic schema types at runtime.")]
     internal static IExtendedType GetSchemaType(

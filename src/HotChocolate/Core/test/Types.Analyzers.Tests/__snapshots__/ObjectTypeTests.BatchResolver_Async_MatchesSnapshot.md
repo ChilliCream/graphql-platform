@@ -79,6 +79,21 @@ namespace TestNamespace
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetGreeting",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Collections.Generic.List<global::TestNamespace.User>),
+                            typeof(global::System.Threading.CancellationToken),
+                            typeof(global::System.Security.Claims.ClaimsPrincipal),
+                            typeof(global::HotChocolate.Language.DocumentNode),
+                            typeof(global::HotChocolate.Language.FieldNode),
+                            typeof(global::HotChocolate.Types.IOutputFieldDefinition),
+                            typeof(global::HotChocolate.Types.Pagination.ConnectionFlags),
+                            typeof(global::HotChocolate.Execution.ISelection)
+                        })!;
+
                     configuration.BatchResolver = context.Resolvers.GetGreeting();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -95,13 +110,14 @@ namespace TestNamespace
 
             private async global::System.Threading.Tasks.ValueTask GetGreeting(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
+                var batchSelectionContext = global::HotChocolate.ResolverContextExtensions.CreateBatchSelectionContext(contexts);
                 var args0 = new global::System.Collections.Generic.List<global::TestNamespace.User>(contexts.Length);
                 var args1 = contexts[0].RequestAborted;
                 var args2 = contexts[0].GetGlobalState<global::System.Security.Claims.ClaimsPrincipal>("ClaimsPrincipal");
                 var args3 = contexts[0].Operation.Document;
                 var args4 = contexts[0].Selection.SyntaxNodes[0].Node;
                 var args5 = contexts[0].Selection.Field;
-                var args6 = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(contexts[0]);
+                var args6 = global::HotChocolate.Types.Pagination.ConnectionFlagsHelper.GetConnectionFlags(batchSelectionContext);
                 var args7 = contexts[0].Selection;
 
                 for (var i = 0; i < contexts.Length; i++)
@@ -111,12 +127,33 @@ namespace TestNamespace
 
                 var result = await global::TestNamespace.UserExtensions.GetGreeting(args0, args1, args2, args3, args4, args5, args6, args7);
 
-                if (result is global::System.Collections.IList list)
+                if (result is null)
                 {
                     for (var i = 0; i < contexts.Length; i++)
                     {
-                        contexts[i].Result = i < list.Count ? list[i] : null;
+                        contexts[i].Result = null;
                     }
+                }
+                else if (result is global::System.Collections.IList list)
+                {
+                    if (list.Count != contexts.Length)
+                    {
+                        throw new global::System.InvalidOperationException(
+                            global::System.String.Format(
+                                "A batch resolver must return exactly one result per context. Expected {0} results but got {1}.",
+                                contexts.Length,
+                                list.Count));
+                    }
+
+                    for (var i = 0; i < contexts.Length; i++)
+                    {
+                        contexts[i].Result = list[i];
+                    }
+                }
+                else
+                {
+                    throw new global::System.InvalidOperationException(
+                        global::System.String.Concat("Batch resolver must return a list type. Got: ", result.GetType(), "."));
                 }
             }
         }

@@ -962,6 +962,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The field `{0}` is resolved by the batch resolver &apos;{1}&apos; but declares the middleware `{2}`, which only supports the per-parent resolver pipeline. Register a batch middleware with `UseBatch` or remove `{2}` from the field..
+        /// </summary>
+        internal static string ErrorHelper_BatchResolver_MiddlewareNotSupported {
+            get {
+                return ResourceManager.GetString("ErrorHelper_BatchResolver_MiddlewareNotSupported", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The mutation field `{0}` cannot be resolved by the batch resolver &apos;{1}&apos;. Top-level mutation fields execute serially, one field at a time, so there is never more than one parent to batch. Use a standard resolver instead..
+        /// </summary>
+        internal static string ErrorHelper_BatchResolver_NotAllowedOnMutationField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_BatchResolver_NotAllowedOnMutationField", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Unable to resolve the interface type. For more details look at the error object..
         /// </summary>
         internal static string ErrorHelper_CompleteInterfacesHelper_UnableToResolveInterface {
@@ -2715,7 +2733,25 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("ThrowHelper_FormatResultObject_InvalidObjectKind", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The type inspector `{0}` does not implement `{1}` and cannot infer batch resolver field types..
+        /// </summary>
+        internal static string ThrowHelper_TypeInspector_GetBatchReturnTypeRef_NotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_TypeInspector_GetBatchReturnTypeRef_NotSupported", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The type inspector `{0}` returned an unsupported type reference kind for the batch resolver `{1}.{2}`..
+        /// </summary>
+        internal static string ThrowHelper_DescriptorHelpers_SetMoreSpecificType_NotSupported {
+            get {
+                return ResourceManager.GetString("ThrowHelper_DescriptorHelpers_SetMoreSpecificType_NotSupported", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The list runtime value of {0} must implement IEnumerable or IList but is of the type {1}..
         /// </summary>

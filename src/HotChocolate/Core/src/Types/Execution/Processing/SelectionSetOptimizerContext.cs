@@ -87,7 +87,7 @@ public ref struct SelectionSetOptimizerContext
         => ++_lastSelectionId;
 
     /// <summary>
-    /// Sets the resolvers on the specified <paramref name="selection"/>.
+    /// Sets the regular resolvers on the specified <paramref name="selection"/>, preserving its batch resolver.
     /// </summary>
     /// <param name="selection">
     /// The selection to set the resolvers on.
@@ -102,7 +102,7 @@ public ref struct SelectionSetOptimizerContext
         Selection selection,
         FieldDelegate? resolverPipeline = null,
         PureFieldDelegate? pureResolver = null)
-        => selection.SetResolvers(resolverPipeline, pureResolver);
+        => selection.SetResolvers(resolverPipeline, pureResolver, selection.BatchResolverPipeline);
 
     /// <summary>
     /// Allows to compile the field resolver pipeline for a field.

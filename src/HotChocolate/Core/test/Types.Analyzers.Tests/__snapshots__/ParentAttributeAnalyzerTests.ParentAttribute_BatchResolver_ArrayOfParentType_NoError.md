@@ -79,6 +79,14 @@ namespace TestNamespace
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetDisplayName",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::TestNamespace.Product[])
+                        })!;
+
                     configuration.BatchResolver = context.Resolvers.GetDisplayName();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -95,21 +103,43 @@ namespace TestNamespace
 
             private global::System.Threading.Tasks.ValueTask GetDisplayName(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
-                var args0 = new global::TestNamespace.Product[](contexts.Length);
+                var args0_items = new global::System.Collections.Generic.List<global::TestNamespace.Product>(contexts.Length);
 
                 for (var i = 0; i < contexts.Length; i++)
                 {
-                    args0.Add(contexts[i].Parent<global::TestNamespace.Product>());
+                    args0_items.Add(contexts[i].Parent<global::TestNamespace.Product>());
                 }
+                var args0 = args0_items.ToArray();
 
                 var result = global::TestNamespace.ProductNode.GetDisplayName(args0);
 
-                if (result is global::System.Collections.IList list)
+                if (result is null)
                 {
                     for (var i = 0; i < contexts.Length; i++)
                     {
-                        contexts[i].Result = i < list.Count ? list[i] : null;
+                        contexts[i].Result = null;
                     }
+                }
+                else if (result is global::System.Collections.IList list)
+                {
+                    if (list.Count != contexts.Length)
+                    {
+                        throw new global::System.InvalidOperationException(
+                            global::System.String.Format(
+                                "A batch resolver must return exactly one result per context. Expected {0} results but got {1}.",
+                                contexts.Length,
+                                list.Count));
+                    }
+
+                    for (var i = 0; i < contexts.Length; i++)
+                    {
+                        contexts[i].Result = list[i];
+                    }
+                }
+                else
+                {
+                    throw new global::System.InvalidOperationException(
+                        global::System.String.Concat("Batch resolver must return a list type. Got: ", result.GetType(), "."));
                 }
                 return default;
             }
@@ -118,27 +148,4 @@ namespace TestNamespace
 }
 
 
-```
-
-## Assembly Emit Diagnostics
-
-```json
-[
-  {
-    "Id": "CS1586",
-    "Title": "",
-    "Severity": "Error",
-    "WarningLevel": 0,
-    "Location": "ProductNode.WaAdMHmlGJHjtEI4nqY7WA.hc.g.cs: (61,61)-(61,63)",
-    "HelpLinkUri": "https://msdn.microsoft.com/query/roslyn.query?appId=roslyn&k=k(CS1586)",
-    "MessageFormat": "Array creation must have array size or array initializer",
-    "Message": "Array creation must have array size or array initializer",
-    "Category": "Compiler",
-    "CustomTags": [
-      "Compiler",
-      "Telemetry",
-      "NotConfigurable"
-    ]
-  }
-]
 ```

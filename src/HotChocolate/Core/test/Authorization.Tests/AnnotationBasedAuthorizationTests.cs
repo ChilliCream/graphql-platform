@@ -562,6 +562,117 @@ public class AnnotationBasedAuthorizationTests
         Assert.Equal(401, value);
     }
 
+    // REPRO (security): options.ConfigureNodeFields with default BeforeResolver Authorize is
+    // silently bypassed because on this branch the node field is batch-only and never runs the
+    // regular pipeline that carries the auth directive. An unauthorized node(id:) lookup must be
+    // rejected with AUTH_NOT_AUTHORIZED and node: null, not resolve the protected Person.
+    [Fact]
+    public async Task Authorize_Node_Field_BeforeResolver_Should_Deny_When_NotAllowed()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, d) => d.Policy.EqualsOrdinal("READ_NODE")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureNodeFields =
+                    descriptor => descriptor.Authorize("READ_NODE");
+            });
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              node(id: "UGVyc29uOmFiYw==") {
+                __typename
+              }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "path": [
+                        "node"
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ],
+                  "data": {
+                    "node": null
+                  }
+                }
+                """);
+    }
+
+    // Field authorization denies the nodes list before node resolver dispatch.
+    [Fact]
+    public async Task Authorize_Nodes_Field_BeforeResolver_Should_Deny_When_NotAllowed()
+    {
+        // arrange
+        var handler = new AuthHandler(
+            resolver: (_, d) => d.Policy.EqualsOrdinal("READ_NODE")
+                ? AuthorizeResult.NotAllowed
+                : AuthorizeResult.Allowed,
+            validation: (_, _) => AuthorizeResult.Allowed);
+        var services = CreateServices(
+            handler,
+            options =>
+            {
+                options.ConfigureNodeFields =
+                    descriptor => descriptor.Authorize("READ_NODE");
+            });
+        var executor = await services.GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+              nodes(ids: "UGVyc29uOmFiYw==") {
+                __typename
+              }
+            }
+            """,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(result)
+            .MatchInline(
+                """
+                {
+                  "errors": [
+                    {
+                      "message": "The current user is not authorized to access this resource.",
+                      "path": [
+                        "nodes"
+                      ],
+                      "extensions": {
+                        "code": "AUTH_NOT_AUTHORIZED"
+                      }
+                    }
+                  ],
+                  "data": null
+                }
+                """);
+    }
+
     [Fact]
     public async Task Authorize_Node_Field_Inferred()
     {

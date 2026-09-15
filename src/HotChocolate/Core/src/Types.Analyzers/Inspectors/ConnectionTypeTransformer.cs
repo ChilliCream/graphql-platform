@@ -25,11 +25,11 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
             }
 
             if (syntaxInfo is IOutputTypeInfo typeInfo
-                && typeInfo.Resolvers.Any(t => t.Kind is ResolverKind.ConnectionResolver))
+                && typeInfo.Resolvers.Any(t => t.IsConnectionResolver))
             {
                 foreach (var resolver in typeInfo.Resolvers)
                 {
-                    if (resolver.Kind is ResolverKind.ConnectionResolver)
+                    if (resolver.IsConnectionResolver)
                     {
                         connectionResolvers ??= [];
                         connectionResolvers.Add(resolver, typeInfo);
@@ -62,7 +62,7 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
                 var connectionResolver = item.Key;
                 var owner = item.Value;
 #endif
-                var connectionType = GetConnectionType(compilation, connectionResolver.Member.GetReturnType());
+                var connectionType = GetConnectionType(compilation, connectionResolver);
                 ConnectionTypeInfo connectionTypeInfo;
                 ConnectionClassInfo? connectionClass;
                 EdgeTypeInfo? edgeTypeInfo;
@@ -275,8 +275,15 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
 
     private static INamedTypeSymbol GetConnectionType(
         Compilation compilation,
-        ITypeSymbol? possibleConnectionType)
+        Resolver resolver)
     {
+        var possibleConnectionType = resolver.ReturnType;
+
+        if (resolver.Kind is ResolverKind.BatchResolver)
+        {
+            possibleConnectionType = GetListElementType(possibleConnectionType);
+        }
+
         if (possibleConnectionType is null)
         {
             Throw();
@@ -301,6 +308,43 @@ public class ConnectionTypeTransformer : IPostCollectSyntaxTransformer
 
         [DoesNotReturn]
         static void Throw() => throw new InvalidOperationException("Could not resolve connection base type.");
+    }
+
+    private static ITypeSymbol? GetListElementType(ITypeSymbol type)
+    {
+        if (type is IArrayTypeSymbol arrayType)
+        {
+            return arrayType.ElementType;
+        }
+
+        if (type is INamedTypeSymbol { IsGenericType: true } namedType)
+        {
+            var typeDefinition = namedType.ConstructUnboundGenericType().ToDisplayString();
+
+            if (WellKnownTypes.SupportedListInterfaces.Contains(typeDefinition)
+                || typeDefinition.Equals(
+                    WellKnownTypes.EnumerableDefinition,
+                    System.StringComparison.Ordinal))
+            {
+                return namedType.TypeArguments[0];
+            }
+
+            foreach (var interfaceType in namedType.AllInterfaces)
+            {
+                if (!interfaceType.IsGenericType)
+                {
+                    continue;
+                }
+
+                var interfaceTypeDefinition = interfaceType.ConstructUnboundGenericType().ToDisplayString();
+                if (WellKnownTypes.SupportedListInterfaces.Contains(interfaceTypeDefinition))
+                {
+                    return interfaceType.TypeArguments[0];
+                }
+            }
+        }
+
+        return null;
     }
 
     private static string GetTypeLookupKey(IOutputTypeInfo typeInfo)

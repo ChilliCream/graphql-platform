@@ -97,6 +97,15 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetGreeting",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Collections.Generic.List<global::TestNamespace.User>),
+                            typeof(global::TestNamespace.CurrentUser)
+                        })!;
+
                     var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
 
                     bindingResolver.ApplyConfiguration(
@@ -122,7 +131,7 @@ namespace TestNamespace
                 _binding_GetGreeting_currentUser = bindingResolver.GetBinding(CreateParameterDescriptor_GetGreeting_currentUser(), out _binding_GetGreeting_currentUser_kind);
                 if (_binding_GetGreeting_currentUser_kind is global::HotChocolate.Internal.ArgumentKind.Argument)
                 {
-                    throw new global::System.InvalidOperationException("Batch resolver parameter 'currentUser' must be a list type (List<T>, IReadOnlyList<T>, T[], or ImmutableArray<T>). Got: TestNamespace.CurrentUser.");
+                    throw global::HotChocolate.Resolvers.BatchResolverErrors.ArgumentMustBeList(typeof(global::TestNamespace.UserType), "GetGreeting", "currentUser");
                 }
             }
 
@@ -138,12 +147,13 @@ namespace TestNamespace
 
             private global::System.Threading.Tasks.ValueTask GetGreeting(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
+                var batchSelectionContext = global::HotChocolate.ResolverContextExtensions.CreateBatchSelectionContext(contexts);
                 var args0 = new global::System.Collections.Generic.List<global::TestNamespace.User>(contexts.Length);
                 var args1_arguments = _binding_GetGreeting_currentUser_kind is global::HotChocolate.Internal.ArgumentKind.Argument
                     ? new global::System.Collections.Generic.List<global::TestNamespace.CurrentUser>(contexts.Length)
                     : null;
                 var args1 = args1_arguments is null
-                    ? _binding_GetGreeting_currentUser.Execute<global::TestNamespace.CurrentUser>(contexts[0])
+                    ? _binding_GetGreeting_currentUser.Execute<global::TestNamespace.CurrentUser>(batchSelectionContext)
                     : (global::TestNamespace.CurrentUser)(object)args1_arguments;
 
                 for (var i = 0; i < contexts.Length; i++)
@@ -157,12 +167,33 @@ namespace TestNamespace
 
                 var result = global::TestNamespace.UserType.GetGreeting(args0, args1);
 
-                if (result is global::System.Collections.IList list)
+                if (result is null)
                 {
                     for (var i = 0; i < contexts.Length; i++)
                     {
-                        contexts[i].Result = i < list.Count ? list[i] : null;
+                        contexts[i].Result = null;
                     }
+                }
+                else if (result is global::System.Collections.IList list)
+                {
+                    if (list.Count != contexts.Length)
+                    {
+                        throw new global::System.InvalidOperationException(
+                            global::System.String.Format(
+                                "A batch resolver must return exactly one result per context. Expected {0} results but got {1}.",
+                                contexts.Length,
+                                list.Count));
+                    }
+
+                    for (var i = 0; i < contexts.Length; i++)
+                    {
+                        contexts[i].Result = list[i];
+                    }
+                }
+                else
+                {
+                    throw new global::System.InvalidOperationException(
+                        global::System.String.Concat("Batch resolver must return a list type. Got: ", result.GetType(), "."));
                 }
                 return default;
             }

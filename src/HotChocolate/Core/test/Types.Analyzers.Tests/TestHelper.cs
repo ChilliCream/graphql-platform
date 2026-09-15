@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -280,6 +282,167 @@ internal static partial class TestHelper
         return snapshot;
     }
 
+    /// <summary>
+    /// Compiles a source-generated module assembly (including a <c>[assembly: Module("...")]</c>
+    /// registration) and loads it into a collectible <see cref="AssemblyLoadContext"/>, for guards
+    /// that need to actually execute the generated code (not just inspect the emitted source or
+    /// diagnostics).
+    /// </summary>
+    public static Assembly CompileBatchAssembly(
+        [StringSyntax("csharp")] string sourceText,
+        string assemblyName)
+    {
+        var parseOptions = CSharpParseOptions.Default;
+        var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, parseOptions);
+
+        var compilation = CSharpCompilation.Create(
+            assemblyName: assemblyName,
+            syntaxTrees: [syntaxTree],
+            references: s_references,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+        var driver = CSharpGeneratorDriver
+            .Create(new GraphQLServerGenerator())
+            .RunGenerators(compilation);
+
+        var generatedTrees = driver
+            .GetRunResult()
+            .Results
+            .SelectMany(t => t.GeneratedSources)
+            .Select(s => CSharpSyntaxTree.ParseText(s.SourceText, parseOptions, path: s.HintName));
+
+        var updatedCompilation = compilation.AddSyntaxTrees(generatedTrees);
+
+        using var stream = new MemoryStream();
+        var emitResult = updatedCompilation.Emit(stream);
+
+        if (!emitResult.Success)
+        {
+            throw new InvalidOperationException(
+                string.Join(
+                    Environment.NewLine,
+                    emitResult.Diagnostics
+                        .OrderBy(d => d.Severity)
+                        .ThenBy(d => d.Id)
+                        .Select(d => d.ToString())));
+        }
+
+        stream.Position = 0;
+
+        var loadContext = new AssemblyLoadContext(assemblyName, isCollectible: true);
+        return loadContext.LoadFromStream(stream);
+    }
+
+    /// <summary>
+    /// Builds a GraphQL server from the module registration extension method generated for the
+    /// assembly produced by <see cref="CompileBatchAssembly"/> and executes <paramref name="query"/>
+    /// against it.
+    /// </summary>
+    public static async Task<IExecutionResult> ExecuteSourceGeneratedAsync(
+        Assembly assembly,
+        [StringSyntax("graphql")] string query,
+        Dictionary<string, object?>? variableValues = null)
+    {
+        var builder = new ServiceCollection().AddGraphQLServer(disableDefaultSecurity: true);
+
+        var addModuleMethod = assembly
+            .GetTypes()
+            .Where(t => t is { IsAbstract: true, IsSealed: true }
+                && t.Namespace == "Microsoft.Extensions.DependencyInjection")
+            .SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            .Single(m =>
+            {
+                var p = m.GetParameters();
+                return m.Name.StartsWith("Add", StringComparison.Ordinal)
+                    && m.ReturnType == typeof(IRequestExecutorBuilder)
+                    && p.Length == 1
+                    && p[0].ParameterType == typeof(IRequestExecutorBuilder);
+            });
+
+        addModuleMethod.Invoke(null, [builder]);
+
+        var executor = await builder.BuildRequestExecutorAsync();
+        return variableValues is null
+            ? await executor.ExecuteAsync(query)
+            : await executor.ExecuteAsync(query, variableValues);
+    }
+
+    public static ImmutableArray<Diagnostic> GetGeneratedAssemblyEmitDiagnostics(
+        [StringSyntax("csharp")] string sourceText)
+        => GetGeneratedAssemblyEmitDiagnostics([sourceText]);
+
+    public static ImmutableArray<Diagnostic> GetGeneratedAssemblyEmitDiagnostics(
+        string[] sourceTexts,
+        string? assemblyName = "Tests")
+    {
+        IEnumerable<PortableExecutableReference> references =
+        [
+#if NET8_0
+            .. Net80.References.All,
+#elif NET9_0
+            .. Net90.References.All,
+#elif NET10_0
+            .. Net100.References.All,
+#elif NET11_0
+            .. Net110.References.All,
+#endif
+            MetadataReference.CreateFromFile(typeof(ITypeSystemMember).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(RequestDelegate).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(RequestContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(HotChocolateExecutionSelectionExtensions).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IRequestExecutorBuilder).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(ISelection).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(ObjectTypeAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Connection).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(PageConnection<>).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(ISchemaDefinition).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IFeatureProvider).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(OperationType).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(ParserOptions).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(SyntaxVisitor).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(
+                typeof(HotChocolateAspNetCoreServiceCollectionExtensions).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(DataLoaderBase<,>).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IDataLoader).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(PagingArguments).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IPredicateBuilder).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(DefaultPredicateBuilder).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IFilterContext).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(WebApplication).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(IServiceCollection).Assembly.Location),
+            MetadataReference.CreateFromFile(
+                typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute).Assembly.Location),
+            MetadataReference.CreateFromFile(typeof(Authorization.AuthorizeAttribute).Assembly.Location)
+        ];
+
+        var parseOptions = CSharpParseOptions.Default;
+
+        var compilation = CSharpCompilation.Create(
+            assemblyName: assemblyName,
+            syntaxTrees: sourceTexts.Select(s => CSharpSyntaxTree.ParseText(s, parseOptions)),
+            references);
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new GraphQLServerGenerator());
+        driver = driver.RunGenerators(compilation);
+
+        var updatedCompilation = compilation.AddSyntaxTrees(
+            driver.GetRunResult()
+                .Results
+                .SelectMany(r => r.GeneratedSources)
+                .OrderBy(gs => gs.HintName)
+                .Select(gs => CSharpSyntaxTree.ParseText(gs.SourceText, parseOptions, path: gs.HintName)));
+
+        using var dllStream = new MemoryStream();
+        var emitResult = updatedCompilation.Emit(dllStream);
+
+        // Ignore entry-point/unused-using noise that is unrelated to generated code validity,
+        // mirroring s_ignoreCodes used by the snapshot path.
+        return emitResult.Diagnostics
+            .Where(d => !s_ignoreCodes.Contains(d.Id))
+            .ToImmutableArray();
+    }
+
     private static Snapshot CreateSnapshot(CSharpCompilation compilation, GeneratorDriver driver, bool enableAnalyzers)
         => CreateSnapshot(
             compilation,
@@ -359,7 +522,9 @@ internal static partial class TestHelper
                 new DataLoaderKeyedServiceOnConstructorParameterAnalyzer(),
                 new DataLoaderKeyedServiceKeyNotDeterminableAnalyzer(),
                 new DataLoaderMissingInterfaceImplementationAnalyzer(),
-                new DataLoaderPublicInterfaceAccessModifierAnalyzer());
+                new DataLoaderPublicInterfaceAccessModifierAnalyzer(),
+                new BatchResolverOnMutationFieldAnalyzer(),
+                new BatchResolverMiddlewareNotSupportedAnalyzer());
 
             var compilationWithAnalyzers = analyzerCompilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;

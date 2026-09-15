@@ -90,6 +90,24 @@ public interface IDirectiveTypeDescriptor
     IDirectiveTypeDescriptor Repeatable();
 
     /// <summary>
+    /// Adds batch middleware for this directive. The middleware must not be <c>null</c>.
+    /// </summary>
+    IDirectiveTypeDescriptor UseBatch(BatchDirectiveMiddleware middleware);
+
+    /// <summary>
+    /// Adds class-based batch middleware for this directive.
+    /// </summary>
+    IDirectiveTypeDescriptor UseBatch<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
+        where TMiddleware : class;
+
+    /// <summary>
+    /// Adds factory-created batch middleware for this directive. The factory must not be <c>null</c>.
+    /// </summary>
+    IDirectiveTypeDescriptor UseBatch<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
+        Func<IServiceProvider, BatchFieldDelegate, TMiddleware> factory)
+        where TMiddleware : class;
+
+    /// <summary>
     /// Directive is public and visible within the type system and through introspection.
     /// </summary>
     IDirectiveTypeDescriptor Public();

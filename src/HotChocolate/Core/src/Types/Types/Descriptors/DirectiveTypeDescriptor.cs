@@ -175,6 +175,32 @@ public class DirectiveTypeDescriptor
         return Use(DirectiveClassMiddlewareFactory.Create(factory));
     }
 
+    /// <inheritdoc />
+    public IDirectiveTypeDescriptor UseBatch(BatchDirectiveMiddleware middleware)
+    {
+        ArgumentNullException.ThrowIfNull(middleware);
+
+        Configuration.BatchMiddlewareComponents.Add(middleware);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IDirectiveTypeDescriptor UseBatch<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
+        where TMiddleware : class
+    {
+        return UseBatch(BatchDirectiveClassMiddlewareFactory.Create<TMiddleware>());
+    }
+
+    /// <inheritdoc />
+    public IDirectiveTypeDescriptor UseBatch<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
+        Func<IServiceProvider, BatchFieldDelegate, TMiddleware> factory)
+        where TMiddleware : class
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+
+        return UseBatch(BatchDirectiveClassMiddlewareFactory.Create(factory));
+    }
+
     public IDirectiveTypeDescriptor Repeatable()
     {
         Configuration.IsRepeatable = true;

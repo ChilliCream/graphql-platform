@@ -50,7 +50,7 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
             .Type<NonNullType<ApplyPolicyType>>()
             .DefaultValue(ApplyPolicy.BeforeResolver);
 
-        descriptor.Use(CreateMiddleware());
+        descriptor.Use(CreateMiddleware()).UseBatch(CreateBatchMiddleware());
     }
 
     public void ApplyConfiguration(
@@ -92,6 +92,14 @@ internal sealed class AuthorizeDirectiveType : DirectiveType<AuthorizeDirective>
             var value = directive.ToValue<AuthorizeDirective>();
             var auth = new AuthorizeMiddleware(next, value);
             return async context => await auth.InvokeAsync(context).ConfigureAwait(false);
+        };
+
+    private static BatchDirectiveMiddleware CreateBatchMiddleware()
+        => (next, directive) =>
+        {
+            var value = directive.ToValue<AuthorizeDirective>();
+            var auth = new AuthorizeBatchMiddleware(next, value);
+            return auth.InvokeAsync;
         };
 
     public static class Names

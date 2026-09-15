@@ -161,6 +161,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
         var parameters = resolverMethod.Parameters;
         var buffer = new ResolverParameter[parameters.Length];
         var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
+        var isBatchResolver = resolverMethod.IsBatchResolver();
 
         for (var i = 0; i < parameters.Length; i++)
         {
@@ -171,7 +172,7 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             buffer[i] = new ResolverParameter(
                 parameter,
                 parameterKind,
-                compilation.CreateTypeReference(parameter),
+                compilation.CreateTypeReference(parameter, isBatchResolver),
                 paramDesc?.Description,
                 compilation.GetDeprecationReason(parameter),
                 key,
@@ -186,6 +187,11 @@ public class InterfaceTypeInfoInspector : ISyntaxInspector
             resolverMethod.GetResultKind(),
             resolverParameters,
             [],
-            compilation.CreateTypeReference(resolverMethod));
+            isBatchResolver
+                ? compilation.CreateTypeReference(resolverMethod, isBatchResolver: true)
+                : compilation.CreateTypeReference(resolverMethod),
+            kind: isBatchResolver
+                ? ResolverKind.BatchResolver
+                : ResolverKind.Default);
     }
 }

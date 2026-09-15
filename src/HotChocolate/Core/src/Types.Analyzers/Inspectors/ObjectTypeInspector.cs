@@ -328,6 +328,9 @@ public class ObjectTypeInspector : ISyntaxInspector
         }
 
         resolverTypeName ??= resolverType.Name;
+        var isConnectionResolver = isBatchResolver
+            ? IsBatchConnectionResolver(compilation, resolverMethod.GetReturnType())
+            : compilation.IsConnectionType(resolverMethod.ReturnType);
 
         return new Resolver(
             resolverTypeName,
@@ -342,10 +345,65 @@ public class ObjectTypeInspector : ISyntaxInspector
                 : compilation.CreateTypeReference(resolverMethod),
             kind: isBatchResolver
                 ? ResolverKind.BatchResolver
-                : compilation.IsConnectionType(resolverMethod.ReturnType)
+                : isConnectionResolver
                     ? ResolverKind.ConnectionResolver
                     : ResolverKind.Default,
+            isConnectionResolver: isConnectionResolver,
             subscribeWith: subscribeWith);
+    }
+
+    private static bool IsBatchConnectionResolver(
+        Compilation compilation,
+        ITypeSymbol? returnType)
+    {
+        if (returnType is null)
+        {
+            return false;
+        }
+
+        return TryGetListElementType(returnType, out var elementType)
+            && compilation.IsConnectionType(elementType);
+    }
+
+    private static bool TryGetListElementType(
+        ITypeSymbol type,
+        [NotNullWhen(true)] out ITypeSymbol? elementType)
+    {
+        if (type is IArrayTypeSymbol arrayType)
+        {
+            elementType = arrayType.ElementType;
+            return true;
+        }
+
+        if (type is INamedTypeSymbol { IsGenericType: true } namedType)
+        {
+            var typeDefinition = namedType.ConstructUnboundGenericType().ToDisplayString();
+
+            if (WellKnownTypes.SupportedListInterfaces.Contains(typeDefinition)
+                || typeDefinition.Equals(WellKnownTypes.EnumerableDefinition, Ordinal))
+            {
+                elementType = namedType.TypeArguments[0];
+                return true;
+            }
+
+            foreach (var interfaceType in namedType.AllInterfaces)
+            {
+                if (!interfaceType.IsGenericType)
+                {
+                    continue;
+                }
+
+                var interfaceTypeDefinition = interfaceType.ConstructUnboundGenericType().ToDisplayString();
+                if (WellKnownTypes.SupportedListInterfaces.Contains(interfaceTypeDefinition))
+                {
+                    elementType = interfaceType.TypeArguments[0];
+                    return true;
+                }
+            }
+        }
+
+        elementType = null;
+        return false;
     }
 
     private static void CollectSubscribeWithNames(
@@ -425,6 +483,8 @@ public class ObjectTypeInspector : ISyntaxInspector
         ref ImmutableArray<Diagnostic> diagnostics)
     {
         var compilation = context.SemanticModel.Compilation;
+        var isBatchResolver = resolverMethod.IsBatchResolver();
+
         var parameters = resolverMethod.Parameters;
         var buffer = new ResolverParameter[parameters.Length];
         var resolverParameters = ImmutableCollectionsMarshal.AsImmutableArray(buffer);
@@ -482,6 +542,23 @@ public class ObjectTypeInspector : ISyntaxInspector
                 Diagnostic.Create(
                     Errors.TooManyNodeResolverArguments,
                     Location.Create(location.SourceTree!, location.SourceSpan)));
+        }
+
+        if (isBatchResolver)
+        {
+            // A [NodeResolver][BatchResolver] method registers through
+            // INodeDescriptor<TNode>.ResolveNodeBatchWith(MethodInfo) instead of a
+            // source-generated delegate.
+            return new Resolver(
+                resolverType.Name,
+                resolverMethod,
+                compilation.GetDescription(resolverMethod),
+                compilation.GetDeprecationReason(resolverMethod),
+                resolverMethod.GetResultKind(),
+                [],
+                resolverMethod.GetMemberBindings(),
+                compilation.CreateTypeReference(resolverMethod, isBatchResolver: true),
+                kind: ResolverKind.BatchResolver);
         }
 
         return new Resolver(
@@ -577,19 +654,6 @@ file static class Extensions
         foreach (var attribute in methodSymbol.GetAttributes())
         {
             if (attribute.AttributeClass.IsOrInheritsFrom(NodeResolverAttribute))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static bool IsBatchResolver(this IMethodSymbol methodSymbol)
-    {
-        foreach (var attribute in methodSymbol.GetAttributes())
-        {
-            if (attribute.AttributeClass?.ToDisplayString() == BatchResolverAttribute)
             {
                 return true;
             }

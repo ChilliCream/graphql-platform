@@ -46,9 +46,17 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
                 using (Writer.IncreaseIndent())
                 {
                     Writer.WriteIndentedLine(".ImplementsNode()");
-                    Writer.WriteIndentedLine(
-                        ".ResolveNode(resolvers.{0}().Resolver!);",
-                        objectType.NodeResolver.Member.Name);
+
+                    if (objectType.NodeResolver.Kind is ResolverKind.BatchResolver)
+                    {
+                        WriteResolveNodeBatchWith(objectType.NodeResolver, typeLookup);
+                    }
+                    else
+                    {
+                        Writer.WriteIndentedLine(
+                            ".ResolveNode(resolvers.{0}().Resolver!);",
+                            objectType.NodeResolver.Member.Name);
+                    }
                 }
             }
 
@@ -131,7 +139,8 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
 
         base.WriteResolverMethods(objectType, typeLookup);
 
-        if (objectType.NodeResolver is not null)
+        // A [NodeResolver][BatchResolver] method has no generated delegate body.
+        if (objectType.NodeResolver is { Kind: not ResolverKind.BatchResolver })
         {
             if (objectType.Resolvers.Length > 0)
             {

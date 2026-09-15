@@ -50,7 +50,8 @@ internal sealed class QueryContextParameterExpressionBuilder()
                     return new FactoryCacheEntry(factoryMethod, factory);
                 });
 
-        if (factoryCacheEntry.Factory is not null)
+        if (factoryCacheEntry.Factory is MethodCallExpression cachedFactory
+            && cachedFactory.Arguments[0] == resolverContext)
         {
             return factoryCacheEntry.Factory;
         }

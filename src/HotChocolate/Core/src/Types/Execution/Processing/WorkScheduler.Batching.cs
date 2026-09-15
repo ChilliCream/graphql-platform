@@ -8,13 +8,17 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class WorkScheduler
 {
+    private bool _isStartingParallelWork;
     private readonly Dictionary<SelectionPath, int> _activePaths = [];
-    private readonly Dictionary<(SelectionPath Path, DeferUsage? Defer), BatchResolverTask> _pendingBatches = [];
+
+    // Only entries for the same compiled selection occurrence and defer usage share a batch.
+    private readonly Dictionary<(Selection Selection, DeferUsage? Defer), BatchResolverTask> _pendingBatches = [];
 
     /// <summary>
     /// Registers work to be executed as part of a batch resolver task.
     /// </summary>
     public void RegisterBatchEntry(
+        OperationContext entryContext,
         Selection selection,
         object? parent,
         ResultElement resultValue,
@@ -24,7 +28,7 @@ internal sealed partial class WorkScheduler
     {
         AssertNotPooled();
 
-        var key = (selection.FieldSelectionPath, deferUsage);
+        var key = (selection, deferUsage);
 
         lock (_sync)
         {
@@ -40,7 +44,7 @@ internal sealed partial class WorkScheduler
                 IncrementPathCountUnsafe(selection.FieldSelectionPath);
             }
 
-            if (batchTask.AddEntry(parent, selection, resultValue, scopedContextData, branchId))
+            if (batchTask.AddEntry(entryContext, parent, selection, resultValue, scopedContextData, branchId))
             {
                 RegisterBranchTaskUnsafe(branchId);
             }
@@ -80,11 +84,12 @@ internal sealed partial class WorkScheduler
             return;
         }
 
-        List<(SelectionPath Path, DeferUsage? Defer)>? toRemove = null;
+        List<(Selection Selection, DeferUsage? Defer)>? toRemove = null;
 
         foreach (var (key, batchTask) in _pendingBatches)
         {
-            if (!CanDispatchBatchUnsafe(key.Path))
+            if ((_isStartingParallelWork && key.Defer is not null)
+                || !CanDispatchBatchUnsafe(key.Selection.FieldSelectionPath))
             {
                 continue;
             }
@@ -113,7 +118,6 @@ internal sealed partial class WorkScheduler
     /// <summary>
     /// Determines whether a batch task at the given path can be dispatched.
     /// A batch is dispatchable when all strict ancestor paths have zero active tasks.
-    /// Walks the cached parent chain on <see cref="SelectionPath"/> — no allocation.
     /// </summary>
     private bool CanDispatchBatchUnsafe(SelectionPath batchPath)
     {

@@ -31,24 +31,37 @@ internal static class ThrowHelper
                 .Build());
 
     public static SchemaException BatchResolver_ArgumentMustBeList(ParameterInfo parameter)
-        => new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    TypeResources.BatchResolver_ArgumentMustBeList,
-                    parameter.Name)
-                .Build());
+        => HotChocolate.Resolvers.BatchResolverErrors.ArgumentMustBeList(
+            parameter.Member.DeclaringType,
+            parameter.Member.Name,
+            parameter.Name);
 
     public static InvalidOperationException BatchResolver_ResultCountMismatch(int expected, int actual)
         => new(string.Format(TypeResources.BatchResolver_ResultCountMismatch, expected, actual));
 
+    public static InvalidOperationException BatchResolver_ResultMustBeList(Type type)
+        => new($"Batch resolver must return a list type. Got: {type}.");
+
     public static SchemaException BatchResolver_ReturnTypeMustBeList(MethodInfo method)
-        => new SchemaException(
-            SchemaErrorBuilder.New()
-                .SetMessage(
-                    TypeResources.BatchResolver_ReturnTypeMustBeList,
-                    method.DeclaringType?.FullName ?? method.DeclaringType?.Name,
-                    method.Name)
-                .Build());
+        => HotChocolate.Resolvers.BatchResolverErrors.ReturnTypeMustBeList(method.DeclaringType, method.Name);
+
+    public static NotSupportedException TypeInspector_GetBatchReturnTypeRef_NotSupported(
+        ITypeInspector typeInspector)
+        => new(
+            string.Format(
+                ThrowHelper_TypeInspector_GetBatchReturnTypeRef_NotSupported,
+                typeInspector.GetType().FullName,
+                nameof(ITypeInspector.GetBatchReturnTypeRef)));
+
+    public static NotSupportedException DescriptorHelpers_SetMoreSpecificType_NotSupported(
+        ITypeInspector typeInspector,
+        MethodInfo resolverMember)
+        => new(
+            string.Format(
+                ThrowHelper_DescriptorHelpers_SetMoreSpecificType_NotSupported,
+                typeInspector.GetType().FullName,
+                resolverMember.DeclaringType?.FullName ?? resolverMember.DeclaringType?.Name,
+                resolverMember.Name));
 
     public static SchemaException ObjectDeprecationNotEnabled(string typeName)
         => new SchemaException(

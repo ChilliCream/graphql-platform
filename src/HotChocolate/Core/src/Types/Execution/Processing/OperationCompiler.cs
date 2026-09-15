@@ -491,6 +491,14 @@ public sealed partial class OperationCompiler
                 throw ThrowHelper.FieldDoesNotExistOnType(first.Node, typeContext.Name);
             }
             var fieldDelegate = CreateFieldPipeline(_schema, field, first.Node);
+            if (field.BatchResolver is not null)
+            {
+                for (var j = 1; j < nodes.Count; j++)
+                {
+                    ValidateBatchSelectionDirectives(_schema, field, nodes[j].Node);
+                }
+            }
+
             var pureFieldDelegate = TryCreatePureField(_schema, field, first.Node);
             var arguments = ArgumentMap.Empty;
 

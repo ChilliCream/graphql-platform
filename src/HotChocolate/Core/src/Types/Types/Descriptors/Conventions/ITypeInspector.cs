@@ -96,6 +96,30 @@ public interface ITypeInspector : IConvention
     IExtendedType GetReturnType(MemberInfo member, bool ignoreAttributes = false);
 
     /// <summary>
+    /// Gets the field type reference for a batch resolver method from its list element type.
+    /// </summary>
+    /// <param name="method">
+    /// The batch resolver method from which the element field type shall be extracted.
+    /// </param>
+    /// <param name="context">
+    /// The context defines if the field has an input or output context.
+    /// </param>
+    /// <param name="scope">
+    /// The type reference scope.
+    /// </param>
+    /// <returns>
+    /// Returns a type reference describing the type of the batch resolver field.
+    /// </returns>
+    /// <exception cref="NotSupportedException">
+    /// The implementing type inspector does not support batch resolver field type inference.
+    /// </exception>
+    TypeReference GetBatchReturnTypeRef(
+        MethodInfo method,
+        TypeContext context = TypeContext.None,
+        string? scope = null)
+        => throw HotChocolate.Utilities.ThrowHelper.TypeInspector_GetBatchReturnTypeRef_NotSupported(this);
+
+    /// <summary>
     /// Gets the field argument type reference from a <see cref="ParameterInfo" />.
     /// </summary>
     /// <param name="parameter">

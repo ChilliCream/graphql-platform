@@ -97,6 +97,15 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetGreeting",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Collections.Generic.List<global::TestNamespace.User>),
+                            typeof(global::System.Collections.Generic.List<string>)
+                        })!;
+
                     var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
 
                     bindingResolver.ApplyConfiguration(
@@ -134,12 +143,13 @@ namespace TestNamespace
 
             private global::System.Threading.Tasks.ValueTask GetGreeting(global::System.Collections.Immutable.ImmutableArray<HotChocolate.Resolvers.IMiddlewareContext> contexts)
             {
+                var batchSelectionContext = global::HotChocolate.ResolverContextExtensions.CreateBatchSelectionContext(contexts);
                 var args0 = new global::System.Collections.Generic.List<global::TestNamespace.User>(contexts.Length);
                 var args1_arguments = _binding_GetGreeting_prefix_kind is global::HotChocolate.Internal.ArgumentKind.Argument
                     ? new global::System.Collections.Generic.List<string>(contexts.Length)
                     : null;
                 var args1 = args1_arguments is null
-                    ? _binding_GetGreeting_prefix.Execute<global::System.Collections.Generic.List<string>>(contexts[0])
+                    ? _binding_GetGreeting_prefix.Execute<global::System.Collections.Generic.List<string>>(batchSelectionContext)
                     : (global::System.Collections.Generic.List<string>)(object)args1_arguments;
 
                 for (var i = 0; i < contexts.Length; i++)
@@ -153,12 +163,33 @@ namespace TestNamespace
 
                 var result = global::TestNamespace.UserExtensions.GetGreeting(args0, args1);
 
-                if (result is global::System.Collections.IList list)
+                if (result is null)
                 {
                     for (var i = 0; i < contexts.Length; i++)
                     {
-                        contexts[i].Result = i < list.Count ? list[i] : null;
+                        contexts[i].Result = null;
                     }
+                }
+                else if (result is global::System.Collections.IList list)
+                {
+                    if (list.Count != contexts.Length)
+                    {
+                        throw new global::System.InvalidOperationException(
+                            global::System.String.Format(
+                                "A batch resolver must return exactly one result per context. Expected {0} results but got {1}.",
+                                contexts.Length,
+                                list.Count));
+                    }
+
+                    for (var i = 0; i < contexts.Length; i++)
+                    {
+                        contexts[i].Result = list[i];
+                    }
+                }
+                else
+                {
+                    throw new global::System.InvalidOperationException(
+                        global::System.String.Concat("Batch resolver must return a list type. Got: ", result.GetType(), "."));
                 }
                 return default;
             }

@@ -1,9 +1,11 @@
 #nullable disable
 
+using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Configurations;
+using ThrowHelper = HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.Helpers;
 
@@ -34,6 +36,28 @@ internal static class DescriptorHelpers
         }
         return definition;
     }
+
+    /// <summary>
+    /// Applies a type reference produced by the type inspector as the field type
+    /// if it is more specific than the type already assigned, preserving an
+    /// explicit schema type assignment.
+    /// </summary>
+    /// <exception cref="NotSupportedException">
+    /// The batch return type reference is of a kind this helper cannot merge with an
+    /// already assigned field type.
+    /// </exception>
+    public static TDefinition SetMoreSpecificType<TDefinition>(
+        this TDefinition definition,
+        TypeReference type,
+        ITypeInspector typeInspector,
+        MethodInfo resolverMember)
+        where TDefinition : FieldConfiguration
+        => type switch
+        {
+            ExtendedTypeReference extended => definition.SetMoreSpecificType(extended.Type, extended.Context),
+            SyntaxTypeReference syntax => definition.SetMoreSpecificType(syntax.Type, syntax.Context),
+            _ => throw ThrowHelper.DescriptorHelpers_SetMoreSpecificType_NotSupported(typeInspector, resolverMember)
+        };
 
     private static bool IsTypeMoreSpecific(
         TypeReference typeReference,

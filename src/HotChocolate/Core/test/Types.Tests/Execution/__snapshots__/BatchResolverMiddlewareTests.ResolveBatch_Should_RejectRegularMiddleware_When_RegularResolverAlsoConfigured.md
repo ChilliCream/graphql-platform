@@ -1,0 +1,27 @@
+# ResolveBatch_Should_RejectRegularMiddleware_When_RegularResolverAlsoConfigured
+
+## Schema errors
+
+```json
+[
+  {
+    "Code": "HC0134",
+    "Message": "The field `Query.value` is resolved by the batch resolver 'Query.value' but declares the middleware `Use(...)`, which only supports the per-parent resolver pipeline. Register a batch middleware with `UseBatch` or remove `Use(...)` from the field.",
+    "Extensions": {
+      "fieldCoordinate": {
+        "OfDirective": false,
+        "Name": "Query",
+        "MemberName": "value",
+        "ArgumentName": null
+      },
+      "middlewareName": "Use(...)"
+    }
+  }
+]
+```
+
+## Regular middleware compilations
+
+```json
+0
+```

@@ -169,6 +169,20 @@ public readonly partial struct ResultElement
     }
 
     /// <summary>
+    /// Gets a value indicating whether the parent element that contains this element was set to
+    /// null or invalidated during null propagation.
+    /// </summary>
+    internal bool IsParentNullOrInvalidated
+    {
+        get
+        {
+            CheckValidInstance();
+
+            return _parent.IsParentNullOrInvalidated(_cursor);
+        }
+    }
+
+    /// <summary>
     /// Gets the path to this element within the result document.
     /// </summary>
     public Path Path

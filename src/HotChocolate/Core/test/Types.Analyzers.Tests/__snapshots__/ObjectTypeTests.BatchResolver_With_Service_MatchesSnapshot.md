@@ -79,6 +79,15 @@ namespace TestNamespace
                     configuration.SetSourceGeneratorFlags();
                     configuration.SetBatchResolverFlags();
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetGreeting",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::System.Collections.Generic.List<global::TestNamespace.User>),
+                            typeof(global::TestNamespace.GreetingService)
+                        })!;
+
                     configuration.BatchResolver = context.Resolvers.GetGreeting();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -105,12 +114,33 @@ namespace TestNamespace
 
                 var result = global::TestNamespace.UserExtensions.GetGreeting(args0, args1);
 
-                if (result is global::System.Collections.IList list)
+                if (result is null)
                 {
                     for (var i = 0; i < contexts.Length; i++)
                     {
-                        contexts[i].Result = i < list.Count ? list[i] : null;
+                        contexts[i].Result = null;
                     }
+                }
+                else if (result is global::System.Collections.IList list)
+                {
+                    if (list.Count != contexts.Length)
+                    {
+                        throw new global::System.InvalidOperationException(
+                            global::System.String.Format(
+                                "A batch resolver must return exactly one result per context. Expected {0} results but got {1}.",
+                                contexts.Length,
+                                list.Count));
+                    }
+
+                    for (var i = 0; i < contexts.Length; i++)
+                    {
+                        contexts[i].Result = list[i];
+                    }
+                }
+                else
+                {
+                    throw new global::System.InvalidOperationException(
+                        global::System.String.Concat("Batch resolver must return a list type. Got: ", result.GetType(), "."));
                 }
                 return default;
             }

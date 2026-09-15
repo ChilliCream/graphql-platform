@@ -153,6 +153,32 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
     }
 
     /// <inheritdoc />
+    public virtual TypeReference GetBatchReturnTypeRef(
+        MethodInfo method,
+        TypeContext context = TypeContext.None,
+        string? scope = null)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+
+        var returnType = GetReturnType(method, ignoreAttributes: true);
+
+        if (!returnType.IsArrayOrList)
+        {
+            throw ThrowHelper.BatchResolver_ReturnTypeMustBeList(method);
+        }
+
+        if (TryGetAttribute(method, out GraphQLTypeAttribute? typeAttribute)
+            && typeAttribute.TypeSyntax is not null)
+        {
+            return TypeReference.Create(typeAttribute.TypeSyntax, context, scope);
+        }
+
+        var elementType = ApplyTypeAttributes(returnType.ElementType, method);
+
+        return TypeReference.Create(elementType, context, scope);
+    }
+
+    /// <inheritdoc />
     public TypeReference GetArgumentTypeRef(
         ParameterInfo parameter,
         string? scope = null,

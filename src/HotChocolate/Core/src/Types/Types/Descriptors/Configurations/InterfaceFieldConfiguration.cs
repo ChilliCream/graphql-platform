@@ -83,6 +83,8 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
     /// </summary>
     public BatchFieldDelegate? BatchResolver { get; set; }
 
+    internal BatchPartitionKeyResolver? BatchPartitionKeyResolver { get; set; }
+
     /// <summary>
     /// A list of batch middleware components which will be used to form the batch field pipeline.
     /// </summary>
@@ -291,6 +293,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
         target.Resolver = Resolver;
         target.PureResolver = PureResolver;
         target.BatchResolver = BatchResolver;
+        target.BatchPartitionKeyResolver = BatchPartitionKeyResolver;
         target.IsParallelExecutable = IsParallelExecutable;
         target.DependencyInjectionScope = DependencyInjectionScope;
         target.HasStreamResult = HasStreamResult;
@@ -344,6 +347,7 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
         target.Resolver = Resolver;
         target.PureResolver = PureResolver;
         target.BatchResolver = BatchResolver;
+        target.BatchPartitionKeyResolver = BatchPartitionKeyResolver;
         target.IsParallelExecutable = IsParallelExecutable;
         target.DependencyInjectionScope = DependencyInjectionScope;
         target.HasStreamResult = HasStreamResult;
@@ -424,6 +428,11 @@ public class InterfaceFieldConfiguration : OutputFieldConfiguration
         if (BatchResolver is not null)
         {
             target.BatchResolver = BatchResolver;
+        }
+
+        if (BatchPartitionKeyResolver is not null)
+        {
+            target.BatchPartitionKeyResolver = BatchPartitionKeyResolver;
         }
 
         if (ResultPostProcessor is not null)

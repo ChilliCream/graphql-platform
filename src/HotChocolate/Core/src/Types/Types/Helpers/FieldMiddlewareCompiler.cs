@@ -103,6 +103,23 @@ internal static class FieldMiddlewareCompiler
         return next;
     }
 
+    public static ResultFormatterDelegate? CompileResultFormatter(
+        IReadOnlyList<ResultFormatterConfiguration> components)
+    {
+        ResultFormatterDelegate? next = null;
+
+        for (var i = components.Count - 1; i >= 0; i--)
+        {
+            var formatter = components[i].Formatter;
+            var inner = next;
+            next = inner is null
+                ? formatter
+                : (context, result) => formatter(context, inner(context, result));
+        }
+
+        return next;
+    }
+
     private static FieldMiddleware CreateConverterMiddleware(ResultFormatterDelegate convert)
         => n => async c =>
         {

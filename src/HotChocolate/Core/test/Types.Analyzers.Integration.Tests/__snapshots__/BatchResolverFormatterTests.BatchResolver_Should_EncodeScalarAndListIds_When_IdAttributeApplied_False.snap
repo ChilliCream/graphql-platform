@@ -1,0 +1,20 @@
+{
+  "data": {
+    "products": [
+      {
+        "externalId": "UHJvZHVjdDox",
+        "relatedIds": [
+          "UHJvZHVjdDox",
+          "UHJvZHVjdDoxMQ=="
+        ]
+      },
+      {
+        "externalId": "UHJvZHVjdDoy",
+        "relatedIds": [
+          "UHJvZHVjdDoy",
+          "UHJvZHVjdDoxMg=="
+        ]
+      }
+    ]
+  }
+}

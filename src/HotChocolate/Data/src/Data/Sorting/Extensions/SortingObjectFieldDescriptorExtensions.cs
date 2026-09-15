@@ -188,11 +188,13 @@ public static class SortingObjectFieldDescriptorExtensions
         string? scope)
     {
         FieldMiddlewareConfiguration sortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
+        BatchFieldMiddlewareConfiguration batchSortQuery = new(_ => _ => default, key: WellKnownMiddleware.Sorting);
 
         var argumentPlaceholder = "_" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
         var fieldDefinition = descriptor.Extend().Configuration;
 
         fieldDefinition.MiddlewareConfigurations.Add(sortQuery);
+        fieldDefinition.BatchMiddlewareConfigurations.Add(batchSortQuery);
 
         descriptor
             .Extend()
@@ -256,6 +258,7 @@ public static class SortingObjectFieldDescriptorExtensions
                                     def,
                                     argumentDefinition,
                                     sortQuery,
+                                    batchSortQuery,
                                     scope),
                             definition,
                             ApplyConfigurationOn.BeforeCompletion,
@@ -372,6 +375,7 @@ public static class SortingObjectFieldDescriptorExtensions
         ObjectFieldConfiguration definition,
         ArgumentConfiguration argumentDefinition,
         FieldMiddlewareConfiguration placeholder,
+        BatchFieldMiddlewareConfiguration batchPlaceholder,
         string? scope)
     {
         var resolvedType = context.GetType<IType>(argumentDefinition.Type!);
@@ -386,10 +390,14 @@ public static class SortingObjectFieldDescriptorExtensions
         convention.ConfigureField(fieldDescriptor);
 
         var factory = s_factoryTemplate.MakeGenericMethod(type.EntityType.Source);
-        var middleware = CreateDataMiddleware((IQueryBuilder)factory.Invoke(null, [convention])!);
+        var builder = (IQueryBuilder)factory.Invoke(null, [convention])!;
+        var middleware = CreateDataMiddleware(builder);
 
         var index = definition.MiddlewareConfigurations.IndexOf(placeholder);
         definition.MiddlewareConfigurations[index] = new(middleware, key: WellKnownMiddleware.Sorting);
+        var batchIndex = definition.BatchMiddlewareConfigurations.IndexOf(batchPlaceholder);
+        definition.BatchMiddlewareConfigurations[batchIndex] =
+            new(CreateBatchDataMiddleware(builder), key: WellKnownMiddleware.Sorting);
     }
 
     private static IQueryBuilder CreateBuilder<TEntity>(

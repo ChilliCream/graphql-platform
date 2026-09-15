@@ -132,6 +132,11 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
                 new FieldMiddlewareConfiguration(
                     CreatePagingValidationMiddleware(),
                     key: Paging));
+            definition.BatchMiddlewareConfigurations.Add(
+                new BatchFieldMiddlewareConfiguration(
+                    CreateBatchPagingValidationMiddleware(),
+                    key: Paging));
+            definition.BatchPartitionKeyResolver ??= PagingHelper.GetPagingBatchPartitionKey;
             definition.Tasks.Add(
                 new OnCreateTypeSystemConfigurationTask(
                     (c, d) => d.Features.Set(c.GetPagingOptions(options)), definition));
@@ -176,6 +181,32 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
             ValidateContext(context, options);
             PublishPagingArguments(context, options);
             return next(context);
+        };
+
+    private static BatchFieldMiddleware CreateBatchPagingValidationMiddleware()
+        => next => async contexts =>
+        {
+            foreach (var context in contexts)
+            {
+                if (context.Result is IError or IEnumerable<IError> or IFieldResult { IsError: true }
+                    || (context.Result is null && (context.HasErrors || context.IsResultModified)))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var options = PagingHelper.GetPagingOptions(context.Schema, context.Selection.Field);
+                    ValidateContext(context, options);
+                    PublishPagingArguments(context, options);
+                }
+                catch (Exception ex)
+                {
+                    PagingHelper.ReportPagingError(context, ex);
+                }
+            }
+
+            await next(contexts).ConfigureAwait(false);
         };
 
     private static void ValidateContext(
@@ -248,13 +279,7 @@ public sealed class UseConnectionAttribute : DescriptorAttribute
         PagingOptions options)
     {
         var allowBackwardPagination = options.AllowBackwardPagination ?? PagingDefaults.AllowBackwardPagination;
-        var maxPageSize = options.MaxPageSize ?? PagingDefaults.MaxPageSize;
-        var defaultPageSize = options.DefaultPageSize ?? PagingDefaults.DefaultPageSize;
-
-        if (maxPageSize < defaultPageSize)
-        {
-            defaultPageSize = maxPageSize;
-        }
+        var defaultPageSize = PagingHelper.GetEffectiveDefaultPageSize(options);
 
         var first = context.ArgumentValue<int?>(First);
         var last = allowBackwardPagination

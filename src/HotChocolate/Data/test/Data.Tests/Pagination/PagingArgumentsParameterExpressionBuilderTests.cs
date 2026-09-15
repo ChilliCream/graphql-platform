@@ -1,12 +1,65 @@
+using System.Collections.Immutable;
+using System.Reflection;
+using CookieCrumble;
 using GreenDonut.Data;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Data.Pagination;
 
 public class PagingArgumentsParameterExpressionBuilderTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PagingArguments_Should_UseClampedDefault_When_BatchReturnsPageShapes(bool connection)
+    {
+        // arrange
+        BatchBrandExtensions.BatchCallCount = 0;
+        ConnectionBrandExtensions.BatchCallCount = 0;
+        var builder = new ServiceCollection().AddGraphQL().AddPagingArguments()
+            .ModifyPagingOptions(o =>
+            {
+                o.DefaultPageSize = 100;
+                o.MaxPageSize = 2;
+            });
+        if (connection)
+        {
+            builder.AddQueryType<ConnectionQuery>()
+                .AddTypeExtension<ConnectionBrandExtensions>()
+                .AddType<ConnectionProductConnectionType>();
+        }
+        else
+        {
+            builder.AddQueryType<BatchQuery>().AddTypeExtension<BatchBrandExtensions>();
+        }
+        var executor = await builder.BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        IReadOnlyDictionary<string, object?>[] sets =
+        [
+            new Dictionary<string, object?>(),
+            new Dictionary<string, object?> { ["first"] = 2 },
+            new Dictionary<string, object?> { ["first"] = 3 }
+        ];
+
+        // act
+        await using var result = await executor.ExecuteAsync(OperationRequestBuilder.New()
+            .SetDocument("query($first:Int){brands{products(first:$first){nodes{name}}}}")
+            .SetVariableValues(sets).Build(), TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(1, connection ? ConnectionBrandExtensions.BatchCallCount : BatchBrandExtensions.BatchCallCount);
+        var batch = Assert.IsType<OperationResultBatch>(result);
+        Assert.Empty(batch.Results[0].ExpectOperationResult().Errors);
+        new Snapshot(postFix: connection.ToString())
+            .Add(batch.Results[0], "Omitted default")
+            .Add(batch.Results[1], "Explicit effective default")
+            .Add(batch.Results[2], "Invalid sibling")
+            .MatchMarkdownSnapshot();
+    }
+
     [Fact]
     public async Task Maps_NullOrdering_From_PagingOptions_To_PagingArguments()
     {
@@ -27,6 +80,87 @@ public class PagingArgumentsParameterExpressionBuilderTests
         Assert.Equal(NullOrdering.NativeNullsFirst, Query.PagingArguments.NullOrdering);
     }
 
+    [Fact]
+    public async Task BatchResolver_Should_SeparateAliases_When_PagingArgumentsAreIdentical()
+    {
+        // arrange
+        BatchBrandExtensions.BatchCallCount = 0;
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<BatchQuery>()
+            .AddTypeExtension<BatchBrandExtensions>()
+            .AddPagingArguments()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result =
+            await executor.ExecuteAsync(
+                """
+                {
+                    brands {
+                        name
+                        small: products(first: 1) {
+                            nodes {
+                                name
+                            }
+                        }
+                        alsoSmall: products(first: 1) {
+                            nodes {
+                                name
+                            }
+                        }
+                    }
+                }
+                """,
+                cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, BatchBrandExtensions.BatchCallCount);
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "brands": [
+                  {
+                    "name": "Brand 1",
+                    "small": {
+                      "nodes": [
+                        {
+                          "name": "Brand 1 Product 1"
+                        }
+                      ]
+                    },
+                    "alsoSmall": {
+                      "nodes": [
+                        {
+                          "name": "Brand 1 Product 1"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "Brand 2",
+                    "small": {
+                      "nodes": [
+                        {
+                          "name": "Brand 2 Product 1"
+                        }
+                      ]
+                    },
+                    "alsoSmall": {
+                      "nodes": [
+                        {
+                          "name": "Brand 2 Product 1"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
     public class Query
     {
         public static PagingArguments PagingArguments { get; private set; }
@@ -37,6 +171,132 @@ public class PagingArgumentsParameterExpressionBuilderTests
             PagingArguments = pagingArguments;
 
             return [];
+        }
+    }
+
+    public class BatchQuery
+    {
+        public List<BatchBrand> GetBrands()
+            =>
+            [
+                new(1, "Brand 1"),
+                new(2, "Brand 2")
+            ];
+    }
+
+    [ExtendObjectType<BatchBrand>]
+    public class BatchBrandExtensions
+    {
+        public static int BatchCallCount { get; set; }
+
+        [UsePaging]
+        [BatchResolver]
+        public List<Page<BatchProduct>> GetProducts(
+            [Parent] List<BatchBrand> brands,
+            PagingArguments pagingArguments)
+        {
+            BatchCallCount++;
+            var result = new List<Page<BatchProduct>>(brands.Count);
+            var count = pagingArguments.First ?? 2;
+
+            foreach (var brand in brands)
+            {
+                var products = Enumerable
+                    .Range(1, count)
+                    .Select(i => new BatchProduct(i, $"Brand {brand.Id} Product {i}"))
+                    .ToImmutableArray();
+
+                result.Add(Page<BatchProduct>.Create(
+                    products,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    createCursor: product => product.Id.ToString(),
+                    totalCount: count));
+            }
+
+            return result;
+        }
+    }
+
+    public record BatchBrand(int Id, string Name);
+
+    public record BatchProduct(int Id, string Name);
+
+    public class ConnectionQuery
+    {
+        public List<ConnectionBrand> GetBrands()
+            =>
+            [
+                new(1, "Brand 1"),
+                new(2, "Brand 2")
+            ];
+    }
+
+    [ExtendObjectType<ConnectionBrand>]
+    public class ConnectionBrandExtensions
+    {
+        public static int BatchCallCount { get; set; }
+
+        [UseConnectionProductConnection]
+        [UseConnection]
+        [BatchResolver]
+        public List<PageConnection<ConnectionProduct>> GetProducts(
+            [Parent] List<ConnectionBrand> brands,
+            PagingArguments pagingArguments)
+        {
+            BatchCallCount++;
+            var result = new List<PageConnection<ConnectionProduct>>(brands.Count);
+            var count = pagingArguments.First ?? 2;
+
+            foreach (var brand in brands)
+            {
+                var products = Enumerable
+                    .Range(1, count)
+                    .Select(i => new ConnectionProduct(i, $"Brand {brand.Id} Product {i}"))
+                    .ToImmutableArray();
+                var page = Page<ConnectionProduct>.Create(
+                    products,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    createCursor: product => product.Id.ToString(),
+                    totalCount: count);
+
+                result.Add(new PageConnection<ConnectionProduct>(page));
+            }
+
+            return result;
+        }
+    }
+
+    public record ConnectionBrand(int Id, string Name);
+
+    public record ConnectionProduct(int Id, string Name);
+
+    public sealed class ConnectionProductConnectionType
+        : ObjectType<PageConnection<ConnectionProduct>>
+    {
+        protected override void Configure(
+            IObjectTypeDescriptor<PageConnection<ConnectionProduct>> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Name("ConnectionProductConnection");
+            descriptor.Field(t => t.Nodes);
+        }
+    }
+
+    public sealed class UseConnectionProductConnectionAttribute
+        : ObjectFieldDescriptorAttribute
+    {
+        protected override void OnConfigure(
+            IDescriptorContext context,
+            IObjectFieldDescriptor descriptor,
+            MemberInfo? member)
+        {
+            descriptor.Type<NonNullType<ConnectionProductConnectionType>>();
+            descriptor.Argument("first", a => a.Type<IntType>());
+            descriptor.Argument("after", a => a.Type<StringType>());
+            descriptor.Argument("last", a => a.Type<IntType>());
+            descriptor.Argument("before", a => a.Type<StringType>());
         }
     }
 }

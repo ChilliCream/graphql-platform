@@ -1,0 +1,15 @@
+schema {
+  query: AttributeBatchQuery
+}
+
+type AttributeBatchQuery {
+  nonNullProducts(id: Int!): BatchProduct!
+  nullableProducts(id: Int!): BatchProduct
+  forcedNonNullProducts(id: Int!): BatchProduct!
+  ids(id: Int!): ID
+}
+
+type BatchProduct {
+  id: Int!
+  name: String!
+}

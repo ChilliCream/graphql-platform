@@ -16,6 +16,7 @@ public class DirectiveTypeConfiguration
     private Type _clrType = typeof(object);
     private List<DirectiveConfiguration>? _directives;
     private List<DirectiveMiddleware>? _middlewareComponents;
+    private List<BatchDirectiveMiddleware>? _batchMiddlewareComponents;
     private BindableList<DirectiveArgumentConfiguration>? _arguments;
 
     /// <summary>
@@ -94,6 +95,15 @@ public class DirectiveTypeConfiguration
     /// </summary>
     public IList<DirectiveMiddleware> MiddlewareComponents =>
         _middlewareComponents ??= [];
+
+    /// <summary>
+    /// Gets the batch middleware components in registration order.
+    /// </summary>
+    public IList<BatchDirectiveMiddleware> BatchMiddlewareComponents
+        => _batchMiddlewareComponents ??= [];
+
+    internal IReadOnlyList<BatchDirectiveMiddleware> GetBatchMiddlewareComponents()
+        => _batchMiddlewareComponents ?? (IReadOnlyList<BatchDirectiveMiddleware>)[];
 
     /// <summary>
     /// Defines the location on which a directive can be annotated.

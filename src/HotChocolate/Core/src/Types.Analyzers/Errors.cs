@@ -383,4 +383,22 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor BatchResolverOnMutationField =
+        new(
+            id: ErrorCodes.Analyzers.BatchResolverOnMutationField,
+            title: "Batch Resolver On Mutation Field",
+            messageFormat: "The method '{0}' cannot be a batch resolver because top-level mutation fields execute serially",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor BatchResolverMiddlewareNotSupported =
+        new(
+            id: ErrorCodes.Analyzers.BatchResolverMiddlewareNotSupported,
+            title: "Middleware Not Supported On Batch Resolver",
+            messageFormat: "The attribute [{0}] registers a middleware that only supports the per-parent resolver pipeline and cannot be applied to the batch resolver '{1}'",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }

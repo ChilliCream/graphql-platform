@@ -1,0 +1,15 @@
+[
+  {
+    "Code": "HC0134",
+    "Message": "The field `Query.value` is resolved by the batch resolver 'Query.value' but declares the middleware `UseSorting`, which only supports the per-parent resolver pipeline. Register a batch middleware with `UseBatch` or remove `UseSorting` from the field.",
+    "Extensions": {
+      "fieldCoordinate": {
+        "OfDirective": false,
+        "Name": "Query",
+        "MemberName": "value",
+        "ArgumentName": null
+      },
+      "middlewareName": "UseSorting"
+    }
+  }
+]

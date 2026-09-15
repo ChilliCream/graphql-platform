@@ -40,6 +40,16 @@ public class NodeDescriptor<TNode>
             ApplyConfigurationOn.AfterNaming);
 
         ownerDef.Tasks.Add(configuration);
+        ownerDef.Tasks.Add(new OnCompleteTypeSystemConfigurationTask(
+            (c, d) =>
+            {
+                if (Configuration.ResolverField?.IsBatchResolver is true)
+                {
+                    CompleteResolver(c, (ObjectTypeConfiguration)d);
+                }
+            },
+            ownerDef,
+            ApplyConfigurationOn.BeforeCompletion));
     }
 
     private void OnCompleteConfiguration(
@@ -67,7 +77,10 @@ public class NodeDescriptor<TNode>
             }
         }
 
-        CompleteResolver(context, configuration);
+        if (Configuration.ResolverField?.IsBatchResolver is not true)
+        {
+            CompleteResolver(context, configuration);
+        }
     }
 
     protected override IObjectFieldDescriptor ConfigureNodeField()
@@ -123,6 +136,15 @@ public class NodeDescriptor<TNode>
         }
 
         throw new ArgumentException(NodeDescriptor_IdField_MustBePropertyOrMethod);
+    }
+
+    /// <inheritdoc cref="INodeDescriptor{TNode}.ResolveNodeBatch{TId}"/>
+    public IObjectFieldDescriptor ResolveNodeBatch<TId>(BatchNodeResolverDelegate<TNode, TId> batchResolver)
+    {
+        ArgumentNullException.ThrowIfNull(batchResolver);
+        Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        BatchNodeResolverHelper.Configure(Configuration.ResolverField, batchResolver);
+        return ConfigureNodeField();
     }
 
     /// <inheritdoc cref="INodeDescriptor{TNode}.ResolveNode{TId}"/>

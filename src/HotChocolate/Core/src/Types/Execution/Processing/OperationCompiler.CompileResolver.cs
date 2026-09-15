@@ -15,6 +15,12 @@ public sealed partial class OperationCompiler
             return pipeline;
         }
 
+        if (field.BatchResolver is not null)
+        {
+            ValidateBatchSelectionDirectives(schema, field, selection);
+            return pipeline;
+        }
+
         var pipelineComponents = new List<FieldMiddleware>();
 
         // if we have selection directives we will inspect them and try to build a
@@ -58,6 +64,19 @@ public sealed partial class OperationCompiler
         }
 
         return field.PureResolver;
+    }
+
+    private static void ValidateBatchSelectionDirectives(Schema schema, ObjectField field, FieldNode selection)
+    {
+        for (var i = 0; i < selection.Directives.Count; i++)
+        {
+            var directive = selection.Directives[i];
+            if (schema.DirectiveTypes.TryGetDirective(directive.Name.Value, out var type)
+                && (type.Middleware is not null || type.BatchMiddleware is not null))
+            {
+                throw ThrowHelper.DirectiveNotSupportedOnBatchSelection(field, directive);
+            }
+        }
     }
 
     // TODO : this needs a rewrite, we need to discuss how we handle field merging with directives

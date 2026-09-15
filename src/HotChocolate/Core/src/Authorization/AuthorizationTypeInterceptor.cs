@@ -143,6 +143,7 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
             }
 
             var pipeline = nodeResolverInfo.Pipeline;
+            var batchPipeline = nodeResolverInfo.BatchPipeline;
             var directives = objectType.Directives;
             var length = directives.Count;
             ref var start = ref directives.GetReference();
@@ -154,11 +155,22 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                 if (directive.Type.Name.EqualsOrdinal(Authorize))
                 {
                     var authDir = directive.ToValue<AuthorizeDirective>();
-                    pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
+                    if (pipeline is not null)
+                    {
+                        pipeline = CreateAuthMiddleware(authDir).Middleware.Invoke(pipeline);
+                    }
+                    if (batchPipeline is not null)
+                    {
+                        batchPipeline = CreateBatchAuthMiddleware(authDir).Middleware.Invoke(batchPipeline);
+                    }
                 }
             }
 
-            objectType.SetNodeResolver(new NodeResolverInfo(nodeResolverInfo.QueryField, pipeline));
+            objectType.SetNodeResolver(new NodeResolverInfo(
+                nodeResolverInfo.QueryField,
+                pipeline,
+                batchPipeline,
+                nodeResolverInfo.BatchPartitionKey));
         }
     }
 
@@ -411,6 +423,22 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
         bool isNodeField)
     {
         var insertPos = 0;
+        var batchInsertPos = 0;
+
+        if (fieldDef.BatchResolver is not null)
+        {
+            for (var i = 0; i < fieldDef.BatchMiddlewareConfigurations.Count; i++)
+            {
+                if (fieldDef.BatchMiddlewareConfigurations[i].Key == WellKnownMiddleware.Authorization)
+                {
+                    batchInsertPos = i + 1;
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
 
         // we try to locate the last auth middleware and insert after it.
         if (fieldDef.MiddlewareConfigurations.Count > 0)
@@ -461,6 +489,13 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
                     insertPos++,
                     CreateAuthMiddleware(
                         authDir));
+
+                if (fieldDef.BatchResolver is not null)
+                {
+                    fieldDef.BatchMiddlewareConfigurations.Insert(
+                        batchInsertPos++,
+                        CreateBatchAuthMiddleware(authDir));
+                }
             }
         }
     }
@@ -479,6 +514,13 @@ internal sealed partial class AuthorizationTypeInterceptor : TypeInterceptor
 
                 return async context => await auth.InvokeAsync(context);
             },
+            isRepeatable: true,
+            key: WellKnownMiddleware.Authorization);
+
+    private static BatchFieldMiddlewareConfiguration CreateBatchAuthMiddleware(
+        AuthorizeDirective directive)
+        => new(
+            next => new AuthorizeBatchMiddleware(next, directive).InvokeAsync,
             isRepeatable: true,
             key: WellKnownMiddleware.Authorization);
 

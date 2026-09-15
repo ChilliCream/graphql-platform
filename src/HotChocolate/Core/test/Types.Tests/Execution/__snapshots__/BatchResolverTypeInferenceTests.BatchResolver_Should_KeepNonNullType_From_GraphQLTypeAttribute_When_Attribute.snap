@@ -1,0 +1,7 @@
+schema {
+  query: GraphQLTypeAttributeBatchQuery
+}
+
+type GraphQLTypeAttributeBatchQuery {
+  labels(id: Int!): String!
+}

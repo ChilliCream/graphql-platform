@@ -74,6 +74,7 @@ public partial class DirectiveType
         IsPublic = configuration.IsPublic
             || context.DescriptorContext.Options.DisableInternalDirectives;
         Middleware = OnCompleteMiddleware(context, configuration);
+        BatchMiddleware = OnCompleteBatchMiddleware(context, configuration);
 
         _createInstance = OnCompleteCreateInstance(context, configuration);
         _getFieldValues = OnCompleteGetFieldValues(context, configuration);
@@ -225,6 +226,36 @@ public partial class DirectiveType
             for (var i = definition.MiddlewareComponents.Count - 1; i >= 0; i--)
             {
                 next = definition.MiddlewareComponents[i](next, directive);
+            }
+
+            return next;
+        };
+    }
+
+    /// <summary>
+    /// Completes the directive batch middleware, or returns <c>null</c> when none is configured.
+    /// </summary>
+    protected virtual BatchDirectiveMiddleware? OnCompleteBatchMiddleware(
+        ITypeCompletionContext context,
+        DirectiveTypeConfiguration definition)
+    {
+        var components = definition.GetBatchMiddlewareComponents();
+        if (components.Count == 0)
+        {
+            return null;
+        }
+
+        if (components.Count == 1)
+        {
+            return components[0];
+        }
+
+        return (initial, directive) =>
+        {
+            var next = initial;
+            for (var i = components.Count - 1; i >= 0; i--)
+            {
+                next = components[i](next, directive);
             }
 
             return next;

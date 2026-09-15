@@ -35,6 +35,46 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
 
     private NodeConfiguration Configuration { get; }
 
+    public IObjectFieldDescriptor ResolveNodeBatch(BatchResolverDelegate batchResolver)
+    {
+        ArgumentNullException.ThrowIfNull(batchResolver);
+        Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        ObjectFieldDescriptor.From(Context, Configuration.ResolverField).ResolveBatch(batchResolver);
+        Configuration.ResolverField.Resolver = null;
+        return _configureNodeField();
+    }
+
+    public IObjectFieldDescriptor ResolveNodeBatch(BatchNodeResolverDelegate<TNode, TId> batchResolver)
+    {
+        ArgumentNullException.ThrowIfNull(batchResolver);
+        Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        BatchNodeResolverHelper.Configure(Configuration.ResolverField, batchResolver);
+        return _configureNodeField();
+    }
+
+    public IObjectFieldDescriptor ResolveNodeBatchWith<TResolver>(Expression<Func<TResolver, object?>> method)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+        var member = method.ExtractMember();
+        var resolverField = Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        ObjectFieldDescriptor.From(Context, resolverField).ResolveBatchWith(method);
+        resolverField.Member = member;
+        resolverField.ResolverMember = null;
+        resolverField.BatchResolver = null;
+        return _configureNodeField();
+    }
+
+    public IObjectFieldDescriptor ResolveNodeBatchWith(MethodInfo method)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+        var resolverField = Configuration.ResolverField ??= new ObjectFieldConfiguration();
+        ObjectFieldDescriptor.From(Context, resolverField).ResolveBatchWith(method);
+        resolverField.Member = method;
+        resolverField.ResolverMember = null;
+        resolverField.BatchResolver = null;
+        return _configureNodeField();
+    }
+
     public IObjectFieldDescriptor NodeResolver(NodeResolverDelegate<TNode, TId> nodeResolver)
         => ResolveNode(nodeResolver);
 
@@ -78,6 +118,11 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
 
         if (member is MethodInfo m)
         {
+            if (m.IsDefined(typeof(BatchResolverAttribute)))
+            {
+                return ResolveNodeBatchWith(method);
+            }
+
             Configuration.ResolverField ??= new ObjectFieldConfiguration();
             Configuration.ResolverField.Member = m;
             Configuration.ResolverField.DeclaringType = m.ReflectedType ?? m.DeclaringType;
@@ -93,6 +138,11 @@ public class NodeDescriptor<TNode, TId> : INodeDescriptor<TNode, TId>
     public IObjectFieldDescriptor ResolveNodeWith(MethodInfo method)
     {
         ArgumentNullException.ThrowIfNull(method);
+
+        if (method.IsDefined(typeof(BatchResolverAttribute)))
+        {
+            return ResolveNodeBatchWith(method);
+        }
 
         Configuration.ResolverField ??= new ObjectFieldConfiguration();
         Configuration.ResolverField.Member = method;

@@ -139,6 +139,30 @@ public class DirectiveTypeDescriptor<T>
         return this;
     }
 
+    /// <inheritdoc />
+    public new IDirectiveTypeDescriptor<T> UseBatch(BatchDirectiveMiddleware middleware)
+    {
+        base.UseBatch(middleware);
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IDirectiveTypeDescriptor<T> UseBatch<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
+        where TMiddleware : class
+    {
+        base.UseBatch<TMiddleware>();
+        return this;
+    }
+
+    /// <inheritdoc />
+    public new IDirectiveTypeDescriptor<T> UseBatch<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
+        Func<IServiceProvider, BatchFieldDelegate, TMiddleware> factory)
+        where TMiddleware : class
+    {
+        base.UseBatch(factory);
+        return this;
+    }
+
     public new IDirectiveTypeDescriptor<T> Repeatable()
     {
         base.Repeatable();

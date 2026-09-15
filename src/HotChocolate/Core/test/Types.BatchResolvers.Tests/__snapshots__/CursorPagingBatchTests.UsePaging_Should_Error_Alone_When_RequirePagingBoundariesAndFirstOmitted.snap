@@ -1,0 +1,60 @@
+{
+  "errors": [
+    {
+      "message": "You must provide a `first` or `last` value to properly paginate the `ProductsConnection`.",
+      "path": [
+        "brands",
+        0,
+        "omitted"
+      ],
+      "extensions": {
+        "code": "HC0052",
+        "coordinate": "CursorBrand.products"
+      }
+    },
+    {
+      "message": "You must provide a `first` or `last` value to properly paginate the `ProductsConnection`.",
+      "path": [
+        "brands",
+        1,
+        "omitted"
+      ],
+      "extensions": {
+        "code": "HC0052",
+        "coordinate": "CursorBrand.products"
+      }
+    }
+  ],
+  "data": {
+    "brands": [
+      {
+        "name": "Brand 1",
+        "explicit": {
+          "nodes": [
+            {
+              "name": "Brand 1 P1"
+            },
+            {
+              "name": "Brand 1 P2"
+            }
+          ]
+        },
+        "omitted": null
+      },
+      {
+        "name": "Brand 2",
+        "explicit": {
+          "nodes": [
+            {
+              "name": "Brand 2 P1"
+            },
+            {
+              "name": "Brand 2 P2"
+            }
+          ]
+        },
+        "omitted": null
+      }
+    ]
+  }
+}

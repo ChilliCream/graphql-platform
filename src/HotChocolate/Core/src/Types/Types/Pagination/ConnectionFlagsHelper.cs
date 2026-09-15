@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -18,7 +19,18 @@ public static class ConnectionFlagsHelper
     /// Gets the connection flags from the current resolver context.
     /// </summary>
     public static ConnectionFlags GetConnectionFlags(IResolverContext context)
-        => context.Selection.Features.GetOrSetSafe(CreateConnectionFlags, context);
+    {
+        var cached = context.Selection.Features.GetOrSetSafe(
+            static c => new CachedConnectionFlags(c.IncludeConditionFlags, CreateConnectionFlags(c)),
+            context);
+        var conditions = context.IncludeConditionFlags;
+        return cached.Conditions.Word0 == conditions.Word0
+            && cached.Conditions.Overflow.AsSpan().SequenceEqual(conditions.Overflow)
+                ? cached.Flags
+                : CreateConnectionFlags(context);
+    }
+
+    private readonly record struct CachedConnectionFlags(ConditionFlags Conditions, ConnectionFlags Flags);
 
     private static ConnectionFlags CreateConnectionFlags(IResolverContext context)
     {

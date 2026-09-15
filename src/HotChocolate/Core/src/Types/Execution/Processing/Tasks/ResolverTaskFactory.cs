@@ -23,6 +23,7 @@ internal static class ResolverTaskFactory
         var mainBranchId = operationContext.ExecutionBranchId;
         var data = resultValue.EnumerateObject();
         var i = 0;
+        var hasBatchEntries = false;
 
         try
         {
@@ -61,11 +62,13 @@ internal static class ResolverTaskFactory
                     if (selection.Strategy is SelectionExecutionStrategy.Batch)
                     {
                         scheduler.RegisterBatchEntry(
+                            operationContext,
                             selection,
                             parent,
                             field.Value,
                             scopedContext,
                             mainBranchId);
+                        hasBatchEntries = true;
                     }
                     else
                     {
@@ -78,7 +81,7 @@ internal static class ResolverTaskFactory
                     }
                 }
 
-                if (i == 0 && branches.IsEmpty)
+                if (i == 0 && branches.IsEmpty && !hasBatchEntries)
                 {
                     // in the case all root fields are skipped we execute a dummy task in order
                     // to not have extra logic for this case.
@@ -116,11 +119,13 @@ internal static class ResolverTaskFactory
                     if (selection.Strategy is SelectionExecutionStrategy.Batch)
                     {
                         scheduler.RegisterBatchEntry(
+                            operationContext,
                             selection,
                             parent,
                             field.Value,
                             scopedContext,
                             mainBranchId);
+                        hasBatchEntries = true;
                     }
                     else
                     {
@@ -133,7 +138,7 @@ internal static class ResolverTaskFactory
                     }
                 }
 
-                if (i == 0)
+                if (i == 0 && !hasBatchEntries)
                 {
                     // in the case all root fields are skipped we execute a dummy task in order
                     // to not have extra logic for this case.
@@ -141,7 +146,10 @@ internal static class ResolverTaskFactory
                 }
                 else
                 {
-                    scheduler.Register(bufferedTasks.AsSpan(0, i));
+                    if (i > 0)
+                    {
+                        scheduler.Register(bufferedTasks.AsSpan(0, i));
+                    }
                 }
             }
         }
@@ -229,6 +237,7 @@ internal static class ResolverTaskFactory
                 else if (selection.Strategy is SelectionExecutionStrategy.Batch)
                 {
                     operationContext.Scheduler.RegisterBatchEntry(
+                        operationContext,
                         selection,
                         parent,
                         field.Value,
@@ -267,6 +276,7 @@ internal static class ResolverTaskFactory
                 else if (selection.Strategy is SelectionExecutionStrategy.Batch)
                 {
                     operationContext.Scheduler.RegisterBatchEntry(
+                        operationContext,
                         selection,
                         parent,
                         field.Value,

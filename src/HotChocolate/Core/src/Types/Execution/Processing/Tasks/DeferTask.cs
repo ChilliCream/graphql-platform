@@ -31,10 +31,25 @@ internal sealed class DeferTask : ExecutionTask
         {
             foreach (var field in data.EnumerateObject())
             {
+                var selection = field.AssertSelection();
+
+                if (selection.Strategy is SelectionExecutionStrategy.Batch)
+                {
+                    deferContext.Scheduler.RegisterBatchEntry(
+                        deferContext,
+                        selection,
+                        _parent,
+                        field.Value,
+                        _scopedContext,
+                        _executionBranchId,
+                        _deferUsage);
+                    continue;
+                }
+
                 bufferedTasks[i++] =
                     deferContext.CreateResolverTask(
                         _parent,
-                        field.AssertSelection(),
+                        selection,
                         field.Value,
                         _scopedContext,
                         _executionBranchId,
