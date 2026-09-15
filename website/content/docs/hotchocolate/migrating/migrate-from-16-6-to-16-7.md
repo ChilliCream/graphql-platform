@@ -1,10 +1,96 @@
 ---
 title: Migrate Hot Chocolate from 16.6 to 16.7
 metaTitle: "Hot Chocolate 16.7 Migration Guide"
-description: "Migration guide for Hot Chocolate v16.6 to v16.7: update cost analysis and replace raw condition masks with ConditionFlags."
+description: "Migration guide for Hot Chocolate v16.6 to v16.7: update cost analysis, implement the new WebSocket connection initialization diagnostic event, replace raw condition masks with ConditionFlags, and configure wide operation limits."
 ---
 
 Update every `HotChocolate.*` package in the application to version 16.7 before applying these changes.
+
+# Breaking changes
+
+Things that have been removed or had a change in behavior that may cause your code not to compile or lead to unexpected behavior at runtime if not addressed.
+
+## IServerDiagnosticEvents gained a WebSocket connection initialization event
+
+`IServerDiagnosticEvents` has a new `WebSocketConnectionInitialized` member. It is raised once per WebSocket session, for both the `graphql-transport-ws` and the legacy `graphql-ws` protocol, after the client's connection initialization message has been accepted.
+
+Listeners that derive from `ServerDiagnosticEventListener` need no change, because the base class provides a virtual no-op. Types that implement `IServerDiagnosticEvents` directly have to implement the new member:
+
+```csharp
+public void WebSocketConnectionInitialized(
+    ISocketSession session,
+    IOperationMessagePayload connectionInitMessage)
+{
+}
+```
+
+The payload of `connectionInitMessage` is only valid for the duration of the call. Read out any value that is needed later inside the callback, for example onto `ISocketConnection.Features`.
+
+## Cost variable multipliers retired
+
+Cost analysis now evaluates coerced variable values directly. The filter and sort variable multipliers are inert in 16.7 and marked `[Obsolete(error: true)]`, so code that accesses them fails to compile. They will be removed in a later release.
+
+The positional `RequestCostOptions` constructors and `Deconstruct` overload that expose the filter variable multiplier are also marked `[Obsolete(error: true)]`. The replacement positional shape includes `skipAnalyzer` and replaces the multiplier with `maxResponseSize`. Record `with` expressions that do not access an obsolete member continue to compile.
+
+| Deprecated 16.6 member                                              | 16.7 replacement                                                       |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `FilterCostOptions.VariableMultiplier`                              | Remove the setting. Coerced filter values are priced directly.         |
+| `SortCostOptions.VariableMultiplier`                                | Remove the setting. Coerced sort values are priced directly.           |
+| `RequestCostOptions.FilterVariableMultiplier`                       | Remove the setting.                                                    |
+| `RequestCostOptions(double, double, bool, int?)`                    | `RequestCostOptions(double, double, bool, bool, double?)`              |
+| `RequestCostOptions(double, double, bool, bool, int?)`              | `RequestCostOptions(double, double, bool, bool, double?)`              |
+| `Deconstruct(out double, out double, out bool, out bool, out int?)` | `Deconstruct(out double, out double, out bool, out bool, out double?)` |
+
+Update positional construction as follows:
+
+```diff
+ var requestOptions = new RequestCostOptions(
+     maxFieldCost: 1_000,
+     maxTypeCost: 1_000,
+     enforceCostLimits: true,
+-    filterVariableMultiplier: 5);
++    skipAnalyzer: false,
++    maxResponseSize: null);
+```
+
+`ICostMetricsCache` and `DefaultCostMetricsCache` have been removed. Compiled cost plans are cached internally, so no replacement cache service registration is required.
+
+## Cost analyzer pipeline placement changed
+
+`CostAnalyzerMiddleware` now runs after `OperationVariableCoercionMiddleware`. When `AddCostAnalyzer()` is registered, the default, persisted-operation, and automatic-persisted-operation pipelines use this order.
+
+`AddCostAnalyzer()` inserts the analyzer after the keyed variable-coercion middleware. A custom pipeline must contain that middleware, and variable coercion must precede the remaining execution stages:
+
+```diff
+ builder
+     .AddGraphQL()
+     .AddCostAnalyzer()
+     // ... parsing, validation, operation cache ...
+     .UseOperationResolver()
+-    .UseSkipWarmupExecution()
+     .UseOperationVariableCoercion()
++    .UseSkipWarmupExecution()
+     .UseConcurrencyGate()
+     .UseOperationExecution();
+```
+
+Warmup requests use the static-bound path without variable coercion. `GraphQL-Cost: validate` requests always run variable coercion, matching `execute`/`report` (2026-09-14 user ruling); a `validate` request without required variables now fails with the ordinary variable-coercion error instead of the static-bound path an earlier 16.7 preview used. The static bound is not exposed through the request pipeline.
+
+## Omitted list-size requirement now enforces
+
+A schema-first `@listSize` usage with `slicingArguments` now uses the directive definition's default for `requireOneSlicingArgument`. The built-in definition defaults it to `true`. Static validation counts non-null literal slicing arguments and returns `HC0082` when the count is zero or greater than one. Explicit null does not count. When every non-null slicing argument is variable-bound, validation is deferred because its presence is not known yet.
+
+Write `requireOneSlicingArgument: false` to retain the 16.6 relaxation:
+
+```diff
+-@listSize(slicingArguments: ["first", "last"])
++@listSize(
++  slicingArguments: ["first", "last"]
++  requireOneSlicingArgument: false
++)
+```
+
+Generated paging annotations already write the setting explicitly. They write `false` by default and `true` when `RequirePagingBoundaries` is enabled.
 
 # Deprecations
 
@@ -93,74 +179,6 @@ At call sites, pass `IncludeConditionFlags` instead of `IncludeFlags` to each ov
 ```
 
 The deprecated evaluation overloads continue to work for operations with at most 64 conditions. When an operation has more than 64 conditions of the corresponding kind, the deprecated raw inclusion overloads throw `InvalidOperationException` for every conditional selection and the deprecated raw defer overloads throw for every deferrable selection, including selections whose own conditions are all among the first 64; raw inclusion evaluation does not throw for an unconditional selection, and raw defer evaluation does not throw for a non-deferrable selection. The deprecated `SelectionEnumerator` and projection overloads throw for wider include operations. The deprecated `IncludeFlags` properties expose only the first 64 flags. Releases before 16.7 rejected operations with more than 64 conditions during compilation.
-
-# Breaking changes
-
-## Cost variable multipliers retired
-
-Cost analysis now evaluates coerced variable values directly. The filter and sort variable multipliers are inert in 16.7 and marked `[Obsolete(error: true)]`, so code that accesses them fails to compile. They will be removed in a later release.
-
-The positional `RequestCostOptions` constructors and `Deconstruct` overload that expose the filter variable multiplier are also marked `[Obsolete(error: true)]`. The replacement positional shape includes `skipAnalyzer` and replaces the multiplier with `maxResponseSize`. Record `with` expressions that do not access an obsolete member continue to compile.
-
-| Deprecated 16.6 member                                              | 16.7 replacement                                                       |
-| ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| `FilterCostOptions.VariableMultiplier`                              | Remove the setting. Coerced filter values are priced directly.         |
-| `SortCostOptions.VariableMultiplier`                                | Remove the setting. Coerced sort values are priced directly.           |
-| `RequestCostOptions.FilterVariableMultiplier`                       | Remove the setting.                                                    |
-| `RequestCostOptions(double, double, bool, int?)`                    | `RequestCostOptions(double, double, bool, bool, double?)`              |
-| `RequestCostOptions(double, double, bool, bool, int?)`              | `RequestCostOptions(double, double, bool, bool, double?)`              |
-| `Deconstruct(out double, out double, out bool, out bool, out int?)` | `Deconstruct(out double, out double, out bool, out bool, out double?)` |
-
-Update positional construction as follows:
-
-```diff
- var requestOptions = new RequestCostOptions(
-     maxFieldCost: 1_000,
-     maxTypeCost: 1_000,
-     enforceCostLimits: true,
--    filterVariableMultiplier: 5);
-+    skipAnalyzer: false,
-+    maxResponseSize: null);
-```
-
-`ICostMetricsCache` and `DefaultCostMetricsCache` have been removed. Compiled cost plans are cached internally, so no replacement cache service registration is required.
-
-## Cost analyzer pipeline placement changed
-
-`CostAnalyzerMiddleware` now runs after `OperationVariableCoercionMiddleware`. When `AddCostAnalyzer()` is registered, the default, persisted-operation, and automatic-persisted-operation pipelines use this order.
-
-`AddCostAnalyzer()` inserts the analyzer after the keyed variable-coercion middleware. A custom pipeline must contain that middleware, and variable coercion must precede the remaining execution stages:
-
-```diff
- builder
-     .AddGraphQL()
-     .AddCostAnalyzer()
-     // ... parsing, validation, operation cache ...
-     .UseOperationResolver()
--    .UseSkipWarmupExecution()
-     .UseOperationVariableCoercion()
-+    .UseSkipWarmupExecution()
-     .UseConcurrencyGate()
-     .UseOperationExecution();
-```
-
-Warmup requests use the static-bound path without variable coercion. `GraphQL-Cost: validate` requests always run variable coercion, matching `execute`/`report` (2026-09-14 user ruling); a `validate` request without required variables now fails with the ordinary variable-coercion error instead of the static-bound path an earlier 16.7 preview used. The static bound is not exposed through the request pipeline.
-
-## Omitted list-size requirement now enforces
-
-A schema-first `@listSize` usage with `slicingArguments` now uses the directive definition's default for `requireOneSlicingArgument`. The built-in definition defaults it to `true`. Static validation counts non-null literal slicing arguments and returns `HC0082` when the count is zero or greater than one. Explicit null does not count. When every non-null slicing argument is variable-bound, validation is deferred because its presence is not known yet.
-
-Write `requireOneSlicingArgument: false` to retain the 16.6 relaxation:
-
-```diff
--@listSize(slicingArguments: ["first", "last"])
-+@listSize(
-+  slicingArguments: ["first", "last"]
-+  requireOneSlicingArgument: false
-+)
-```
-
-Generated paging annotations already write the setting explicitly. They write `false` by default and `true` when `RequirePagingBoundaries` is enabled.
 
 # Behavioral breaking changes
 

@@ -21,15 +21,18 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         if (options.SkipExecuteRequest)
         {
-            if (!options.SkipExecuteHttpRequest
-                && context.Features.TryGet<HttpContext>(out var httpContext)
-                && httpContext.Features.Get<ExecuteHttpRequestSpan>() is { } httpRequestSpan)
-            {
-                httpContextActivity = httpRequestSpan.Activity;
-            }
-            else
+            if (options.SkipExecuteHttpRequest
+                || !context.Features.TryGet<HttpContext>(out var httpContext))
             {
                 return EmptyScope;
+            }
+
+            // A GraphQL over HTTP request reuses the transport span as the root request
+            // span instead of emitting a second one. A transport that has no span of its
+            // own, like a WebSocket session, falls through to a dedicated request span.
+            if (httpContext.Features.Get<ExecuteHttpRequestSpan>() is { } httpRequestSpan)
+            {
+                httpContextActivity = httpRequestSpan.Activity;
             }
         }
 

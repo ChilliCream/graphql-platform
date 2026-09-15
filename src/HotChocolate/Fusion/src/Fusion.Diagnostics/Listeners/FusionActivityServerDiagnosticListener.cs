@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -103,6 +105,11 @@ internal sealed class FusionActivityServerDiagnosticListener(
             span.RecordErrors(errors);
         }
     }
+
+    public override void WebSocketConnectionInitialized(
+        ISocketSession session,
+        IOperationMessagePayload connectionInitMessage)
+        => enricher.OnWebSocketConnectionInitialized(session, connectionInitMessage);
 
     public override IDisposable FormatHttpResponse(HttpContext context, OperationResult result)
     {
