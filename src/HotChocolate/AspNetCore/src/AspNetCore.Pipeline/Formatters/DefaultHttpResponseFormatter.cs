@@ -680,6 +680,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             _ => ResultKind.Stream
         };
 
+        var rejectedFormats = GetRejectedFormats(acceptMediaTypes);
+
         // RFC 9110, section 12.4.2: a media type with q=0 is not acceptable, and the server
         // selects from the acceptable media types in descending order of quality.
         if (RequiresQualityOrdering(acceptMediaTypes))
@@ -707,6 +709,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                         offset,
                         tierLength,
                         resultKind,
+                        rejectedFormats,
                         out selectedAcceptMediaType,
                         out format))
                     {
@@ -729,12 +732,76 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             0,
             length,
             resultKind,
+            rejectedFormats,
             out selectedAcceptMediaType,
             out format);
     }
 
     private static double GetQuality(AcceptMediaType mediaType)
         => mediaType.Quality ?? 1.0;
+
+    /// <summary>
+    /// Collects the response content types the client marked unacceptable with q=0, as a bit per
+    /// <see cref="ResponseContentType"/>. RFC 9110, section 12.5.1 resolves a media type's quality
+    /// against the most specific range that matches it, so these rejections outrank any wildcard
+    /// the client also sent and must be honoured wherever a wildcard resolves to a concrete type.
+    /// </summary>
+    private static int GetRejectedFormats(AcceptMediaType[] acceptMediaTypes)
+    {
+        var rejected = 0;
+
+        foreach (var acceptMediaType in acceptMediaTypes)
+        {
+            if (GetQuality(acceptMediaType) is not 0)
+            {
+                continue;
+            }
+
+            rejected |= acceptMediaType.Kind switch
+            {
+                ApplicationGraphQL => Bit(ResponseContentType.GraphQLResponse),
+                ApplicationGraphQLStream => Bit(ResponseContentType.GraphQLResponseStream),
+                ApplicationJson => Bit(ResponseContentType.Json),
+                ApplicationJsonLines => Bit(ResponseContentType.JsonLines),
+                MultiPartMixed => Bit(ResponseContentType.MultiPartMixed),
+                EventStream => Bit(ResponseContentType.EventStream),
+                AllApplication => Bit(ResponseContentType.GraphQLResponse)
+                    | Bit(ResponseContentType.GraphQLResponseStream)
+                    | Bit(ResponseContentType.Json)
+                    | Bit(ResponseContentType.JsonLines),
+                AllMultiPart => Bit(ResponseContentType.MultiPartMixed),
+                All => Bit(ResponseContentType.GraphQLResponse)
+                    | Bit(ResponseContentType.GraphQLResponseStream)
+                    | Bit(ResponseContentType.Json)
+                    | Bit(ResponseContentType.JsonLines)
+                    | Bit(ResponseContentType.MultiPartMixed)
+                    | Bit(ResponseContentType.EventStream),
+                _ => 0
+            };
+        }
+
+        return rejected;
+
+        static int Bit(ResponseContentType contentType) => 1 << (int)contentType;
+    }
+
+    private static bool IsRejected(int rejectedFormats, FormatInfo format)
+        => (rejectedFormats & (1 << (int)format.Kind)) is not 0;
+
+    /// <summary>
+    /// Resolves the format a wildcard range selects for a single result, skipping a content type
+    /// the client rejected outright. Returns <c>null</c> when neither remains acceptable, leaving
+    /// the caller to try the streaming formats the same wildcard also covers.
+    /// </summary>
+    private FormatInfo? ResolveWildcardSingleFormat(int rejectedFormats)
+    {
+        if (!IsRejected(rejectedFormats, _defaultFormat))
+        {
+            return _defaultFormat;
+        }
+
+        return IsRejected(rejectedFormats, _legacyFormat) ? null : _legacyFormat;
+    }
 
     /// <summary>
     /// Copies the acceptable media types into <paramref name="buffer"/>, ordered by descending
@@ -799,6 +866,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         int offset,
         int length,
         ResultKind resultKind,
+        int rejectedFormats,
         out AcceptMediaType selectedAcceptMediaType,
         [NotNullWhen(true)] out FormatInfo? format)
     {
@@ -836,13 +904,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
             if (resultKind is ResultKind.Single && mediaType.Kind is AllApplication or All)
             {
-                selectedAcceptMediaType = mediaType;
-                format = _defaultFormat;
-                return true;
+                var wildcardFormat = ResolveWildcardSingleFormat(rejectedFormats);
+
+                if (wildcardFormat is not null)
+                {
+                    selectedAcceptMediaType = mediaType;
+                    format = wildcardFormat;
+                    return true;
+                }
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single
-                && mediaType.Kind is MultiPartMixed or AllMultiPart or All)
+                && mediaType.Kind is MultiPartMixed or AllMultiPart or All
+                && !IsRejected(rejectedFormats, _multiPartFormat))
             {
                 selectedAcceptMediaType = mediaType;
                 format = _multiPartFormat;
@@ -857,7 +931,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return true;
             }
 
-            if (mediaType.Kind is EventStream or All)
+            if (mediaType.Kind is EventStream or All
+                && !IsRejected(rejectedFormats, _eventStreamFormat))
             {
                 selectedAcceptMediaType = mediaType;
                 format = _eventStreamFormat;
@@ -877,9 +952,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             if (resultKind is ResultKind.Single && start.Kind is AllApplication or All)
             {
-                selectedAcceptMediaType = start;
-                format = _defaultFormat;
-                return true;
+                var wildcardFormat = ResolveWildcardSingleFormat(rejectedFormats);
+
+                if (wildcardFormat is not null)
+                {
+                    selectedAcceptMediaType = start;
+                    format = wildcardFormat;
+                    return true;
+                }
             }
 
             if (resultKind is ResultKind.Single && start.Kind is ApplicationJson)
@@ -913,7 +993,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single
-                && start.Kind is MultiPartMixed or AllMultiPart or All)
+                && start.Kind is MultiPartMixed or AllMultiPart or All
+                && !IsRejected(rejectedFormats, _multiPartFormat))
             {
                 // if the result is a stream, we consider this a perfect match and
                 // will use this format.
@@ -933,7 +1014,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
             }
 
-            if (start.Kind is EventStream or All)
+            if (start.Kind is EventStream or All
+                && !IsRejected(rejectedFormats, _eventStreamFormat))
             {
                 // if the result is a subscription, we consider this a perfect match and
                 // will use this format.

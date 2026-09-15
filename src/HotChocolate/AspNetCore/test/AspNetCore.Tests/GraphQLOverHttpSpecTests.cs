@@ -699,6 +699,25 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 """);
     }
 
+    [Fact]
+    public async Task SingleResult_Should_NotSelectMediaType_When_ASpecificRangeRejectsIt()
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        AddAcceptHeader(request, "application/graphql-response+json;q=0, */*;q=1");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.NotEqual(
+            ContentType.GraphQLResponse,
+            response.Content.Headers.ContentType?.ToString());
+    }
+
     // An Accept header the server cannot parse is disregarded, and the response uses the media
     // type the configured transport serves by default. The legacy transport answers 200 there:
     // the specification scopes its 200-for-everything rule to a well-formed request, but allows
