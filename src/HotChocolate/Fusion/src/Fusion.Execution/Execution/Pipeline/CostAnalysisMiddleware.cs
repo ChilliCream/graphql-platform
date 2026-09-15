@@ -46,7 +46,7 @@ internal sealed class CostAnalysisMiddleware
 
         // Coercion always precedes cost analysis and produces at least one variable set for a
         // non-warmup request, except when a variable batch request's payload is an explicitly
-        // empty array. That state is invalid for cost analysis; the static bound is reserved for
+        // empty array. That state is invalid for cost analysis; the assumed bound is reserved for
         // warmup requests and must not leak back into the request path.
         if (!isWarmup && context.VariableValues.IsDefaultOrEmpty)
         {
@@ -80,11 +80,11 @@ internal sealed class CostAnalysisMiddleware
                 _cache.TryAdd(operationId, plan);
             }
 
-            var isStaticBound = isWarmup;
+            var isAssumedBound = isWarmup;
 
-            if (isStaticBound)
+            if (isAssumedBound)
             {
-                var estimate = plan.EvaluateStaticBound();
+                var estimate = plan.EvaluateAssumedBound();
                 estimates = [estimate];
                 _diagnosticEvents.OperationCost(context, estimate.FieldCost, estimate.TypeCost);
             }
@@ -104,7 +104,7 @@ internal sealed class CostAnalysisMiddleware
                 estimates = builder.MoveToImmutable();
             }
 
-            var analysisResult = new CostAnalysisResult(plan, estimates, isStaticBound);
+            var analysisResult = new CostAnalysisResult(plan, estimates, isAssumedBound);
             context.Features.Set(analysisResult);
 
             if ((mode & CostAnalysisMode.Enforce) == CostAnalysisMode.Enforce)
