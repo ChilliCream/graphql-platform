@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Globalization;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Types.Collections;
@@ -798,14 +799,15 @@ internal static class CompositeSchemaBuilder
             return null;
         }
 
-        if (defaultListSizeArgument.Value is IntValueNode intValue)
+        if (defaultListSizeArgument.Value is IntValueNode intValue
+            && int.TryParse(
+                intValue.Value,
+                NumberStyles.Integer,
+                CultureInfo.InvariantCulture,
+                out var value)
+            && value >= 0)
         {
-            var value = intValue.ToInt32();
-
-            if (value >= 0)
-            {
-                return value;
-            }
+            return value;
         }
 
         throw new InvalidOperationException(

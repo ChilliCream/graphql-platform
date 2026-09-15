@@ -404,8 +404,7 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
 
     // A single value in a list position is coerced to a one-element list (GraphQL list input
     // coercion), so a singleton string is a valid shorthand for slicingArguments. The public
-    // directive reports the coerced list; the @fusion__listSize provenance entry echoes the
-    // source's own usage verbatim, as it does for every other argument shape.
+    // directive and the @fusion__listSize provenance entry agree: both report the coerced list.
     [Fact]
     public void Merge_ListSizeDirectiveSlicingArgumentsSingleton_MatchesSnapshot()
     {
@@ -429,7 +428,7 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
               field: [Int]
                 @listSize(slicingArguments: ["first"])
                 @fusion__field(schema: A)
-                @fusion__listSize(schema: A, slicingArguments: "first")
+                @fusion__listSize(schema: A, slicingArguments: ["first"])
             }
             """,
             modifySchema: s_removeListSizeDirective);
@@ -493,8 +492,7 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
 
     // A single value in a list position is coerced to a one-element list (GraphQL list input
     // coercion), so a singleton string is a valid shorthand for sizedFields. The public directive
-    // reports the coerced list; the @fusion__listSize provenance entry echoes the source's own
-    // usage verbatim, as it does for every other argument shape.
+    // and the @fusion__listSize provenance entry agree: both report the coerced list.
     [Fact]
     public void Merge_ListSizeDirectiveSizedFieldsSingleton_MatchesSnapshot()
     {
@@ -518,7 +516,7 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
               field: [Int]
                 @listSize(sizedFields: ["edges"])
                 @fusion__field(schema: A)
-                @fusion__listSize(schema: A, sizedFields: "edges")
+                @fusion__listSize(schema: A, sizedFields: ["edges"])
             }
             """,
             modifySchema: s_removeListSizeDirective);

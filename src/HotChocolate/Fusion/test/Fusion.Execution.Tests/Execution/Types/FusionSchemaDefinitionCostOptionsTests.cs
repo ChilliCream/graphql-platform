@@ -98,6 +98,7 @@ public sealed class FusionSchemaDefinitionCostOptionsTests
     [InlineData("\"1\"")]
     [InlineData("1.5")]
     [InlineData("true")]
+    [InlineData("99999999999")]
     public void Create_Should_RejectInvalidDefaultListSize(string value)
     {
         var exception = Assert.Throws<InvalidOperationException>(

@@ -96,9 +96,26 @@ internal static class CompositionHelper
                 configuration.Settings);
         }
 
-        var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
+        var (compositionSettingsRead, existingCompositionSettings) =
+            await TryGetCompositionSettingsAsync(archive, compositionLog, cancellationToken);
+
+        if (!compositionSettingsRead)
+        {
+            return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+        }
+
         var mergedCompositionSettings =
             compositionSettings?.MergeInto(existingCompositionSettings) ?? existingCompositionSettings;
+
+        // The defaultListSize composition setting comes from the composition settings, not a
+        // schema coordinate, so an invalid value is reported as a composition error here rather
+        // than left to throw out of SourceSchemaMergerOptions.DefaultListSize's own guard.
+        if (mergedCompositionSettings.Merger.DefaultListSize is { } defaultListSize
+            && defaultListSize < 0)
+        {
+            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSetting(defaultListSize));
+            return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+        }
 
         var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
         var mergerOptions = mergedCompositionSettings.Merger.ToOptions();
@@ -233,14 +250,38 @@ internal static class CompositionHelper
         return result;
     }
 
-    private static async Task<CompositionSettings> GetCompositionSettingsAsync(
+    // The defaultListSize composition setting comes from the composition settings, not a
+    // schema coordinate, so a non-integer raw value is reported as a composition error here,
+    // before the typed Deserialize below would otherwise throw a JsonException out of it.
+    private static async Task<(bool Success, CompositionSettings Settings)> TryGetCompositionSettingsAsync(
         FusionArchive archive,
+        ICompositionLog compositionLog,
         CancellationToken cancellationToken)
     {
-        using var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
+        using var rawCompositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
 
-        return compositionSettings?.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
+        if (rawCompositionSettings is null)
+        {
+            return (true, new CompositionSettings());
+        }
+
+        var root = rawCompositionSettings.RootElement;
+
+        if (root.ValueKind == JsonValueKind.Object
+            && root.TryGetProperty("merger", out var merger)
+            && merger.ValueKind == JsonValueKind.Object
+            && merger.TryGetProperty("defaultListSize", out var defaultListSize)
+            && defaultListSize.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined)
+            && (defaultListSize.ValueKind is not JsonValueKind.Number
+                || !defaultListSize.TryGetInt32(out _)))
+        {
+            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSetting(defaultListSize.GetRawText()));
+            return (false, new CompositionSettings());
+        }
+
+        var settings = rawCompositionSettings.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
             ?? new CompositionSettings();
+        return (true, settings);
     }
 
     private static async Task SaveCompositionSettingsAsync(
