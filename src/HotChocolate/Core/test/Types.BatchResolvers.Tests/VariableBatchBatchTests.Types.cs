@@ -29,6 +29,10 @@ public sealed partial class VariableBatchBatchTests
                 .Argument("id", a => a.Type<IntType>())
                 .ResolveBatchWith<FluentVariableBatchResolvers>(t => t.GetProductById(null!, null!))
                 .Type<NonNullType<ObjectType<VariableBatchProduct>>>();
+            d.Field("unionProduct")
+                .Argument("id", a => a.Type<IntType>())
+                .ResolveBatchWith<FluentVariableBatchResolvers>(
+                    t => t.GetUnionProduct(null!, false, false, null!));
         });
 }
 
@@ -36,6 +40,23 @@ public sealed partial class VariableBatchBatchTests
 /// A product resolved through a batch resolver keyed by a per-variable-set argument.
 /// </summary>
 public sealed record VariableBatchProduct(int Id, string Name);
+
+/// <summary>
+/// A product whose <c>left</c>/<c>right</c> fields report the <c>[IsSelected]</c> flags a
+/// single batch dispatch bound for the whole variable batch.
+/// </summary>
+public sealed record UnionSelectionProduct(int Id, string Left, string Right);
+
+/// <summary>
+/// Records the <c>[IsSelected("left")]</c>/<c>[IsSelected("right")]</c> values a single
+/// <c>unionProduct</c> batch dispatch was bound with.
+/// </summary>
+public sealed class IsSelectedUnionLog
+{
+    public List<IsSelectedUnionObservation> Invocations { get; } = [];
+}
+
+public sealed record IsSelectedUnionObservation(IReadOnlyList<int> Ids, bool Left, bool Right);
 
 /// <summary>
 /// Fluent-style batch resolver bound with <c>ResolveBatchWith</c>. A missing id resolves to
@@ -48,6 +69,19 @@ public sealed class FluentVariableBatchResolvers
     {
         probe.Record(nameof(GetProductById), id);
         return id.ConvertAll(i => VariableBatchBatchTests.Products.FirstOrDefault(p => p.Id == i) ?? null!);
+    }
+
+    public List<UnionSelectionProduct> GetUnionProduct(
+        List<int> id,
+        [IsSelected("left")] bool left,
+        [IsSelected("right")] bool right,
+        [Service] IsSelectedUnionLog log)
+    {
+        log.Invocations.Add(new IsSelectedUnionObservation(id, left, right));
+        return id.Select(i => new UnionSelectionProduct(
+            i,
+            left ? "left" : "missing",
+            right ? "right" : "missing")).ToList();
     }
 }
 
@@ -63,6 +97,20 @@ public sealed class VariableBatchAttributeQuery
     {
         probe.Record(nameof(GetProductById), id);
         return id.ConvertAll(i => VariableBatchBatchTests.Products.FirstOrDefault(p => p.Id == i) ?? null!);
+    }
+
+    [BatchResolver]
+    public List<UnionSelectionProduct> GetUnionProduct(
+        List<int> id,
+        [IsSelected("left")] bool left,
+        [IsSelected("right")] bool right,
+        [Service] IsSelectedUnionLog log)
+    {
+        log.Invocations.Add(new IsSelectedUnionObservation(id, left, right));
+        return id.Select(i => new UnionSelectionProduct(
+            i,
+            left ? "left" : "missing",
+            right ? "right" : "missing")).ToList();
     }
 }
 
@@ -80,5 +128,19 @@ public static partial class VariableBatchQuery
     {
         probe.Record(nameof(GetProductById), id);
         return id.ConvertAll(i => VariableBatchBatchTests.Products.FirstOrDefault(p => p.Id == i) ?? null!);
+    }
+
+    [BatchResolver]
+    public static List<UnionSelectionProduct> GetUnionProduct(
+        List<int> id,
+        [IsSelected("left")] bool left,
+        [IsSelected("right")] bool right,
+        [Service] IsSelectedUnionLog log)
+    {
+        log.Invocations.Add(new IsSelectedUnionObservation(id, left, right));
+        return id.Select(i => new UnionSelectionProduct(
+            i,
+            left ? "left" : "missing",
+            right ? "right" : "missing")).ToList();
     }
 }

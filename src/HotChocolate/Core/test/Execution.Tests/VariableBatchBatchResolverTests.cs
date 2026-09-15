@@ -10,9 +10,11 @@ namespace HotChocolate.Execution;
 
 public class VariableBatchBatchResolverTests
 {
+    // Contract: the padding-0 arm (no padding, no partition) is declared in all three styles as
+    // VariableBatchBatchTests.BatchResolver_Should_Union_IsSelected_When_IncludeConditionsDifferAcrossVariableSets.
+    // The remaining arms are style-independent overflow-word/partitioned-dispatch engine
+    // contracts with no 3-style equivalent.
     [Theory]
-    [InlineData(false, 0, false)]
-    [InlineData(true, 0, false)]
     [InlineData(false, 64, false)]
     [InlineData(true, 64, false)]
     [InlineData(false, 128, false)]

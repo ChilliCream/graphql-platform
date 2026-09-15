@@ -246,6 +246,9 @@
 | SortingBatchTests | UseSorting_Should_Partition_PerAlias_When_OrderDiffers | Attribute | Declared |
 | SortingBatchTests | UseSorting_Should_Partition_PerAlias_When_OrderDiffers | SourceGenerated | Declared |
 | SortingBatchTests | UseSorting_Should_Partition_PerAlias_When_OrderDiffers | Fluent | Declared |
+| VariableBatchBatchTests | BatchResolver_Should_Union_IsSelected_When_IncludeConditionsDifferAcrossVariableSets | Attribute | Declared |
+| VariableBatchBatchTests | BatchResolver_Should_Union_IsSelected_When_IncludeConditionsDifferAcrossVariableSets | SourceGenerated | Declared |
+| VariableBatchBatchTests | BatchResolver_Should_Union_IsSelected_When_IncludeConditionsDifferAcrossVariableSets | Fluent | Declared |
 | VariableBatchBatchTests | BatchResolver_Should_Use_PerSet_Arguments_When_RequestIsVariableBatch | Attribute | Declared |
 | VariableBatchBatchTests | BatchResolver_Should_Use_PerSet_Arguments_When_RequestIsVariableBatch | SourceGenerated | Declared |
 | VariableBatchBatchTests | BatchResolver_Should_Use_PerSet_Arguments_When_RequestIsVariableBatch | Fluent | Declared |
