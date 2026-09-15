@@ -234,7 +234,8 @@ cmd_playwright_setup() {
 # Populates the global TTY_FLAGS array with the `docker exec` flags for the
 # current stdio: always interactive, plus a tty when both stdin and stdout
 # are terminals (so an interactive Ctrl+C reaches the exec'd process
-# directly). Shared by cmd_exec and cmd_dev.
+# directly). Used by cmd_exec only; cmd_dev deliberately attaches no TTY
+# because its exec is backgrounded.
 compute_tty_flags() {
   TTY_FLAGS=(-i)
   if [ -t 0 ] && [ -t 1 ]; then
