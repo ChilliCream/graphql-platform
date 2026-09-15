@@ -1187,11 +1187,11 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;defaultListSize&apos; composition setting must be a non-negative integer ({0})..
+        ///   Looks up a localized string similar to The &apos;defaultListSize&apos; composition setting must be a non-negative integer no larger than 2147483647 ({0})..
         /// </summary>
-        internal static string LogEntryHelper_InvalidDefaultListSizeSetting {
+        internal static string LogEntryHelper_InvalidDefaultListSizeSettingRange {
             get {
-                return ResourceManager.GetString("LogEntryHelper_InvalidDefaultListSizeSetting", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_InvalidDefaultListSizeSettingRange", resourceCulture);
             }
         }
 

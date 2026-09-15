@@ -408,8 +408,8 @@
   <data name="LogEntryHelper_InvalidProjectedFieldSharing" xml:space="preserve">
     <value>The default field '{0}' on type '{1}' is contributed by unrelated interfaces {2}; every contributing @interfaceObject declaration must be marked @shareable.</value>
   </data>
-  <data name="LogEntryHelper_InvalidDefaultListSizeSetting" xml:space="preserve">
-    <value>The 'defaultListSize' composition setting must be a non-negative integer ({0}).</value>
+  <data name="LogEntryHelper_InvalidDefaultListSizeSettingRange" xml:space="preserve">
+    <value>The 'defaultListSize' composition setting must be a non-negative integer no larger than 2147483647 ({0}).</value>
   </data>
   <data name="LogEntryHelper_InvalidDefaultListSizeSettingType" xml:space="preserve">
     <value>The 'defaultListSize' composition setting must be an integer ({0}).</value>

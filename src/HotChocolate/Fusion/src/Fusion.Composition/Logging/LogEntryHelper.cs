@@ -704,10 +704,26 @@ internal static class LogEntryHelper
     /// value is the composition settings, not a schema coordinate, so this entry carries no
     /// schema or type system member.
     /// </summary>
-    public static LogEntry InvalidDefaultListSizeSetting(int value)
+    public static LogEntry InvalidDefaultListSizeSettingRange(int value)
     {
         return LogEntryBuilder.New()
-            .SetMessage(LogEntryHelper_InvalidDefaultListSizeSetting, value)
+            .SetMessage(LogEntryHelper_InvalidDefaultListSizeSettingRange, value)
+            .SetCode(LogEntryCodes.InvalidDefaultListSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
+    /// <summary>
+    /// Reports a <c>defaultListSize</c> composition setting read directly from the raw settings
+    /// JSON that is a whole number outside the supported non-negative Int32 range (for example,
+    /// larger than <see cref="int.MaxValue"/>), before the typed deserialize would otherwise
+    /// throw. The source of the invalid value is the composition settings, not a schema
+    /// coordinate, so this entry carries no schema or type system member.
+    /// </summary>
+    public static LogEntry InvalidDefaultListSizeSettingRange(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidDefaultListSizeSettingRange, rawValue)
             .SetCode(LogEntryCodes.InvalidDefaultListSizeSetting)
             .SetSeverity(LogSeverity.Error)
             .Build();
@@ -719,7 +735,7 @@ internal static class LogEntryHelper
     /// invalid value is the composition settings, not a schema coordinate, so this entry carries
     /// no schema or type system member.
     /// </summary>
-    public static LogEntry InvalidDefaultListSizeSetting(string rawValue)
+    public static LogEntry InvalidDefaultListSizeSettingType(string rawValue)
     {
         return LogEntryBuilder.New()
             .SetMessage(LogEntryHelper_InvalidDefaultListSizeSettingType, rawValue)

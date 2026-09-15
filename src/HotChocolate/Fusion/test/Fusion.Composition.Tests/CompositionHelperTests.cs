@@ -537,7 +537,8 @@ public sealed class CompositionHelperTests
         Assert.True(result.IsFailure);
         var entry = Assert.Single(log, e => e.Code == LogEntryCodes.InvalidDefaultListSizeSetting);
         Assert.Equal(
-            "The 'defaultListSize' composition setting must be a non-negative integer (-1).",
+            "The 'defaultListSize' composition setting must be a non-negative integer "
+            + "no larger than 2147483647 (-1).",
             entry.Message);
     }
 
@@ -594,10 +595,11 @@ public sealed class CompositionHelperTests
     }
 
     [Theory]
-    [InlineData("""{ "merger": { "defaultListSize": "abc" } }""")]
-    [InlineData("""{ "merger": { "defaultListSize": 1.5 } }""")]
+    [InlineData("""{ "merger": { "defaultListSize": "abc" } }""", "\"abc\"")]
+    [InlineData("""{ "merger": { "defaultListSize": 1.5 } }""", "1.5")]
     public async Task ComposeAsync_Should_ReportCompositionError_When_ArchiveSettingsJsonHasNonIntegerDefaultListSize(
-        string rawCompositionSettingsJson)
+        string rawCompositionSettingsJson,
+        string expectedRawValue)
     {
         // arrange
         using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
@@ -631,6 +633,54 @@ public sealed class CompositionHelperTests
 
         // assert
         Assert.True(result.IsFailure);
-        Assert.Single(log, e => e.Code == LogEntryCodes.InvalidDefaultListSizeSetting);
+        var entry = Assert.Single(log, e => e.Code == LogEntryCodes.InvalidDefaultListSizeSetting);
+        Assert.Equal(
+            $"The 'defaultListSize' composition setting must be an integer ({expectedRawValue}).",
+            entry.Message);
+    }
+
+    // A whole number that does not fit Int32 (positive here) is still an integer, just out of
+    // the supported range, so it must report the range message rather than the non-integer one.
+    [Fact]
+    public async Task ComposeAsync_Should_ReportCompositionError_When_ArchiveSettingsJsonHasOutOfRangeDefaultListSize()
+    {
+        // arrange
+        using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
+        {
+            ["Products"] = new(
+                new SourceSchemaText("Products", "type Query { product: String }"),
+                productsSettings,
+                urlOverride: null)
+        };
+        var stream = new MemoryStream();
+        var log = new CompositionLog();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        using (var rawCompositionSettings =
+            JsonDocument.Parse("""{ "merger": { "defaultListSize": 9999999999 } }"""))
+        {
+            await archive.SetCompositionSettingsAsync(
+                rawCompositionSettings,
+                TestContext.Current.CancellationToken);
+        }
+
+        // act
+        var result = await CompositionHelper.ComposeAsync(
+            log,
+            sourceSchemas,
+            archive,
+            "Development",
+            preferDevUrls: false,
+            compositionSettings: null,
+            legacyArchive: null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log, e => e.Code == LogEntryCodes.InvalidDefaultListSizeSetting);
+        Assert.Equal(
+            "The 'defaultListSize' composition setting must be a non-negative integer "
+            + "no larger than 2147483647 (9999999999).",
+            entry.Message);
     }
 }
