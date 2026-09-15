@@ -78,9 +78,9 @@ public sealed class DocumentShapeParityTests
             namedOperation.Document,
             namedOperation.Definition,
             CostAnalyses.Cost);
-        var rawCost = ToCostValue(rawPlan.EvaluateStaticBound());
-        var rewrittenCost = ToCostValue(rewrittenPlan.EvaluateStaticBound());
-        var requestPlanCost = ToCostValue(GetCachedPlan(requestExecutor, namedOperation.Id).EvaluateStaticBound());
+        var rawCost = ToCostValue(rawPlan.EvaluateAssumedBound());
+        var rewrittenCost = ToCostValue(rewrittenPlan.EvaluateAssumedBound());
+        var requestPlanCost = ToCostValue(GetCachedPlan(requestExecutor, namedOperation.Id).EvaluateAssumedBound());
         var expected = new CostValue(
             namedFixture.Expected.TypeCost,
             namedFixture.Expected.FieldCost);

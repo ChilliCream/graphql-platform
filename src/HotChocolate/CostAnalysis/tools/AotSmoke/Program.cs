@@ -28,7 +28,7 @@ var snapshot = CostSchemaSnapshot.Create(schema, options);
 var document = Utf8GraphQLParser.Parse("{ result { ... on A { a } ... on B { b } } }");
 var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
 var plan = CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
-var estimate = plan.EvaluateStaticBound();
+var estimate = plan.EvaluateAssumedBound();
 
 if (estimate != new CostEstimate(21.0, 2.0, null))
 {

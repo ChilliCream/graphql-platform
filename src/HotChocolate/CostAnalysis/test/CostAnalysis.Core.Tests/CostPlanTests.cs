@@ -32,7 +32,7 @@ public sealed class CostPlanTests
     }
 
     [Fact]
-    public void EvaluateStaticBound_Should_PriceComplementaryConditions_When_VariableIsUnknown()
+    public void EvaluateAssumedBound_Should_PriceComplementaryConditions_When_VariableIsUnknown()
     {
         // arrange
         var plan = Compile(
@@ -44,7 +44,7 @@ public sealed class CostPlanTests
             "query Example($x: Boolean!) { left { costly @include(if: $x) } right { costly @skip(if: $x) } }");
 
         // act
-        var estimate = plan.EvaluateStaticBound();
+        var estimate = plan.EvaluateAssumedBound();
 
         // assert
         Assert.Equal(new CostEstimate(12.0, 3.0, null), estimate);
@@ -140,7 +140,7 @@ public sealed class CostPlanTests
 
         // act
         var actual = plan.Evaluate(Variables(("n", new IntValueNode(3))));
-        var bound = plan.EvaluateStaticBound();
+        var bound = plan.EvaluateAssumedBound();
 
         // assert
         Assert.Equal(new CostEstimate(8.0, 5.0, null), actual);
@@ -319,7 +319,7 @@ public sealed class CostPlanTests
         var actualTrue = plan.Evaluate(Variables(("include", BooleanValueNode.True)));
         var expectedFalse = reference.Resolve(_ => false);
         var expectedTrue = reference.Resolve(_ => true);
-        var actualBound = plan.EvaluateStaticBound();
+        var actualBound = plan.EvaluateAssumedBound();
         var expectedBound = reference.FoldWithJoin(referenceAlgebra.Join);
 
         // assert
@@ -458,7 +458,7 @@ public sealed class CostPlanTests
         var actualTrue = plan.Evaluate(trueVariables);
         var expectedFalse = dynamicReference.Resolve(_ => false);
         var expectedTrue = dynamicReference.Resolve(_ => true);
-        var actualBound = plan.EvaluateStaticBound();
+        var actualBound = plan.EvaluateAssumedBound();
         var expectedBound = staticReference.FoldWithJoin(staticAlgebra.Join);
 
         // assert
@@ -638,7 +638,7 @@ public sealed class CostPlanTests
 
         // assert
         Assert.Equal(expected, estimates);
-        Assert.Equal(new CostEstimate(1.0, 3.0, 3.0), plan.EvaluateStaticBound());
+        Assert.Equal(new CostEstimate(1.0, 3.0, 3.0), plan.EvaluateAssumedBound());
     }
 
     private static CostPlan Compile(

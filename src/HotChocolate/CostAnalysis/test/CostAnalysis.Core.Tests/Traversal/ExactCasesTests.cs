@@ -120,7 +120,7 @@ public class ExactCasesTests
     {
         // arrange: `$x` gates `m` one level under `p`, and gates `s` two levels under `q`
         // behind `$y`; the two boundaries discover `$x` at different depths, so a fold
-        // that decorrelates its two occurrences overestimates the static bound to 104
+        // that decorrelates its two occurrences overestimates the bound to 104
         const string sdl =
             """
             type Query { p: P q: Q }
@@ -142,7 +142,7 @@ public class ExactCasesTests
         var folded = decision.FoldWithJoin(
             (a, b) => (Math.Max(a.TypeCost, b.TypeCost), Math.Max(a.FieldCost, b.FieldCost)));
 
-        // assert: the true static bound is the max over the 4 real assignments (103),
+        // assert: the true bound is the max over the 4 real assignments (103),
         // never the decorrelated 104 that lets $x read false for `p` and true for `q`; typeCost
         // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's 4
         Assert.Equal((5.0, 103.0), folded);

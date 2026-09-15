@@ -77,7 +77,7 @@ public sealed class CostAnalyzerEmptySelectionSetTests
     {
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var plan = CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
-        return plan.EvaluateStaticBound();
+        return plan.EvaluateAssumedBound();
     }
 
     private static IRequestExecutorBuilder CreateRequestExecutorBuilder()
