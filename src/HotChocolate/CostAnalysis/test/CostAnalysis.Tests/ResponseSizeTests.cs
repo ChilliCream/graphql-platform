@@ -45,6 +45,94 @@ public sealed class ResponseSizeTests
     }
 
     [Fact]
+    public async Task ResponseSize_Should_FailFast_When_RequestOverride_But_SchemaDoesNotEnableAnalysis()
+    {
+        // arrange
+        var executed = false;
+        var requestExecutor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddDocumentFromString(Schema)
+            .AddResolver("Query", "items", _ => { executed = true; return Array.Empty<object>(); })
+            .AddResolver("Item", "value", _ => 0)
+            .ModifyCostOptions(o => o.DefaultResolverCost = null)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var requestOptions = requestExecutor.GetCostOptions();
+
+        // The schema never enables the response-size analysis (MaxResponseSize stays
+        // null), so a request-level override must fail fast instead of being silently
+        // ignored (2026-09-15 user ruling).
+        var request = OperationRequestBuilder.New()
+            .SetDocument(Operation)
+            .SetCostOptions(requestOptions with { MaxResponseSize = 1_000 })
+            .Build();
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var result = response.ExpectOperationResult();
+        var error = result.Errors![0];
+
+        // assert
+        Assert.Equal(ErrorCodes.Execution.ResponseSizeAnalysisNotEnabled, error.Code);
+        Assert.Equal(
+            "The request cost options set MaxResponseSize, but the schema does not "
+            + "enable the response-size analysis.",
+            error.Message);
+        Assert.True(result.ContextData.TryGetValue(ExecutionContextData.ValidationErrors, out var flag));
+        Assert.Equal(true, flag);
+        Assert.False(executed);
+    }
+
+    [Fact]
+    public async Task ResponseSize_Should_Pass_When_RequestOverrideLoosensSchemaLimit()
+    {
+        // arrange
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .ModifyCostOptions(o => o.MaxResponseSize = 100)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var requestOptions = requestExecutor.GetCostOptions();
+
+        // The schema allows at most 100, but the request-level override raises it to 1000,
+        // so a response of size 500 (limit: 499) must pass.
+        var request = OperationRequestBuilder.New()
+            .SetDocument("{ items(limit: 499) { value } }")
+            .SetCostOptions(requestOptions with { MaxResponseSize = 1_000 })
+            .Build();
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(response.ExpectOperationResult().Errors is null or { Count: 0 });
+    }
+
+    [Fact]
+    public async Task ResponseSize_Should_RejectWithHC0047_When_RequestOverrideTightensSchemaLimit()
+    {
+        // arrange
+        var requestExecutor = await CreateRequestExecutorBuilder()
+            .ModifyCostOptions(o => o.MaxResponseSize = 1_000)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var requestOptions = requestExecutor.GetCostOptions();
+
+        // The schema allows up to 1000, but the request-level override lowers it to 100,
+        // so a response of size 500 (limit: 499) must be rejected.
+        var request = OperationRequestBuilder.New()
+            .SetDocument("{ items(limit: 499) { value } }")
+            .SetCostOptions(requestOptions with { MaxResponseSize = 100 })
+            .Build();
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var error = response.ExpectOperationResult().Errors[0];
+        var extensions = error.Extensions!;
+
+        // assert
+        Assert.Equal(ErrorCodes.Execution.CostExceeded, error.Code);
+        Assert.Equal(500d, Convert.ToDouble(extensions["maxResponseSize"]));
+        Assert.Equal(100d, Convert.ToDouble(extensions["maxAllowedResponseSize"]));
+    }
+
+    [Fact]
     public async Task ResponseSize_Should_ReportMaxResponseSize_When_ModeIsReportAndWithinLimit()
     {
         // arrange
