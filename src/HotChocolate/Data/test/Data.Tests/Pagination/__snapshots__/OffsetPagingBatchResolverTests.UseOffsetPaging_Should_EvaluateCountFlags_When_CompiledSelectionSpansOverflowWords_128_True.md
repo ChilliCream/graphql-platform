@@ -1,4 +1,4 @@
-# UseOffsetPaging_Should_EvaluateCountFlags_When_CompiledSelectionIsReused
+# UseOffsetPaging_Should_EvaluateCountFlags_When_CompiledSelectionSpansOverflowWords
 
 ## Without count
 
@@ -29,7 +29,7 @@
         22,
         23
       ],
-      "__typename": "ProductsCollectionSegment"
+      "totalCount": 3
     }
   }
 }
@@ -47,7 +47,7 @@
         22,
         23
       ],
-      "__typename": "ProductsCollectionSegment"
+      "totalCount": 3
     }
   }
 }
@@ -75,11 +75,15 @@
 ```json
 [
   [
-    1,
+    1
+  ],
+  [
     2
   ],
   [
-    2,
+    2
+  ],
+  [
     1
   ]
 ]

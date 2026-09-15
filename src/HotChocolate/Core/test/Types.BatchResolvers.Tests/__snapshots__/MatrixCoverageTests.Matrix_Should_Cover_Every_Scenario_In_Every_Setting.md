@@ -63,6 +63,9 @@
 | CursorPagingBatchTests | UsePaging_Should_Partition_When_LastDiffersFromFirst | Attribute | Declared |
 | CursorPagingBatchTests | UsePaging_Should_Partition_When_LastDiffersFromFirst | SourceGenerated | Declared |
 | CursorPagingBatchTests | UsePaging_Should_Partition_When_LastDiffersFromFirst | Fluent | Declared |
+| CursorPagingBatchTests | UsePaging_Should_ReuseCompiledSelection_When_VariableSetsAreReversed | Attribute | Declared |
+| CursorPagingBatchTests | UsePaging_Should_ReuseCompiledSelection_When_VariableSetsAreReversed | SourceGenerated | Declared |
+| CursorPagingBatchTests | UsePaging_Should_ReuseCompiledSelection_When_VariableSetsAreReversed | Fluent | Declared |
 | DeferBatchTests | BatchResolver_Should_Deliver_Data_When_NestedFieldIsInsideDeferFragment | Attribute | Declared |
 | DeferBatchTests | BatchResolver_Should_Deliver_Data_When_NestedFieldIsInsideDeferFragment | SourceGenerated | Declared |
 | DeferBatchTests | BatchResolver_Should_Deliver_Data_When_NestedFieldIsInsideDeferFragment | Fluent | Declared |
@@ -213,6 +216,9 @@
 | OffsetPagingBatchTests | UseOffsetPaging_Should_Partition_When_TakeDiffers | Attribute | Declared |
 | OffsetPagingBatchTests | UseOffsetPaging_Should_Partition_When_TakeDiffers | SourceGenerated | Declared |
 | OffsetPagingBatchTests | UseOffsetPaging_Should_Partition_When_TakeDiffers | Fluent | Declared |
+| OffsetPagingBatchTests | UseOffsetPaging_Should_ReuseCompiledSelection_When_VariableSetsAreReversed | Attribute | Declared |
+| OffsetPagingBatchTests | UseOffsetPaging_Should_ReuseCompiledSelection_When_VariableSetsAreReversed | SourceGenerated | Declared |
+| OffsetPagingBatchTests | UseOffsetPaging_Should_ReuseCompiledSelection_When_VariableSetsAreReversed | Fluent | Declared |
 | OffsetPagingBatchTests | UseOffsetPaging_Should_Slice_PerParent_When_FieldIsBatchResolved | Attribute | Declared |
 | OffsetPagingBatchTests | UseOffsetPaging_Should_Slice_PerParent_When_FieldIsBatchResolved | SourceGenerated | Declared |
 | OffsetPagingBatchTests | UseOffsetPaging_Should_Slice_PerParent_When_FieldIsBatchResolved | Fluent | Declared |

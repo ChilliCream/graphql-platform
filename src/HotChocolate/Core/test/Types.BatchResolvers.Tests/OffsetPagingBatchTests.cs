@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 using Squadron;
 
 namespace HotChocolate.Types.BatchResolvers;
@@ -284,5 +285,64 @@ public sealed partial class OffsetPagingBatchTests(PostgreSqlResource resource) 
         Assert.NotEmpty(operationResult.Errors);
         Assert.All(operationResult.Errors, e => Assert.Contains("invalid", e.Path?.ToString()));
         result.MatchSnapshot();
+    }
+
+    // hc-0-1aa.10 richest-survivor row (UseOffsetPaging_Should_EvaluateCountFlags_When_CompiledSelectionIsReused,
+    // Data.Tests, padding 0): the offset paging twin of the cursor row above. The same request
+    // re-executed with its variable sets reversed, on the same executor and document, must dispatch
+    // the same way regardless of set order; compiled selection identity is keyed by the runtime
+    // include-condition values, not by set position. The style-independent overflow-word bit-width
+    // part of that old contract (padding >= 128 unrelated conditional fields) is kept as an engine
+    // test in OffsetPagingBatchResolverTests (Data.Tests); it does not vary by declaration style.
+    [Theory]
+    [BatchMatrix]
+    public async Task UseOffsetPaging_Should_ReuseCompiledSelection_When_VariableSetsAreReversed(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(
+            style,
+            builder => builder.ModifyPagingOptions(o => o.IncludeTotalCount = true),
+            TestContext.Current.CancellationToken);
+        const string query = """
+            query($includeTotal:Boolean!) {
+                brands {
+                    name
+                    products(take: 2) {
+                        items { name }
+                        totalCount @include(if: $includeTotal)
+                    }
+                }
+            }
+            """;
+        IReadOnlyDictionary<string, object?>[] forwardSets =
+        [
+            new Dictionary<string, object?> { ["includeTotal"] = false },
+            new Dictionary<string, object?> { ["includeTotal"] = true }
+        ];
+        IReadOnlyDictionary<string, object?>[] reversedSets = [forwardSets[1], forwardSets[0]];
+
+        // act
+        await using var forwardResult = await ExecuteAsync(
+            executor,
+            OperationRequestBuilder.New().SetDocument(query).SetVariableValues(forwardSets).Build(),
+            TestContext.Current.CancellationToken);
+        _ = Assert.IsType<OperationResultBatch>(forwardResult);
+        await using var reversedResult = await ExecuteAsync(
+            executor,
+            OperationRequestBuilder.New().SetDocument(query).SetVariableValues(reversedSets).Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var reversedBatch = Assert.IsType<OperationResultBatch>(reversedResult);
+        Assert.Empty(reversedBatch.Results[0].ExpectOperationResult().Errors);
+        Assert.Empty(reversedBatch.Results[1].ExpectOperationResult().Errors);
+        new Snapshot()
+            .Add(reversedBatch.Results[0], "Reversed set 0 (includeTotal:true)")
+            .Add(reversedBatch.Results[1], "Reversed set 1 (includeTotal:false)")
+            .Add(
+                Probe.Invocations.Count(i => i.MemberName == "GetProducts"),
+                "Total observed batch dispatch count across both runs")
+            .MatchMarkdownSnapshot();
     }
 }

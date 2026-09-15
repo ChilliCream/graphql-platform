@@ -1,4 +1,4 @@
-# UsePaging_Should_EvaluateCountFlags_When_CompiledSelectionIsReused
+# UsePaging_Should_EvaluateCountFlags_When_CompiledSelectionSpansOverflowWords
 
 ## Without count
 
@@ -29,7 +29,7 @@
         22,
         23
       ],
-      "totalCount": 3
+      "__typename": "ProductsConnection"
     }
   }
 }
@@ -47,7 +47,7 @@
         22,
         23
       ],
-      "totalCount": 3
+      "__typename": "ProductsConnection"
     }
   }
 }
@@ -75,15 +75,11 @@
 ```json
 [
   [
-    1
-  ],
-  [
+    1,
     2
   ],
   [
-    2
-  ],
-  [
+    2,
     1
   ]
 ]

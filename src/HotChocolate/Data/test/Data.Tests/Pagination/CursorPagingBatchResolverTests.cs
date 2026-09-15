@@ -232,11 +232,19 @@ public class CursorPagingBatchResolverTests
             .MatchMarkdownSnapshot();
     }
 
+    // Contract: engine-level, not declaration-style-dependent. The compiled-selection
+    // differentiation bitset that keys batch dispatch grouping stays correct once a document has
+    // enough independently-conditional fields to overflow a single 64-bit word (padding: 128), both
+    // when the overflow selections still differ by includeTotalCount and when totalCount itself is
+    // disabled (IncludeTotalCount=false), where the count flag stops driving dispatch grouping
+    // entirely and same-shape sets coalesce. The declaration-style-observable arm of this contract
+    // (padding: 0, set reversal proving order-independent selection reuse) migrated to the matrix as
+    // CursorPagingBatchTests/OffsetPagingBatchTests.UsePaging(Should)_ReuseCompiledSelection_When_VariableSetsAreReversed
+    // (hc-0-1aa.10).
     [Theory]
-    [InlineData(0, true)]
     [InlineData(128, true)]
     [InlineData(128, false)]
-    public async Task UsePaging_Should_EvaluateCountFlags_When_CompiledSelectionIsReused(
+    public async Task UsePaging_Should_EvaluateCountFlags_When_CompiledSelectionSpansOverflowWords(
         int padding, bool includeTotalCount)
     {
         // arrange

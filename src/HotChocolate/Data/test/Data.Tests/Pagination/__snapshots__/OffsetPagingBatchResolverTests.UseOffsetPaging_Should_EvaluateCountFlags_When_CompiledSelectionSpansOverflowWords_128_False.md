@@ -1,4 +1,4 @@
-# UsePaging_Should_EvaluateCountFlags_When_CompiledSelectionIsReused
+# UseOffsetPaging_Should_EvaluateCountFlags_When_CompiledSelectionSpansOverflowWords
 
 ## Without count
 
@@ -7,7 +7,7 @@
   "variableIndex": 0,
   "data": {
     "products": {
-      "nodes": [
+      "items": [
         11,
         12,
         13
@@ -24,12 +24,12 @@
   "variableIndex": 1,
   "data": {
     "products": {
-      "nodes": [
+      "items": [
         21,
         22,
         23
       ],
-      "totalCount": 3
+      "__typename": "ProductsCollectionSegment"
     }
   }
 }
@@ -42,12 +42,12 @@
   "variableIndex": 0,
   "data": {
     "products": {
-      "nodes": [
+      "items": [
         21,
         22,
         23
       ],
-      "totalCount": 3
+      "__typename": "ProductsCollectionSegment"
     }
   }
 }
@@ -60,7 +60,7 @@
   "variableIndex": 1,
   "data": {
     "products": {
-      "nodes": [
+      "items": [
         11,
         12,
         13
@@ -75,15 +75,11 @@
 ```json
 [
   [
-    1
-  ],
-  [
+    1,
     2
   ],
   [
-    2
-  ],
-  [
+    2,
     1
   ]
 ]

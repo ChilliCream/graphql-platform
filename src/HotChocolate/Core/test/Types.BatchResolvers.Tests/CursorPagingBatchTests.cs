@@ -245,6 +245,63 @@ public sealed partial class CursorPagingBatchTests(PostgreSqlResource resource) 
             .MatchMarkdownSnapshot();
     }
 
+    // hc-0-1aa.10 richest-survivor row (UsePaging_Should_EvaluateCountFlags_When_CompiledSelectionIsReused,
+    // Data.Tests, padding 0): the request above re-executed with its variable sets reversed, on the
+    // same executor and document, must dispatch the same way regardless of set order. Compiled
+    // selection identity is keyed by the runtime include-condition values, not by set position; a
+    // position-keyed cache would carry the wrong selection shape (e.g. drop totalCount from the set
+    // that now wants it) once positions swap. The style-independent overflow-word bit-width part of
+    // that old contract (padding >= 128 unrelated conditional fields) is kept as an engine test in
+    // CursorPagingBatchResolverTests (Data.Tests); it does not vary by declaration style.
+    [Theory]
+    [BatchMatrix]
+    public async Task UsePaging_Should_ReuseCompiledSelection_When_VariableSetsAreReversed(DeclarationStyle style)
+    {
+        // arrange
+        await SeedAsync(TestContext.Current.CancellationToken);
+        var executor = await CreateExecutorAsync(style, _ => { }, TestContext.Current.CancellationToken);
+        const string query = """
+            query($includeTotal:Boolean!) {
+                brands {
+                    name
+                    pagedProducts(first: 2) {
+                        nodes { name }
+                        totalCount @include(if: $includeTotal)
+                    }
+                }
+            }
+            """;
+        IReadOnlyDictionary<string, object?>[] forwardSets =
+        [
+            new Dictionary<string, object?> { ["includeTotal"] = false },
+            new Dictionary<string, object?> { ["includeTotal"] = true }
+        ];
+        IReadOnlyDictionary<string, object?>[] reversedSets = [forwardSets[1], forwardSets[0]];
+
+        // act
+        await using var forwardResult = await ExecuteAsync(
+            executor,
+            OperationRequestBuilder.New().SetDocument(query).SetVariableValues(forwardSets).Build(),
+            TestContext.Current.CancellationToken);
+        _ = Assert.IsType<OperationResultBatch>(forwardResult);
+        await using var reversedResult = await ExecuteAsync(
+            executor,
+            OperationRequestBuilder.New().SetDocument(query).SetVariableValues(reversedSets).Build(),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        var reversedBatch = Assert.IsType<OperationResultBatch>(reversedResult);
+        Assert.Empty(reversedBatch.Results[0].ExpectOperationResult().Errors);
+        Assert.Empty(reversedBatch.Results[1].ExpectOperationResult().Errors);
+        new Snapshot()
+            .Add(reversedBatch.Results[0], "Reversed set 0 (includeTotal:true)")
+            .Add(reversedBatch.Results[1], "Reversed set 1 (includeTotal:false)")
+            .Add(
+                Probe.Invocations.Count(i => i.MemberName == "GetPagedProducts"),
+                "Total observed batch dispatch count across both runs")
+            .MatchMarkdownSnapshot();
+    }
+
     // hc-0-6cq.13 regression: the same selection occurrence normalizes an omitted `first` to the
     // schema's effective default (min(DefaultPageSize, MaxPageSize) = min(10, 10) = 10 here), so
     // it coalesces with an explicit `first: 10` into a single batch dispatch.
