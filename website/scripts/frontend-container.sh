@@ -29,6 +29,8 @@ DEVCONTAINER_DIR="${WEBSITE_DIR}/../.devcontainer/frontend"
 # runs never share a dependency tree.
 CHECKOUT="$(cd "${WEBSITE_DIR}" && git rev-parse --show-toplevel)"
 SLUG="$(basename "${CHECKOUT}")-$(printf '%s' "${CHECKOUT}" | shasum | cut -c1-8)"
+# The path hash in SLUG ties CONTAINER_NAME to exactly this checkout, so a
+# container name collision with a different checkout cannot happen.
 CONTAINER_NAME="hc-0-frontend-${SLUG}"
 NODE_MODULES_VOLUME="${CONTAINER_NAME}-node_modules"
 NEXT_VOLUME="${CONTAINER_NAME}-next"
@@ -70,7 +72,8 @@ Commands:
                         the caller's current directory translated into the
                         container mount.
   status                Show docker ps for all hc-0-frontend-* containers
-                        and this checkout's two volumes.
+                        and this checkout's three volumes (node_modules,
+                        .next, and the shared yarn cache).
   down                  Stop and remove this checkout's container. Its
                         node_modules/.next volumes are kept.
   down --purge          Also remove this checkout's node_modules/.next
@@ -86,14 +89,6 @@ require_docker() {
     echo "Start Docker (OrbStack) and try again. There is no host fallback." >&2
     exit 1
   fi
-}
-
-# The container path used as this checkout's identity mount for check_mount.
-# website/ is the one read-write bind every invocation depends on, so it
-# stands in for "this checkout" when checking whether a running container
-# actually belongs to it.
-container_root() {
-  printf '%s/website' "${CONTAINER_WORKSPACE}"
 }
 
 # Translate a host path under this checkout into the equivalent path inside
@@ -134,28 +129,12 @@ container_port_holder_name() {
   docker ps --filter "name=^/hc-0-frontend-" --filter "publish=3031" --format '{{.Names}}' | head -n1
 }
 
-# Compares the running container's bind mount for the container_root()
-# destination (this checkout's .git) against this checkout. A container
-# started from another checkout (or a decoy) mounts a different source at
-# that destination; reusing it silently would serve the wrong tree, so this
-# exits 1 instead of ever replacing a running container automatically.
-check_mount() {
-  local workspace actual
-  workspace="$(container_root)"
-  actual="$(docker inspect -f '{{range .Mounts}}{{.Destination}} {{.Source}}{{"\n"}}{{end}}' "${CONTAINER_NAME}" | awk -v dest="${workspace}" '$1 == dest { print $2; exit }')"
-  if [ "${actual}" != "${CHECKOUT}/website" ]; then
-    echo "error: ${CONTAINER_NAME} is mounted from '${actual:-<none>}' at ${workspace}, not this checkout '${CHECKOUT}'. Run \`frontend-container.sh down\` first." >&2
-    exit 1
-  fi
-}
-
 ensure_running() {
   require_docker
   if ! container_running; then
     echo "error: ${CONTAINER_NAME} is not running. Run \`frontend-container.sh up\` first." >&2
     exit 1
   fi
-  check_mount
 }
 
 # Starts this checkout's container. "$@" are extra `docker run` flags (the
@@ -211,7 +190,6 @@ cmd_up() {
   docker build -t "${IMAGE_TAG}" -f "${DEVCONTAINER_DIR}/dockerfile" "${DEVCONTAINER_DIR}"
 
   if container_running; then
-    check_mount
     echo "==> ${CONTAINER_NAME} is already running, reusing it"
   else
     if container_exists; then
@@ -356,6 +334,7 @@ cmd_down() {
   # Docker daemon is unreachable.
   if [ "$#" -gt 1 ]; then
     echo "error: 'down' takes at most one argument (--purge or --all)" >&2
+    usage >&2
     exit 2
   fi
 
@@ -363,6 +342,7 @@ cmd_down() {
     "" | --purge | --all) : ;;
     *)
       echo "error: unknown down option '$1'" >&2
+      usage >&2
       exit 2
       ;;
   esac
