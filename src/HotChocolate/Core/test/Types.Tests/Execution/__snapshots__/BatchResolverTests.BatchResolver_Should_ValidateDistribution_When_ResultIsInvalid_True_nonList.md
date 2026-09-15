@@ -39,7 +39,7 @@
 
 ```json
 [
-  "Batch resolver must return a list type. Got: HotChocolate.Execution.BatchResolverReproTests+NonListResult.",
-  "Batch resolver must return a list type. Got: HotChocolate.Execution.BatchResolverReproTests+NonListResult."
+  "Batch resolver must return a list type. Got: HotChocolate.Execution.BatchResolverTests+NonListResult.",
+  "Batch resolver must return a list type. Got: HotChocolate.Execution.BatchResolverTests+NonListResult."
 ]
 ```
