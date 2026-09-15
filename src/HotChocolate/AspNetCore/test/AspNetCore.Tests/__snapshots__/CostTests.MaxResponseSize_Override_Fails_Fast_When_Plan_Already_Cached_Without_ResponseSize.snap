@@ -1,0 +1,10 @@
+{
+  "errors": [
+    {
+      "message": "The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.",
+      "extensions": {
+        "code": "HC0062"
+      }
+    }
+  ]
+}

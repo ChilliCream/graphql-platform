@@ -137,8 +137,8 @@ public sealed class CostOptions
     public int CostPlanCacheSize { get; set; } = 256;
 
     /// <summary>
-    /// Gets or sets the maximum allowed response size. <c>null</c> disables the check.
-    /// <c>null</c> by default.
+    /// Enables the response-size analysis for the schema and sets its default limit.
+    /// <c>null</c> (the default) disables the analysis and the metric.
     /// A non-null value must be a non-negative finite number or positive infinity.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">

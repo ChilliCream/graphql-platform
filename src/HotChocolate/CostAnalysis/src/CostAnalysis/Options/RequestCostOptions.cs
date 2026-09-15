@@ -188,7 +188,8 @@ public record RequestCostOptions
     }
 
     /// <summary>
-    /// Gets the maximum allowed response size. <c>null</c> disables the check.
+    /// Replaces the schema's maximum response size for this request. Requires the schema
+    /// to enable the response-size analysis; otherwise the request fails.
     /// A non-null value must be a non-negative finite number or positive infinity.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">

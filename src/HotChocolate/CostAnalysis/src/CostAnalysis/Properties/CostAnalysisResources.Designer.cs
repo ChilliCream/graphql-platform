@@ -80,5 +80,11 @@ namespace HotChocolate.CostAnalysis.Properties {
                 return ResourceManager.GetString("ErrorHelper_MaxTypeCostReached", resourceCulture);
             }
         }
+
+        internal static string ErrorHelper_ResponseSizeAnalysisNotEnabled {
+            get {
+                return ResourceManager.GetString("ErrorHelper_ResponseSizeAnalysisNotEnabled", resourceCulture);
+            }
+        }
     }
 }

@@ -247,6 +247,94 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
     }
 
     [Fact]
+    public async Task MaxResponseSize_Override_Fails_Fast_When_Schema_Does_Not_Enable_Analysis()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services => services
+                .AddGraphQLServer()
+                .AddHttpRequestInterceptor<MaxResponseSizeOverrideInterceptor>());
+
+        var uri = new Uri("http://localhost:5000/graphql");
+
+        const string requestBody =
+            """
+            {
+                "query" : "query Test($id: String!){human(id: $id){name}}",
+                "variables" : { "id" : "1000" }
+            }
+            """;
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+        };
+        request.Headers.TryAddWithoutValidation("Accept", "application/graphql-response+json");
+        request.Headers.Add(MaxResponseSizeOverrideInterceptor.OverrideHeader, "true");
+
+        // act
+        // Cold cache: this is the first request against this server, so the operation
+        // has no cached plan yet (2026-09-15 user ruling: the override never gets to
+        // silently skip the check, cold or warm).
+        using var httpClient = server.CreateClient();
+        using var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
+        Assert.NotNull(result);
+        result!.RootElement.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task MaxResponseSize_Override_Fails_Fast_When_Plan_Already_Cached_Without_ResponseSize()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services => services
+                .AddGraphQLServer()
+                .AddHttpRequestInterceptor<MaxResponseSizeOverrideInterceptor>());
+
+        var uri = new Uri("http://localhost:5000/graphql");
+
+        const string requestBody =
+            """
+            {
+                "query" : "query Test($id: String!){human(id: $id){name}}",
+                "variables" : { "id" : "1000" }
+            }
+            """;
+
+        using var httpClient = server.CreateClient();
+
+        // act
+        // Warm cache: the first request has no override, so it runs the cost-only plan
+        // for this operation to completion and caches it before the override is ever seen.
+        using var warmupRequest = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+        };
+        using var warmupResponse =
+            await httpClient.SendAsync(warmupRequest, TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.OK, warmupResponse.StatusCode);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+        };
+        request.Headers.TryAddWithoutValidation("Accept", "application/graphql-response+json");
+        request.Headers.Add(MaxResponseSizeOverrideInterceptor.OverrideHeader, "true");
+
+        using var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
+        Assert.NotNull(result);
+        result!.RootElement.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Request_Validate_Cost_Header_Without_Variables_Returns_CoercionError()
     {
         // arrange
@@ -301,6 +389,26 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         {
             var costOptions = requestExecutor.GetCostOptions();
             requestBuilder.SetCostOptions(costOptions with { MaxTypeCost = 2 });
+            return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
+        }
+    }
+
+    public class MaxResponseSizeOverrideInterceptor : DefaultHttpRequestInterceptor
+    {
+        public const string OverrideHeader = "X-Override-MaxResponseSize";
+
+        public override ValueTask OnCreateAsync(
+            HttpContext context,
+            IRequestExecutor requestExecutor,
+            OperationRequestBuilder requestBuilder,
+            CancellationToken cancellationToken)
+        {
+            if (context.Request.Headers.ContainsKey(OverrideHeader))
+            {
+                var costOptions = requestExecutor.GetCostOptions();
+                requestBuilder.SetCostOptions(costOptions with { MaxResponseSize = 1_000 });
+            }
+
             return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
         }
     }
