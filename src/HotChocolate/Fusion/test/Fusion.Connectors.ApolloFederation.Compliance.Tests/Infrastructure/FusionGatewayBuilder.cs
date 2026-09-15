@@ -280,7 +280,6 @@ internal static class FusionGatewayBuilder
 
             gatewayServices
                 .AddGraphQLGateway()
-                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddInMemoryConfiguration(schemaDocument, settings);
 
@@ -409,6 +408,7 @@ internal static class FusionGatewayBuilder
         }
 
         options.Merger.NodeResolution = nodeResolution;
+        options.Merger.DefaultListSize = 1;
 
         var composer = new SchemaComposer(sourceSchemas, options, compositionLog);
 

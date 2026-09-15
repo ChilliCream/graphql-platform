@@ -110,30 +110,6 @@ public sealed class FusionCostOptions
     }
 
     /// <summary>
-    /// Gets or sets the assumed size of a list field that has no applicable
-    /// <c>@listSize</c> information. <see cref="double.PositiveInfinity"/> by default.
-    /// The value must be a non-negative finite number or positive infinity.
-    /// </summary>
-    /// <exception cref="ArgumentOutOfRangeException">
-    /// The value is NaN, negative, or negative infinity.
-    /// </exception>
-    public double DefaultListSize
-    {
-        get;
-        set
-        {
-            ExpectMutableOptions();
-
-            if (double.IsNaN(value) || value < 0)
-            {
-                throw ThrowHelper.InvalidCostOptionValue(nameof(DefaultListSize), value);
-            }
-
-            field = value;
-        }
-    } = double.PositiveInfinity;
-
-    /// <summary>
     /// Gets or sets the maximum number of compiled cost plans cached per schema.
     /// <c>256</c> by default.
     /// </summary>
@@ -178,7 +154,6 @@ public sealed class FusionCostOptions
             EnforceCostLimits = EnforceCostLimits,
             SkipAnalyzer = SkipAnalyzer,
             MaxResponseSize = MaxResponseSize,
-            DefaultListSize = DefaultListSize,
             CostPlanCacheSize = CostPlanCacheSize,
             CaseBudget = CaseBudget
         };

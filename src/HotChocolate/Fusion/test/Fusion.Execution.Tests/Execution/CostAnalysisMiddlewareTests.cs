@@ -442,7 +442,6 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         var services = new ServiceCollection();
         var builder = services
             .AddGraphQLGateway()
-            .ModifyCostOptions(options => options.DefaultListSize = 1)
             .UseDefaultPipeline();
 
         if (configure is not null)
@@ -468,7 +467,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
                     allowMultiple: true);
         }
 
-        builder.AddInMemoryConfiguration(ComposeSchemaDocument(Schema));
+        builder.AddInMemoryConfiguration(ComposeSchemaDocument(1, Schema));
         return services.BuildServiceProvider();
     }
 

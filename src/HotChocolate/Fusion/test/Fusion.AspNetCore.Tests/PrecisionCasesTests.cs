@@ -40,7 +40,11 @@ public class PrecisionCasesTests : FusionTestBase
 
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
-            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.DefaultListSize = fixture.DefaultListSize));
+            // The fixture's DefaultListSize is now a composition-time setting: absence
+            // (unbounded) is expressed as `null`, everything else as its integer value.
+            defaultListSize: double.IsPositiveInfinity(fixture.DefaultListSize)
+                ? null
+                : (int)fixture.DefaultListSize);
 
         var request = new OperationRequest(
             fixture.Operation,

@@ -119,16 +119,15 @@ A custom pipeline must include `UseDocumentNormalization()`, place `UseOperation
 
 Configure `FusionCostOptions` with `ModifyCostOptions`:
 
-| Option              | Type      | Default    | Contract                                                                                                                                       |
-| ------------------- | --------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MaxFieldCost`      | `double`  | `1,000`    | Maximum allowed field cost. Valid range: non-negative finite values or `Infinity`.                                                             |
-| `MaxTypeCost`       | `double`  | `1,000`    | Maximum allowed type cost. Valid range: non-negative finite values or `Infinity`.                                                              |
-| `EnforceCostLimits` | `bool`    | `true`     | Enforces the field, type, and response-size limits.                                                                                            |
-| `SkipAnalyzer`      | `bool`    | `false`    | Skips analysis, enforcement, and reporting.                                                                                                    |
-| `MaxResponseSize`   | `double?` | `null`     | Maximum estimated response-field count. `null` disables this check and metric. Valid range: `null`, non-negative finite values, or `Infinity`. |
-| `DefaultListSize`   | `double`  | `Infinity` | Size for a list without applicable `@listSize` metadata. Valid range: non-negative finite values or `Infinity`.                                |
-| `CostPlanCacheSize` | `int`     | `256`      | Maximum compiled cost plans cached per schema.                                                                                                 |
-| `CaseBudget`        | `int?`    | `null`     | Exact cases evaluated per operation. `null` uses the engine default.                                                                           |
+| Option              | Type      | Default | Contract                                                                                                                                       |
+| ------------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MaxFieldCost`      | `double`  | `1,000` | Maximum allowed field cost. Valid range: non-negative finite values or `Infinity`.                                                             |
+| `MaxTypeCost`       | `double`  | `1,000` | Maximum allowed type cost. Valid range: non-negative finite values or `Infinity`.                                                              |
+| `EnforceCostLimits` | `bool`    | `true`  | Enforces the field, type, and response-size limits.                                                                                            |
+| `SkipAnalyzer`      | `bool`    | `false` | Skips analysis, enforcement, and reporting.                                                                                                    |
+| `MaxResponseSize`   | `double?` | `null`  | Maximum estimated response-field count. `null` disables this check and metric. Valid range: `null`, non-negative finite values, or `Infinity`. |
+| `CostPlanCacheSize` | `int`     | `256`   | Maximum compiled cost plans cached per schema.                                                                                                 |
+| `CaseBudget`        | `int?`    | `null`  | Exact cases evaluated per operation. `null` uses the engine default.                                                                           |
 
 ```csharp
 builder.Services
@@ -137,13 +136,12 @@ builder.Services
     {
         options.MaxFieldCost = 5_000;
         options.MaxTypeCost = 5_000;
-        options.DefaultListSize = 100;
         options.MaxResponseSize = 10_000;
         options.CostPlanCacheSize = 512;
     });
 ```
 
-An unannotated list falls through to `DefaultListSize`. With the default `Infinity`, a list whose element type has a positive weight exceeds any finite type-cost limit. Annotate the field with `@listSize(assumedSize:)` in its source schema or set a finite `DefaultListSize` on the gateway.
+> **Note:** The assumed size for a list without applicable `@listSize` metadata is not a gateway runtime option. It is a composition setting configured on the composer (`SourceSchemaMergerOptions.DefaultListSize`) and carried into the execution schema by the `@fusion__cost_options(defaultListSize:)` directive; see [Composition](./composition.md) for details. Without this setting, an unannotated list is unbounded, and a list whose element type has a positive weight exceeds any finite type-cost limit. Annotate the field with `@listSize(assumedSize:)` in its source schema or configure a finite `DefaultListSize` at composition time.
 
 # Accessing the Analysis Result
 

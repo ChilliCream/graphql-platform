@@ -125,9 +125,8 @@ public sealed class ObjectDeprecationIntrospectionTests : FusionTestBase
         services.AddHttpClient();
         services
             .AddGraphQLGateway()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .ModifyOptions(o => o.EnableObjectDeprecation = enableObjectDeprecation)
-            .AddInMemoryConfiguration(ComposeSchemaDocument(sdl))
+            .AddInMemoryConfiguration(ComposeSchemaDocument(1, sdl))
             .UseDefaultPipeline();
 
         return await services

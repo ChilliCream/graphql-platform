@@ -656,7 +656,7 @@ public class CostReportingTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
             // Overrides the FusionTestBase pin of 1 to exercise the product default.
-            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.DefaultListSize = double.PositiveInfinity));
+            defaultListSize: null);
         var request = new OperationRequest("{ unannotatedItems { value } }");
 
         // act
@@ -687,8 +687,7 @@ public class CostReportingTests : FusionTestBase
         using var server = CreateSourceSchema("A", Schema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
-            configureGatewayBuilder: b => b.ModifyCostOptions(
-                o => o.DefaultListSize = double.PositiveInfinity));
+            defaultListSize: null);
         var request = new OperationRequest("{ unannotatedItems { value } }");
 
         // act
@@ -733,14 +732,10 @@ public class CostReportingTests : FusionTestBase
         using var server = CreateSourceSchema("A", Schema);
         using var infiniteGateway = await CreateCompositeSchemaAsync(
             [("A", server)],
-            configureGatewayBuilder: b => b.ModifyCostOptions(o =>
-            {
-                o.DefaultListSize = double.PositiveInfinity;
-                o.MaxFieldCost = double.PositiveInfinity;
-            }));
+            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.MaxFieldCost = double.PositiveInfinity),
+            defaultListSize: null);
         using var finiteGateway = await CreateCompositeSchemaAsync(
-            [("A", server)],
-            configureGatewayBuilder: b => b.ModifyCostOptions(o => o.DefaultListSize = 1));
+            [("A", server)]);
         var request = new OperationRequest("{ unannotatedItems { value } }");
 
         // act

@@ -76,18 +76,23 @@ Passing `disableDefaultSecurity: true` disables cost enforcement as part of disa
 +services.AddGraphQLGatewayServer(disableDefaultSecurity: true);
 ```
 
-## Default list size is Infinity
+## Default list size is Infinity, and is configured at composition time
 
-`FusionCostOptions.DefaultListSize` is a `double` and defaults to `double.PositiveInfinity`. With default enforcement enabled, an unannotated, non-paginated composite list is rejected with `HC0047` and a `typeCost` of `"Infinity"`.
+The assumed size for a list field that carries no applicable `@listSize` information defaults to unbounded (`Infinity`). With default enforcement enabled, an unannotated, non-paginated composite list is rejected with `HC0047` and a `typeCost` of `"Infinity"`.
 
-Annotate the source field with `@listSize(assumedSize:)` so composition carries the bound into the composite directive, or set a finite gateway default:
+This default is a composition setting, not a gateway runtime option: `FusionCostOptions.DefaultListSize` no longer exists. Annotate the source field with `@listSize(assumedSize:)` so composition carries the bound into the composite directive, or set a finite default on the composer's `SourceSchemaMergerOptions.DefaultListSize`. When set, composition writes it onto the execution schema with a schema-level `@fusion__cost_options(defaultListSize:)` directive, and the gateway reads it from there:
 
 ```diff
- builder.Services
-     .AddGraphQLGatewayServer()
-+    .ModifyCostOptions(options => options.DefaultListSize = 100)
-     // ... gateway configuration ...
+ var options = new SchemaComposerOptions
+ {
+     Merger =
+     {
++        DefaultListSize = 100
+     }
+ };
 ```
+
+See [Composition](../composition.md#default-list-size) for details.
 
 ## Composition derives public cost directives
 
@@ -170,7 +175,7 @@ For list fields, the first applicable source in this order supplies the size:
 2. The maximum slicing argument present after coercion, including schema argument defaults.
 3. `slicingArgumentDefaultValue`, when no slicing argument is present.
 4. `assumedSize`.
-5. `FusionCostOptions.DefaultListSize`.
+5. The default list size configured at composition time (absent means unbounded).
 
 An explicit null slicing argument is not an integer value and suppresses that argument's schema default. An undefined slicing variable behaves as an absent argument. When no schema argument default applies, both cases fall through to `slicingArgumentDefaultValue`.
 
@@ -180,16 +185,17 @@ An explicit null slicing argument is not an integer value and suppresses that ar
 
 Configure these values with `ModifyCostOptions`:
 
-| Option              | Type      | Default    | Contract                                                                    |
-| ------------------- | --------- | ---------- | --------------------------------------------------------------------------- |
-| `MaxFieldCost`      | `double`  | `1,000`    | Maximum field cost.                                                         |
-| `MaxTypeCost`       | `double`  | `1,000`    | Maximum type cost.                                                          |
-| `EnforceCostLimits` | `bool`    | `true`     | Enforces the field, type, and response-size limits.                         |
-| `SkipAnalyzer`      | `bool`    | `false`    | Skips cost analysis and reporting when `true`.                              |
-| `DefaultListSize`   | `double`  | `Infinity` | Size for a list without applicable `@listSize` metadata.                    |
-| `MaxResponseSize`   | `double?` | `null`     | Maximum response-object-field count. `null` disables this check and metric. |
-| `CostPlanCacheSize` | `int`     | `256`      | Maximum compiled cost plans cached per schema.                              |
-| `CaseBudget`        | `int?`    | `null`     | Exact cases evaluated per operation. `null` uses the engine default.        |
+| Option              | Type      | Default | Contract                                                                    |
+| ------------------- | --------- | ------- | --------------------------------------------------------------------------- |
+| `MaxFieldCost`      | `double`  | `1,000` | Maximum field cost.                                                         |
+| `MaxTypeCost`       | `double`  | `1,000` | Maximum type cost.                                                          |
+| `EnforceCostLimits` | `bool`    | `true`  | Enforces the field, type, and response-size limits.                         |
+| `SkipAnalyzer`      | `bool`    | `false` | Skips cost analysis and reporting when `true`.                              |
+| `MaxResponseSize`   | `double?` | `null`  | Maximum response-object-field count. `null` disables this check and metric. |
+| `CostPlanCacheSize` | `int`     | `256`   | Maximum compiled cost plans cached per schema.                              |
+| `CaseBudget`        | `int?`    | `null`  | Exact cases evaluated per operation. `null` uses the engine default.        |
+
+The default list size for an unannotated list is not among these options: it is a composition setting (`SourceSchemaMergerOptions.DefaultListSize`) carried into the execution schema by `@fusion__cost_options(defaultListSize:)`; see the section above.
 
 When `MaxResponseSize` is enabled, `extensions.operationCost` includes `maxResponseSize`. A rejection includes `{ maxResponseSize, maxAllowedResponseSize }` in the error extensions and uses error code `HC0047`.
 
