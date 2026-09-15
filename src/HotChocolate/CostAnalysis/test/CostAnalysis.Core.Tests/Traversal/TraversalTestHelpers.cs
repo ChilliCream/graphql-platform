@@ -35,6 +35,12 @@ internal static class TraversalTestHelpers
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
         var fragments = ConditionTreeExtractor.IndexFragments(document);
         var tree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
-        return ExactCasesTraversal.Evaluate(snapshot, fragments, tree, algebra, new CaseBudget(caseBudget));
+        return ExactCasesTraversal.Evaluate(
+            snapshot,
+            fragments,
+            tree,
+            algebra,
+            variableValues: null,
+            new CaseBudget(caseBudget));
     }
 }

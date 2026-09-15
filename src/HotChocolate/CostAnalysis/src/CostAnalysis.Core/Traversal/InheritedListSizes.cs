@@ -36,10 +36,24 @@ internal static class InheritedListSizes
     /// Gets the size <paramref name="context"/> inherits down to
     /// <paramref name="fieldName"/>, if its sized fields name that field.
     /// </summary>
-    public static double? InheritedSizeFor(SizedFieldContext? context, string fieldName)
+    /// <param name="context">
+    /// The parent's resolved <c>sizedFields</c> context.
+    /// </param>
+    /// <param name="fieldName">
+    /// The child field to resolve an inherited size for.
+    /// </param>
+    /// <param name="variableValues">
+    /// The coerced variable values to resolve a variable-bound slicing
+    /// argument against, or <see langword="null"/> for the static/assumed
+    /// path.
+    /// </param>
+    public static double? InheritedSizeFor(
+        SizedFieldContext? context,
+        string fieldName,
+        ICostVariableValues? variableValues)
     {
         if (context is not { } entry
-            || !entry.TryResolve(fieldName, variableValues: null, out var size))
+            || !entry.TryResolve(fieldName, variableValues, out var size))
         {
             return null;
         }

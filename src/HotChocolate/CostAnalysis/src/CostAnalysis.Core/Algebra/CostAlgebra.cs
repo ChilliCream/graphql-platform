@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -22,20 +23,40 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     private readonly ICostVariableValues? _variableValues;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="CostAlgebra"/>.
+    /// Initializes a new instance of <see cref="CostAlgebra"/> for the
+    /// static/assumed path: a variable-bound slicing argument or input value
+    /// falls back to its schema-declared assumption instead of a coerced
+    /// value.
     /// </summary>
     /// <param name="snapshot">
     /// The schema snapshot to resolve weights and list-size metadata
     /// against.
     /// </param>
     public CostAlgebra(CostSchemaSnapshot snapshot)
-        : this(snapshot, null)
-    {
-    }
-
-    internal CostAlgebra(CostSchemaSnapshot snapshot, ICostVariableValues? variableValues)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
+        _snapshot = snapshot;
+        _variableValues = null;
+    }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="CostAlgebra"/> that resolves
+    /// a variable-bound slicing argument or input value from
+    /// <paramref name="variableValues"/>, the same coerced values the
+    /// optimized <see cref="CostPlan"/> path receives at evaluation time.
+    /// </summary>
+    /// <param name="snapshot">
+    /// The schema snapshot to resolve weights and list-size metadata
+    /// against.
+    /// </param>
+    /// <param name="variableValues">
+    /// The coerced variable values of the request.
+    /// </param>
+    [Experimental(CostExperiments.AnalysisAlgebra)]
+    public CostAlgebra(CostSchemaSnapshot snapshot, ICostVariableValues variableValues)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(variableValues);
         _snapshot = snapshot;
         _variableValues = variableValues;
     }
