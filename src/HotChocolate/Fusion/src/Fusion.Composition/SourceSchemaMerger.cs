@@ -1893,12 +1893,32 @@ internal sealed partial class SourceSchemaMerger
 
             foreach (var argumentAssignment in listSizeDirective.Arguments)
             {
-                fusionArguments.Add(new ArgumentAssignment(argumentAssignment.Name, argumentAssignment.Value));
+                fusionArguments.Add(
+                    new ArgumentAssignment(
+                        argumentAssignment.Name,
+                        NormalizeListSizeArgumentValue(argumentAssignment.Name, argumentAssignment.Value)));
             }
 
             member.AddDirective(
                 new Directive(_fusionDirectiveDefinitions[DirectiveNames.FusionListSize], fusionArguments));
         }
+    }
+
+    /// <summary>
+    /// Normalizes a singleton string usage of <c>slicingArguments</c> or <c>sizedFields</c> to
+    /// its coerced one-element list form (GraphQL list input coercion, mirrored by
+    /// <see cref="ListSizeDirective.From"/>), so the <c>@fusion__listSize</c> provenance entry
+    /// agrees with the public <c>@listSize</c> directive, which always reports the coerced list.
+    /// </summary>
+    private static IValueNode NormalizeListSizeArgumentValue(string argumentName, IValueNode value)
+    {
+        if (value is StringValueNode
+            && argumentName is ArgumentNames.SlicingArguments or ArgumentNames.SizedFields)
+        {
+            return new ListValueNode(value);
+        }
+
+        return value;
     }
 
     /// <summary>
