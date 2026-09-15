@@ -1337,6 +1337,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -1428,6 +1429,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -4046,6 +4048,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -4137,6 +4140,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Include",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": false,
                 "enumValuesMergeBehavior": null,
                 "nodeResolution": null,
@@ -5172,6 +5176,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ENUM
               | INPUT_FIELD_DEFINITION
 
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
+
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
               "The name of the source schema that provides the specified enum value."
@@ -5369,6 +5375,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ARGUMENT_DEFINITION
               | ENUM
               | INPUT_FIELD_DEFINITION
+
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -5673,6 +5681,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               | ARGUMENT_DEFINITION
               | ENUM
               | INPUT_FIELD_DEFINITION
+
+            directive @fusion__cost_options(defaultListSize: Int) on SCHEMA
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
