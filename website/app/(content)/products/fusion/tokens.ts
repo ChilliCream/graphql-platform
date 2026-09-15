@@ -91,6 +91,7 @@ export const BRAND = {
 export const FONTS = {
   heading: "var(--font-heading)",
   body: "var(--font-body)",
+  // globals.css defines no --font-mono; the Mocha palette value is the site's mono face.
   mono: MONO_FONT,
 } as const;
 

@@ -176,7 +176,7 @@ export default function LayeredDiagram() {
   return (
     <div
       ref={ref}
-      className="absolute inset-0"
+      className="relative h-full w-full"
       aria-hidden="true"
       style={{ background: MC.bg }}
     >
