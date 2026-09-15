@@ -639,10 +639,15 @@ public sealed class CompositionHelperTests
             entry.Message);
     }
 
-    // A whole number that does not fit Int32 (positive here) is still an integer, just out of
-    // the supported range, so it must report the range message rather than the non-integer one.
-    [Fact]
-    public async Task ComposeAsync_Should_ReportCompositionError_When_ArchiveSettingsJsonHasOutOfRangeDefaultListSize()
+    // A whole number that does not fit Int32 is still an integer, just out of the supported
+    // range, so it must report the range message rather than the non-integer one. This holds
+    // even for a literal beyond Int64 (TryGetInt64 alone can no longer tell it apart from a
+    // fraction), since the discrimination falls back to a decimal-based whole-number check.
+    [Theory]
+    [InlineData("9999999999")]
+    [InlineData("18446744073709551616")]
+    public async Task ComposeAsync_Should_ReportCompositionError_When_ArchiveSettingsJsonHasOutOfRangeDefaultListSize(
+        string rawValue)
     {
         // arrange
         using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
@@ -657,7 +662,7 @@ public sealed class CompositionHelperTests
         var log = new CompositionLog();
         using var archive = FusionArchive.Create(stream, leaveOpen: true);
         using (var rawCompositionSettings =
-            JsonDocument.Parse("""{ "merger": { "defaultListSize": 9999999999 } }"""))
+            JsonDocument.Parse($$"""{ "merger": { "defaultListSize": {{rawValue}} } }"""))
         {
             await archive.SetCompositionSettingsAsync(
                 rawCompositionSettings,
@@ -680,7 +685,7 @@ public sealed class CompositionHelperTests
         var entry = Assert.Single(log, e => e.Code == LogEntryCodes.InvalidDefaultListSizeSetting);
         Assert.Equal(
             "The 'defaultListSize' composition setting must be a non-negative integer "
-            + "no larger than 2147483647 (9999999999).",
+            + $"no larger than 2147483647 ({rawValue}).",
             entry.Message);
     }
 }
