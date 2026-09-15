@@ -749,6 +749,23 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
     }
 
+    [Fact]
+    public async Task Head_Should_ReturnAllowHeader_When_OperationKindIsNotAllowed()
+    {
+        // arrange
+        var client = GetClient(Latest);
+        var query = Uri.EscapeDataString("mutation { __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Head, new Uri($"{s_url}?query={query}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["POST"], response.Content.Headers.Allow);
+    }
+
     // Content suppression for HEAD is the HTTP server's responsibility and TestServer,
     // unlike Kestrel, does not emulate it, so only the status and headers are compared.
     [Fact]

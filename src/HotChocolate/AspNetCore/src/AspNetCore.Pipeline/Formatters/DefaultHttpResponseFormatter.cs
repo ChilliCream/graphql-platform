@@ -247,13 +247,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 response.StatusCode = statusCode;
 
                 // RFC 9110, section 15.5.6 requires a 405 to list the methods the target resource
-                // supports, and section 10.2.1 defines that set per request. A GET carrying an
-                // operation kind this server only serves over POST leaves POST as the one method
-                // that can satisfy it. A status code an overriding formatter chose is left alone,
-                // along with whatever Allow header it means to write for it.
+                // supports, and section 10.2.1 defines that set per request. A GET or HEAD
+                // carrying an operation kind this server only serves over POST leaves POST as the
+                // one method that can satisfy it. A status code an overriding formatter chose is
+                // left alone, along with whatever Allow header it means to write for it.
                 if (statusCode is (int)HttpStatusCode.MethodNotAllowed
                     && result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed)
-                    && HttpMethods.IsGet(response.HttpContext.Request.Method))
+                    && response.HttpContext.Request.IsGetOrHeadMethod())
                 {
                     response.Headers.Allow = HttpMethods.Post;
                 }
