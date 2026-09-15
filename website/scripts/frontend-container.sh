@@ -281,9 +281,8 @@ cmd_dev() {
 
   echo "==> Dev server: http://localhost:3031"
 
-  compute_tty_flags
-  local tty_flags=("${TTY_FLAGS[@]}")
-  docker exec "${tty_flags[@]}" -w "$(container_website_dir)" "${CONTAINER_NAME}" yarn dev &
+  # This exec is backgrounded for signal cleanup, so it must not attach a TTY.
+  docker exec -w "$(container_website_dir)" "${CONTAINER_NAME}" yarn dev &
   DEV_CHILD=$!
   DEV_SPAWNED=1
 
