@@ -22,11 +22,7 @@ type Query
   @fusion__type(schema: B) {
   items: [Item]
     @cost(weight: "11")
-    @listSize(
-      assumedSize: 2
-      slicingArguments: ["missing"]
-      requireOneSlicingArgument: true
-    )
+    @listSize(slicingArguments: ["missing"], requireOneSlicingArgument: true)
     @fusion__cost(schema: A, weight: "2")
     @fusion__cost(schema: B, weight: "11")
     @fusion__field(schema: A)

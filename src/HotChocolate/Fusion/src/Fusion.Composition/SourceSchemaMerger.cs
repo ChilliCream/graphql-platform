@@ -1790,7 +1790,19 @@ internal sealed partial class SourceSchemaMerger
 
         var argumentAssignments = new List<ArgumentAssignment>();
 
+        // At least one serving source that does not contribute a compatible @listSize usage
+        // (memberGroup includes every source serving this field, assumedSizes only the ones
+        // that folded above): the sound bound must also account for that source's effective
+        // size, which composition only knows through the configured default list size
+        // (@fusion__cost_options(defaultListSize:), R-COMPOSITION-WEIGHT-FOLD).
+        var hasUnannotatedServingSource = assumedSizes.Count < memberGroup.Length;
+
         var assumedSize = ListSizeDirectiveFold.FoldAssumedSize(assumedSizes);
+
+        if (hasUnannotatedServingSource)
+        {
+            assumedSize = ListSizeDirectiveFold.ApplyDefaultListSize(assumedSize, _options.DefaultListSize);
+        }
 
         if (assumedSize is not null)
         {
@@ -2199,6 +2211,10 @@ internal sealed partial class SourceSchemaMerger
                 new FusionCostMutableDirectiveDefinition(schemaEnumType, stringType)
             },
             {
+                DirectiveNames.FusionCostOptions,
+                new FusionCostOptionsMutableDirectiveDefinition(intType)
+            },
+            {
                 DirectiveNames.FusionEnumValue,
                 new FusionEnumValueMutableDirectiveDefinition(schemaEnumType)
             },
@@ -2321,6 +2337,16 @@ internal sealed partial class SourceSchemaMerger
                                 "The shareable field runtime type routing mode "
                                 + $"'{_shareableFieldRuntimeTypeRouting}' is invalid.")
                         }))));
+
+        if (_options.DefaultListSize is { } defaultListSize)
+        {
+            mergedSchema.Directives.Add(
+                new Directive(
+                    _fusionDirectiveDefinitions[DirectiveNames.FusionCostOptions],
+                    new ArgumentAssignment(
+                        ArgumentNames.DefaultListSize,
+                        new IntValueNode(defaultListSize))));
+        }
     }
 
     private void LiftConnectorKindOntoSchemaMetadata(MutableSchemaDefinition mergedSchema)

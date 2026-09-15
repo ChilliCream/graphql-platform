@@ -8,6 +8,20 @@ namespace HotChocolate.Fusion;
 public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMergerTestBase
 {
     [Fact]
+    public void DefaultListSize_Should_Throw_When_Negative()
+    {
+        // arrange
+        var options = new SourceSchemaMergerOptions();
+
+        // act
+        void Act() => options.DefaultListSize = -1;
+
+        // assert
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(Act);
+        Assert.Equal(nameof(SourceSchemaMergerOptions.DefaultListSize), exception.ParamName);
+    }
+
+    [Fact]
     public void Compose_Should_Fail_When_AssumedSizeIsNegative()
     {
         // arrange
@@ -531,6 +545,158 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
                 )
             }
             """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    // hc-3-mmh.9 / R-COMPOSITION-WEIGHT-FOLD: when a field is served by an annotated source and
+    // an unannotated one, the composite bound must also cover the unannotated source's effective
+    // size, which composition only knows through the configured DefaultListSize
+    // (@fusion__cost_options(defaultListSize:)). The sound bound is the greater of the two.
+    [Fact]
+    public void Merge_ListSizeDirective_UnannotatedServingSource_DefaultListSizeRaisesFloor_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A (declares assumedSize: 5)
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5)
+                }
+                """,
+                """
+                # Schema B (serves the field, no @listSize at all)
+                type Query {
+                    field: [Int]
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: [Int]
+                @listSize(assumedSize: 10)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(schema: A, assumedSize: 5)
+            }
+            """,
+            configure: options => options.DefaultListSize = 10,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    // The default is only a floor: a higher declared assumedSize still wins.
+    [Fact]
+    public void Merge_ListSizeDirective_UnannotatedServingSource_DeclaredWinsOverLowerDefault_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A (declares assumedSize: 5)
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5)
+                }
+                """,
+                """
+                # Schema B (serves the field, no @listSize at all)
+                type Query {
+                    field: [Int]
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: [Int]
+                @listSize(assumedSize: 5)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(schema: A, assumedSize: 5)
+            }
+            """,
+            configure: options => options.DefaultListSize = 3,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    // When DefaultListSize is unset (unbounded), the unannotated source's effective size is
+    // unknown, so assumedSize is omitted entirely rather than reporting the lower, unsound,
+    // declared-only value. Other folded arguments (here slicingArguments) are unaffected.
+    [Fact]
+    public void Merge_ListSizeDirective_UnannotatedServingSource_NoDefaultOmitsAssumedSize_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                $$"""
+                # Schema A (declares assumedSize and slicingArguments)
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5, slicingArguments: ["first"])
+                }
+
+                {{s_listSizeDirective}}
+                """,
+                """
+                # Schema B (serves the field, no @listSize at all)
+                type Query {
+                    field: [Int]
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: [Int]
+                @listSize(slicingArguments: ["first"])
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(schema: A, assumedSize: 5, slicingArguments: ["first"])
+            }
+            """,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    // When every serving source declares a compatible @listSize, the fold is unaffected by
+    // DefaultListSize even when one is configured.
+    [Fact]
+    public void Merge_ListSizeDirective_AllSourcesAnnotated_DefaultListSizeDoesNotApply_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5)
+                }
+                """,
+                """
+                # Schema B
+                type Query {
+                    field: [Int] @listSize(assumedSize: 5)
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: [Int]
+                @listSize(assumedSize: 5)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
+                @fusion__listSize(schema: A, assumedSize: 5)
+                @fusion__listSize(schema: B, assumedSize: 5)
+            }
+            """,
+            configure: options => options.DefaultListSize = 3,
             modifySchema: s_removeListSizeDirective);
     }
 
