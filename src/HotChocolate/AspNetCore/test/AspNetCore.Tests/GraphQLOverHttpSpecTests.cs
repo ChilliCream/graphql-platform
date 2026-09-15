@@ -699,6 +699,56 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 """);
     }
 
+    // An Accept header the server cannot parse is disregarded, and the response uses the media
+    // type the configured transport serves by default. The legacy transport answers 200 there:
+    // the specification scopes its 200-for-everything rule to a well-formed request, but allows
+    // a 2xx for an invalid one using application/json, which is what that transport opts into.
+    [Theory]
+    [InlineData(Latest, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(Legacy, OK, ContentType.Json)]
+    public async Task Get_Should_AnswerInServerChoice_When_AcceptHeaderCannotBeParsed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+        var url = new Uri($"{s_url}?query={Uri.EscapeDataString("{ __typename }")}");
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.TryAddWithoutValidation("Accept", "unsupported");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    [Theory]
+    [InlineData(Latest, NotAcceptable, ContentType.GraphQLResponse)]
+    [InlineData(Legacy, OK, ContentType.Json)]
+    public async Task Get_Should_AnswerInServerChoice_When_EveryMediaTypeIsRejected(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+        var url = new Uri($"{s_url}?query={Uri.EscapeDataString("{ __typename }")}");
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        AddAcceptHeader(request, "application/graphql-response+json;q=0");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
     // Content suppression for HEAD is the HTTP server's responsibility and TestServer,
     // unlike Kestrel, does not emulate it, so only the status and headers are compared.
     [Fact]
