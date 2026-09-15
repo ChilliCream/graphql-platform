@@ -418,8 +418,11 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         }
     }
 
-    [Fact]
-    public async Task Execute_Should_ReturnError_When_UnsettingAlreadyInvalidPersistedDefaultListSize()
+    [Theory]
+    [InlineData("9999999999")]
+    [InlineData("-1")]
+    public async Task Execute_Should_ReturnError_When_UnsettingAlreadyInvalidPersistedDefaultListSize(
+        string persistedRawValue)
     {
         var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         File.Copy(
@@ -432,7 +435,7 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
             using (var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update))
             {
                 using var invalidCompositionSettings =
-                    JsonDocument.Parse("""{ "merger": { "defaultListSize": 9999999999 } }""");
+                    JsonDocument.Parse($$"""{ "merger": { "defaultListSize": {{persistedRawValue}} } }""");
                 await archive.SetCompositionSettingsAsync(
                     invalidCompositionSettings,
                     TestContext.Current.CancellationToken);
@@ -450,7 +453,7 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
 
             result.AssertError(
                 "The 'defaultListSize' composition setting must be a non-negative integer "
-                + "no larger than 2147483647 (9999999999).");
+                + $"no larger than 2147483647 ({persistedRawValue}).");
         }
         finally
         {
