@@ -32,9 +32,9 @@ import {
 } from "./visuals/TelemetryStrip";
 
 /**
- * The Fusion product page: the shared hero over the Layered Diagram, one
- * feature row per claim in the body copy, the feature grid, and the closing
- * Nitro band. All words come from `./content`.
+ * The Fusion product page: hero copy and buttons, then the diagram panel,
+ * one feature row per claim, the feature grid, and the closing Nitro band.
+ * All words come from `./content`.
  */
 
 const PANEL_CLASS = "border-cc-card-border bg-cc-card-bg rounded-xl border";
@@ -123,6 +123,7 @@ export function FusionPage() {
         </OutlineButton>
       </ButtonRow>
       <div
+        // Below sm the diagram fills and crops the panel so labels keep their minimum size.
         className={`${PANEL_CLASS} mt-12 aspect-[3/4] overflow-hidden sm:aspect-square md:aspect-[9/8] lg:aspect-[9/4]`}
       >
         <LayeredDiagram />
