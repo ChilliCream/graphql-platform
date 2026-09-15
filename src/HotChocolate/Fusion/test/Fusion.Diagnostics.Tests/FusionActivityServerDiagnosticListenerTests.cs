@@ -95,8 +95,6 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            // batch items execute concurrently and share one transport span, so with the
-            // default scopes they must not fold their operation details into it
             using var server = CreateSourceSchema(
                 "a",
                 b => b.AddQueryType<Query>());
@@ -135,8 +133,6 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
         using (CaptureActivities(out var activities))
         {
             // arrange
-            // operation batch items execute concurrently and share one transport span, so
-            // with the default scopes they must not fold their operation details into it
             using var server = CreateSourceSchema(
                 "a",
                 b => b.AddQueryType<Query>());

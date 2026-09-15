@@ -61,11 +61,6 @@ internal sealed class ExecuteHttpRequestSpan(
         return new ExecuteHttpRequestSpan(activity, httpContext, kind, enricher, options);
     }
 
-    /// <summary>
-    /// Specifies whether this span covers more than one GraphQL request. The items of a
-    /// batch execute concurrently, so they must not write their own operation details
-    /// onto this shared span.
-    /// </summary>
     public bool IsBatch { get; private set; }
 
     public void MarkAsBatch() => IsBatch = true;
