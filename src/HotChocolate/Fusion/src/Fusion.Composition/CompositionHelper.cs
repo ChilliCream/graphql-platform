@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
@@ -278,13 +277,14 @@ internal static class CompositionHelper
             && merger.TryGetProperty("defaultListSize", out var defaultListSize)
             && defaultListSize.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined)
             && (defaultListSize.ValueKind is not JsonValueKind.Number
-                || !defaultListSize.TryGetInt32(out _)))
+                || !defaultListSize.TryGetInt32(out var defaultListSizeInt32)
+                || defaultListSizeInt32 < 0))
         {
-            // A whole number that does not fit Int32 (for example, larger than
-            // int.MaxValue, or even larger than long.MaxValue, or written in exponent
-            // notation) is still an integer, just out of the supported range; only a value
-            // that isn't a whole number at all (a fraction, or a different JSON type) is
-            // reported as non-integer.
+            // A whole number that does not fit the non-negative Int32 range (for example,
+            // negative, larger than int.MaxValue, or even larger than long.MaxValue, or
+            // written in exponent notation) is still an integer, just out of the supported
+            // range; only a value that isn't a whole number at all (a fraction, or a
+            // different JSON type) is reported as non-integer.
             var logEntry = defaultListSize.ValueKind == JsonValueKind.Number
                 && IsWholeNumber(defaultListSize)
                     ? LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize.GetRawText())
@@ -301,10 +301,11 @@ internal static class CompositionHelper
 
     // TryGetInt64 only accepts literals it can parse directly as Int64 text, so it returns
     // false both for whole numbers that simply do not fit (or are written in exponent
-    // notation, like 1e1) and for genuine fractions. Decimal has a much larger range and
-    // still exposes an exact whole-number check; only literals that overflow even decimal
-    // (rare, and always astronomically out of range regardless of classification) fall back
-    // to a raw-text scan for a fractional part in the significand.
+    // notation, like 1e1) and for genuine fractions. Those two cases are told apart by a
+    // raw-text scan for a fractional part in the significand: a decimal-based check would
+    // instead call any in-range decimal literal without a fractional remainder (like 1.0)
+    // a whole number, which is wrong here since the raw text itself is not an integer
+    // literal.
     private static bool IsWholeNumber(JsonElement numberElement)
     {
         if (numberElement.TryGetInt64(out _))
@@ -313,12 +314,6 @@ internal static class CompositionHelper
         }
 
         var rawText = numberElement.GetRawText();
-
-        if (decimal.TryParse(rawText, NumberStyles.Float, CultureInfo.InvariantCulture, out var decimalValue))
-        {
-            return decimal.Truncate(decimalValue) == decimalValue;
-        }
-
         var exponentIndex = rawText.IndexOfAny(['e', 'E']);
         var significand = exponentIndex < 0 ? rawText : rawText[..exponentIndex];
         return !significand.Contains('.');
