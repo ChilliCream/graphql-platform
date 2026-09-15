@@ -72,7 +72,7 @@ app.Run();
 
 **`AllowDocumentBody = false`** (this is the default) goes further. It configures the transport layer to skip parsing the `query` field entirely from JSON request bodies and GET query parameters. The GraphQL parser is never invoked for incoming request documents. This is the strict trusted documents mode.
 
-**Together**, the gateway never parses untrusted GraphQL input. Operations are loaded from the client registry by ID, where they were pre-validated at publish time. The parser, validator, and cost analyzer are never exercised by external traffic.
+**Together**, the gateway never parses untrusted GraphQL input. Operations are loaded from the client registry by ID, where they were pre-validated at publish time. The request parser and validator are not exercised by external request documents. The cost analyzer still evaluates the resolved persisted operation and its supplied variables before operation planning.
 
 # Client request format
 

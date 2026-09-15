@@ -108,12 +108,7 @@
                   "Value": "md5:f2e6099a9e9d8a7f69c688a88962f100"
                 }
               ],
-              "event": [
-                {
-                  "Name": "AddedOperationPlanToCache",
-                  "Tags": []
-                }
-              ],
+              "event": [],
               "activities": [
                 {
                   "OperationName": "GraphQL Document Validation",
@@ -294,6 +289,27 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:f2e6099a9e9d8a7f69c688a88962f100"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 0.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 1.0
+                    }
+                  ],
+                  "event": []
                 }
               ]
             }

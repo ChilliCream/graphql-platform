@@ -44,6 +44,10 @@ public static class FusionServerServiceCollectionExtensions
                 });
             builder.AddMaxAllowedFieldCycleDepthRule();
         }
+        else
+        {
+            builder.ModifyCostOptions(o => o.EnforceCostLimits = false);
+        }
 
         return builder;
     }

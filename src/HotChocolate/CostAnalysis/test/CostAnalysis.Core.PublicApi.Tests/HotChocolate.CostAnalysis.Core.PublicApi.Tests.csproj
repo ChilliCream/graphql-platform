@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Test.props', '$(MSBuildThisFileDirectory)'))" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.CostAnalysis.Core.PublicApi.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.CostAnalysis</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <NoWarn>HC8002;$(NoWarn)</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      Deliberately NOT InternalsVisibleTo from HotChocolate.CostAnalysis.Core:
+      this project exercises AnalysisPlan/AnalysisPlanCompiler/IAnalysisAlgebra
+      the way a third-party consumer would, through the public surface only.
+    -->
+    <ProjectReference Include="..\..\src\CostAnalysis.Core\HotChocolate.CostAnalysis.Core.csproj" />
+    <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Link the Conformance.Tests precision fixtures instead of duplicating them. -->
+    <None Include="..\CostAnalysis.Core.Conformance.Tests\__resources__\precision\*.json"
+          Link="__resources__\precision\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

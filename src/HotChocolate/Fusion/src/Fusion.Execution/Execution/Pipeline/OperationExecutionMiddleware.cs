@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
@@ -75,8 +74,26 @@ internal sealed class OperationExecutionMiddleware
                             cancellationToken);
                     }
 
-                    var results = ImmutableList.CreateRange(await Task.WhenAll(tasks));
-                    context.Result = new OperationResultBatch(results);
+                    IExecutionResult[] completedResults;
+
+                    try
+                    {
+                        completedResults = await Task.WhenAll(tasks);
+                    }
+                    catch
+                    {
+                        foreach (var task in tasks)
+                        {
+                            if (task.IsCompletedSuccessfully)
+                            {
+                                await task.Result.DisposeAsync();
+                            }
+                        }
+
+                        throw;
+                    }
+
+                    context.Result = new OperationResultBatch([.. completedResults]);
                 }
                 else if (!operationPlan.IncrementalPlans.IsEmpty)
                 {

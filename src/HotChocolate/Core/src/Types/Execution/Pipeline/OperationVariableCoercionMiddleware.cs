@@ -28,11 +28,14 @@ internal sealed class OperationVariableCoercionMiddleware
     {
         if (context.TryGetOperation(out var operation))
         {
-            CoerceVariables(
-                context,
-                _coercionHelper,
-                operation.Definition.VariableDefinitions,
-                _diagnosticEvents);
+            if (!context.IsWarmupRequest())
+            {
+                CoerceVariables(
+                    context,
+                    _coercionHelper,
+                    operation.Definition.VariableDefinitions,
+                    _diagnosticEvents);
+            }
 
             await _next(context).ConfigureAwait(false);
         }
@@ -48,7 +51,10 @@ internal sealed class OperationVariableCoercionMiddleware
             {
                 var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-                var middleware = new OperationVariableCoercionMiddleware(next, coercionHelper, diagnosticEvents);
+                var middleware = new OperationVariableCoercionMiddleware(
+                    next,
+                    coercionHelper,
+                    diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
             WellKnownRequestMiddleware.OperationVariableCoercionMiddleware);

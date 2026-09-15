@@ -18,6 +18,7 @@ public sealed class DirectiveDefinitionIntrospectionTests : FusionTestBase
             .ModifyOptions(o => o.EnableOptInFeatures = true)
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
+                    1,
                     """
                     type Query {
                         field: String

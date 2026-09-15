@@ -1,11 +1,8 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.CostAnalysis.Caching;
 using HotChocolate.CostAnalysis.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Execution.Pipeline;
-using HotChocolate.Execution.Processing;
-using HotChocolate.Language;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -16,26 +13,13 @@ namespace HotChocolate.CostAnalysis;
 internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
     [SchemaService] RequestCostOptions options,
+    [SchemaService] CostSchemaSnapshot snapshot,
+    [SchemaService] CostPlanCache cache,
     ObjectPool<DocumentValidatorContext> contextPool,
-    [SchemaService] ICostMetricsCache cache,
     [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
 {
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (!context.TryGetOperationDocument(out var document, out var documentId)
-            || documentId.IsEmpty)
-        {
-            context.Result = ResultHelper.StateInvalidForCostAnalysis();
-            return;
-        }
-
-        // we check if the operation id is already set and if not, we create one.
-        if (!context.TryGetOperationId(out var operationId))
-        {
-            operationId = context.CreateCacheId();
-            context.SetOperationId(operationId);
-        }
-
         var requestOptions = context.TryGetCostOptions() ?? options;
         var mode = context.GetCostAnalyzerMode(requestOptions);
 
@@ -45,10 +29,105 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
-        if (!TryAnalyze(context, requestOptions, mode, document, documentId, operationId, out var costMetrics))
+        // A request-level override only ever replaces a limit the schema already enforces
+        // (in either direction). If the schema never enabled the response-size analysis,
+        // honoring the override would silently promise a check that never runs, so this
+        // fails fast instead (2026-09-15 user ruling).
+        if (requestOptions.MaxResponseSize.HasValue && !options.MaxResponseSize.HasValue)
         {
-            // an error happened during the analysis and the error is already set.
+            context.Result = ErrorHelper.ResponseSizeAnalysisNotEnabled();
             return;
+        }
+
+        if (!context.TryGetOperation(out var operation)
+            || !context.TryGetOperationDocument(out var document, out var documentId)
+            || documentId.IsEmpty)
+        {
+            context.Result = ErrorHelper.StateInvalidForCostAnalysis();
+            return;
+        }
+
+        ImmutableArray<CostMetrics> costMetrics;
+
+        using (diagnosticEvents.AnalyzeOperationCost(context))
+        {
+            try
+            {
+                if (!cache.TryGetPlan(operation.Id, out var plan))
+                {
+                    var analyses = CostAnalyses.Cost;
+
+                    if (options.MaxResponseSize.HasValue)
+                    {
+                        analyses |= CostAnalyses.ResponseSize;
+                    }
+
+                    plan = CostPlanCompiler.Compile(
+                        snapshot,
+                        operation.Document,
+                        operation.Definition,
+                        analyses);
+                    cache.TryAddPlan(operation.Id, plan);
+                }
+
+                CostAnalyzerUtilities.ValidateRequireOneSlicingArgument(
+                    operation,
+                    document,
+                    documentId,
+                    context.Features,
+                    contextPool);
+
+                var isAssumedBound = context.IsWarmupRequest();
+
+                // Every non-warmup request runs variable coercion before reaching the
+                // analyzer (OperationVariableCoercionMiddleware), and coercion always
+                // produces at least one variable set (an empty object for a request with
+                // no variable definitions). The one path that can still surface a
+                // non-warmup, zero-set request is an explicit empty variable batch
+                // (`variables: []`), so this is a real state guard, not just a defensive
+                // assert: the assumed bound must never leak back into the request path.
+                if (!isAssumedBound && context.VariableValues.Length == 0)
+                {
+                    context.Result = ErrorHelper.StateInvalidForCostAnalysisMissingVariableValues();
+                    return;
+                }
+
+                var estimates = Evaluate(context, plan, isAssumedBound);
+                context.Features.Set(new CostAnalysisResult(plan, estimates, isAssumedBound));
+
+                costMetrics = CreateCostMetrics(estimates);
+                context.SetCostMetrics(costMetrics[0]);
+
+                if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce)
+                {
+                    if (costMetrics.Length == 1)
+                    {
+                        if (TryCreateEnforcementError(
+                            requestOptions,
+                            costMetrics[0],
+                            (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report,
+                            out var error))
+                        {
+                            context.Result = error;
+                            return;
+                        }
+                    }
+                    else if (TryCreateVariableBatchEnforcementError(
+                        requestOptions,
+                        costMetrics,
+                        (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report,
+                        out var error))
+                    {
+                        context.Result = error;
+                        return;
+                    }
+                }
+            }
+            catch (GraphQLException ex)
+            {
+                context.Result = ResultHelper.CreateError(ex.Errors, null);
+                return;
+            }
         }
 
         if ((mode & CostAnalyzerMode.Execute) == CostAnalyzerMode.Execute)
@@ -65,85 +144,151 @@ internal sealed class CostAnalyzerMiddleware(
         }
     }
 
-    private bool TryAnalyze(
-        RequestContext context,
-        RequestCostOptions requestOptions,
-        CostAnalyzerMode mode,
-        DocumentNode document,
-        OperationDocumentId documentId,
-        string operationId,
-        [NotNullWhen(true)] out CostMetrics? costMetrics)
+    private static ImmutableArray<CostMetrics> CreateCostMetrics(
+        ImmutableArray<CostEstimate> estimates)
     {
-        using var scope = diagnosticEvents.AnalyzeOperationCost(context);
-        DocumentValidatorContext? validatorContext = null;
+        var builder = ImmutableArray.CreateBuilder<CostMetrics>(estimates.Length);
 
-        try
+        foreach (var estimate in estimates)
         {
-            if (!cache.TryGetCostMetrics(operationId, out costMetrics))
-            {
-                // we check if the operation was already resolved by another middleware,
-                // if not we resolve the operation.
-                if (!context.TryGetOperationDefinition(out var operationDefinition))
+            builder.Add(
+                new CostMetrics
                 {
-                    operationDefinition = document.GetOperation(context.Request.OperationName);
-                    context.SetOperationDefinition(operationDefinition);
-                }
+                    FieldCost = estimate.FieldCost,
+                    TypeCost = estimate.TypeCost,
+                    MaxResponseSize = estimate.MaxResponseSize
+                });
+        }
 
-                validatorContext = contextPool.Get();
-                validatorContext.Initialize(
-                    context.Schema,
-                    documentId,
-                    document,
-                    maxAllowedErrors: 1,
-                    maxLocationsPerError: 5,
-                    maxAllowedFragmentVisits: 1_000,
-                    context.Features);
+        return builder.MoveToImmutable();
+    }
 
-                var analyzer = new CostAnalyzer(requestOptions);
-                costMetrics = analyzer.Analyze(operationDefinition, validatorContext);
-                cache.TryAddCostMetrics(operationId, costMetrics);
-            }
+    private ImmutableArray<CostEstimate> Evaluate(
+        RequestContext context,
+        CostPlan plan,
+        bool isAssumedBound)
+    {
+        if (isAssumedBound)
+        {
+            var estimate = plan.EvaluateAssumedBound();
+            diagnosticEvents.OperationCost(context, estimate.FieldCost, estimate.TypeCost);
+            return [estimate];
+        }
 
-            context.SetCostMetrics(costMetrics);
-            diagnosticEvents.OperationCost(context, costMetrics.FieldCost, costMetrics.TypeCost);
+        var builder = ImmutableArray.CreateBuilder<CostEstimate>(context.VariableValues.Length);
 
-            if ((mode & CostAnalyzerMode.Enforce) == CostAnalyzerMode.Enforce)
-            {
-                if (costMetrics.FieldCost > requestOptions.MaxFieldCost)
-                {
-                    context.Result = ErrorHelper.MaxFieldCostReached(
-                        costMetrics,
-                        requestOptions.MaxFieldCost,
-                        (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report);
-                    return false;
-                }
+        foreach (var variableValues in context.VariableValues)
+        {
+            var estimate = plan.Evaluate(new CostVariableValuesAdapter(variableValues));
+            builder.Add(estimate);
+            diagnosticEvents.OperationCost(context, estimate.FieldCost, estimate.TypeCost);
+        }
 
-                if (costMetrics.TypeCost > requestOptions.MaxTypeCost)
-                {
-                    context.Result = ErrorHelper.MaxTypeCostReached(
-                        costMetrics,
-                        requestOptions.MaxTypeCost,
-                        (mode & CostAnalyzerMode.Report) == CostAnalyzerMode.Report);
-                    return false;
-                }
-            }
+        return builder.MoveToImmutable();
+    }
 
+    private static bool TryCreateVariableBatchEnforcementError(
+        RequestCostOptions requestOptions,
+        ImmutableArray<CostMetrics> costMetrics,
+        bool reportMetrics,
+        [NotNullWhen(true)]
+        out IExecutionResult? error)
+    {
+        // A request is one invocation of the request pipeline. A variable batch is one request,
+        // so its allowed field and type cost is the sum over every variable set.
+        var fieldCost = 0d;
+        var typeCost = 0d;
+
+        foreach (var current in costMetrics)
+        {
+            fieldCost += current.FieldCost;
+            typeCost += current.TypeCost;
+        }
+
+        var requestCostMetrics = new CostMetrics
+        {
+            FieldCost = fieldCost,
+            TypeCost = typeCost
+        };
+
+        if (requestCostMetrics.FieldCost > requestOptions.MaxFieldCost)
+        {
+            error = ErrorHelper.MaxFieldCostReached(
+                requestCostMetrics,
+                requestOptions.MaxFieldCost,
+                reportMetrics);
             return true;
         }
-        catch (GraphQLException ex)
+
+        if (requestCostMetrics.TypeCost > requestOptions.MaxTypeCost)
         {
-            context.Result = ResultHelper.CreateError(ex.Errors, null);
-            costMetrics = null;
-            return false;
+            error = ErrorHelper.MaxTypeCostReached(
+                requestCostMetrics,
+                requestOptions.MaxTypeCost,
+                reportMetrics);
+            return true;
         }
-        finally
+
+        if (requestOptions.MaxResponseSize is { } maxResponseSize)
         {
-            if (validatorContext is not null)
+            foreach (var current in costMetrics)
             {
-                validatorContext.Clear();
-                contextPool.Return(validatorContext);
+                if (current.MaxResponseSize is { } responseSize
+                    && responseSize > maxResponseSize)
+                {
+                    error = ErrorHelper.MaxResponseSizeReached(
+                        requestCostMetrics with { MaxResponseSize = responseSize },
+                        responseSize,
+                        maxResponseSize,
+                        reportMetrics);
+                    return true;
+                }
             }
         }
+
+        error = null;
+        return false;
+    }
+
+    private static bool TryCreateEnforcementError(
+        RequestCostOptions requestOptions,
+        CostMetrics costMetrics,
+        bool reportMetrics,
+        [NotNullWhen(true)]
+        out IExecutionResult? error)
+    {
+        if (costMetrics.FieldCost > requestOptions.MaxFieldCost)
+        {
+            error = ErrorHelper.MaxFieldCostReached(
+                costMetrics,
+                requestOptions.MaxFieldCost,
+                reportMetrics);
+            return true;
+        }
+
+        if (costMetrics.TypeCost > requestOptions.MaxTypeCost)
+        {
+            error = ErrorHelper.MaxTypeCostReached(
+                costMetrics,
+                requestOptions.MaxTypeCost,
+                reportMetrics);
+            return true;
+        }
+
+        if (requestOptions.MaxResponseSize is { } maxResponseSize
+            && costMetrics.MaxResponseSize is { } responseSize
+            && responseSize > maxResponseSize)
+        {
+            error = ErrorHelper.MaxResponseSizeReached(
+                costMetrics,
+                responseSize,
+                maxResponseSize,
+                reportMetrics);
+            return true;
+        }
+
+        error = null;
+        return false;
     }
 
     public static RequestMiddlewareConfiguration Create()
@@ -151,17 +296,18 @@ internal sealed class CostAnalyzerMiddleware(
         return new RequestMiddlewareConfiguration(
             (core, next) =>
             {
-                // this needs to be a schema service
                 var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
+                var snapshot = core.SchemaServices.GetRequiredService<CostSchemaSnapshot>();
+                var cache = core.SchemaServices.GetRequiredService<CostPlanCache>();
                 var contextPool = core.Services.GetRequiredService<ObjectPool<DocumentValidatorContext>>();
-                var cache = core.SchemaServices.GetRequiredService<ICostMetricsCache>();
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
 
                 var middleware = new CostAnalyzerMiddleware(
                     next,
                     options,
-                    contextPool,
+                    snapshot,
                     cache,
+                    contextPool,
                     diagnosticEvents);
 
                 return context => middleware.InvokeAsync(context);

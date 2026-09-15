@@ -1,156 +1,54 @@
 using HotChocolate.CostAnalysis.Types;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Processing;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using HotChocolate.Validation;
+using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.CostAnalysis.Utilities;
 
 internal static class CostAnalyzerUtilities
 {
-    public static double GetFieldWeight(this IOutputFieldDefinition field)
+    public static void ValidateRequireOneSlicingArgument(
+        Operation operation,
+        DocumentNode sourceDocument,
+        OperationDocumentId documentId,
+        IFeatureCollection features,
+        ObjectPool<DocumentValidatorContext> contextPool)
     {
-        // Use weight from @cost directive.
-        var costDirective = field.Directives.FirstOrDefaultValue<CostDirective>();
+        var validatorContext = contextPool.Get();
 
-        if (costDirective is not null)
+        try
         {
-            return costDirective.Weight;
+            validatorContext.Initialize(
+                operation.Schema,
+                documentId,
+                operation.Document,
+                maxAllowedErrors: 1,
+                maxLocationsPerError: 5,
+                maxAllowedFragmentVisits: 1_000,
+                features);
+
+            var sourceOperation = sourceDocument.GetOperation(operation.Name);
+            var sourceFields = SourceFieldIndex.Create(operation.Schema, sourceDocument, sourceOperation);
+            new RequireOneSlicingArgumentVisitor(sourceFields).Visit(operation.Definition, validatorContext);
         }
-
-        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
-        // "Fields returning scalar and enum types, arguments of scalar and enum types,
-        // as well as input fields of scalar and enum types all default to "0.0"."
-        return field.Type.NamedType().IsCompositeType() || field.Type.IsListType() ? 1.0 : 0.0;
-    }
-
-    public static double GetFieldWeight(this IInputValueDefinition field)
-    {
-        // Use weight from @cost directive.
-        var costDirective = field.Directives.FirstOrDefaultValue<CostDirective>();
-
-        if (costDirective is not null)
+        finally
         {
-            return costDirective.Weight;
+            validatorContext.Clear();
+            contextPool.Return(validatorContext);
         }
-
-        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
-        // "Fields returning scalar and enum types, arguments of scalar and enum types,
-        // as well as input fields of scalar and enum types all default to "0.0"."
-        return field.Type.NamedType().IsInputObjectType() ? 1.0 : 0.0;
-    }
-
-    public static double GetTypeWeight(this IOutputFieldDefinition field)
-    {
-        var namedType = field.Type.NamedType();
-        var costDirective = namedType.Directives.FirstOrDefaultValue<CostDirective>();
-
-        if (costDirective is not null)
-        {
-            return costDirective.Weight;
-        }
-
-        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
-        // "Weights for all composite input and output types default to "1.0""
-        return namedType.IsCompositeType() ? 1.0 : 0.0;
-    }
-
-    public static double GetTypeWeight(this IType type)
-    {
-        var namedType = type.NamedType();
-        var costDirective = namedType.Directives.FirstOrDefaultValue<CostDirective>();
-
-        if (costDirective is not null)
-        {
-            return costDirective.Weight;
-        }
-
-        // https://ibm.github.io/graphql-specs/cost-spec.html#sec-weight
-        // "Weights for all composite input and output types default to "1.0""
-        return namedType.IsCompositeType() ? 1.0 : 0.0;
-    }
-
-    public static double GetListSize(
-        this IOutputFieldDefinition field,
-        IReadOnlyList<ArgumentNode> arguments,
-        ListSizeDirective? listSizeDirective)
-    {
-        const int defaultListSize = 1;
-
-        if (listSizeDirective is null)
-        {
-            return defaultListSize;
-        }
-
-        if (listSizeDirective.SlicingArguments.Length > 0)
-        {
-            var index = 0;
-            Span<int> slicingValues = stackalloc int[listSizeDirective.SlicingArguments.Length];
-            foreach (var slicingArgumentName in listSizeDirective.SlicingArguments)
-            {
-                var slicingArgument = arguments.SingleOrDefault(a => a.Name.Value == slicingArgumentName);
-
-                if (slicingArgument is not null)
-                {
-                    switch (slicingArgument.Value)
-                    {
-                        case IntValueNode intValueNode:
-                            slicingValues[index++] = intValueNode.ToInt32();
-                            continue;
-
-                        // if one of the slicing arguments is variable we will assume the
-                        // maximum allowed page size.
-                        case VariableNode when listSizeDirective.AssumedSize.HasValue:
-                            return listSizeDirective.AssumedSize.Value;
-                    }
-                }
-
-                if (field.Arguments.TryGetField(slicingArgumentName, out var argument)
-                    && argument.DefaultValue is IntValueNode defaultValueNode)
-                {
-                    slicingValues[index++] = defaultValueNode.ToInt32();
-                }
-            }
-
-            if (index == 0 && listSizeDirective.SlicingArgumentDefaultValue.HasValue)
-            {
-                // if no slicing arguments were found we assume the
-                // paging default size if one is set.
-                return listSizeDirective.SlicingArgumentDefaultValue.Value;
-            }
-
-            if (index == 1)
-            {
-                return slicingValues[0];
-            }
-
-            if (index > 1)
-            {
-                var max = 0;
-
-                for (var i = 0; i < index; i++)
-                {
-                    var value = slicingValues[i];
-                    if (value > max)
-                    {
-                        max = value;
-                    }
-                }
-
-                return max;
-            }
-        }
-
-        return listSizeDirective.AssumedSize ?? defaultListSize;
     }
 
     public static void ValidateRequireOneSlicingArgument(
         this ListSizeDirective? listSizeDirective,
         FieldNode node,
+        FieldNode sourceNode,
         IList<ISyntaxNode> path)
     {
-        // The `requireOneSlicingArgument` argument can be used to inform the static analysis
-        // that it should expect that exactly one of the defined slicing arguments is present in
-        // a query. If that is not the case (i.e., if none or multiple slicing arguments are
-        // present), the static analysis may throw an error.
         if (listSizeDirective?.RequireOneSlicingArgument ?? false)
         {
             var argumentCount = 0;
@@ -183,8 +81,209 @@ internal static class CostAnalyzerUtilities
 
             if (argumentCount != 1)
             {
-                throw new GraphQLException(ErrorHelper.ExactlyOneSlicingArgMustBeDefined(node, path));
+                throw new GraphQLException(
+                    ErrorHelper.ExactlyOneSlicingArgMustBeDefined(sourceNode, path));
             }
         }
+    }
+
+    private sealed class RequireOneSlicingArgumentVisitor(SourceFieldIndex sourceFields)
+        : TypeDocumentValidatorVisitor
+    {
+        private readonly Stack<(ListSizeDirective? Directive, FieldNode Source)> _fields = [];
+
+        protected override ISyntaxVisitorAction Enter(
+            FieldNode node,
+            DocumentValidatorContext context)
+        {
+            if (context.Types.TryPeek(out var type)
+                && type.NamedType() is IComplexTypeDefinition declaringType
+                && declaringType.Fields.TryGetField(node.Name.Value, out var field))
+            {
+                var listSizeDirective = field.Directives.FirstOrDefaultValue<ListSizeDirective>();
+                var sourceNode = sourceFields.Find(node, declaringType.Name, context.Path) ?? node;
+
+                if (node.SelectionSet is null)
+                {
+                    listSizeDirective.ValidateRequireOneSlicingArgument(node, sourceNode, context.Path);
+                    return Skip;
+                }
+
+                _fields.Push((listSizeDirective, sourceNode));
+                context.OutputFields.Push(field);
+                context.Types.Push(field.Type);
+                return Continue;
+            }
+
+            context.UnexpectedErrorsDetected = true;
+            return Skip;
+        }
+
+        protected override ISyntaxVisitorAction Leave(
+            FieldNode node,
+            DocumentValidatorContext context)
+        {
+            var (listSizeDirective, sourceNode) = _fields.Pop();
+            listSizeDirective.ValidateRequireOneSlicingArgument(node, sourceNode, context.Path);
+            context.OutputFields.Pop();
+            context.Types.Pop();
+            return Continue;
+        }
+    }
+
+    private sealed class SourceFieldIndex
+    {
+        private readonly Dictionary<FieldKey, FieldNode> _fields = [];
+        private readonly Dictionary<FallbackFieldKey, FieldNode> _fallbackFields = [];
+
+        private SourceFieldIndex()
+        {
+        }
+
+        public static SourceFieldIndex Create(
+            Schema schema,
+            DocumentNode document,
+            OperationDefinitionNode operation)
+        {
+            var index = new SourceFieldIndex();
+            var fragments = document.GetFragments();
+
+            if (schema.TryGetOperationType(operation.Operation, out var rootType))
+            {
+                index.IndexSelectionSet(
+                    schema,
+                    fragments,
+                    operation.SelectionSet,
+                    rootType,
+                    string.Empty,
+                    []);
+            }
+
+            return index;
+        }
+
+        public FieldNode? Find(
+            FieldNode field,
+            string declaringTypeName,
+            IList<ISyntaxNode> path)
+        {
+            var responsePath = CreateResponsePath(path, field);
+            var key = new FieldKey(responsePath, declaringTypeName, field.Name.Value);
+
+            if (_fields.TryGetValue(key, out var sourceField))
+            {
+                return sourceField;
+            }
+
+            _fallbackFields.TryGetValue(
+                new FallbackFieldKey(responsePath, field.Name.Value),
+                out sourceField);
+            return sourceField;
+        }
+
+        private void IndexSelectionSet(
+            Schema schema,
+            IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
+            SelectionSetNode selectionSet,
+            IComplexTypeDefinition declaringType,
+            string parentPath,
+            HashSet<string> activeFragments)
+        {
+            foreach (var selection in selectionSet.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldNode field:
+                        var responsePath = AppendResponseName(parentPath, field);
+                        _fields.TryAdd(
+                            new FieldKey(responsePath, declaringType.Name, field.Name.Value),
+                            field);
+                        _fallbackFields.TryAdd(
+                            new FallbackFieldKey(responsePath, field.Name.Value),
+                            field);
+
+                        if (field.SelectionSet is not null
+                            && declaringType.Fields.TryGetField(field.Name.Value, out var fieldDefinition)
+                            && fieldDefinition.Type.NamedType() is IComplexTypeDefinition childType)
+                        {
+                            IndexSelectionSet(
+                                schema,
+                                fragments,
+                                field.SelectionSet,
+                                childType,
+                                responsePath,
+                                activeFragments);
+                        }
+                        break;
+
+                    case InlineFragmentNode inlineFragment:
+                        var inlineType = ResolveType(schema, inlineFragment.TypeCondition, declaringType);
+                        IndexSelectionSet(
+                            schema,
+                            fragments,
+                            inlineFragment.SelectionSet,
+                            inlineType,
+                            parentPath,
+                            activeFragments);
+                        break;
+
+                    case FragmentSpreadNode spread
+                        when fragments.TryGetValue(spread.Name.Value, out var fragment)
+                            && activeFragments.Add(fragment.Name.Value):
+                        var fragmentType = ResolveType(schema, fragment.TypeCondition, declaringType);
+                        IndexSelectionSet(
+                            schema,
+                            fragments,
+                            fragment.SelectionSet,
+                            fragmentType,
+                            parentPath,
+                            activeFragments);
+                        activeFragments.Remove(fragment.Name.Value);
+                        break;
+                }
+            }
+        }
+
+        private static IComplexTypeDefinition ResolveType(
+            Schema schema,
+            NamedTypeNode? typeCondition,
+            IComplexTypeDefinition fallback)
+        {
+            if (typeCondition is not null
+                && schema.Types.TryGetType<IComplexTypeDefinition>(typeCondition.Name.Value, out var type))
+            {
+                return type;
+            }
+
+            return fallback;
+        }
+
+        private static string CreateResponsePath(IList<ISyntaxNode> path, FieldNode field)
+        {
+            var responsePath = string.Empty;
+
+            foreach (var node in path)
+            {
+                if (node is FieldNode parentField)
+                {
+                    responsePath = AppendResponseName(responsePath, parentField);
+                }
+            }
+
+            return AppendResponseName(responsePath, field);
+        }
+
+        private static string AppendResponseName(string path, FieldNode field)
+        {
+            var responseName = field.Alias?.Value ?? field.Name.Value;
+            return path.Length == 0 ? responseName : $"{path}.{responseName}";
+        }
+
+        private readonly record struct FieldKey(
+            string ResponsePath,
+            string DeclaringTypeName,
+            string FieldName);
+
+        private readonly record struct FallbackFieldKey(string ResponsePath, string FieldName);
     }
 }

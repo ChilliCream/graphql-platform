@@ -122,10 +122,6 @@
               ],
               "event": [
                 {
-                  "Name": "AddedOperationPlanToCache",
-                  "Tags": []
-                },
-                {
                   "Name": "graphql.error",
                   "Tags": [
                     {
@@ -331,6 +327,27 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "OperationName": "GraphQL Complexity Analysis",
+                  "DisplayName": "GraphQL Complexity Analysis",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:83e4e2c77439ad8dfa9b85ae0512d11c"
+                    },
+                    {
+                      "Key": "graphql.operation.fieldCost",
+                      "Value": 0.0
+                    },
+                    {
+                      "Key": "graphql.operation.typeCost",
+                      "Value": 1.0
+                    }
+                  ],
+                  "event": []
                 }
               ]
             },

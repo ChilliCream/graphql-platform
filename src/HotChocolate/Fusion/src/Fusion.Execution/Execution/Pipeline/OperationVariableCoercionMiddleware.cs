@@ -12,8 +12,7 @@ internal sealed class OperationVariableCoercionMiddleware
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
 
-    private OperationVariableCoercionMiddleware(
-        ICoreExecutionDiagnosticEvents diagnosticEvents)
+    private OperationVariableCoercionMiddleware(ICoreExecutionDiagnosticEvents diagnosticEvents)
     {
         _diagnosticEvents = diagnosticEvents;
     }
@@ -22,17 +21,21 @@ internal sealed class OperationVariableCoercionMiddleware
         RequestContext context,
         RequestDelegate next)
     {
-        var operationExecutionPlan = context.GetOperationPlan();
-
-        if (operationExecutionPlan is null)
+        if (!context.TryGetNormalizedOperation(out var operation))
         {
             context.Result = ErrorHelper.StateInvalidForVariableCoercion();
             return default;
         }
 
+        // Warmup requests do not produce coerced values.
+        if (context.IsWarmupRequest())
+        {
+            return next(context);
+        }
+
         return TryCoerceVariables(
             context,
-            operationExecutionPlan.VariableDefinitions,
+            operation.VariableDefinitions,
             _diagnosticEvents)
             ? next(context)
             : default;

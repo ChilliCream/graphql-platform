@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion;
 
@@ -449,5 +450,293 @@ public sealed class CompositionHelperTests
               }
             }
             """);
+    }
+
+    // Settings-file surface plumbing: a non-null Merger.DefaultListSize on the composition
+    // settings passed into the Nitro CLI compose path reaches SourceSchemaMergerOptions and is
+    // emitted as @fusion__cost_options(defaultListSize:) on the composed schema.
+    [Fact]
+    public async Task ComposeAsync_Should_EmitCostOptions_When_DefaultListSizeSettingIsSet()
+    {
+        // arrange
+        using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
+        {
+            ["Products"] = new(
+                new SourceSchemaText("Products", "type Query { product: String }"),
+                productsSettings,
+                urlOverride: null)
+        };
+        var stream = new MemoryStream();
+        var log = new CompositionLog();
+        var compositionSettings = new CompositionSettings
+        {
+            Merger = { DefaultListSize = 7 }
+        };
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+
+        // act
+        var result = await CompositionHelper.ComposeAsync(
+            log,
+            sourceSchemas,
+            archive,
+            "Development",
+            preferDevUrls: false,
+            compositionSettings,
+            legacyArchive: null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(
+            result.IsSuccess,
+            string.Join(Environment.NewLine, log.Select(entry => entry.Message)));
+        var document = result.Value.ToSyntaxNode();
+        var schemaDefinition = document.Definitions.OfType<SchemaDefinitionNode>().Single();
+        var costOptionsApplication = Assert.Single(
+            schemaDefinition.Directives,
+            directive => directive.Name.Value == "fusion__cost_options");
+
+        costOptionsApplication.ToString().MatchInlineSnapshot(
+            """
+            @fusion__cost_options(defaultListSize: 7)
+            """);
+    }
+
+    [Fact]
+    public async Task ComposeAsync_Should_ReportCompositionError_When_DefaultListSizeSettingIsNegative()
+    {
+        // arrange
+        using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
+        {
+            ["Products"] = new(
+                new SourceSchemaText("Products", "type Query { product: String }"),
+                productsSettings,
+                urlOverride: null)
+        };
+        var stream = new MemoryStream();
+        var log = new CompositionLog();
+        var compositionSettings = new CompositionSettings
+        {
+            Merger = { DefaultListSize = -1 }
+        };
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+
+        // act
+        var result = await CompositionHelper.ComposeAsync(
+            log,
+            sourceSchemas,
+            archive,
+            "Development",
+            preferDevUrls: false,
+            compositionSettings,
+            legacyArchive: null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log, e => e.Code == LogEntryCodes.InvalidDefaultListSizeSetting);
+        Assert.Equal(
+            "The 'defaultListSize' composition setting must be a non-negative integer "
+            + "no larger than 2147483647 (-1).",
+            entry.Message);
+    }
+
+    // Read-direction plumbing: a valid integer defaultListSize in the raw settings-file JSON
+    // stored in the archive (not the typed CompositionSettings passed into ComposeAsync) reaches
+    // SourceSchemaMergerOptions and is emitted as @fusion__cost_options(defaultListSize:).
+    [Fact]
+    public async Task ComposeAsync_Should_EmitCostOptions_When_ArchiveSettingsJsonHasValidDefaultListSize()
+    {
+        // arrange
+        using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
+        {
+            ["Products"] = new(
+                new SourceSchemaText("Products", "type Query { product: String }"),
+                productsSettings,
+                urlOverride: null)
+        };
+        var stream = new MemoryStream();
+        var log = new CompositionLog();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        using (var rawCompositionSettings = JsonDocument.Parse("""{ "merger": { "defaultListSize": 7 } }"""))
+        {
+            await archive.SetCompositionSettingsAsync(
+                rawCompositionSettings,
+                TestContext.Current.CancellationToken);
+        }
+
+        // act
+        var result = await CompositionHelper.ComposeAsync(
+            log,
+            sourceSchemas,
+            archive,
+            "Development",
+            preferDevUrls: false,
+            compositionSettings: null,
+            legacyArchive: null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(
+            result.IsSuccess,
+            string.Join(Environment.NewLine, log.Select(entry => entry.Message)));
+        var document = result.Value.ToSyntaxNode();
+        var schemaDefinition = document.Definitions.OfType<SchemaDefinitionNode>().Single();
+        var costOptionsApplication = Assert.Single(
+            schemaDefinition.Directives,
+            directive => directive.Name.Value == "fusion__cost_options");
+
+        costOptionsApplication.ToString().MatchInlineSnapshot(
+            """
+            @fusion__cost_options(defaultListSize: 7)
+            """);
+    }
+
+    // The raw-JSON guard rejects a negative persisted defaultListSize the same way it rejects
+    // one that is out of the Int32 range: -1 is representable as an Int32, but is not a valid
+    // defaultListSize, so it must be reported here rather than left for the merged-settings
+    // check in ComposeAsync (which only sees CLI/API-provided CompositionSettings, not a
+    // pre-seeded archive settings file read through this guard) to catch it, if at all.
+    [Fact]
+    public async Task ComposeAsync_Should_ReportCompositionError_When_ArchiveSettingsJsonHasNegativeDefaultListSize()
+    {
+        // arrange
+        using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
+        {
+            ["Products"] = new(
+                new SourceSchemaText("Products", "type Query { product: String }"),
+                productsSettings,
+                urlOverride: null)
+        };
+        var stream = new MemoryStream();
+        var log = new CompositionLog();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        using (var rawCompositionSettings = JsonDocument.Parse("""{ "merger": { "defaultListSize": -1 } }"""))
+        {
+            await archive.SetCompositionSettingsAsync(
+                rawCompositionSettings,
+                TestContext.Current.CancellationToken);
+        }
+
+        // act
+        var result = await CompositionHelper.ComposeAsync(
+            log,
+            sourceSchemas,
+            archive,
+            "Development",
+            preferDevUrls: false,
+            compositionSettings: null,
+            legacyArchive: null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log, e => e.Code == LogEntryCodes.InvalidDefaultListSizeSetting);
+        Assert.Equal(
+            "The 'defaultListSize' composition setting must be a non-negative integer "
+            + "no larger than 2147483647 (-1).",
+            entry.Message);
+    }
+
+    [Theory]
+    [InlineData("""{ "merger": { "defaultListSize": "abc" } }""", "\"abc\"")]
+    [InlineData("""{ "merger": { "defaultListSize": 1.5 } }""", "1.5")]
+    [InlineData("""{ "merger": { "defaultListSize": 1.0 } }""", "1.0")]
+    public async Task ComposeAsync_Should_ReportCompositionError_When_ArchiveSettingsJsonHasNonIntegerDefaultListSize(
+        string rawCompositionSettingsJson,
+        string expectedRawValue)
+    {
+        // arrange
+        using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
+        {
+            ["Products"] = new(
+                new SourceSchemaText("Products", "type Query { product: String }"),
+                productsSettings,
+                urlOverride: null)
+        };
+        var stream = new MemoryStream();
+        var log = new CompositionLog();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        using (var rawCompositionSettings = JsonDocument.Parse(rawCompositionSettingsJson))
+        {
+            await archive.SetCompositionSettingsAsync(
+                rawCompositionSettings,
+                TestContext.Current.CancellationToken);
+        }
+
+        // act
+        var result = await CompositionHelper.ComposeAsync(
+            log,
+            sourceSchemas,
+            archive,
+            "Development",
+            preferDevUrls: false,
+            compositionSettings: null,
+            legacyArchive: null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log, e => e.Code == LogEntryCodes.InvalidDefaultListSizeSetting);
+        Assert.Equal(
+            $"The 'defaultListSize' composition setting must be an integer ({expectedRawValue}).",
+            entry.Message);
+    }
+
+    // A whole number that does not fit Int32 is still an integer, just out of the supported
+    // range, so it must report the range message rather than the non-integer one. This holds
+    // even for a literal beyond Int64 (TryGetInt64 alone can no longer tell it apart from a
+    // fraction, so the discrimination falls back to a raw-text scan for a fractional part) and
+    // for exponent notation (TryGetInt32/TryGetInt64 never accept it, even for a small
+    // in-range value like 1e1, so it is always classified as out of range rather than parsed).
+    [Theory]
+    [InlineData("9999999999")]
+    [InlineData("18446744073709551616")]
+    [InlineData("1e1")]
+    public async Task ComposeAsync_Should_ReportCompositionError_When_ArchiveSettingsJsonHasOutOfRangeDefaultListSize(
+        string rawValue)
+    {
+        // arrange
+        using var productsSettings = JsonDocument.Parse("""{ "name": "Products" }""");
+        var sourceSchemas = new Dictionary<string, LocalSourceSchema>
+        {
+            ["Products"] = new(
+                new SourceSchemaText("Products", "type Query { product: String }"),
+                productsSettings,
+                urlOverride: null)
+        };
+        var stream = new MemoryStream();
+        var log = new CompositionLog();
+        using var archive = FusionArchive.Create(stream, leaveOpen: true);
+        using (var rawCompositionSettings =
+            JsonDocument.Parse($$"""{ "merger": { "defaultListSize": {{rawValue}} } }"""))
+        {
+            await archive.SetCompositionSettingsAsync(
+                rawCompositionSettings,
+                TestContext.Current.CancellationToken);
+        }
+
+        // act
+        var result = await CompositionHelper.ComposeAsync(
+            log,
+            sourceSchemas,
+            archive,
+            "Development",
+            preferDevUrls: false,
+            compositionSettings: null,
+            legacyArchive: null,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.True(result.IsFailure);
+        var entry = Assert.Single(log, e => e.Code == LogEntryCodes.InvalidDefaultListSizeSetting);
+        Assert.Equal(
+            "The 'defaultListSize' composition setting must be a non-negative integer "
+            + $"no larger than 2147483647 ({rawValue}).",
+            entry.Message);
     }
 }

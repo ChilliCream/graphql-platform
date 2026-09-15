@@ -1374,6 +1374,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             services => services
                 .AddRouting()
                 .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddQueryType<Query>()
                 .AddType<Droid>()
                 .AddDefaultBatchDispatcher()

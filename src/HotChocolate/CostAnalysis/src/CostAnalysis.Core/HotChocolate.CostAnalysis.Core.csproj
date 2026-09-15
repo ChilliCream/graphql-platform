@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.CostAnalysis.Core</PackageId>
+    <AssemblyName>HotChocolate.CostAnalysis.Core</AssemblyName>
+    <RootNamespace>HotChocolate.CostAnalysis</RootNamespace>
+    <IsAotCompatible>true</IsAotCompatible>
+    <Description>The shared, engine-agnostic implementation of the IBM GraphQL cost specification: schema snapshots, compiled cost plans and the pluggable analysis algebra consumed by HotChocolate and Fusion.</Description>
+    <NoWarn>HC8002;$(NoWarn)</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis.Core.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis.Core.Conformance.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.CostAnalysis.Core.Benchmarks" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Core\src\Types.Abstractions\HotChocolate.Types.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\..\..\Primitives\src\Primitives\HotChocolate.Primitives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\CostAnalysisCoreResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>CostAnalysisCoreResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\CostAnalysisCoreResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CostAnalysisCoreResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

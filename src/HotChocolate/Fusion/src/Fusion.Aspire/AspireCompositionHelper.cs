@@ -212,6 +212,7 @@ internal static class AspireCompositionHelper
             Merger =
             {
                 CacheControlMergeBehavior = settings.CacheControlMergeBehavior,
+                DefaultListSize = settings.DefaultListSize,
                 EnableGlobalObjectIdentification = settings.EnableGlobalObjectIdentification,
                 EnumValuesMergeBehavior = settings.EnumValuesMergeBehavior,
                 NodeResolution = settings.NodeResolution,

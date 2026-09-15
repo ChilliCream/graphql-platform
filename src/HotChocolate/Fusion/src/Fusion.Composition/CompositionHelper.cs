@@ -96,9 +96,26 @@ internal static class CompositionHelper
                 configuration.Settings);
         }
 
-        var existingCompositionSettings = await GetCompositionSettingsAsync(archive, cancellationToken);
+        var (compositionSettingsRead, existingCompositionSettings) =
+            await TryGetCompositionSettingsAsync(archive, compositionLog, cancellationToken);
+
+        if (!compositionSettingsRead)
+        {
+            return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+        }
+
         var mergedCompositionSettings =
             compositionSettings?.MergeInto(existingCompositionSettings) ?? existingCompositionSettings;
+
+        // The defaultListSize composition setting comes from the composition settings, not a
+        // schema coordinate, so an invalid value is reported as a composition error here rather
+        // than left to throw out of SourceSchemaMergerOptions.DefaultListSize's own guard.
+        if (mergedCompositionSettings.Merger.DefaultListSize is { } defaultListSize
+            && defaultListSize < 0)
+        {
+            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize));
+            return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+        }
 
         var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
         var mergerOptions = mergedCompositionSettings.Merger.ToOptions();
@@ -233,14 +250,73 @@ internal static class CompositionHelper
         return result;
     }
 
-    private static async Task<CompositionSettings> GetCompositionSettingsAsync(
+    // The defaultListSize composition setting comes from the composition settings, not a
+    // schema coordinate, so a non-integer raw value is reported as a composition error here,
+    // before the typed Deserialize below would otherwise throw a JsonException out of it.
+    //
+    // Internal rather than private: the CLI's `fusion settings set` unset path reuses this
+    // same validated read so an already-invalid persisted value is reported the same way
+    // there, instead of throwing out of a blind Deserialize.
+    internal static async Task<(bool Success, CompositionSettings Settings)> TryGetCompositionSettingsAsync(
         FusionArchive archive,
+        ICompositionLog compositionLog,
         CancellationToken cancellationToken)
     {
-        using var compositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
+        using var rawCompositionSettings = await archive.GetCompositionSettingsAsync(cancellationToken);
 
-        return compositionSettings?.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
+        if (rawCompositionSettings is null)
+        {
+            return (true, new CompositionSettings());
+        }
+
+        var root = rawCompositionSettings.RootElement;
+
+        if (root.ValueKind == JsonValueKind.Object
+            && root.TryGetProperty("merger", out var merger)
+            && merger.ValueKind == JsonValueKind.Object
+            && merger.TryGetProperty("defaultListSize", out var defaultListSize)
+            && defaultListSize.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined)
+            && (defaultListSize.ValueKind is not JsonValueKind.Number
+                || !defaultListSize.TryGetInt32(out var defaultListSizeInt32)
+                || defaultListSizeInt32 < 0))
+        {
+            // A whole number that does not fit the non-negative Int32 range (for example,
+            // negative, larger than int.MaxValue, or even larger than long.MaxValue, or
+            // written in exponent notation) is still an integer, just out of the supported
+            // range; only a value that isn't a whole number at all (a fraction, or a
+            // different JSON type) is reported as non-integer.
+            var logEntry = defaultListSize.ValueKind == JsonValueKind.Number
+                && IsWholeNumber(defaultListSize)
+                    ? LogEntryHelper.InvalidDefaultListSizeSettingRange(defaultListSize.GetRawText())
+                    : LogEntryHelper.InvalidDefaultListSizeSettingType(defaultListSize.GetRawText());
+
+            compositionLog.Write(logEntry);
+            return (false, new CompositionSettings());
+        }
+
+        var settings = rawCompositionSettings.Deserialize(SettingsJsonSerializerContext.Default.CompositionSettings)
             ?? new CompositionSettings();
+        return (true, settings);
+    }
+
+    // TryGetInt64 only accepts literals it can parse directly as Int64 text, so it returns
+    // false both for whole numbers that simply do not fit (or are written in exponent
+    // notation, like 1e1) and for genuine fractions. Those two cases are told apart by a
+    // raw-text scan for a fractional part in the significand: a decimal-based check would
+    // instead call any in-range decimal literal without a fractional remainder (like 1.0)
+    // a whole number, which is wrong here since the raw text itself is not an integer
+    // literal.
+    private static bool IsWholeNumber(JsonElement numberElement)
+    {
+        if (numberElement.TryGetInt64(out _))
+        {
+            return true;
+        }
+
+        var rawText = numberElement.GetRawText();
+        var exponentIndex = rawText.IndexOfAny(['e', 'E']);
+        var significand = exponentIndex < 0 ? rawText : rawText[..exponentIndex];
+        return !significand.Contains('.');
     }
 
     private static async Task SaveCompositionSettingsAsync(

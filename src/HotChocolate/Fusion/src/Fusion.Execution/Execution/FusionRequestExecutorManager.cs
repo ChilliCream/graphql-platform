@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Collections.Immutable;
+using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
@@ -191,6 +192,7 @@ internal sealed class FusionRequestExecutorManager
         var schemaServices = CreateSchemaServices(configuration, setup, options, requestOptions, plannerOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
+        _ = schemaServices.GetRequiredService<CostSchemaSnapshot>();
         var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
 
         var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
@@ -415,6 +417,30 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(options);
         services.AddSingleton(requestOptions);
         services.AddSingleton(requestOptions.PersistedOperations);
+        services.AddSingleton(
+            static sp =>
+            {
+                var cost = sp.GetRequiredService<FusionRequestOptions>().Cost;
+                var schema = sp.GetRequiredService<FusionSchemaDefinition>();
+                var engineOptions = new CostEngineOptions
+                {
+                    DefaultListSize = schema.DefaultListSize is { } defaultListSize
+                        ? defaultListSize
+                        : double.PositiveInfinity
+                };
+
+                if (cost.CaseBudget is { } caseBudget)
+                {
+                    engineOptions.CaseBudget = caseBudget;
+                }
+
+                return CostSchemaSnapshot.Create(
+                    sp.GetRequiredService<FusionSchemaDefinition>(),
+                    engineOptions);
+            });
+        services.AddSingleton(
+            static sp => new Cache<CostPlan>(
+                sp.GetRequiredService<FusionRequestOptions>().Cost.CostPlanCacheSize));
 
         if (options.EnableSemanticIntrospection)
         {

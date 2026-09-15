@@ -14,6 +14,13 @@ using FusionLogEntryBuilder = HotChocolate.Fusion.Logging.LogEntryBuilder;
 using FusionLogEntryCodes = HotChocolate.Fusion.Logging.LogEntryCodes;
 using LogEntryHelper = HotChocolate.Fusion.Logging.LogEntryHelper;
 using LogSeverity = HotChocolate.Fusion.Logging.LogSeverity;
+using DirectiveNames = HotChocolate.Fusion.WellKnownDirectiveNames;
+using DocumentNode = HotChocolate.Language.DocumentNode;
+using DirectiveDefinitionNode = HotChocolate.Language.DirectiveDefinitionNode;
+using DirectiveNode = HotChocolate.Language.DirectiveNode;
+using ISyntaxNode = HotChocolate.Language.ISyntaxNode;
+using SyntaxException = HotChocolate.Language.SyntaxException;
+using Utf8GraphQLParser = HotChocolate.Language.Utf8GraphQLParser;
 using static HotChocolate.Fusion.Properties.CompositionResources;
 
 namespace HotChocolate.Fusion;
@@ -34,6 +41,21 @@ internal sealed class SourceSchemaParser(
         var schema = new MutableSchemaDefinition { Name = sourceSchemaText.Name };
         schema.AddBuiltInFusionTypes();
         schema.AddBuiltInFusionDirectives();
+
+        // A source schema may apply @cost/@listSize without declaring its own definition.
+        // Inject the canonical definition only when the combined source text uses the directive
+        // but does not declare it (R-COMPOSITION-COMPAT).
+        var requiresInjectedDefinitions = GetRequiredDefinitionInjections(sourceSchemaText);
+
+        if (requiresInjectedDefinitions.Contains(DirectiveNames.Cost))
+        {
+            schema.DirectiveDefinitions.Add(CostMutableDirectiveDefinition.Create(schema));
+        }
+
+        if (requiresInjectedDefinitions.Contains(DirectiveNames.ListSize))
+        {
+            schema.DirectiveDefinitions.Add(ListSizeMutableDirectiveDefinition.Create(schema));
+        }
 
         if (isApolloFederationV1)
         {
@@ -153,4 +175,75 @@ internal sealed class SourceSchemaParser(
            || (sourceSchemaText.ExtensionsSourceText?.Contains(
                FederationSchemaAnalyzer.FederationUrlPrefix,
                StringComparison.Ordinal) ?? false);
+
+    private static readonly string[] s_injectableDirectiveNames = [DirectiveNames.Cost, DirectiveNames.ListSize];
+
+    /// <summary>
+    /// Determines, in one pass over the source schema's combined text, which of the injectable
+    /// directives (<c>@cost</c>, <c>@listSize</c>) must have a canonical definition injected: a
+    /// directive the text applies somewhere but declares no definition for anywhere (main or
+    /// extensions text). A declared definition (any shape) always wins and is never injected
+    /// over; a directive neither used nor declared is left alone.
+    /// </summary>
+    private static HashSet<string> GetRequiredDefinitionInjections(SourceSchemaText sourceSchemaText)
+    {
+        var declared = new HashSet<string>(StringComparer.Ordinal);
+        var used = new HashSet<string>(StringComparer.Ordinal);
+
+        CollectDirectiveNames(TryParseDocument(sourceSchemaText.SourceText), declared, used);
+
+        if (sourceSchemaText.ExtensionsSourceText is { } extensionsText)
+        {
+            CollectDirectiveNames(TryParseDocument(extensionsText), declared, used);
+        }
+
+        used.ExceptWith(declared);
+        used.IntersectWith(s_injectableDirectiveNames);
+        return used;
+    }
+
+    private static DocumentNode? TryParseDocument(string sourceText)
+    {
+        try
+        {
+            return Utf8GraphQLParser.Parse(sourceText);
+        }
+        catch (SyntaxException)
+        {
+            // Malformed text is reported by the real parse further down; injection is skipped
+            // and the underlying error surfaces normally.
+            return null;
+        }
+    }
+
+    private static void CollectDirectiveNames(DocumentNode? document, HashSet<string> declared, HashSet<string> used)
+    {
+        if (document is null)
+        {
+            return;
+        }
+
+        foreach (var definition in document.Definitions)
+        {
+            if (definition is DirectiveDefinitionNode directiveDefinition)
+            {
+                declared.Add(directiveDefinition.Name.Value);
+            }
+        }
+
+        CollectDirectiveApplications(document, used);
+    }
+
+    private static void CollectDirectiveApplications(ISyntaxNode node, HashSet<string> used)
+    {
+        if (node is DirectiveNode directive)
+        {
+            used.Add(directive.Name.Value);
+        }
+
+        foreach (var child in node.GetNodes())
+        {
+            CollectDirectiveApplications(child, used);
+        }
+    }
 }

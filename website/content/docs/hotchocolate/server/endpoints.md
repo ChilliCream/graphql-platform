@@ -363,7 +363,7 @@ builder.AddGraphQL(
 
 When `false` (the default), `AddGraphQL()` automatically enables these security features:
 
-- **Cost analysis**: Protects against expensive queries by analyzing the computational cost of each operation.
+- **Cost analysis**: Enforces maximum field and type costs of `1_000`. Lists without applicable `@listSize` metadata use a default size of `Infinity`.
 - **Introspection disabled in production**: Introspection is automatically turned off when `IHostEnvironment.IsDevelopment()` returns `false`.
 - **MaxAllowedFieldCycleDepthRule**: Prevents deeply cyclic field selections in production.
 

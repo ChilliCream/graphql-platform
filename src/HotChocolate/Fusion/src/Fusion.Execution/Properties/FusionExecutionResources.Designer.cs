@@ -260,5 +260,23 @@ namespace HotChocolate.Fusion.Properties {
                 return ResourceManager.GetString("DocumentRewriter_FragmentDoesNotExist", resourceCulture);
             }
         }
+
+        internal static string ErrorHelper_MaxFieldCostReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxFieldCostReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_MaxTypeCostReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxTypeCostReached", resourceCulture);
+            }
+        }
+
+        internal static string ErrorHelper_MaxResponseSizeReached {
+            get {
+                return ResourceManager.GetString("ErrorHelper_MaxResponseSizeReached", resourceCulture);
+            }
+        }
     }
 }

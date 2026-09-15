@@ -1,6 +1,5 @@
 using HotChocolate;
 using HotChocolate.CostAnalysis;
-using HotChocolate.CostAnalysis.Caching;
 using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -32,8 +31,6 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .ConfigureSchemaServices(
                 static services =>
                 {
-                    services.TryAddSingleton<ICostMetricsCache, DefaultCostMetricsCache>();
-
                     services.TryAddEnumerable(
                         Singleton<ISchemaDocumentFormatter, CostSchemaDocumentFormatter>());
 
@@ -51,13 +48,40 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
 
                     services.TryAddSingleton(sp =>
                     {
+                        var options = sp.GetRequiredService<CostOptions>();
+                        return new CostPlanCache(options.CostPlanCacheSize);
+                    });
+
+                    services.TryAddSingleton(
+                        sp => sp.GetRequiredService<CostPlanCache>().InnerCache);
+
+                    services.TryAddSingleton(sp =>
+                    {
+                        var options = sp.GetRequiredService<CostOptions>();
+                        var engineOptions = new CostEngineOptions
+                        {
+                            DefaultListSize = options.DefaultListSize
+                        };
+
+                        if (options.CaseBudget is { } caseBudget)
+                        {
+                            engineOptions.CaseBudget = caseBudget;
+                        }
+
+                        return CostSchemaSnapshot.Create(
+                            sp.GetRequiredService<ISchemaDefinition>(),
+                            engineOptions);
+                    });
+
+                    services.TryAddSingleton(sp =>
+                    {
                         var requestOptions = sp.GetRequiredService<CostOptions>();
                         return new RequestCostOptions(
                             requestOptions.MaxFieldCost,
                             requestOptions.MaxTypeCost,
                             requestOptions.EnforceCostLimits,
                             requestOptions.SkipAnalyzer,
-                            requestOptions.Filtering.VariableMultiplier);
+                            requestOptions.MaxResponseSize);
                     });
                 })
             .AddDirectiveType<CostDirectiveType>()
@@ -66,7 +90,7 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
             .TryAddTypeInterceptor<CostDirectiveTypeInterceptor>()
             .UseRequest(
                 CostAnalyzerMiddleware.Create(),
-                after: WellKnownRequestMiddleware.DocumentValidationMiddleware);
+                after: WellKnownRequestMiddleware.OperationVariableCoercionMiddleware);
     }
 
     /// <summary>

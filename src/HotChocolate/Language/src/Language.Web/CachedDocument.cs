@@ -19,4 +19,9 @@ public sealed class CachedDocument(DocumentNode body, OperationDocumentHash hash
     /// Defines if the document is a persisted document.
     /// </summary>
     public bool IsPersisted { get; } = isPersisted;
+
+    /// <summary>
+    /// Gets or sets the normalized form of the syntax tree, if one has been computed.
+    /// </summary>
+    public DocumentNode? NormalizedBody { get; set; }
 }

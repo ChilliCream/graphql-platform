@@ -317,3 +317,7 @@ zencoder
 emulatorhealth
 FULLYQUALIFIEDNAMESPACE
 upserts
+GraphQLResponse
+operationCost
+maxAllowedResponseSize
+slicingArgumentDefaultValue
