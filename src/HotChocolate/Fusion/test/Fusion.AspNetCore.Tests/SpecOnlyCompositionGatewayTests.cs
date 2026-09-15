@@ -61,13 +61,17 @@ public sealed class SpecOnlyCompositionGatewayTests
         var operationCost = await SendValidateAsync(gateway, request);
 
         // assert
+        // Source B serves `items` without any @listSize usage, and no DefaultListSize is
+        // configured on this composer (unbounded), so per hc-3-mmh.9 / R-COMPOSITION-WEIGHT-FOLD
+        // the composite assumedSize is omitted rather than reporting A's unsound, lower-only
+        // assumedSize: 2, and the gateway correctly prices the list as unbounded.
         Assert.True(executionSchema.DirectiveDefinitions.ContainsName(WellKnownDirectiveNames.Cost));
         Assert.True(executionSchema.DirectiveDefinitions.ContainsName(WellKnownDirectiveNames.ListSize));
         operationCost.MatchInlineSnapshot(
             """
             {
-              "fieldCost": 45,
-              "typeCost": 29
+              "fieldCost": "Infinity",
+              "typeCost": "Infinity"
             }
             """);
         PrintCostSchema(compositeSchema).MatchSnapshot();
