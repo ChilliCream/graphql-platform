@@ -326,7 +326,10 @@ public ref struct Utf8GraphQLRequestParser
             }
             else
             {
-                throw ThrowHelper.UnknownRequestProperty(reader.ValueSpan);
+                // The GraphQL over HTTP specification requires a server to ignore request
+                // properties it does not understand, so the whole value is skipped.
+                reader.Read();
+                reader.Skip();
             }
         }
 

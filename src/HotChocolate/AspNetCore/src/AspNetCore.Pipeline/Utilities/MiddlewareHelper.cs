@@ -36,10 +36,12 @@ internal static class MiddlewareHelper
             var error = ErrorHelper.NoSupportedAcceptMediaType();
             executorSession.DiagnosticEvents.HttpRequestError(context, error);
 
+            // RFC 9110, section 15.5.7 lets a server disregard an Accept header it cannot
+            // satisfy and answer with its own choice of media type. An error result carries no
+            // accept media types, so the formatter selects the configured transport's default.
             return new ValidateAcceptContentTypeResult(
                 error,
-                HttpStatusCode.NotAcceptable,
-                headerResult.AcceptMediaTypes);
+                HttpStatusCode.NotAcceptable);
         }
 
         return new ValidateAcceptContentTypeResult(
@@ -317,14 +319,13 @@ internal static class MiddlewareHelper
 
         public ValidateAcceptContentTypeResult(
             IError error,
-            HttpStatusCode statusCode,
-            AcceptMediaType[] acceptMediaTypes)
+            HttpStatusCode statusCode)
         {
             IsValid = false;
             Error = OperationResult.FromError(error);
             StatusCode = statusCode;
             RequestFlags = RequestFlags.None;
-            AcceptMediaTypes = acceptMediaTypes;
+            AcceptMediaTypes = [];
         }
 
         [MemberNotNullWhen(false, nameof(Error))]

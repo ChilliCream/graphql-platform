@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -148,6 +149,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         for (var i = 0; i < acceptMediaTypes.Length; i++)
         {
             var acceptMediaType = Unsafe.Add(ref searchSpace, i);
+
+            // RFC 9110, section 12.4.2: a media type with q=0 is not acceptable. Excluding it
+            // here leaves the request with no usable media type, which the middleware answers
+            // with 406 before a response is ever formatted.
+            if (GetQuality(acceptMediaType) is 0)
+            {
+                continue;
+            }
+
             flags |= CreateRequestFlags(acceptMediaType);
 
             if (flags is RequestFlags.AllowAll)
@@ -206,7 +216,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             await FormatInternalAsync(
                 response,
                 result,
-                proposedStatusCode,
+                ProposeStatusCodeForRefusedOperationKind(result, acceptMediaTypes, proposedStatusCode),
                 format,
                 selectedAcceptMediaType,
                 cancellationToken);
@@ -215,6 +225,31 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             // if the request is aborted, we will fail gracefully.
         }
+    }
+
+    /// <summary>
+    /// Resolves the status code for an operation kind the executor refused. RFC 9110, section
+    /// 15.5.6 scopes a 405 to a method the target resource does not support, so a refusal no
+    /// change of method can resolve is a 406 instead. An operation kind the client's own
+    /// <c>Accept</c> header never granted is such a refusal, because every other method carries
+    /// the same header and is refused alike.
+    /// </summary>
+    private HttpStatusCode? ProposeStatusCodeForRefusedOperationKind(
+        IExecutionResult result,
+        AcceptMediaType[] acceptMediaTypes,
+        HttpStatusCode? proposedStatusCode)
+    {
+        if (proposedStatusCode.HasValue
+            || result.ContextData is not { } contextData
+            || !contextData.TryGetValue(ExecutionContextData.OperationNotAllowed, out var value)
+            || value is not RequestFlags requiredFlag)
+        {
+            return proposedStatusCode;
+        }
+
+        return (CreateRequestFlags(acceptMediaTypes) & requiredFlag) == requiredFlag
+            ? proposedStatusCode
+            : HttpStatusCode.NotAcceptable;
     }
 
     private async ValueTask FormatInternalAsync(
@@ -235,6 +270,18 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
                 response.ContentType = format.ContentType;
                 response.StatusCode = statusCode;
+
+                // RFC 9110, section 15.5.6 requires a 405 to list the methods the target resource
+                // supports, and section 10.2.1 defines that set per request. A GET or HEAD
+                // carrying an operation kind this server only serves over POST leaves POST as the
+                // one method that can satisfy it. A status code an overriding formatter chose is
+                // left alone, along with whatever Allow header it means to write for it.
+                if (statusCode is (int)HttpStatusCode.MethodNotAllowed
+                    && result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed)
+                    && response.HttpContext.Request.IsGetOrHeadMethod())
+                {
+                    response.Headers.Allow = HttpMethods.Post;
+                }
 
                 if (result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
                     && value is CacheControlHeaderValue cacheControlHeaderValue)
@@ -658,7 +705,200 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             _ => ResultKind.Stream
         };
 
-        ref var start = ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes);
+        var rejectedFormats = GetRejectedFormats(acceptMediaTypes);
+
+        // RFC 9110, section 12.4.2: a media type with q=0 is not acceptable, and the server
+        // selects from the acceptable media types in descending order of quality.
+        if (RequiresQualityOrdering(acceptMediaTypes))
+        {
+            var ordered = ArrayPool<AcceptMediaType>.Shared.Rent(length);
+
+            try
+            {
+                var count = OrderByDescendingQuality(acceptMediaTypes, ordered);
+                var offset = 0;
+
+                while (offset < count)
+                {
+                    var quality = GetQuality(ordered[offset]);
+                    var tierLength = 1;
+
+                    while (offset + tierLength < count
+                        && GetQuality(ordered[offset + tierLength]).Equals(quality))
+                    {
+                        tierLength++;
+                    }
+
+                    if (TrySelectFormat(
+                        ordered,
+                        offset,
+                        tierLength,
+                        resultKind,
+                        rejectedFormats,
+                        out selectedAcceptMediaType,
+                        out format))
+                    {
+                        return true;
+                    }
+
+                    offset += tierLength;
+                }
+
+                return false;
+            }
+            finally
+            {
+                ArrayPool<AcceptMediaType>.Shared.Return(ordered, clearArray: true);
+            }
+        }
+
+        return TrySelectFormat(
+            acceptMediaTypes,
+            0,
+            length,
+            resultKind,
+            rejectedFormats,
+            out selectedAcceptMediaType,
+            out format);
+    }
+
+    private static double GetQuality(AcceptMediaType mediaType)
+        => mediaType.Quality ?? 1.0;
+
+    /// <summary>
+    /// Collects the response content types the client marked unacceptable with q=0, as a bit per
+    /// <see cref="ResponseContentType"/>. RFC 9110, section 12.5.1 resolves a media type's quality
+    /// against the most specific range that matches it, so these rejections outrank any wildcard
+    /// the client also sent and must be honoured wherever a wildcard resolves to a concrete type.
+    /// </summary>
+    private static int GetRejectedFormats(AcceptMediaType[] acceptMediaTypes)
+    {
+        var rejected = 0;
+
+        foreach (var acceptMediaType in acceptMediaTypes)
+        {
+            if (GetQuality(acceptMediaType) is not 0)
+            {
+                continue;
+            }
+
+            rejected |= acceptMediaType.Kind switch
+            {
+                ApplicationGraphQL => Bit(ResponseContentType.GraphQLResponse),
+                ApplicationGraphQLStream => Bit(ResponseContentType.GraphQLResponseStream),
+                ApplicationJson => Bit(ResponseContentType.Json),
+                ApplicationJsonLines => Bit(ResponseContentType.JsonLines),
+                MultiPartMixed => Bit(ResponseContentType.MultiPartMixed),
+                EventStream => Bit(ResponseContentType.EventStream),
+                AllApplication => Bit(ResponseContentType.GraphQLResponse)
+                    | Bit(ResponseContentType.GraphQLResponseStream)
+                    | Bit(ResponseContentType.Json)
+                    | Bit(ResponseContentType.JsonLines),
+                AllMultiPart => Bit(ResponseContentType.MultiPartMixed),
+                All => Bit(ResponseContentType.GraphQLResponse)
+                    | Bit(ResponseContentType.GraphQLResponseStream)
+                    | Bit(ResponseContentType.Json)
+                    | Bit(ResponseContentType.JsonLines)
+                    | Bit(ResponseContentType.MultiPartMixed)
+                    | Bit(ResponseContentType.EventStream),
+                _ => 0
+            };
+        }
+
+        return rejected;
+
+        static int Bit(ResponseContentType contentType) => 1 << (int)contentType;
+    }
+
+    private static bool IsRejected(int rejectedFormats, FormatInfo format)
+        => (rejectedFormats & (1 << (int)format.Kind)) is not 0;
+
+    /// <summary>
+    /// Resolves the format a wildcard range selects for a single result, skipping a content type
+    /// the client rejected outright. Returns <c>null</c> when neither remains acceptable, leaving
+    /// the caller to try the streaming formats the same wildcard also covers.
+    /// </summary>
+    private FormatInfo? ResolveWildcardSingleFormat(int rejectedFormats)
+    {
+        if (!IsRejected(rejectedFormats, _defaultFormat))
+        {
+            return _defaultFormat;
+        }
+
+        return IsRejected(rejectedFormats, _legacyFormat) ? null : _legacyFormat;
+    }
+
+    /// <summary>
+    /// Copies the acceptable media types into <paramref name="buffer"/>, ordered by descending
+    /// quality and, within one quality, in the order the client listed them. Media types with
+    /// q=0 are dropped.
+    /// </summary>
+    private static int OrderByDescendingQuality(
+        AcceptMediaType[] acceptMediaTypes,
+        AcceptMediaType[] buffer)
+    {
+        var count = 0;
+        var quality = double.PositiveInfinity;
+
+        while (true)
+        {
+            var next = double.NegativeInfinity;
+
+            foreach (var acceptMediaType in acceptMediaTypes)
+            {
+                var candidate = GetQuality(acceptMediaType);
+
+                if (candidate > 0 && candidate < quality && candidate > next)
+                {
+                    next = candidate;
+                }
+            }
+
+            if (double.IsNegativeInfinity(next))
+            {
+                return count;
+            }
+
+            foreach (var acceptMediaType in acceptMediaTypes)
+            {
+                if (GetQuality(acceptMediaType).Equals(next))
+                {
+                    buffer[count++] = acceptMediaType;
+                }
+            }
+
+            quality = next;
+        }
+    }
+
+    private static bool RequiresQualityOrdering(AcceptMediaType[] acceptMediaTypes)
+    {
+        var quality = GetQuality(acceptMediaTypes[0]);
+
+        for (var i = 1; i < acceptMediaTypes.Length; i++)
+        {
+            if (!GetQuality(acceptMediaTypes[i]).Equals(quality))
+            {
+                return true;
+            }
+        }
+
+        return quality is 0;
+    }
+
+    private bool TrySelectFormat(
+        AcceptMediaType[] acceptMediaTypes,
+        int offset,
+        int length,
+        ResultKind resultKind,
+        int rejectedFormats,
+        out AcceptMediaType selectedAcceptMediaType,
+        [NotNullWhen(true)] out FormatInfo? format)
+    {
+        selectedAcceptMediaType = default;
+        format = null;
+
+        ref var start = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes), offset);
 
         // If we just have one Accept header value, we will try to determine which formatter to take.
         // We should only be unable to find a match if there was a previous validation skipped.
@@ -689,13 +929,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
             if (resultKind is ResultKind.Single && mediaType.Kind is AllApplication or All)
             {
-                selectedAcceptMediaType = mediaType;
-                format = _defaultFormat;
-                return true;
+                var wildcardFormat = ResolveWildcardSingleFormat(rejectedFormats);
+
+                if (wildcardFormat is not null)
+                {
+                    selectedAcceptMediaType = mediaType;
+                    format = wildcardFormat;
+                    return true;
+                }
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single
-                && mediaType.Kind is MultiPartMixed or AllMultiPart or All)
+                && mediaType.Kind is MultiPartMixed or AllMultiPart or All
+                && !IsRejected(rejectedFormats, _multiPartFormat))
             {
                 selectedAcceptMediaType = mediaType;
                 format = _multiPartFormat;
@@ -710,7 +956,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return true;
             }
 
-            if (mediaType.Kind is EventStream or All)
+            if (mediaType.Kind is EventStream or All
+                && !IsRejected(rejectedFormats, _eventStreamFormat))
             {
                 selectedAcceptMediaType = mediaType;
                 format = _eventStreamFormat;
@@ -730,9 +977,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             if (resultKind is ResultKind.Single && start.Kind is AllApplication or All)
             {
-                selectedAcceptMediaType = start;
-                format = _defaultFormat;
-                return true;
+                var wildcardFormat = ResolveWildcardSingleFormat(rejectedFormats);
+
+                if (wildcardFormat is not null)
+                {
+                    selectedAcceptMediaType = start;
+                    format = wildcardFormat;
+                    return true;
+                }
             }
 
             if (resultKind is ResultKind.Single && start.Kind is ApplicationJson)
@@ -766,7 +1018,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             }
 
             if (resultKind is ResultKind.Stream or ResultKind.Single
-                && start.Kind is MultiPartMixed or AllMultiPart or All)
+                && start.Kind is MultiPartMixed or AllMultiPart or All
+                && !IsRejected(rejectedFormats, _multiPartFormat))
             {
                 // if the result is a stream, we consider this a perfect match and
                 // will use this format.
@@ -786,7 +1039,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 }
             }
 
-            if (start.Kind is EventStream or All)
+            if (start.Kind is EventStream or All
+                && !IsRejected(rejectedFormats, _eventStreamFormat))
             {
                 // if the result is a subscription, we consider this a perfect match and
                 // will use this format.
