@@ -319,6 +319,61 @@ builder
 
 `FilterCostOptions.VariableMultiplier`, `SortCostOptions.VariableMultiplier`, and `RequestCostOptions.FilterVariableMultiplier` are obsolete compile errors. The analyzer prices coerced variable values directly.
 
+# Per-Request Cost Options
+
+The schema-level `CostOptions` apply to every request by default, but an application can loosen or
+tighten those limits for a particular request or user by attaching a `RequestCostOptions` to the
+request. A value set on the request replaces the corresponding schema value for that request, in
+either direction: a request can raise a limit above the schema default, lower it below the schema
+default, or leave individual options unset to keep inheriting from the schema.
+
+The typical place to do this is an `IHttpRequestInterceptor`. Its `OnCreateAsync` method runs for
+every HTTP request and already has access to the authenticated user, so it can pick request options
+based on group membership before the operation executes:
+
+```csharp
+public class CostOptionsHttpRequestInterceptor : DefaultHttpRequestInterceptor
+{
+    public override ValueTask OnCreateAsync(HttpContext context,
+        IRequestExecutor requestExecutor, OperationRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
+    {
+        if (context.User.IsInRole("developer"))
+        {
+            requestBuilder.SetCostOptions(
+                new RequestCostOptions(
+                    maxFieldCost: 5_000,
+                    maxTypeCost: 5_000,
+                    enforceCostLimits: true,
+                    skipAnalyzer: false,
+                    maxResponseSize: 50_000));
+        }
+
+        return base.OnCreateAsync(context, requestExecutor, requestBuilder,
+            cancellationToken);
+    }
+}
+```
+
+Here, requests from the `developer` role get a higher `MaxResponseSize` (and higher field/type cost
+limits) than the schema default, while every other request keeps enforcing the schema's configured
+limits.
+
+Response-size analysis itself is an opt-in that is only ever enabled per schema, by setting
+`CostOptions.MaxResponseSize` on the schema. A request cannot turn the analysis on: if the schema
+leaves `MaxResponseSize` unset (`null`) and a request nonetheless sets `RequestCostOptions.MaxResponseSize`,
+the request fails fast with error code `HC0062` and the message:
+
+> The request cost options set MaxResponseSize, but the schema does not enable the response-size analysis.
+
+This keeps a per-request or per-group rule from silently promising a check that never runs. To enable
+the check, set `CostOptions.MaxResponseSize` on the schema first; requests may then raise or lower it
+as needed.
+
+Setting `RequestCostOptions.SkipAnalyzer` for a request bypasses the cost analyzer entirely for that
+request. In that case, a `MaxResponseSize` set on the same request is ignored silently by design,
+because the analyzer never runs — this is not the fail-fast case above.
+
 # Disabling Cost Enforcement
 
 Set `EnforceCostLimits` to `false` to keep analysis and reporting without rejecting operations:
