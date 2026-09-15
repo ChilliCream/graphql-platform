@@ -51,13 +51,13 @@ internal sealed class ListSizeDirectiveArgumentRule : IEventHandler<OutputFieldE
 
             if (value is not IntValueNode intValue)
             {
-                context.Log.Write(InvalidListSizeArgumentValue(argumentName, value, field, schema));
+                context.Log.Write(InvalidListSizeArgumentType(argumentName, value, field, schema));
                 return;
             }
 
             if (intValue.ToDouble() < 0.0)
             {
-                context.Log.Write(InvalidListSizeArgument(argumentName, value, field, schema));
+                context.Log.Write(InvalidListSizeArgumentNegativeValue(argumentName, value, field, schema));
             }
         }
 
@@ -67,7 +67,7 @@ internal sealed class ListSizeDirectiveArgumentRule : IEventHandler<OutputFieldE
                 && value is not NullValueNode
                 && value is not BooleanValueNode)
             {
-                context.Log.Write(InvalidListSizeArgumentValue(argumentName, value, field, schema));
+                context.Log.Write(InvalidListSizeArgumentType(argumentName, value, field, schema));
             }
         }
 
@@ -83,7 +83,7 @@ internal sealed class ListSizeDirectiveArgumentRule : IEventHandler<OutputFieldE
                 return;
             }
 
-            context.Log.Write(InvalidListSizeArgumentValue(argumentName, value, field, schema));
+            context.Log.Write(InvalidListSizeArgumentType(argumentName, value, field, schema));
         }
     }
 }

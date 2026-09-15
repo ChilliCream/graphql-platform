@@ -100,6 +100,16 @@ internal static class CompositionHelper
         var mergedCompositionSettings =
             compositionSettings?.MergeInto(existingCompositionSettings) ?? existingCompositionSettings;
 
+        // The defaultListSize composition setting comes from the composition settings, not a
+        // schema coordinate, so an invalid value is reported as a composition error here rather
+        // than left to throw out of SourceSchemaMergerOptions.DefaultListSize's own guard.
+        if (mergedCompositionSettings.Merger.DefaultListSize is { } defaultListSize
+            && defaultListSize < 0)
+        {
+            compositionLog.Write(LogEntryHelper.InvalidDefaultListSizeSetting(defaultListSize));
+            return (ImmutableArray<CompositionError>)[new("❌ Composition failed")];
+        }
+
         var sourceSchemaOptionsMap = new Dictionary<string, SourceSchemaOptions>();
         var mergerOptions = mergedCompositionSettings.Merger.ToOptions();
         var satisfiabilityOptions = mergedCompositionSettings.Satisfiability.ToOptions();

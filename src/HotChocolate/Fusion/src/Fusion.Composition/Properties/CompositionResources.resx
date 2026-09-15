@@ -408,16 +408,19 @@
   <data name="LogEntryHelper_InvalidProjectedFieldSharing" xml:space="preserve">
     <value>The default field '{0}' on type '{1}' is contributed by unrelated interfaces {2}; every contributing @interfaceObject declaration must be marked @shareable.</value>
   </data>
+  <data name="LogEntryHelper_InvalidDefaultListSizeSetting" xml:space="preserve">
+    <value>The 'defaultListSize' composition setting must be a non-negative integer ({0}).</value>
+  </data>
   <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
     <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
   </data>
   <data name="LogEntryHelper_InvalidGraphQLInExtensions" xml:space="preserve">
     <value>Invalid GraphQL in source schema extensions. Exception message: {0}.</value>
   </data>
-  <data name="LogEntryHelper_InvalidListSizeArgument" xml:space="preserve">
+  <data name="LogEntryHelper_InvalidListSizeArgumentNegativeValue" xml:space="preserve">
     <value>The argument '{0}' of the @listSize directive on field '{1}' in schema '{2}' must not be negative ({3}).</value>
   </data>
-  <data name="LogEntryHelper_InvalidListSizeArgumentValue" xml:space="preserve">
+  <data name="LogEntryHelper_InvalidListSizeArgumentType" xml:space="preserve">
     <value>The argument '{0}' of the @listSize directive on field '{1}' in schema '{2}' has an invalid value ({3}).</value>
   </data>
   <data name="LogEntryHelper_InvalidShareableUsage" xml:space="preserve">

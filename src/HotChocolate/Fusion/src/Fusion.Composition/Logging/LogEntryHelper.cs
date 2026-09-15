@@ -699,6 +699,20 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    /// <summary>
+    /// Reports a negative <c>defaultListSize</c> composition setting. The source of the invalid
+    /// value is the composition settings, not a schema coordinate, so this entry carries no
+    /// schema or type system member.
+    /// </summary>
+    public static LogEntry InvalidDefaultListSizeSetting(int value)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidDefaultListSizeSetting, value)
+            .SetCode(LogEntryCodes.InvalidDefaultListSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
     public static LogEntry InvalidFieldSharing(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
@@ -732,7 +746,7 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry InvalidListSizeArgument(
+    public static LogEntry InvalidListSizeArgumentNegativeValue(
         string argumentName,
         IValueNode value,
         MutableOutputFieldDefinition field,
@@ -740,7 +754,7 @@ internal static class LogEntryHelper
     {
         return LogEntryBuilder.New()
             .SetMessage(
-                LogEntryHelper_InvalidListSizeArgument,
+                LogEntryHelper_InvalidListSizeArgumentNegativeValue,
                 argumentName,
                 field.Coordinate.ToString(),
                 schema.Name,
@@ -752,7 +766,7 @@ internal static class LogEntryHelper
             .Build();
     }
 
-    public static LogEntry InvalidListSizeArgumentValue(
+    public static LogEntry InvalidListSizeArgumentType(
         string argumentName,
         IValueNode value,
         MutableOutputFieldDefinition field,
@@ -760,7 +774,7 @@ internal static class LogEntryHelper
     {
         return LogEntryBuilder.New()
             .SetMessage(
-                LogEntryHelper_InvalidListSizeArgumentValue,
+                LogEntryHelper_InvalidListSizeArgumentType,
                 argumentName,
                 field.Coordinate.ToString(),
                 schema.Name,

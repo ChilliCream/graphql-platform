@@ -1187,6 +1187,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;defaultListSize&apos; composition setting must be a non-negative integer ({0})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidDefaultListSizeSetting {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidDefaultListSizeSetting", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
         /// </summary>
         internal static string LogEntryHelper_InvalidGraphQL {
@@ -1207,18 +1216,18 @@ namespace HotChocolate.Fusion.Properties {
         /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; of the @listSize directive on field &apos;{1}&apos; in schema &apos;{2}&apos; must not be negative ({3})..
         /// </summary>
-        internal static string LogEntryHelper_InvalidListSizeArgument {
+        internal static string LogEntryHelper_InvalidListSizeArgumentNegativeValue {
             get {
-                return ResourceManager.GetString("LogEntryHelper_InvalidListSizeArgument", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_InvalidListSizeArgumentNegativeValue", resourceCulture);
             }
         }
 
         /// <summary>
         ///   Looks up a localized string similar to The argument &apos;{0}&apos; of the @listSize directive on field &apos;{1}&apos; in schema &apos;{2}&apos; has an invalid value ({3})..
         /// </summary>
-        internal static string LogEntryHelper_InvalidListSizeArgumentValue {
+        internal static string LogEntryHelper_InvalidListSizeArgumentType {
             get {
-                return ResourceManager.GetString("LogEntryHelper_InvalidListSizeArgumentValue", resourceCulture);
+                return ResourceManager.GetString("LogEntryHelper_InvalidListSizeArgumentType", resourceCulture);
             }
         }
 
