@@ -108,6 +108,22 @@ The `slicingArgumentDefaultValue` argument is optional. A source can use a spec-
 
 Composition reports a normal `INVALID_GRAPHQL` error for invalid locally declared definitions. Applying an argument-less local `@cost` definition reports `The @cost directive must have a 'weight' argument of type String.`, the source schema name, and the usage coordinate.
 
+## Default List Size
+
+The assumed size for a list field that carries no applicable `@listSize` information is a composition setting, not a gateway runtime option. Set `SourceSchemaMergerOptions.DefaultListSize` on the composer:
+
+```csharp
+var options = new SchemaComposerOptions
+{
+    Merger =
+    {
+        DefaultListSize = 100
+    }
+};
+```
+
+When set, composition writes the value onto the execution schema with a schema-level `@fusion__cost_options(defaultListSize:)` directive, and folds it into a serving source's effective `assumedSize` wherever a source contributes to a field without declaring its own size, so the public `@listSize` reflects the higher, sound bound. When absent (the default), no `@fusion__cost_options` usage is emitted and the gateway treats an unannotated list as unbounded.
+
 See [Cost Analysis](./cost-analysis.md) for gateway enforcement, reporting, and options.
 
 # Common Scenarios
