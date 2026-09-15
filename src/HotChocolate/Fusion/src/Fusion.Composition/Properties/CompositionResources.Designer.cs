@@ -1214,6 +1214,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The argument &apos;{0}&apos; of the @listSize directive on field &apos;{1}&apos; in schema &apos;{2}&apos; has an invalid value ({3})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidListSizeArgumentValue {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidListSizeArgumentValue", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The field &apos;{0}&apos; in schema &apos;{1}&apos; must not be marked as shareable..
         /// </summary>
         internal static string LogEntryHelper_InvalidShareableUsage {
