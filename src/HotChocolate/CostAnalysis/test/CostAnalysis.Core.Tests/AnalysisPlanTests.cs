@@ -88,7 +88,13 @@ public sealed class AnalysisPlanTests
         var fragments = ConditionTreeExtractor.IndexFragments(document);
         var tree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
         var algebra = new TestCostAlgebra();
-        var reference = ExactCasesTraversal.Evaluate(snapshot, fragments, tree, algebra, new CaseBudget(4096));
+        var reference = ExactCasesTraversal.Evaluate(
+            snapshot,
+            fragments,
+            tree,
+            algebra,
+            variableValues: null,
+            new CaseBudget(4096));
         var variables = Variables(("x", x ? BooleanValueNode.True : BooleanValueNode.False));
 
         // act
@@ -113,6 +119,7 @@ public sealed class AnalysisPlanTests
             fragments,
             tree,
             referenceAlgebra,
+            variableValues: null,
             new CaseBudget(4096));
 
         // act

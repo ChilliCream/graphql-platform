@@ -55,7 +55,7 @@ public static class CostPlanCompiler
             rootTypeName);
         var budget = new CaseBudget(snapshot.CaseBudget);
         var algebra = new PlanAlgebra(snapshot, analyses);
-        var decision = ExactCasesTraversal.Evaluate(snapshot, fragments, tree, algebra, budget);
+        var decision = ExactCasesTraversal.Evaluate(snapshot, fragments, tree, algebra, variableValues: null, budget);
         var root = CompileDecision(decision, analyses);
 
         return new CostPlan(root, analyses, budget.IsExhausted);

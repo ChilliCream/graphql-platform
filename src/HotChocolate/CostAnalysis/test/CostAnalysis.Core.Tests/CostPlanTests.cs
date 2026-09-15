@@ -307,6 +307,7 @@ public sealed class CostPlanTests
             fragments,
             tree,
             referenceAlgebra,
+            variableValues: null,
             new CaseBudget(snapshot.CaseBudget));
         var plan = CostPlanCompiler.Compile(
             snapshot,
@@ -446,6 +447,7 @@ public sealed class CostPlanTests
             fragments,
             tree,
             new CostAlgebra(snapshot, falseVariables),
+            variableValues: null,
             new CaseBudget(snapshot.CaseBudget));
         var staticAlgebra = new CostAlgebra(snapshot);
         var staticReference = ExactCasesTraversal.Evaluate(
@@ -453,6 +455,7 @@ public sealed class CostPlanTests
             fragments,
             tree,
             staticAlgebra,
+            variableValues: null,
             new CaseBudget(snapshot.CaseBudget));
         var actualFalse = plan.Evaluate(falseVariables);
         var actualTrue = plan.Evaluate(trueVariables);

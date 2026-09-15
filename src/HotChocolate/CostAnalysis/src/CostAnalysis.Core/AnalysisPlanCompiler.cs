@@ -68,7 +68,13 @@ public static class AnalysisPlanCompiler
             operation,
             rootTypeName);
         var budget = new CaseBudget(snapshot.CaseBudget);
-        _ = ExactCasesTraversal.Evaluate(snapshot, fragments, tree, CaseBudgetProbeAlgebra.Instance, budget);
+        _ = ExactCasesTraversal.Evaluate(
+            snapshot,
+            fragments,
+            tree,
+            CaseBudgetProbeAlgebra.Instance,
+            variableValues: null,
+            budget);
 
         return new AnalysisPlan(snapshot, fragments, tree, budget.IsExhausted);
     }

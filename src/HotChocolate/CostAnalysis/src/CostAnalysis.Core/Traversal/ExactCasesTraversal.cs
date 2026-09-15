@@ -30,6 +30,11 @@ internal static class ExactCasesTraversal
     /// <param name="algebra">
     /// The analysis algebra to evaluate.
     /// </param>
+    /// <param name="variableValues">
+    /// The coerced variable values to resolve slicing arguments and
+    /// inherited list sizes against, or <see langword="null"/> for the
+    /// static/assumed path.
+    /// </param>
     /// <param name="budget">
     /// The per-operation case budget, shared across every boundary this
     /// evaluation recurses into.
@@ -44,6 +49,7 @@ internal static class ExactCasesTraversal
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
+        ICostVariableValues? variableValues,
         CaseBudget budget)
     {
         var cache = new TraversalCache(snapshot, fragments);
@@ -52,6 +58,7 @@ internal static class ExactCasesTraversal
             fragments,
             tree,
             algebra,
+            variableValues,
             budget,
             BooleanAssignment.Empty,
             cache,
@@ -100,6 +107,7 @@ internal static class ExactCasesTraversal
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
+        ICostVariableValues? variableValues,
         CaseBudget budget,
         BooleanAssignment assignment,
         TraversalCache cache,
@@ -132,6 +140,7 @@ internal static class ExactCasesTraversal
                     fragments,
                     tree,
                     algebra,
+                    variableValues,
                     budget,
                     region,
                     representative,
@@ -150,6 +159,7 @@ internal static class ExactCasesTraversal
                 fragments,
                 tree,
                 algebra,
+                variableValues,
                 budget,
                 region,
                 representative,
@@ -176,6 +186,7 @@ internal static class ExactCasesTraversal
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
+        ICostVariableValues? variableValues,
         CaseBudget budget,
         PossibleTypeSet region,
         int representative,
@@ -193,6 +204,7 @@ internal static class ExactCasesTraversal
                 fragments,
                 tree,
                 algebra,
+                variableValues,
                 budget,
                 region,
                 assignment,
@@ -208,6 +220,7 @@ internal static class ExactCasesTraversal
                 fragments,
                 tree,
                 algebra,
+                variableValues,
                 budget,
                 region,
                 representative,
@@ -221,6 +234,7 @@ internal static class ExactCasesTraversal
             fragments,
             tree,
             algebra,
+            variableValues,
             budget,
             region,
             representative,
@@ -233,6 +247,7 @@ internal static class ExactCasesTraversal
             fragments,
             tree,
             algebra,
+            variableValues,
             budget,
             region,
             representative,
@@ -254,6 +269,7 @@ internal static class ExactCasesTraversal
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
+        ICostVariableValues? variableValues,
         CaseBudget budget,
         PossibleTypeSet region,
         BooleanAssignment assignment,
@@ -268,6 +284,7 @@ internal static class ExactCasesTraversal
                 fragments,
                 tree,
                 algebra,
+                variableValues,
                 budget,
                 region,
                 assignment,
@@ -290,6 +307,7 @@ internal static class ExactCasesTraversal
                 snapshot,
                 fragments,
                 algebra,
+                variableValues,
                 budget,
                 region,
                 assignment,
@@ -310,6 +328,7 @@ internal static class ExactCasesTraversal
         CostSchemaSnapshot snapshot,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         IAnalysisAlgebra<TSummary> algebra,
+        ICostVariableValues? variableValues,
         CaseBudget budget,
         PossibleTypeSet region,
         BooleanAssignment assignment,
@@ -362,6 +381,7 @@ internal static class ExactCasesTraversal
                             _ = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
                             var value = MapFieldValue(
                                 algebra,
+                                variableValues,
                                 responseName,
                                 field,
                                 member,
@@ -404,6 +424,7 @@ internal static class ExactCasesTraversal
                             snapshot,
                             fragments,
                             algebra,
+                            variableValues,
                             budget,
                             assignment,
                             member,
@@ -416,6 +437,7 @@ internal static class ExactCasesTraversal
                     {
                         var value = MapFieldValue(
                             algebra,
+                            variableValues,
                             responseName,
                             field,
                             member,
@@ -428,6 +450,7 @@ internal static class ExactCasesTraversal
 
                     var pairDecision = MapField(
                         algebra,
+                        variableValues,
                         responseName,
                         field,
                         member,
@@ -465,6 +488,7 @@ internal static class ExactCasesTraversal
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
+        ICostVariableValues? variableValues,
         CaseBudget budget,
         PossibleTypeSet region,
         BooleanAssignment assignment,
@@ -503,6 +527,7 @@ internal static class ExactCasesTraversal
                                 snapshot,
                                 fragments,
                                 algebra,
+                                variableValues,
                                 budget,
                                 assignment,
                                 member,
@@ -515,6 +540,7 @@ internal static class ExactCasesTraversal
                         {
                             var value = MapFieldValue(
                                 algebra,
+                                variableValues,
                                 group.ResponseName,
                                 field,
                                 member,
@@ -527,6 +553,7 @@ internal static class ExactCasesTraversal
 
                         var pairDecision = MapField(
                             algebra,
+                            variableValues,
                             group.ResponseName,
                             field,
                             member,
@@ -573,6 +600,7 @@ internal static class ExactCasesTraversal
         CostSchemaSnapshot snapshot,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         IAnalysisAlgebra<TSummary> algebra,
+        ICostVariableValues? variableValues,
         CaseBudget budget,
         BooleanAssignment assignment,
         CollectedFieldGroupMember member,
@@ -588,6 +616,7 @@ internal static class ExactCasesTraversal
             fragments,
             childTree,
             algebra,
+            variableValues,
             budget,
             assignment,
             cache,
@@ -600,6 +629,7 @@ internal static class ExactCasesTraversal
     /// </summary>
     private static BooleanDecision<TSummary> MapField<TSummary>(
         IAnalysisAlgebra<TSummary> algebra,
+        ICostVariableValues? variableValues,
         string responseName,
         FieldNode field,
         CollectedFieldGroupMember member,
@@ -610,6 +640,7 @@ internal static class ExactCasesTraversal
         {
             return BooleanDecision<TSummary>.Leaf(MapFieldValue(
                 algebra,
+                variableValues,
                 responseName,
                 field,
                 member,
@@ -621,19 +652,20 @@ internal static class ExactCasesTraversal
         {
             return BooleanDecision<TSummary>.Split(
                 split.Variable,
-                MapField(algebra, responseName, field, member, inheritedSizeContext, split.WhenFalse),
-                MapField(algebra, responseName, field, member, inheritedSizeContext, split.WhenTrue));
+                MapField(algebra, variableValues, responseName, field, member, inheritedSizeContext, split.WhenFalse),
+                MapField(algebra, variableValues, responseName, field, member, inheritedSizeContext, split.WhenTrue));
         }
 
         var joined = (JoinDecision<TSummary>)child;
         return BooleanDecision<TSummary>.Join(
-            MapField(algebra, responseName, field, member, inheritedSizeContext, joined.Left),
-            MapField(algebra, responseName, field, member, inheritedSizeContext, joined.Right),
+            MapField(algebra, variableValues, responseName, field, member, inheritedSizeContext, joined.Left),
+            MapField(algebra, variableValues, responseName, field, member, inheritedSizeContext, joined.Right),
             algebra.Join);
     }
 
     private static TSummary MapFieldValue<TSummary>(
         IAnalysisAlgebra<TSummary> algebra,
+        ICostVariableValues? variableValues,
         string responseName,
         FieldNode field,
         CollectedFieldGroupMember member,
@@ -644,7 +676,7 @@ internal static class ExactCasesTraversal
             responseName,
             field,
             member,
-            InheritedListSizes.InheritedSizeFor(inheritedSizeContext, member.Field.Name));
+            InheritedListSizes.InheritedSizeFor(inheritedSizeContext, member.Field.Name, variableValues));
         return algebra is IInheritedSizePlanAlgebra<TSummary> planAlgebra
             ? planAlgebra.Field(group, inheritedSizeContext, child)
             : algebra.Field(group, child);

@@ -48,10 +48,18 @@ public sealed class AnalysisPlan
 
     /// <summary>
     /// Evaluates <paramref name="algebra"/> against coerced variable
-    /// values: a Boolean <c>@include</c>/<c>@skip</c> variable resolves
-    /// from its coerced value, and slicing values reach
-    /// <paramref name="algebra"/> the same way the built-in
-    /// <see cref="CostAlgebra"/> receives them.
+    /// values: a Boolean <c>@include</c>/<c>@skip</c> variable resolves from
+    /// its coerced value, and a <c>@listSize(sizedFields:)</c> inherited
+    /// size (<see cref="CollectedFieldGroup.InheritedSize"/>) resolves
+    /// against <paramref name="variables"/> as well. A field's own direct
+    /// slicing arguments and input-value pricing are resolved by
+    /// <paramref name="algebra"/> itself: the built-in
+    /// <see cref="CostAlgebra"/>, <see cref="ResponseSizeAlgebra"/> and
+    /// <see cref="TupledAlgebra"/> only receive <paramref name="variables"/>
+    /// for that purpose when constructed with their
+    /// <c>(CostSchemaSnapshot, ICostVariableValues)</c> overload; a custom
+    /// algebra that resolves slicing or input values itself must do the
+    /// same.
     /// </summary>
     /// <typeparam name="TSummary">
     /// The summary type <paramref name="algebra"/> combines and joins.
@@ -70,7 +78,7 @@ public sealed class AnalysisPlan
         ArgumentNullException.ThrowIfNull(algebra);
         ArgumentNullException.ThrowIfNull(variables);
 
-        var decision = EvaluateDecision(algebra);
+        var decision = EvaluateDecision(algebra, variables);
         return decision.Resolve(variableName => ResolveBooleanVariable(variables, variableName));
     }
 
@@ -95,14 +103,16 @@ public sealed class AnalysisPlan
     {
         ArgumentNullException.ThrowIfNull(algebra);
 
-        var decision = EvaluateDecision(algebra);
+        var decision = EvaluateDecision(algebra, variableValues: null);
         return decision.FoldWithJoin(algebra.Join);
     }
 
-    private BooleanDecision<TSummary> EvaluateDecision<TSummary>(IAnalysisAlgebra<TSummary> algebra)
+    private BooleanDecision<TSummary> EvaluateDecision<TSummary>(
+        IAnalysisAlgebra<TSummary> algebra,
+        ICostVariableValues? variableValues)
     {
         var budget = new CaseBudget(_snapshot.CaseBudget);
-        return ExactCasesTraversal.Evaluate(_snapshot, _fragments, _tree, algebra, budget);
+        return ExactCasesTraversal.Evaluate(_snapshot, _fragments, _tree, algebra, variableValues, budget);
     }
 
     /// <summary>

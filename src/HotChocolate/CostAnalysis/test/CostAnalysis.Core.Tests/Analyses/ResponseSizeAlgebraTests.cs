@@ -150,7 +150,7 @@ public class ResponseSizeAlgebraTests
 
         // act
         var estimate = ExactCasesTraversal
-            .Evaluate(snapshot, fragments, tree, algebra, new CaseBudget(4096))
+            .Evaluate(snapshot, fragments, tree, algebra, variableValues: null, new CaseBudget(4096))
             .Resolve(_ => false);
 
         // assert
@@ -175,7 +175,7 @@ public class ResponseSizeAlgebraTests
 
         // act
         var estimate = ExactCasesTraversal
-            .Evaluate(snapshot, fragments, tree, algebra, new CaseBudget(4096))
+            .Evaluate(snapshot, fragments, tree, algebra, variableValues: null, new CaseBudget(4096))
             .Resolve(_ => false);
 
         // assert
@@ -195,7 +195,7 @@ public class ResponseSizeAlgebraTests
         var algebra = new ResponseSizeAlgebra(snapshot);
 
         return ExactCasesTraversal
-            .Evaluate(snapshot, fragments, tree, algebra, new CaseBudget(4096))
+            .Evaluate(snapshot, fragments, tree, algebra, variableValues: null, new CaseBudget(4096))
             .Resolve(_ => false);
     }
 
