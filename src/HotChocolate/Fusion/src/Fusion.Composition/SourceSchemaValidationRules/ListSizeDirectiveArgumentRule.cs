@@ -9,8 +9,9 @@ using static HotChocolate.Fusion.Logging.LogEntryHelper;
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
 /// <summary>
-/// Reports negative integer values for the non-negative arguments on compatible
-/// <c>@listSize</c> directives.
+/// Reports invalid shapes and negative integer values for the arguments on compatible
+/// <c>@listSize</c> directives, so <c>ListSizeDirective.From</c> is never reached with an
+/// invalid node.
 /// </summary>
 internal sealed class ListSizeDirectiveArgumentRule : IEventHandler<OutputFieldEvent>
 {
@@ -35,17 +36,54 @@ internal sealed class ListSizeDirectiveArgumentRule : IEventHandler<OutputFieldE
             return;
         }
 
-        ValidateArgument(DirectiveNames.ListSize.Arguments.AssumedSize);
-        ValidateArgument(DirectiveNames.ListSize.Arguments.SlicingArgumentDefaultValue);
+        ValidateNonNegativeIntArgument(DirectiveNames.ListSize.Arguments.AssumedSize);
+        ValidateStringListArgument(DirectiveNames.ListSize.Arguments.SlicingArguments);
+        ValidateStringListArgument(DirectiveNames.ListSize.Arguments.SizedFields);
+        ValidateBooleanArgument(DirectiveNames.ListSize.Arguments.RequireOneSlicingArgument);
+        ValidateNonNegativeIntArgument(DirectiveNames.ListSize.Arguments.SlicingArgumentDefaultValue);
 
-        void ValidateArgument(string argumentName)
+        void ValidateNonNegativeIntArgument(string argumentName)
         {
-            if (directive.Arguments.TryGetValue(argumentName, out var value)
-                && value is IntValueNode intValue
-                && intValue.ToDouble() < 0.0)
+            if (!directive.Arguments.TryGetValue(argumentName, out var value) || value is NullValueNode)
+            {
+                return;
+            }
+
+            if (value is not IntValueNode intValue)
+            {
+                context.Log.Write(InvalidListSizeArgumentValue(argumentName, value, field, schema));
+                return;
+            }
+
+            if (intValue.ToDouble() < 0.0)
             {
                 context.Log.Write(InvalidListSizeArgument(argumentName, value, field, schema));
             }
+        }
+
+        void ValidateBooleanArgument(string argumentName)
+        {
+            if (directive.Arguments.TryGetValue(argumentName, out var value)
+                && value is not NullValueNode
+                && value is not BooleanValueNode)
+            {
+                context.Log.Write(InvalidListSizeArgumentValue(argumentName, value, field, schema));
+            }
+        }
+
+        // A single value in a list position is valid GraphQL: list input coercion turns it into
+        // a one-element list (mirrored by ListSizeDirective.From).
+        void ValidateStringListArgument(string argumentName)
+        {
+            if (!directive.Arguments.TryGetValue(argumentName, out var value)
+                || value is NullValueNode
+                || value is StringValueNode
+                || (value is ListValueNode listValue && listValue.Items.All(item => item is StringValueNode)))
+            {
+                return;
+            }
+
+            context.Log.Write(InvalidListSizeArgumentValue(argumentName, value, field, schema));
         }
     }
 }
