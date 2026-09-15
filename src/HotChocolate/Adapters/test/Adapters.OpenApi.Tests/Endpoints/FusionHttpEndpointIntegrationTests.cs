@@ -27,7 +27,8 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
         {
             Merger =
             {
-                EnableGlobalObjectIdentification = true
+                EnableGlobalObjectIdentification = true,
+                DefaultListSize = 1
             }
         };
         var composer = new SchemaComposer([sourceSchemaText], composerOptions, compositionLog);
@@ -61,7 +62,6 @@ public class FusionHttpEndpointIntegrationTests : HttpEndpointIntegrationTestBas
             .AddHeaderPropagation();
 
         var builder = services.AddGraphQLGatewayServer()
-            .ModifyCostOptions(o => o.DefaultListSize = 1)
             .AddInMemoryConfiguration(_compositeSchema)
             .AddHttpClientConfiguration("A", new Uri("http://localhost:5000/graphql"))
             .AddOpenApi()
