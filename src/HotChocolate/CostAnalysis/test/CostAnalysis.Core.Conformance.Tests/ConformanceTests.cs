@@ -52,7 +52,7 @@ public sealed class ConformanceTests
         // act
         var estimate = fixture.Variables is { } variables
             ? Evaluate(plan, fixture.Sdl, operation, variables)
-            : plan.EvaluateStaticBound();
+            : plan.EvaluateAssumedBound();
 
         // assert
         Assert.Equal(fixture.Expected.TypeCost, estimate.TypeCost);

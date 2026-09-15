@@ -44,7 +44,7 @@ All three predefined Fusion pipelines now normalize the document, coerce variabl
      .UseOperationExecution();
 ```
 
-`DocumentNormalization` is new. `OperationVariableCoercion` now runs before `OperationPlanCache`, and `CostAnalysis` runs before `OperationPlan`. Coercion errors therefore precede planning errors. Only warmup requests skip coercion and use the static-bound path; `GraphQL-Cost: validate` requests coerce variables exactly like `execute` and `report`, and fail with the ordinary coercion error when required variables are missing.
+`DocumentNormalization` is new. `OperationVariableCoercion` now runs before `OperationPlanCache`, and `CostAnalysis` runs before `OperationPlan`. Coercion errors therefore precede planning errors. Only warmup requests skip coercion and use the assumed-bound path; `GraphQL-Cost: validate` requests coerce variables exactly like `execute` and `report`, and fail with the ordinary coercion error when required variables are missing.
 
 ## Fusion diagnostic event interface expanded
 
@@ -203,4 +203,4 @@ Cost rejections, including the single result for a rejected variable batch, retu
 
 Request batching is an array of independent requests in one HTTP request. Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
 
-Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan`, all estimates for the request, and whether the result is a static bound. Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a non-warmup request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state.
+Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan`, all estimates for the request, and whether the result is the assumed bound (warmup requests). Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a non-warmup request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state.

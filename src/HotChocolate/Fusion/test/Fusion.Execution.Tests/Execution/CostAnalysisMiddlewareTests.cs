@@ -155,7 +155,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
 
         // assert
         Assert.Empty(result.ExpectOperationResult().Errors);
-        Assert.False(observation.Result!.IsStaticBound);
+        Assert.False(observation.Result!.IsAssumedBound);
         Assert.Single(observation.Result.Estimates);
         Assert.Equal(3, observation.Result.Estimates[0].TypeCost);
         Assert.Equal(0, observation.DownstreamCalls);
@@ -184,7 +184,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         // assert
         Assert.Empty(result.ExpectOperationResult().Errors);
         Assert.Equal(2, observation.Result!.Estimates.Length);
-        Assert.False(observation.Result.IsStaticBound);
+        Assert.False(observation.Result.IsAssumedBound);
         Assert.Equal(1, observation.DownstreamCalls);
     }
 
@@ -225,7 +225,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
             }
             """);
         Assert.Equal(2, observation.Result!.Estimates.Length);
-        Assert.False(observation.Result.IsStaticBound);
+        Assert.False(observation.Result.IsAssumedBound);
         var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
         var costPlanCache = executor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
         Assert.Equal(0, operationPlanCache.Count);

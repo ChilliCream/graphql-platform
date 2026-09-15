@@ -8,7 +8,7 @@ namespace HotChocolate.CostAnalysis;
 /// <c>GraphQL-Cost: validate</c> reports cost without executing an operation. It always runs
 /// variable coercion first, exactly like <c>execute</c>/<c>report</c>; a required variable that
 /// was never supplied fails with the ordinary variable coercion error rather than falling back
-/// to a static bound.
+/// to the assumed bound.
 /// </summary>
 public sealed class ValidateModeTests
 {

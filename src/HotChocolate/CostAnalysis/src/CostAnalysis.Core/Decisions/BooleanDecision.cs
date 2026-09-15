@@ -47,7 +47,7 @@ internal abstract class BooleanDecision<T>
 
     /// <summary>
     /// Folds every leaf into one value by applying <paramref name="join"/>
-    /// bottom-up, the static bound of this decision over every possible
+    /// bottom-up, the assumed bound of this decision over every possible
     /// assignment.
     /// </summary>
     public T FoldWithJoin(Func<T, T, T> join)

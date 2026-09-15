@@ -77,7 +77,7 @@ internal sealed class CostAnalyzerMiddleware(
                     context.Features,
                     contextPool);
 
-                var isStaticBound = context.IsWarmupRequest();
+                var isAssumedBound = context.IsWarmupRequest();
 
                 // Every non-warmup request runs variable coercion before reaching the
                 // analyzer (OperationVariableCoercionMiddleware), and coercion always
@@ -85,15 +85,15 @@ internal sealed class CostAnalyzerMiddleware(
                 // no variable definitions). The one path that can still surface a
                 // non-warmup, zero-set request is an explicit empty variable batch
                 // (`variables: []`), so this is a real state guard, not just a defensive
-                // assert: the static bound must never leak back into the request path.
-                if (!isStaticBound && context.VariableValues.Length == 0)
+                // assert: the assumed bound must never leak back into the request path.
+                if (!isAssumedBound && context.VariableValues.Length == 0)
                 {
                     context.Result = ErrorHelper.StateInvalidForCostAnalysisMissingVariableValues();
                     return;
                 }
 
-                var estimates = Evaluate(context, plan, isStaticBound);
-                context.Features.Set(new CostAnalysisResult(plan, estimates, isStaticBound));
+                var estimates = Evaluate(context, plan, isAssumedBound);
+                context.Features.Set(new CostAnalysisResult(plan, estimates, isAssumedBound));
 
                 costMetrics = CreateCostMetrics(estimates);
                 context.SetCostMetrics(costMetrics[0]);
@@ -166,11 +166,11 @@ internal sealed class CostAnalyzerMiddleware(
     private ImmutableArray<CostEstimate> Evaluate(
         RequestContext context,
         CostPlan plan,
-        bool isStaticBound)
+        bool isAssumedBound)
     {
-        if (isStaticBound)
+        if (isAssumedBound)
         {
-            var estimate = plan.EvaluateStaticBound();
+            var estimate = plan.EvaluateAssumedBound();
             diagnosticEvents.OperationCost(context, estimate.FieldCost, estimate.TypeCost);
             return [estimate];
         }

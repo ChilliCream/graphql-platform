@@ -62,7 +62,7 @@ query GetBooks($first: Int) {
 
 The evaluated field cost is `11` and the type cost is `5`. The same selection without `first` uses `DefaultPageSize = 10`, producing field cost `11` and type cost `12`.
 
-`GraphQL-Cost: validate` always coerces variables, matching `execute`/`report`. An optional variable that is not supplied behaves like an absent argument, so the operation above without `$first` reports the same field cost `11` and type cost `12` shown for the argument-less selection. A required variable (`$first: Int!`) that is not supplied fails the request with the ordinary variable-coercion error; the static bound is not exposed through the request pipeline.
+`GraphQL-Cost: validate` always coerces variables, matching `execute`/`report`. An optional variable that is not supplied behaves like an absent argument, so the operation above without `$first` reports the same field cost `11` and type cost `12` shown for the argument-less selection. A required variable (`$first: Int!`) that is not supplied fails the request with the ordinary variable-coercion error; the assumed bound is not exposed through the request pipeline.
 
 # List Size
 
@@ -76,7 +76,7 @@ The analyzer selects a list size in this order:
 
 An annotation with `sizedFields` applies its selected size to the named direct child fields. The inherited size takes priority over a child's own `@listSize` annotation.
 
-Hot Chocolate paging writes `MaxPageSize` to `assumedSize` and `DefaultPageSize` to `slicingArgumentDefaultValue`. A supplied paging argument is evaluated at its coerced value, an argument-less request is evaluated at `DefaultPageSize`, and `MaxPageSize` remains the static bound for a variable-bound paging argument. An explicit `null` is not a slicing value and suppresses the argument's schema default. An undefined variable behaves as an absent argument, so a schema default can apply before the remaining fallbacks.
+Hot Chocolate paging writes `MaxPageSize` to `assumedSize` and `DefaultPageSize` to `slicingArgumentDefaultValue`. A supplied paging argument is evaluated at its coerced value, an argument-less request is evaluated at `DefaultPageSize`, and `MaxPageSize` remains the assumed bound for a variable-bound paging argument. An explicit `null` is not a slicing value and suppresses the argument's schema default. An undefined variable behaves as an absent argument, so a schema default can apply before the remaining fallbacks.
 
 An unannotated list falls through to `DefaultListSize`. With the default `Infinity`, a list whose element type has a non-zero weight exceeds any finite type-cost limit. Annotate the field with `@listSize(assumedSize:)` or set a finite `DefaultListSize` for the schema.
 
@@ -223,14 +223,14 @@ builder
             {
                 CostPlan plan = result.Plan;
                 IReadOnlyList<CostEstimate> estimates = result.Estimates;
-                bool isStaticBound = result.IsStaticBound;
+                bool isAssumedBound = result.IsAssumedBound;
             }
         },
         key: "ReadCostAnalysisResult",
         before: WellKnownRequestMiddleware.CostAnalyzerMiddleware);
 ```
 
-`GetCostMetrics()` returns the first evaluated set. `TryGetCostAnalysisResult` exposes the compiled `CostPlan`, every estimate in a variable batch, and whether the estimates are a static bound.
+`GetCostMetrics()` returns the first evaluated set. `TryGetCostAnalysisResult` exposes the compiled `CostPlan`, every estimate in a variable batch, and whether the estimates are the assumed bound (warmup requests).
 
 # Rejections and HTTP Status
 

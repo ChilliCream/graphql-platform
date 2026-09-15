@@ -9,13 +9,13 @@ using HotChocolate.Types.Mutable.Serialization;
 
 namespace HotChocolate.CostAnalysis;
 
-public sealed class StaticBoundSoundnessTests
+public sealed class AssumedBoundTests
 {
     private const int SampleCount = 200;
     private const int BaseSeed = 1729;
 
     [Fact]
-    public void EvaluateStaticBound_Should_DominateEvaluation_When_VariedShapesStayWithinAssumptions()
+    public void EvaluateAssumedBound_Should_DominateEvaluation_When_ValuesStayWithinAssumptions()
     {
         // arrange
         var schema = SchemaParser.Parse(SchemaSource);
@@ -57,7 +57,7 @@ public sealed class StaticBoundSoundnessTests
                 continue;
             }
 
-            var bound = plan.EvaluateStaticBound();
+            var bound = plan.EvaluateAssumedBound();
             var evaluated = plan.Evaluate(new VariableValuesAdapter(coerced));
 
             if (bound.TypeCost < evaluated.TypeCost
@@ -72,6 +72,94 @@ public sealed class StaticBoundSoundnessTests
 
         // assert
         Assert.Empty(failures);
+    }
+
+    [Fact]
+    public void EvaluateAssumedBound_Should_BeExceeded_When_SlicingVariableExceedsAssumedSize()
+    {
+        // arrange: the assumed bound resolves a variable-bound slicing argument to
+        // assumedSize (4); a runtime value above that is not covered by the bound.
+        var plan = CompileSimplePlan(
+            """
+            type Item { value: Int @cost(weight: "2") }
+            type Query {
+              items(limit: Int!): [Item]
+                @listSize(assumedSize: 4, slicingArguments: ["limit"])
+            }
+            """,
+            "query($limit: Int!) { items(limit: $limit) { value } }");
+
+        // act
+        var assumed = plan.EvaluateAssumedBound();
+        var evaluated = plan.Evaluate(SimpleVariables(("limit", new IntValueNode(20))));
+
+        // assert
+        Assert.True(
+            evaluated.FieldCost > assumed.FieldCost,
+            $"evaluated field cost {evaluated.FieldCost} was not above assumed bound {assumed.FieldCost}.");
+        Assert.True(
+            evaluated.TypeCost > assumed.TypeCost,
+            $"evaluated type cost {evaluated.TypeCost} was not above assumed bound {assumed.TypeCost}.");
+    }
+
+    [Fact]
+    public void EvaluateAssumedBound_Should_BeExceeded_When_VariableInputListSuppliesMoreThanOneElement()
+    {
+        // arrange: the assumed bound prices a variable-supplied input list as one
+        // element (InputCost.ComputeStaticShape); three supplied elements are not.
+        var plan = CompileSimplePlan(
+            """
+            input Term { value: String @cost(weight: "3") }
+            type Query { search(terms: [Term] @cost(weight: "2")): Int }
+            """,
+            "query($t: [Term]) { search(terms: $t) }");
+        var suppliedTerms = new ListValueNode(
+            new ObjectValueNode(new ObjectFieldNode("value", "a")),
+            new ObjectValueNode(new ObjectFieldNode("value", "b")),
+            new ObjectValueNode(new ObjectFieldNode("value", "c")));
+
+        // act
+        var assumed = plan.EvaluateAssumedBound();
+        var evaluated = plan.Evaluate(SimpleVariables(("t", suppliedTerms)));
+
+        // assert
+        Assert.True(
+            evaluated.FieldCost > assumed.FieldCost,
+            $"evaluated field cost {evaluated.FieldCost} was not above assumed bound {assumed.FieldCost}.");
+    }
+
+    private static CostPlan CompileSimplePlan(string typeSystemSource, string operationSource)
+    {
+        const string directives =
+            """
+            directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+            directive @listSize(assumedSize: Int, slicingArguments: [String!], slicingArgumentDefaultValue: Float, sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
+
+            """;
+        var schema = SchemaParser.Parse(directives + typeSystemSource);
+        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var document = Utf8GraphQLParser.Parse(operationSource);
+        var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
+        return CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+    }
+
+    private static ICostVariableValues SimpleVariables(params (string Name, IValueNode Value)[] values)
+        => new SimpleVariableValues(values.ToDictionary(pair => pair.Name, pair => pair.Value));
+
+    private sealed class SimpleVariableValues(
+        IReadOnlyDictionary<string, IValueNode> values) : ICostVariableValues
+    {
+        public bool TryGetValue(string name, out IValueNode? value)
+        {
+            if (values.TryGetValue(name, out var found))
+            {
+                value = found;
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
     }
 
     private static string GenerateOperation(

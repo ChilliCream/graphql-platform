@@ -200,7 +200,7 @@ public class CaseBudgetFallbackTests
         Assert.Equal([true, true], [first.HitCaseBudget, reordered.HitCaseBudget]);
         Assert.Equal(
             [new CostEstimate(12.0, 2.0, null), new CostEstimate(12.0, 2.0, null)],
-            [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
+            [first.EvaluateAssumedBound(), reordered.EvaluateAssumedBound()]);
         Assert.Equal(expected, firstMatrix);
         Assert.Equal(expected, reorderedMatrix);
     }
@@ -240,7 +240,7 @@ public class CaseBudgetFallbackTests
         Assert.Equal([true, true], [first.HitCaseBudget, reordered.HitCaseBudget]);
         Assert.Equal(
             [new CostEstimate(13.0, 3.0, null), new CostEstimate(13.0, 3.0, null)],
-            [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
+            [first.EvaluateAssumedBound(), reordered.EvaluateAssumedBound()]);
         Assert.Equal(expected, firstMatrix);
         Assert.Equal(expected, reorderedMatrix);
     }
@@ -273,7 +273,7 @@ public class CaseBudgetFallbackTests
         Assert.Equal([false, false], [first.HitCaseBudget, reordered.HitCaseBudget]);
         Assert.Equal(
             [new CostEstimate(13.0, 2.0, null), new CostEstimate(13.0, 2.0, null)],
-            [first.EvaluateStaticBound(), reordered.EvaluateStaticBound()]);
+            [first.EvaluateAssumedBound(), reordered.EvaluateAssumedBound()]);
         Assert.Equal(expected, firstMatrix);
         Assert.Equal(expected, reorderedMatrix);
     }
@@ -308,7 +308,7 @@ public class CaseBudgetFallbackTests
 
         // assert
         Assert.Equal([true, true], [first.HitCaseBudget, reordered.HitCaseBudget]);
-        Assert.Equal(first.EvaluateStaticBound(), reordered.EvaluateStaticBound());
+        Assert.Equal(first.EvaluateAssumedBound(), reordered.EvaluateAssumedBound());
         Assert.Equal(firstMatrix, reorderedMatrix);
         Assert.IsType<JoinDecision<(double TypeCost, double FieldCost)>>(firstDecision);
         Assert.IsType<JoinDecision<(double TypeCost, double FieldCost)>>(reorderedDecision);

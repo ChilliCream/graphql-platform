@@ -74,7 +74,7 @@ Update positional construction as follows:
      .UseOperationExecution();
 ```
 
-Warmup requests use the static-bound path without variable coercion. `GraphQL-Cost: validate` requests always run variable coercion, matching `execute`/`report` (2026-09-14 user ruling); a `validate` request without required variables now fails with the ordinary variable-coercion error instead of the static-bound path an earlier 16.7 preview used. The static bound is not exposed through the request pipeline.
+Warmup requests use the assumed-bound path without variable coercion. `GraphQL-Cost: validate` requests always run variable coercion, matching `execute`/`report` (2026-09-14 user ruling); a `validate` request without required variables now fails with the ordinary variable-coercion error instead of the assumed-bound path an earlier 16.7 preview used. The assumed bound is not exposed through the request pipeline.
 
 ## Omitted list-size requirement now enforces
 
@@ -236,7 +236,7 @@ When `MaxResponseSize` is enabled, `extensions.operationCost` includes `maxRespo
 
 ## Reporting and result access
 
-`GraphQL-Cost: validate` always coerces variables and reports the evaluated cost, exactly like `execute`/`report` (2026-09-14 user ruling; the value changes from an earlier 16.7 preview, where `validate` without variables reported the static bound instead of coercing). A required variable that is not supplied fails the request with the ordinary variable-coercion error. Coercion succeeding, `validate` does not execute the operation, returns no `data`, and remains HTTP 200 even when the reported value exceeds a configured limit. A variable batch in validate mode returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in report mode also includes one `operationCost` per result.
+`GraphQL-Cost: validate` always coerces variables and reports the evaluated cost, exactly like `execute`/`report` (2026-09-14 user ruling; the value changes from an earlier 16.7 preview, where `validate` without variables reported the assumed bound instead of coercing). A required variable that is not supplied fails the request with the ordinary variable-coercion error. Coercion succeeding, `validate` does not execute the operation, returns no `data`, and remains HTTP 200 even when the reported value exceeds a configured limit. A variable batch in validate mode returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in report mode also includes one `operationCost` per result.
 
 Positive infinite values in `extensions.operationCost` and cost error extensions are serialized as the JSON string `"Infinity"`. A `GraphQL-Cost: report` rejection includes `operationCost` alongside the error. For a rejected variable batch, the single rejection result contains one `operationCost`: its `fieldCost` and `typeCost` are the sums across all variable sets, and it contains `maxResponseSize` only for a response-size rejection, using the first violating set's value.
 
@@ -244,4 +244,4 @@ Cost rejections, including the single result for a rejected variable batch, retu
 
 Request batching is an array of independent requests in one HTTP request. Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
 
-Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan`, all estimates for the request, and whether the result is a static bound. Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a non-warmup request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state.
+Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan`, all estimates for the request, and whether the result is the assumed bound (warmup requests). Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a non-warmup request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state.

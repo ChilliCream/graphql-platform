@@ -13,12 +13,12 @@ namespace HotChocolate.CostAnalysis;
 /// The evaluated estimate for every coerced variable set of the request.
 /// A single-operation request carries exactly one estimate.
 /// </param>
-/// <param name="IsStaticBound">
+/// <param name="IsAssumedBound">
 /// <see langword="true"/> when <paramref name="Estimates"/> holds the
-/// static bound (no coerced variables were evaluated) rather than
+/// assumed bound (no coerced variables were evaluated) rather than
 /// per-request evaluated estimates.
 /// </param>
 public sealed record CostAnalysisResult(
     CostPlan Plan,
     ImmutableArray<CostEstimate> Estimates,
-    bool IsStaticBound);
+    bool IsAssumedBound);
