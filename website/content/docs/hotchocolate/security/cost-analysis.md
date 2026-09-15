@@ -183,10 +183,10 @@ public class BookQueriesType : ObjectType
 
 Send the `GraphQL-Cost` HTTP request header to inspect operation cost:
 
-| Header value | Execution | Reported value                                                                |
-| ------------ | --------- | ----------------------------------------------------------------------------- |
-| `report`     | Yes       | Evaluated cost for the supplied variables.                                    |
-| `validate`   | No        | Evaluated cost for the coerced variables, same coercion as `execute`.         |
+| Header value | Execution | Reported value                                                        |
+| ------------ | --------- | --------------------------------------------------------------------- |
+| `report`     | Yes       | Evaluated cost for the supplied variables.                            |
+| `validate`   | No        | Evaluated cost for the coerced variables, same coercion as `execute`. |
 
 `validate` returns an extensions-only response with HTTP status `200`, including when the reported values exceed configured limits. A variable batch returns one extensions-only result per variable set, with that set's `operationCost`. A successful variable batch in `report` mode also includes one `operationCost` per result.
 
