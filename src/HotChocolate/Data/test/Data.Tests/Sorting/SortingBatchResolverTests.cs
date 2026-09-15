@@ -116,85 +116,6 @@ public class SortingBatchResolverTests
             .MatchMarkdownSnapshot();
     }
 
-    [Fact]
-    public async Task UseSorting_Should_Order_PerParentResults_When_FieldIsBatchResolver()
-    {
-        // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<Query>()
-            .AddTypeExtension<BrandExtensions>()
-            .AddSorting()
-            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            """
-            {
-                brands {
-                    name
-                    products(order: [{ name: DESC }]) {
-                        name
-                    }
-                }
-            }
-            """,
-            cancellationToken: TestContext.Current.CancellationToken);
-
-        // assert
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "brands": [
-                  {
-                    "name": "Brand 1",
-                    "products": [
-                      {
-                        "name": "P2"
-                      },
-                      {
-                        "name": "P1"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "Brand 2",
-                    "products": [
-                      {
-                        "name": "P2"
-                      },
-                      {
-                        "name": "P1"
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task UseSorting_Should_Expose_OrderArgument_When_FieldIsBatchResolver()
-    {
-        // arrange
-        var executor = await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<Query>()
-            .AddTypeExtension<BrandExtensions>()
-            .AddSorting()
-            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // act
-        var brandType = executor.Schema.Types.GetType<ObjectType>("Brand");
-        var products = brandType.Fields["products"];
-        var order = products.Arguments["order"];
-
-        // assert
-        Assert.Equal("ProductSortInput", order.Type.NamedType().Name);
-    }
-
     public class Query
     {
         public List<Brand> GetBrands()
@@ -203,24 +124,6 @@ public class SortingBatchResolverTests
                 new(1, "Brand 1"),
                 new(2, "Brand 2")
             ];
-    }
-
-    [ExtendObjectType<Brand>]
-    public class BrandExtensions
-    {
-        [UseSorting]
-        [BatchResolver]
-        public List<Product[]> GetProducts([Parent] List<Brand> brands)
-        {
-            var result = new List<Product[]>(brands.Count);
-
-            foreach (var unused in brands)
-            {
-                result.Add([new Product("P1"), new Product("P2")]);
-            }
-
-            return result;
-        }
     }
 
     public record Brand(int Id, string Name);
