@@ -15,6 +15,20 @@ internal static class ListSizeDirectiveFold
     public static int? FoldAssumedSize(IEnumerable<int?> values) => Max(values);
 
     /// <summary>
+    /// Applies the <c>@fusion__cost_options(defaultListSize:)</c> composition setting to an
+    /// already-folded <c>assumedSize</c> for a field that at least one serving source serves
+    /// without a compatible <c>@listSize</c> usage of its own. When
+    /// <paramref name="defaultListSize"/> is set, the sound bound is the greater of the folded
+    /// value (treated as <c>0</c> when absent) and the default. When
+    /// <paramref name="defaultListSize"/> is unbounded (<see langword="null"/>), the
+    /// unannotated source's effective size is unknown, so the result is
+    /// <see langword="null"/> (omitted) rather than the finite folded value, per the
+    /// execution-schema RFC.
+    /// </summary>
+    public static int? ApplyDefaultListSize(int? foldedAssumedSize, int? defaultListSize)
+        => defaultListSize is { } value ? Math.Max(foldedAssumedSize ?? 0, value) : null;
+
+    /// <summary>
     /// Folds <c>slicingArgumentDefaultValue</c>: the maximum over sources that have it, absent
     /// (skipped) when none has it. No spec default exists for this ChilliCream extension.
     /// </summary>

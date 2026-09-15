@@ -16,6 +16,32 @@ public sealed class SourceSchemaMergerOptions
     public DirectiveMergeBehavior CacheControlMergeBehavior { get; set; } = DirectiveMergeBehavior.Include;
 
     /// <summary>
+    /// Gets or sets the list size an executor MUST assume for a list field when no other
+    /// list-size information applies (no supplied slicing argument, no
+    /// <c>slicingArgumentDefaultValue</c>, no <c>assumedSize</c>, and no inherited sized field).
+    /// <see langword="null"/> by default, meaning unbounded: no <c>@fusion__cost_options</c>
+    /// directive is emitted, and the derived <c>@listSize</c> for a field with at least one
+    /// unannotated serving source omits <c>assumedSize</c>.
+    /// A non-null value must be non-negative.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// The value is negative.
+    /// </exception>
+    public int? DefaultListSize
+    {
+        get;
+        set
+        {
+            if (value is { } size && size < 0)
+            {
+                throw ThrowHelper.InvalidDefaultListSize(size);
+            }
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Enables the inclusion of Global Object Identification fields.
     /// </summary>
     public bool EnableGlobalObjectIdentification { get; set; }
