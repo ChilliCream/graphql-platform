@@ -64,37 +64,19 @@
             },
             {
               "Key": "graphql.http.request[0].query.id",
-              "Value": {
-                "IsEmpty": false,
-                "HasValue": true,
-                "Value": "722dc4ea59f88d2e746b3502ffa7e2d5"
-              }
+              "Value": "722dc4ea59f88d2e746b3502ffa7e2d5"
             },
             {
               "Key": "graphql.http.request[0].query.hash",
-              "Value": {
-                "Value": "722dc4ea59f88d2e746b3502ffa7e2d5",
-                "AlgorithmName": "md5",
-                "Format": "Hex",
-                "IsEmpty": false
-              }
+              "Value": "722dc4ea59f88d2e746b3502ffa7e2d5"
             },
             {
               "Key": "graphql.http.request[1].query.id",
-              "Value": {
-                "IsEmpty": false,
-                "HasValue": true,
-                "Value": "906bd3386334ff46441bf331680a58e4"
-              }
+              "Value": "906bd3386334ff46441bf331680a58e4"
             },
             {
               "Key": "graphql.http.request[1].query.hash",
-              "Value": {
-                "Value": "906bd3386334ff46441bf331680a58e4",
-                "AlgorithmName": "md5",
-                "Format": "Hex",
-                "IsEmpty": false
-              }
+              "Value": "906bd3386334ff46441bf331680a58e4"
             }
           ],
           "event": [],
