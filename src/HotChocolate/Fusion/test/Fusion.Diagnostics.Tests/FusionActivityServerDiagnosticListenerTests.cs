@@ -130,6 +130,45 @@ public class FusionActivityServerDiagnosticListenerTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Http_Post_OperationBatchRequest_Should_Give_Every_Item_Its_Own_Request_Span_Default()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange
+            // operation batch items execute concurrently and share one transport span, so
+            // with the default scopes they must not fold their operation details into it
+            using var server = CreateSourceSchema(
+                "a",
+                b => b.AddQueryType<Query>());
+
+            using var gateway = await CreateCompositeSchemaAsync(
+                [("a", server)],
+                configureGatewayBuilder: b => b
+                    .ModifyServerOptions(o => o.Batching = AllowedBatching.All)
+                    .AddInstrumentation());
+
+            using var client = gateway.CreateClient();
+            client.BaseAddress = new Uri("http://localhost:5000");
+
+            const string request =
+                """
+                {"query":"query A { sayHello } query B { greeting(name: \"x\") }"}
+                """;
+
+            // act
+            using var content = new StringContent(request, Encoding.UTF8, "application/json");
+            using var response = await client.PostAsync(
+                "/graphql?batchOperations=[A,B]",
+                content,
+                TestContext.Current.CancellationToken);
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot(Postfix([NET11_0]));
+        }
+    }
+
+    [Fact]
     public async Task Http_Post_PersistedOperationEndpoint_Default()
     {
         using (CaptureActivities(out var activities))
