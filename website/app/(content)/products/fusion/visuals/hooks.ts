@@ -6,11 +6,8 @@ import type { RefObject } from "react";
 import { useReducedMotionPreference, useSceneActive } from "./Scene";
 
 /**
- * Motion gates for the Fusion page's console visuals.
- *
- * Every visual renders its rest frame first and only starts moving once the
- * gate is open, so the server render, the reduced-motion render and the
- * off-screen render are the same meaningful still frame.
+ * Motion gates for the Fusion page's console visuals. Every visual renders
+ * its rest frame first and only starts moving once the gate is open.
  */
 
 /** True while the enclosing `Scene` is in view, the tab is visible and motion is allowed. */

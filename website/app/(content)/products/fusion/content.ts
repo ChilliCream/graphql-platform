@@ -9,11 +9,10 @@ export interface CopyLink {
 }
 
 /**
- * A titled block of the page copy. Where a paragraph links a phrase, that
- * phrase is listed in `links` with its href and appears verbatim in one of
- * the paragraphs. `inPractice` holds the links of the trailing
- * "In practice: ..." line, rendered as the labels joined by " and " and
- * closed with a period.
+ * A titled block of the page copy, where a paragraph's linked phrase appears
+ * in `links` with its href and verbatim in one of the paragraphs.
+ * `inPractice` holds the links of the trailing "In practice: ..." line,
+ * rendered as the labels joined by " and " and closed with a period.
  */
 export interface CopySection {
   readonly id: string;

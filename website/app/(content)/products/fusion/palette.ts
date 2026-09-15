@@ -11,7 +11,7 @@
 import { BRAND, CC, FONTS } from "./tokens";
 
 export const MC = {
-  /** Console floor: the page background, so a visual never darkens the page. */
+  /** Ops-room floor: the page background, so a scene never darkens the page. */
   bg: CC.bg,
   /** Console plates: the site surface, lifted so a panel reads on the floor. */
   panel: `color-mix(in srgb, ${CC.surface} 92%, ${CC.heading})`,
@@ -84,6 +84,18 @@ export const STATIONS: readonly Station[] = [
     y: 88,
   },
 ];
+
+export interface Source {
+  readonly name: string;
+  readonly kind: "OpenAPI" | "gRPC";
+}
+
+export const SOURCES: readonly Source[] = [
+  { name: "Payments", kind: "OpenAPI" },
+  { name: "Inventory", kind: "gRPC" },
+];
+
+export const CLIENTS = ["Web", "Mobile", "Partner API"] as const;
 
 /** Short spec tag for the cramped station plates. */
 export function specTag(spec: StationSpec): string {

@@ -31,15 +31,9 @@ interface SceneProps {
   readonly label?: string;
   readonly className?: string;
   /**
-   * Either plain nodes, or a render function called with `active: true` only
-   * while the scene is in the viewport and the tab is visible, so a visual
-   * can stop its animation off-screen. `active` stays `false` on the server
-   * and on the first client frame.
-   *
-   * A render function only works when the caller is itself a client component
-   * (React cannot pass a function from a server component to a client one). A
-   * server component composes `<Scene><MyVisual /></Scene>` instead and reads
-   * the flag with `useSceneActive()` inside `MyVisual`.
+   * Plain nodes, or a render function called with `active`, true only while
+   * the scene is in the viewport and the tab is visible. `active` stays
+   * `false` on the server and on the first client frame.
    */
   readonly children: ReactNode | ((active: boolean) => ReactNode);
 }

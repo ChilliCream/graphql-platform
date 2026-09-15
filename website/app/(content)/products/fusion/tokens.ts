@@ -22,9 +22,7 @@ import {
 
 /**
  * Every `--color-cc-*` custom property from `app/globals.css`, as a
- * `var(--color-cc-<token>)` string, so a value resolves to the live theme
- * (including the light-theme overrides) instead of being frozen at build
- * time.
+ * `var(--color-cc-<token>)` string.
  */
 export const CC = {
   heading: "var(--color-cc-heading)",
