@@ -1196,6 +1196,15 @@ namespace HotChocolate.Fusion.Properties {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;defaultListSize&apos; composition setting must be an integer ({0})..
+        /// </summary>
+        internal static string LogEntryHelper_InvalidDefaultListSizeSettingType {
+            get {
+                return ResourceManager.GetString("LogEntryHelper_InvalidDefaultListSizeSettingType", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Invalid GraphQL in source schema. Exception message: {0}..
         /// </summary>
         internal static string LogEntryHelper_InvalidGraphQL {

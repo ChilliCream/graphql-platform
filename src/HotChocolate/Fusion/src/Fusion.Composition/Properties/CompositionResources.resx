@@ -411,6 +411,9 @@
   <data name="LogEntryHelper_InvalidDefaultListSizeSetting" xml:space="preserve">
     <value>The 'defaultListSize' composition setting must be a non-negative integer ({0}).</value>
   </data>
+  <data name="LogEntryHelper_InvalidDefaultListSizeSettingType" xml:space="preserve">
+    <value>The 'defaultListSize' composition setting must be an integer ({0}).</value>
+  </data>
   <data name="LogEntryHelper_InvalidGraphQL" xml:space="preserve">
     <value>Invalid GraphQL in source schema. Exception message: {0}.</value>
   </data>

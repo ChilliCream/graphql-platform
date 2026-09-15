@@ -713,6 +713,21 @@ internal static class LogEntryHelper
             .Build();
     }
 
+    /// <summary>
+    /// Reports a non-integer <c>defaultListSize</c> composition setting read directly from the
+    /// raw settings JSON, before the typed deserialize would otherwise throw. The source of the
+    /// invalid value is the composition settings, not a schema coordinate, so this entry carries
+    /// no schema or type system member.
+    /// </summary>
+    public static LogEntry InvalidDefaultListSizeSetting(string rawValue)
+    {
+        return LogEntryBuilder.New()
+            .SetMessage(LogEntryHelper_InvalidDefaultListSizeSettingType, rawValue)
+            .SetCode(LogEntryCodes.InvalidDefaultListSizeSetting)
+            .SetSeverity(LogSeverity.Error)
+            .Build();
+    }
+
     public static LogEntry InvalidFieldSharing(
         MutableOutputFieldDefinition field,
         MutableSchemaDefinition schema)
