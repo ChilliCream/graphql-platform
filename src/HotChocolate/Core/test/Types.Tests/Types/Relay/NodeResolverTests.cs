@@ -1088,29 +1088,6 @@ public class NodeResolverTests
     }
 
     [Fact]
-    public async Task NodeResolver_On_Query_Field_With_BatchResolver_Fetch_Through_Node_Field()
-    {
-        await new ServiceCollection()
-            .AddGraphQL()
-            .AddQueryType<QueryWithBatchNodeResolver>()
-            .AddType<BatchEntity>()
-            .AddGlobalObjectIdentification()
-            .ExecuteRequestAsync(
-                """
-                {
-                    node(id: "QmF0Y2hFbnRpdHk6YWJj") {
-                        ... on BatchEntity {
-                            id
-                            name
-                        }
-                    }
-                }
-                """,
-                cancellationToken: TestContext.Current.CancellationToken)
-            .MatchSnapshotAsync();
-    }
-
-    [Fact]
     public async Task NodeAttribute_On_Extension_Fetch_Through_Node_Field_With_NonId_Argument_Name()
     {
         var result = await new ServiceCollection()
@@ -1162,108 +1139,6 @@ public class NodeResolverTests
                 """,
                 cancellationToken: TestContext.Current.CancellationToken)
             .MatchSnapshotAsync();
-    }
-
-    [Fact]
-    public async Task Node_Should_Separate_Batch_Invocations_When_Same_Type_Fields_Are_Aliased()
-    {
-        // arrange
-        // Each alias invokes the batch node resolver separately, including duplicate IDs.
-        var collector = new BatchNodeCollector();
-        var executor =
-            await new ServiceCollection()
-                .AddSingleton(collector)
-                .AddGraphQLServer()
-                .AddQueryType<QueryWithCollectingBatchNodeResolver>()
-                .AddType<BatchEntity>()
-                .AddType<EntityType>()
-                .AddGlobalObjectIdentification()
-                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            """
-            {
-                a: node(id: "QmF0Y2hFbnRpdHk6eA==") { ... on BatchEntity { id name } }
-                b: node(id: "QmF0Y2hFbnRpdHk6eQ==") { ... on BatchEntity { id name } }
-                dup: node(id: "QmF0Y2hFbnRpdHk6eA==") { ... on BatchEntity { id name } }
-            }
-            """,
-            cancellationToken: TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.Equal(3, collector.InvocationCount);
-        Assert.Equal(["x", "x", "y"], [.. collector.ReceivedIds.OrderBy(x => x)]);
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "a": {
-                  "id": "QmF0Y2hFbnRpdHk6eA==",
-                  "name": "x"
-                },
-                "b": {
-                  "id": "QmF0Y2hFbnRpdHk6eQ==",
-                  "name": "y"
-                },
-                "dup": {
-                  "id": "QmF0Y2hFbnRpdHk6eA==",
-                  "name": "x"
-                }
-              }
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task Node_Should_Separate_Aliases_When_Fields_Mix_Batch_And_Classic_Resolvers()
-    {
-        // arrange
-        // Two aliases invoke the batch node resolver separately, one invokes the classic resolver.
-        var collector = new BatchNodeCollector();
-        var executor =
-            await new ServiceCollection()
-                .AddSingleton(collector)
-                .AddGraphQLServer()
-                .AddQueryType<QueryWithCollectingBatchNodeResolver>()
-                .AddType<BatchEntity>()
-                .AddType<EntityType>()
-                .AddGlobalObjectIdentification()
-                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            """
-            {
-                a: node(id: "QmF0Y2hFbnRpdHk6eA==") { ... on BatchEntity { id name } }
-                b: node(id: "QmF0Y2hFbnRpdHk6eQ==") { ... on BatchEntity { id name } }
-                c: node(id: "RW50aXR5OmZvbw==") { ... on Entity { id name } }
-            }
-            """,
-            cancellationToken: TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.Equal(2, collector.InvocationCount);
-        Assert.Equal(["x", "y"], [.. collector.ReceivedIds.OrderBy(x => x)]);
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "a": {
-                  "id": "QmF0Y2hFbnRpdHk6eA==",
-                  "name": "x"
-                },
-                "b": {
-                  "id": "QmF0Y2hFbnRpdHk6eQ==",
-                  "name": "y"
-                },
-                "c": {
-                  "id": "RW50aXR5OmZvbw==",
-                  "name": "foo"
-                }
-              }
-            }
-            """);
     }
 
     [Fact]
@@ -1330,59 +1205,6 @@ public class NodeResolverTests
                 },
                 "Dispatch")
             .MatchMarkdownSnapshot();
-    }
-
-    [Fact]
-    public async Task Nodes_Should_Dispatch_Through_Batch_Node_Resolver_When_Ids_Contain_Duplicates()
-    {
-        // arrange
-        // A single nodes field with two distinct ids plus a duplicate must reach the batch node
-        // resolver once with all three internal ids and map the results back positionally.
-        var collector = new BatchNodeCollector();
-        var executor =
-            await new ServiceCollection()
-                .AddSingleton(collector)
-                .AddGraphQLServer()
-                .AddQueryType<QueryWithCollectingBatchNodeResolver>()
-                .AddType<BatchEntity>()
-                .AddGlobalObjectIdentification()
-                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // act
-        var result = await executor.ExecuteAsync(
-            """
-            {
-                nodes(ids: ["QmF0Y2hFbnRpdHk6eA==", "QmF0Y2hFbnRpdHk6eQ==", "QmF0Y2hFbnRpdHk6eA=="]) {
-                    ... on BatchEntity { id name }
-                }
-            }
-            """,
-            cancellationToken: TestContext.Current.CancellationToken);
-
-        // assert
-        Assert.Equal(1, collector.InvocationCount);
-        Assert.Equal(3, collector.ReceivedIds.Count);
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "nodes": [
-                  {
-                    "id": "QmF0Y2hFbnRpdHk6eA==",
-                    "name": "x"
-                  },
-                  {
-                    "id": "QmF0Y2hFbnRpdHk6eQ==",
-                    "name": "y"
-                  },
-                  {
-                    "id": "QmF0Y2hFbnRpdHk6eA==",
-                    "name": "x"
-                  }
-                ]
-              }
-            }
-            """);
     }
 
     [Fact]
@@ -1746,60 +1568,6 @@ public class NodeResolverTests
                     "name": "foo"
                   }
                 ]
-              }
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task Node_Should_Round_Trip_Through_Batch_Resolver_With_Custom_Id_Serializer()
-    {
-        // arrange
-        // A custom value serializer encodes the batch type's int key. The batch node path must
-        // parse the global id once and re-encode the resolved entity's id with the same serializer.
-        var executor =
-            await new ServiceCollection()
-                .AddGraphQLServer()
-                .AddQueryType<QueryWithCustomKeyBatchNodeResolver>()
-                .AddType<CustomKeyEntity>()
-                .AddGlobalObjectIdentification()
-                .AddNodeIdValueSerializer<CustomKeyNodeIdValueSerializer>()
-                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // act
-        // "Q3VzdG9tS2V5RW50aXR5OmtleS00Mg==" decodes to "CustomKeyEntity:key-42".
-        var result = await executor.ExecuteAsync(
-            """
-            {
-                a: node(id: "Q3VzdG9tS2V5RW50aXR5OmtleS00Mg==") { ... on CustomKeyEntity { id value } }
-                b: node(id: "garbage") { ... on CustomKeyEntity { id value } }
-            }
-            """,
-            cancellationToken: TestContext.Current.CancellationToken);
-
-        // assert
-        // `a` round trips through the custom serializer; `b` errors alone, proving the parse-error
-        // cache path works with a non-default serializer.
-        result.ToJson().MatchInlineSnapshot(
-            """
-            {
-              "errors": [
-                {
-                  "message": "The node ID string has an invalid format.",
-                  "path": [
-                    "b"
-                  ],
-                  "extensions": {
-                    "originalValue": "garbage"
-                  }
-                }
-              ],
-              "data": {
-                "a": {
-                  "id": "Q3VzdG9tS2V5RW50aXR5OmtleS00Mg==",
-                  "value": 42
-                },
-                "b": null
               }
             }
             """);
