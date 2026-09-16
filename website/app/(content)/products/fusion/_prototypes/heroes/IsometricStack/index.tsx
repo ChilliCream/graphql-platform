@@ -37,13 +37,13 @@ const SLABS = SERVICE_SPECTRUM.map((stop, i) => {
   const z0 = i * SLAB_H;
   const z1 = z0 + SLAB_H;
 
-  // Face A: the y = 0 plane (lit, front-left). Face B: the x = X_DEPTH plane
-  // (shaded, front-right). Together with the top cap these are the three
-  // faces a standard isometric box shows the viewer.
-  const a0 = project(0, 0, z0);
-  const a1 = project(X_DEPTH, 0, z0);
-  const a2 = project(X_DEPTH, 0, z1);
-  const a3 = project(0, 0, z1);
+  // Face A: the y = Y_DEPTH plane (lit, front-left). Face B: the x = X_DEPTH
+  // plane (shaded, front-right). Together with the top cap these are the
+  // three faces a standard isometric box shows the viewer.
+  const a0 = project(0, Y_DEPTH, z0);
+  const a1 = project(X_DEPTH, Y_DEPTH, z0);
+  const a2 = project(X_DEPTH, Y_DEPTH, z1);
+  const a3 = project(0, Y_DEPTH, z1);
   const b0 = project(X_DEPTH, 0, z0);
   const b1 = project(X_DEPTH, Y_DEPTH, z0);
   const b2 = project(X_DEPTH, Y_DEPTH, z1);
@@ -167,6 +167,18 @@ export default function IsometricStack() {
       <svg
         className="absolute inset-0 h-full w-full"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <g stroke={CC.inkFaint} strokeOpacity={0.4} strokeWidth={1}>
+          {GRID_PATHS.map((d, i) => (
+            <path key={i} d={d} vectorEffect="non-scaling-stroke" />
+          ))}
+        </g>
+      </svg>
+
+      <svg
+        className="absolute right-4 bottom-0 h-[22svh] max-h-[220px] w-auto lg:right-[3vw] lg:h-auto lg:w-[32vw] lg:max-w-[440px]"
+        viewBox="500 170 320 450"
         preserveAspectRatio="xMidYMax meet"
       >
         <defs>
@@ -180,12 +192,6 @@ export default function IsometricStack() {
             <stop offset="100%" stopColor={CC.white} stopOpacity={0.85} />
           </radialGradient>
         </defs>
-
-        <g stroke={CC.inkFaint} strokeOpacity={0.4} strokeWidth={1}>
-          {GRID_PATHS.map((d, i) => (
-            <path key={i} d={d} />
-          ))}
-        </g>
 
         <ellipse
           cx={ORIGIN[0]}
