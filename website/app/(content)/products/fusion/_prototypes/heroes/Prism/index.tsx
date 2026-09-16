@@ -54,7 +54,14 @@ export default function Prism() {
         preserveAspectRatio="none"
       >
         <defs>
-          <linearGradient id="prism-beam-gradient" x1="0" y1="0" x2="1" y2="0">
+          <linearGradient
+            id="prism-beam-gradient"
+            gradientUnits="userSpaceOnUse"
+            x1={-40}
+            y1={PRISM_APEX.y}
+            x2={PRISM_TOP.x}
+            y2={PRISM_APEX.y}
+          >
             <stop offset="0%" stopColor={CC.white} stopOpacity={0} />
             <stop offset="100%" stopColor={CC.white} stopOpacity={0.9} />
           </linearGradient>
