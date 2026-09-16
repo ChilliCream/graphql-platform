@@ -76,11 +76,13 @@ Performs reachability analysis. Starting from the root types, the pipeline walks
 
 # Cost Metadata Derivation
 
-Fusion composition records each compatible source usage as an internal `@fusion__cost` or `@fusion__listSize` provenance entry, folds the source values, and projects the result as a public directive. A public `@cost` or `@listSize` directive is emitted only when at least one source has a compatible usage. The internal entries identify the source schema and preserve its declared values. An unannotated source contributes the coordinate default to the public `@cost` fold without adding an internal provenance entry.
+Fusion composition records each compatible source usage as an internal `@fusion__cost` or `@fusion__listSize` provenance entry, folds the source values, and projects the result as a public directive. A public `@cost` or `@listSize` directive is emitted only when at least one source has a compatible usage. The internal entries identify the source schema and preserve its declared values. An unannotated serving source contributes the coordinate default to the public `@cost` fold without adding an internal provenance entry.
+
+Both folds only consider serving sources: a source schema that resolves the field itself. A source that provides the field only as partial (for example an Apollo Federation `@external` field returned through `@provides`) is not a serving source for either fold, so an unannotated partial member contributes neither the coordinate's default weight nor a gap that widens the `@listSize` bound — sources that only provide the field through `@provides` do not widen the bound. Its own `@cost` or `@listSize` usage, when declared, still folds in and is still recorded as its own provenance entry.
 
 A usage without a local directive definition receives the canonical definition during composition. A locally declared definition can use a compatible subset of the canonical arguments.
 
-For `@cost`, the public weight is the maximum effective weight across every serving source. A declared weight is effective as written. An unannotated source contributes the default for the coordinate:
+For `@cost`, the public weight is the maximum effective weight across every serving source. A declared weight is effective as written. An unannotated serving source contributes the default for the coordinate:
 
 | Coordinate                                            | Default weight |
 | ----------------------------------------------------- | -------------- |
