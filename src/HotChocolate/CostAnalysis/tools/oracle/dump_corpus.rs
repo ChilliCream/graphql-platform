@@ -115,7 +115,7 @@ fn main() {
                 Err(_) => {
                     // Bypasses GraphQL coercion by construction (R-CORPUS-VARIABLES);
                     // a case real coercion would reject never reaches the .NET
-                    // engine's coerced-variables input, so it is dropped here.
+                    // implementation's coerced-variables input, so it is dropped here.
                     excluded_invalid_variables += 1;
                     continue;
                 }

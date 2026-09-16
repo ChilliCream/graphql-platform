@@ -32,7 +32,7 @@ CSV_COLUMNS = (
     "sample_4_total_ns",
     "checksum",
 )
-ENGINES = ("rust-exact-case", "hotchocolate-cold", "hotchocolate-warm")
+BACKENDS = ("rust-exact-case", "hotchocolate-cold", "hotchocolate-warm")
 SEED = 20260829
 
 
@@ -181,21 +181,21 @@ def main() -> None:
         scenario_corpora[str(scenario["id"])] = scenario_path
 
     plan = [
-        (replicate, scenario, engine)
+        (replicate, scenario, backend)
         for replicate in range(arguments.replicates)
         for scenario in scenarios
-        for engine in ENGINES
+        for backend in BACKENDS
     ]
     random.Random(SEED).shuffle(plan)
     rows_by_axis: dict[str, list[dict[str, str]]] = {}
     observed: list[tuple[dict[str, object], dict[str, str]]] = []
 
-    for run_order, (_, scenario, engine) in enumerate(plan, start=1):
-        print(f"[{run_order}/{len(plan)}] {scenario['id']} {engine}", flush=True)
-        if engine == "rust-exact-case":
+    for run_order, (_, scenario, backend) in enumerate(plan, start=1):
+        print(f"[{run_order}/{len(plan)}] {scenario['id']} {backend}", flush=True)
+        if backend == "rust-exact-case":
             row = run_rust(arguments.rust_binary, scenario)
         else:
-            phase = "Cold" if engine == "hotchocolate-cold" else "Warm"
+            phase = "Cold" if backend == "hotchocolate-cold" else "Warm"
             row = run_hotchocolate(
                 arguments.dotnet,
                 arguments.assembly,

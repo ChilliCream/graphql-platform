@@ -4,7 +4,7 @@ Regenerates the vendored ExactCase cost corpus
 (`../../test/CostAnalysis.Core.Conformance.Tests/__resources__/rust-corpus/`)
 from the MIT-licensed
 [`graphql-static-analysis-rs`](https://github.com/duckki/graphql-static-analysis-rs)
-crate, the differential oracle for this cost engine.
+crate, the differential oracle for this cost analysis implementation.
 
 ## Prerequisites
 
@@ -53,7 +53,7 @@ bash src/HotChocolate/CostAnalysis/tools/oracle/run-nightly.sh \
 ```
 
 Every case stores its seed and uses the same finite `DefaultListSize` on both
-engines. Generated operations are query-only and reject introspection
+implementations. Generated operations are query-only and reject introspection
 meta-fields, `@defer`, and `@stream` before emission. Variables are valid for
 the generated operation and are coerced by `apollo_compiler` before the Rust
 estimator runs.
@@ -75,7 +75,7 @@ already supplied.
 Comparison uses the hexadecimal IEEE-754 bit patterns for `typeCost` and
 `fieldCost`. A mismatch exits nonzero and writes one isolated
 `source: "fuzz-found"` fixture under the conformance resources. Vendor it
-before merging the engine fix so pull-request CI retains the regression case
+before merging the fix so pull-request CI retains the regression case
 without Rust.
 
 ## Regenerating the corpus
@@ -99,7 +99,7 @@ own deterministic 15,840-case matrix (14,400 legacy-family cases plus 1,440
 structural cases; `deterministic_matrix_sizes_are_stable` in the crate pins
 this count). It keeps only the IBM cost observation (`observation == 3`) on
 the ExactCase backend (`mode == 0`): 1,980 rows. Syntactic-backend rows are
-not emitted; this engine is ExactCase-only.
+not emitted; this implementation is ExactCase-only.
 
 For each row:
 
