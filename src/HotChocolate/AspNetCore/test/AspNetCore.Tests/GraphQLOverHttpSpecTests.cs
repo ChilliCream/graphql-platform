@@ -22,6 +22,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, ContentType.Json)]
+    [InlineData(null, Draft20260903, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, ContentType.Json)]
     [InlineData("application/*", Latest, ContentType.GraphQLResponse)]
@@ -34,6 +35,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData("application/json, text/plain, */*", Legacy, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, ContentType.Json)]
     [InlineData(ContentType.GraphQLResponse, Latest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, ContentType.GraphQLResponse)]
     [InlineData("application/graphql-response+json; charset=utf-8, multipart/mixed; charset=utf-8",
@@ -125,6 +127,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, BadRequest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
     public async Task Query_No_Body(string? acceptHeader, HttpTransportVersion transportVersion,
@@ -173,6 +176,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
     public async Task ValidationError(string? acceptHeader, HttpTransportVersion transportVersion,
@@ -213,6 +217,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
     public async Task ValidationError2(string? acceptHeader, HttpTransportVersion transportVersion,
@@ -643,6 +648,36 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(["POST"], response.Content.Headers.Allow);
     }
 
+    // From the 2026-09-03 revision on, a client that accepts only application/json is answered
+    // as if it had asked for application/graphql-response+json, and only a 2xx response carries
+    // application/json as its Content-Type.
+    [Theory]
+    [InlineData(Draft20250508, OK, ContentType.Json, new string[0])]
+    [InlineData(Draft20260903, MethodNotAllowed, ContentType.GraphQLResponse, new[] { "POST" })]
+    public async Task Get_Should_UseSpecStatusCodeForJson_When_MutationIsNotAllowed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType,
+        string[] expectedAllow)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+        var query = Uri.EscapeDataString("mutation { __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={query}"));
+        AddAcceptHeader(request, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
     [Fact]
     public async Task Post_Should_NotReturnAllowHeader_When_FormatterOverridesStatusCode()
     {
@@ -778,6 +813,30 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.TryAddWithoutValidation("Accept", "unsupported");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    // The POST path disregards an unparseable Accept header on the same terms as the GET path.
+    [Theory]
+    [InlineData(Latest, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(Legacy, OK, ContentType.Json)]
+    public async Task Post_Should_AnswerInServerChoice_When_AcceptHeaderCannotBeParsed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
         request.Headers.TryAddWithoutValidation("Accept", "unsupported");
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);

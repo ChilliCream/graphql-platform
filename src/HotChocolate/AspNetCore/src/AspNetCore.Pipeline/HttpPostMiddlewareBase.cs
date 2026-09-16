@@ -58,9 +58,8 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         // with a 400 Bad Request.
         if (headerResult.HasError)
         {
-            // in this case accept headers were specified, and we will
-            // respond with proper error codes
-            acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
+            // the parse result carries no media types, so the error is written in the media
+            // type the transport serves by default
             statusCode = HttpStatusCode.BadRequest;
 
             var errors = headerResult.ErrorResult.Errors;

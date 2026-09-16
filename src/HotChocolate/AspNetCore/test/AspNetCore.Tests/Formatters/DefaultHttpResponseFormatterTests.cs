@@ -7,6 +7,7 @@ public sealed class DefaultHttpResponseFormatterTests
     [InlineData(HttpTransportVersion.Legacy, HttpTransportVersion.Legacy)]
     [InlineData(HttpTransportVersion.Draft20230127, HttpTransportVersion.Draft20250508)]
     [InlineData(HttpTransportVersion.Draft20250508, HttpTransportVersion.Draft20250508)]
+    [InlineData(HttpTransportVersion.Draft20260903, HttpTransportVersion.Draft20260903)]
     public void Constructor_Should_ResolveTransportVersion_When_VersionIsRecognized(
         HttpTransportVersion configured,
         HttpTransportVersion expected)
