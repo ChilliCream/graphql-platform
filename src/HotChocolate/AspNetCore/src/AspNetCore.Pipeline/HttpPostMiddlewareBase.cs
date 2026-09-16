@@ -75,9 +75,8 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         // media type then we will fail the request with 406 Not Acceptable.
         if (requestFlags is None)
         {
-            // in this case accept headers were specified, and we will
-            // respond with proper error codes
-            acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
+            // the client's own media types are kept so the formatter can tell whether the error
+            // body would be readable, and send the status alone when it would not be
             statusCode = HttpStatusCode.NotAcceptable;
 
             var error = ErrorHelper.NoSupportedAcceptMediaType();

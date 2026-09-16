@@ -36,6 +36,10 @@ internal static class MiddlewareHelper
             var error = ErrorHelper.NoSupportedAcceptMediaType();
             executorSession.DiagnosticEvents.HttpRequestError(context, error);
 
+            // The client's own media types travel with the error so the formatter can tell
+            // whether the response body would be readable. It writes the error in the server's
+            // default format while that format is still acceptable, and sends the status alone
+            // when the client has ruled out everything the server can produce.
             return new ValidateAcceptContentTypeResult(
                 error,
                 HttpStatusCode.NotAcceptable,

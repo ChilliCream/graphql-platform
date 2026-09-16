@@ -243,12 +243,6 @@ namespace HotChocolate.AspNetCore.Properties {
             }
         }
         
-        internal static string ThrowHelper_Formatter_InvalidAcceptMediaType {
-            get {
-                return ResourceManager.GetString("ThrowHelper_Formatter_InvalidAcceptMediaType", resourceCulture);
-            }
-        }
-        
         internal static string ErrorHelper_InvalidAcceptMediaType {
             get {
                 return ResourceManager.GetString("ErrorHelper_InvalidAcceptMediaType", resourceCulture);

@@ -127,7 +127,4 @@ internal static class ThrowHelper
     public static NotSupportedException Formatter_ResponseContentTypeNotSupported(
         string contentType)
         => new(string.Format(ThrowHelper_Formatter_ResponseContentTypeNotSupported, contentType));
-
-    public static InvalidOperationException Formatter_InvalidAcceptMediaType()
-        => new(ThrowHelper_Formatter_InvalidAcceptMediaType);
 }

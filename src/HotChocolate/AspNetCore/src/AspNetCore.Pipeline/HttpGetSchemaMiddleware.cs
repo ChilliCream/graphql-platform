@@ -36,9 +36,9 @@ public sealed class HttpGetSchemaMiddleware : MiddlewareBase
     public async Task InvokeAsync(HttpContext context)
     {
         var isCandidate = _routing == MiddlewareRoutingType.Integrated
-            ? HttpMethods.IsGet(context.Request.Method)
+            ? context.Request.IsGetOrHeadMethod()
                 && (context.Request.Query.ContainsKey("SDL") || IsSchemaPath(context.Request))
-            : HttpMethods.IsGet(context.Request.Method);
+            : context.Request.IsGetOrHeadMethod();
 
         if (isCandidate)
         {
