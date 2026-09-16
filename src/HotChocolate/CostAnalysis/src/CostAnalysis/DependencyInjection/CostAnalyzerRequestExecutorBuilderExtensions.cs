@@ -52,9 +52,6 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
                         return new CostPlanCache(options.CostPlanCacheSize);
                     });
 
-                    services.TryAddSingleton(
-                        sp => sp.GetRequiredService<CostPlanCache>().InnerCache);
-
                     services.TryAddSingleton(sp =>
                     {
                         var options = sp.GetRequiredService<CostOptions>();
