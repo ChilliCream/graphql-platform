@@ -150,20 +150,21 @@ public sealed class CostPlan
     /// <summary>
     /// Traverses the operation's condition tree exactly, resolving every
     /// still-open Boolean variable from <paramref name="variables"/> rather
-    /// than following both branches, under a budget generous enough that
-    /// the traversal never needs the conservative envelope fallback.
+    /// than following both branches, under the schema's case budget as a
+    /// backstop: resolve mode itself never spends it.
     /// </summary>
     private CostEstimate EvaluatePerRequest(ICostVariableValues variables)
     {
         var algebra = new PerRequestCostAlgebra(_schemaIndex!, _analyses, variables);
-        var budget = new CaseBudget(int.MaxValue);
+        var budget = new CaseBudget(_schemaIndex!.CaseBudget);
         var decision = ExactCasesTraversal.Evaluate(
-            _schemaIndex!,
+            _schemaIndex,
             _fragments!,
             _tree!,
             algebra,
             variables,
-            budget);
+            budget,
+            resolveVariables: true);
         return decision.Resolve(variableName => ResolveBooleanVariable(variables, variableName));
     }
 
