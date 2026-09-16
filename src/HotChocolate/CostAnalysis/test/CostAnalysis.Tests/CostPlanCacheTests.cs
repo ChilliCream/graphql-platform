@@ -41,7 +41,7 @@ public sealed class CostPlanCacheTests
         var requestExecutor = await CreateRequestExecutorBuilder()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var cache = requestExecutor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
+        var cache = requestExecutor.Schema.Services.GetRequiredService<CostPlanCache>();
         var request = OperationRequestBuilder.New().SetDocument(Operation).ReportCost().Build();
 
         // act
@@ -58,7 +58,7 @@ public sealed class CostPlanCacheTests
         var requestExecutor = await CreateRequestExecutorBuilder()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var cache = requestExecutor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
+        var cache = requestExecutor.Schema.Services.GetRequiredService<CostPlanCache>();
         var request = OperationRequestBuilder.New().SetDocument(Operation).ReportCost().Build();
 
         // act
@@ -79,7 +79,7 @@ public sealed class CostPlanCacheTests
             .ModifyCostOptions(o => o.MaxTypeCost = 1)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var cache = requestExecutor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
+        var cache = requestExecutor.Schema.Services.GetRequiredService<CostPlanCache>();
         var request = OperationRequestBuilder.New().SetDocument(Operation).ReportCost().Build();
 
         // act
@@ -97,7 +97,7 @@ public sealed class CostPlanCacheTests
         var requestExecutor = await CreateRequestExecutorBuilder()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var cache = requestExecutor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
+        var cache = requestExecutor.Schema.Services.GetRequiredService<CostPlanCache>();
         var request = OperationRequestBuilder.New().SetDocument(Operation).MarkAsWarmupRequest().Build();
 
         // act
@@ -116,7 +116,7 @@ public sealed class CostPlanCacheTests
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var cache = requestExecutor.Schema.Services.GetRequiredService<Cache<CostPlan>>();
+        var cache = requestExecutor.Schema.Services.GetRequiredService<CostPlanCache>();
 
         // assert
         Assert.Equal(42, cache.Capacity);
