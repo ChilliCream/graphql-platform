@@ -98,7 +98,7 @@ See [Composition](../composition.md#default-list-size) for details.
 
 Composition now folds source `@cost` and `@listSize` usages into public directives and records the declaring source values as `@fusion__cost` and `@fusion__listSize` provenance entries. The gateway enforces the folded public values.
 
-The public `@cost(weight:)` is the maximum effective weight among every serving source. A source's effective weight is its declared weight or the default for that coordinate: composite types and output fields returning composites use `1`; leaf types and output fields returning leaves use `0`; arguments and input fields use `1` when input-object-typed and `0` otherwise. For example, a composite field weighted `-7` in one source and unannotated in another now folds to `1`.
+The public `@cost(weight:)` is the maximum effective weight among every serving source. A source's effective weight is its declared weight or the default for that coordinate: composite types and output fields returning composites use `1`; leaf types and output fields returning leaves use `0`; arguments and input fields use `1` when input-object-typed and `0` otherwise. For example, a composite field weighted `-7` in one source and unannotated in another now folds to `1`. A source that provides the field only as partial (for example an Apollo Federation `@external` field returned through `@provides`) is not a serving source: an unannotated partial member contributes neither its default weight to `@cost` nor a gap that widens `@listSize`'s `assumedSize`, though its own declared usage still folds in.
 
 Public `@listSize` arguments are folded as follows:
 

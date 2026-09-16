@@ -135,15 +135,15 @@ public sealed class SourceSchemaMergerCostInteropTests : SourceSchemaMergerTestB
             modifySchema: s_removeListSizeDirective);
     }
 
-    // R-COMPOSITION-WEIGHT-FOLD / hc-3-oye.6 F1: a member that only serves a list field through
-    // @external (reachable via a @provides path on another source) still counts as a serving
-    // source with no @listSize of its own. Conservative/sound reading: since the external source
-    // returns its own unannotated list data, the field's bound is unbounded unless a
-    // DefaultListSize is configured, exactly like an unannotated non-external serving source.
-    // The @fusion__listSize provenance entry for the annotated source (A) is unaffected, and the
-    // partial-member marker (@fusion__field(schema: B, partial: true)) is retained.
+    // R-COMPOSITION-WEIGHT-FOLD: a member that only provides a list field through @external
+    // (reachable via a @provides path on another source) is not a serving source for the fold —
+    // a serving source is one that resolves the field itself. B's field never contributes the
+    // "unannotated serving source" fallback, so the owner's (A's) declared assumedSize wins
+    // outright, unaffected by B's lack of an annotation. The @fusion__listSize provenance entry
+    // for A is unaffected, and the partial-member marker (@fusion__field(schema: B, partial:
+    // true)) is retained.
     [Fact]
-    public void Merge_ListSizeDirective_ExternalPartialServingSource_NoDefaultOmitsAssumedSize_MatchesSnapshot()
+    public void Merge_ListSizeDirective_ExternalPartialMember_NotAServingSource_MatchesSnapshot()
     {
         AssertMatches(
             [
@@ -197,7 +197,7 @@ public sealed class SourceSchemaMergerCostInteropTests : SourceSchemaMergerTestB
               ) {
               id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
               tags: [String]
-                @listSize
+                @listSize(assumedSize: 5)
                 @fusion__field(schema: A)
                 @fusion__field(schema: B, partial: true)
                 @fusion__listSize(schema: A, assumedSize: 5)
@@ -211,11 +211,12 @@ public sealed class SourceSchemaMergerCostInteropTests : SourceSchemaMergerTestB
             modifySchema: s_removeListSizeDirective);
     }
 
-    // Same schemas as above, but with a configured DefaultListSize: the sound bound becomes
-    // max(declared assumedSize, DefaultListSize), so the public @listSize now carries the
-    // (higher) default, while the @fusion__listSize provenance for A stays untouched.
+    // Same schemas as above, but with a configured DefaultListSize: since B is not a serving
+    // source, its lack of a @listSize usage never triggers the "unannotated serving source"
+    // fallback, so the configured default plays no part here and the owner's declared
+    // assumedSize still wins, exactly like the case without a configured default.
     [Fact]
-    public void Merge_ListSizeDirective_ExternalPartialServingSource_DefaultListSizeApplies_MatchesSnapshot()
+    public void Merge_ListSizeDirective_ExternalPartialMember_DefaultListSizeDoesNotApply_MatchesSnapshot()
     {
         AssertMatches(
             [
@@ -269,7 +270,7 @@ public sealed class SourceSchemaMergerCostInteropTests : SourceSchemaMergerTestB
               ) {
               id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
               tags: [String]
-                @listSize(assumedSize: 10)
+                @listSize(assumedSize: 5)
                 @fusion__field(schema: A)
                 @fusion__field(schema: B, partial: true)
                 @fusion__listSize(schema: A, assumedSize: 5)
@@ -281,6 +282,80 @@ public sealed class SourceSchemaMergerCostInteropTests : SourceSchemaMergerTestB
             }
             """,
             configure: options => options.DefaultListSize = 10,
+            modifySchema: s_removeListSizeDirective);
+    }
+
+    // A partial member's own @listSize, when it declares one, still folds in: since the fold is
+    // a sound upper bound, the larger of the owner's and the partial member's declared
+    // assumedSize wins, and both usages are recorded as @fusion__listSize provenance entries.
+    [Fact]
+    public void Merge_ListSizeDirective_ExternalPartialMember_OwnDeclaredAssumedSizeFoldsIn_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A (entity source, declares tags with assumedSize)
+                type Query {
+                    productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    tags: [String] @listSize(assumedSize: 5)
+                }
+                """,
+                """
+                # Schema B (serves tags via @provides; tags itself is only @external there, but
+                # declares its own, larger assumedSize)
+                type Query {
+                    reviews: [Review!]
+                }
+
+                type Review {
+                    id: ID!
+                    product: Product @provides(fields: "tags")
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    tags: [String] @external @listSize(assumedSize: 8)
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              reviews: [Review!] @fusion__field(schema: B)
+            }
+
+            type Product
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "productById(id: ID!): Product"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+              tags: [String]
+                @listSize(assumedSize: 8)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B, partial: true)
+                @fusion__listSize(schema: A, assumedSize: 5)
+                @fusion__listSize(schema: B, assumedSize: 8)
+            }
+
+            type Review @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: B)
+              product: Product @fusion__field(schema: B, provides: "tags")
+            }
+            """,
             modifySchema: s_removeListSizeDirective);
     }
 
