@@ -963,6 +963,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private static double GetQuality(AcceptMediaType mediaType)
         => mediaType.Quality ?? 1.0;
 
+    /// <summary>
+    /// Throws <see cref="ArgumentOutOfRangeException"/> when <paramref name="version"/> is not a
+    /// member of <see cref="HttpTransportVersion"/>.
+    /// </summary>
+    internal static void EnsureTransportVersionIsSupported(
+        HttpTransportVersion version,
+        string paramName)
+        => ResolveTransportVersion(version, paramName);
+
     private static HttpTransportVersion ResolveTransportVersion(
         HttpTransportVersion version,
         string paramName)
