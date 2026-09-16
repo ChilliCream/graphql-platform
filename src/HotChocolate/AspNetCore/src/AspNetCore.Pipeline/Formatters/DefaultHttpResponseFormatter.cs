@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -35,6 +34,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo _eventStreamFormat;
     private readonly FormatInfo _jsonLinesFormat;
     private readonly FormatInfo _legacyFormat;
+    private readonly FormatInfo[] _singleFormats;
+    private readonly FormatInfo[] _streamFormats;
+    private readonly FormatInfo[] _subscriptionFormats;
+    private readonly FormatInfo[] _singlePreferred;
+    private readonly FormatInfo[] _streamPreferred;
     private readonly bool _isLegacyTransport;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
 
@@ -129,6 +133,35 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             ? _legacyFormat
             : _graphqlResponseFormat;
 
+        // The formats the server can produce for each result kind, in the order it prefers them.
+        // A tie on quality is resolved by this order.
+        _singleFormats =
+        [
+            _graphqlResponseFormat,
+            _legacyFormat,
+            _multiPartFormat,
+            _eventStreamFormat,
+            _graphqlResponseStreamFormat
+        ];
+        _streamFormats =
+        [
+            _graphqlResponseStreamFormat,
+            _jsonLinesFormat,
+            _multiPartFormat,
+            _eventStreamFormat
+        ];
+        _subscriptionFormats =
+        [
+            _graphqlResponseStreamFormat,
+            _jsonLinesFormat,
+            _eventStreamFormat
+        ];
+
+        // Naming one of these outright is a request the server grants as it stands. Every other
+        // format it can produce is a fallback, never something the client's ordering promotes.
+        _singlePreferred = [_graphqlResponseFormat];
+        _streamPreferred = [_graphqlResponseStreamFormat, _jsonLinesFormat];
+
         _incrementalDeliveryDefaultFormat = incrementalDeliveryFormat is IncrementalDeliveryFormat.Undefined
             ? IncrementalDeliveryFormat.Version_0_2
             : incrementalDeliveryFormat;
@@ -203,20 +236,40 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         HttpStatusCode? proposedStatusCode,
         CancellationToken cancellationToken)
     {
+        var resultToWrite = result;
+        var statusCode =
+            ProposeStatusCodeForRefusedOperationKind(result, acceptMediaTypes, proposedStatusCode);
+        OperationResult? notAcceptable = null;
+
         if (!TryGetFormatter(result, acceptMediaTypes, out var selectedAcceptMediaType, out var format))
         {
-            // we should not hit this point except if middleware did not validate the
-            // GraphQL request flags which would indicate that there is no way to execute
-            // the GraphQL request with the specified accept-header content types.
-            throw ThrowHelper.Formatter_InvalidAcceptMediaType();
+            // The request flags are validated before the operation runs, but they cannot know
+            // which result kind it will produce, so an Accept header that excludes every format
+            // this kind can be written in only becomes visible here. RFC 9110, section 15.5.7
+            // answers that with a 406, and section 15.5.7 only recommends content rather than
+            // requiring it. The error is written in the server's default format while the client
+            // still accepts that format, and the status stands alone once it does not: a result
+            // kind can be unwritable while a plain error remains readable, as a deferred result
+            // is for a client that rejects every streaming media type but not application/json.
+            if (MatchFormat(acceptMediaTypes, _defaultFormat.Kind).Quality is 0)
+            {
+                response.StatusCode = (int)(proposedStatusCode ?? HttpStatusCode.NotAcceptable);
+                return;
+            }
+
+            notAcceptable = OperationResult.FromError(ErrorHelper.NoSupportedAcceptMediaType());
+            resultToWrite = notAcceptable;
+            selectedAcceptMediaType = default;
+            format = _defaultFormat;
+            statusCode = proposedStatusCode ?? HttpStatusCode.NotAcceptable;
         }
 
         try
         {
             await FormatInternalAsync(
                 response,
-                result,
-                ProposeStatusCodeForRefusedOperationKind(result, acceptMediaTypes, proposedStatusCode),
+                resultToWrite,
+                statusCode,
                 format,
                 selectedAcceptMediaType,
                 cancellationToken);
@@ -224,6 +277,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             // if the request is aborted, we will fail gracefully.
+        }
+        finally
+        {
+            if (notAcceptable is not null)
+            {
+                await notAcceptable.DisposeAsync();
+            }
         }
     }
 
@@ -668,413 +728,242 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         selectedAcceptMediaType = default;
         format = null;
-        var length = acceptMediaTypes.Length;
 
         // There is no Accept header present, so the server is allowed
         // to select what makes the most sense for the response.
-        if (length == 0)
+        if (acceptMediaTypes.Length == 0)
         {
-            if (result.Kind is SingleResult)
+            format = result.Kind switch
             {
-                format = _defaultFormat;
-                return true;
-            }
+                SingleResult => _defaultFormat,
+                DeferredResult or BatchResult => _multiPartFormat,
+                SubscriptionResult => _eventStreamFormat,
+                _ => null
+            };
 
-            if (result.Kind is DeferredResult or BatchResult)
-            {
-                format = _multiPartFormat;
-                return true;
-            }
-
-            if (result.Kind is SubscriptionResult)
-            {
-                format = _eventStreamFormat;
-                return true;
-            }
-
-            return false;
+            return format is not null;
         }
 
-        // If the request specifies at least one accept media-type, we will
-        // determine which is best to use.
-        // For this, we first determine which characteristics our GraphQL result has.
-        var resultKind = result.Kind switch
+        var candidates = result.Kind switch
         {
-            SingleResult => ResultKind.Single,
-            SubscriptionResult => ResultKind.Subscription,
-            _ => ResultKind.Stream
+            SingleResult => _singleFormats,
+            SubscriptionResult => _subscriptionFormats,
+            _ => _streamFormats
         };
 
-        var rejectedFormats = GetRejectedFormats(acceptMediaTypes);
-
-        // RFC 9110, section 12.4.2: a media type with q=0 is not acceptable, and the server
-        // selects from the acceptable media types in descending order of quality.
-        if (RequiresQualityOrdering(acceptMediaTypes))
+        // The format each result kind falls back to, which is the one chosen above for a request
+        // that carries no Accept header at all. It settles ties between formats that only a
+        // wildcard matched, because such a header names none of them in particular.
+        var wildcardDefault = result.Kind switch
         {
-            var ordered = ArrayPool<AcceptMediaType>.Shared.Rent(length);
+            SingleResult => _defaultFormat,
+            SubscriptionResult => _eventStreamFormat,
+            _ => _multiPartFormat
+        };
 
-            try
-            {
-                var count = OrderByDescendingQuality(acceptMediaTypes, ordered);
-                var offset = 0;
+        var preferred = result.Kind is SingleResult ? _singlePreferred : _streamPreferred;
 
-                while (offset < count)
-                {
-                    var quality = GetQuality(ordered[offset]);
-                    var tierLength = 1;
+        // Every format the server can produce for this result is scored against the header, on
+        // three keys in order.
+        //
+        // Quality first, per RFC 9110, sections 12.4.2 and 12.5.1. Scoring the server's formats
+        // rather than walking the client's ranges is what lets a specific range override a
+        // wildcard in both directions, whether it raises or removes a format.
+        //
+        // Then whether the client asked for the format or merely allowed it. Naming a preferred
+        // format outright is a request, and so is a wildcard, which asks for the default; any
+        // other match is a fallback.
+        //
+        // Then, between two requests, the one the client wrote first. Section 12.5.1 gives that
+        // order no meaning, so this is the server's own choice among equally acceptable media
+        // types, and it keeps a named format from losing to a wildcard beside it.
+        var bestQuality = 0d;
+        var bestRequested = false;
+        var bestPosition = int.MaxValue;
 
-                    while (offset + tierLength < count
-                        && GetQuality(ordered[offset + tierLength]).Equals(quality))
-                    {
-                        tierLength++;
-                    }
-
-                    if (TrySelectFormat(
-                        ordered,
-                        offset,
-                        tierLength,
-                        resultKind,
-                        rejectedFormats,
-                        out selectedAcceptMediaType,
-                        out format))
-                    {
-                        return true;
-                    }
-
-                    offset += tierLength;
-                }
-
-                return false;
-            }
-            finally
-            {
-                ArrayPool<AcceptMediaType>.Shared.Return(ordered, clearArray: true);
-            }
-        }
-
-        return TrySelectFormat(
-            acceptMediaTypes,
-            0,
-            length,
-            resultKind,
-            rejectedFormats,
-            out selectedAcceptMediaType,
-            out format);
-    }
-
-    private static double GetQuality(AcceptMediaType mediaType)
-        => mediaType.Quality ?? 1.0;
-
-    /// <summary>
-    /// Collects the response content types the client marked unacceptable with q=0, as a bit per
-    /// <see cref="ResponseContentType"/>. RFC 9110, section 12.5.1 resolves a media type's quality
-    /// against the most specific range that matches it, so these rejections outrank any wildcard
-    /// the client also sent and must be honoured wherever a wildcard resolves to a concrete type.
-    /// </summary>
-    private static int GetRejectedFormats(AcceptMediaType[] acceptMediaTypes)
-    {
-        var rejected = 0;
-
-        foreach (var acceptMediaType in acceptMediaTypes)
+        foreach (var candidate in candidates)
         {
-            if (GetQuality(acceptMediaType) is not 0)
+            var match = MatchFormat(acceptMediaTypes, candidate.Kind);
+
+            if (match.Quality is 0)
             {
                 continue;
             }
 
-            rejected |= acceptMediaType.Kind switch
+            var named = match.NamedPosition >= 0 && Contains(preferred, candidate);
+            var byWildcard =
+                match.WildcardPosition >= 0 && ReferenceEquals(candidate, wildcardDefault);
+            var position = int.MaxValue;
+
+            if (named)
             {
-                ApplicationGraphQL => Bit(ResponseContentType.GraphQLResponse),
-                ApplicationGraphQLStream => Bit(ResponseContentType.GraphQLResponseStream),
-                ApplicationJson => Bit(ResponseContentType.Json),
-                ApplicationJsonLines => Bit(ResponseContentType.JsonLines),
-                MultiPartMixed => Bit(ResponseContentType.MultiPartMixed),
-                EventStream => Bit(ResponseContentType.EventStream),
-                AllApplication => Bit(ResponseContentType.GraphQLResponse)
-                    | Bit(ResponseContentType.GraphQLResponseStream)
-                    | Bit(ResponseContentType.Json)
-                    | Bit(ResponseContentType.JsonLines),
-                AllMultiPart => Bit(ResponseContentType.MultiPartMixed),
-                All => Bit(ResponseContentType.GraphQLResponse)
-                    | Bit(ResponseContentType.GraphQLResponseStream)
-                    | Bit(ResponseContentType.Json)
-                    | Bit(ResponseContentType.JsonLines)
-                    | Bit(ResponseContentType.MultiPartMixed)
-                    | Bit(ResponseContentType.EventStream),
-                _ => 0
-            };
+                position = match.NamedPosition;
+            }
+
+            if (byWildcard && match.WildcardPosition < position)
+            {
+                position = match.WildcardPosition;
+            }
+
+            var requested = named || byWildcard;
+
+            if (match.Quality > bestQuality
+                || (match.Quality.Equals(bestQuality)
+                    && requested
+                    && (!bestRequested || position < bestPosition)))
+            {
+                bestQuality = match.Quality;
+                bestRequested = requested;
+                bestPosition = position;
+                selectedAcceptMediaType = match.Range;
+                format = candidate;
+            }
         }
 
-        return rejected;
-
-        static int Bit(ResponseContentType contentType) => 1 << (int)contentType;
+        return format is not null;
     }
 
-    private static bool IsRejected(int rejectedFormats, FormatInfo format)
-        => (rejectedFormats & (1 << (int)format.Kind)) is not 0;
-
-    /// <summary>
-    /// Resolves the format a wildcard range selects for a single result, skipping a content type
-    /// the client rejected outright. Returns <c>null</c> when neither remains acceptable, leaving
-    /// the caller to try the streaming formats the same wildcard also covers.
-    /// </summary>
-    private FormatInfo? ResolveWildcardSingleFormat(int rejectedFormats)
+    private static bool Contains(FormatInfo[] formats, FormatInfo format)
     {
-        if (!IsRejected(rejectedFormats, _defaultFormat))
+        foreach (var candidate in formats)
         {
-            return _defaultFormat;
-        }
-
-        return IsRejected(rejectedFormats, _legacyFormat) ? null : _legacyFormat;
-    }
-
-    /// <summary>
-    /// Copies the acceptable media types into <paramref name="buffer"/>, ordered by descending
-    /// quality and, within one quality, in the order the client listed them. Media types with
-    /// q=0 are dropped.
-    /// </summary>
-    private static int OrderByDescendingQuality(
-        AcceptMediaType[] acceptMediaTypes,
-        AcceptMediaType[] buffer)
-    {
-        var count = 0;
-        var quality = double.PositiveInfinity;
-
-        while (true)
-        {
-            var next = double.NegativeInfinity;
-
-            foreach (var acceptMediaType in acceptMediaTypes)
-            {
-                var candidate = GetQuality(acceptMediaType);
-
-                if (candidate > 0 && candidate < quality && candidate > next)
-                {
-                    next = candidate;
-                }
-            }
-
-            if (double.IsNegativeInfinity(next))
-            {
-                return count;
-            }
-
-            foreach (var acceptMediaType in acceptMediaTypes)
-            {
-                if (GetQuality(acceptMediaType).Equals(next))
-                {
-                    buffer[count++] = acceptMediaType;
-                }
-            }
-
-            quality = next;
-        }
-    }
-
-    private static bool RequiresQualityOrdering(AcceptMediaType[] acceptMediaTypes)
-    {
-        var quality = GetQuality(acceptMediaTypes[0]);
-
-        for (var i = 1; i < acceptMediaTypes.Length; i++)
-        {
-            if (!GetQuality(acceptMediaTypes[i]).Equals(quality))
+            if (ReferenceEquals(candidate, format))
             {
                 return true;
             }
-        }
-
-        return quality is 0;
-    }
-
-    private bool TrySelectFormat(
-        AcceptMediaType[] acceptMediaTypes,
-        int offset,
-        int length,
-        ResultKind resultKind,
-        int rejectedFormats,
-        out AcceptMediaType selectedAcceptMediaType,
-        [NotNullWhen(true)] out FormatInfo? format)
-    {
-        selectedAcceptMediaType = default;
-        format = null;
-
-        ref var start = ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes), offset);
-
-        // If we just have one Accept header value, we will try to determine which formatter to take.
-        // We should only be unable to find a match if there was a previous validation skipped.
-        if (length == 1)
-        {
-            var mediaType = start;
-
-            if (resultKind is ResultKind.Single && mediaType.Kind is ApplicationGraphQL)
-            {
-                selectedAcceptMediaType = mediaType;
-                format = _graphqlResponseFormat;
-                return true;
-            }
-
-            if (mediaType.Kind is ApplicationGraphQLStream)
-            {
-                selectedAcceptMediaType = mediaType;
-                format = _graphqlResponseStreamFormat;
-                return true;
-            }
-
-            if (resultKind is ResultKind.Single && mediaType.Kind is ApplicationJson)
-            {
-                selectedAcceptMediaType = mediaType;
-                format = _legacyFormat;
-                return true;
-            }
-
-            if (resultKind is ResultKind.Single && mediaType.Kind is AllApplication or All)
-            {
-                var wildcardFormat = ResolveWildcardSingleFormat(rejectedFormats);
-
-                if (wildcardFormat is not null)
-                {
-                    selectedAcceptMediaType = mediaType;
-                    format = wildcardFormat;
-                    return true;
-                }
-            }
-
-            if (resultKind is ResultKind.Stream or ResultKind.Single
-                && mediaType.Kind is MultiPartMixed or AllMultiPart or All
-                && !IsRejected(rejectedFormats, _multiPartFormat))
-            {
-                selectedAcceptMediaType = mediaType;
-                format = _multiPartFormat;
-                return true;
-            }
-
-            if (resultKind is ResultKind.Stream or ResultKind.Subscription
-                && mediaType.Kind is ApplicationJsonLines)
-            {
-                selectedAcceptMediaType = mediaType;
-                format = _jsonLinesFormat;
-                return true;
-            }
-
-            if (mediaType.Kind is EventStream or All
-                && !IsRejected(rejectedFormats, _eventStreamFormat))
-            {
-                selectedAcceptMediaType = mediaType;
-                format = _eventStreamFormat;
-                return true;
-            }
-
-            return false;
-        }
-
-        // If we have more than one specified accept-header value, we will try to find the best for
-        // our GraphQL result.
-        ref var end = ref Unsafe.Add(ref start, length);
-        FormatInfo? possibleFormat = null;
-        AcceptMediaType possibleMediaType = default;
-
-        while (Unsafe.IsAddressLessThan(ref start, ref end))
-        {
-            if (resultKind is ResultKind.Single && start.Kind is AllApplication or All)
-            {
-                var wildcardFormat = ResolveWildcardSingleFormat(rejectedFormats);
-
-                if (wildcardFormat is not null)
-                {
-                    selectedAcceptMediaType = start;
-                    format = wildcardFormat;
-                    return true;
-                }
-            }
-
-            if (resultKind is ResultKind.Single && start.Kind is ApplicationJson)
-            {
-                // application/json is a legacy response content-type.
-                // We will create a formatInfo but keep on validating for
-                // a better suited format.
-                possibleFormat = _legacyFormat;
-                possibleMediaType = start;
-            }
-
-            if (resultKind is ResultKind.Single && start.Kind is ApplicationGraphQL)
-            {
-                selectedAcceptMediaType = start;
-                format = _graphqlResponseFormat;
-                return true;
-            }
-
-            if (resultKind is ResultKind.Stream or ResultKind.Subscription && start.Kind is ApplicationGraphQLStream)
-            {
-                selectedAcceptMediaType = start;
-                format = _graphqlResponseStreamFormat;
-                return true;
-            }
-
-            if (resultKind is ResultKind.Stream or ResultKind.Subscription && start.Kind is ApplicationJsonLines)
-            {
-                selectedAcceptMediaType = start;
-                format = _jsonLinesFormat;
-                return true;
-            }
-
-            if (resultKind is ResultKind.Stream or ResultKind.Single
-                && start.Kind is MultiPartMixed or AllMultiPart or All
-                && !IsRejected(rejectedFormats, _multiPartFormat))
-            {
-                // if the result is a stream, we consider this a perfect match and
-                // will use this format.
-                if (resultKind is ResultKind.Stream)
-                {
-                    possibleFormat = _multiPartFormat;
-                    possibleMediaType = start;
-                }
-
-                // if the format is an event-stream or not set, we will create a
-                // multipart/mixed formatInfo for the current result but also keep
-                // on validating for a better suited format.
-                if (possibleFormat?.Kind is not ResponseContentType.Json)
-                {
-                    possibleFormat = _multiPartFormat;
-                    possibleMediaType = start;
-                }
-            }
-
-            if (start.Kind is EventStream or All
-                && !IsRejected(rejectedFormats, _eventStreamFormat))
-            {
-                // if the result is a subscription, we consider this a perfect match and
-                // will use this format.
-                if (resultKind is ResultKind.Subscription or ResultKind.Stream)
-                {
-                    possibleFormat = _eventStreamFormat;
-                    possibleMediaType = start;
-                }
-
-                // if the result is stream, it means that we did not yet validate a
-                // multipart content-type and thus will create a format for the case that it
-                // is not specified;
-                // or we have a single result, but there is no format yet specified
-                // we will create a text/event-stream formatInfo for the current result
-                // but also keep on validating for a better suited format.
-                if (possibleFormat?.Kind is ResponseContentType.Unknown)
-                {
-                    possibleFormat = _multiPartFormat;
-                    possibleMediaType = start;
-                }
-            }
-
-            start = ref Unsafe.Add(ref start, 1);
-        }
-
-        if (possibleFormat is not null)
-        {
-            selectedAcceptMediaType = possibleMediaType;
-            format = possibleFormat;
-            return true;
         }
 
         return false;
     }
+
+    /// <summary>
+    /// Matches one response content type against the header. The quality comes from the media
+    /// range with the highest precedence that matches it, per RFC 9110, section 12.5.1, where a
+    /// specific media type outranks <c>type/*</c>, which outranks <c>*/*</c>; a quality of zero
+    /// means not acceptable, per section 12.4.2. The two positions are reported separately
+    /// because a format can be both named and covered by a wildcard, and each carries a
+    /// different request from the client.
+    /// </summary>
+    private static FormatMatch MatchFormat(
+        AcceptMediaType[] acceptMediaTypes,
+        ResponseContentType contentType)
+    {
+        var exactKind = GetExactKind(contentType);
+        var wildcardKind = GetWildcardKind(contentType);
+        var precedence = 0;
+        var quality = 0d;
+        var namedPosition = -1;
+        var wildcardPosition = -1;
+        var range = default(AcceptMediaType);
+
+        for (var i = 0; i < acceptMediaTypes.Length; i++)
+        {
+            var acceptMediaType = acceptMediaTypes[i];
+
+            // A media type the server does not recognize names nothing it can produce. The check
+            // has to come first because Unknown is also the sentinel GetWildcardKind returns for
+            // a content type that has no type/* range.
+            if (acceptMediaType.Kind is Unknown)
+            {
+                continue;
+            }
+
+            int candidate;
+
+            if (acceptMediaType.Kind == exactKind)
+            {
+                candidate = ExactRange;
+            }
+            else if (acceptMediaType.Kind == wildcardKind)
+            {
+                candidate = TypeWildcardRange;
+            }
+            else if (acceptMediaType.Kind is All)
+            {
+                candidate = FullWildcardRange;
+            }
+            else
+            {
+                continue;
+            }
+
+            if (candidate is ExactRange)
+            {
+                if (namedPosition < 0)
+                {
+                    namedPosition = i;
+                }
+            }
+            else if (wildcardPosition < 0)
+            {
+                wildcardPosition = i;
+            }
+
+            if (candidate < precedence)
+            {
+                continue;
+            }
+
+            var candidateQuality = GetQuality(acceptMediaType);
+
+            if (candidate > precedence || candidateQuality > quality)
+            {
+                precedence = candidate;
+                quality = candidateQuality;
+                range = acceptMediaType;
+            }
+        }
+
+        return new FormatMatch(quality, namedPosition, wildcardPosition, range);
+    }
+
+    /// <summary>
+    /// How one response content type fared against the client's Accept header.
+    /// </summary>
+    private readonly record struct FormatMatch(
+        double Quality,
+        int NamedPosition,
+        int WildcardPosition,
+        AcceptMediaType Range);
+
+    /// <summary>
+    /// Gets the media range that names a response content type exactly.
+    /// </summary>
+    private static AcceptMediaTypeKind GetExactKind(ResponseContentType contentType)
+        => contentType switch
+        {
+            ResponseContentType.GraphQLResponse => ApplicationGraphQL,
+            ResponseContentType.GraphQLResponseStream => ApplicationGraphQLStream,
+            ResponseContentType.Json => ApplicationJson,
+            ResponseContentType.JsonLines => ApplicationJsonLines,
+            ResponseContentType.MultiPartMixed => MultiPartMixed,
+            ResponseContentType.EventStream => EventStream,
+            _ => Unknown
+        };
+
+    /// <summary>
+    /// Gets the <c>type/*</c> range that covers a response content type. <c>text/*</c> has no
+    /// <see cref="AcceptMediaTypeKind"/>, so <c>text/event-stream</c> is covered by its exact
+    /// range and by <c>*/*</c> alone.
+    /// </summary>
+    private static AcceptMediaTypeKind GetWildcardKind(ResponseContentType contentType)
+        => contentType switch
+        {
+            ResponseContentType.MultiPartMixed => AllMultiPart,
+            ResponseContentType.EventStream => Unknown,
+            _ => AllApplication
+        };
+
+    /// <summary>
+    /// The media-range precedence levels of RFC 9110, section 12.5.1, from most to least
+    /// specific: a named media type, then <c>type/*</c>, then <c>*/*</c>.
+    /// </summary>
+    private const int ExactRange = 3;
+    private const int TypeWildcardRange = 2;
+    private const int FullWildcardRange = 1;
+
+    private static double GetQuality(AcceptMediaType mediaType)
+        => mediaType.Quality ?? 1.0;
 
     internal static DefaultHttpResponseFormatter Create(
         HttpResponseFormatterOptions options,

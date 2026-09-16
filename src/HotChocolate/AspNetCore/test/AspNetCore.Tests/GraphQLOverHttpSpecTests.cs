@@ -285,12 +285,9 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Add(response)
             .MatchInline(
                 """
-                Headers:
-                Content-Type: application/graphql-response+json; charset=utf-8
-                -------------------------->
                 Status Code: NotAcceptable
                 -------------------------->
-                {"errors":[{"message":"None of the `Accept` header values is supported.","extensions":{"code":"HC0063"}}]}
+                
                 """);
     }
 
@@ -710,12 +707,9 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             .Add(response)
             .MatchInline(
                 """
-                Headers:
-                Content-Type: application/graphql-response+json; charset=utf-8
-                -------------------------->
                 Status Code: NotAcceptable
                 -------------------------->
-                {"errors":[{"message":"None of the `Accept` header values is supported.","extensions":{"code":"HC0063"}}]}
+                
                 """);
     }
 
@@ -765,13 +759,14 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
     }
 
+    // The legacy transport is pinned alongside the current one because it does not soften this
+    // case: its 2xx-for-everything allowance covers responses that use application/json, and a
+    // client that accepts nothing the server can write leaves no body for it to apply to.
     [Theory]
-    [InlineData(Latest, NotAcceptable, ContentType.GraphQLResponse)]
-    [InlineData(Legacy, OK, ContentType.Json)]
-    public async Task Get_Should_AnswerInServerChoice_When_EveryMediaTypeIsRejected(
-        HttpTransportVersion transportVersion,
-        HttpStatusCode expectedStatusCode,
-        string expectedContentType)
+    [InlineData(Latest)]
+    [InlineData(Legacy)]
+    public async Task Get_Should_ReturnBareNotAcceptable_When_EveryMediaTypeIsRejected(
+        HttpTransportVersion transportVersion)
     {
         // arrange
         var client = GetClient(transportVersion);
@@ -784,8 +779,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.Equal(expectedStatusCode, response.StatusCode);
-        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+        Assert.Equal(NotAcceptable, response.StatusCode);
+        Assert.Null(response.Content.Headers.ContentType);
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -803,6 +800,135 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // assert
         Assert.Equal(MethodNotAllowed, response.StatusCode);
         Assert.Equal(["POST"], response.Content.Headers.Allow);
+    }
+
+    // Section 12.5.1 assigns no meaning to the order of equally acceptable ranges, so the server
+    // chooses: a range it treats as a request beats one it treats as a fallback, and between two
+    // requests, the one the client wrote first wins. A wildcard requests the transport default,
+    // which on the legacy transport is application/json, so it competes with a named GraphQL
+    // media type.
+    [Theory]
+    [InlineData("application/graphql-response+json, application/*", ContentType.GraphQLResponse)]
+    [InlineData("application/graphql-response+json, */*", ContentType.GraphQLResponse)]
+    [InlineData("application/*, application/graphql-response+json", ContentType.Json)]
+    [InlineData("*/*, application/graphql-response+json", ContentType.Json)]
+    public async Task SingleResult_Should_SelectTheEarlierRange_When_DefaultCompetesWithNamedType(
+        string acceptHeader,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(Legacy);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    // RFC 9110, section 12.5.1 resolves a media type's quality against the most specific range
+    // that matches it, so a named range overrides a wildcard whether it raises the quality or
+    // removes the type altogether.
+    [Theory]
+    [InlineData("*/*;q=0, application/*;q=1", ContentType.GraphQLResponse)]
+    [InlineData("*/*;q=1, application/graphql-response+json;q=0.5", ContentType.Json)]
+    [InlineData(
+        "application/*;q=0, application/graphql-response+json;q=1",
+        ContentType.GraphQLResponse)]
+    public async Task SingleResult_Should_ResolveQualityAgainstTheMostSpecificRange(
+        string acceptHeader,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    [Fact]
+    public async Task DeferredResult_Should_SelectAcceptableFormat_When_WildcardOutranksRejections()
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest { Query = "{ ... @defer { __typename } }" });
+        AddAcceptHeader(request, "multipart/mixed;q=0, text/event-stream;q=0, */*;q=1");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(
+            ContentType.GraphQLResponseStream,
+            response.Content.Headers.ContentType?.ToString());
+    }
+
+    // The request flags are validated before the operation runs and cannot know which result
+    // kind it will produce, so a header that is acceptable for a plain query and acceptable for
+    // nothing a deferred result can be written in reaches the formatter with no usable format.
+    [Fact]
+    public async Task DeferredResult_Should_ExplainNotAcceptable_When_DefaultFormatIsAcceptable()
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest { Query = "{ ... @defer { __typename } }" });
+        AddAcceptHeader(
+            request,
+            "multipart/mixed;q=0, text/event-stream;q=0, application/graphql-response+jsonl;q=0, "
+            + "application/jsonl;q=0, */*;q=1");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotAcceptable, response.StatusCode);
+        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+        Assert.Contains(
+            "HC0063",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task DeferredResult_Should_ReturnBareNotAcceptable_When_DefaultFormatIsRejected()
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest { Query = "{ ... @defer { __typename } }" });
+        AddAcceptHeader(
+            request,
+            "application/*;q=0, multipart/mixed;q=0, text/event-stream;q=0, */*;q=1");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotAcceptable, response.StatusCode);
+        Assert.Null(response.Content.Headers.ContentType);
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
     }
 
     [Fact]
