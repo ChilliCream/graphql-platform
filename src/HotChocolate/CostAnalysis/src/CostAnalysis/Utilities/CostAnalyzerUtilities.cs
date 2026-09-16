@@ -81,8 +81,7 @@ internal static class CostAnalyzerUtilities
 
             if (argumentCount != 1)
             {
-                throw new GraphQLException(
-                    ErrorHelper.ExactlyOneSlicingArgMustBeDefined(sourceNode, path));
+                throw ThrowHelper.ExactlyOneSlicingArgMustBeDefined(sourceNode, path);
             }
         }
     }

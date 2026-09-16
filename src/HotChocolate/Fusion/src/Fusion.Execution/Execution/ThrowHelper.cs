@@ -53,6 +53,15 @@ internal static class ThrowHelper
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)
         => new($"Expected client configuration of type '{expected.Name}' but received '{actual.Name}'.");
 
+    public static InvalidOperationException NormalizedDocumentNotSet()
+        => new("The normalized document was not set.");
+
+    public static InvalidOperationException CostOptionsAreReadOnly()
+        => new("The cost options are read-only.");
+
+    public static InvalidOperationException OperationDocumentNotAvailable()
+        => new("The operation document is not available in the context.");
+
     public static ArgumentOutOfRangeException InvalidCostOptionValue(
         string optionName,
         double value)

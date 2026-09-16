@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 // ReSharper disable once CheckNamespace
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -114,7 +115,7 @@ public static class FusionRequestContextExtensions
 
         if (normalizedDocument is null)
         {
-            throw new InvalidOperationException("The normalized document was not set.");
+            throw ThrowHelper.NormalizedDocumentNotSet();
         }
 
         return normalizedDocument;

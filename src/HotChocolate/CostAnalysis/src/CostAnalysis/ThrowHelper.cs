@@ -1,3 +1,6 @@
+using HotChocolate.CostAnalysis.Utilities;
+using HotChocolate.Language;
+
 namespace HotChocolate.CostAnalysis;
 
 internal static class ThrowHelper
@@ -9,4 +12,9 @@ internal static class ThrowHelper
             optionName,
             value,
             "The value must be a non-negative finite number or positive infinity.");
+
+    public static GraphQLException ExactlyOneSlicingArgMustBeDefined(
+        FieldNode sourceNode,
+        IList<ISyntaxNode> path)
+        => new(ErrorHelper.ExactlyOneSlicingArgMustBeDefined(sourceNode, path));
 }
