@@ -12,6 +12,8 @@ export const STRAND_COUNT = 5;
 
 export const ENTRY_X = VIEW_W;
 const ENTRY_Y: readonly number[] = [30, 95, 160, 225, 290];
+/** Slightly past `ENTRY_X` so the drift animation never opens a seam at the entry edge. */
+const ENTRY_OVERLAP = 24;
 
 const BRAID_X0 = 1020;
 const BRAID_X1 = 680;
@@ -60,7 +62,7 @@ export function buildEntryPaths(): readonly EntryPath[] {
     const endY = braidY(index, 0);
     const c1x = ENTRY_X - 230;
     const c2x = BRAID_X0 + 230;
-    const d = `M ${ENTRY_X} ${startY} C ${c1x} ${startY + (endY - startY) * 0.2}, ${c2x} ${endY - (endY - startY) * 0.2}, ${BRAID_X0} ${endY}`;
+    const d = `M ${ENTRY_X + ENTRY_OVERLAP} ${startY} C ${c1x} ${startY + (endY - startY) * 0.2}, ${c2x} ${endY - (endY - startY) * 0.2}, ${BRAID_X0} ${endY}`;
     return { index, d };
   });
 }
@@ -76,13 +78,16 @@ export interface BraidQuad {
  * the strand that is "in front" at each crossing actually covers the one
  * behind it and the weave reads as a real braid, not five plain crossings.
  */
+/** Small overlap so adjacent braid quads' shared edges do not antialias into a visible seam. */
+const QUAD_OVERLAP = 0.75;
+
 export function buildBraidQuads(): readonly BraidQuad[] {
   const quads: BraidQuad[] = [];
   const segWidth = (BRAID_X0 - BRAID_X1) / BRAID_SEGMENTS;
   const half = RIBBON_WIDTH / 2;
 
   for (let seg = 0; seg < BRAID_SEGMENTS; seg++) {
-    const x0 = BRAID_X0 - seg * segWidth;
+    const x0 = BRAID_X0 - seg * segWidth + (seg === 0 ? 0 : QUAD_OVERLAP);
     const x1 = BRAID_X0 - (seg + 1) * segWidth;
     const order = Array.from({ length: STRAND_COUNT }, (_, i) => i).sort(
       (a, b) => braidDepth(a, seg) - braidDepth(b, seg),

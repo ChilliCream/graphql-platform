@@ -130,7 +130,7 @@ export default function AuroraRibbons() {
           }}
         />
 
-        {/* Braid: the five strands crossing in visible over/under order. */}
+        {/* Braid and entry strands share this drift so the seam between them never opens. */}
         <g
           style={{
             animation: anim(
@@ -146,25 +146,25 @@ export default function AuroraRibbons() {
               fill={SERVICE_SPECTRUM[quad.index].color}
             />
           ))}
-        </g>
 
-        {/* Entry strands, undulating gently before they reach the braid. */}
-        {ENTRY_PATHS.map(({ index, d }) => (
-          <path
-            key={SERVICE_SPECTRUM[index].label}
-            d={d}
-            fill="none"
-            stroke={SERVICE_SPECTRUM[index].color}
-            strokeWidth={RIBBON_WIDTH}
-            strokeLinecap="round"
-            style={{
-              animation: anim(
-                running,
-                `fx-auroraribbons-undulate-${index % 2 === 0 ? "a" : "b"} ${5200 + index * 420}ms ease-in-out infinite`,
-              ),
-            }}
-          />
-        ))}
+          {/* Entry strands, undulating gently before they reach the braid. */}
+          {ENTRY_PATHS.map(({ index, d }) => (
+            <path
+              key={SERVICE_SPECTRUM[index].label}
+              d={d}
+              fill="none"
+              stroke={SERVICE_SPECTRUM[index].color}
+              strokeWidth={RIBBON_WIDTH}
+              strokeLinecap="round"
+              style={{
+                animation: anim(
+                  running,
+                  `fx-auroraribbons-undulate-${index % 2 === 0 ? "a" : "b"} ${5200 + index * 420}ms ease-in-out infinite`,
+                ),
+              }}
+            />
+          ))}
+        </g>
       </svg>
 
       {/* Scrim so the hero copy stays readable over the merged ribbon. */}
