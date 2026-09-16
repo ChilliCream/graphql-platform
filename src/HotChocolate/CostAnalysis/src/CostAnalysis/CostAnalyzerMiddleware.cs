@@ -79,13 +79,7 @@ internal sealed class CostAnalyzerMiddleware(
 
                 var isAssumedBound = context.IsWarmupRequest();
 
-                // Every non-warmup request runs variable coercion before reaching the
-                // analyzer (OperationVariableCoercionMiddleware), and coercion always
-                // produces at least one variable set (an empty object for a request with
-                // no variable definitions). The one path that can still surface a
-                // non-warmup, zero-set request is an explicit empty variable batch
-                // (`variables: []`), so this is a real state guard, not just a defensive
-                // assert: the assumed bound must never leak back into the request path.
+                // Non-warmup cost analysis requires at least one coerced variable set, so an explicit empty variable batch is invalid.
                 if (!isAssumedBound && context.VariableValues.Length == 0)
                 {
                     context.Result = ErrorHelper.StateInvalidForCostAnalysisMissingVariableValues();
