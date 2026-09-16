@@ -185,7 +185,7 @@ public sealed class FusionCostOptions
     {
         if (_isReadOnly)
         {
-            throw new InvalidOperationException("The cost options are read-only.");
+            throw ThrowHelper.CostOptionsAreReadOnly();
         }
     }
 }
