@@ -23,8 +23,9 @@ interface VersionSwitcherProps {
 
 /**
  * Floating pill bar, fixed to the bottom of the viewport on every Fusion
- * prototype page: prev/next arrows plus a popover that lists the production
- * page and every registered concept version. Hidden from print.
+ * prototype page: a PROTOTYPE tag and a not-indexed caption around the
+ * current version label, prev/next arrows, and a popover that lists the
+ * production page and every registered concept version. Hidden from print.
  *
  * Concept tasks do not render this directly - `PrototypeShell` does.
  */
@@ -102,15 +103,23 @@ export function VersionSwitcher({ current }: VersionSwitcherProps) {
         >
           ‹
         </Link>
-        <button
-          type="button"
-          aria-haspopup="menu"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-          className="text-cc-heading hover:bg-cc-white/5 focus-visible:ring-cc-heading rounded-full px-3 py-1.5 font-mono text-xs whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none"
-        >
-          {labelFor(current)}
-        </button>
+        <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 px-1">
+          <span className="text-cc-nav-label font-mono text-[10px] tracking-[0.15em] uppercase">
+            PROTOTYPE
+          </span>
+          <button
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="text-cc-heading hover:bg-cc-white/5 focus-visible:ring-cc-heading rounded-full px-1.5 py-1.5 font-mono text-xs whitespace-nowrap focus-visible:ring-2 focus-visible:outline-none"
+          >
+            {labelFor(current)}
+          </button>
+          <span className="text-cc-ink-dim font-mono text-[10px] tracking-[0.1em] uppercase">
+            not indexed
+          </span>
+        </div>
         {nextHref ? (
           <Link
             href={nextHref}
