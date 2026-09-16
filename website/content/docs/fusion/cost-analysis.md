@@ -127,7 +127,7 @@ Configure `FusionCostOptions` with `ModifyCostOptions`:
 | `SkipAnalyzer`               | `bool`                        | `false` | Skips analysis, enforcement, and reporting.                                                                                                    |
 | `MaxResponseSize`            | `double?`                     | `null`  | Maximum estimated response-field count. `null` disables this check and metric. Valid range: `null`, non-negative finite values, or `Infinity`. |
 | `CostPlanCacheSize`          | `int`                         | `256`   | Maximum compiled cost plans cached per schema.                                                                                                 |
-| `CaseBudget`                 | `int?`                        | `null`  | Exact cases evaluated per operation before the remainder falls back per `CaseBudgetExceededBehavior`. `null` uses the default (510).           |
+| `CaseBudget`                 | `int?`                        | `null`  | Exact cases compiled per operation before `CaseBudgetExceededBehavior` decides the fallback. `null` uses the default (510).                    |
 | `CaseBudgetExceededBehavior` | `CaseBudgetExceededBehavior?` | `null`  | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).                                   |
 
 ```csharp
