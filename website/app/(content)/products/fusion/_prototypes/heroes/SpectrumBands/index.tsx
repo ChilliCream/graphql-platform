@@ -52,7 +52,7 @@ export default function SpectrumBands() {
       <style>{KEYFRAMES}</style>
 
       <svg
-        className="absolute inset-0 h-full w-full"
+        className="absolute inset-0 h-full w-full translate-y-[35%] sm:translate-y-0"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         preserveAspectRatio="none"
       >
@@ -197,7 +197,7 @@ export default function SpectrumBands() {
       <div
         className="absolute inset-0 sm:hidden"
         style={{
-          background: `linear-gradient(90deg, ${CC.bg} 0%, ${CC.bg} 50%, color-mix(in srgb, ${CC.bg} 85%, transparent) 100%)`,
+          background: `linear-gradient(90deg, color-mix(in srgb, ${CC.bg} 80%, transparent) 0%, color-mix(in srgb, ${CC.bg} 80%, transparent) 50%, color-mix(in srgb, ${CC.bg} 60%, transparent) 100%)`,
         }}
       />
       <div
