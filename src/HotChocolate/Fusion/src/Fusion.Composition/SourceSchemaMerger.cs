@@ -1368,7 +1368,7 @@ internal sealed partial class SourceSchemaMerger
             CostCoordinateKind.LeafType => CostDirectiveFold.LeafTypeDefaultWeight,
             CostCoordinateKind.OutputField => CostDirectiveFold.GetOutputFieldDefaultWeight(coordinateType!),
             CostCoordinateKind.InputValue => CostDirectiveFold.GetInputValueDefaultWeight(coordinateType!),
-            _ => throw new ArgumentOutOfRangeException(nameof(kind))
+            _ => throw ThrowHelper.UnexpectedCostCoordinateKind(kind)
         };
     }
 
