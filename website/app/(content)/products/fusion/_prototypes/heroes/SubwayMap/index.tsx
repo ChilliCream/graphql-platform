@@ -8,11 +8,9 @@ import { anim, useElementMotion } from "../../../visuals/hooks";
 import { SERVICE_SPECTRUM } from "../../spectrum";
 
 /**
- * A transit-map diagram: one line per service runs in from the right edge,
- * bends at 45 degrees past a station tick, and merges into the FUSION
- * interchange in the hero's right half. Past the interchange a single line
- * continues to the left edge. A train marker travels each line into the
- * interchange in sequence; the rest frame shows every line already meeting.
+ * A transit-map diagram: five service-coloured lines bend into a FUSION
+ * interchange and continue on as one line to the edge, each with a station
+ * tick and label. The rest frame shows every line already converged.
  */
 
 const VIEW_W = 1000;
@@ -24,6 +22,10 @@ const RIGHT_EDGE = VIEW_W + 40;
 const LEFT_EDGE = -40;
 const LINE_Y = [70, 195, 300, 405, 530] as const;
 const TICK_R = 5;
+/** Trunk exit row, well below the copy block so no line crosses it. */
+const TRUNK_Y = 520;
+/** Where the trunk finishes dropping to TRUNK_Y, still right of the copy block. */
+const TRUNK_BEND_X = 560;
 
 const KEYFRAMES = `
 @keyframes fx-subwaymap-train {
@@ -83,9 +85,15 @@ const LINES = SERVICE_SPECTRUM.map((stop, i) => ({
   geometry: buildLine(LINE_Y[i]),
 }));
 
-const TRUNK: readonly (readonly [number, number])[] = [
+/** Hub to bend, staying right of the copy column while it drops to TRUNK_Y. */
+const TRUNK_NEAR: readonly (readonly [number, number])[] = [
   [INTERCHANGE.x, INTERCHANGE.y],
-  [LEFT_EDGE, INTERCHANGE.y],
+  [TRUNK_BEND_X, TRUNK_Y],
+];
+/** Bend to the left edge, a flat run below the copy block. */
+const TRUNK_FAR: readonly (readonly [number, number])[] = [
+  [TRUNK_BEND_X, TRUNK_Y],
+  [LEFT_EDGE, TRUNK_Y],
 ];
 
 export default function SubwayMap() {
@@ -97,7 +105,7 @@ export default function SubwayMap() {
       <style>{KEYFRAMES}</style>
 
       <svg
-        className="absolute inset-0 h-full w-full -translate-x-[56%] translate-y-[38%] scale-[0.6] overflow-visible sm:translate-x-0 sm:translate-y-0 sm:scale-100"
+        className="absolute inset-0 h-full w-full -translate-x-[48%] translate-y-[25%] scale-[0.54] overflow-visible sm:translate-x-0 sm:translate-y-0 sm:scale-100"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         preserveAspectRatio="xMidYMid slice"
       >
@@ -108,7 +116,7 @@ export default function SubwayMap() {
             x1={INTERCHANGE.x}
             y1={INTERCHANGE.y}
             x2={LEFT_EDGE}
-            y2={INTERCHANGE.y}
+            y2={TRUNK_Y}
           >
             <stop offset="0%" stopColor={CC.white} stopOpacity={0.9} />
             <stop offset="100%" stopColor={CC.white} stopOpacity={0.15} />
@@ -127,7 +135,14 @@ export default function SubwayMap() {
         </defs>
 
         <path
-          d={pathD(TRUNK)}
+          d={pathD(TRUNK_NEAR)}
+          stroke="url(#sm-trunk-gradient)"
+          strokeWidth={5}
+          strokeLinecap="round"
+          fill="none"
+        />
+        <path
+          d={pathD(TRUNK_FAR)}
           stroke="url(#sm-trunk-gradient)"
           strokeWidth={5}
           strokeLinecap="round"
@@ -220,7 +235,7 @@ export default function SubwayMap() {
               textAnchor="middle"
               fill={stop.color}
               fontFamily={FONTS.mono}
-              className="text-[15px] sm:text-[10px]"
+              className="text-[17px] sm:text-[10px]"
               style={{ letterSpacing: "0.15em", textTransform: "uppercase" }}
             >
               {stop.label}
@@ -234,7 +249,7 @@ export default function SubwayMap() {
           textAnchor="middle"
           fill={CC.heading}
           fontFamily={FONTS.heading}
-          className="text-[16px] sm:text-[13px]"
+          className="text-[17px] sm:text-[13px]"
           style={{ letterSpacing: "0.2em", textTransform: "uppercase" }}
         >
           Fusion
