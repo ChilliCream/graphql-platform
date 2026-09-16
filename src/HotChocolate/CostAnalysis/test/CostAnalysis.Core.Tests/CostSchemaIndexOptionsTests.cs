@@ -22,6 +22,31 @@ public class CostSchemaIndexOptionsTests
         Assert.Equal(510, options.CaseBudget);
     }
 
+    [Fact]
+    public void CaseBudgetExceededBehavior_Should_Default_To_EvaluatePerRequest()
+    {
+        // act
+        var options = new CostSchemaIndexOptions();
+
+        // assert
+        Assert.Equal(CaseBudgetExceededBehavior.EvaluatePerRequest, options.CaseBudgetExceededBehavior);
+    }
+
+    [Theory]
+    [InlineData(CaseBudgetExceededBehavior.EvaluatePerRequest)]
+    [InlineData(CaseBudgetExceededBehavior.Overestimate)]
+    public void CaseBudgetExceededBehavior_Should_RoundTrip_When_Set(CaseBudgetExceededBehavior value)
+    {
+        // arrange
+        var options = new CostSchemaIndexOptions();
+
+        // act
+        options.CaseBudgetExceededBehavior = value;
+
+        // assert
+        Assert.Equal(value, options.CaseBudgetExceededBehavior);
+    }
+
     [Theory]
     [InlineData(double.NaN, false)]
     [InlineData(-1.0, false)]

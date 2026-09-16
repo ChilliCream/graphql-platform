@@ -766,19 +766,27 @@ public class CostSchemaIndexTests
     {
         // arrange
         var schema = SchemaParser.Parse("type Query { field: String }");
-        var options = new CostSchemaIndexOptions { DefaultListSize = 42.0, CaseBudget = 17 };
+        var options = new CostSchemaIndexOptions
+        {
+            DefaultListSize = 42.0,
+            CaseBudget = 17,
+            CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate
+        };
 
         // act
         var schemaIndex = CostSchemaIndex.Create(schema, options);
         options.DefaultListSize = 99.0;
         options.CaseBudget = 3;
+        options.CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.EvaluatePerRequest;
         var returned = schemaIndex.Options;
         returned.DefaultListSize = 101.0;
         returned.CaseBudget = 1;
+        returned.CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.EvaluatePerRequest;
 
         // assert
         Assert.Equal(42.0, schemaIndex.Options.DefaultListSize);
         Assert.Equal(17, schemaIndex.Options.CaseBudget);
+        Assert.Equal(CaseBudgetExceededBehavior.Overestimate, schemaIndex.Options.CaseBudgetExceededBehavior);
         Assert.NotSame(returned, schemaIndex.Options);
     }
 }
