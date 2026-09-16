@@ -127,4 +127,12 @@ internal static class ThrowHelper
     public static NotSupportedException Formatter_ResponseContentTypeNotSupported(
         string contentType)
         => new(string.Format(ThrowHelper_Formatter_ResponseContentTypeNotSupported, contentType));
+
+    public static ArgumentOutOfRangeException Formatter_TransportVersionNotSupported(
+        string paramName,
+        HttpTransportVersion transportVersion)
+        => new(
+            paramName,
+            transportVersion,
+            string.Format(ThrowHelper_Formatter_TransportVersionNotSupported, transportVersion));
 }

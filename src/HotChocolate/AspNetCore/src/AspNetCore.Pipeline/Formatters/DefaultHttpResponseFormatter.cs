@@ -24,6 +24,8 @@ namespace HotChocolate.AspNetCore.Formatters;
 /// </summary>
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
+    private const HttpTransportVersion LatestTransportVersion = HttpTransportVersion.Draft20250508;
+
     private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = new(StringComparer.Ordinal);
     private readonly ITimeProvider _timeProvider;
@@ -39,7 +41,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo[] _subscriptionFormats;
     private readonly FormatInfo[] _singlePreferred;
     private readonly FormatInfo[] _streamPreferred;
-    private readonly bool _isLegacyTransport;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
 
     /// <summary>
@@ -128,8 +129,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             ContentType.JsonLines,
             ResponseContentType.JsonLines,
             jsonLinesResultFormatter);
-        _isLegacyTransport = options.HttpTransportVersion is HttpTransportVersion.Legacy;
-        _defaultFormat = _isLegacyTransport
+        TransportVersion = ResolveTransportVersion(options.HttpTransportVersion, nameof(options));
+        _defaultFormat = TransportVersion is HttpTransportVersion.Legacy
             ? _legacyFormat
             : _graphqlResponseFormat;
 
@@ -165,6 +166,12 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             ? IncrementalDeliveryFormat.Version_0_2
             : incrementalDeliveryFormat;
     }
+
+    /// <summary>
+    /// Gets the transport version the formatter writes responses against, with
+    /// <see cref="HttpTransportVersion.Latest"/> resolved to the revision it stands for.
+    /// </summary>
+    internal HttpTransportVersion TransportVersion { get; }
 
     public RequestFlags CreateRequestFlags(
         AcceptMediaType[] acceptMediaTypes)
@@ -513,7 +520,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             // the legacy transport preserves the pre-spec behavior of always returning
             // 200 for the application/json response content-type.
-            if (_isLegacyTransport)
+            if (TransportVersion is HttpTransportVersion.Legacy)
             {
                 return HttpStatusCode.OK;
             }
@@ -955,6 +962,18 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
     private static double GetQuality(AcceptMediaType mediaType)
         => mediaType.Quality ?? 1.0;
+
+    private static HttpTransportVersion ResolveTransportVersion(
+        HttpTransportVersion version,
+        string paramName)
+        => version switch
+        {
+            HttpTransportVersion.Latest => LatestTransportVersion,
+            HttpTransportVersion.Legacy => HttpTransportVersion.Legacy,
+            HttpTransportVersion.Draft20230127 => HttpTransportVersion.Draft20250508,
+            HttpTransportVersion.Draft20250508 => HttpTransportVersion.Draft20250508,
+            _ => throw ThrowHelper.Formatter_TransportVersionNotSupported(paramName, version)
+        };
 
     internal static DefaultHttpResponseFormatter Create(
         HttpResponseFormatterOptions options,
