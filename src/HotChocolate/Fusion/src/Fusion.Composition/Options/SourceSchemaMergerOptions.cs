@@ -16,16 +16,12 @@ public sealed class SourceSchemaMergerOptions
     public DirectiveMergeBehavior CacheControlMergeBehavior { get; set; } = DirectiveMergeBehavior.Include;
 
     /// <summary>
-    /// Gets or sets the list size an executor MUST assume for a list field when no other
-    /// list-size information applies (no supplied slicing argument, no
-    /// <c>slicingArgumentDefaultValue</c>, no <c>assumedSize</c>, and no inherited sized field).
-    /// <see langword="null"/> by default, meaning unbounded: no <c>@fusion__cost_options</c>
-    /// directive is emitted, and the derived <c>@listSize</c> for a field with at least one
-    /// unannotated serving source omits <c>assumedSize</c>.
-    /// A non-null value must be non-negative.
+    /// Gets or sets the default assumed size for list fields without more specific
+    /// list-size information. The default is <see langword="null"/>, which represents
+    /// an unbounded list size.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
-    /// The value is negative.
+    /// The assigned value is negative.
     /// </exception>
     public int? DefaultListSize
     {
