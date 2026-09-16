@@ -18,14 +18,12 @@ import { SERVICE_SPECTRUM } from "../../spectrum";
 const VIEW_W = 1000;
 const VIEW_H = 600;
 
-const INTERCHANGE = { x: 620, y: 300 };
+const INTERCHANGE = { x: 580, y: 300 };
 const APPROACH = 55;
 const RIGHT_EDGE = VIEW_W + 40;
 const LEFT_EDGE = -40;
 const LINE_Y = [70, 195, 300, 405, 530] as const;
 const TICK_R = 5;
-/** Fixed anchor for every service label: inside each line's entry segment, clear of the interchange. */
-const LABEL_X = 900;
 
 const KEYFRAMES = `
 @keyframes fx-subwaymap-train {
@@ -101,7 +99,7 @@ export default function SubwayMap() {
       <svg
         className="absolute inset-0 h-full w-full"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        preserveAspectRatio="none"
+        preserveAspectRatio="xMidYMid slice"
       >
         <defs>
           <linearGradient
@@ -211,38 +209,37 @@ export default function SubwayMap() {
             />
           );
         })}
+
+        {LINES.map(({ stop, geometry }) => {
+          const [tickX, tickY] = geometry.ticks[0];
+          return (
+            <text
+              key={stop.label}
+              x={tickX}
+              y={tickY - (TICK_R + 8)}
+              textAnchor="middle"
+              fill={stop.color}
+              fontFamily={FONTS.mono}
+              fontSize={10}
+              style={{ letterSpacing: "0.15em", textTransform: "uppercase" }}
+            >
+              {stop.label}
+            </text>
+          );
+        })}
+
+        <text
+          x={INTERCHANGE.x}
+          y={INTERCHANGE.y + 60}
+          textAnchor="middle"
+          fill={CC.heading}
+          fontFamily={FONTS.heading}
+          fontSize={13}
+          style={{ letterSpacing: "0.2em", textTransform: "uppercase" }}
+        >
+          Fusion
+        </text>
       </svg>
-
-      {LINES.map(({ stop, geometry }) => {
-        const labelY = geometry.vertices[0][1];
-        return (
-          <span
-            key={stop.label}
-            className="absolute text-[12px] tracking-[0.15em] whitespace-nowrap uppercase"
-            style={{
-              left: `${(LABEL_X / VIEW_W) * 100}%`,
-              top: `${(labelY / VIEW_H) * 100}%`,
-              transform: "translate(-50%, -14px)",
-              color: stop.color,
-              fontFamily: FONTS.mono,
-            }}
-          >
-            {stop.label}
-          </span>
-        );
-      })}
-
-      <span
-        className="font-heading absolute text-[15px] tracking-[0.2em] whitespace-nowrap uppercase"
-        style={{
-          left: `${(INTERCHANGE.x / VIEW_W) * 100}%`,
-          top: `${(INTERCHANGE.y / VIEW_H) * 100}%`,
-          transform: "translate(-50%, 46px)",
-          color: CC.heading,
-        }}
-      >
-        Fusion
-      </span>
 
       <div
         className="absolute inset-0 sm:hidden"
