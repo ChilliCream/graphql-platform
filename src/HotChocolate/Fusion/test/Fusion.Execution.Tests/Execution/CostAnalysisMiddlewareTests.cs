@@ -34,6 +34,26 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         }
         """;
 
+    private const string CaseBudgetSchema =
+        """
+        directive @cost(weight: String!) on ARGUMENT_DEFINITION | ENUM | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | OBJECT | SCALAR
+
+        type Query {
+          a: Boolean! @cost(weight: "1")
+          b: Boolean! @cost(weight: "2")
+          c: Boolean! @cost(weight: "4")
+        }
+        """;
+
+    private const string CaseBudgetOperation =
+        """
+        query($x: Boolean!, $y: Boolean!, $z: Boolean!) {
+          a @include(if: $x)
+          b @include(if: $y)
+          c @include(if: $z)
+        }
+        """;
+
     [Fact]
     public async Task SchemaIndex_Should_UseDefaultCaseBudget_When_OptionIsNull()
     {
@@ -435,9 +455,64 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         Assert.Equal(1, observation.DownstreamCalls);
     }
 
+    [Fact]
+    public async Task CaseBudgetExceededBehavior_Should_PriceExactly_When_DefaultBehaviorIsUsed()
+    {
+        // arrange: the case budget affords no exact split, so the default (EvaluatePerRequest)
+        // mode re-derives the exact cost from the operation's condition tree
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            o => o.CaseBudget = 0,
+            observation,
+            CaseBudgetSchema);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var request = OperationRequestBuilder.New()
+            .SetDocument(CaseBudgetOperation)
+            .SetVariableValues(new Dictionary<string, object?> { ["x"] = true, ["y"] = false, ["z"] = true })
+            .AddGlobalState(ExecutionContextData.ValidateCost, true)
+            .Build();
+
+        // act
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert: only the included fields (a and c) are billed, the excluded field (b) is not
+        Assert.Equal(5.0, observation.Result!.Estimates[0].FieldCost);
+    }
+
+    [Fact]
+    public async Task CaseBudgetExceededBehavior_Should_PriceByEnvelope_When_OverestimateIsConfigured()
+    {
+        // arrange: the same operation and variables, but Overestimate bakes a conservative
+        // envelope for the whole operation into the compiled plan instead
+        var observation = new CostObservation();
+        await using var services = CreateServices(
+            o =>
+            {
+                o.CaseBudget = 0;
+                o.CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate;
+            },
+            observation,
+            CaseBudgetSchema);
+        var executor = await services.GetRequestExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        using var request = OperationRequestBuilder.New()
+            .SetDocument(CaseBudgetOperation)
+            .SetVariableValues(new Dictionary<string, object?> { ["x"] = true, ["y"] = false, ["z"] = true })
+            .AddGlobalState(ExecutionContextData.ValidateCost, true)
+            .Build();
+
+        // act
+        await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+
+        // assert: every field is billed as if included, regardless of the excluded one
+        Assert.Equal(7.0, observation.Result!.Estimates[0].FieldCost);
+    }
+
     private static ServiceProvider CreateServices(
         Action<FusionCostOptions>? configure = null,
-        CostObservation? observation = null)
+        CostObservation? observation = null,
+        string schema = Schema)
     {
         var services = new ServiceCollection();
         var builder = services
@@ -467,7 +542,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
                     allowMultiple: true);
         }
 
-        builder.AddInMemoryConfiguration(ComposeSchemaDocument(1, Schema));
+        builder.AddInMemoryConfiguration(ComposeSchemaDocument(1, schema));
         return services.BuildServiceProvider();
     }
 

@@ -1,3 +1,4 @@
+using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -22,7 +23,8 @@ public class FusionRequestOptionsTests : FusionTestBase
               "SkipAnalyzer": false,
               "MaxResponseSize": null,
               "CostPlanCacheSize": 256,
-              "CaseBudget": null
+              "CaseBudget": null,
+              "CaseBudgetExceededBehavior": null
             }
             """);
     }
@@ -38,6 +40,7 @@ public class FusionRequestOptionsTests : FusionTestBase
         options.Cost.MaxResponseSize = 2_000;
         options.Cost.CostPlanCacheSize = 64;
         options.Cost.CaseBudget = 128;
+        options.Cost.CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate;
 
         // act
         var clone = options.Clone();
@@ -55,7 +58,8 @@ public class FusionRequestOptionsTests : FusionTestBase
               "SkipAnalyzer": false,
               "MaxResponseSize": 2000.0,
               "CostPlanCacheSize": 64,
-              "CaseBudget": 128
+              "CaseBudget": 128,
+              "CaseBudgetExceededBehavior": "Overestimate"
             }
             """);
     }

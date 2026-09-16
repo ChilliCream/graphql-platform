@@ -163,4 +163,11 @@ public sealed class CostOptions
     /// operation. <c>null</c> uses the default (510).
     /// </summary>
     public int? CaseBudget { get; set; }
+
+    /// <summary>
+    /// Gets or sets the behavior once compiling one operation exhausts
+    /// <see cref="CaseBudget"/>. <c>null</c> uses the default
+    /// (<see cref="CaseBudgetExceededBehavior.EvaluatePerRequest"/>).
+    /// </summary>
+    public CaseBudgetExceededBehavior? CaseBudgetExceededBehavior { get; set; }
 }
