@@ -60,7 +60,7 @@ export default function AuroraRibbons() {
       <svg
         className="absolute inset-0 h-full w-full"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        preserveAspectRatio="xMinYMid slice"
+        preserveAspectRatio="xMidYMid slice"
       >
         <defs>
           <linearGradient
