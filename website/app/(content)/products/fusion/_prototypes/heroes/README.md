@@ -24,7 +24,9 @@ they stay file-disjoint.
   already `w-screen`.
 - Colour comes only from `../../spectrum` (`SERVICE_SPECTRUM`,
   `SPECTRUM_GRADIENT`) and `../../../tokens` (`CC`, `BRAND`, `FONTS`); no other
-  raw hex.
+  raw hex. White and black are allowed solely inside `<mask>` luminance
+  layers and gradient alpha stops (`stopOpacity`), never as a visible fill or
+  stroke colour.
 - Fonts come only from `FONTS.*` (SVG/canvas) or the Tailwind font utilities
   (`font-heading`, `font-body`).
 - Keyframes live in a `<style>` element inside the hero and are prefixed

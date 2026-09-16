@@ -16,6 +16,7 @@ import {
   VIEW_W,
   buildBraidQuads,
   buildEntryPaths,
+  buildMergeQuads,
 } from "./geometry";
 
 /**
@@ -28,6 +29,7 @@ import {
 
 const ENTRY_PATHS = buildEntryPaths();
 const BRAID_QUADS = buildBraidQuads();
+const MERGE_QUADS = buildMergeQuads();
 
 const KEYFRAMES = `
 @keyframes fx-auroraribbons-drift {
@@ -58,7 +60,7 @@ export default function AuroraRibbons() {
       <svg
         className="absolute inset-0 h-full w-full"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        preserveAspectRatio="xMidYMid slice"
+        preserveAspectRatio="xMinYMid slice"
       >
         <defs>
           <linearGradient
@@ -130,7 +132,7 @@ export default function AuroraRibbons() {
           }}
         />
 
-        {/* Braid and entry strands share this drift so the seam between them never opens. */}
+        {/* Entry strands, braid quads and merge-band quads share this one drift. */}
         <g
           style={{
             animation: anim(
@@ -144,6 +146,17 @@ export default function AuroraRibbons() {
               key={quad.key}
               points={quad.points}
               fill={SERVICE_SPECTRUM[quad.index].color}
+              fillOpacity={quad.opacity}
+            />
+          ))}
+
+          {/* Merge-band quads: each braid strand continues past the handoff, fading out. */}
+          {MERGE_QUADS.map((quad) => (
+            <polygon
+              key={quad.key}
+              points={quad.points}
+              fill={SERVICE_SPECTRUM[quad.index].color}
+              fillOpacity={quad.opacity}
             />
           ))}
 
@@ -167,7 +180,7 @@ export default function AuroraRibbons() {
         </g>
       </svg>
 
-      {/* Scrim so the hero copy stays readable over the merged ribbon. */}
+      {/* Scrim behind the hero copy, over the merged ribbon. */}
       <div className="from-cc-bg/60 via-cc-bg/30 pointer-events-none absolute inset-y-0 left-0 w-full max-w-4xl bg-gradient-to-r via-60% to-transparent" />
     </div>
   );
