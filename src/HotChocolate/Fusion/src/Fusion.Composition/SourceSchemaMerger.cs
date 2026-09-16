@@ -1269,9 +1269,13 @@ internal sealed partial class SourceSchemaMerger
     /// Derives the public <c>@cost</c> directive for a merged member by folding the effective
     /// weight of every serving source (its declared <c>@cost</c> weight, else the spec default
     /// for <paramref name="kind"/>), and records each declaring, compatible source's own weight
-    /// as a <c>@fusion__cost</c> entry. The public directive is emitted only when at least one
-    /// serving source declares a compatible <c>@cost</c> usage (R-COMPOSITION-WEIGHT-FOLD,
-    /// R-DERIVATION-DIRECTION).
+    /// as a <c>@fusion__cost</c> entry. A partial member (an <c>@fusion__field(partial: true)</c>
+    /// source, for example an Apollo Federation <c>@external</c> field returned through
+    /// <c>@provides</c>) contributes only when it declares its own compatible <c>@cost</c> usage;
+    /// an omitted <c>@cost</c> on such a member does not contribute the coordinate's default
+    /// weight, since that member never resolves the value itself. The public directive is emitted
+    /// only when at least one member declares a compatible <c>@cost</c> usage
+    /// (R-COMPOSITION-WEIGHT-FOLD, R-DERIVATION-DIRECTION).
     /// </summary>
     private void DeriveCostDirectives(
         IDirectivesProvider member,
@@ -1298,20 +1302,19 @@ internal sealed partial class SourceSchemaMerger
         }
 
         var defaultWeight = GetCoordinateDefaultWeight(kind, coordinateType);
-        var effectiveWeights = new double[memberGroup.Length];
+        var effectiveWeights = new List<double>(memberGroup.Length);
 
-        for (var i = 0; i < memberGroup.Length; i++)
+        foreach (var (sourceMember, sourceSchema) in memberGroup)
         {
-            var (sourceMember, sourceSchema) = memberGroup[i];
             var costDirective = sourceMember.Directives.FirstOrDefault(DirectiveNames.Cost);
 
             if (costDirective is not null && IsCostDefinitionCompatible(sourceSchema))
             {
-                effectiveWeights[i] = CostDirective.From(costDirective).Weight;
+                effectiveWeights.Add(CostDirective.From(costDirective).Weight);
             }
-            else
+            else if (sourceMember is not IOutputFieldDefinition { IsExternal: true })
             {
-                effectiveWeights[i] = defaultWeight;
+                effectiveWeights.Add(defaultWeight);
             }
         }
 
@@ -1746,8 +1749,11 @@ internal sealed partial class SourceSchemaMerger
     /// Derives the public <c>@listSize</c> directive for a merged output field by folding every
     /// declaring, compatible source's usage (hc-3-mmh.9 fold rules, R-REQUIRE-ONE-DEFAULT,
     /// R-COMPOSITION-ARGS), and records each such source's own usage as a <c>@fusion__listSize</c>
-    /// entry. The public directive is emitted only when at least one serving source declares a
-    /// compatible <c>@listSize</c> usage.
+    /// entry. A serving source is a source that resolves the field itself; a partial member (an
+    /// <c>@fusion__field(partial: true)</c> source, for example an Apollo Federation
+    /// <c>@external</c> field returned through <c>@provides</c>) is not a serving source for this
+    /// rule, though its own <c>@listSize</c>, when declared, still folds in. The public directive
+    /// is emitted only when at least one member declares a compatible <c>@listSize</c> usage.
     /// </summary>
     private void DeriveListSizeDirectives(
         MutableOutputFieldDefinition member,
@@ -1760,9 +1766,18 @@ internal sealed partial class SourceSchemaMerger
         var sizedFieldsPerSource = new List<ImmutableArray<string>>();
         var requireOneSlicingArgumentPerSource = new List<bool?>();
         var slicingArgumentDefaultValues = new List<int?>();
+        var servingSourceCount = 0;
+        var annotatedServingSourceCount = 0;
 
         foreach (var (sourceMember, sourceSchema) in memberGroup)
         {
+            var isServingSource = sourceMember is not IOutputFieldDefinition { IsExternal: true };
+
+            if (isServingSource)
+            {
+                servingSourceCount++;
+            }
+
             var listSizeDirective = sourceMember.Directives.FirstOrDefault(DirectiveNames.ListSize);
 
             if (listSizeDirective is null || !IsListSizeDefinitionCompatible(sourceSchema))
@@ -1771,6 +1786,11 @@ internal sealed partial class SourceSchemaMerger
             }
 
             declaresListSize = true;
+
+            if (isServingSource)
+            {
+                annotatedServingSourceCount++;
+            }
 
             var parsed = ListSizeDirective.From(listSizeDirective);
 
@@ -1790,12 +1810,13 @@ internal sealed partial class SourceSchemaMerger
 
         var argumentAssignments = new List<ArgumentAssignment>();
 
-        // At least one serving source that does not contribute a compatible @listSize usage
-        // (memberGroup includes every source serving this field, assumedSizes only the ones
-        // that folded above): the sound bound must also account for that source's effective
-        // size, which composition only knows through the configured default list size
-        // (@fusion__cost_options(defaultListSize:), R-COMPOSITION-WEIGHT-FOLD).
-        var hasUnannotatedServingSource = assumedSizes.Count < memberGroup.Length;
+        // At least one serving source (one that resolves the field itself, excluding partial
+        // members) that does not contribute a compatible @listSize usage: the sound bound must
+        // also account for that source's effective size, which composition only knows through
+        // the configured default list size (@fusion__cost_options(defaultListSize:),
+        // R-COMPOSITION-WEIGHT-FOLD). A partial member's own missing @listSize never triggers
+        // this, since it never resolves the field itself.
+        var hasUnannotatedServingSource = annotatedServingSourceCount < servingSourceCount;
 
         var assumedSize = ListSizeDirectiveFold.FoldAssumedSize(assumedSizes);
 

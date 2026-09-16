@@ -426,6 +426,175 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
             modifySchema: s_removeCostDirective);
     }
 
+    // A partial member (@fusion__field(partial: true), for example an Apollo Federation
+    // @external field returned through @provides) never resolves the value itself, so an
+    // omitted @cost on it does not contribute the coordinate's default weight and must not lift
+    // the public weight above what the owner declares.
+    [Fact]
+    public void Merge_CostDirectiveWeightFold_ExternalPartialMember_UnannotatedContributesNothing_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A (entity source, declares detail with weight 0)
+                type Query {
+                    productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    detail: Detail @cost(weight: "0")
+                }
+
+                type Detail {
+                    id: ID
+                }
+                """,
+                """
+                # Schema B (serves detail via @provides; detail itself is only @external there)
+                type Query {
+                    reviews: [Review!]
+                }
+
+                type Review {
+                    id: ID!
+                    product: Product @provides(fields: "detail")
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    detail: Detail @external
+                }
+
+                type Detail {
+                    id: ID
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              reviews: [Review!] @fusion__field(schema: B)
+            }
+
+            type Detail @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            type Product
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "productById(id: ID!): Product"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              detail: Detail
+                @cost(weight: "0")
+                @fusion__cost(schema: A, weight: "0")
+                @fusion__field(schema: A)
+                @fusion__field(schema: B, partial: true)
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            type Review @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: B)
+              product: Product @fusion__field(schema: B, provides: "detail")
+            }
+            """,
+            modifySchema: s_removeCostDirective);
+    }
+
+    // A partial member's own @cost, when it declares one, still folds in: the larger of the
+    // owner's effective weight and the partial member's declared weight wins.
+    [Fact]
+    public void Merge_CostDirectiveWeightFold_ExternalPartialMember_OwnDeclaredWeightFoldsIn_MatchesSnapshot()
+    {
+        AssertMatches(
+            [
+                """
+                # Schema A (entity source, does not annotate detail)
+                type Query {
+                    productById(id: ID!): Product @lookup @internal
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    detail: Detail
+                }
+
+                type Detail {
+                    id: ID
+                }
+                """,
+                """
+                # Schema B (serves detail via @provides; detail itself is only @external there,
+                # but declares its own weight)
+                type Query {
+                    reviews: [Review!]
+                }
+
+                type Review {
+                    id: ID!
+                    product: Product @provides(fields: "detail")
+                }
+
+                type Product @key(fields: "id") {
+                    id: ID!
+                    detail: Detail @external @cost(weight: "3")
+                }
+
+                type Detail {
+                    id: ID
+                }
+                """
+            ],
+            """
+            schema {
+              query: Query
+            }
+
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              reviews: [Review!] @fusion__field(schema: B)
+            }
+
+            type Detail @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            type Product
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__lookup(
+                schema: A
+                key: "id"
+                field: "productById(id: ID!): Product"
+                map: ["id"]
+                path: null
+                internal: true
+              ) {
+              detail: Detail
+                @cost(weight: "3")
+                @fusion__cost(schema: B, weight: "3")
+                @fusion__field(schema: A)
+                @fusion__field(schema: B, partial: true)
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+            }
+
+            type Review @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: B)
+              product: Product @fusion__field(schema: B, provides: "detail")
+            }
+            """,
+            modifySchema: s_removeCostDirective);
+    }
+
     private static readonly CostMutableDirectiveDefinition s_costDirective
         = new(BuiltIns.String.Create());
 
