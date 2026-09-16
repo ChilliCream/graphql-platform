@@ -29,6 +29,7 @@ public sealed class OptionsTests
         Assert.Equal(256, options.CostPlanCacheSize);
         Assert.Null(options.MaxResponseSize);
         Assert.Null(options.CaseBudget);
+        Assert.Null(options.CaseBudgetExceededBehavior);
     }
 
     [Theory]
@@ -55,6 +56,28 @@ public sealed class OptionsTests
             schemaIndex,
             requestExecutor.Schema.Services.GetRequiredService<CostSchemaIndex>());
         Assert.Equal(expectedCaseBudget, schemaIndex.Options.CaseBudget);
+    }
+
+    [Theory]
+    [InlineData(null, CaseBudgetExceededBehavior.EvaluatePerRequest)]
+    [InlineData(CaseBudgetExceededBehavior.EvaluatePerRequest, CaseBudgetExceededBehavior.EvaluatePerRequest)]
+    [InlineData(CaseBudgetExceededBehavior.Overestimate, CaseBudgetExceededBehavior.Overestimate)]
+    public async Task AddCostAnalyzer_Should_ConfigureSchemaIndex_When_CaseBudgetExceededBehaviorIsConfigured(
+        CaseBudgetExceededBehavior? caseBudgetExceededBehavior,
+        CaseBudgetExceededBehavior expectedCaseBudgetExceededBehavior)
+    {
+        // arrange
+        var requestExecutor = await new ServiceCollection()
+            .AddGraphQLServer()
+            .AddQueryType(d => d.Name("Query").Field("hello").Resolve("world"))
+            .ModifyCostOptions(o => o.CaseBudgetExceededBehavior = caseBudgetExceededBehavior)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var schemaIndex = requestExecutor.Schema.Services.GetRequiredService<CostSchemaIndex>();
+
+        // assert
+        Assert.Equal(expectedCaseBudgetExceededBehavior, schemaIndex.Options.CaseBudgetExceededBehavior);
     }
 
     [Theory]
