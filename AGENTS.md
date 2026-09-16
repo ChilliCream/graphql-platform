@@ -14,7 +14,7 @@ website/scripts/frontend-container.sh up
 website/scripts/frontend-container.sh dev
 ```
 
-The dev server is at http://localhost:3031. The Docker daemon (OrbStack on
+The dev server is at <http://localhost:3031>. The Docker daemon (OrbStack on
 macOS) must be running. See `website/README.md` for the full command
 reference.
 

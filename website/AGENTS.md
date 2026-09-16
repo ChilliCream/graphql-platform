@@ -12,7 +12,7 @@ website/scripts/frontend-container.sh exec -- yarn format
 website/scripts/frontend-container.sh exec -- yarn format:check
 ```
 
-The dev server is at http://localhost:3031. VS Code users can instead open
+The dev server is at <http://localhost:3031>. VS Code users can instead open
 the `ChilliCream Frontend` devcontainer, which uses the same image.
 
 <!-- BEGIN:nextjs-agent-rules -->
@@ -91,7 +91,7 @@ helper classes. Avoid ad-hoc `text-4xl`-style sizes for display headings.
 ## Before you finish
 
 - Verify visually against the running dev server
-  (`website/scripts/frontend-container.sh dev`, at http://localhost:3031).
+  (`website/scripts/frontend-container.sh dev`, at <http://localhost:3031>).
 - `website/scripts/frontend-container.sh exec -- yarn lint` must pass.
 - `website/scripts/frontend-container.sh exec -- yarn format` must be run and
   `website/scripts/frontend-container.sh exec -- yarn format:check` must pass
