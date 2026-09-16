@@ -71,8 +71,9 @@ internal static class HttpContextExtensions
     /// Matches a known media type against a <c>Content-Type</c> value. Media types are
     /// case-insensitive per RFC 9110, section 8.3.1, and section 8.3 lets one be followed by
     /// parameters, so a match requires the value to end at the media type or to continue with
-    /// the optional whitespace and semicolon that introduce them. A longer subtype such as
-    /// <c>application/json-patch+json</c> is therefore not a match.
+    /// the optional whitespace and semicolon that introduce them. Neither a longer subtype such
+    /// as <c>application/json-patch+json</c> nor a malformed value such as
+    /// <c>application/json garbage</c> is a match.
     /// </summary>
     /// <remarks>
     /// These are the semantics of <c>Microsoft.Net.Http.Headers.MediaTypeHeaderValue.TryParse</c>
@@ -88,8 +89,8 @@ internal static class HttpContextExtensions
             return false;
         }
 
-        var parameters = value[mediaType.Length..];
+        var parameters = value[mediaType.Length..].TrimStart();
 
-        return parameters.IsEmpty || parameters[0] is ';' or ' ' or '\t';
+        return parameters.IsEmpty || parameters[0] is ';';
     }
 }

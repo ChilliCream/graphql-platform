@@ -606,7 +606,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData("application/json-patch+json")]
     [InlineData("multipart/form-data-extended")]
-    public async Task Post_Should_NotExecuteRequest_When_ContentTypeOnlySharesAPrefix(string contentType)
+    [InlineData("application/json garbage")]
+    [InlineData("multipart/form-data garbage")]
+    public async Task Post_Should_NotExecuteRequest_When_ContentTypeDoesNotEndAtTheMediaType(
+        string contentType)
     {
         // arrange
         var client = GetClient(Latest);
