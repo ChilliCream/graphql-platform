@@ -9,7 +9,7 @@ results="${script_dir}/../results/micro"
 reports=(
   "HotChocolate.CostAnalysis.AdversarialCorrelatedBooleansBenchmark-report.csv"
   "HotChocolate.CostAnalysis.CostPlanBenchmark-report.csv"
-  "HotChocolate.CostAnalysis.LargeSchemaSnapshotBenchmark-report.csv"
+  "HotChocolate.CostAnalysis.LargeSchemaIndexBenchmark-report.csv"
 )
 
 rm -rf "${artifacts}"
@@ -26,7 +26,7 @@ dotnet run -c Release --project "${project}" -- \
   '*AdversarialCorrelatedBooleans*' \
   '*InputShapeEvaluate*' \
   '*RepeatedRejection*' \
-  '*LargeSchemaSnapshotBuild*'
+  '*LargeSchemaIndexBuild*'
 
 for report in "${reports[@]}"; do
   source="${artifacts}/results/${report}"

@@ -1,6 +1,6 @@
 # CostAnalysis.Core.Conformance.Tests
 
-A fixture-driven conformance suite for the cost engine. It includes six
+A fixture-driven conformance suite for cost analysis. It includes six
 hand-written precision cases (nine files) covering exclusive types,
 list-size variables, complementary include/skip, duplicate response names,
 signed weights and zero-length lists, plus fixtures ported from the Rust

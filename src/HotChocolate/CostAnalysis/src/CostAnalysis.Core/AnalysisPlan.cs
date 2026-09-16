@@ -20,17 +20,17 @@ namespace HotChocolate.CostAnalysis;
 [Experimental(CostExperiments.AnalysisAlgebra)]
 public sealed class AnalysisPlan
 {
-    private readonly CostSchemaSnapshot _snapshot;
+    private readonly CostSchemaIndex _schemaIndex;
     private readonly IReadOnlyDictionary<string, FragmentDefinitionNode> _fragments;
     private readonly ConditionTree _tree;
 
     internal AnalysisPlan(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         bool hitCaseBudget)
     {
-        _snapshot = snapshot;
+        _schemaIndex = schemaIndex;
         _fragments = fragments;
         _tree = tree;
         HitCaseBudget = hitCaseBudget;
@@ -38,7 +38,7 @@ public sealed class AnalysisPlan
 
     /// <summary>
     /// Gets a value indicating whether compilation exhausted the schema's
-    /// case budget (<c>CostSchemaSnapshot.CaseBudget</c>), so every
+    /// case budget (<c>CostSchemaIndex.CaseBudget</c>), so every
     /// evaluation of this plan falls back to the conservative envelope
     /// bound rather than the exact result. This outcome depends only on the
     /// operation's condition-tree shape and the schema's case budget, never
@@ -57,7 +57,7 @@ public sealed class AnalysisPlan
     /// <see cref="CostAlgebra"/>, <see cref="ResponseSizeAlgebra"/> and
     /// <see cref="TupledAlgebra"/> only receive <paramref name="variables"/>
     /// for that purpose when constructed with their
-    /// <c>(CostSchemaSnapshot, ICostVariableValues)</c> overload; a custom
+    /// <c>(CostSchemaIndex, ICostVariableValues)</c> overload; a custom
     /// algebra that resolves slicing or input values itself must do the
     /// same.
     /// </summary>
@@ -111,8 +111,8 @@ public sealed class AnalysisPlan
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues)
     {
-        var budget = new CaseBudget(_snapshot.CaseBudget);
-        return ExactCasesTraversal.Evaluate(_snapshot, _fragments, _tree, algebra, variableValues, budget);
+        var budget = new CaseBudget(_schemaIndex.CaseBudget);
+        return ExactCasesTraversal.Evaluate(_schemaIndex, _fragments, _tree, algebra, variableValues, budget);
     }
 
     /// <summary>

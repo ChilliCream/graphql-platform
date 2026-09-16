@@ -1,12 +1,12 @@
 namespace HotChocolate.CostAnalysis;
 
-public class CostEngineOptionsTests
+public class CostSchemaIndexOptionsTests
 {
     [Fact]
     public void DefaultListSize_Should_Default_To_PositiveInfinity_When_Constructed()
     {
         // act
-        var options = new CostEngineOptions();
+        var options = new CostSchemaIndexOptions();
 
         // assert
         Assert.Equal(double.PositiveInfinity, options.DefaultListSize);
@@ -16,7 +16,7 @@ public class CostEngineOptionsTests
     public void CaseBudget_Should_Default_To_MeasuredValue()
     {
         // act
-        var options = new CostEngineOptions();
+        var options = new CostSchemaIndexOptions();
 
         // assert
         Assert.Equal(510, options.CaseBudget);
@@ -34,7 +34,7 @@ public class CostEngineOptionsTests
         bool isValid)
     {
         // arrange
-        var options = new CostEngineOptions();
+        var options = new CostSchemaIndexOptions();
 
         // act
         var exception = Record.Exception(() => options.DefaultListSize = value);

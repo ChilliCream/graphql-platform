@@ -55,19 +55,19 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
                     services.TryAddSingleton(sp =>
                     {
                         var options = sp.GetRequiredService<CostOptions>();
-                        var engineOptions = new CostEngineOptions
+                        var schemaIndexOptions = new CostSchemaIndexOptions
                         {
                             DefaultListSize = options.DefaultListSize
                         };
 
                         if (options.CaseBudget is { } caseBudget)
                         {
-                            engineOptions.CaseBudget = caseBudget;
+                            schemaIndexOptions.CaseBudget = caseBudget;
                         }
 
-                        return CostSchemaSnapshot.Create(
+                        return CostSchemaIndex.Create(
                             sp.GetRequiredService<ISchemaDefinition>(),
-                            engineOptions);
+                            schemaIndexOptions);
                     });
 
                     services.TryAddSingleton(sp =>

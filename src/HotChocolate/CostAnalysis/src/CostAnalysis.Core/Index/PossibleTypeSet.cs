@@ -4,7 +4,7 @@ namespace HotChocolate.CostAnalysis;
 
 /// <summary>
 /// An order-independent set of object types, represented as a bitset over the
-/// snapshot's dense object-type index, with a fingerprint computed from the
+/// schema index's dense object-type index, with a fingerprint computed from the
 /// final bit content rather than from insertion order.
 /// </summary>
 internal readonly struct PossibleTypeSet : IEquatable<PossibleTypeSet>
@@ -32,7 +32,7 @@ internal readonly struct PossibleTypeSet : IEquatable<PossibleTypeSet>
 
     /// <summary>
     /// Determines whether the object type at <paramref name="objectTypeIndex"/>
-    /// (the snapshot's own dense index) belongs to this set.
+    /// (the schema index's own dense index) belongs to this set.
     /// </summary>
     public bool Contains(int objectTypeIndex)
     {

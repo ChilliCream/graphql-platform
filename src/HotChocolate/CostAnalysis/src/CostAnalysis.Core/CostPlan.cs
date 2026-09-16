@@ -37,7 +37,7 @@ public sealed class CostPlan
 
     /// <summary>
     /// Gets a value indicating whether compilation exhausted the
-    /// <see cref="CostEngineOptions.CaseBudget"/>, so this plan's estimate
+    /// <see cref="CostSchemaIndexOptions.CaseBudget"/>, so this plan's estimate
     /// is a sound but conservative fallback bound rather than the exact
     /// result.
     /// </summary>

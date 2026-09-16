@@ -7,7 +7,7 @@ namespace HotChocolate.CostAnalysis;
 [Config(typeof(InProcessConfig))]
 public class CostPlanBenchmark
 {
-    private CostSchemaSnapshot _snapshot = null!;
+    private CostSchemaIndex _schemaIndex = null!;
     private DocumentNode _document = null!;
     private OperationDefinitionNode _operation = null!;
     private CostPlan _warmPlan = null!;
@@ -20,11 +20,11 @@ public class CostPlanBenchmark
     public void GlobalSetup()
     {
         var schema = BenchmarkFixture.ParseSchema("typical-schema.graphql");
-        _snapshot = CostSchemaSnapshot.Create(
+        _schemaIndex = CostSchemaIndex.Create(
             schema,
-            new CostEngineOptions { DefaultListSize = 10.0 });
+            new CostSchemaIndexOptions { DefaultListSize = 10.0 });
         (_document, _operation) = BenchmarkFixture.ParseOperation("typical-operation.graphql");
-        _warmPlan = Compile(_snapshot, _document, _operation);
+        _warmPlan = Compile(_schemaIndex, _document, _operation);
         _warmVariables = BenchmarkFixture.Variables(
             ("limit", new IntValueNode(10)),
             ("includeDetails", BooleanValueNode.True));
@@ -33,10 +33,10 @@ public class CostPlanBenchmark
             ("includeDetails", BooleanValueNode.True));
 
         var inputSchema = BenchmarkFixture.ParseSchema("input-shape-schema.graphql");
-        var inputSnapshot = CostSchemaSnapshot.Create(inputSchema, new CostEngineOptions());
+        var inputSchemaIndex = CostSchemaIndex.Create(inputSchema, new CostSchemaIndexOptions());
         var (inputDocument, inputOperation) =
             BenchmarkFixture.ParseOperation("input-shape-operation.graphql");
-        _inputPlan = Compile(inputSnapshot, inputDocument, inputOperation);
+        _inputPlan = Compile(inputSchemaIndex, inputDocument, inputOperation);
         _inputVariables = BenchmarkFixture.Variables(
             ("filter", CreateInputShape()));
 
@@ -46,7 +46,7 @@ public class CostPlanBenchmark
 
     [Benchmark]
     public CostEstimate ColdCompileEvaluate()
-        => Compile(_snapshot, _document, _operation).Evaluate(_warmVariables);
+        => Compile(_schemaIndex, _document, _operation).Evaluate(_warmVariables);
 
     [Benchmark]
     public CostEstimate WarmEvaluate()
@@ -61,10 +61,10 @@ public class CostPlanBenchmark
         => _warmPlan.Evaluate(_rejectionVariables).FieldCost > 1_000.0;
 
     private static CostPlan Compile(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         DocumentNode document,
         OperationDefinitionNode operation)
-        => CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+        => CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);
 
     private static ObjectValueNode CreateInputShape()
         => new(

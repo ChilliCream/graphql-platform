@@ -288,14 +288,15 @@ public class CostAlgebraTests
         Assert.Equal(new CostEstimate(4.0, 0.0, null), root);
     }
 
-    // -- CostAlgebra: CostFieldRule and ListSizeResolver wired against a real snapshot ---------
+    // -- CostAlgebra: CostFieldRule and ListSizeResolver wired against a real schema index ---------
 
     [Fact]
     public void CostAlgebra_Should_DelegateToCostFieldRule_When_EmptyCombineJoinRootAreInvoked()
     {
         // arrange
-        var snapshot = CostSchemaSnapshot.Create(SchemaParser.Parse("type Query { a: Int }"), new CostEngineOptions());
-        var algebra = new CostAlgebra(snapshot);
+        var schemaIndex = CostSchemaIndex.Create(
+            SchemaParser.Parse("type Query { a: Int }"), new CostSchemaIndexOptions());
+        var algebra = new CostAlgebra(schemaIndex);
         var left = new CostEstimate(2.0, 3.0, null);
         var right = new CostEstimate(5.0, -1.0, null);
 
@@ -337,10 +338,10 @@ public class CostAlgebraTests
     public void CostAlgebra_Field_Should_ReturnEmpty_When_GroupIsDefault()
     {
         // arrange
-        var snapshot = CostSchemaSnapshot.Create(
+        var schemaIndex = CostSchemaIndex.Create(
             SchemaParser.Parse("type Query { value: Int }"),
-            new CostEngineOptions());
-        var algebra = new CostAlgebra(snapshot);
+            new CostSchemaIndexOptions());
+        var algebra = new CostAlgebra(schemaIndex);
 
         // act
         var estimate = algebra.Field(default, algebra.Empty);
@@ -461,20 +462,20 @@ public class CostAlgebraTests
             type B { value(a: Int): Int @cost(weight: "1") }
             type Query { placeholder: Int }
             """;
-        var snapshot = CostSchemaSnapshot.Create(SchemaParser.Parse(sdl), new CostEngineOptions());
+        var schemaIndex = CostSchemaIndex.Create(SchemaParser.Parse(sdl), new CostSchemaIndexOptions());
         var document = Utf8GraphQLParser.Parse("{ value(a: 1) }");
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var field = (FieldNode)operation.SelectionSet.Selections[0];
         var members = new CollectedFieldGroupMember[]
         {
             new(
-                snapshot.GetObjectTypeDefinition(snapshot.GetObjectTypeIndex("A")),
-                snapshot.GetObjectTypeDefinition(snapshot.GetObjectTypeIndex("A")).Fields["value"]),
+                schemaIndex.GetObjectTypeDefinition(schemaIndex.GetObjectTypeIndex("A")),
+                schemaIndex.GetObjectTypeDefinition(schemaIndex.GetObjectTypeIndex("A")).Fields["value"]),
             new(
-                snapshot.GetObjectTypeDefinition(snapshot.GetObjectTypeIndex("B")),
-                snapshot.GetObjectTypeDefinition(snapshot.GetObjectTypeIndex("B")).Fields["value"])
+                schemaIndex.GetObjectTypeDefinition(schemaIndex.GetObjectTypeIndex("B")),
+                schemaIndex.GetObjectTypeDefinition(schemaIndex.GetObjectTypeIndex("B")).Fields["value"])
         };
-        var algebra = new CostAlgebra(snapshot);
+        var algebra = new CostAlgebra(schemaIndex);
 
         // act
         var estimate = algebra.Field(
@@ -490,9 +491,9 @@ public class CostAlgebraTests
     }
 
     /// <summary>
-    /// Builds a snapshot from <paramref name="sdl"/>, parses
+    /// Builds a schema index from <paramref name="sdl"/>, parses
     /// <paramref name="operationText"/>'s single root field, and returns a
-    /// <see cref="CostAlgebra"/> over that snapshot together with the root
+    /// <see cref="CostAlgebra"/> over that schema index together with the root
     /// field's one-member <see cref="CollectedFieldGroupMember"/> array.
     /// </summary>
     private static (CostAlgebra Algebra, CollectedFieldGroupMember[] Members, FieldNode Field) ParseRootField(
@@ -502,12 +503,12 @@ public class CostAlgebraTests
         string fieldName)
     {
         var schema = SchemaParser.Parse(sdl);
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
         var document = Utf8GraphQLParser.Parse(operationText);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var field = (FieldNode)operation.SelectionSet.Selections[0];
-        var parentType = snapshot.GetObjectTypeDefinition(snapshot.GetObjectTypeIndex(typeName));
+        var parentType = schemaIndex.GetObjectTypeDefinition(schemaIndex.GetObjectTypeIndex(typeName));
         var members = new CollectedFieldGroupMember[] { new(parentType, parentType.Fields[fieldName]) };
-        return (new CostAlgebra(snapshot), members, field);
+        return (new CostAlgebra(schemaIndex), members, field);
     }
 }

@@ -8,7 +8,7 @@ namespace HotChocolate.CostAnalysis;
 [Config(typeof(InProcessConfig))]
 public class AdversarialCorrelatedBooleansBenchmark
 {
-    private CostSchemaSnapshot _snapshot = null!;
+    private CostSchemaIndex _schemaIndex = null!;
     private DocumentNode _document = null!;
     private OperationDefinitionNode _operation = null!;
     private BenchmarkVariableValues _variables = null!;
@@ -20,8 +20,8 @@ public class AdversarialCorrelatedBooleansBenchmark
     public void GlobalSetup()
     {
         var schema = BenchmarkFixture.ParseSchema("adversarial-schema.graphql");
-        var options = new CostEngineOptions();
-        _snapshot = CostSchemaSnapshot.Create(schema, options);
+        var options = new CostSchemaIndexOptions();
+        _schemaIndex = CostSchemaIndex.Create(schema, options);
         (_document, _operation) =
             BenchmarkFixture.ParseOperationSource(CreateOperation(VariableCount));
         _variables = BenchmarkFixture.Variables(
@@ -30,7 +30,7 @@ public class AdversarialCorrelatedBooleansBenchmark
                 .ToArray());
 
         var plan = CostPlanCompiler.Compile(
-            _snapshot,
+            _schemaIndex,
             _document,
             _operation,
             CostAnalyses.Cost);
@@ -49,7 +49,7 @@ public class AdversarialCorrelatedBooleansBenchmark
     [Benchmark]
     public CostEstimate AdversarialCorrelatedBooleans()
         => CostPlanCompiler
-            .Compile(_snapshot, _document, _operation, CostAnalyses.Cost)
+            .Compile(_schemaIndex, _document, _operation, CostAnalyses.Cost)
             .Evaluate(_variables);
 
     private static string CreateOperation(int variableCount)

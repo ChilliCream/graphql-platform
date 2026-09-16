@@ -4,7 +4,7 @@ namespace HotChocolate.CostAnalysis;
 
 /// <summary>
 /// Extracts condition trees from raw GraphQL language nodes and a
-/// <see cref="CostSchemaSnapshot"/>, with no dependency on document
+/// <see cref="CostSchemaIndex"/>, with no dependency on document
 /// validation or execution types.
 /// </summary>
 internal static class ConditionTreeExtractor
@@ -13,8 +13,8 @@ internal static class ConditionTreeExtractor
     /// Extracts the condition tree of an operation's root boundary,
     /// resolving named fragment spreads from <paramref name="document"/>.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot to resolve possible types and fields against.
+    /// <param name="schemaIndex">
+    /// The schema index to resolve possible types and fields against.
     /// </param>
     /// <param name="document">
     /// The document the operation belongs to, searched for named fragment
@@ -33,21 +33,21 @@ internal static class ConditionTreeExtractor
     /// extracts with every variable unknown.
     /// </param>
     public static ConditionTree ExtractOperation(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         DocumentNode document,
         OperationDefinitionNode operation,
         string rootTypeName,
         IReadOnlyDictionary<string, bool>? knownVariableValues = null)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(schemaIndex);
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentNullException.ThrowIfNull(rootTypeName);
 
-        var rootCondition = new Condition(snapshot.GetPossibleTypeSet(rootTypeName), []);
+        var rootCondition = new Condition(schemaIndex.GetPossibleTypeSet(rootTypeName), []);
 
         return ExtractBoundary(
-            snapshot,
+            schemaIndex,
             IndexFragments(document),
             operation.SelectionSet.Selections,
             rootCondition,
@@ -58,8 +58,8 @@ internal static class ConditionTreeExtractor
     /// Extracts the condition tree of one selection-set boundary: the
     /// operation's root, or a nested field group's merged selection set.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot to resolve possible types and fields against.
+    /// <param name="schemaIndex">
+    /// The schema index to resolve possible types and fields against.
     /// </param>
     /// <param name="fragments">
     /// The document's named fragment definitions, indexed by name.
@@ -78,17 +78,17 @@ internal static class ConditionTreeExtractor
     /// <see langword="null"/> extracts with every variable unknown.
     /// </param>
     public static ConditionTree ExtractBoundary(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         IReadOnlyList<ISelectionNode> selections,
         Condition rootCondition,
         IReadOnlyDictionary<string, bool>? knownVariableValues = null)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(schemaIndex);
         ArgumentNullException.ThrowIfNull(fragments);
         ArgumentNullException.ThrowIfNull(selections);
 
-        var builder = new ConditionTreeBuilder(snapshot, fragments, knownVariableValues);
+        var builder = new ConditionTreeBuilder(schemaIndex, fragments, knownVariableValues);
         return builder.Build(selections, rootCondition);
     }
 

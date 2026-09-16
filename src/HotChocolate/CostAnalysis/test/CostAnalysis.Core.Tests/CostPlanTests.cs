@@ -230,21 +230,21 @@ public sealed class CostPlanTests
               type Query { node: Node }
               """;
         var schema = SchemaParser.Parse(schemaSource);
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
         var plan = Compile(
-            snapshot,
+            schemaIndex,
             "{ node { items @charge { value } } }",
             CostAnalyses.Cost | CostAnalyses.ResponseSize);
-        var a = snapshot.GetFieldDefinition(snapshot.GetObjectTypeIndex("A"), "items");
-        var b = snapshot.GetFieldDefinition(snapshot.GetObjectTypeIndex("B"), "items");
-        var c = snapshot.GetFieldDefinition(snapshot.GetObjectTypeIndex("C"), "items");
+        var a = schemaIndex.GetFieldDefinition(schemaIndex.GetObjectTypeIndex("A"), "items");
+        var b = schemaIndex.GetFieldDefinition(schemaIndex.GetObjectTypeIndex("B"), "items");
+        var c = schemaIndex.GetFieldDefinition(schemaIndex.GetObjectTypeIndex("C"), "items");
 
         // act
         var estimate = plan.Evaluate(Variables());
 
         // assert
-        Assert.Equal(snapshot.GetFieldSemanticId(a), snapshot.GetFieldSemanticId(b));
-        Assert.NotEqual(snapshot.GetFieldSemanticId(a), snapshot.GetFieldSemanticId(c));
+        Assert.Equal(schemaIndex.GetFieldSemanticId(a), schemaIndex.GetFieldSemanticId(b));
+        Assert.NotEqual(schemaIndex.GetFieldSemanticId(a), schemaIndex.GetFieldSemanticId(c));
         Assert.Equal(
             [
                 BitConverter.DoubleToInt64Bits(6.9375),
@@ -292,25 +292,25 @@ public sealed class CostPlanTests
             }
             """;
         var schema = SchemaParser.Parse(schemaSource);
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
         var document = Utf8GraphQLParser.Parse(operationSource);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var fragments = ConditionTreeExtractor.IndexFragments(document);
         var tree = ConditionTreeExtractor.ExtractOperation(
-            snapshot,
+            schemaIndex,
             document,
             operation,
             "Query");
-        var referenceAlgebra = new TupledAlgebra(snapshot);
+        var referenceAlgebra = new TupledAlgebra(schemaIndex);
         var reference = ExactCasesTraversal.Evaluate(
-            snapshot,
+            schemaIndex,
             fragments,
             tree,
             referenceAlgebra,
             variableValues: null,
-            new CaseBudget(snapshot.CaseBudget));
+            new CaseBudget(schemaIndex.CaseBudget));
         var plan = CostPlanCompiler.Compile(
-            snapshot,
+            schemaIndex,
             document,
             operation,
             CostAnalyses.Cost | CostAnalyses.ResponseSize);
@@ -404,12 +404,12 @@ public sealed class CostPlanTests
             }
             """;
         var schema = SchemaParser.Parse(schemaSource);
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
         var document = Utf8GraphQLParser.Parse(operationSource);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var fragments = ConditionTreeExtractor.IndexFragments(document);
         var tree = ConditionTreeExtractor.ExtractOperation(
-            snapshot,
+            schemaIndex,
             document,
             operation,
             "Query");
@@ -434,29 +434,29 @@ public sealed class CostPlanTests
             ("payload", payload),
             ("directive", directive));
         var plan = CostPlanCompiler.Compile(
-            snapshot,
+            schemaIndex,
             document,
             operation,
             CostAnalyses.Cost);
-        var a = snapshot.GetFieldDefinition(snapshot.GetObjectTypeIndex("A"), "values");
-        var b = snapshot.GetFieldDefinition(snapshot.GetObjectTypeIndex("B"), "values");
+        var a = schemaIndex.GetFieldDefinition(schemaIndex.GetObjectTypeIndex("A"), "values");
+        var b = schemaIndex.GetFieldDefinition(schemaIndex.GetObjectTypeIndex("B"), "values");
 
         // act
         var dynamicReference = ExactCasesTraversal.Evaluate(
-            snapshot,
+            schemaIndex,
             fragments,
             tree,
-            new CostAlgebra(snapshot, falseVariables),
+            new CostAlgebra(schemaIndex, falseVariables),
             variableValues: null,
-            new CaseBudget(snapshot.CaseBudget));
-        var staticAlgebra = new CostAlgebra(snapshot);
+            new CaseBudget(schemaIndex.CaseBudget));
+        var staticAlgebra = new CostAlgebra(schemaIndex);
         var staticReference = ExactCasesTraversal.Evaluate(
-            snapshot,
+            schemaIndex,
             fragments,
             tree,
             staticAlgebra,
             variableValues: null,
-            new CaseBudget(snapshot.CaseBudget));
+            new CaseBudget(schemaIndex.CaseBudget));
         var actualFalse = plan.Evaluate(falseVariables);
         var actualTrue = plan.Evaluate(trueVariables);
         var expectedFalse = dynamicReference.Resolve(_ => false);
@@ -465,7 +465,7 @@ public sealed class CostPlanTests
         var expectedBound = staticReference.FoldWithJoin(staticAlgebra.Join);
 
         // assert
-        Assert.Equal(snapshot.GetFieldSemanticId(a), snapshot.GetFieldSemanticId(b));
+        Assert.Equal(schemaIndex.GetFieldSemanticId(a), schemaIndex.GetFieldSemanticId(b));
         Assert.True(plan.DependsOnVariables);
         Assert.Equal(
             Bits(expectedFalse, expectedTrue, expectedBound),
@@ -473,7 +473,7 @@ public sealed class CostPlanTests
     }
 
     [Fact]
-    public void Compile_Should_RemainExact_When_SnapshotIsSharedAndEarlierPlansOutliveCompileChurn()
+    public void Compile_Should_RemainExact_When_SchemaIndexIsSharedAndEarlierPlansOutliveCompileChurn()
     {
         // arrange
         var schema = SchemaParser.Parse(
@@ -482,9 +482,9 @@ public sealed class CostPlanTests
               type Item { value: Int @cost(weight: "2") }
               type Query { items(limit: Int): [Item] @listSize(slicingArguments: ["limit"]) }
               """);
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
         var first = Compile(
-            snapshot,
+            schemaIndex,
             "query($limit: Int) { items(limit: $limit) { value } }",
             CostAnalyses.Cost | CostAnalyses.ResponseSize);
         var results = new CostEstimate[64];
@@ -496,7 +496,7 @@ public sealed class CostPlanTests
             index =>
             {
                 var plan = Compile(
-                    snapshot,
+                    schemaIndex,
                     "query($limit: Int) { items(limit: $limit) { value } }",
                     CostAnalyses.Cost | CostAnalyses.ResponseSize);
                 results[index] = plan.Evaluate(Variables(("limit", new IntValueNode(3))));
@@ -530,17 +530,17 @@ public sealed class CostPlanTests
         operation.Append(" } }");
         var schema = SchemaParser.Parse(
             Directives + "type Query { value: Int @cost(weight: \"1\") }");
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
         var document = Utf8GraphQLParser.Parse(operation.ToString());
         var operationDefinition = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var tree = ConditionTreeExtractor.ExtractOperation(
-            snapshot,
+            schemaIndex,
             document,
             operationDefinition,
             "Query");
         var scratchLength = FieldGroupAccumulator.GetRequiredScratchLength(tree);
         var first = CostPlanCompiler.Compile(
-            snapshot,
+            schemaIndex,
             document,
             operationDefinition,
             CostAnalyses.Cost);
@@ -548,7 +548,7 @@ public sealed class CostPlanTests
         // act
         for (var i = 0; i < 64; i++)
         {
-            _ = Compile(snapshot, operation.ToString(), CostAnalyses.Cost);
+            _ = Compile(schemaIndex, operation.ToString(), CostAnalyses.Cost);
         }
 
         var actual =
@@ -594,7 +594,7 @@ public sealed class CostPlanTests
     }
 
     [Fact]
-    public void Evaluate_Should_ReturnExactResults_When_PlanAndSnapshotAreSharedAndOptionsAreMutated()
+    public void Evaluate_Should_ReturnExactResults_When_PlanAndSchemaIndexAreSharedAndOptionsAreMutated()
     {
         // arrange
         var schema = SchemaParser.Parse(
@@ -603,12 +603,12 @@ public sealed class CostPlanTests
               type Item { value: Int }
               type Query { items(limit: Int): [Item] @listSize(slicingArguments: ["limit"]) }
               """);
-        var options = new CostEngineOptions { DefaultListSize = 2.0 };
-        var snapshot = CostSchemaSnapshot.Create(schema, options);
+        var options = new CostSchemaIndexOptions { DefaultListSize = 2.0 };
+        var schemaIndex = CostSchemaIndex.Create(schema, options);
         var document = Utf8GraphQLParser.Parse("query($n: Int) { items(limit: $n) { value } }");
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         var plan = CostPlanCompiler.Compile(
-            snapshot,
+            schemaIndex,
             document,
             operation,
             CostAnalyses.Cost | CostAnalyses.ResponseSize);
@@ -616,7 +616,7 @@ public sealed class CostPlanTests
         var expected = new CostEstimate[64];
         options.DefaultListSize = 100.0;
         options.CaseBudget = 0;
-        var returned = snapshot.Options;
+        var returned = schemaIndex.Options;
         returned.DefaultListSize = 200.0;
         returned.CaseBudget = 0;
 
@@ -650,20 +650,20 @@ public sealed class CostPlanTests
         CostAnalyses analyses = CostAnalyses.Cost)
     {
         var schema = SchemaParser.Parse(source);
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
         var document = Utf8GraphQLParser.Parse(operationSource);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
-        return CostPlanCompiler.Compile(snapshot, document, operation, analyses);
+        return CostPlanCompiler.Compile(schemaIndex, document, operation, analyses);
     }
 
     private static CostPlan Compile(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         string operationSource,
         CostAnalyses analyses)
     {
         var document = Utf8GraphQLParser.Parse(operationSource);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
-        return CostPlanCompiler.Compile(snapshot, document, operation, analyses);
+        return CostPlanCompiler.Compile(schemaIndex, document, operation, analyses);
     }
 
     private static ICostVariableValues Variables(params (string Name, IValueNode Value)[] values)

@@ -2,7 +2,7 @@ namespace HotChocolate.CostAnalysis;
 
 /// <summary>
 /// A persistent, lazily factored decision structure over Boolean variables,
-/// split in the engine's canonical (ordinal) variable order: either a
+/// split in the canonical (ordinal) variable order: either a
 /// resolved leaf value or a split on one variable into its false and true
 /// branches.
 /// </summary>
@@ -61,7 +61,7 @@ internal abstract class BooleanDecision<T>
 
     /// <summary>
     /// Combines two decisions pointwise with <paramref name="op"/>, an
-    /// ordered BDD apply over the engine's single canonical (ordinal)
+    /// ordered BDD apply over the single canonical (ordinal)
     /// variable order that pairs every occurrence of one variable with
     /// itself. Charges one case per split it materializes against
     /// <paramref name="budget"/> and collapses both sides with

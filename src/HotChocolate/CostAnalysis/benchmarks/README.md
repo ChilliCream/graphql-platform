@@ -8,9 +8,10 @@ and the head-to-head comparison against the Rust oracle (see
 
 Both `run-micro.sh` and `head-to-head/run-head-to-head.sh` write their output
 under `results/`. That directory is generated and git-ignored: benchmark
-results are machine dependent, so comparing two versions of the engine, or
-the engine against the Rust oracle, means running both sides head to head on
-the same machine and reading the freshly generated output. No result is
+results are machine dependent, so comparing two versions of the .NET
+implementation, or the .NET implementation against the Rust oracle, means
+running both sides head to head on the same machine and reading the freshly
+generated output. No result is
 committed to the repository.
 
 Run the micro benchmarks:

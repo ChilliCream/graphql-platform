@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.CostAnalysis.Core</AssemblyName>
     <RootNamespace>HotChocolate.CostAnalysis</RootNamespace>
     <IsAotCompatible>true</IsAotCompatible>
-    <Description>The shared, engine-agnostic implementation of the IBM GraphQL cost specification: schema snapshots, compiled cost plans and the pluggable analysis algebra consumed by HotChocolate and Fusion.</Description>
+    <Description>The shared implementation of the IBM GraphQL cost specification: schema indexes, compiled cost plans and the pluggable analysis algebra consumed by HotChocolate and Fusion.</Description>
     <NoWarn>HC8002;$(NoWarn)</NoWarn>
   </PropertyGroup>
 

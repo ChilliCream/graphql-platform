@@ -221,7 +221,7 @@ public class ExactCasesTests
             }
             """;
         const string operation = "{ items(first: 3) { edges { node } } }";
-        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
+        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSchemaIndex(sdl));
 
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra);
@@ -267,7 +267,7 @@ public class ExactCasesTests
             type Query { container: Container }
             """;
         const string operation = "{ container { node { edges { value } } } }";
-        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
+        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSchemaIndex(sdl));
 
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra);
@@ -356,7 +356,7 @@ public class ExactCasesTests
             }
             """;
         const string operation = "{ value(a: 1, b: 1) @negative(x: 1, y: 1) }";
-        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
+        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSchemaIndex(sdl));
 
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra);
@@ -376,7 +376,7 @@ public class ExactCasesTests
             type Query { outer: [Outer] @listSize(assumedSize: 0) }
             """;
         const string operation = "{ outer { children { value } } }";
-        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
+        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSchemaIndex(sdl));
 
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra);

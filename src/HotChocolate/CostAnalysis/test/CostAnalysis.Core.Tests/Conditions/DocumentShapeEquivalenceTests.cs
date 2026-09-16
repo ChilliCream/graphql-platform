@@ -81,23 +81,23 @@ public class DocumentShapeEquivalenceTests
         string resultTypeName,
         params string[] objectTypeNames)
     {
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(sdl);
         var document = Utf8GraphQLParser.Parse(operationText);
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
         var fragments = ConditionTreeExtractor.IndexFragments(document);
 
-        var rootTree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var rootTree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
         var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
 
-        var childRoot = new Condition(snapshot.GetPossibleTypeSet(resultTypeName), []);
+        var childRoot = new Condition(schemaIndex.GetPossibleTypeSet(resultTypeName), []);
         var childTree = ConditionTreeExtractor.ExtractBoundary(
-            snapshot,
+            schemaIndex,
             fragments,
             resultGroup.MergedSelectionSet(),
             childRoot);
 
-        return ConditionTreeTestHelpers.Dump(snapshot, rootTree, "Query")
+        return ConditionTreeTestHelpers.Dump(schemaIndex, rootTree, "Query")
             + "---"
-            + ConditionTreeTestHelpers.Dump(snapshot, childTree, objectTypeNames);
+            + ConditionTreeTestHelpers.Dump(schemaIndex, childTree, objectTypeNames);
     }
 }

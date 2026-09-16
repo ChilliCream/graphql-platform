@@ -157,7 +157,7 @@ public class CaseBudgetFallbackTests
             """;
         const string operation =
             "query($include: Boolean!) { container { node { edges @include(if: $include) { value } } } }";
-        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSnapshot(sdl));
+        var algebra = new CostAlgebra(ConditionTreeTestHelpers.BuildSchemaIndex(sdl));
 
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra, caseBudget: 0);
@@ -333,10 +333,10 @@ public class CaseBudgetFallbackTests
             directive @listSize(assumedSize: Int, slicingArguments: [String!], slicingArgumentDefaultValue: Float, sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
             """;
         var schema = SchemaParser.Parse(directives + "\n" + sdl);
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions { CaseBudget = 1 });
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions { CaseBudget = 1 });
         var document = Utf8GraphQLParser.Parse(operationSource);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
-        return CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+        return CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);
     }
 
     private static CostEstimate[] EvaluateMatrix(

@@ -6,10 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Variable-aware list-size precedence on the <see cref="PagingTests.Query"/> schema
-/// (hc-3-mmh.7 edges a-d): a supplied slicing-argument variable prices the list at the
-/// coerced value, not at the query's static shape. Expected numbers are the locked,
-/// engine-confirmed values from hc-3-whv.6's fix direction.
+/// Variable-aware list-size precedence on the <see cref="PagingTests.Query"/> schema:
+/// a supplied slicing-argument variable prices the list at the coerced value, not at
+/// the query's static shape. Expected numbers are the locked, confirmed values.
 /// </summary>
 public sealed class VariableAwareCostTests
 {

@@ -10,18 +10,18 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class CostAnalysisMiddleware
 {
-    private readonly CostSchemaSnapshot _snapshot;
+    private readonly CostSchemaIndex _schemaIndex;
     private readonly Cache<CostPlan> _cache;
     private readonly FusionCostOptions _options;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
 
     private CostAnalysisMiddleware(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         Cache<CostPlan> cache,
         FusionCostOptions options,
         IFusionExecutionDiagnosticEvents diagnosticEvents)
     {
-        _snapshot = snapshot;
+        _schemaIndex = schemaIndex;
         _cache = cache;
         _options = options;
         _diagnosticEvents = diagnosticEvents;
@@ -73,7 +73,7 @@ internal sealed class CostAnalysisMiddleware
                 }
 
                 plan = CostPlanCompiler.Compile(
-                    _snapshot,
+                    _schemaIndex,
                     context.GetNormalizedDocument(),
                     operation,
                     analyses);
@@ -295,12 +295,12 @@ internal sealed class CostAnalysisMiddleware
         => new(
             (fc, next) =>
             {
-                var snapshot = fc.SchemaServices.GetRequiredService<CostSchemaSnapshot>();
+                var schemaIndex = fc.SchemaServices.GetRequiredService<CostSchemaIndex>();
                 var cache = fc.SchemaServices.GetRequiredService<Cache<CostPlan>>();
                 var options = fc.SchemaServices.GetRequiredService<FusionRequestOptions>().Cost;
                 var diagnosticEvents =
                     fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
-                var middleware = new CostAnalysisMiddleware(snapshot, cache, options, diagnosticEvents);
+                var middleware = new CostAnalysisMiddleware(schemaIndex, cache, options, diagnosticEvents);
                 return context => middleware.InvokeAsync(context, next);
             },
             WellKnownRequestMiddleware.CostAnalyzerMiddleware);

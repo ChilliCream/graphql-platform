@@ -141,16 +141,16 @@ public class ResponseSizeAlgebraTests
             type Query { books(first: Int): [Book] @listSize(slicingArguments: ["first"]) }
             type Book { title: String }
             """;
-        var snapshot = BuildSnapshot(sdl);
+        var schemaIndex = BuildSchemaIndex(sdl);
         var document = Utf8GraphQLParser.Parse("{ books(first: 3) { title } }");
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
         var fragments = ConditionTreeExtractor.IndexFragments(document);
-        var tree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
-        var algebra = new TupledAlgebra(snapshot);
+        var tree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
+        var algebra = new TupledAlgebra(schemaIndex);
 
         // act
         var estimate = ExactCasesTraversal
-            .Evaluate(snapshot, fragments, tree, algebra, variableValues: null, new CaseBudget(4096))
+            .Evaluate(schemaIndex, fragments, tree, algebra, variableValues: null, new CaseBudget(4096))
             .Resolve(_ => false);
 
         // assert
@@ -166,16 +166,16 @@ public class ResponseSizeAlgebraTests
             type Query { nodes: [[Node]] }
             type Node { name: String }
             """;
-        var snapshot = BuildSnapshot(sdl, defaultListSize: 3.0);
+        var schemaIndex = BuildSchemaIndex(sdl, defaultListSize: 3.0);
         var document = Utf8GraphQLParser.Parse("{ nodes { name } }");
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
         var fragments = ConditionTreeExtractor.IndexFragments(document);
-        var tree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
-        var algebra = new TupledAlgebra(snapshot);
+        var tree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
+        var algebra = new TupledAlgebra(schemaIndex);
 
         // act
         var estimate = ExactCasesTraversal
-            .Evaluate(snapshot, fragments, tree, algebra, variableValues: null, new CaseBudget(4096))
+            .Evaluate(schemaIndex, fragments, tree, algebra, variableValues: null, new CaseBudget(4096))
             .Resolve(_ => false);
 
         // assert
@@ -187,15 +187,15 @@ public class ResponseSizeAlgebraTests
         string operationText,
         double defaultListSize = double.PositiveInfinity)
     {
-        var snapshot = BuildSnapshot(sdl, defaultListSize);
+        var schemaIndex = BuildSchemaIndex(sdl, defaultListSize);
         var document = Utf8GraphQLParser.Parse(operationText);
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
         var fragments = ConditionTreeExtractor.IndexFragments(document);
-        var tree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
-        var algebra = new ResponseSizeAlgebra(snapshot);
+        var tree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
+        var algebra = new ResponseSizeAlgebra(schemaIndex);
 
         return ExactCasesTraversal
-            .Evaluate(snapshot, fragments, tree, algebra, variableValues: null, new CaseBudget(4096))
+            .Evaluate(schemaIndex, fragments, tree, algebra, variableValues: null, new CaseBudget(4096))
             .Resolve(_ => false);
     }
 
@@ -205,10 +205,10 @@ public class ResponseSizeAlgebraTests
         return ((MutableObjectTypeDefinition)schema.Types["Query"]).Fields["field"].Type;
     }
 
-    private static CostSchemaSnapshot BuildSnapshot(
+    private static CostSchemaIndex BuildSchemaIndex(
         string sdl,
         double defaultListSize = double.PositiveInfinity)
-        => CostSchemaSnapshot.Create(
+        => CostSchemaIndex.Create(
             SchemaParser.Parse(sdl),
-            new CostEngineOptions { DefaultListSize = defaultListSize });
+            new CostSchemaIndexOptions { DefaultListSize = defaultListSize });
 }

@@ -15,25 +15,25 @@ public class ConditionTreeTests
         string operation,
         IReadOnlyDictionary<string, bool>? known = null)
     {
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(sdl);
         var document = Utf8GraphQLParser.Parse(operation);
         var operationDefinition = ConditionTreeTestHelpers.ParseOperation(document);
-        return ConditionTreeExtractor.ExtractOperation(snapshot, document, operationDefinition, "Query", known);
+        return ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operationDefinition, "Query", known);
     }
 
     [Fact]
     public void ExtractOperation_Should_Collect_Field_Into_Root_Node_When_No_Fragments_Or_Directives()
     {
         // arrange
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(BookSchema);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(BookSchema);
         var document = Utf8GraphQLParser.Parse("{ book { title } }");
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
 
         // act
-        var tree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var tree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
 
         // assert
-        ConditionTreeTestHelpers.Dump(snapshot, tree, "Query").MatchInlineSnapshot(
+        ConditionTreeTestHelpers.Dump(schemaIndex, tree, "Query").MatchInlineSnapshot(
             """
             *[Query] () book:1
             """);
@@ -50,23 +50,23 @@ public class ConditionTreeTests
             type B { b: Int }
             type Query { result: Result }
             """;
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(sdl);
         var document = Utf8GraphQLParser.Parse(
             "{ result { ... on A { a } ... on B { b } } }");
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
-        var rootTree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var rootTree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
         var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
-        var childRoot = new Condition(snapshot.GetPossibleTypeSet("Result"), []);
+        var childRoot = new Condition(schemaIndex.GetPossibleTypeSet("Result"), []);
 
         // act: the field's nested selection set is its own boundary
         var childTree = ConditionTreeExtractor.ExtractBoundary(
-            snapshot,
+            schemaIndex,
             ConditionTreeExtractor.IndexFragments(document),
             resultGroup.MergedSelectionSet(),
             childRoot);
 
         // assert
-        ConditionTreeTestHelpers.Dump(snapshot, childTree, "A", "B").MatchInlineSnapshot(
+        ConditionTreeTestHelpers.Dump(schemaIndex, childTree, "A", "B").MatchInlineSnapshot(
             """
             *[A,B] () branches=A->1,B->2
              [A] () a:1
@@ -84,17 +84,17 @@ public class ConditionTreeTests
             type A { a: Int }
             type Query { result: Result }
             """;
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(sdl);
         var document = Utf8GraphQLParser.Parse(
             "{ result { ... on A { label: a } ... on A { label: a } } }");
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
-        var rootTree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var rootTree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
         var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
-        var childRoot = new Condition(snapshot.GetPossibleTypeSet("Result"), []);
+        var childRoot = new Condition(schemaIndex.GetPossibleTypeSet("Result"), []);
 
         // act
         var childTree = ConditionTreeExtractor.ExtractBoundary(
-            snapshot,
+            schemaIndex,
             ConditionTreeExtractor.IndexFragments(document),
             resultGroup.MergedSelectionSet(),
             childRoot);
@@ -175,23 +175,23 @@ public class ConditionTreeTests
             union Result = A | B | C
             type Query { result: Result }
             """;
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(sdl);
         var document = Utf8GraphQLParser.Parse(
             "{ result { ... on Node { ... on A { a } } } }");
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
-        var rootTree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var rootTree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
         var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
-        var childRoot = new Condition(snapshot.GetPossibleTypeSet("Result"), []);
+        var childRoot = new Condition(schemaIndex.GetPossibleTypeSet("Result"), []);
 
         // act: the intermediate Node edge is never grafted, only the edge to A is
         var childTree = ConditionTreeExtractor.ExtractBoundary(
-            snapshot,
+            schemaIndex,
             ConditionTreeExtractor.IndexFragments(document),
             resultGroup.MergedSelectionSet(),
             childRoot);
 
         // assert
-        ConditionTreeTestHelpers.Dump(snapshot, childTree, "A", "B", "C").MatchInlineSnapshot(
+        ConditionTreeTestHelpers.Dump(schemaIndex, childTree, "A", "B", "C").MatchInlineSnapshot(
             """
             *[A,B,C] () branches=A->1
              [A] () a:1
@@ -210,22 +210,22 @@ public class ConditionTreeTests
             union Result = A | B
             type Query { result: Result }
             """;
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(sdl);
         var document = Utf8GraphQLParser.Parse("{ result { ... on Node { a } } }");
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
-        var rootTree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var rootTree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
         var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
-        var childRoot = new Condition(snapshot.GetPossibleTypeSet("Result"), []);
+        var childRoot = new Condition(schemaIndex.GetPossibleTypeSet("Result"), []);
 
         // act: the singleton-object rewrite relabels the Node edge as A
         var childTree = ConditionTreeExtractor.ExtractBoundary(
-            snapshot,
+            schemaIndex,
             ConditionTreeExtractor.IndexFragments(document),
             resultGroup.MergedSelectionSet(),
             childRoot);
 
         // assert
-        ConditionTreeTestHelpers.Dump(snapshot, childTree, "A", "B").MatchInlineSnapshot(
+        ConditionTreeTestHelpers.Dump(schemaIndex, childTree, "A", "B").MatchInlineSnapshot(
             """
             *[A,B] () branches=A->1
              [A] () a:1
@@ -244,17 +244,17 @@ public class ConditionTreeTests
             union Result = A | B
             type Query { result: Result }
             """;
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(sdl);
         var document = Utf8GraphQLParser.Parse(
             "{ result { ... on Node { ... on A { a } } ... on A { a } } }");
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
-        var rootTree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var rootTree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
         var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
-        var childRoot = new Condition(snapshot.GetPossibleTypeSet("Result"), []);
+        var childRoot = new Condition(schemaIndex.GetPossibleTypeSet("Result"), []);
 
         // act
         var childTree = ConditionTreeExtractor.ExtractBoundary(
-            snapshot,
+            schemaIndex,
             ConditionTreeExtractor.IndexFragments(document),
             resultGroup.MergedSelectionSet(),
             childRoot);

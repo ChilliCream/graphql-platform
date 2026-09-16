@@ -1,9 +1,9 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Configures the cost engine's schema-level behavior.
+/// Configures the schema-level behavior of cost analysis.
 /// </summary>
-public sealed class CostEngineOptions
+public sealed class CostSchemaIndexOptions
 {
     /// <summary>
     /// Gets or sets the list size used for a list-typed field that carries no

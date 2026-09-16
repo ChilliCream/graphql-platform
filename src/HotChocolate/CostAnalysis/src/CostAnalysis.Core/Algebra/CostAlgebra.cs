@@ -7,7 +7,7 @@ namespace HotChocolate.CostAnalysis;
 /// <summary>
 /// The built-in IBM field/type cost analysis algebra: the lean field rule
 /// (<see cref="CostFieldRule"/>) applied over weights and list multipliers
-/// resolved from a <see cref="CostSchemaSnapshot"/>
+/// resolved from a <see cref="CostSchemaIndex"/>
 /// (<see cref="ListSizeResolver"/>).
 /// </summary>
 /// <remarks>
@@ -19,7 +19,7 @@ namespace HotChocolate.CostAnalysis;
 /// </remarks>
 public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
 {
-    private readonly CostSchemaSnapshot _snapshot;
+    private readonly CostSchemaIndex _schemaIndex;
     private readonly ICostVariableValues? _variableValues;
 
     /// <summary>
@@ -28,14 +28,14 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     /// falls back to its schema-declared assumption instead of a coerced
     /// value.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot to resolve weights and list-size metadata
+    /// <param name="schemaIndex">
+    /// The schema index to resolve weights and list-size metadata
     /// against.
     /// </param>
-    public CostAlgebra(CostSchemaSnapshot snapshot)
+    public CostAlgebra(CostSchemaIndex schemaIndex)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
-        _snapshot = snapshot;
+        ArgumentNullException.ThrowIfNull(schemaIndex);
+        _schemaIndex = schemaIndex;
         _variableValues = null;
     }
 
@@ -45,19 +45,19 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     /// <paramref name="variableValues"/>, the same coerced values the
     /// optimized <see cref="CostPlan"/> path receives at evaluation time.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot to resolve weights and list-size metadata
+    /// <param name="schemaIndex">
+    /// The schema index to resolve weights and list-size metadata
     /// against.
     /// </param>
     /// <param name="variableValues">
     /// The coerced variable values of the request.
     /// </param>
     [Experimental(CostExperiments.AnalysisAlgebra)]
-    public CostAlgebra(CostSchemaSnapshot snapshot, ICostVariableValues variableValues)
+    public CostAlgebra(CostSchemaIndex schemaIndex, ICostVariableValues variableValues)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(schemaIndex);
         ArgumentNullException.ThrowIfNull(variableValues);
-        _snapshot = snapshot;
+        _schemaIndex = schemaIndex;
         _variableValues = variableValues;
     }
 
@@ -78,10 +78,10 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
         var returnTypeName = member.Field.Type.NamedType().Name;
         var estimate = CostFieldRule.Field(
             ResolveListMultiplier(typeName, fieldName, member.Field, field.Arguments, group.InheritedSize),
-            _snapshot.GetFieldWeight(typeName, fieldName),
+            _schemaIndex.GetFieldWeight(typeName, fieldName),
             ComputeArgumentsCost(typeName, member.Field, field.Arguments),
             ComputeDirectiveArgumentsCost(field.Directives),
-            _snapshot.GetTypeWeight(returnTypeName),
+            _schemaIndex.GetTypeWeight(returnTypeName),
             child);
 
         return CostFieldRule.Join(CostFieldRule.Empty, estimate);
@@ -112,7 +112,7 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
         double? inheritedSize)
     {
         var isListField = field.Type.IsListType();
-        var metadata = _snapshot.GetListSizeMetadata(typeName, fieldName);
+        var metadata = _schemaIndex.GetListSizeMetadata(typeName, fieldName);
         var slicingArguments = SlicingArgumentValues.Build(metadata, field, arguments);
 
         ReadOnlySpan<double> inheritedSizes = inheritedSize is { } size ? [size] : [];
@@ -123,7 +123,7 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
             inheritedSizes,
             slicingArguments,
             _variableValues,
-            _snapshot.DefaultListSize);
+            _schemaIndex.DefaultListSize);
     }
 
     /// <summary>
@@ -140,10 +140,10 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     {
         var cost = 0.0;
 
-        foreach (var argument in _snapshot.GetFieldArguments(typeName, field.Name))
+        foreach (var argument in _schemaIndex.GetFieldArguments(typeName, field.Name))
         {
             cost += InputCost.Compute(
-                _snapshot,
+                _schemaIndex,
                 argument,
                 SlicingArgumentValues.FindArgumentValue(arguments, argument.Name),
                 _variableValues);
@@ -164,7 +164,7 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
 
         foreach (var directive in directives)
         {
-            if (!_snapshot.TryGetDirectiveArgumentMetadata(directive.Name.Value, out var definitionArguments))
+            if (!_schemaIndex.TryGetDirectiveArgumentMetadata(directive.Name.Value, out var definitionArguments))
             {
                 continue;
             }
@@ -172,7 +172,7 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
             foreach (var argument in definitionArguments)
             {
                 cost += InputCost.Compute(
-                    _snapshot,
+                    _schemaIndex,
                     argument,
                     SlicingArgumentValues.FindArgumentValue(directive.Arguments, argument.Name),
                     _variableValues);

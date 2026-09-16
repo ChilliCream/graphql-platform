@@ -6,10 +6,10 @@ using HotChocolate.Types;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// An immutable, per-schema snapshot of a schema's cost-relevant metadata
+/// An immutable, per-schema index of a schema's cost-relevant metadata
 /// that a <see cref="CostPlan"/> is compiled and evaluated against.
 /// </summary>
-public sealed class CostSchemaSnapshot
+public sealed class CostSchemaIndex
 {
     private readonly FrozenDictionary<string, int> _objectTypeIndex;
     private readonly IComplexTypeDefinition[] _objectTypesByIndex;
@@ -27,7 +27,7 @@ public sealed class CostSchemaSnapshot
     private readonly double _defaultListSize;
     private readonly int _caseBudget;
 
-    internal CostSchemaSnapshot(
+    internal CostSchemaIndex(
         double defaultListSize,
         int caseBudget,
         string? queryTypeName,
@@ -68,9 +68,9 @@ public sealed class CostSchemaSnapshot
     }
 
     /// <summary>
-    /// Gets a detached copy of the options this snapshot was built with.
+    /// Gets a detached copy of the options this schema index was built with.
     /// </summary>
-    public CostEngineOptions Options
+    public CostSchemaIndexOptions Options
         => new()
         {
             DefaultListSize = _defaultListSize,
@@ -97,24 +97,24 @@ public sealed class CostSchemaSnapshot
         };
 
     /// <summary>
-    /// Builds a snapshot of <paramref name="schema"/>'s cost-relevant
+    /// Builds a schema index of <paramref name="schema"/>'s cost-relevant
     /// metadata.
     /// </summary>
     /// <param name="schema">
-    /// The schema to snapshot.
+    /// The schema to index.
     /// </param>
     /// <param name="options">
-    /// The engine options that apply to <paramref name="schema"/>.
+    /// The options that apply to <paramref name="schema"/>.
     /// </param>
     /// <returns>
-    /// The immutable snapshot.
+    /// The immutable schema index.
     /// </returns>
-    public static CostSchemaSnapshot Create(ISchemaDefinition schema, CostEngineOptions options)
+    public static CostSchemaIndex Create(ISchemaDefinition schema, CostSchemaIndexOptions options)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(options);
 
-        return CostSchemaSnapshotBuilder.Build(schema, options);
+        return CostSchemaIndexBuilder.Build(schema, options);
     }
 
     /// <summary>
@@ -131,7 +131,7 @@ public sealed class CostSchemaSnapshot
 
     /// <summary>
     /// Gets the possible object types of an object, interface or union type,
-    /// as a bitset over the snapshot's dense object-type index.
+    /// as a bitset over the schema index's dense object-type index.
     /// </summary>
     internal PossibleTypeSet GetPossibleTypeSet(string typeName) => _possibleTypes[typeName];
 
@@ -147,7 +147,7 @@ public sealed class CostSchemaSnapshot
     }
 
     /// <summary>
-    /// Gets the object type definition at the snapshot's dense
+    /// Gets the object type definition at the schema index's dense
     /// <paramref name="objectTypeIndex"/>.
     /// </summary>
     internal IComplexTypeDefinition GetObjectTypeDefinition(int objectTypeIndex)
@@ -155,7 +155,7 @@ public sealed class CostSchemaSnapshot
 
     /// <summary>
     /// Gets the field definition <paramref name="fieldName"/> resolves to on
-    /// the object type at the snapshot's dense <paramref name="objectTypeIndex"/>.
+    /// the object type at the schema index's dense <paramref name="objectTypeIndex"/>.
     /// </summary>
     internal IOutputFieldDefinition GetFieldDefinition(int objectTypeIndex, string fieldName)
         => _objectTypesByIndex[objectTypeIndex].Fields[fieldName];

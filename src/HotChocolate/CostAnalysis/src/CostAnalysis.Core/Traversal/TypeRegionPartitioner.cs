@@ -12,8 +12,8 @@ internal static class TypeRegionPartitioner
     /// Partitions <paramref name="scope"/> against <paramref name="conditions"/>.
     /// The result has at most <c>min(|scope|, 2^conditions.Count)</c> regions.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot the regions are built against.
+    /// <param name="schemaIndex">
+    /// The schema index the regions are built against.
     /// </param>
     /// <param name="scope">
     /// The boundary's possible types.
@@ -22,7 +22,7 @@ internal static class TypeRegionPartitioner
     /// Every distinct type condition appearing in the boundary.
     /// </param>
     public static IReadOnlyList<PossibleTypeSet> Partition(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         PossibleTypeSet scope,
         IReadOnlyList<PossibleTypeSet> conditions)
     {
@@ -63,7 +63,7 @@ internal static class TypeRegionPartitioner
         for (var i = 0; i < ranges.Count; i++)
         {
             var (start, length) = ranges[i];
-            regions[i] = PossibleTypeSet.Create(snapshot.ObjectTypeCount, members.AsSpan(start, length));
+            regions[i] = PossibleTypeSet.Create(schemaIndex.ObjectTypeCount, members.AsSpan(start, length));
         }
 
         return regions;

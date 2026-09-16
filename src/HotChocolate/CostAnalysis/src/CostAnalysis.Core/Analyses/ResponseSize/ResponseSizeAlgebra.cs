@@ -9,7 +9,7 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
 {
-    private readonly CostSchemaSnapshot _snapshot;
+    private readonly CostSchemaIndex _schemaIndex;
     private readonly ICostVariableValues? _variableValues;
 
     /// <summary>
@@ -17,13 +17,13 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
     /// the static/assumed path: a variable-bound slicing argument falls back
     /// to its schema-declared assumption instead of a coerced value.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot used to resolve list-size metadata.
+    /// <param name="schemaIndex">
+    /// The schema index used to resolve list-size metadata.
     /// </param>
-    public ResponseSizeAlgebra(CostSchemaSnapshot snapshot)
+    public ResponseSizeAlgebra(CostSchemaIndex schemaIndex)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
-        _snapshot = snapshot;
+        ArgumentNullException.ThrowIfNull(schemaIndex);
+        _schemaIndex = schemaIndex;
         _variableValues = null;
     }
 
@@ -33,18 +33,18 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
     /// <paramref name="variableValues"/>, the same coerced values the
     /// optimized <see cref="CostPlan"/> path receives at evaluation time.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot used to resolve list-size metadata.
+    /// <param name="schemaIndex">
+    /// The schema index used to resolve list-size metadata.
     /// </param>
     /// <param name="variableValues">
     /// The coerced variable values of the request.
     /// </param>
     [Experimental(CostExperiments.AnalysisAlgebra)]
-    public ResponseSizeAlgebra(CostSchemaSnapshot snapshot, ICostVariableValues variableValues)
+    public ResponseSizeAlgebra(CostSchemaIndex schemaIndex, ICostVariableValues variableValues)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(schemaIndex);
         ArgumentNullException.ThrowIfNull(variableValues);
-        _snapshot = snapshot;
+        _schemaIndex = schemaIndex;
         _variableValues = variableValues;
     }
 
@@ -91,7 +91,7 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
         IReadOnlyList<ArgumentNode> arguments,
         double? inheritedSize)
     {
-        var metadata = _snapshot.GetListSizeMetadata(typeName, fieldName);
+        var metadata = _schemaIndex.GetListSizeMetadata(typeName, fieldName);
         var slicingArguments = SlicingArgumentValues.Build(metadata, field, arguments);
         ReadOnlySpan<double> inheritedSizes = inheritedSize is { } size ? [size] : [];
 
@@ -101,6 +101,6 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
             inheritedSizes,
             slicingArguments,
             _variableValues,
-            _snapshot.DefaultListSize);
+            _schemaIndex.DefaultListSize);
     }
 }

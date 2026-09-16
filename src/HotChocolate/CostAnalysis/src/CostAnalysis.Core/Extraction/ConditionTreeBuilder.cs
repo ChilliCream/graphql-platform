@@ -11,7 +11,7 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 internal sealed class ConditionTreeBuilder
 {
-    private readonly CostSchemaSnapshot _snapshot;
+    private readonly CostSchemaIndex _schemaIndex;
     private readonly IReadOnlyDictionary<string, FragmentDefinitionNode> _fragments;
     private readonly IReadOnlyDictionary<string, bool>? _knownVariableValues;
     private readonly List<ConditionTreeNode> _nodes = [];
@@ -21,11 +21,11 @@ internal sealed class ConditionTreeBuilder
     private Condition _rootCondition;
 
     public ConditionTreeBuilder(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         IReadOnlyDictionary<string, bool>? knownVariableValues)
     {
-        _snapshot = snapshot;
+        _schemaIndex = schemaIndex;
         _fragments = fragments;
         _knownVariableValues = knownVariableValues;
     }
@@ -344,7 +344,7 @@ internal sealed class ConditionTreeBuilder
 
         if (target.PossibleTypes.Count == 1 && ContainsTypeBranch(retained))
         {
-            var objectName = _snapshot.GetSingletonObjectTypeName(target.PossibleTypes);
+            var objectName = _schemaIndex.GetSingletonObjectTypeName(target.PossibleTypes);
             var singleton = new List<BranchCondition> { BranchCondition.Type(objectName) };
 
             foreach (var branch in retained)
@@ -495,7 +495,7 @@ internal sealed class ConditionTreeBuilder
             return cached;
         }
 
-        var result = scope.Intersect(_snapshot.GetPossibleTypeSet(typeName));
+        var result = scope.Intersect(_schemaIndex.GetPossibleTypeSet(typeName));
         _intersections.Add(key, result);
         return result;
     }

@@ -13,7 +13,7 @@ namespace HotChocolate.CostAnalysis;
 internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
     [SchemaService] RequestCostOptions options,
-    [SchemaService] CostSchemaSnapshot snapshot,
+    [SchemaService] CostSchemaIndex schemaIndex,
     [SchemaService] CostPlanCache cache,
     ObjectPool<DocumentValidatorContext> contextPool,
     [SchemaService] IExecutionDiagnosticEvents diagnosticEvents)
@@ -32,7 +32,7 @@ internal sealed class CostAnalyzerMiddleware(
         // A request-level override only ever replaces a limit the schema already enforces
         // (in either direction). If the schema never enabled the response-size analysis,
         // honoring the override would silently promise a check that never runs, so this
-        // fails fast instead (2026-09-15 user ruling).
+        // fails fast instead.
         if (requestOptions.MaxResponseSize.HasValue && !options.MaxResponseSize.HasValue)
         {
             context.Result = ErrorHelper.ResponseSizeAnalysisNotEnabled();
@@ -63,7 +63,7 @@ internal sealed class CostAnalyzerMiddleware(
                     }
 
                     plan = CostPlanCompiler.Compile(
-                        snapshot,
+                        schemaIndex,
                         operation.Document,
                         operation.Definition,
                         analyses);
@@ -297,7 +297,7 @@ internal sealed class CostAnalyzerMiddleware(
             (core, next) =>
             {
                 var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
-                var snapshot = core.SchemaServices.GetRequiredService<CostSchemaSnapshot>();
+                var schemaIndex = core.SchemaServices.GetRequiredService<CostSchemaIndex>();
                 var cache = core.SchemaServices.GetRequiredService<CostPlanCache>();
                 var contextPool = core.Services.GetRequiredService<ObjectPool<DocumentValidatorContext>>();
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
@@ -305,7 +305,7 @@ internal sealed class CostAnalyzerMiddleware(
                 var middleware = new CostAnalyzerMiddleware(
                     next,
                     options,
-                    snapshot,
+                    schemaIndex,
                     cache,
                     contextPool,
                     diagnosticEvents);

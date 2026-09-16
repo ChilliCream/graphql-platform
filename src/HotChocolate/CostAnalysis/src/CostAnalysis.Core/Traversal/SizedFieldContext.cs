@@ -13,7 +13,7 @@ namespace HotChocolate.CostAnalysis;
 /// The parent's slicing arguments.
 /// </param>
 /// <param name="DefaultListSize">
-/// The snapshot's default list size.
+/// The schema index's default list size.
 /// </param>
 internal readonly record struct SizedFieldContext(
     ListSizeMetadata Metadata,

@@ -33,11 +33,11 @@ public class FieldGroupMergerTests
         }
 
         operationSource.Append(" } }");
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(schemaSource.ToString());
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(schemaSource.ToString());
         var document = Utf8GraphQLParser.Parse(operationSource.ToString());
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
         var tree = ConditionTreeExtractor.ExtractOperation(
-            snapshot,
+            schemaIndex,
             document,
             operation,
             "Query");
@@ -82,13 +82,13 @@ public class FieldGroupMergerTests
         bool expected)
     {
         // arrange
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot("type Query { f0: Int f1: Int }");
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex("type Query { f0: Int f1: Int }");
         var document = Utf8GraphQLParser.Parse(operationSource);
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
 
         // act
         var tree = ConditionTreeExtractor.ExtractOperation(
-            snapshot,
+            schemaIndex,
             document,
             operation,
             "Query");
@@ -115,11 +115,11 @@ public class FieldGroupMergerTests
 
         schemaSource.Append(" }");
         operationSource.Append(" r0: f1 @include(if: $include) }");
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(schemaSource.ToString());
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(schemaSource.ToString());
         var document = Utf8GraphQLParser.Parse(operationSource.ToString());
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
         var tree = ConditionTreeExtractor.ExtractOperation(
-            snapshot,
+            schemaIndex,
             document,
             operation,
             "Query");
