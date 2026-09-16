@@ -8,6 +8,7 @@ import { SERVICE_SPECTRUM } from "../../spectrum";
 import {
   BRAID_CENTER_Y,
   ENTRY_X,
+  MERGE_FADE_LENGTH,
   MERGE_FADE_X,
   MERGE_WIDTH,
   MERGE_X0,
@@ -81,7 +82,7 @@ export default function AuroraRibbons() {
           </linearGradient>
           <linearGradient
             id="aurora-fade"
-            x1="0"
+            x1={MERGE_FADE_X - MERGE_FADE_LENGTH}
             x2={MERGE_FADE_X}
             y1="0"
             y2="0"
@@ -115,7 +116,7 @@ export default function AuroraRibbons() {
           </mask>
         </defs>
 
-        {/* Merged ribbon: one bright band continuing from the braid to the left edge, fading out. */}
+        {/* Merged ribbon: one bright band continuing from the braid and fading out over `MERGE_FADE_LENGTH`. */}
         <rect
           x="0"
           y={BRAID_CENTER_Y - MERGE_WIDTH / 2}

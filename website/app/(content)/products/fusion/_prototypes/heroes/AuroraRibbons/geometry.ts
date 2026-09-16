@@ -1,7 +1,7 @@
 /**
  * Pure path and segment math for the Aurora Ribbons hero: five strands enter
  * top right, braid through a shared band in visible crossing order, then
- * merge into one ribbon that continues to the left edge. No colour or JSX
+ * merge into one ribbon that fades out left of the braid. No colour or JSX
  * lives here.
  */
 
@@ -26,8 +26,10 @@ export const RIBBON_WIDTH = 30;
 export const MERGE_WIDTH = 40;
 /** Overlap past `BRAID_X1` covering the drift animation's travel at the handoff. */
 export const MERGE_X0 = BRAID_X1 + ENTRY_OVERLAP;
-/** Where the merged ribbon starts fading toward fully transparent at the left edge, kept inside the narrowest crop's visible band. */
+/** Where the merged ribbon's fade toward transparent ends, kept inside the narrowest crop's visible band. */
 export const MERGE_FADE_X = 700;
+/** Length of the merged ribbon's fade, ending at `MERGE_FADE_X` and starting at or right of the narrowest crop's left edge. */
+export const MERGE_FADE_LENGTH = 100;
 /** Distance left of `BRAID_X1` over which merge-band quads taper from ribbon width to `MERGE_WIDTH`. */
 const MERGE_TAPER_LENGTH = 90;
 /** Number of quads per strand used to render the merge-band taper. */
