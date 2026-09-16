@@ -22,9 +22,9 @@ const RIGHT_EDGE = VIEW_W + 40;
 const LEFT_EDGE = -40;
 const LINE_Y = [70, 195, 300, 405, 530] as const;
 const TICK_R = 5;
-/** Trunk exit row, well below the copy block so no line crosses it. */
+/** Y-position of the trunk's flat exit row. */
 const TRUNK_Y = 520;
-/** Where the trunk finishes dropping to TRUNK_Y, still right of the copy block. */
+/** X-position where the trunk bends down to TRUNK_Y. */
 const TRUNK_BEND_X = 560;
 
 const KEYFRAMES = `
@@ -105,7 +105,7 @@ export default function SubwayMap() {
       <style>{KEYFRAMES}</style>
 
       <svg
-        className="absolute inset-0 h-full w-full -translate-x-[48%] translate-y-[25%] scale-[0.54] overflow-visible sm:translate-x-0 sm:translate-y-0 sm:scale-100"
+        className="absolute inset-0 h-full w-full -translate-x-[48%] translate-y-[37%] scale-[0.25] overflow-visible sm:translate-x-0 sm:translate-y-0 sm:scale-100"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         preserveAspectRatio="xMidYMid slice"
       >
@@ -235,7 +235,7 @@ export default function SubwayMap() {
               textAnchor="middle"
               fill={stop.color}
               fontFamily={FONTS.mono}
-              className="text-[17px] sm:text-[10px]"
+              className="text-[36px] sm:text-[10px]"
               style={{ letterSpacing: "0.15em", textTransform: "uppercase" }}
             >
               {stop.label}
@@ -249,7 +249,7 @@ export default function SubwayMap() {
           textAnchor="middle"
           fill={CC.heading}
           fontFamily={FONTS.heading}
-          className="text-[17px] sm:text-[13px]"
+          className="text-[36px] sm:text-[13px]"
           style={{ letterSpacing: "0.2em", textTransform: "uppercase" }}
         >
           Fusion
