@@ -97,7 +97,7 @@ export default function SubwayMap() {
       <style>{KEYFRAMES}</style>
 
       <svg
-        className="absolute inset-0 h-full w-full"
+        className="absolute inset-0 h-full w-full -translate-x-[56%] translate-y-[38%] scale-[0.6] overflow-visible sm:translate-x-0 sm:translate-y-0 sm:scale-100"
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         preserveAspectRatio="xMidYMid slice"
       >
@@ -220,7 +220,7 @@ export default function SubwayMap() {
               textAnchor="middle"
               fill={stop.color}
               fontFamily={FONTS.mono}
-              fontSize={10}
+              className="text-[15px] sm:text-[10px]"
               style={{ letterSpacing: "0.15em", textTransform: "uppercase" }}
             >
               {stop.label}
@@ -234,7 +234,7 @@ export default function SubwayMap() {
           textAnchor="middle"
           fill={CC.heading}
           fontFamily={FONTS.heading}
-          fontSize={13}
+          className="text-[16px] sm:text-[13px]"
           style={{ letterSpacing: "0.2em", textTransform: "uppercase" }}
         >
           Fusion
@@ -244,7 +244,7 @@ export default function SubwayMap() {
       <div
         className="absolute inset-0 sm:hidden"
         style={{
-          background: `color-mix(in srgb, ${CC.bg} 74%, transparent)`,
+          background: `color-mix(in srgb, ${CC.bg} 55%, transparent)`,
         }}
       />
       <div
