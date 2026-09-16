@@ -49,10 +49,10 @@ public sealed class CaseBudgetFallbackConsumerTests
         var schema = SchemaParser.Parse(Sdl);
         var document = Utf8GraphQLParser.Parse(Operation);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
-        var tightSnapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions { CaseBudget = 4 });
-        var roomySnapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions { CaseBudget = 4096 });
-        var tightPlan = AnalysisPlanCompiler.Compile(tightSnapshot, document, operation);
-        var roomyPlan = AnalysisPlanCompiler.Compile(roomySnapshot, document, operation);
+        var tightSchemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions { CaseBudget = 4 });
+        var roomySchemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions { CaseBudget = 4096 });
+        var tightPlan = AnalysisPlanCompiler.Compile(tightSchemaIndex, document, operation);
+        var roomyPlan = AnalysisPlanCompiler.Compile(roomySchemaIndex, document, operation);
         var allFalse = FixtureVariables.Read(variables: null);
 
         // act

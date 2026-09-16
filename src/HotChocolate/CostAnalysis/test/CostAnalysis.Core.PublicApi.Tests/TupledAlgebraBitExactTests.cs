@@ -28,16 +28,16 @@ public sealed class TupledAlgebraBitExactTests
         var operation = document.Definitions
             .OfType<OperationDefinitionNode>()
             .Single(definition => definition.Name?.Value == fixture.OperationName);
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
         var variables = FixtureVariables.Read(fixture.Variables);
-        var costPlan = CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
-        var analysisPlan = AnalysisPlanCompiler.Compile(snapshot, document, operation);
+        var costPlan = CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);
+        var analysisPlan = AnalysisPlanCompiler.Compile(schemaIndex, document, operation);
 
         // act: TupledAlgebra constructed WITH the fixture's own variables is
         // what lets its direct slicing-argument and input-cost resolution
         // match CostPlan's coerced resolution for variable-bound fixtures.
         var expected = costPlan.Evaluate(variables);
-        var actual = analysisPlan.Evaluate(new TupledAlgebra(snapshot, variables), variables);
+        var actual = analysisPlan.Evaluate(new TupledAlgebra(schemaIndex, variables), variables);
 
         // assert
         Assert.Equal(expected.FieldCost, actual.FieldCost);

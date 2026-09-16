@@ -30,13 +30,13 @@ internal static class TraversalTestHelpers
         IAnalysisAlgebra<TSummary> algebra,
         int caseBudget = 4096)
     {
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(sdl);
         var document = Utf8GraphQLParser.Parse(operationText);
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
         var fragments = ConditionTreeExtractor.IndexFragments(document);
-        var tree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var tree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
         return ExactCasesTraversal.Evaluate(
-            snapshot,
+            schemaIndex,
             fragments,
             tree,
             algebra,

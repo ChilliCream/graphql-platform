@@ -9,7 +9,7 @@ namespace HotChocolate.CostAnalysis;
 /// Variable-aware list-size precedence on the <see cref="PagingTests.Query"/> schema
 /// (hc-3-mmh.7 edges a-d): a supplied slicing-argument variable prices the list at the
 /// coerced value, not at the query's static shape. Expected numbers are the locked,
-/// engine-confirmed values from hc-3-whv.6's fix direction.
+/// confirmed values from hc-3-whv.6's fix direction.
 /// </summary>
 public sealed class VariableAwareCostTests
 {

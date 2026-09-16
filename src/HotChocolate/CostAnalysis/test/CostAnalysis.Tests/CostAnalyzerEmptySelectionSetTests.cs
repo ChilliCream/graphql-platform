@@ -22,10 +22,10 @@ public sealed class CostAnalyzerEmptySelectionSetTests
         var document = Utf8GraphQLParser.Parse(operation);
         var requestExecutor = await CreateRequestExecutorBuilder()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-        var snapshot = requestExecutor.Schema.Services.GetRequiredService<CostSchemaSnapshot>();
+        var schemaIndex = requestExecutor.Schema.Services.GetRequiredService<CostSchemaIndex>();
 
         // act
-        var result = Analyze(document, snapshot);
+        var result = Analyze(document, schemaIndex);
 
         // assert
         Assert.Equal(expectedFieldCost, result.FieldCost);
@@ -73,10 +73,10 @@ public sealed class CostAnalyzerEmptySelectionSetTests
             result.ToJson());
     }
 
-    private static CostEstimate Analyze(DocumentNode document, CostSchemaSnapshot snapshot)
+    private static CostEstimate Analyze(DocumentNode document, CostSchemaIndex schemaIndex)
     {
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
-        var plan = CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+        var plan = CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);
         return plan.EvaluateAssumedBound();
     }
 

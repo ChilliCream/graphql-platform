@@ -67,14 +67,14 @@ public sealed class DocumentShapeParityTests
         var rawDefinition = rawDocument.Definitions
             .OfType<OperationDefinitionNode>()
             .Single(definition => definition.Name?.Value == namedFixture.OperationName);
-        var schemaSnapshot = requestExecutor.Schema.Services.GetRequiredService<CostSchemaSnapshot>();
+        var schemaIndex = requestExecutor.Schema.Services.GetRequiredService<CostSchemaIndex>();
         var rawPlan = CostPlanCompiler.Compile(
-            schemaSnapshot,
+            schemaIndex,
             rawDocument,
             rawDefinition,
             CostAnalyses.Cost);
         var rewrittenPlan = CostPlanCompiler.Compile(
-            schemaSnapshot,
+            schemaIndex,
             namedOperation.Document,
             namedOperation.Definition,
             CostAnalyses.Cost);

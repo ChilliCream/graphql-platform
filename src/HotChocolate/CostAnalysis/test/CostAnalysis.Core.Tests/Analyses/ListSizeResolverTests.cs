@@ -7,7 +7,7 @@ namespace HotChocolate.CostAnalysis;
 /// Verifies <see cref="ListSizeResolver"/> against the locked list-size
 /// priority chain: inherited sizedFields, slicing arguments present after
 /// coercion, slicingArgumentDefaultValue, assumedSize, then
-/// CostEngineOptions.DefaultListSize.
+/// CostSchemaIndexOptions.DefaultListSize.
 /// </summary>
 public class ListSizeResolverTests
 {
@@ -342,7 +342,7 @@ public class ListSizeResolverTests
         Assert.Equal(1.0, n);
     }
 
-    // -- Rank 5: CostEngineOptions.DefaultListSize ------------------------------------------------
+    // -- Rank 5: CostSchemaIndexOptions.DefaultListSize ------------------------------------------------
 
     [Fact]
     public void Resolve_Should_UseDefaultListSize_When_FieldCarriesNoListSizeMetadata()

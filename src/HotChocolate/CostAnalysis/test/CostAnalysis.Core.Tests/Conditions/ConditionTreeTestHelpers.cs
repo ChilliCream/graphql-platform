@@ -5,16 +5,16 @@ using HotChocolate.Types.Mutable.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Shared helpers for condition-tree extraction tests: building a snapshot
+/// Shared helpers for condition-tree extraction tests: building a schema index
 /// from SDL and rendering a tree into a deterministic, human-readable dump
-/// for snapshot assertions.
+/// for schema index assertions.
 /// </summary>
 internal static class ConditionTreeTestHelpers
 {
-    public static CostSchemaSnapshot BuildSnapshot(string sdl)
+    public static CostSchemaIndex BuildSchemaIndex(string sdl)
     {
         var schema = SchemaParser.Parse(sdl);
-        return CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        return CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
     }
 
     public static OperationDefinitionNode ParseOperation(DocumentNode document)
@@ -26,7 +26,7 @@ internal static class ConditionTreeTestHelpers
     /// one line per node, the root marked with a leading <c>*</c>. The
     /// <c>branches</c> segment is omitted for a node with no outgoing edges.
     /// </summary>
-    public static string Dump(CostSchemaSnapshot snapshot, ConditionTree tree, params string[] objectTypeNames)
+    public static string Dump(CostSchemaIndex schemaIndex, ConditionTree tree, params string[] objectTypeNames)
     {
         var lines = new List<string>(tree.Nodes.Count);
 
@@ -35,7 +35,9 @@ internal static class ConditionTreeTestHelpers
             var node = tree.Nodes[i];
             var line = new StringBuilder();
             line.Append(i == tree.RootNodeId ? '*' : ' ');
-            line.Append('[').Append(DescribeTypes(snapshot, node.Condition.PossibleTypes, objectTypeNames)).Append(']');
+            line.Append('[')
+                .Append(DescribeTypes(schemaIndex, node.Condition.PossibleTypes, objectTypeNames))
+                .Append(']');
             line.Append(" (").Append(string.Join(",", node.Condition.BooleanCondition)).Append(')');
 
             foreach (var group in node.FieldGroups)
@@ -57,8 +59,8 @@ internal static class ConditionTreeTestHelpers
         return string.Join('\n', lines);
     }
 
-    private static string DescribeTypes(CostSchemaSnapshot snapshot, PossibleTypeSet types, string[] objectTypeNames)
-        => string.Join(",", objectTypeNames.Where(name => types.Contains(snapshot.GetObjectTypeIndex(name))));
+    private static string DescribeTypes(CostSchemaIndex schemaIndex, PossibleTypeSet types, string[] objectTypeNames)
+        => string.Join(",", objectTypeNames.Where(name => types.Contains(schemaIndex.GetObjectTypeIndex(name))));
 
     private static string DescribeBranch(BranchCondition condition)
         => condition.TypeName ?? condition.Literal.ToString()!;

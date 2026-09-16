@@ -47,7 +47,7 @@
         { "type": "number" },
         { "const": "Infinity" }
       ],
-      "description": "The CostEngineOptions.DefaultListSize used to compile this fixture."
+      "description": "The CostSchemaIndexOptions.DefaultListSize used to compile this fixture."
     },
     "backend": {
       "const": "exact-case",

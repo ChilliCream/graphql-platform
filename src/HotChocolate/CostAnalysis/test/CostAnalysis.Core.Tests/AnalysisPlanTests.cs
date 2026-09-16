@@ -84,12 +84,12 @@ public sealed class AnalysisPlanTests
     {
         // arrange
         var (plan, document, operation) = Compile(Sdl, Operation);
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(Sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(Sdl);
         var fragments = ConditionTreeExtractor.IndexFragments(document);
-        var tree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var tree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
         var algebra = new TestCostAlgebra();
         var reference = ExactCasesTraversal.Evaluate(
-            snapshot,
+            schemaIndex,
             fragments,
             tree,
             algebra,
@@ -110,12 +110,12 @@ public sealed class AnalysisPlanTests
     {
         // arrange
         var (plan, document, operation) = Compile(Sdl, Operation);
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(Sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(Sdl);
         var fragments = ConditionTreeExtractor.IndexFragments(document);
-        var tree = ConditionTreeExtractor.ExtractOperation(snapshot, document, operation, "Query");
+        var tree = ConditionTreeExtractor.ExtractOperation(schemaIndex, document, operation, "Query");
         var referenceAlgebra = new TestCostAlgebra();
         var reference = ExactCasesTraversal.Evaluate(
-            snapshot,
+            schemaIndex,
             fragments,
             tree,
             referenceAlgebra,
@@ -139,18 +139,18 @@ public sealed class AnalysisPlanTests
         var (sdl, operationText) = GenerateIndependentlyGatedOperation(10);
         var document = Utf8GraphQLParser.Parse(operationText);
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
-        var tightSnapshot = CostSchemaSnapshot.Create(
+        var tightSchemaIndex = CostSchemaIndex.Create(
             SchemaParser.Parse(sdl),
-            new CostEngineOptions { CaseBudget = 4 });
-        var roomySnapshot = CostSchemaSnapshot.Create(
+            new CostSchemaIndexOptions { CaseBudget = 4 });
+        var roomySchemaIndex = CostSchemaIndex.Create(
             SchemaParser.Parse(sdl),
-            new CostEngineOptions { CaseBudget = 4096 });
+            new CostSchemaIndexOptions { CaseBudget = 4096 });
 
         // act
-        var tightCostPlan = CostPlanCompiler.Compile(tightSnapshot, document, operation, CostAnalyses.Cost);
-        var tightAnalysisPlan = AnalysisPlanCompiler.Compile(tightSnapshot, document, operation);
-        var roomyCostPlan = CostPlanCompiler.Compile(roomySnapshot, document, operation, CostAnalyses.Cost);
-        var roomyAnalysisPlan = AnalysisPlanCompiler.Compile(roomySnapshot, document, operation);
+        var tightCostPlan = CostPlanCompiler.Compile(tightSchemaIndex, document, operation, CostAnalyses.Cost);
+        var tightAnalysisPlan = AnalysisPlanCompiler.Compile(tightSchemaIndex, document, operation);
+        var roomyCostPlan = CostPlanCompiler.Compile(roomySchemaIndex, document, operation, CostAnalyses.Cost);
+        var roomyAnalysisPlan = AnalysisPlanCompiler.Compile(roomySchemaIndex, document, operation);
 
         // assert: case-budget exhaustion depends only on the condition
         // tree's shape and the schema's case budget, never on the algebra,
@@ -168,14 +168,14 @@ public sealed class AnalysisPlanTests
         var (sdl, operationText) = GenerateIndependentlyGatedOperation(6);
         var document = Utf8GraphQLParser.Parse(operationText);
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
-        var tightSnapshot = CostSchemaSnapshot.Create(
+        var tightSchemaIndex = CostSchemaIndex.Create(
             SchemaParser.Parse(sdl),
-            new CostEngineOptions { CaseBudget = 4 });
-        var roomySnapshot = CostSchemaSnapshot.Create(
+            new CostSchemaIndexOptions { CaseBudget = 4 });
+        var roomySchemaIndex = CostSchemaIndex.Create(
             SchemaParser.Parse(sdl),
-            new CostEngineOptions { CaseBudget = 4096 });
-        var tightPlan = AnalysisPlanCompiler.Compile(tightSnapshot, document, operation);
-        var roomyPlan = AnalysisPlanCompiler.Compile(roomySnapshot, document, operation);
+            new CostSchemaIndexOptions { CaseBudget = 4096 });
+        var tightPlan = AnalysisPlanCompiler.Compile(tightSchemaIndex, document, operation);
+        var roomyPlan = AnalysisPlanCompiler.Compile(roomySchemaIndex, document, operation);
         var allFalse = Variables();
 
         // act
@@ -194,10 +194,10 @@ public sealed class AnalysisPlanTests
         string sdl,
         string operationText)
     {
-        var snapshot = ConditionTreeTestHelpers.BuildSnapshot(sdl);
+        var schemaIndex = ConditionTreeTestHelpers.BuildSchemaIndex(sdl);
         var document = Utf8GraphQLParser.Parse(operationText);
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
-        var plan = AnalysisPlanCompiler.Compile(snapshot, document, operation);
+        var plan = AnalysisPlanCompiler.Compile(schemaIndex, document, operation);
         return (plan, document, operation);
     }
 

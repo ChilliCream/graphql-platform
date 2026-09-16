@@ -31,11 +31,11 @@ public sealed class AssumedBoundTests
             var operationSource = GenerateOperation(random, sample, out var sizeVariables);
             var document = Utf8GraphQLParser.Parse(operationSource);
             var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
-            var snapshot = CostSchemaSnapshot.Create(
+            var schemaIndex = CostSchemaIndex.Create(
                 schema,
-                new CostEngineOptions { DefaultListSize = random.Next(1, 7) });
+                new CostSchemaIndexOptions { DefaultListSize = random.Next(1, 7) });
             var plan = CostPlanCompiler.Compile(
-                snapshot,
+                schemaIndex,
                 document,
                 operation,
                 CostAnalyses.Cost | CostAnalyses.ResponseSize);
@@ -137,10 +137,10 @@ public sealed class AssumedBoundTests
 
             """;
         var schema = SchemaParser.Parse(directives + typeSystemSource);
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
         var document = Utf8GraphQLParser.Parse(operationSource);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
-        return CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+        return CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);
     }
 
     private static ICostVariableValues SimpleVariables(params (string Name, IValueNode Value)[] values)

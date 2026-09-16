@@ -454,7 +454,7 @@ public partial class AnnotationBasedMutations
                 .ModifyOptions(o => o.StrictValidation = false)
                 .BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        _ = schema.Services.GetRequiredService<CostSchemaSnapshot>();
+        _ = schema.Services.GetRequiredService<CostSchemaIndex>();
 
         Assert.Equal("Query", schema.QueryType.Name);
         schema.MatchSnapshot();

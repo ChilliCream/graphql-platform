@@ -35,7 +35,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         """;
 
     [Fact]
-    public async Task SchemaSnapshot_Should_UseEngineDefaultCaseBudget_When_OptionIsNull()
+    public async Task SchemaIndex_Should_UseDefaultCaseBudget_When_OptionIsNull()
     {
         // arrange
         await using var services = CreateServices();
@@ -43,15 +43,15 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
             cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var snapshot = executor.Schema.Services.GetRequiredService<CostSchemaSnapshot>();
+        var schemaIndex = executor.Schema.Services.GetRequiredService<CostSchemaIndex>();
 
         // assert
-        Assert.Equal(new CostEngineOptions().CaseBudget, snapshot.Options.CaseBudget);
-        Assert.Equal(1, snapshot.Options.DefaultListSize);
+        Assert.Equal(new CostSchemaIndexOptions().CaseBudget, schemaIndex.Options.CaseBudget);
+        Assert.Equal(1, schemaIndex.Options.DefaultListSize);
     }
 
     [Fact]
-    public async Task SchemaSnapshot_Should_UseConfiguredCaseBudget_When_OptionHasValue()
+    public async Task SchemaIndex_Should_UseConfiguredCaseBudget_When_OptionHasValue()
     {
         // arrange
         const int caseBudget = 16;
@@ -60,10 +60,10 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
             cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var snapshot = executor.Schema.Services.GetRequiredService<CostSchemaSnapshot>();
+        var schemaIndex = executor.Schema.Services.GetRequiredService<CostSchemaIndex>();
 
         // assert
-        Assert.Equal(caseBudget, snapshot.Options.CaseBudget);
+        Assert.Equal(caseBudget, schemaIndex.Options.CaseBudget);
     }
 
     [Fact]

@@ -70,8 +70,8 @@ public sealed class PrecisionFixtureAlgebraTests
         var operation = document.Definitions
             .OfType<OperationDefinitionNode>()
             .Single(definition => definition.Name?.Value == fixture.OperationName);
-        var snapshot = CostSchemaSnapshot.Create(schema, new CostEngineOptions());
-        var plan = AnalysisPlanCompiler.Compile(snapshot, document, operation);
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
+        var plan = AnalysisPlanCompiler.Compile(schemaIndex, document, operation);
         var variables = FixtureVariables.Read(fixture.Variables);
 
         return (plan, variables);

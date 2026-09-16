@@ -20,7 +20,7 @@ public sealed class OptionsTests
     }
 
     [Fact]
-    public void CostOptions_Should_HaveExpectedEngineDefaults_When_Constructed()
+    public void CostOptions_Should_HaveExpectedDefaults_When_Constructed()
     {
         // arrange & act
         var options = new CostOptions();
@@ -34,7 +34,7 @@ public sealed class OptionsTests
     [Theory]
     [InlineData(null, 510)]
     [InlineData(16, 16)]
-    public async Task AddCostAnalyzer_Should_CreateImmutableSchemaSnapshot_When_CaseBudgetIsConfigured(
+    public async Task AddCostAnalyzer_Should_CreateImmutableSchemaIndex_When_CaseBudgetIsConfigured(
         int? caseBudget,
         int expectedCaseBudget)
     {
@@ -46,15 +46,15 @@ public sealed class OptionsTests
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         // act
-        var snapshot = requestExecutor.Schema.Services.GetRequiredService<CostSchemaSnapshot>();
-        var optionsCopy = snapshot.Options;
+        var schemaIndex = requestExecutor.Schema.Services.GetRequiredService<CostSchemaIndex>();
+        var optionsCopy = schemaIndex.Options;
         optionsCopy.CaseBudget = -1;
 
         // assert
         Assert.Same(
-            snapshot,
-            requestExecutor.Schema.Services.GetRequiredService<CostSchemaSnapshot>());
-        Assert.Equal(expectedCaseBudget, snapshot.Options.CaseBudget);
+            schemaIndex,
+            requestExecutor.Schema.Services.GetRequiredService<CostSchemaIndex>());
+        Assert.Equal(expectedCaseBudget, schemaIndex.Options.CaseBudget);
     }
 
     [Theory]

@@ -45,9 +45,9 @@ public sealed class ConformanceTests
         var operation = document.Definitions
             .OfType<OperationDefinitionNode>()
             .Single(definition => definition.Name?.Value == fixture.OperationName);
-        var options = new CostEngineOptions { DefaultListSize = ReadDefaultListSize(fixture.DefaultListSize) };
-        var snapshot = CostSchemaSnapshot.Create(schema, options);
-        var plan = CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+        var options = new CostSchemaIndexOptions { DefaultListSize = ReadDefaultListSize(fixture.DefaultListSize) };
+        var schemaIndex = CostSchemaIndex.Create(schema, options);
+        var plan = CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);
 
         // act
         var estimate = fixture.Variables is { } variables
