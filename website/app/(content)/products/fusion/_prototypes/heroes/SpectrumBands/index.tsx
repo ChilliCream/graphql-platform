@@ -84,7 +84,14 @@ export default function SpectrumBands() {
             <stop offset="0%" stopColor={CC.white} stopOpacity={0.9} />
             <stop offset="100%" stopColor={CC.white} stopOpacity={0} />
           </radialGradient>
-          <linearGradient id="sb-merge-gradient" x1="0" y1="0" x2="1" y2="0">
+          <linearGradient
+            id="sb-merge-gradient"
+            gradientUnits="userSpaceOnUse"
+            x1={EXIT_X}
+            y1={FOCAL.y}
+            x2={FOCAL.x}
+            y2={FOCAL.y}
+          >
             <stop offset="0%" stopColor={CC.white} stopOpacity={0.4} />
             <stop offset="100%" stopColor={CC.white} stopOpacity={1} />
           </linearGradient>
@@ -160,9 +167,8 @@ export default function SpectrumBands() {
             opacity: 0,
             animation: anim(
               running,
-              "fx-spectrumbands-pulse 3s ease-in-out infinite",
+              `fx-spectrumbands-pulse 3s ease-in-out ${i * 0.55}s infinite`,
             ),
-            animationDelay: `${i * 0.55}s`,
           };
 
           return (
@@ -188,6 +194,12 @@ export default function SpectrumBands() {
         />
       </svg>
 
+      <div
+        className="absolute inset-0 sm:hidden"
+        style={{
+          background: `linear-gradient(90deg, ${CC.bg} 0%, ${CC.bg} 50%, color-mix(in srgb, ${CC.bg} 85%, transparent) 100%)`,
+        }}
+      />
       <div
         className="absolute inset-0"
         style={{
