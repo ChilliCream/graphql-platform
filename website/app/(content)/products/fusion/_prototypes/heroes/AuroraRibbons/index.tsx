@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 
+import { CC } from "../../../tokens";
 import { anim, useElementMotion } from "../../../visuals/hooks";
 import { SERVICE_SPECTRUM } from "../../spectrum";
 import {
@@ -84,8 +85,8 @@ export default function AuroraRibbons() {
             y2="0"
             gradientUnits="userSpaceOnUse"
           >
-            <stop offset="0" stopColor="white" stopOpacity="0" />
-            <stop offset="1" stopColor="white" stopOpacity="1" />
+            <stop offset="0" stopColor={CC.white} stopOpacity="0" />
+            <stop offset="1" stopColor={CC.white} stopOpacity="1" />
           </linearGradient>
           <mask
             id="aurora-merge-mask"
@@ -107,7 +108,7 @@ export default function AuroraRibbons() {
               y="0"
               width={VIEW_W - MERGE_FADE_X}
               height={VIEW_H}
-              fill="white"
+              fill={CC.white}
             />
           </mask>
         </defs>
@@ -167,7 +168,7 @@ export default function AuroraRibbons() {
       </svg>
 
       {/* Scrim so the hero copy stays readable over the merged ribbon. */}
-      <div className="from-cc-bg via-cc-bg/85 pointer-events-none absolute inset-y-0 left-0 w-full max-w-4xl bg-gradient-to-r from-0% via-75% to-transparent" />
+      <div className="from-cc-bg/60 via-cc-bg/30 pointer-events-none absolute inset-y-0 left-0 w-full max-w-4xl bg-gradient-to-r via-60% to-transparent" />
     </div>
   );
 }

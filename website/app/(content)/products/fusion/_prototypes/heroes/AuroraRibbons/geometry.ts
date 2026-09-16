@@ -15,7 +15,7 @@ const ENTRY_Y: readonly number[] = [30, 95, 160, 225, 290];
 
 const BRAID_X0 = 1020;
 const BRAID_X1 = 680;
-export const BRAID_CENTER_Y = 460;
+export const BRAID_CENTER_Y = 740;
 const BRAID_AMPLITUDE = 85;
 const BRAID_SEGMENTS = 40;
 const ANGLE_STEP = (3 * Math.PI) / BRAID_SEGMENTS;
