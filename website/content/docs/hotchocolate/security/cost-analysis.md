@@ -288,7 +288,8 @@ Summing the costs prevents a client from splitting an expensive workload among v
 | `DefaultListSize`                  | `Infinity` | Size used for list fields without applicable `@listSize` metadata. Valid range: non-negative finite values or `Infinity`.                  |
 | `CostPlanCacheSize`                | `256`      | Maximum compiled cost plans cached per schema.                                                                                             |
 | `MaxResponseSize`                  | `null`     | Maximum response-object-field count. `null` disables the check and metric. Valid range: `null`, non-negative finite values, or `Infinity`. |
-| `CaseBudget`                       | `null`     | Exact cases evaluated per operation. `null` uses the default (510).                                                                        |
+| `CaseBudget`                       | `null`     | Exact cases evaluated per operation before the remainder falls back per `CaseBudgetExceededBehavior`. `null` uses the default (510).       |
+| `CaseBudgetExceededBehavior`       | `null`     | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).                               |
 
 ```csharp
 builder
@@ -301,6 +302,8 @@ builder
         options.MaxResponseSize = 10_000;
     });
 ```
+
+An operation whose exact compile would exceed `CaseBudget` is, by default (`CaseBudgetExceededBehavior.EvaluatePerRequest`), evaluated exactly per request instead of from a compiled plan: slower for that operation, but never over-estimated. `CaseBudgetExceededBehavior.Overestimate` restores the compiled, sound over-estimate for the unaffordable remainder instead.
 
 ## Filtering Cost Options
 

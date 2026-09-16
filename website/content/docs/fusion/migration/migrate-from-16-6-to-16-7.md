@@ -185,15 +185,16 @@ An explicit null slicing argument is not an integer value and suppresses that ar
 
 Configure these values with `ModifyCostOptions`:
 
-| Option              | Type      | Default | Contract                                                                    |
-| ------------------- | --------- | ------- | --------------------------------------------------------------------------- |
-| `MaxFieldCost`      | `double`  | `1,000` | Maximum field cost.                                                         |
-| `MaxTypeCost`       | `double`  | `1,000` | Maximum type cost.                                                          |
-| `EnforceCostLimits` | `bool`    | `true`  | Enforces the field, type, and response-size limits.                         |
-| `SkipAnalyzer`      | `bool`    | `false` | Skips cost analysis and reporting when `true`.                              |
-| `MaxResponseSize`   | `double?` | `null`  | Maximum response-object-field count. `null` disables this check and metric. |
-| `CostPlanCacheSize` | `int`     | `256`   | Maximum compiled cost plans cached per schema.                              |
-| `CaseBudget`        | `int?`    | `null`  | Exact cases evaluated per operation. `null` uses the default (510).         |
+| Option                       | Type                          | Default | Contract                                                                                                                 |
+| ---------------------------- | ----------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `MaxFieldCost`               | `double`                      | `1,000` | Maximum field cost.                                                                                                      |
+| `MaxTypeCost`                | `double`                      | `1,000` | Maximum type cost.                                                                                                       |
+| `EnforceCostLimits`          | `bool`                        | `true`  | Enforces the field, type, and response-size limits.                                                                      |
+| `SkipAnalyzer`               | `bool`                        | `false` | Skips cost analysis and reporting when `true`.                                                                           |
+| `MaxResponseSize`            | `double?`                     | `null`  | Maximum response-object-field count. `null` disables this check and metric.                                              |
+| `CostPlanCacheSize`          | `int`                         | `256`   | Maximum compiled cost plans cached per schema.                                                                           |
+| `CaseBudget`                 | `int?`                        | `null`  | Exact cases evaluated per operation before falling back per `CaseBudgetExceededBehavior`. `null` uses the default (510). |
+| `CaseBudgetExceededBehavior` | `CaseBudgetExceededBehavior?` | `null`  | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).             |
 
 The default list size for an unannotated list is not among these options: it is a composition setting (`SourceSchemaMergerOptions.DefaultListSize`) carried into the execution schema by `@fusion__cost_options(defaultListSize:)`; see the section above.
 

@@ -225,12 +225,13 @@ An explicit null slicing argument is not an integer value and suppresses that ar
 
 ## New cost options
 
-| Option              | Type      | Default    | Contract                                                                    |
-| ------------------- | --------- | ---------- | --------------------------------------------------------------------------- |
-| `DefaultListSize`   | `double`  | `Infinity` | Size for a list without applicable `@listSize` metadata.                    |
-| `MaxResponseSize`   | `double?` | `null`     | Maximum response-object-field count. `null` disables this check and metric. |
-| `CostPlanCacheSize` | `int`     | `256`      | Maximum compiled cost plans cached per schema.                              |
-| `CaseBudget`        | `int?`    | `null`     | Exact cases evaluated per operation. `null` uses the default (510).         |
+| Option                       | Type                          | Default    | Contract                                                                                                                 |
+| ---------------------------- | ----------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `DefaultListSize`            | `double`                      | `Infinity` | Size for a list without applicable `@listSize` metadata.                                                                 |
+| `MaxResponseSize`            | `double?`                     | `null`     | Maximum response-object-field count. `null` disables this check and metric.                                              |
+| `CostPlanCacheSize`          | `int`                         | `256`      | Maximum compiled cost plans cached per schema.                                                                           |
+| `CaseBudget`                 | `int?`                        | `null`     | Exact cases evaluated per operation before falling back per `CaseBudgetExceededBehavior`. `null` uses the default (510). |
+| `CaseBudgetExceededBehavior` | `CaseBudgetExceededBehavior?` | `null`     | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).             |
 
 When `MaxResponseSize` is enabled, `extensions.operationCost` includes `maxResponseSize`. A rejection includes `{ maxResponseSize, maxAllowedResponseSize }` in the error extensions and uses error code `HC0047`.
 
