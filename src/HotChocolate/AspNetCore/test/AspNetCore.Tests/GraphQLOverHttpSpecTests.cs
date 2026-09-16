@@ -716,6 +716,31 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 """);
     }
 
+    // The streaming media types carry incremental results only, so a single result has no
+    // format to be written in when the client accepts nothing else.
+    [Theory]
+    [InlineData("application/graphql-response+jsonl")]
+    [InlineData("application/jsonl")]
+    public async Task SingleResult_Should_ReturnBareNotAcceptable_When_OnlyAStreamFormatIsAccepted(
+        string acceptHeader)
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotAcceptable, response.StatusCode);
+        Assert.Null(response.Content.Headers.ContentType);
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
     [Fact]
     public async Task SingleResult_Should_NotSelectMediaType_When_ASpecificRangeRejectsIt()
     {
@@ -843,6 +868,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData(
         "application/*;q=0, application/graphql-response+json;q=1",
         ContentType.GraphQLResponse)]
+    [InlineData("text/*, application/graphql-response+json;q=0.5", ContentType.EventStream)]
     public async Task SingleResult_Should_ResolveQualityAgainstTheMostSpecificRange(
         string acceptHeader,
         string expectedContentType)
@@ -856,6 +882,32 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         AddAcceptHeader(request, acceptHeader);
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(OK, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    [Theory]
+    [InlineData("text/*", "text/event-stream; charset=utf-8")]
+    [InlineData("text/*;q=0, */*;q=1", "application/graphql-response+jsonl; charset=utf-8")]
+    public async Task Subscription_Should_ResolveQualityAgainstTheMostSpecificRange(
+        string acceptHeader,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(Latest);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest { Query = "subscription { delay(count: 1, delay: 15000) }" });
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(
+            request,
+            ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(OK, response.StatusCode);

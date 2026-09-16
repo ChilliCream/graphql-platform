@@ -140,8 +140,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             _graphqlResponseFormat,
             _legacyFormat,
             _multiPartFormat,
-            _eventStreamFormat,
-            _graphqlResponseStreamFormat
+            _eventStreamFormat
         ];
         _streamFormats =
         [
@@ -221,7 +220,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             flags |= RequestFlags.AllowStreams;
         }
 
-        if (acceptMediaType.Kind is ApplicationGraphQLStream or EventStream or ApplicationJsonLines or All)
+        if (acceptMediaType.Kind
+            is ApplicationGraphQLStream or EventStream or AllText or ApplicationJsonLines or All)
         {
             flags = RequestFlags.AllowAll;
         }
@@ -859,15 +859,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         for (var i = 0; i < acceptMediaTypes.Length; i++)
         {
             ref readonly var acceptMediaType = ref acceptMediaTypes[i];
-
-            // A media type the server does not recognize names nothing it can produce. The check
-            // has to come first because Unknown is also the sentinel GetWildcardKind returns for
-            // a content type that has no type/* range.
-            if (acceptMediaType.Kind is Unknown)
-            {
-                continue;
-            }
-
             int candidate;
 
             if (acceptMediaType.Kind == exactKind)
@@ -944,15 +935,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         };
 
     /// <summary>
-    /// Gets the <c>type/*</c> range that covers a response content type. <c>text/*</c> has no
-    /// <see cref="AcceptMediaTypeKind"/>, so <c>text/event-stream</c> is covered by its exact
-    /// range and by <c>*/*</c> alone.
+    /// Gets the <c>type/*</c> range that covers a response content type.
     /// </summary>
     private static AcceptMediaTypeKind GetWildcardKind(ResponseContentType contentType)
         => contentType switch
         {
             ResponseContentType.MultiPartMixed => AllMultiPart,
-            ResponseContentType.EventStream => Unknown,
+            ResponseContentType.EventStream => AllText,
             _ => AllApplication
         };
 
