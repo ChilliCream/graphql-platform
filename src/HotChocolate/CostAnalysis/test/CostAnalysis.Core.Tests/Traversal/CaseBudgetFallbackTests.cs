@@ -323,6 +323,12 @@ public class CaseBudgetFallbackTests
             ? 1 + CountNodes(split.WhenFalse) + CountNodes(split.WhenTrue)
             : 1;
 
+    /// <summary>
+    /// Compiles a plan with <see cref="CaseBudgetExceededBehavior.Overestimate"/>
+    /// selected explicitly, so a tripped case budget bakes today's fallback
+    /// envelope into the compiled plan rather than falling back to a
+    /// per-request traversal.
+    /// </summary>
     private static CostPlan CompilePlan(
         string sdl,
         string operationSource)
@@ -333,7 +339,13 @@ public class CaseBudgetFallbackTests
             directive @listSize(assumedSize: Int, slicingArguments: [String!], slicingArgumentDefaultValue: Float, sizedFields: [String!], requireOneSlicingArgument: Boolean = true) on FIELD_DEFINITION
             """;
         var schema = SchemaParser.Parse(directives + "\n" + sdl);
-        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions { CaseBudget = 1 });
+        var schemaIndex = CostSchemaIndex.Create(
+            schema,
+            new CostSchemaIndexOptions
+            {
+                CaseBudget = 1,
+                CaseBudgetExceededBehavior = CaseBudgetExceededBehavior.Overestimate
+            });
         var document = Utf8GraphQLParser.Parse(operationSource);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
         return CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);

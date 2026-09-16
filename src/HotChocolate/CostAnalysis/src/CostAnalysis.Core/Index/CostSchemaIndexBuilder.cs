@@ -27,6 +27,7 @@ internal static class CostSchemaIndexBuilder
         }
 
         var caseBudget = options.CaseBudget;
+        var caseBudgetExceededBehavior = options.CaseBudgetExceededBehavior;
         var objectTypeIndex = IndexObjectTypes(schema, out var objectTypesByIndex);
         var objectTypeCount = objectTypesByIndex.Length;
         var typeWeights = new Dictionary<string, double>();
@@ -171,6 +172,7 @@ internal static class CostSchemaIndexBuilder
         return new CostSchemaIndex(
             defaultListSize,
             caseBudget,
+            caseBudgetExceededBehavior,
             queryType?.Name,
             mutationType?.Name,
             subscriptionType?.Name,

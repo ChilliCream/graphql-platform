@@ -34,4 +34,12 @@ public sealed class CostSchemaIndexOptions
     /// conservative bound. The default is 510.
     /// </summary>
     public int CaseBudget { get; set; } = 510;
+
+    /// <summary>
+    /// Gets or sets the behavior once compiling one operation exhausts
+    /// <see cref="CaseBudget"/>. The default is
+    /// <see cref="CaseBudgetExceededBehavior.EvaluatePerRequest"/>.
+    /// </summary>
+    public CaseBudgetExceededBehavior CaseBudgetExceededBehavior { get; set; }
+        = CaseBudgetExceededBehavior.EvaluatePerRequest;
 }

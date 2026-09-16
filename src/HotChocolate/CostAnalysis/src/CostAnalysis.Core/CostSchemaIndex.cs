@@ -26,10 +26,12 @@ public sealed class CostSchemaIndex
     private readonly FrozenDictionary<string, ImmutableArray<InputValueMetadata>> _directiveArgumentMetadata;
     private readonly double _defaultListSize;
     private readonly int _caseBudget;
+    private readonly CaseBudgetExceededBehavior _caseBudgetExceededBehavior;
 
     internal CostSchemaIndex(
         double defaultListSize,
         int caseBudget,
+        CaseBudgetExceededBehavior caseBudgetExceededBehavior,
         string? queryTypeName,
         string? mutationTypeName,
         string? subscriptionTypeName,
@@ -49,6 +51,7 @@ public sealed class CostSchemaIndex
     {
         _defaultListSize = defaultListSize;
         _caseBudget = caseBudget;
+        _caseBudgetExceededBehavior = caseBudgetExceededBehavior;
         QueryTypeName = queryTypeName;
         MutationTypeName = mutationTypeName;
         SubscriptionTypeName = subscriptionTypeName;
@@ -74,12 +77,15 @@ public sealed class CostSchemaIndex
         => new()
         {
             DefaultListSize = _defaultListSize,
-            CaseBudget = _caseBudget
+            CaseBudget = _caseBudget,
+            CaseBudgetExceededBehavior = _caseBudgetExceededBehavior
         };
 
     internal double DefaultListSize => _defaultListSize;
 
     internal int CaseBudget => _caseBudget;
+
+    internal CaseBudgetExceededBehavior CaseBudgetExceededBehavior => _caseBudgetExceededBehavior;
 
     internal string? QueryTypeName { get; }
 

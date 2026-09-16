@@ -39,6 +39,16 @@ internal static class ExactCasesTraversal
     /// The per-operation case budget, shared across every boundary this
     /// evaluation recurses into.
     /// </param>
+    /// <param name="resolveVariables">
+    /// When <see langword="true"/>, every canonical Boolean variable the
+    /// traversal reaches is resolved from <paramref name="variableValues"/>
+    /// (matching the coercion an unresolved variable is <see langword="false"/>)
+    /// and only its live branch is walked, so the traversal never produces a
+    /// <see cref="SplitDecision{T}"/> and never spends <paramref name="budget"/>
+    /// on a Boolean variable. The default, <see langword="false"/>, is the
+    /// compile-time behavior every other caller relies on: both branches are
+    /// walked and one case is spent per split.
+    /// </param>
     /// <remarks>
     /// Applies <see cref="IAnalysisAlgebra{T}.Root"/> exactly once, mapped
     /// over every leaf of the root selection's decision, after the root
@@ -50,7 +60,8 @@ internal static class ExactCasesTraversal
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
-        CaseBudget budget)
+        CaseBudget budget,
+        bool resolveVariables = false)
     {
         var cache = new TraversalCache(schemaIndex, fragments);
         var selection = EvaluateBoundary(
@@ -60,6 +71,7 @@ internal static class ExactCasesTraversal
             algebra,
             variableValues,
             budget,
+            resolveVariables,
             BooleanAssignment.Empty,
             cache,
             parentSizeContext: null);
@@ -109,6 +121,7 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
         CaseBudget budget,
+        bool resolveVariables,
         BooleanAssignment assignment,
         TraversalCache cache,
         SizedFieldContext? parentSizeContext)
@@ -128,7 +141,11 @@ internal static class ExactCasesTraversal
 
             var representative = FirstIndex(region);
 
-            if (cache.TryCountIndependentLeafVariables(
+            // In resolve mode every canonical variable resolves outright (see EvaluateCase), so
+            // this budget-driven envelope fast-path never applies: a real backstop budget must
+            // not divert per-request evaluation into the envelope before resolution happens.
+            if (!resolveVariables
+                && cache.TryCountIndependentLeafVariables(
                     tree,
                     representative,
                     assignment,
@@ -161,6 +178,7 @@ internal static class ExactCasesTraversal
                 algebra,
                 variableValues,
                 budget,
+                resolveVariables,
                 region,
                 representative,
                 assignment,
@@ -188,6 +206,7 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
         CaseBudget budget,
+        bool resolveVariables,
         PossibleTypeSet region,
         int representative,
         BooleanAssignment assignment,
@@ -206,9 +225,32 @@ internal static class ExactCasesTraversal
                 algebra,
                 variableValues,
                 budget,
+                resolveVariables,
                 region,
                 assignment,
                 cursor.MaterializeVisited(),
+                cache,
+                parentSizeContext);
+        }
+
+        if (resolveVariables)
+        {
+            // Extend the assignment with the request's own coerced value (the same coercion
+            // ResolveBooleanVariable applies: undefined or non-Boolean is false) and recurse into
+            // only that live branch. No Split node is produced and no case is spent.
+            var resolvedValue = ResolveBooleanVariable(variableValues!, variable);
+            return EvaluateCase(
+                schemaIndex,
+                fragments,
+                tree,
+                algebra,
+                variableValues,
+                budget,
+                resolveVariables,
+                region,
+                representative,
+                assignment.With(variable, resolvedValue),
+                cursor,
                 cache,
                 parentSizeContext);
         }
@@ -236,6 +278,7 @@ internal static class ExactCasesTraversal
             algebra,
             variableValues,
             budget,
+            resolveVariables,
             region,
             representative,
             assignment.With(variable, false),
@@ -249,6 +292,7 @@ internal static class ExactCasesTraversal
             algebra,
             variableValues,
             budget,
+            resolveVariables,
             region,
             representative,
             assignment.With(variable, true),
@@ -257,6 +301,15 @@ internal static class ExactCasesTraversal
             parentSizeContext);
         return BooleanDecision<TSummary>.Split(variable, whenFalse, whenTrue);
     }
+
+    /// <summary>
+    /// Resolves one Boolean <c>@include</c>/<c>@skip</c> variable's coerced
+    /// value for resolve-mode traversal, matching <see cref="ConditionPlanNode"/>'s
+    /// coercion exactly: an undefined variable or a non-Boolean coerced value
+    /// is treated as <see langword="false"/>.
+    /// </summary>
+    private static bool ResolveBooleanVariable(ICostVariableValues variableValues, string variableName)
+        => variableValues.TryGetValue(variableName, out var value) && value is BooleanValueNode { Value: true };
 
     /// <summary>
     /// Collects every visited node's field groups by response name, then,
@@ -271,6 +324,7 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
         CaseBudget budget,
+        bool resolveVariables,
         PossibleTypeSet region,
         BooleanAssignment assignment,
         IReadOnlyList<int> visited,
@@ -286,6 +340,7 @@ internal static class ExactCasesTraversal
                 algebra,
                 variableValues,
                 budget,
+                resolveVariables,
                 region,
                 assignment,
                 visited,
@@ -309,6 +364,7 @@ internal static class ExactCasesTraversal
                 algebra,
                 variableValues,
                 budget,
+                resolveVariables,
                 region,
                 assignment,
                 cache,
@@ -330,6 +386,7 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
         CaseBudget budget,
+        bool resolveVariables,
         PossibleTypeSet region,
         BooleanAssignment assignment,
         TraversalCache cache,
@@ -426,6 +483,7 @@ internal static class ExactCasesTraversal
                             algebra,
                             variableValues,
                             budget,
+                            resolveVariables,
                             assignment,
                             member,
                             fields,
@@ -490,6 +548,7 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
         CaseBudget budget,
+        bool resolveVariables,
         PossibleTypeSet region,
         BooleanAssignment assignment,
         IReadOnlyList<int> visited,
@@ -529,6 +588,7 @@ internal static class ExactCasesTraversal
                                 algebra,
                                 variableValues,
                                 budget,
+                                resolveVariables,
                                 assignment,
                                 member,
                                 fields,
@@ -602,6 +662,7 @@ internal static class ExactCasesTraversal
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
         CaseBudget budget,
+        bool resolveVariables,
         BooleanAssignment assignment,
         CollectedFieldGroupMember member,
         IReadOnlyList<FieldNode> fields,
@@ -618,6 +679,7 @@ internal static class ExactCasesTraversal
             algebra,
             variableValues,
             budget,
+            resolveVariables,
             assignment,
             cache,
             parentSizeContext);

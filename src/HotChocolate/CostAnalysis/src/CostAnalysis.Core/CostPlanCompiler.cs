@@ -57,6 +57,16 @@ public static class CostPlanCompiler
         var algebra = new PlanAlgebra(schemaIndex, analyses);
         var decision = ExactCasesTraversal.Evaluate(
             schemaIndex, fragments, tree, algebra, variableValues: null, budget);
+
+        if (budget.IsExhausted
+            && schemaIndex.CaseBudgetExceededBehavior == CaseBudgetExceededBehavior.EvaluatePerRequest)
+        {
+            // The case budget could not afford an exact compile: discard the partial result
+            // and fall back to traversing the condition tree exactly, per request, instead of
+            // baking a conservative envelope into the compiled plan.
+            return new CostPlan(schemaIndex, fragments, tree, analyses);
+        }
+
         var root = CompileDecision(decision, analyses);
 
         return new CostPlan(root, analyses, budget.IsExhausted);

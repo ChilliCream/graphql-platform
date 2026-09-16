@@ -16,11 +16,14 @@ public class AdversarialCorrelatedBooleansBenchmark
     [Params(4, 8, 9, 10, 11, 12, 13, 20)]
     public int VariableCount { get; set; }
 
+    [Params(CaseBudgetExceededBehavior.EvaluatePerRequest, CaseBudgetExceededBehavior.Overestimate)]
+    public CaseBudgetExceededBehavior Behavior { get; set; }
+
     [GlobalSetup]
     public void GlobalSetup()
     {
         var schema = BenchmarkFixture.ParseSchema("adversarial-schema.graphql");
-        var options = new CostSchemaIndexOptions();
+        var options = new CostSchemaIndexOptions { CaseBudgetExceededBehavior = Behavior };
         _schemaIndex = CostSchemaIndex.Create(schema, options);
         (_document, _operation) =
             BenchmarkFixture.ParseOperationSource(CreateOperation(VariableCount));
