@@ -20,6 +20,7 @@ internal static class ErrorHelper
         new(ErrorBuilder.New()
             .SetMessage(ex.Message)
             .SetCode(ErrorCodes.Server.RequestInvalid)
+            .SetException(ex)
             .Build());
 
     public static IError RequestHasNoElements()

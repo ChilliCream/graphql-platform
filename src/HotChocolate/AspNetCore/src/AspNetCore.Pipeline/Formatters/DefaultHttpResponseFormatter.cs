@@ -25,6 +25,7 @@ namespace HotChocolate.AspNetCore.Formatters;
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
     private const HttpTransportVersion LatestTransportVersion = HttpTransportVersion.Draft20250508;
+    private const HttpStatusCode PartialSuccess = (HttpStatusCode)294;
 
     private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = new(StringComparer.Ordinal);
@@ -43,6 +44,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo[] _streamPreferred;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
     private readonly bool _jsonFollowsGraphQLResponseRules;
+    private readonly bool _reportsPartialSuccess;
+    private readonly bool _reportsUnprocessableRequest;
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -137,9 +140,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         // From the 2026-09-03 revision on, a client that accepts application/json is answered as
         // if it had asked for application/graphql-response+json, and only a 2xx response is
-        // written with application/json as its Content-Type.
-        _jsonFollowsGraphQLResponseRules = TransportVersion is not
+        // written with application/json as its Content-Type. The same revision answers a result
+        // that carries errors beside its data with 294, and a request the server read but
+        // cannot execute with 422 rather than 400.
+        var usesRevision20260903 = TransportVersion is not
             (HttpTransportVersion.Legacy or HttpTransportVersion.Draft20250508);
+        _jsonFollowsGraphQLResponseRules = usesRevision20260903;
+        _reportsPartialSuccess = usesRevision20260903;
+        _reportsUnprocessableRequest = usesRevision20260903;
 
         // The formats the server can produce for each result kind, in the order it prefers them.
         // A tie on quality is resolved by this order.
@@ -577,6 +585,16 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             // the application/graphql-response+json response content-type.
             if (proposedStatusCode.HasValue)
             {
+                // From the 2026-09-03 revision on, a request the server read but that is not a
+                // well-formed GraphQL over HTTP request is answered 422 rather than the proposed
+                // 400, which stays for a body the server could not read at all.
+                if (_reportsUnprocessableRequest
+                    && proposedStatusCode is HttpStatusCode.BadRequest
+                    && result.ContextData.ContainsKey(HttpResultContextData.RequestNotWellFormed))
+                {
+                    return HttpStatusCode.UnprocessableContent;
+                }
+
                 return proposedStatusCode.Value;
             }
 
@@ -598,11 +616,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     }
                 }
 
-                // Next, we check if the validation of the request failed.
-                // If that is the case, we will return a BadRequest status code (400).
+                // Next, we check if the validation of the request failed. Such a request is
+                // answered 400, or 422 from the 2026-09-03 revision on.
                 if (contextData.ContainsKey(ExecutionContextData.ValidationErrors))
                 {
-                    return HttpStatusCode.BadRequest;
+                    return _reportsUnprocessableRequest
+                        ? HttpStatusCode.UnprocessableContent
+                        : HttpStatusCode.BadRequest;
                 }
 
                 if (contextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
@@ -620,12 +640,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             // that erased the result.
             if (result.Data.HasValue)
             {
-                return HttpStatusCode.OK;
+                // From the 2026-09-03 revision on, a result that carries errors beside its data
+                // is a partial success and is answered with 294.
+                return _reportsPartialSuccess && result.Errors.Count > 0
+                    ? PartialSuccess
+                    : HttpStatusCode.OK;
             }
 
-            // if data was never set the result not valid and execution has never started, and we return a 400
-            // if the user did not override the status code with a different status code.
-            return HttpStatusCode.BadRequest;
+            // if data was never set the result is not valid and execution has never started. such
+            // a request is answered 400, or 422 from the 2026-09-03 revision on, unless the user
+            // overrode the status code above.
+            return _reportsUnprocessableRequest
+                ? HttpStatusCode.UnprocessableContent
+                : HttpStatusCode.BadRequest;
         }
 
         // we allow for users to implement alternative protocols or response content-type.

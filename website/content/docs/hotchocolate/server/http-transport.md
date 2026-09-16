@@ -352,6 +352,8 @@ A value outside this list throws an `ArgumentOutOfRangeException` when the forma
 `Draft20260903` changes the following compared to `Draft20250508`:
 
 - An `application/json` response takes the status code of `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`. Under `Draft20250508`, an `application/json` response has a `200` status code for every well-formed request and a `400` status code for a request the server cannot interpret.
+- A result that carries both `data` and `errors` has a `294` status code. Under `Draft20250508`, it has a `200` status code.
+- A request the server read but cannot execute has a `422` status code: a request that is not a well-formed GraphQL over HTTP request, a document that fails validation, an operation that cannot be determined, and variables that cannot be coerced. Under `Draft20250508`, these requests have a `400` status code. A request body that is not valid JSON and a GraphQL document that cannot be parsed have a `400` status code under both.
 
 # Supporting Legacy Clients
 

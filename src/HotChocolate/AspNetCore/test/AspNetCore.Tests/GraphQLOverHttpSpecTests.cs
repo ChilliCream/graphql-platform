@@ -2,6 +2,7 @@ using System.Net;
 #if !NET11_0_OR_GREATER
 using System.Net.Http.Json;
 #endif
+using System.Text;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport;
@@ -18,6 +19,17 @@ namespace HotChocolate.AspNetCore;
 public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
+
+    private const string NotWellFormedRequest = """{ "query": 123 }""";
+    private const string AmbiguousOperationRequest =
+        """{ "query": "query A { __typename } query B { __typename }" }""";
+    private const string InvalidVariableRequest =
+        """
+        {
+            "query": "query($e: Episode!) { hero(episode: $e) { name } }",
+            "variables": { "e": "UNKNOWN" }
+        }
+        """;
 
     [Theory]
     [InlineData(null, Latest, ContentType.GraphQLResponse)]
@@ -121,6 +133,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, OK, ContentType.Json)]
+    [InlineData(null, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
@@ -130,6 +143,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.GraphQLResponse, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     public async Task Query_No_Body(string? acceptHeader, HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode, string expectedContentType)
     {
@@ -170,6 +184,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, OK, ContentType.Json)]
+    [InlineData(null, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
@@ -179,6 +194,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.GraphQLResponse, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     public async Task ValidationError(string? acceptHeader, HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode, string expectedContentType)
     {
@@ -211,15 +227,18 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, OK, ContentType.Json)]
+    [InlineData(null, Draft20260903, UnprocessableContent, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
-    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, Draft20260903, UnprocessableContent, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.GraphQLResponse, Draft20260903, UnprocessableContent,
+            ContentType.GraphQLResponse)]
     public async Task ValidationError2(string? acceptHeader, HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode, string expectedContentType)
     {
@@ -563,7 +582,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = new StringContent(
             """{"query":"{ __typename }","onError":"HALT"}""",
-            System.Text.Encoding.UTF8,
+            Encoding.UTF8,
             "application/json");
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
@@ -572,6 +591,136 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(BadRequest, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Contains("onError", body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // From the 2026-09-03 revision on, a result that carries both data and errors is answered
+    // 294, and as a 2xx it keeps application/json for a client that asked for that media type.
+    [Theory]
+    [InlineData(null, Draft20250508, OK, ContentType.GraphQLResponse)]
+    [InlineData(null, Draft20260903, (HttpStatusCode)294, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, Draft20260903, (HttpStatusCode)294, ContentType.Json)]
+    public async Task Post_Should_ReturnPartialSuccess_When_ResultHasDataAndErrors(
+        string? acceptHeader,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest
+            {
+                Query = """{ character(characterIds: ["1000", "unknown"]) { name } }"""
+            });
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: {{{expectedContentType}}}
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"Could not resolve a character for the character-id unknown.","path":["character"]}],"data":{"character":[{"name":"Luke Skywalker"}]}}
+                """);
+    }
+
+    // A non-null violation at the root erases data to null, which is still a data entry, so
+    // the result is a partial success rather than a request error.
+    [Theory]
+    [InlineData(Draft20250508, OK)]
+    [InlineData(Draft20260903, (HttpStatusCode)294)]
+    public async Task Post_Should_ReturnPartialSuccess_When_NonNullViolationErasesData(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer("notnull").AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = transportVersion
+                }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/notnull"));
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ error }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"Cannot return null for non-nullable field.","path":["error"],"extensions":{"code":"HC0018"}}],"data":null}
+                """);
+    }
+
+    // From the 2026-09-03 revision on, a request the server read but cannot execute is answered
+    // 422: one that is not a well-formed GraphQL-over-HTTP request, one whose operation cannot
+    // be determined, and one whose variables cannot be coerced.
+    [Theory]
+    [InlineData(NotWellFormedRequest, Draft20250508, BadRequest)]
+    [InlineData(NotWellFormedRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(AmbiguousOperationRequest, Draft20250508, BadRequest)]
+    [InlineData(AmbiguousOperationRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(InvalidVariableRequest, Draft20250508, BadRequest)]
+    [InlineData(InvalidVariableRequest, Draft20260903, UnprocessableContent)]
+    public async Task Post_Should_ReturnUnprocessableContent_When_RequestCannotBeExecuted(
+        string body,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Get_Should_ReturnUnprocessableContent_When_RequestIsNotWellFormed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri($"{s_url}?query="));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
     }
 
     [Theory]
