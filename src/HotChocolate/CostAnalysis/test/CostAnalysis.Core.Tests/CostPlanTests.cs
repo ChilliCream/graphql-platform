@@ -748,6 +748,46 @@ public sealed class CostPlanTests
         Assert.Equal(first, plan.EvaluateAssumedBound());
     }
 
+    [Fact]
+    public void Evaluate_Should_StayBounded_When_TheAdversarialShapeFarExceedsTheCaseBudget()
+    {
+        // arrange: K=20 independently @include-gated sibling fields would need 2^20-1 exact
+        // splits to compile, far beyond the default case budget (510), so this plan discarded
+        // its compile and defers Evaluate to the per-request traversal.
+        const int variableCount = 20;
+        var (sdl, operationSource) = GenerateIndependentlyGatedOperation(variableCount);
+        var schema = SchemaParser.Parse(Directives + sdl);
+        var schemaIndex = CostSchemaIndex.Create(schema, new CostSchemaIndexOptions());
+        var document = Utf8GraphQLParser.Parse(operationSource);
+        var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
+        var plan = CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);
+        Assert.True(plan.HitCaseBudget);
+
+        // every third variable is included; each field's own weight is (index + 1), and fields
+        // are independently gated, so the exact field cost is the closed-form sum of the
+        // included fields' weights.
+        var included = Enumerable.Range(0, variableCount).Where(index => index % 3 == 0).ToArray();
+        var variables = Variables(
+            Enumerable.Range(0, variableCount)
+                .Select(index => ($"v{index}", (IValueNode)(included.Contains(index)
+                    ? BooleanValueNode.True
+                    : BooleanValueNode.False)))
+                .ToArray());
+        var expectedFieldCost = included.Sum(index => index + 1.0);
+
+        // act: warm once, then measure a second call — a 2^20 split materialization would
+        // allocate hundreds of megabytes (as it did before this fix), while a bounded, per-request
+        // resolution allocates only O(variableCount).
+        _ = plan.Evaluate(variables);
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        var estimate = plan.Evaluate(variables);
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        // assert
+        Assert.Equal(expectedFieldCost, estimate.FieldCost);
+        Assert.True(allocated < 5_000_000, $"expected a bounded allocation, but observed {allocated} bytes.");
+    }
+
     /// <summary>
     /// Generates a schema with <paramref name="variableCount"/> independently @include-gated
     /// sibling Int fields on Query, each with a distinct weight, so the exact backend needs
