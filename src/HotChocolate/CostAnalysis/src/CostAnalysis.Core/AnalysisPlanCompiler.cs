@@ -28,7 +28,7 @@ namespace HotChocolate.CostAnalysis;
 ///     public int Root(double rootTypeWeight, int selection) =&gt; selection;
 /// }
 ///
-/// var plan = AnalysisPlanCompiler.Compile(schema index, document, operation);
+/// var plan = AnalysisPlanCompiler.Compile(schemaIndex, document, operation);
 /// var fieldCount = plan.Evaluate(new FieldCountAlgebra(), variables);
 /// </code>
 /// </example>
