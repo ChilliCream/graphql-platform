@@ -17,8 +17,8 @@ internal static class ExactCasesTraversal
     /// <summary>
     /// Evaluates the operation's root boundary.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot to resolve types, fields and weights against.
+    /// <param name="schemaIndex">
+    /// The schema index to resolve types, fields and weights against.
     /// </param>
     /// <param name="fragments">
     /// The document's named fragment definitions, needed to extract nested
@@ -45,16 +45,16 @@ internal static class ExactCasesTraversal
     /// boundary has been fully combined and joined.
     /// </remarks>
     public static BooleanDecision<TSummary> Evaluate<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
         CaseBudget budget)
     {
-        var cache = new TraversalCache(snapshot, fragments);
+        var cache = new TraversalCache(schemaIndex, fragments);
         var selection = EvaluateBoundary(
-            snapshot,
+            schemaIndex,
             fragments,
             tree,
             algebra,
@@ -63,8 +63,8 @@ internal static class ExactCasesTraversal
             BooleanAssignment.Empty,
             cache,
             parentSizeContext: null);
-        var rootTypeName = snapshot.GetSingletonObjectTypeName(tree.Root.Condition.PossibleTypes);
-        var rootTypeWeight = snapshot.GetTypeWeight(rootTypeName);
+        var rootTypeName = schemaIndex.GetSingletonObjectTypeName(tree.Root.Condition.PossibleTypes);
+        var rootTypeWeight = schemaIndex.GetTypeWeight(rootTypeName);
         return MapRoot(algebra, rootTypeWeight, selection);
     }
 
@@ -103,7 +103,7 @@ internal static class ExactCasesTraversal
     /// branches and its fields' nested boundaries introduce.
     /// </summary>
     private static BooleanDecision<TSummary> EvaluateBoundary<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
@@ -114,7 +114,7 @@ internal static class ExactCasesTraversal
         SizedFieldContext? parentSizeContext)
     {
         var regions = TypeRegionPartitioner.Partition(
-            snapshot,
+            schemaIndex,
             tree.Root.Condition.PossibleTypes,
             CollectTypeConditions(tree));
         BooleanDecision<TSummary>? combined = null;
@@ -136,7 +136,7 @@ internal static class ExactCasesTraversal
                 && !budget.CanCompleteIndependentDecision(independentVariables))
             {
                 var fallback = CaseBudgetFallback.Evaluate(
-                    snapshot,
+                    schemaIndex,
                     fragments,
                     tree,
                     algebra,
@@ -155,7 +155,7 @@ internal static class ExactCasesTraversal
 
             var cursor = CaseCursor.Create(tree);
             var regionResult = EvaluateCase(
-                snapshot,
+                schemaIndex,
                 fragments,
                 tree,
                 algebra,
@@ -182,7 +182,7 @@ internal static class ExactCasesTraversal
     /// shared by the whole selection hierarchy.
     /// </summary>
     private static BooleanDecision<TSummary> EvaluateCase<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
@@ -200,7 +200,7 @@ internal static class ExactCasesTraversal
         if (!cursor.TryPickCanonicalVariable(representative, assignment, cache, out var variable))
         {
             return CollectAndWeigh(
-                snapshot,
+                schemaIndex,
                 fragments,
                 tree,
                 algebra,
@@ -216,7 +216,7 @@ internal static class ExactCasesTraversal
         if (!budget.TrySpend())
         {
             return CaseBudgetFallback.Evaluate(
-                snapshot,
+                schemaIndex,
                 fragments,
                 tree,
                 algebra,
@@ -230,7 +230,7 @@ internal static class ExactCasesTraversal
         }
 
         var whenFalse = EvaluateCase(
-            snapshot,
+            schemaIndex,
             fragments,
             tree,
             algebra,
@@ -243,7 +243,7 @@ internal static class ExactCasesTraversal
             cache,
             parentSizeContext);
         var whenTrue = EvaluateCase(
-            snapshot,
+            schemaIndex,
             fragments,
             tree,
             algebra,
@@ -265,7 +265,7 @@ internal static class ExactCasesTraversal
     /// every group's contribution.
     /// </summary>
     private static BooleanDecision<TSummary> CollectAndWeigh<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
@@ -280,7 +280,7 @@ internal static class ExactCasesTraversal
         if (tree.HasUniqueResponseNames)
         {
             return CollectUniqueAndWeigh(
-                snapshot,
+                schemaIndex,
                 fragments,
                 tree,
                 algebra,
@@ -304,7 +304,7 @@ internal static class ExactCasesTraversal
             var accumulator = new FieldGroupAccumulator(tree, scratch);
             accumulator.Build(visited);
             return CollectMergedAndWeigh(
-                snapshot,
+                schemaIndex,
                 fragments,
                 algebra,
                 variableValues,
@@ -325,7 +325,7 @@ internal static class ExactCasesTraversal
     }
 
     private static BooleanDecision<TSummary> CollectMergedAndWeigh<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
@@ -378,7 +378,7 @@ internal static class ExactCasesTraversal
 
                         foreach (var member in members)
                         {
-                            _ = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
+                            _ = InheritedListSizes.Resolve(schemaIndex, member, field.Arguments);
                             var value = MapFieldValue(
                                 algebra,
                                 variableValues,
@@ -417,11 +417,11 @@ internal static class ExactCasesTraversal
             {
                 foreach (var member in members)
                 {
-                    var childSizeContext = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
+                    var childSizeContext = InheritedListSizes.Resolve(schemaIndex, member, field.Arguments);
                     var childDecision = childSelections.Count == 0
                         ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
                         : EvaluateChild(
-                            snapshot,
+                            schemaIndex,
                             fragments,
                             algebra,
                             variableValues,
@@ -484,7 +484,7 @@ internal static class ExactCasesTraversal
     }
 
     private static BooleanDecision<TSummary> CollectUniqueAndWeigh<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
@@ -520,11 +520,11 @@ internal static class ExactCasesTraversal
                 {
                     foreach (var member in members)
                     {
-                        var childSizeContext = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
+                        var childSizeContext = InheritedListSizes.Resolve(schemaIndex, member, field.Arguments);
                         var childDecision = childSelections.Count == 0
                             ? BooleanDecision<TSummary>.Leaf(algebra.Empty)
                             : EvaluateChild(
-                                snapshot,
+                                schemaIndex,
                                 fragments,
                                 algebra,
                                 variableValues,
@@ -597,7 +597,7 @@ internal static class ExactCasesTraversal
     /// pair using that pair's return type and list-size context.
     /// </summary>
     private static BooleanDecision<TSummary> EvaluateChild<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
@@ -612,7 +612,7 @@ internal static class ExactCasesTraversal
         var returnTypeName = member.Field.Type.NamedType().Name;
         var childTree = cache.GetChildBoundary(returnTypeName, fields, childSelections);
         return EvaluateBoundary(
-            snapshot,
+            schemaIndex,
             fragments,
             childTree,
             algebra,
@@ -1019,7 +1019,7 @@ internal static class ExactCasesTraversal
     }
 
     internal sealed class TraversalCache(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments)
     {
         private readonly Dictionary<(PossibleTypeSet Region, string FieldName), CollectedFieldGroupMember[]>
@@ -1045,7 +1045,7 @@ internal static class ExactCasesTraversal
 
             if (!_members.TryGetValue(key, out var members))
             {
-                members = TraversalMembers.Build(snapshot, region, fieldName);
+                members = TraversalMembers.Build(schemaIndex, region, fieldName);
                 _members.Add(key, members);
             }
 
@@ -1061,9 +1061,9 @@ internal static class ExactCasesTraversal
 
             if (!_childBoundaries.TryGetValue(key, out var tree))
             {
-                var childRoot = new Condition(snapshot.GetPossibleTypeSet(returnTypeName), []);
+                var childRoot = new Condition(schemaIndex.GetPossibleTypeSet(returnTypeName), []);
                 tree = ConditionTreeExtractor.ExtractBoundary(
-                    snapshot,
+                    schemaIndex,
                     fragments,
                     childSelections,
                     childRoot);

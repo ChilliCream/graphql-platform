@@ -9,7 +9,7 @@ namespace HotChocolate.CostAnalysis;
 /// Every member is total over <see cref="double"/> and never throws.
 /// Resolving <c>fieldWeight</c>, <c>argumentsCost</c>,
 /// <c>directiveArgumentsCost</c>, <c>returnTypeWeight</c> and the list
-/// multiplier from the schema snapshot and the coerced request is the
+/// multiplier from the schema index and the coerced request is the
 /// caller's job; this type only combines those already-resolved numbers.
 /// </remarks>
 internal static class CostFieldRule

@@ -192,7 +192,7 @@ internal sealed class FusionRequestExecutorManager
         var schemaServices = CreateSchemaServices(configuration, setup, options, requestOptions, plannerOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
-        _ = schemaServices.GetRequiredService<CostSchemaSnapshot>();
+        _ = schemaServices.GetRequiredService<CostSchemaIndex>();
         var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
 
         var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
@@ -422,7 +422,7 @@ internal sealed class FusionRequestExecutorManager
             {
                 var cost = sp.GetRequiredService<FusionRequestOptions>().Cost;
                 var schema = sp.GetRequiredService<FusionSchemaDefinition>();
-                var engineOptions = new CostEngineOptions
+                var schemaIndexOptions = new CostSchemaIndexOptions
                 {
                     DefaultListSize = schema.DefaultListSize is { } defaultListSize
                         ? defaultListSize
@@ -431,12 +431,12 @@ internal sealed class FusionRequestExecutorManager
 
                 if (cost.CaseBudget is { } caseBudget)
                 {
-                    engineOptions.CaseBudget = caseBudget;
+                    schemaIndexOptions.CaseBudget = caseBudget;
                 }
 
-                return CostSchemaSnapshot.Create(
+                return CostSchemaIndex.Create(
                     sp.GetRequiredService<FusionSchemaDefinition>(),
-                    engineOptions);
+                    schemaIndexOptions);
             });
         services.AddSingleton(
             static sp => new Cache<CostPlan>(

@@ -159,8 +159,8 @@ public sealed class CostOptions
     }
 
     /// <summary>
-    /// Gets or sets the maximum number of exact cases the cost engine evaluates
-    /// for a single operation. <c>null</c> uses the cost engine's default budget.
+    /// Gets or sets the maximum number of exact cases evaluated for a single
+    /// operation. <c>null</c> uses the default (510).
     /// </summary>
     public int? CaseBudget { get; set; }
 }

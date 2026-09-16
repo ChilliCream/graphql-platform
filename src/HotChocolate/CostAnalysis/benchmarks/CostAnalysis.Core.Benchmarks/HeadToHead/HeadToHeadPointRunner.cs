@@ -64,20 +64,20 @@ internal static class HeadToHeadPointRunner
         }
 
         var schema = SchemaParser.Parse(scenario.Schema);
-        var snapshot = CostSchemaSnapshot.Create(
+        var schemaIndex = CostSchemaIndex.Create(
             schema,
-            new CostEngineOptions { DefaultListSize = 1 });
+            new CostSchemaIndexOptions { DefaultListSize = 1 });
         var (document, operation) = BenchmarkFixture.ParseOperationSource(scenario.Operation);
         var variables = CreateVariables(scenario.Variables);
-        var warmPlan = Compile(snapshot, document, operation);
+        var warmPlan = Compile(schemaIndex, document, operation);
 
         var initial = phase is MeasurementPhase.Cold
-            ? Compile(snapshot, document, operation).Evaluate(variables)
+            ? Compile(schemaIndex, document, operation).Evaluate(variables)
             : warmPlan.Evaluate(variables);
         EnsureExpected(scenario, initial);
 
-        RunIterations(phase, snapshot, document, operation, warmPlan, variables, 2);
-        var iterations = Calibrate(phase, snapshot, document, operation, warmPlan, variables);
+        RunIterations(phase, schemaIndex, document, operation, warmPlan, variables, 2);
+        var iterations = Calibrate(phase, schemaIndex, document, operation, warmPlan, variables);
         var samples = new long[SampleCount];
         long medianTotalNanoseconds;
         ulong checksum;
@@ -89,7 +89,7 @@ internal static class HeadToHeadPointRunner
             {
                 (samples[index], var sampleChecksum) = Timed(
                     phase,
-                    snapshot,
+                    schemaIndex,
                     document,
                     operation,
                     warmPlan,
@@ -137,7 +137,7 @@ internal static class HeadToHeadPointRunner
 
     private static int Calibrate(
         MeasurementPhase phase,
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         DocumentNode document,
         OperationDefinitionNode operation,
         CostPlan warmPlan,
@@ -148,7 +148,7 @@ internal static class HeadToHeadPointRunner
         {
             var (elapsedNanoseconds, _) = Timed(
                 phase,
-                snapshot,
+                schemaIndex,
                 document,
                 operation,
                 warmPlan,
@@ -159,7 +159,7 @@ internal static class HeadToHeadPointRunner
             {
                 var (confirmationNanoseconds, _) = Timed(
                     phase,
-                    snapshot,
+                    schemaIndex,
                     document,
                     operation,
                     warmPlan,
@@ -178,7 +178,7 @@ internal static class HeadToHeadPointRunner
 
     private static (long ElapsedNanoseconds, ulong Checksum) Timed(
         MeasurementPhase phase,
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         DocumentNode document,
         OperationDefinitionNode operation,
         CostPlan warmPlan,
@@ -188,7 +188,7 @@ internal static class HeadToHeadPointRunner
         var start = Stopwatch.GetTimestamp();
         var checksum = RunIterations(
             phase,
-            snapshot,
+            schemaIndex,
             document,
             operation,
             warmPlan,
@@ -201,7 +201,7 @@ internal static class HeadToHeadPointRunner
 
     private static ulong RunIterations(
         MeasurementPhase phase,
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         DocumentNode document,
         OperationDefinitionNode operation,
         CostPlan warmPlan,
@@ -212,7 +212,7 @@ internal static class HeadToHeadPointRunner
         for (var index = 0; index < iterations; index++)
         {
             var result = phase is MeasurementPhase.Cold
-                ? Compile(snapshot, document, operation).Evaluate(variables)
+                ? Compile(schemaIndex, document, operation).Evaluate(variables)
                 : warmPlan.Evaluate(variables);
             checksum = unchecked(
                 (checksum ^ (ulong)BitConverter.DoubleToInt64Bits(result.TypeCost))
@@ -226,10 +226,10 @@ internal static class HeadToHeadPointRunner
     }
 
     private static CostPlan Compile(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         DocumentNode document,
         OperationDefinitionNode operation)
-        => CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+        => CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);
 
     private static BenchmarkVariableValues CreateVariables(JsonElement variables)
     {

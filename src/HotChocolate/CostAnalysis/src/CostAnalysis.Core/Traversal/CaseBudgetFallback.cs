@@ -20,7 +20,7 @@ internal static class CaseBudgetFallback
     /// unresolved in the envelope rather than split on.
     /// </summary>
     public static BooleanDecision<TSummary> Evaluate<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
@@ -33,7 +33,7 @@ internal static class CaseBudgetFallback
         SizedFieldContext? parentSizeContext)
         => BooleanDecision<TSummary>.Leaf(
             EvaluateCaseEnvelope(
-                snapshot,
+                schemaIndex,
                 fragments,
                 tree,
                 algebra,
@@ -51,7 +51,7 @@ internal static class CaseBudgetFallback
     /// collapsing the remaining uncertainty into one summary.
     /// </summary>
     private static TSummary EvaluateCaseEnvelope<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
@@ -67,7 +67,7 @@ internal static class CaseBudgetFallback
         var visitedSet = new HashSet<int>();
         CollectReachableWildcard(tree, representative, assignment, tree.RootNodeId, visited, visitedSet);
         return CollectAndWeighEnvelope(
-            snapshot,
+            schemaIndex,
             fragments,
             algebra,
             variableValues,
@@ -85,7 +85,7 @@ internal static class CaseBudgetFallback
     /// own type regions the same way the exact backend does.
     /// </summary>
     private static TSummary EvaluateBoundaryEnvelope<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         ConditionTree tree,
         IAnalysisAlgebra<TSummary> algebra,
@@ -96,7 +96,7 @@ internal static class CaseBudgetFallback
         SizedFieldContext? parentSizeContext)
     {
         var regions = TypeRegionPartitioner.Partition(
-            snapshot,
+            schemaIndex,
             tree.Root.Condition.PossibleTypes,
             ExactCasesTraversal.CollectTypeConditions(tree));
         TSummary? combined = default;
@@ -111,7 +111,7 @@ internal static class CaseBudgetFallback
 
             var representative = ExactCasesTraversal.FirstIndex(region);
             var value = EvaluateCaseEnvelope(
-                snapshot,
+                schemaIndex,
                 fragments,
                 tree,
                 algebra,
@@ -130,7 +130,7 @@ internal static class CaseBudgetFallback
     }
 
     private static TSummary CollectAndWeighEnvelope<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
@@ -163,11 +163,11 @@ internal static class CaseBudgetFallback
             {
                 foreach (var member in members)
                 {
-                    var childSizeContext = InheritedListSizes.Resolve(snapshot, member, field.Arguments);
+                    var childSizeContext = InheritedListSizes.Resolve(schemaIndex, member, field.Arguments);
                     var childValue = childSelections.Count == 0
                         ? algebra.Empty
                         : EvaluateChildEnvelope(
-                            snapshot,
+                            schemaIndex,
                             fragments,
                             algebra,
                             variableValues,
@@ -204,7 +204,7 @@ internal static class CaseBudgetFallback
     /// pair in envelope mode.
     /// </summary>
     private static TSummary EvaluateChildEnvelope<TSummary>(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
         IAnalysisAlgebra<TSummary> algebra,
         ICostVariableValues? variableValues,
@@ -219,7 +219,7 @@ internal static class CaseBudgetFallback
         var returnTypeName = member.Field.Type.NamedType().Name;
         var childTree = cache.GetChildBoundary(returnTypeName, fields, childSelections);
         return EvaluateBoundaryEnvelope(
-            snapshot,
+            schemaIndex,
             fragments,
             childTree,
             algebra,

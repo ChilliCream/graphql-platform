@@ -9,20 +9,20 @@ using HotChocolate.Utilities;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Builds a <see cref="CostSchemaSnapshot"/> from an <see cref="ISchemaDefinition"/>. This is
-/// the only place the cost engine reads the schema directly; everything downstream (compiling
-/// and evaluating a <see cref="CostPlan"/>) touches only the resulting snapshot.
+/// Builds a <see cref="CostSchemaIndex"/> from an <see cref="ISchemaDefinition"/>. This is
+/// the only place cost analysis reads the schema directly; everything downstream (compiling
+/// and evaluating a <see cref="CostPlan"/>) touches only the resulting schema index.
 /// </summary>
-internal static class CostSchemaSnapshotBuilder
+internal static class CostSchemaIndexBuilder
 {
-    public static CostSchemaSnapshot Build(ISchemaDefinition schema, CostEngineOptions options)
+    public static CostSchemaIndex Build(ISchemaDefinition schema, CostSchemaIndexOptions options)
     {
         var defaultListSize = options.DefaultListSize;
 
         if (double.IsNaN(defaultListSize) || defaultListSize < 0)
         {
             throw ThrowHelper.InvalidCostOptionValue(
-                nameof(CostEngineOptions.DefaultListSize),
+                nameof(CostSchemaIndexOptions.DefaultListSize),
                 defaultListSize);
         }
 
@@ -168,7 +168,7 @@ internal static class CostSchemaSnapshotBuilder
         schema.TryGetOperationType(OperationType.Mutation, out var mutationType);
         schema.TryGetOperationType(OperationType.Subscription, out var subscriptionType);
 
-        return new CostSchemaSnapshot(
+        return new CostSchemaIndex(
             defaultListSize,
             caseBudget,
             queryType?.Name,

@@ -5,7 +5,7 @@ namespace HotChocolate.CostAnalysis;
 
 /// <summary>
 /// Compiles an <see cref="AnalysisPlan"/> for one operation against a
-/// <see cref="CostSchemaSnapshot"/>. Compilation is algebra-independent: the
+/// <see cref="CostSchemaIndex"/>. Compilation is algebra-independent: the
 /// returned plan evaluates any <see cref="IAnalysisAlgebra{TSummary}"/>
 /// supplied when it is later evaluated, unlike
 /// <see cref="CostPlanCompiler.Compile"/>, which compiles one fixed set of
@@ -28,7 +28,7 @@ namespace HotChocolate.CostAnalysis;
 ///     public int Root(double rootTypeWeight, int selection) =&gt; selection;
 /// }
 ///
-/// var plan = AnalysisPlanCompiler.Compile(snapshot, document, operation);
+/// var plan = AnalysisPlanCompiler.Compile(schema index, document, operation);
 /// var fieldCount = plan.Evaluate(new FieldCountAlgebra(), variables);
 /// </code>
 /// </example>
@@ -38,8 +38,8 @@ public static class AnalysisPlanCompiler
     /// <summary>
     /// Compiles an analysis plan for <paramref name="operation"/>.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot to compile against.
+    /// <param name="schemaIndex">
+    /// The schema index to compile against.
     /// </param>
     /// <param name="document">
     /// The document that contains <paramref name="operation"/> and any
@@ -52,30 +52,30 @@ public static class AnalysisPlanCompiler
     /// The compiled analysis plan.
     /// </returns>
     public static AnalysisPlan Compile(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         DocumentNode document,
         OperationDefinitionNode operation)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(schemaIndex);
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(operation);
 
-        var rootTypeName = snapshot.GetOperationTypeName(operation.Operation);
+        var rootTypeName = schemaIndex.GetOperationTypeName(operation.Operation);
         var fragments = ConditionTreeExtractor.IndexFragments(document);
         var tree = ConditionTreeExtractor.ExtractOperation(
-            snapshot,
+            schemaIndex,
             document,
             operation,
             rootTypeName);
-        var budget = new CaseBudget(snapshot.CaseBudget);
+        var budget = new CaseBudget(schemaIndex.CaseBudget);
         _ = ExactCasesTraversal.Evaluate(
-            snapshot,
+            schemaIndex,
             fragments,
             tree,
             CaseBudgetProbeAlgebra.Instance,
             variableValues: null,
             budget);
 
-        return new AnalysisPlan(snapshot, fragments, tree, budget.IsExhausted);
+        return new AnalysisPlan(schemaIndex, fragments, tree, budget.IsExhausted);
     }
 }

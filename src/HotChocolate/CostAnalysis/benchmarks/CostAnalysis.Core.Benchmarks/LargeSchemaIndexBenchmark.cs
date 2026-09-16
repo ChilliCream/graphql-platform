@@ -7,10 +7,10 @@ namespace HotChocolate.CostAnalysis;
 
 [MemoryDiagnoser]
 [Config(typeof(InProcessConfig))]
-public class LargeSchemaSnapshotBenchmark
+public class LargeSchemaIndexBenchmark
 {
     private MutableSchemaDefinition _schema = null!;
-    private CostEngineOptions _options = null!;
+    private CostSchemaIndexOptions _options = null!;
 
     [Params(1_024, 10_240)]
     public int ObjectTypeCount { get; set; }
@@ -19,12 +19,12 @@ public class LargeSchemaSnapshotBenchmark
     public void GlobalSetup()
     {
         _schema = SchemaParser.Parse(CreateSchema(ObjectTypeCount));
-        _options = new CostEngineOptions();
+        _options = new CostSchemaIndexOptions();
     }
 
     [Benchmark]
-    public CostSchemaSnapshot LargeSchemaSnapshotBuild()
-        => CostSchemaSnapshot.Create(_schema, _options);
+    public CostSchemaIndex LargeSchemaIndexBuild()
+        => CostSchemaIndex.Create(_schema, _options);
 
     private static string CreateSchema(int objectTypeCount)
     {

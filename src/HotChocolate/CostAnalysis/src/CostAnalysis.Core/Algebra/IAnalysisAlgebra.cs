@@ -3,8 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A pluggable analysis the cost engine evaluates while traversing an
-/// operation's condition trees and type regions.
+/// A pluggable analysis evaluated while traversing an operation's condition
+/// trees and type regions.
 /// </summary>
 /// <remarks>
 /// Laws every implementation must satisfy: the summary type forms a

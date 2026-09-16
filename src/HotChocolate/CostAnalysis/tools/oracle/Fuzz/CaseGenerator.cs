@@ -219,10 +219,10 @@ internal static class CaseGenerator
         var operation = document.Definitions
             .OfType<OperationDefinitionNode>()
             .Single(definition => definition.Name?.Value == generated.OperationName);
-        var snapshot = CostSchemaSnapshot.Create(
+        var schemaIndex = CostSchemaIndex.Create(
             schema,
-            new CostEngineOptions { DefaultListSize = generated.DefaultListSize });
-        var plan = CostPlanCompiler.Compile(snapshot, document, operation, CostAnalyses.Cost);
+            new CostSchemaIndexOptions { DefaultListSize = generated.DefaultListSize });
+        var plan = CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);
         var estimate = plan.Evaluate(new JsonCostVariableValues(generated.Variables));
 
         return generated with { Expected = FuzzCost.From(estimate.TypeCost, estimate.FieldCost) };

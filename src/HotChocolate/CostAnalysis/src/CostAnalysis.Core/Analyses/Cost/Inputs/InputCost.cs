@@ -3,7 +3,7 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Computes the cost of supplied input values from snapshot metadata.
+/// Computes the cost of supplied input values from schema index metadata.
 /// </summary>
 internal static class InputCost
 {
@@ -11,7 +11,7 @@ internal static class InputCost
     /// Computes one argument or input field's own weight and nested value cost.
     /// </summary>
     public static double Compute(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         InputValueMetadata definition,
         IValueNode? suppliedValue,
         ICostVariableValues? variableValues)
@@ -22,8 +22,8 @@ internal static class InputCost
         }
 
         return definition.Weight + (staticShape
-            ? ComputeStaticShape(snapshot, definition.TypeName, [])
-            : ComputeValue(snapshot, definition.TypeName, value!, variableValues));
+            ? ComputeStaticShape(schemaIndex, definition.TypeName, [])
+            : ComputeValue(schemaIndex, definition.TypeName, value!, variableValues));
     }
 
     private static bool TryResolveValue(
@@ -58,7 +58,7 @@ internal static class InputCost
     }
 
     private static double ComputeValue(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         string typeName,
         IValueNode value,
         ICostVariableValues? variableValues)
@@ -67,12 +67,12 @@ internal static class InputCost
         {
             if (variableValues is null)
             {
-                return ComputeStaticShape(snapshot, typeName, []);
+                return ComputeStaticShape(schemaIndex, typeName, []);
             }
 
             return variableValues.TryGetValue(variable.Name.Value, out var variableValue)
                 && variableValue is not null
-                    ? ComputeValue(snapshot, typeName, variableValue, variableValues)
+                    ? ComputeValue(schemaIndex, typeName, variableValue, variableValues)
                     : 0.0;
         }
 
@@ -87,20 +87,20 @@ internal static class InputCost
 
             foreach (var item in list.Items)
             {
-                cost += ComputeValue(snapshot, typeName, item, variableValues);
+                cost += ComputeValue(schemaIndex, typeName, item, variableValues);
             }
 
             return cost;
         }
 
         if (value is ObjectValueNode inputObject
-            && snapshot.TryGetInputObjectFields(typeName, out var fields))
+            && schemaIndex.TryGetInputObjectFields(typeName, out var fields))
         {
             var cost = 0.0;
 
             foreach (var field in fields)
             {
-                cost += Compute(snapshot, field, FindFieldValue(inputObject, field.Name), variableValues);
+                cost += Compute(schemaIndex, field, FindFieldValue(inputObject, field.Name), variableValues);
             }
 
             return cost;
@@ -110,11 +110,11 @@ internal static class InputCost
     }
 
     private static double ComputeStaticShape(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         string typeName,
         HashSet<string> ancestors)
     {
-        if (!snapshot.TryGetInputObjectFields(typeName, out var fields) || !ancestors.Add(typeName))
+        if (!schemaIndex.TryGetInputObjectFields(typeName, out var fields) || !ancestors.Add(typeName))
         {
             return 0.0;
         }
@@ -123,7 +123,7 @@ internal static class InputCost
 
         foreach (var field in fields)
         {
-            cost += field.Weight + ComputeStaticShape(snapshot, field.TypeName, ancestors);
+            cost += field.Weight + ComputeStaticShape(schemaIndex, field.TypeName, ancestors);
         }
 
         ancestors.Remove(typeName);

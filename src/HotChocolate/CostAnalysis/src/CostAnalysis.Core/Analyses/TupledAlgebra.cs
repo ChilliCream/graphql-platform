@@ -16,14 +16,14 @@ public sealed class TupledAlgebra : IAnalysisAlgebra<CostEstimate>
     /// falls back to its schema-declared assumption instead of a coerced
     /// value.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot used by both analyses.
+    /// <param name="schemaIndex">
+    /// The schema index used by both analyses.
     /// </param>
-    public TupledAlgebra(CostSchemaSnapshot snapshot)
+    public TupledAlgebra(CostSchemaIndex schemaIndex)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
-        _cost = new CostAlgebra(snapshot);
-        _responseSize = new ResponseSizeAlgebra(snapshot);
+        ArgumentNullException.ThrowIfNull(schemaIndex);
+        _cost = new CostAlgebra(schemaIndex);
+        _responseSize = new ResponseSizeAlgebra(schemaIndex);
     }
 
     /// <summary>
@@ -32,19 +32,19 @@ public sealed class TupledAlgebra : IAnalysisAlgebra<CostEstimate>
     /// <paramref name="variableValues"/>, the same coerced values the
     /// optimized <see cref="CostPlan"/> path receives at evaluation time.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot used by both analyses.
+    /// <param name="schemaIndex">
+    /// The schema index used by both analyses.
     /// </param>
     /// <param name="variableValues">
     /// The coerced variable values of the request.
     /// </param>
     [Experimental(CostExperiments.AnalysisAlgebra)]
-    public TupledAlgebra(CostSchemaSnapshot snapshot, ICostVariableValues variableValues)
+    public TupledAlgebra(CostSchemaIndex schemaIndex, ICostVariableValues variableValues)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(schemaIndex);
         ArgumentNullException.ThrowIfNull(variableValues);
-        _cost = new CostAlgebra(snapshot, variableValues);
-        _responseSize = new ResponseSizeAlgebra(snapshot, variableValues);
+        _cost = new CostAlgebra(schemaIndex, variableValues);
+        _responseSize = new ResponseSizeAlgebra(schemaIndex, variableValues);
     }
 
     /// <inheritdoc />

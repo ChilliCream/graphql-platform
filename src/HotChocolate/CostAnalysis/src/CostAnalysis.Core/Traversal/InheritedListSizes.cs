@@ -14,11 +14,11 @@ internal static class InheritedListSizes
     /// parent-type pair hands down to its child selection boundary.
     /// </summary>
     public static SizedFieldContext? Resolve(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         CollectedFieldGroupMember member,
         IReadOnlyList<ArgumentNode> arguments)
     {
-        var metadata = snapshot.GetListSizeMetadata(member.ParentType.Name, member.Field.Name);
+        var metadata = schemaIndex.GetListSizeMetadata(member.ParentType.Name, member.Field.Name);
 
         if (metadata is null)
         {
@@ -28,7 +28,7 @@ internal static class InheritedListSizes
         var slicingArguments = SlicingArgumentValues.Build(metadata, member.Field, arguments);
 
         return metadata.SizedFields.Length > 0
-            ? new SizedFieldContext(metadata, slicingArguments, snapshot.DefaultListSize)
+            ? new SizedFieldContext(metadata, slicingArguments, schemaIndex.DefaultListSize)
             : null;
     }
 

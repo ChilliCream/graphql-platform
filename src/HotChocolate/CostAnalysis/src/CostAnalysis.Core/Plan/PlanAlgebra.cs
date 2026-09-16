@@ -11,7 +11,7 @@ internal sealed class PlanAlgebra :
     IInheritedSizePlanAlgebra<PlanNode>,
     ILeafFieldBatchAlgebra<PlanNode>
 {
-    private readonly CostSchemaSnapshot _snapshot;
+    private readonly CostSchemaIndex _schemaIndex;
     private readonly CostAnalyses _analyses;
     private readonly CostAlgebra? _costAlgebra;
     private readonly ResponseSizeAlgebra? _responseSizeAlgebra;
@@ -20,13 +20,13 @@ internal sealed class PlanAlgebra :
         new(32, StaticFieldPlanKeyComparer.Instance);
     private readonly Dictionary<int, BatchedConstantField> _batchedFields = new(32);
 
-    public PlanAlgebra(CostSchemaSnapshot snapshot, CostAnalyses analyses)
+    public PlanAlgebra(CostSchemaIndex schemaIndex, CostAnalyses analyses)
     {
-        _snapshot = snapshot;
+        _schemaIndex = schemaIndex;
         _analyses = analyses;
-        _costAlgebra = (analyses & CostAnalyses.Cost) != 0 ? new CostAlgebra(snapshot) : null;
+        _costAlgebra = (analyses & CostAnalyses.Cost) != 0 ? new CostAlgebra(schemaIndex) : null;
         _responseSizeAlgebra = (analyses & CostAnalyses.ResponseSize) != 0
-            ? new ResponseSizeAlgebra(snapshot)
+            ? new ResponseSizeAlgebra(schemaIndex)
             : null;
         Empty = Constant(PlanArithmetic.Empty(analyses));
     }
@@ -54,13 +54,13 @@ internal sealed class PlanAlgebra :
             }
 
             if (FieldPlanNode.RequiresVariableEvaluation(
-                    _snapshot,
+                    _schemaIndex,
                     group,
                     inheritedSizeContext,
                     child))
             {
                 return FoldField(new FieldPlanNode(
-                    _snapshot,
+                    _schemaIndex,
                     _analyses,
                     group,
                     inheritedSizeContext,
@@ -90,7 +90,7 @@ internal sealed class PlanAlgebra :
             return result;
         }
 
-        return FoldField(new FieldPlanNode(_snapshot, _analyses, group, inheritedSizeContext, child));
+        return FoldField(new FieldPlanNode(_schemaIndex, _analyses, group, inheritedSizeContext, child));
     }
 
     public PlanNode Combine(PlanNode left, PlanNode right)
@@ -130,7 +130,7 @@ internal sealed class PlanAlgebra :
 
         foreach (var member in members)
         {
-            var semanticId = _snapshot.GetFieldSemanticId(member.Field);
+            var semanticId = _schemaIndex.GetFieldSemanticId(member.Field);
 
             if (_batchedFields.TryGetValue(semanticId, out var batched))
             {
@@ -185,7 +185,7 @@ internal sealed class PlanAlgebra :
     }
 
     private int GetSemanticId(CollectedFieldGroupMember member)
-        => _snapshot.GetFieldSemanticId(member.Field);
+        => _schemaIndex.GetFieldSemanticId(member.Field);
 
     internal static bool IsBitExactJoinIdempotent(
         CostEstimate value,

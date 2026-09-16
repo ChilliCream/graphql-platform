@@ -15,7 +15,7 @@ internal static class TraversalMembers
     /// definitions).
     /// </summary>
     public static CollectedFieldGroupMember[] Build(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         PossibleTypeSet region,
         string fieldName)
     {
@@ -24,7 +24,7 @@ internal static class TraversalMembers
 
         foreach (var typeIndex in region)
         {
-            var type = snapshot.GetObjectTypeDefinition(typeIndex);
+            var type = schemaIndex.GetObjectTypeDefinition(typeIndex);
 
             if (type.Fields.TryGetField(fieldName, out var field))
             {

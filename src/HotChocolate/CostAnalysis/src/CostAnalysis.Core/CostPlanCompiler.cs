@@ -4,7 +4,7 @@ namespace HotChocolate.CostAnalysis;
 
 /// <summary>
 /// Compiles a <see cref="CostPlan"/> for one operation against a
-/// <see cref="CostSchemaSnapshot"/>. Compilation consumes only
+/// <see cref="CostSchemaIndex"/>. Compilation consumes only
 /// coerced-variable-independent information; everything variable-dependent
 /// survives in the returned plan as an evaluable slot.
 /// </summary>
@@ -13,8 +13,8 @@ public static class CostPlanCompiler
     /// <summary>
     /// Compiles a cost plan for <paramref name="operation"/>.
     /// </summary>
-    /// <param name="snapshot">
-    /// The schema snapshot to compile against.
+    /// <param name="schemaIndex">
+    /// The schema index to compile against.
     /// </param>
     /// <param name="document">
     /// The document that contains <paramref name="operation"/> and any
@@ -30,12 +30,12 @@ public static class CostPlanCompiler
     /// The compiled cost plan.
     /// </returns>
     public static CostPlan Compile(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         DocumentNode document,
         OperationDefinitionNode operation,
         CostAnalyses analyses)
     {
-        ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(schemaIndex);
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(operation);
 
@@ -46,16 +46,17 @@ public static class CostPlanCompiler
             throw ThrowHelper.InvalidAnalyses(analyses);
         }
 
-        var rootTypeName = snapshot.GetOperationTypeName(operation.Operation);
+        var rootTypeName = schemaIndex.GetOperationTypeName(operation.Operation);
         var fragments = ConditionTreeExtractor.IndexFragments(document);
         var tree = ConditionTreeExtractor.ExtractOperation(
-            snapshot,
+            schemaIndex,
             document,
             operation,
             rootTypeName);
-        var budget = new CaseBudget(snapshot.CaseBudget);
-        var algebra = new PlanAlgebra(snapshot, analyses);
-        var decision = ExactCasesTraversal.Evaluate(snapshot, fragments, tree, algebra, variableValues: null, budget);
+        var budget = new CaseBudget(schemaIndex.CaseBudget);
+        var algebra = new PlanAlgebra(schemaIndex, analyses);
+        var decision = ExactCasesTraversal.Evaluate(
+            schemaIndex, fragments, tree, algebra, variableValues: null, budget);
         var root = CompileDecision(decision, analyses);
 
         return new CostPlan(root, analyses, budget.IsExhausted);

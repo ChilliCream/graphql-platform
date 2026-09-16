@@ -3,7 +3,7 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// One argument or input field captured by the schema snapshot.
+/// One argument or input field captured by the schema index.
 /// </summary>
 /// <param name="Name">
 /// The input value's name.

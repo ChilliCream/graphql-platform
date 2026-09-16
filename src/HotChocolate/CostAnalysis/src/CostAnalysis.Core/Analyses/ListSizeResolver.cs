@@ -7,7 +7,7 @@ namespace HotChocolate.CostAnalysis;
 /// Resolves the list multiplier for one field call from the locked
 /// priority chain: inherited <c>sizedFields</c>, slicing arguments present
 /// after coercion, <c>slicingArgumentDefaultValue</c>, <c>assumedSize</c>,
-/// then <see cref="CostEngineOptions.DefaultListSize"/>.
+/// then <see cref="CostSchemaIndexOptions.DefaultListSize"/>.
 /// </summary>
 internal static class ListSizeResolver
 {
@@ -41,7 +41,7 @@ internal static class ListSizeResolver
     /// size, instead of being coerced.
     /// </param>
     /// <param name="defaultListSize">
-    /// The engine's fallback list size.
+    /// The fallback list size.
     /// </param>
     /// <returns>
     /// The list multiplier, 1.0 for a non-list field.
@@ -132,7 +132,7 @@ internal static class ListSizeResolver
     /// <paramref name="defaultListSize"/>, matching <see cref="Resolve"/>.
     /// </param>
     /// <param name="defaultListSize">
-    /// The engine's fallback list size, read by a variable-bound slicing
+    /// The fallback list size, read by a variable-bound slicing
     /// argument on the assumed path when <see cref="ListSizeMetadata.AssumedSize"/>
     /// is absent, same as <see cref="Resolve"/>.
     /// </param>

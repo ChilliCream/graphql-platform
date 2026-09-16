@@ -5,7 +5,7 @@ namespace HotChocolate.CostAnalysis;
 
 internal sealed class FieldPlanNode : PlanNode
 {
-    private readonly CostSchemaSnapshot _snapshot;
+    private readonly CostSchemaIndex _schemaIndex;
     private readonly CostAnalyses _analyses;
     private readonly PlanNode _child;
     private readonly IType _outputType;
@@ -20,7 +20,7 @@ internal sealed class FieldPlanNode : PlanNode
     private readonly InputValueOperand[] _directiveArguments;
 
     internal static bool RequiresVariableEvaluation(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         in CollectedFieldGroup group,
         SizedFieldContext? inheritedSizeContext,
         PlanNode child)
@@ -34,7 +34,7 @@ internal sealed class FieldPlanNode : PlanNode
 
         var parentTypeName = group.Member.ParentType.Name;
         var fieldName = group.Member.Field.Name;
-        var listSizeMetadata = snapshot.GetListSizeMetadata(parentTypeName, fieldName);
+        var listSizeMetadata = schemaIndex.GetListSizeMetadata(parentTypeName, fieldName);
 
         if (listSizeMetadata is { SlicingArguments.Length: > 0 })
         {
@@ -47,7 +47,7 @@ internal sealed class FieldPlanNode : PlanNode
             }
         }
 
-        foreach (var definition in snapshot.GetFieldArguments(parentTypeName, fieldName))
+        foreach (var definition in schemaIndex.GetFieldArguments(parentTypeName, fieldName))
         {
             if (ContainsVariable(SlicingArgumentValues.FindArgumentValue(field.Arguments, definition.Name)))
             {
@@ -57,7 +57,7 @@ internal sealed class FieldPlanNode : PlanNode
 
         foreach (var directive in field.Directives)
         {
-            if (!snapshot.TryGetDirectiveArgumentMetadata(directive.Name.Value, out var definitions))
+            if (!schemaIndex.TryGetDirectiveArgumentMetadata(directive.Name.Value, out var definitions))
             {
                 continue;
             }
@@ -76,30 +76,30 @@ internal sealed class FieldPlanNode : PlanNode
     }
 
     public FieldPlanNode(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         CostAnalyses analyses,
         in CollectedFieldGroup group,
         SizedFieldContext? inheritedSizeContext,
         PlanNode child)
     {
-        _snapshot = snapshot;
+        _schemaIndex = schemaIndex;
         _analyses = analyses;
         _child = child;
         _outputType = group.Member.Field.Type;
         _fieldName = group.Member.Field.Name;
-        _listSizeMetadata = snapshot.GetListSizeMetadata(group.Member.ParentType.Name, _fieldName);
+        _listSizeMetadata = schemaIndex.GetListSizeMetadata(group.Member.ParentType.Name, _fieldName);
         _slicingArguments = SlicingArgumentValues.Build(
             _listSizeMetadata,
             group.Member.Field,
             group.Field!.Arguments);
         _inheritedSizeContext = inheritedSizeContext;
         _fixedInheritedSize = group.InheritedSize;
-        _fieldWeight = snapshot.GetFieldWeight(group.Member.ParentType.Name, _fieldName);
-        _returnTypeWeight = snapshot.GetTypeWeight(group.Member.Field.Type.NamedType().Name);
+        _fieldWeight = schemaIndex.GetFieldWeight(group.Member.ParentType.Name, _fieldName);
+        _returnTypeWeight = schemaIndex.GetTypeWeight(group.Member.Field.Type.NamedType().Name);
         _arguments = BuildOperands(
-            snapshot.GetFieldArguments(group.Member.ParentType.Name, _fieldName),
+            schemaIndex.GetFieldArguments(group.Member.ParentType.Name, _fieldName),
             group.Field.Arguments);
-        _directiveArguments = BuildDirectiveOperands(snapshot, group.Field.Directives);
+        _directiveArguments = BuildDirectiveOperands(schemaIndex, group.Field.Directives);
         DependsOnVariables = child.DependsOnVariables
             || ContainsVariable(_slicingArguments)
             || ContainsVariable(_arguments)
@@ -127,7 +127,7 @@ internal sealed class FieldPlanNode : PlanNode
             inheritedSizes,
             _slicingArguments,
             variableValues,
-            _snapshot.DefaultListSize);
+            _schemaIndex.DefaultListSize);
 
         var cost = PlanArithmetic.Empty(_analyses);
 
@@ -164,7 +164,7 @@ internal sealed class FieldPlanNode : PlanNode
 
         foreach (var operand in operands)
         {
-            cost += InputCost.Compute(_snapshot, operand.Definition, operand.Value, variableValues);
+            cost += InputCost.Compute(_schemaIndex, operand.Definition, operand.Value, variableValues);
         }
 
         return cost;
@@ -193,14 +193,14 @@ internal sealed class FieldPlanNode : PlanNode
     }
 
     private static InputValueOperand[] BuildDirectiveOperands(
-        CostSchemaSnapshot snapshot,
+        CostSchemaIndex schemaIndex,
         IReadOnlyList<DirectiveNode> directives)
     {
         var count = 0;
 
         foreach (var directive in directives)
         {
-            if (snapshot.TryGetDirectiveArgumentMetadata(directive.Name.Value, out var definitions))
+            if (schemaIndex.TryGetDirectiveArgumentMetadata(directive.Name.Value, out var definitions))
             {
                 count += definitions.Length;
             }
@@ -216,7 +216,7 @@ internal sealed class FieldPlanNode : PlanNode
 
         foreach (var directive in directives)
         {
-            if (!snapshot.TryGetDirectiveArgumentMetadata(directive.Name.Value, out var definitions))
+            if (!schemaIndex.TryGetDirectiveArgumentMetadata(directive.Name.Value, out var definitions))
             {
                 continue;
             }

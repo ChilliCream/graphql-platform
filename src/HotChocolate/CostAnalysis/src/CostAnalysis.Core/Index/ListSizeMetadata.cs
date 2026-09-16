@@ -4,7 +4,7 @@ namespace HotChocolate.CostAnalysis;
 
 /// <summary>
 /// The <c>@listSize</c> metadata of one output field, with every default
-/// already resolved by the snapshot builder.
+/// already resolved by the schema index builder.
 /// </summary>
 /// <param name="AssumedSize">
 /// The <c>assumedSize</c> argument, or <see langword="null"/> when absent.
