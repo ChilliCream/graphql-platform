@@ -44,10 +44,7 @@ internal sealed class CostAnalysisMiddleware
 
         var isWarmup = context.IsWarmupRequest();
 
-        // Coercion always precedes cost analysis and produces at least one variable set for a
-        // non-warmup request, except when a variable batch request's payload is an explicitly
-        // empty array. That state is invalid for cost analysis; the assumed bound is reserved for
-        // warmup requests and must not leak back into the request path.
+        // Non-warmup cost analysis requires at least one coerced variable set, so an explicit empty variable batch is invalid.
         if (!isWarmup && context.VariableValues.IsDefaultOrEmpty)
         {
             context.Result = ErrorHelper.StateInvalidForCostAnalysisMissingVariableValues();
