@@ -35,9 +35,13 @@ const EXCLUDED_PATHS = new Set([
 ]);
 
 // Un-indexed, unlinked prototype routes: /platform/graphql-federation/vN
-// compares backbone concepts before one is picked. Path-based rather than an
+// compares backbone concepts and /products/fusion/vN compares Fusion page
+// concepts, in both cases before one is picked. Path-based rather than an
 // exact-match set, since new vN routes are added over time.
-const EXCLUDED_PATH_PATTERNS = [/^\/platform\/graphql-federation\/v\d+$/];
+const EXCLUDED_PATH_PATTERNS = [
+  /^\/platform\/graphql-federation\/v\d+$/,
+  /^\/products\/fusion\/v\d+$/,
+];
 
 function isExcludedPath(urlPath: string): boolean {
   return (

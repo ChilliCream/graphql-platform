@@ -37,6 +37,11 @@ import {
  * All words come from `./content`.
  */
 
+interface FusionPageProps {
+  /** Replaces the default `PageHero` + `ButtonRow` block; used by the hero prototypes. */
+  readonly hero?: ReactNode;
+}
+
 const PANEL_CLASS = "border-cc-card-border bg-cc-card-bg rounded-xl border";
 
 /** Re-links the phrases the production page links, leaving the words untouched. */
@@ -106,22 +111,26 @@ const VISUALS: Readonly<Record<string, Panel>> = {
   },
 };
 
-export function FusionPage() {
+export function FusionPage({ hero }: FusionPageProps) {
   return (
     <>
-      <PageHero
-        eyebrow={HERO.eyebrow}
-        title={HERO.title}
-        teaser={HERO.teaser}
-      />
-      <ButtonRow>
-        <SolidButton href={HERO.buttons[0].href}>
-          {HERO.buttons[0].label}
-        </SolidButton>
-        <OutlineButton href={HERO.buttons[1].href}>
-          {HERO.buttons[1].label}
-        </OutlineButton>
-      </ButtonRow>
+      {hero ?? (
+        <>
+          <PageHero
+            eyebrow={HERO.eyebrow}
+            title={HERO.title}
+            teaser={HERO.teaser}
+          />
+          <ButtonRow>
+            <SolidButton href={HERO.buttons[0].href}>
+              {HERO.buttons[0].label}
+            </SolidButton>
+            <OutlineButton href={HERO.buttons[1].href}>
+              {HERO.buttons[1].label}
+            </OutlineButton>
+          </ButtonRow>
+        </>
+      )}
       <div
         // Below sm the diagram fills and crops the panel so labels keep their minimum size.
         className={`${PANEL_CLASS} mt-12 aspect-[3/4] overflow-hidden sm:aspect-square md:aspect-[9/8] lg:aspect-[9/4]`}
