@@ -1,3 +1,5 @@
+using HotChocolate.CostAnalysis;
+
 namespace HotChocolate.Fusion.Execution;
 
 /// <summary>
@@ -140,6 +142,22 @@ public sealed class FusionCostOptions
     }
 
     /// <summary>
+    /// Gets or sets the behavior once compiling one operation exhausts
+    /// <see cref="CaseBudget"/>. <c>null</c> uses the default
+    /// (<see cref="CaseBudgetExceededBehavior.EvaluatePerRequest"/>).
+    /// </summary>
+    public CaseBudgetExceededBehavior? CaseBudgetExceededBehavior
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Clones the cost options into a new mutable instance.
     /// </summary>
     /// <returns>
@@ -155,7 +173,8 @@ public sealed class FusionCostOptions
             SkipAnalyzer = SkipAnalyzer,
             MaxResponseSize = MaxResponseSize,
             CostPlanCacheSize = CostPlanCacheSize,
-            CaseBudget = CaseBudget
+            CaseBudget = CaseBudget,
+            CaseBudgetExceededBehavior = CaseBudgetExceededBehavior
         };
     }
 

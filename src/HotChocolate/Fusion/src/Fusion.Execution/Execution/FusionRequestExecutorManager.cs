@@ -434,6 +434,11 @@ internal sealed class FusionRequestExecutorManager
                     schemaIndexOptions.CaseBudget = caseBudget;
                 }
 
+                if (cost.CaseBudgetExceededBehavior is { } caseBudgetExceededBehavior)
+                {
+                    schemaIndexOptions.CaseBudgetExceededBehavior = caseBudgetExceededBehavior;
+                }
+
                 return CostSchemaIndex.Create(
                     sp.GetRequiredService<FusionSchemaDefinition>(),
                     schemaIndexOptions);

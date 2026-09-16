@@ -65,6 +65,11 @@ public static class CostAnalyzerRequestExecutorBuilderExtensions
                             schemaIndexOptions.CaseBudget = caseBudget;
                         }
 
+                        if (options.CaseBudgetExceededBehavior is { } caseBudgetExceededBehavior)
+                        {
+                            schemaIndexOptions.CaseBudgetExceededBehavior = caseBudgetExceededBehavior;
+                        }
+
                         return CostSchemaIndex.Create(
                             sp.GetRequiredService<ISchemaDefinition>(),
                             schemaIndexOptions);
