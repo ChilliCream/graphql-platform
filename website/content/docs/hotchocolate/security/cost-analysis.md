@@ -288,7 +288,7 @@ Summing the costs prevents a client from splitting an expensive workload among v
 | `DefaultListSize`                  | `Infinity` | Size used for list fields without applicable `@listSize` metadata. Valid range: non-negative finite values or `Infinity`.                  |
 | `CostPlanCacheSize`                | `256`      | Maximum compiled cost plans cached per schema.                                                                                             |
 | `MaxResponseSize`                  | `null`     | Maximum response-object-field count. `null` disables the check and metric. Valid range: `null`, non-negative finite values, or `Infinity`. |
-| `CaseBudget`                       | `null`     | Exact cases evaluated per operation. `null` uses the engine default.                                                                       |
+| `CaseBudget`                       | `null`     | Exact cases evaluated per operation. `null` uses the default (510).                                                                        |
 
 ```csharp
 builder

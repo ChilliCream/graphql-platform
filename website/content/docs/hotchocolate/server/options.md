@@ -103,7 +103,7 @@ builder
 | `DefaultListSize`                  | `double`            | `Infinity` | Size for lists without applicable `@listSize` metadata.                 |
 | `CostPlanCacheSize`                | `int`               | `256`      | Maximum compiled cost plans cached per schema.                          |
 | `MaxResponseSize`                  | `double?`           | `null`     | Maximum response-object-field count. `null` disables the check.         |
-| `CaseBudget`                       | `int?`              | `null`     | Exact cases evaluated per operation. `null` uses the engine default.    |
+| `CaseBudget`                       | `int?`              | `null`     | Exact cases evaluated per operation. `null` uses the default (510).     |
 | `Filtering`                        | `FilterCostOptions` | See below  | Default weights for filtering arguments and operations.                 |
 | `Sorting`                          | `SortCostOptions`   | See below  | Default weights for sorting arguments and operations.                   |
 

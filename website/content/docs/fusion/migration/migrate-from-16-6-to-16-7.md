@@ -193,7 +193,7 @@ Configure these values with `ModifyCostOptions`:
 | `SkipAnalyzer`      | `bool`    | `false` | Skips cost analysis and reporting when `true`.                              |
 | `MaxResponseSize`   | `double?` | `null`  | Maximum response-object-field count. `null` disables this check and metric. |
 | `CostPlanCacheSize` | `int`     | `256`   | Maximum compiled cost plans cached per schema.                              |
-| `CaseBudget`        | `int?`    | `null`  | Exact cases evaluated per operation. `null` uses the engine default.        |
+| `CaseBudget`        | `int?`    | `null`  | Exact cases evaluated per operation. `null` uses the default (510).         |
 
 The default list size for an unannotated list is not among these options: it is a composition setting (`SourceSchemaMergerOptions.DefaultListSize`) carried into the execution schema by `@fusion__cost_options(defaultListSize:)`; see the section above.
 
