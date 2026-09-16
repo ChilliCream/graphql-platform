@@ -815,7 +815,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 bestQuality = match.Quality;
                 bestRequested = requested;
                 bestPosition = position;
-                selectedAcceptMediaType = match.Range;
+                selectedAcceptMediaType = acceptMediaTypes[match.RangeIndex];
                 format = candidate;
             }
         }
@@ -854,11 +854,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         var quality = 0d;
         var namedPosition = -1;
         var wildcardPosition = -1;
-        var range = default(AcceptMediaType);
+        var rangeIndex = -1;
 
         for (var i = 0; i < acceptMediaTypes.Length; i++)
         {
-            var acceptMediaType = acceptMediaTypes[i];
+            ref readonly var acceptMediaType = ref acceptMediaTypes[i];
 
             // A media type the server does not recognize names nothing it can produce. The check
             // has to come first because Unknown is also the sentinel GetWildcardKind returns for
@@ -910,21 +910,23 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             {
                 precedence = candidate;
                 quality = candidateQuality;
-                range = acceptMediaType;
+                rangeIndex = i;
             }
         }
 
-        return new FormatMatch(quality, namedPosition, wildcardPosition, range);
+        return new FormatMatch(quality, namedPosition, wildcardPosition, rangeIndex);
     }
 
     /// <summary>
-    /// How one response content type fared against the client's Accept header.
+    /// How one response content type fared against the client's Accept header. The range the
+    /// quality came from is carried as an index into the header, <c>-1</c> when none matched,
+    /// so that scoring a format does not copy an <see cref="AcceptMediaType"/>.
     /// </summary>
     private readonly record struct FormatMatch(
         double Quality,
         int NamedPosition,
         int WildcardPosition,
-        AcceptMediaType Range);
+        int RangeIndex);
 
     /// <summary>
     /// Gets the media range that names a response content type exactly.
