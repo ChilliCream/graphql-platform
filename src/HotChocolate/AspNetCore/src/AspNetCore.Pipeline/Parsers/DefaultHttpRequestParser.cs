@@ -209,7 +209,14 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             // query extensions.
             if ((string?)parameters[ExtensionsKey] is { Length: > 0 } se)
             {
-                extensions = JsonDocument.Parse(se);
+                try
+                {
+                    extensions = JsonDocument.Parse(se);
+                }
+                catch (JsonException ex)
+                {
+                    throw DefaultHttpRequestParser_UnexpectedError(ex);
+                }
             }
 
             // we will use the request parser utils to extract the hash from the extensions.
@@ -396,6 +403,10 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 _documentHashProvider,
                 skipDocumentBody);
             return requestParser.Parse(span);
+        }
+        catch (SyntaxException ex)
+        {
+            throw DefaultHttpRequestParser_SyntaxError(ex);
         }
         catch (InvalidGraphQLRequestException ex)
         {

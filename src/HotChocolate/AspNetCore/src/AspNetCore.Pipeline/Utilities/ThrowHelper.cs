@@ -24,11 +24,13 @@ internal static class ThrowHelper
 
     public static GraphQLRequestException DefaultHttpRequestParser_UnexpectedError(
         Exception ex) =>
-        new(ErrorBuilder.New()
-            .SetMessage(ex.Message)
-            .SetException(ex)
-            .SetCode(ErrorCodes.Server.UnexpectedRequestParserError)
-            .Build());
+        new(
+            ErrorBuilder.New()
+                .SetMessage(ex.Message)
+                .SetException(ex)
+                .SetCode(ErrorCodes.Server.UnexpectedRequestParserError)
+                .Build(),
+            ex);
 
     public static GraphQLRequestException DefaultHttpRequestParser_RequestIsEmpty() =>
         new(ErrorBuilder.New()

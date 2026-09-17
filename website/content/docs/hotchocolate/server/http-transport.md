@@ -3,7 +3,7 @@ title: HTTP Transport
 description: "How Hot Chocolate implements the GraphQL over HTTP specification: content negotiation, status codes, incremental delivery, and streaming transports like SSE."
 ---
 
-Hot Chocolate implements the latest version of the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md).
+Hot Chocolate implements the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md). The specification is a draft whose status code rules change between revisions, and the revision the server follows is selected with `HttpTransportVersion`, see [Transport Versions](#transport-versions).
 
 # Response Formats and Content Negotiation
 
@@ -18,7 +18,7 @@ Hot Chocolate uses the HTTP `Accept` header to determine how to format the respo
 
 When a client sends no `Accept` header or sends `*/*`, the server responds with `application/graphql-response+json` for single results. For streaming operations, the server defaults to `multipart/mixed` unless the client explicitly requests a different format.
 
-When the client sends `Accept: application/json`, it opts out of the GraphQL over HTTP specification and receives legacy-style responses with a `200` status code for all requests.
+When the client sends `Accept: application/json`, the response `Content-Type` is `application/json`. Under `Draft20250508`, the default transport version, every request the server reads is then answered with a `200` status code, including one that fails validation or asks for an operation kind the request method does not allow; only a request it cannot read, such as a body that is not valid JSON or a request that is not a well-formed GraphQL over HTTP request, and a batch it does not accept have a `400` status code. Under `Draft20260903`, the response takes the same status code as `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`.
 
 # Types of Requests
 
@@ -323,9 +323,45 @@ Hot Chocolate supports operation batching, request batching, and variable batchi
 
 For full details on how to enable and use batching, see the [Batching](./batching.md) page.
 
+# Transport Versions
+
+The GraphQL over HTTP specification is a draft, and its status code rules have changed between revisions. `HttpResponseFormatterOptions.HttpTransportVersion` selects the revision the server follows:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddHttpResponseFormatter(
+        new HttpResponseFormatterOptions
+        {
+            HttpTransportVersion = HttpTransportVersion.Draft20260903
+        });
+```
+
+| Version         | Description                                                                                                                                                      |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Latest`        | The default. Resolves to `Draft20250508`.                                                                                                                        |
+| `Legacy`        | Predates the specification. A missing `Accept` header or `*/*` is answered as `application/json`, and every `application/json` response has a `200` status code. |
+| `Draft20230127` | Resolves to `Draft20250508`.                                                                                                                                     |
+| `Draft20250508` | The specification revision of 2025-05-08.                                                                                                                        |
+| `Draft20260903` | The specification revision of 2026-09-03, see below.                                                                                                             |
+
+A value outside this list throws an `ArgumentOutOfRangeException` when the formatter is registered.
+
+## Draft20260903
+
+`Draft20260903` changes the following compared to `Draft20250508`:
+
+- An `application/json` response takes the status code of `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`. Under `Draft20250508`, an `application/json` response has a `200` status code for every well-formed request and a `400` status code for a request the server cannot interpret.
+- A result that carries both `data` and `errors` has a `294` status code. Under `Draft20250508`, it has a `200` status code.
+- A request the server read but cannot execute has a `422` status code: a request that is not a well-formed GraphQL over HTTP request, a document that fails validation, an operation that cannot be determined, and variables that cannot be coerced. Under `Draft20250508`, these requests have a `400` status code for `application/graphql-response+json`; for `application/json`, only the request that is not well-formed has a `400` status code and the others have `200`. A request body that is not valid JSON has a `400` status code under both. A GraphQL document that cannot be parsed has a `400` status code under both for `application/graphql-response+json`, and a `200` status code under `Draft20250508` for `application/json`.
+- A request on the GraphQL endpoint whose method the endpoint does not support has a `405` status code and an `Allow` header listing the supported methods, an `OPTIONS` request has a `204` status code with the same header, and a `POST` request whose `Content-Type` the endpoint does not support has a `415` status code. Under `Draft20250508`, all three have a `404` status code.
+
+> [!NOTE]
+> `294` is not registered with IANA. Clients and intermediaries that do not recognize it treat it as `200` per RFC 9110, and it is not heuristically cacheable, so a response without cache headers is not stored. Infrastructure that acts on a fixed list of status codes can still treat it differently from `200`. nginx's `add_header` directive, for example, emits headers only for a fixed list of codes unless the `always` flag is set, so CORS and security headers added that way are missing on a `294` response. Before enabling `Draft20260903`, verify that headers and caching behave as intended for `294` through your own infrastructure.
+
 # Supporting Legacy Clients
 
-Your clients might not yet support the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md). This can be problematic if they cannot handle a different response `Content-Type` or HTTP status codes besides `200`.
+Your clients might not yet support the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md). This can be problematic if they cannot handle a different response `Content-Type` or HTTP status codes besides `200`.
 
 If you have control over the client, you can either:
 
@@ -340,7 +376,7 @@ builder.Services.AddHttpResponseFormatter(new HttpResponseFormatterOptions {
 });
 ```
 
-An `Accept` header with the value `application/json` opts you out of the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) specification. The response `Content-Type` becomes `application/json` and a status code of 200 is returned for every request, even if it had validation errors or a valid response could not be produced.
+An `Accept` header with the value `application/json` makes the response `Content-Type` `application/json`. Under `Legacy` and `Draft20250508`, it also opts the client out of the status codes of the [2025-05-08 revision](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) of the GraphQL over HTTP specification: a status code of 200 is returned for every well-formed request, even if it had validation errors. Under `Draft20260903`, the specification's status codes apply to `application/json` as well, see [Transport Versions](#transport-versions).
 
 # WebSocket Transport
 

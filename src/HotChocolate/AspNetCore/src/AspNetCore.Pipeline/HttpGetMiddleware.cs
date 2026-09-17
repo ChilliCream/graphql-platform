@@ -83,7 +83,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
         if (!parserResult.IsValid)
         {
-            statusCode = parserResult.StatusCode.Value;
+            statusCode = parserResult.StatusCode;
             result = parserResult.Error;
             goto HANDLE_RESULT;
         }
