@@ -62,17 +62,20 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
         {
             yield return _nodeType;
 
-            if (_options.MarkNodeFieldAsLookup)
+            var nodeFieldIsLookup = _options.AddNodeField && _options.MarkNodeFieldAsLookup;
+            var anyNodeFieldCreated = _options.AddNodeField || _options.AddNodesField;
+
+            if (nodeFieldIsLookup)
             {
                 yield return _lookupRef;
             }
 
-            if (_options.MarkNodeFieldAsLookup || MarkNodeFieldsShareable)
+            if ((nodeFieldIsLookup || MarkNodeFieldsShareable) && anyNodeFieldCreated)
             {
                 yield return _shareableRef;
             }
 
-            if (_schemaOptions.ApplyInaccessibleToNodeFields)
+            if (_schemaOptions.ApplyInaccessibleToNodeFields && anyNodeFieldCreated)
             {
                 yield return _inaccessibleRef;
             }
@@ -109,15 +112,20 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
             var maxAllowedNodes = _options.MaxAllowedNodeBatchSize;
             var markNodeFieldShareable = MarkNodeFieldsShareable;
             var markNodeFieldInaccessible = _schemaOptions.ApplyInaccessibleToNodeFields;
+            var nodeFieldInserted = false;
 
-            CreateNodeField(
-                typeInspector,
-                serializer,
-                _queryTypeConfig.Fields,
-                index + 1,
-                _options.MarkNodeFieldAsLookup,
-                markNodeFieldShareable,
-                markNodeFieldInaccessible);
+            if (_options.AddNodeField)
+            {
+                CreateNodeField(
+                    typeInspector,
+                    serializer,
+                    _queryTypeConfig.Fields,
+                    index + 1,
+                    _options.MarkNodeFieldAsLookup,
+                    markNodeFieldShareable,
+                    markNodeFieldInaccessible);
+                nodeFieldInserted = true;
+            }
 
             if (_options.AddNodesField)
             {
@@ -125,7 +133,7 @@ internal sealed class NodeFieldTypeInterceptor : TypeInterceptor
                     typeInspector,
                     serializer,
                     _queryTypeConfig.Fields,
-                    index + 2,
+                    nodeFieldInserted ? index + 2 : index + 1,
                     maxAllowedNodes,
                     markNodeFieldShareable,
                     markNodeFieldInaccessible);
