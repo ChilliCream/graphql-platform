@@ -26,6 +26,9 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     private const string NonObjectBatchRequest = "[1]";
     private const string AmbiguousOperationRequest =
         """{ "query": "query A { __typename } query B { __typename }" }""";
+    private const string VariablesNotJsonQuery = "?query=%7B%20__typename%20%7D&variables=%7B";
+    private const string ExtensionsNotJsonQuery = "?query=%7B%20__typename%20%7D&extensions=%7B";
+    private const string ExtensionsOnlyNotJsonQuery = "?extensions=%7B";
     private const string InvalidVariableRequest =
         """
         {
@@ -733,6 +736,35 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
             s_url,
             form,
             TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+    }
+
+    // A GET parameter that must be JSON but is not makes the request not well-formed, whether
+    // or not a document accompanies it. A request body that is not JSON is unreadable and stays
+    // 400.
+    [Theory]
+    [InlineData(VariablesNotJsonQuery, Draft20250508, BadRequest)]
+    [InlineData(VariablesNotJsonQuery, Draft20260903, UnprocessableContent)]
+    [InlineData(ExtensionsNotJsonQuery, Draft20250508, BadRequest)]
+    [InlineData(ExtensionsNotJsonQuery, Draft20260903, UnprocessableContent)]
+    [InlineData(ExtensionsOnlyNotJsonQuery, Draft20250508, BadRequest)]
+    [InlineData(ExtensionsOnlyNotJsonQuery, Draft20260903, UnprocessableContent)]
+    public async Task Get_Should_ReturnUnprocessableContent_When_JsonParameterIsNotValidJson(
+        string queryString,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}{queryString}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);

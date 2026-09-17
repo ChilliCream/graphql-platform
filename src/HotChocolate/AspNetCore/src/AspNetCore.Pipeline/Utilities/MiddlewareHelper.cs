@@ -251,14 +251,21 @@ internal static class MiddlewareHelper
     /// <summary>
     /// Whether the exception describes a request the parser read but could not accept as a
     /// GraphQL over HTTP request: a body that is not a request object, a parameter of the
-    /// wrong type, or a request that names neither a document nor a document ID. A body that
-    /// is not JSON is not such a request.
+    /// wrong type, a request parameter that is not valid JSON, or a request that names
+    /// neither a document nor a document ID. A body that is not JSON is not such a request.
     /// </summary>
     private static bool IsRequestNotWellFormed(GraphQLRequestException exception)
     {
         if (exception.InnerException is InvalidGraphQLRequestException cause)
         {
             return IsRequestNotWellFormed(cause);
+        }
+
+        // a bare JsonException is a request parameter that is not valid JSON. the body parsers
+        // wrap the JsonException of a body that is not JSON in an InvalidGraphQLRequestException.
+        if (exception.InnerException is JsonException)
+        {
+            return true;
         }
 
         var errors = exception.Errors;
