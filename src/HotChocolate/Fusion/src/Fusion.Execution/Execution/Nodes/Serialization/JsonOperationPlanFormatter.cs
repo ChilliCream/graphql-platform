@@ -15,7 +15,7 @@ namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 /// </summary>
 /// <remarks>
 /// The written document declares its shape through the root <c>version</c> property.
-/// Any change to the emitted JSON requires bumping <see cref="PlanFormatVersion"/> and
+/// Any change to the emitted JSON requires bumping <see cref="FormatVersion"/> and
 /// adding the matching variant to the plan schema in
 /// <c>website/public/schemas/fusion/operation-plan.json</c>.
 /// </remarks>
@@ -28,7 +28,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     /// <summary>
     /// The version of the operation plan JSON format written by this formatter.
     /// </summary>
-    private const string PlanFormatVersion = "1.0.0";
+    private const string FormatVersion = "1.0.0";
 
     private readonly JsonWriterOptions _writerOptions = options ?? new JsonWriterOptions
     {
@@ -57,7 +57,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteStartObject();
 
         jsonWriter.WritePropertyName("version");
-        jsonWriter.WriteStringValue(PlanFormatVersion);
+        jsonWriter.WriteStringValue(FormatVersion);
 
         jsonWriter.WritePropertyName("id");
         jsonWriter.WriteStringValue(plan.Id);
