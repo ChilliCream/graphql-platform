@@ -938,8 +938,9 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 """);
     }
 
-    // A failure inside the server is answered 500 wherever status codes carry meaning. The
-    // legacy application/json path keeps its 200.
+    // A failure inside the server is answered 500 for application/graphql-response+json, and
+    // for application/json from the 2026-09-03 revision on. The legacy application/json path
+    // keeps its 200.
     [Theory]
     [InlineData(Legacy, OK, ContentType.Json)]
     [InlineData(Draft20250508, InternalServerError, ContentType.GraphQLResponse)]
