@@ -29,18 +29,21 @@ function clamp(value: number, min: number, max: number): number {
  * Desktop keeps the fusion core at roughly (66%, 52%) of the hero, spheres
  * centred near (50%, 52%) and (82%, 52%) with a 200-240px radius (matches
  * `reference-plasma.jpg` at 1440x900). Below `MOBILE_BREAKPOINT` the whole
- * scene scales down (~90px vs. ~220px radius, roughly 0.4x) and the core
- * moves further down and right (80%, 86%) so its bloom clears the copy
- * column and both buttons, which fill nearly the full 375px width.
+ * scene scales down (~85px vs. ~220px radius, roughly 0.38x) and the core
+ * moves down and right (80%, 82%) of the hero rather than the ticket's 72%:
+ * at 375x900 the hero section is ~792px tall and the buttons span y
+ * 539-585, so a literal 72% (~570px) core sits on the button row. 82%
+ * (~650px) clears the buttons and leaves the new mobile bottom scrim room
+ * to hold the copy dark; see ticket comment (NEEDS-PLANNER, hc-0-wrc.2).
  */
 export function computeLayout(w: number, h: number): PlasmaLayout {
   const mobile = w < MOBILE_BREAKPOINT;
   // Mobile pushes the core further down, and right of the stacked copy
   // column (which spans nearly the full 375px width), than the desktop
   // fractions would, so the core's bloom clears the buttons below the copy.
-  const y = mobile ? h * 0.86 : h * 0.52;
+  const y = mobile ? h * 0.82 : h * 0.52;
   const coreX = mobile ? w * 0.8 : w * 0.66;
-  const radius = mobile ? clamp(w * 0.2, 50, 90) : clamp(w * 0.153, 200, 240);
+  const radius = mobile ? clamp(w * 0.24, 60, 95) : clamp(w * 0.153, 200, 240);
 
   return {
     w,

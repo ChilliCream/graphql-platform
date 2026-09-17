@@ -121,6 +121,11 @@ export default function PlasmaFusion() {
     let strandsB: Strand[] = [];
     let motes: Mote[] = [];
     let disposed = false;
+    // Tracks the rAF timestamp of the previous step() call, so the first
+    // call (and any call after a long gap, e.g. resuming from off-screen)
+    // can shift every strand's absolute `nextReseedAt` into the current
+    // timeline instead of reseeding all of them in the same frame.
+    let lastStepTime = -1;
 
     function buildScene() {
       const sphereA = {
@@ -170,6 +175,15 @@ export default function PlasmaFusion() {
     // Re-seed just the strands whose independent timer has elapsed, in
     // small, staggered groups, never all at once.
     function step(time: number) {
+      if (lastStepTime < 0 || time - lastStepTime > 300) {
+        const shift = lastStepTime < 0 ? time : time - lastStepTime;
+        for (const strand of strandsA) {
+          strand.nextReseedAt += shift;
+        }
+        for (const strand of strandsB) {
+          strand.nextReseedAt += shift;
+        }
+      }
       for (const strand of strandsA) {
         if (time >= strand.nextReseedAt) {
           reseedStrand(
@@ -192,6 +206,7 @@ export default function PlasmaFusion() {
           strand.nextReseedAt = time + strand.reseedInterval;
         }
       }
+      lastStepTime = time;
     }
 
     // A downscaled offscreen pass of the filaments + core, composited back
@@ -331,6 +346,21 @@ export default function PlasmaFusion() {
         liveCtx!.fill();
       }
       liveCtx!.shadowBlur = 0;
+
+      // Fade the live layer (filament centrelines + bloom) out under the
+      // copy column on desktop, so no stray strand crosses the h1,
+      // paragraph or buttons; skip on mobile, where the copy stacks above
+      // the scene instead of beside it.
+      if (!layout.mobile) {
+        liveCtx!.globalCompositeOperation = "destination-out";
+        const fade = liveCtx!.createLinearGradient(0, 0, w, 0);
+        fade.addColorStop(0, "rgba(0,0,0,1)");
+        fade.addColorStop(0.54, "rgba(0,0,0,1)");
+        fade.addColorStop(0.64, "rgba(0,0,0,0)");
+        liveCtx!.fillStyle = fade;
+        liveCtx!.fillRect(0, 0, w, h);
+      }
+
       liveCtx!.globalCompositeOperation = "source-over";
     }
 
@@ -392,11 +422,11 @@ export default function PlasmaFusion() {
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(90deg, ${hexToRgba(BRAND.navy, 0.92)} 0%, ${hexToRgba(BRAND.navy, 0.55)} 32%, ${hexToRgba(BRAND.navy, 0)} 62%)`,
+          background: `linear-gradient(90deg, ${hexToRgba(BRAND.navy, 0.92)} 0%, ${hexToRgba(BRAND.navy, 0.6)} 40%, ${hexToRgba(BRAND.navy, 0)} 66%)`,
         }}
       />
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 hidden md:block"
         style={{
           background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0)} 68%, ${hexToRgba(BRAND.navy, 0.92)} 98%)`,
         }}
@@ -409,7 +439,15 @@ export default function PlasmaFusion() {
       />
       <div
         className="absolute inset-0 md:hidden"
-        style={{ background: hexToRgba(BRAND.navy, 0.42) }}
+        style={{
+          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0)} 90%, ${hexToRgba(BRAND.navy, 0.92)} 100%)`,
+        }}
+      />
+      <div
+        className="absolute inset-0 md:hidden"
+        style={{
+          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.55)} 0%, ${hexToRgba(BRAND.navy, 0.55)} 72%, ${hexToRgba(BRAND.navy, 0)} 80%)`,
+        }}
       />
     </div>
   );
