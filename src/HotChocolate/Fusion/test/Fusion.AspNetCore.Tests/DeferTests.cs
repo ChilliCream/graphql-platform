@@ -756,7 +756,9 @@ public class DeferTests : FusionTestBase
             }
             """);
 
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -785,7 +787,7 @@ public class DeferTests : FusionTestBase
         // assert
         var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
             TestContext.Current.CancellationToken);
-        RemoveOperationPlan(rawBody).MatchSnapshot();
+        rawBody.MatchSnapshot();
     }
 
     [Fact]
@@ -817,7 +819,9 @@ public class DeferTests : FusionTestBase
             }
             """);
 
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -843,7 +847,7 @@ public class DeferTests : FusionTestBase
         // assert
         var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
             TestContext.Current.CancellationToken);
-        RemoveOperationPlan(rawBody).MatchSnapshot();
+        rawBody.MatchSnapshot();
     }
 
     [Fact]
@@ -884,7 +888,9 @@ public class DeferTests : FusionTestBase
             }
             """);
 
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -915,7 +921,7 @@ public class DeferTests : FusionTestBase
         // assert
         var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
             TestContext.Current.CancellationToken);
-        RemoveOperationPlan(rawBody).MatchSnapshot();
+        rawBody.MatchSnapshot();
     }
 
     [Fact(Skip = "Requires validation of @skip/@include interaction with @defer at the planning level")]
