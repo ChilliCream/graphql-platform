@@ -12,4 +12,8 @@
     <Project Path="test/CostAnalysis.Core.Tests/HotChocolate.CostAnalysis.Core.Tests.csproj" />
     <Project Path="test/CostAnalysis.Tests/HotChocolate.CostAnalysis.Tests.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/AotSmoke/AotSmoke.csproj" />
+    <Project Path="tools/oracle/Fuzz/HotChocolate.CostAnalysis.Fuzz.csproj" />
+  </Folder>
 </Solution>
