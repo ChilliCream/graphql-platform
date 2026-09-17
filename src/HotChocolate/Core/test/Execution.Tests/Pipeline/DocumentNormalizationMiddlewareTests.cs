@@ -172,4 +172,92 @@ public sealed class DocumentNormalizationMiddlewareTests
         var normalizedDocumentCache = executor.Schema.Services.GetRequiredService<NormalizedDocumentCache>();
         Assert.Equal(2, normalizedDocumentCache.Count);
     }
+
+    [Fact]
+    public async Task Missing_Document_Returns_State_Invalid_Error_Instead_Of_Throwing()
+    {
+        // arrange
+        // A custom pipeline that reaches document normalization without a document parser
+        // stage must fail with the ordinary state-invalid request error, not throw.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d => d.Field("foo").Resolve("foo-value"))
+            .UseInstrumentation()
+            .UseExceptions()
+            .UseTimeout()
+            .UseDocumentNormalization()
+            .UseOperationExecution()
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorHelper.StateInvalidForOperationResolver().Errors[0].Message, error.Message);
+    }
+
+    [Fact]
+    public async Task Not_Validated_Document_Returns_State_Invalid_Error_Instead_Of_Throwing()
+    {
+        // arrange
+        // A custom pipeline that orders document normalization before document validation
+        // must fail with the ordinary state-invalid request error, not throw.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d => d.Field("foo").Resolve("foo-value"))
+            .UseInstrumentation()
+            .UseExceptions()
+            .UseTimeout()
+            .UseDocumentParser()
+            .UseDocumentNormalization()
+            .UseOperationExecution()
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorHelper.StateInvalidForOperationResolver().Errors[0].Message, error.Message);
+    }
+
+    [Fact]
+    public async Task Empty_Document_Id_Returns_State_Invalid_Error_Instead_Of_Throwing()
+    {
+        // arrange
+        // A custom pipeline stage can hand document normalization a validated document without
+        // ever assigning it an id; that must fail with the ordinary state-invalid request
+        // error, not throw.
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d => d.Field("foo").Resolve("foo-value"))
+            .UseInstrumentation()
+            .UseExceptions()
+            .UseTimeout()
+            .UseRequest(
+                (_, next) => context =>
+                {
+                    context.OperationDocumentInfo.Document = Utf8GraphQLParser.Parse("{ foo }");
+                    context.OperationDocumentInfo.IsValidated = true;
+                    return next(context);
+                },
+                key: "SeedValidatedDocumentWithoutId")
+            .UseDocumentNormalization()
+            .UseOperationExecution()
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
+
+        // assert
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorHelper.StateInvalidForOperationResolver().Errors[0].Message, error.Message);
+    }
 }
