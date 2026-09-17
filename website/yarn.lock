@@ -599,7 +599,7 @@ __metadata:
 
 "@chillicream/mocha-visualizer@file:../src/Mocha/src/mocha-visualizer::locator=website%40workspace%3A.":
   version: 0.1.0
-  resolution: "@chillicream/mocha-visualizer@file:../src/Mocha/src/mocha-visualizer#../src/Mocha/src/mocha-visualizer::hash=fb6e90&locator=website%40workspace%3A."
+  resolution: "@chillicream/mocha-visualizer@file:../src/Mocha/src/mocha-visualizer#../src/Mocha/src/mocha-visualizer::hash=020fbc&locator=website%40workspace%3A."
   peerDependencies:
     "@fortawesome/fontawesome-svg-core": ^7.1.0
     "@fortawesome/free-solid-svg-icons": ^7.1.0
@@ -609,7 +609,7 @@ __metadata:
     react: ^18.0.0 || ^19.0.0
     react-dom: ^18.0.0 || ^19.0.0
     styled-components: ^6.0.0
-  checksum: 10c0/b8cb9eb0de644c2e0909ab344a1cd90519d6723048628eb9558de6631b9209cad561b3e209e38a85ac29af20bc821dc37e80907735f85e46712bb07b93faa757
+  checksum: 10c0/fcd52ef3aefb7318072124b57eaa122c565dcd3c1147a80ae0f10958c1b5c3a70f0cdb00b6fbf17b9221dc014f235a1d7fc0b147fb253ed7467c9cef334e36f7
   languageName: node
   linkType: hard
 
