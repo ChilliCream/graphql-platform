@@ -84,16 +84,31 @@ public sealed partial class OperationCompiler
         string? operationName,
         DocumentNode document,
 #pragma warning disable RCS1163 // Unused parameter
-        IFeatureProvider context)
+        IFeatureProvider context,
 #pragma warning restore RCS1163 // Unused parameter
+        bool isDocumentNormalized = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(document);
 
-        // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
-        var result = _documentRewriter.RewriteDocument(document, operationName);
-        document = result.Document;
-        var operationDefinition = document.GetOperation(operationName);
+        OperationDefinitionNode operationDefinition;
+        bool hasIncrementalParts;
+
+        if (isDocumentNormalized)
+        {
+            // The document was already de-fragmentized and had its static include conditions
+            // removed by the document normalization pipeline stage, so we can skip that step here.
+            operationDefinition = document.GetOperation(operationName);
+            hasIncrementalParts = ContainsIncrementalDirectives(operationDefinition.SelectionSet);
+        }
+        else
+        {
+            // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
+            var result = _documentRewriter.RewriteDocument(document, operationName);
+            document = result.Document;
+            operationDefinition = document.GetOperation(operationName);
+            hasIncrementalParts = result.HasIncrementalParts;
+        }
 
         var includeConditions = new IncludeConditionCollection(_maxAllowedIncludeConditions);
         var deferConditions = new DeferConditionCollection(_maxAllowedDeferConditions);
@@ -151,7 +166,7 @@ public sealed partial class OperationCompiler
                 compilationContext.Features,
                 lastId,
                 compilationContext.ElementsById,
-                hasIncrementalParts: result.HasIncrementalParts);
+                hasIncrementalParts: hasIncrementalParts);
 
             selectionSet.Complete(operation);
 
@@ -690,6 +705,52 @@ public sealed partial class OperationCompiler
         {
             includeFlags.RemoveRange(write, includeFlags.Count - write);
         }
+    }
+
+    // The document normalization pipeline stage already inlines fragments and detects
+    // incremental parts for us, but when a pre-normalized document is compiled directly
+    // (skipping that stage), we still need to know whether the operation has @defer or
+    // @stream selections, since a normalized document only ever contains fields and
+    // inline fragments (fragment spreads are always inlined away by the rewriter).
+    private static bool ContainsIncrementalDirectives(SelectionSetNode selectionSet)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    if (HasDirective(field.Directives, DirectiveNames.Stream.Name)
+                        || (field.SelectionSet is not null
+                            && ContainsIncrementalDirectives(field.SelectionSet)))
+                    {
+                        return true;
+                    }
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    if (HasDirective(inlineFragment.Directives, DirectiveNames.Defer.Name)
+                        || ContainsIncrementalDirectives(inlineFragment.SelectionSet))
+                    {
+                        return true;
+                    }
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool HasDirective(IReadOnlyList<DirectiveNode> directives, string name)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            if (directives[i].Name.Value.Equals(name, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private bool DoesTypeApply(NamedTypeNode? typeCondition, IObjectTypeDefinition typeContext)

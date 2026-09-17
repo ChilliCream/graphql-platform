@@ -13,7 +13,9 @@ namespace HotChocolate.CostAnalysis.Utilities;
 internal static class CostAnalyzerUtilities
 {
     public static void ValidateRequireOneSlicingArgument(
-        Operation operation,
+        Schema schema,
+        OperationDefinitionNode normalizedOperation,
+        DocumentNode normalizedDocument,
         DocumentNode sourceDocument,
         OperationDocumentId documentId,
         IFeatureCollection features,
@@ -24,17 +26,17 @@ internal static class CostAnalyzerUtilities
         try
         {
             validatorContext.Initialize(
-                operation.Schema,
+                schema,
                 documentId,
-                operation.Document,
+                normalizedDocument,
                 maxAllowedErrors: 1,
                 maxLocationsPerError: 5,
                 maxAllowedFragmentVisits: 1_000,
                 features);
 
-            var sourceOperation = sourceDocument.GetOperation(operation.Name);
-            var sourceFields = SourceFieldIndex.Create(operation.Schema, sourceDocument, sourceOperation);
-            new RequireOneSlicingArgumentVisitor(sourceFields).Visit(operation.Definition, validatorContext);
+            var sourceOperation = sourceDocument.GetOperation(normalizedOperation.Name?.Value);
+            var sourceFields = SourceFieldIndex.Create(schema, sourceDocument, sourceOperation);
+            new RequireOneSlicingArgumentVisitor(sourceFields).Visit(normalizedOperation, validatorContext);
         }
         finally
         {
