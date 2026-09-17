@@ -18,36 +18,36 @@ internal sealed class AuthorizeMiddleware(
         switch (_directive.Apply)
         {
             case ApplyPolicy.AfterResolver:
+            {
+                await _next(context).ConfigureAwait(false);
+
+                if (context.Result is not null)
                 {
-                    await _next(context).ConfigureAwait(false);
+                    var state = await handler.AuthorizeAsync(context, _directive)
+                        .ConfigureAwait(false);
 
-                    if (context.Result is not null)
-                    {
-                        var state = await handler.AuthorizeAsync(context, _directive)
-                            .ConfigureAwait(false);
-
-                        if (state != AuthorizeResult.Allowed && !IsErrorResult(context))
-                        {
-                            SetError(context, state);
-                        }
-                    }
-                    break;
-                }
-
-            case ApplyPolicy.BeforeResolver:
-                {
-                    var state = await handler.AuthorizeAsync(context, _directive).ConfigureAwait(false);
-
-                    if (state == AuthorizeResult.Allowed)
-                    {
-                        await _next(context).ConfigureAwait(false);
-                    }
-                    else
+                    if (state != AuthorizeResult.Allowed && !IsErrorResult(context))
                     {
                         SetError(context, state);
                     }
-                    break;
                 }
+                break;
+            }
+
+            case ApplyPolicy.BeforeResolver:
+            {
+                var state = await handler.AuthorizeAsync(context, _directive).ConfigureAwait(false);
+
+                if (state == AuthorizeResult.Allowed)
+                {
+                    await _next(context).ConfigureAwait(false);
+                }
+                else
+                {
+                    SetError(context, state);
+                }
+                break;
+            }
 
             default:
                 await _next(context).ConfigureAwait(false);
