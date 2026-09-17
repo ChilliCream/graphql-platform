@@ -153,31 +153,6 @@
                   "event": []
                 },
                 {
-                  "OperationName": "GraphQL Operation Planning",
-                  "DisplayName": "GraphQL Operation Planning",
-                  "Kind": "Internal",
-                  "Status": "Ok",
-                  "tags": [
-                    {
-                      "Key": "graphql.processing.type",
-                      "Value": "plan"
-                    },
-                    {
-                      "Key": "graphql.document.hash",
-                      "Value": "md5:9335388c19fd2e230b6294a596d13a93"
-                    },
-                    {
-                      "Key": "graphql.operation.type",
-                      "Value": "query"
-                    },
-                    {
-                      "Key": "graphql.operation.name",
-                      "Value": "GetHero"
-                    }
-                  ],
-                  "event": []
-                },
-                {
                   "OperationName": "GraphQL Variable Coercion",
                   "DisplayName": "GraphQL Variable Coercion",
                   "Kind": "Internal",
@@ -219,6 +194,31 @@
                     {
                       "Key": "graphql.operation.typeCost",
                       "Value": 2.0
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "GraphQL Operation Planning",
+                  "DisplayName": "GraphQL Operation Planning",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "plan"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:9335388c19fd2e230b6294a596d13a93"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "GetHero"
                     }
                   ],
                   "event": []
