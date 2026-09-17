@@ -67,9 +67,9 @@ internal static class MiddlewareHelper
             catch (GraphQLRequestException ex)
             {
                 // A GraphQL request exception is thrown if the request parameters couldn't be
-                // parsed. In this case, we will return HTTP status code 400 and return a
-                // GraphQL error result. A document syntax error leaves the status unset so the
-                // formatter applies the per-content-type rule.
+                // parsed. In this case, we propose HTTP status code 400 and return a GraphQL
+                // error result, except for a document syntax error, which leaves the status
+                // unset so the formatter applies the per-content-type rule.
                 var errors = executorSession.Handle(ex.Errors);
                 executorSession.DiagnosticEvents.ParserErrors(context, errors);
                 return new ParseRequestResult(
@@ -157,13 +157,14 @@ internal static class MiddlewareHelper
             catch (GraphQLRequestException ex)
             {
                 // A GraphQL request exception is thrown if the HTTP request body couldn't be
-                // parsed. In this case, we will return HTTP status code 400 and return a
-                // GraphQL error result.
+                // parsed. In this case, we propose HTTP status code 400 and return a GraphQL
+                // error result, except for a document syntax error, which leaves the status
+                // unset so the formatter applies the per-content-type rule.
                 var errors = executorSession.Handle(ex.Errors);
                 executorSession.DiagnosticEvents.ParserErrors(context, errors);
                 return new ParseRequestResult(
                     CreateRequestErrorResult(ex, errors),
-                    HttpStatusCode.BadRequest);
+                    IsDocumentSyntaxError(ex.Errors) ? null : HttpStatusCode.BadRequest);
             }
             catch (Exception ex)
             {
@@ -499,7 +500,6 @@ internal static class MiddlewareHelper
 
         [MemberNotNullWhen(true, nameof(Request))]
         [MemberNotNullWhen(false, nameof(Error))]
-        [MemberNotNullWhen(false, nameof(StatusCode))]
         public bool IsValid { get; }
 
         public GraphQLRequest? Request { get; }

@@ -29,4 +29,29 @@ public sealed class ExceptionMiddlewareTests
             HttpStatusCode.InternalServerError,
             operationResult.ContextData[ExecutionContextData.HttpStatusCode]);
     }
+
+    [Fact]
+    public async Task ExecuteAsync_Should_ProposeInternalServerError_When_MiddlewareCancels()
+    {
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(d => d.Field("foo").Resolve("bar"))
+            .UseExceptions()
+            .UseRequest(_ => context => throw new OperationCanceledException())
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync("{ foo }", TestContext.Current.CancellationToken);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        var error = Assert.Single(operationResult.Errors);
+        Assert.Equal("HC0049", error.Code);
+        Assert.Equal(
+            HttpStatusCode.InternalServerError,
+            operationResult.ContextData[ExecutionContextData.HttpStatusCode]);
+    }
 }

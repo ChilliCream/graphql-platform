@@ -6,14 +6,21 @@ namespace HotChocolate.AspNetCore;
 /// <summary>
 /// Answers a request that no GraphQL middleware handled. From the 2026-09-03 revision of the
 /// GraphQL over HTTP specification on, a request on the GraphQL endpoint whose method the
-/// endpoint does not support is answered 405 with an <c>Allow</c> header, and a POST request
-/// whose Content-Type the endpoint does not support is answered 415. Every other request is
-/// answered 404.
+/// endpoint does not support is answered 405 with an <c>Allow</c> header, an OPTIONS request
+/// is answered 204 with the same header, and a POST request whose Content-Type the endpoint
+/// does not support is answered 415. Every other request is answered 404.
 /// </summary>
 public sealed class HttpUnsupportedRequestMiddleware : MiddlewareBase
 {
-    private static readonly string s_allowGetHeadPost =
-        string.Join(", ", HttpMethods.Get, HttpMethods.Head, HttpMethods.Post);
+    private static readonly string s_allowWithGet = string.Join(
+        ", ",
+        HttpMethods.Get,
+        HttpMethods.Head,
+        HttpMethods.Options,
+        HttpMethods.Post);
+
+    private static readonly string s_allowWithoutGet =
+        string.Join(", ", HttpMethods.Options, HttpMethods.Post);
 
     private readonly PathString? _path;
 
@@ -47,11 +54,21 @@ public sealed class HttpUnsupportedRequestMiddleware : MiddlewareBase
     {
         if (IsGraphQLEndpoint(context.Request))
         {
+            var options = GetOptions(context);
+
+            // a GET or HEAD the endpoint supports but no middleware handled carries no GraphQL
+            // request, which is not a refusal of the method.
+            if (options.EnableGetRequests && context.Request.IsGetOrHeadMethod())
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
 
             if (session.ReportsUnsupportedMethodOrMediaType)
             {
-                var options = GetOptions(context);
+                var allow = options.EnableGetRequests ? s_allowWithGet : s_allowWithoutGet;
 
                 // a POST that no middleware handled carries a Content-Type the endpoint does
                 // not support.
@@ -61,16 +78,20 @@ public sealed class HttpUnsupportedRequestMiddleware : MiddlewareBase
                     return;
                 }
 
-                // RFC 9110, section 15.5.6 requires a 405 to list the methods the target
-                // resource supports.
-                if (!(options.EnableGetRequests && context.Request.IsGetOrHeadMethod()))
+                // RFC 9110, section 9.3.7: OPTIONS asks for the methods the target resource
+                // supports.
+                if (HttpMethods.IsOptions(context.Request.Method))
                 {
-                    context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
-                    context.Response.Headers.Allow = options.EnableGetRequests
-                        ? s_allowGetHeadPost
-                        : HttpMethods.Post;
+                    context.Response.StatusCode = StatusCodes.Status204NoContent;
+                    context.Response.Headers.Allow = allow;
                     return;
                 }
+
+                // RFC 9110, section 15.5.6 requires a 405 to list the methods the target
+                // resource supports.
+                context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
+                context.Response.Headers.Allow = allow;
+                return;
             }
         }
 

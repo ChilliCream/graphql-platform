@@ -404,6 +404,10 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 skipDocumentBody);
             return requestParser.Parse(span);
         }
+        catch (SyntaxException ex)
+        {
+            throw DefaultHttpRequestParser_SyntaxError(ex);
+        }
         catch (InvalidGraphQLRequestException ex)
         {
             throw ErrorHelper.InvalidRequest(ex);

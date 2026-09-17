@@ -33,7 +33,15 @@ internal sealed class ExceptionMiddleware
         catch (OperationCanceledException ex)
         {
             var error = _errorHandler.Handle(ErrorHelper.OperationCanceled(ex));
-            context.Result = OperationResult.FromError(error);
+
+            // A cancellation the client did not request is a failure inside the server and is
+            // answered 500. A request the client aborted is never written.
+            var result = OperationResult.FromError(error);
+            result.ContextData = result.ContextData.Add(
+                ExecutionContextData.HttpStatusCode,
+                HttpStatusCode.InternalServerError);
+
+            context.Result = result;
             _diagnosticEvents.RequestError(context, ex);
         }
         catch (GraphQLException ex)
