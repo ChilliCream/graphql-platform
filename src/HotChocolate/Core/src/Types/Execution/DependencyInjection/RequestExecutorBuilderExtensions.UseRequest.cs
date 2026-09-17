@@ -517,6 +517,42 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
+    /// Adds a middleware that will be used to normalize the GraphQL operation document, i.e.
+    /// inline all fragments into the selected operation.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder UseDocumentNormalization(
+        this IRequestExecutorBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.UseRequest(DocumentNormalizationMiddleware.Create());
+    }
+
+    /// <summary>
+    /// Adds a middleware that will be used to compile the normalized operation
+    /// document into an executable operation.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </param>
+    /// <returns>
+    /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
+    /// </returns>
+    public static IRequestExecutorBuilder UseOperationCompiler(
+        this IRequestExecutorBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        return builder.UseRequest(OperationCompilerMiddleware.Create());
+    }
+
+    /// <summary>
     /// Adds a middleware that will be used to resolve the correct operation from the GraphQL operation document
     /// and that compiles this operation definition into an executable operation.
     /// </summary>
@@ -526,12 +562,13 @@ public static partial class RequestExecutorBuilderExtensions
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
+    [Obsolete("Renamed to UseOperationCompiler.")]
     public static IRequestExecutorBuilder UseOperationResolver(
         this IRequestExecutorBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        return builder.UseRequest(OperationResolverMiddleware.Create());
+        return builder.UseOperationCompiler();
     }
 
     /// <summary>
@@ -642,9 +679,10 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOnlyPersistedOperationAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
-            .UseOperationCache()
-            .UseOperationResolver()
+            .UseDocumentNormalization()
             .UseOperationVariableCoercion()
+            .UseOperationCache()
+            .UseOperationCompiler()
             .UseSkipWarmupExecution()
             .UseConcurrencyGate()
             .UseOperationExecution();
@@ -665,9 +703,10 @@ public static partial class RequestExecutorBuilderExtensions
             .UseWritePersistedOperation()
             .UseDocumentParser()
             .UseDocumentValidation()
-            .UseOperationCache()
-            .UseOperationResolver()
+            .UseDocumentNormalization()
             .UseOperationVariableCoercion()
+            .UseOperationCache()
+            .UseOperationCompiler()
             .UseSkipWarmupExecution()
             .UseConcurrencyGate()
             .UseOperationExecution();
@@ -681,9 +720,10 @@ public static partial class RequestExecutorBuilderExtensions
         pipeline.Add(CommonMiddleware.DocumentCache);
         pipeline.Add(CommonMiddleware.DocumentParser);
         pipeline.Add(CommonMiddleware.DocumentValidation);
-        pipeline.Add(OperationCacheMiddleware.Create());
-        pipeline.Add(OperationResolverMiddleware.Create());
+        pipeline.Add(DocumentNormalizationMiddleware.Create());
         pipeline.Add(OperationVariableCoercionMiddleware.Create());
+        pipeline.Add(OperationCacheMiddleware.Create());
+        pipeline.Add(OperationCompilerMiddleware.Create());
         pipeline.Add(CommonMiddleware.SkipWarmupExecution);
         pipeline.Add(CommonMiddleware.ConcurrencyGate);
         pipeline.Add(OperationExecutionMiddleware.Create());
