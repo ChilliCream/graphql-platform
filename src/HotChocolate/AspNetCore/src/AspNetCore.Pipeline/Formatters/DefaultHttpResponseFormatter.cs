@@ -141,13 +141,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         // From the 2026-09-03 revision on, a client that accepts application/json is answered as
         // if it had asked for application/graphql-response+json, and only a 2xx response is
         // written with application/json as its Content-Type. The same revision answers a result
-        // that carries errors beside its data with 294, and a request the server read but
-        // cannot execute with 422 rather than 400.
+        // that carries errors beside its data with 294, a request the server read but cannot
+        // execute with 422 rather than 400, and a request whose method or Content-Type the
+        // endpoint does not support with 405 or 415 rather than 404.
         var usesRevision20260903 = TransportVersion is not
             (HttpTransportVersion.Legacy or HttpTransportVersion.Draft20250508);
         _jsonFollowsGraphQLResponseRules = usesRevision20260903;
         _reportsPartialSuccess = usesRevision20260903;
         _reportsUnprocessableRequest = usesRevision20260903;
+        ReportsUnsupportedMethodOrMediaType = usesRevision20260903;
 
         // The formats the server can produce for each result kind, in the order it prefers them.
         // A tie on quality is resolved by this order.
@@ -187,6 +189,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// <see cref="HttpTransportVersion.Latest"/> resolved to the revision it stands for.
     /// </summary>
     internal HttpTransportVersion TransportVersion { get; }
+
+    /// <summary>
+    /// Whether a request whose method the GraphQL endpoint does not support is answered 405,
+    /// and a POST request whose Content-Type it does not support is answered 415, rather than
+    /// 404.
+    /// </summary>
+    internal bool ReportsUnsupportedMethodOrMediaType { get; }
 
     public RequestFlags CreateRequestFlags(
         AcceptMediaType[] acceptMediaTypes)

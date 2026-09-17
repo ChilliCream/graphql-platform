@@ -7,6 +7,7 @@ using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using static System.Net.Http.HttpCompletionOption;
@@ -773,6 +774,110 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         request.Content = new StringContent("""{"query":"{ __typename }"}""");
         request.Content.Headers.Remove("Content-Type");
         request.Content.Headers.TryAddWithoutValidation("Content-Type", contentType);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotFound, response.StatusCode);
+    }
+
+    // From the 2026-09-03 revision on, a request on the GraphQL endpoint whose method the
+    // endpoint does not support is answered 405 with the methods it does support, and a POST
+    // request whose Content-Type the endpoint does not support is answered 415. Neither carries
+    // a response body.
+    [Theory]
+    [InlineData(Draft20250508, NotFound, new string[0])]
+    [InlineData(Draft20260903, MethodNotAllowed, new[] { "GET", "HEAD", "POST" })]
+    public async Task Put_Should_ReturnMethodNotAllowed_When_MethodIsUnsupported(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Put, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, NotFound, new string[0])]
+    [InlineData(Draft20260903, MethodNotAllowed, new[] { "POST" })]
+    public async Task Get_Should_ReturnMethodNotAllowed_When_GetRequestsAreDisabled(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = transportVersion
+                }),
+            configureConventions: b => b.WithOptions(o =>
+            {
+                o.EnableGetRequests = false;
+                o.Tool.Enable = false;
+            }));
+        var client = server.CreateClient();
+        var query = Uri.EscapeDataString("{ __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={query}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, NotFound)]
+    [InlineData(Draft20260903, UnsupportedMediaType)]
+    public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent("{ __typename }", Encoding.UTF8, "text/plain");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    // The 405 and 415 answers are for the GraphQL endpoint itself. A request below it is
+    // answered 404 as before.
+    [Fact]
+    public async Task Put_Should_ReturnNotFound_When_PathIsBelowTheGraphQLEndpoint()
+    {
+        // arrange
+        var client = GetClient(Draft20260903);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Put,
+            new Uri("http://localhost:5000/graphql/other"));
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
 
