@@ -45,15 +45,50 @@ export function paintStatic(
     ctx.stroke();
   }
 
-  // Faint full-width beam base; the animated layer adds the shimmer + the
-  // bright core-coloured centre on top every frame.
+  // Feather the shells/rims out of the copy-clear zone: this only cleans up
+  // stray pixels at the zone edge (`artLeft`/`artTop`) -- the shells and
+  // rims themselves are already centred on the ruled sphere geometry, so no
+  // erased-interior ring can appear here (planner ruling 2, ticket
+  // hc-0-wrc.2 comment 152).
+  ctx.globalCompositeOperation = "destination-out";
+  if (!layout.mobile) {
+    const featherLeft = layout.artLeft;
+    const featherRight = layout.artLeft + 24;
+    const feather = ctx.createLinearGradient(featherLeft, 0, featherRight, 0);
+    feather.addColorStop(0, "rgba(0,0,0,1)");
+    feather.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = feather;
+    ctx.fillRect(0, 0, w, h);
+  } else {
+    const featherTop = layout.artTop;
+    const featherBottom = layout.artTop + 24;
+    const feather = ctx.createLinearGradient(0, featherTop, 0, featherBottom);
+    feather.addColorStop(0, "rgba(0,0,0,1)");
+    feather.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = feather;
+    ctx.fillRect(0, 0, w, h);
+  }
+  ctx.globalCompositeOperation = "source-over";
+
+  // Faint full-width beam base, drawn after the feather mask so it still
+  // spans the whole width; the animated layer adds the shimmer + the bright
+  // core-coloured centre on top every frame. Brighter on mobile so it reads
+  // through the denser mobile knot.
   const span = Math.max(w, 1);
   const cx = layout.core.x / span;
+  const beamCenterAlpha = layout.mobile ? 0.3 : 0.16;
+  const beamSideAlpha = layout.mobile ? 0.12 : 0.05;
   const beam = ctx.createLinearGradient(0, 0, span, 0);
   beam.addColorStop(0, hexToRgba(BRAND.cyan, 0));
-  beam.addColorStop(Math.max(0, cx - 0.35), hexToRgba(BRAND.cyan, 0.05));
-  beam.addColorStop(cx, hexToRgba(BRAND.cyan, 0.16));
-  beam.addColorStop(Math.min(1, cx + 0.35), hexToRgba(BRAND.cyan, 0.05));
+  beam.addColorStop(
+    Math.max(0, cx - 0.35),
+    hexToRgba(BRAND.cyan, beamSideAlpha),
+  );
+  beam.addColorStop(cx, hexToRgba(BRAND.cyan, beamCenterAlpha));
+  beam.addColorStop(
+    Math.min(1, cx + 0.35),
+    hexToRgba(BRAND.cyan, beamSideAlpha),
+  );
   beam.addColorStop(1, hexToRgba(BRAND.cyan, 0));
   ctx.fillStyle = beam;
   ctx.fillRect(0, layout.beamY - 1, w, 2);

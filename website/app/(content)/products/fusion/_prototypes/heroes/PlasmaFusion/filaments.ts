@@ -34,18 +34,26 @@ interface Sphere extends Vec {
   readonly radius: number;
 }
 
-/** Random walk from `(x0, y0)` toward `core`, wandering more than crawling. */
+/**
+ * Random walk from `(x0, y0)` toward `core`, wandering more than crawling.
+ * The step length scales with `sphere.radius` (about 3-7% of it per step)
+ * and the walk stops early if it strays more than 1.25x the radius from the
+ * sphere's centre, so no strand can wander off its own sphere regardless of
+ * viewport size.
+ */
 function walkPolyline(
   rand: () => number,
   x0: number,
   y0: number,
   core: Vec,
   steps: number,
+  sphere: Sphere,
 ): FilamentPoint[] {
   let x = x0;
   let y = y0;
   let angle = Math.atan2(core.y - y0, core.x - x0) + (rand() - 0.5) * 2.4;
-  const stepLen = 5 + rand() * 7;
+  const stepLen = sphere.radius * (0.03 + rand() * 0.04);
+  const maxDist = sphere.radius * 1.25;
   const points: FilamentPoint[] = [{ x, y }];
   for (let i = 0; i < steps; i++) {
     const toCore = Math.atan2(core.y - y, core.x - x);
@@ -53,8 +61,15 @@ function walkPolyline(
     // Mostly wander, nudged toward the core so strands thin out and
     // converge near the seam instead of drifting away from the sphere.
     angle = angle * 0.82 + toCore * 0.18;
-    x += Math.cos(angle) * stepLen;
-    y += Math.sin(angle) * stepLen;
+    const nx = x + Math.cos(angle) * stepLen;
+    const ny = y + Math.sin(angle) * stepLen;
+    const dx = nx - sphere.x;
+    const dy = ny - sphere.y;
+    if (dx * dx + dy * dy > maxDist * maxDist) {
+      break;
+    }
+    x = nx;
+    y = ny;
     points.push({ x, y });
   }
   return points;
@@ -72,7 +87,7 @@ function buildPaths(
   const x0 = sphere.x + Math.cos(startAngle) * sphere.radius * startFactor;
   const y0 = sphere.y + Math.sin(startAngle) * sphere.radius * startFactor;
   const mainSteps = 12 + Math.floor(rand() * 10);
-  const main = walkPolyline(rand, x0, y0, core, mainSteps);
+  const main = walkPolyline(rand, x0, y0, core, mainSteps, sphere);
   const paths: FilamentPath[] = [
     { points: main, width: 1.5 + rand(), alpha: 0.72 + rand() * 0.28 },
   ];
@@ -86,6 +101,7 @@ function buildPaths(
       branchFrom.y,
       core,
       branchSteps,
+      sphere,
     );
     paths.push({
       points: branch,

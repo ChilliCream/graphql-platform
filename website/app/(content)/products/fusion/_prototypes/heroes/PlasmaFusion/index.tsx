@@ -14,14 +14,15 @@ import {
 import { computeLayout, type PlasmaLayout } from "./layout";
 import { paintStatic } from "./paint";
 
-const STRANDS_PER_SPHERE = 26;
+const DESKTOP_STRANDS_PER_SPHERE = 26;
+/** Fewer strands at 375: the beam and core flare must read through the knot. */
+const MOBILE_STRANDS_PER_SPHERE = 14;
 /** Offscreen bloom source, a fraction of the live canvas' CSS size. */
 const BLOOM_SCALE = 0.22;
 const CORE_PULSE_PERIOD_MS = 4800;
 const BEAM_SHIMMER_PERIOD_MS = 3200;
 const MOTE_COUNT = 14;
 const MOTE_LIFE_MS = 2600;
-const MOTE_DRIFT_PX = 150;
 
 interface Mote {
   readonly angle: number;
@@ -138,10 +139,13 @@ export default function PlasmaFusion() {
         y: layout.sphereB.y,
         radius: layout.radius,
       };
-      strandsA = Array.from({ length: STRANDS_PER_SPHERE }, () =>
+      const strandsPerSphere = layout.mobile
+        ? MOBILE_STRANDS_PER_SPHERE
+        : DESKTOP_STRANDS_PER_SPHERE;
+      strandsA = Array.from({ length: strandsPerSphere }, () =>
         createStrand(sphereA, layout.core, rand),
       );
-      strandsB = Array.from({ length: STRANDS_PER_SPHERE }, () =>
+      strandsB = Array.from({ length: strandsPerSphere }, () =>
         createStrand(sphereB, layout.core, rand),
       );
       motes = Array.from({ length: MOTE_COUNT }, () => ({
@@ -291,24 +295,97 @@ export default function PlasmaFusion() {
         }
       }
 
-      // Beam shimmer over the static base.
+      // A few motes drifting outward from the core and fading; distance
+      // scales with the sphere radius so they stay in proportion at every
+      // width instead of a fixed pixel drift.
+      liveCtx!.shadowBlur = 6;
+      liveCtx!.shadowColor = hexToRgba(BRAND.cyan, 0.8);
+      for (const m of motes) {
+        const cycle =
+          (((time + m.phase) % MOTE_LIFE_MS) + MOTE_LIFE_MS) % MOTE_LIFE_MS;
+        const age = cycle / MOTE_LIFE_MS;
+        const dist = age * layout.radius * 0.9;
+        const mx = layout.core.x + Math.cos(m.angle) * dist;
+        const my = layout.core.y + Math.sin(m.angle) * dist;
+        const edge = Math.min(age / 0.15, 1) * Math.min((1 - age) / 0.35, 1);
+        const alpha = Math.max(0, edge) * 0.85;
+        if (alpha <= 0.02) {
+          continue;
+        }
+        liveCtx!.fillStyle = `rgba(255,255,255,${alpha})`;
+        liveCtx!.beginPath();
+        liveCtx!.arc(mx, my, m.size, 0, Math.PI * 2);
+        liveCtx!.fill();
+      }
+      liveCtx!.shadowBlur = 0;
+
+      // Feather the filaments + bloom + motes out of the copy-clear zone:
+      // this only cleans up stray pixels at the zone edge
+      // (`artLeft`/`artTop`) -- the geometry itself already keeps the
+      // spheres out of the zone, so this is never a full destination-out cut
+      // over geometry that still overlaps the copy (planner ruling 2,
+      // ticket hc-0-wrc.2 comment 152). The beam shimmer and the core flare
+      // are drawn after this, so they still cross the full width/height.
+      liveCtx!.globalCompositeOperation = "destination-out";
+      if (!layout.mobile) {
+        const featherLeft = layout.artLeft;
+        const featherRight = layout.artLeft + 24;
+        const fade = liveCtx!.createLinearGradient(
+          featherLeft,
+          0,
+          featherRight,
+          0,
+        );
+        fade.addColorStop(0, "rgba(0,0,0,1)");
+        fade.addColorStop(1, "rgba(0,0,0,0)");
+        liveCtx!.fillStyle = fade;
+        liveCtx!.fillRect(0, 0, w, h);
+      } else {
+        const featherTop = layout.artTop;
+        const featherBottom = layout.artTop + 24;
+        const fade = liveCtx!.createLinearGradient(
+          0,
+          featherTop,
+          0,
+          featherBottom,
+        );
+        fade.addColorStop(0, "rgba(0,0,0,1)");
+        fade.addColorStop(1, "rgba(0,0,0,0)");
+        liveCtx!.fillStyle = fade;
+        liveCtx!.fillRect(0, 0, w, h);
+      }
+      liveCtx!.globalCompositeOperation = "source-over";
+
+      // Beam shimmer over the static base, brighter on mobile so it reads
+      // through the denser mobile knot.
       const shimmer =
         0.55 + 0.45 * Math.sin((time / BEAM_SHIMMER_PERIOD_MS) * Math.PI * 2);
       const span = Math.max(w, 1);
       const cx = layout.core.x / span;
+      const beamSideAlpha = layout.mobile ? 0.22 : 0.1;
+      const beamFarAlpha = layout.mobile ? 0.25 : 0.12;
+      const beamCenterMul = layout.mobile ? 0.75 : 0.5;
       const beam = liveCtx!.createLinearGradient(0, 0, span, 0);
       beam.addColorStop(0, hexToRgba(BRAND.cyan, 0));
-      beam.addColorStop(Math.max(0, cx - 0.3), hexToRgba(BRAND.cyan, 0.1));
-      beam.addColorStop(cx, `rgba(255,255,255,${0.5 * shimmer})`);
-      beam.addColorStop(Math.min(1, cx + 0.3), hexToRgba(BRAND.cyan, 0.12));
+      beam.addColorStop(
+        Math.max(0, cx - 0.3),
+        hexToRgba(BRAND.cyan, beamSideAlpha),
+      );
+      beam.addColorStop(cx, `rgba(255,255,255,${beamCenterMul * shimmer})`);
+      beam.addColorStop(
+        Math.min(1, cx + 0.3),
+        hexToRgba(BRAND.cyan, beamFarAlpha),
+      );
       beam.addColorStop(1, hexToRgba(BRAND.cyan, 0));
       liveCtx!.fillStyle = beam;
       liveCtx!.fillRect(0, layout.beamY - 1.5, w, 3);
 
-      // White-hot core with a coral-then-amber flare, crisp on top.
+      // White-hot core with a coral-then-amber flare, crisp on top. The
+      // flare radius scales with the sphere radius instead of a fixed 26px,
+      // so it reads at 375 (about 15px) as well as at 1440 (about 32px).
       const pulse =
         0.85 + 0.15 * Math.sin((time / CORE_PULSE_PERIOD_MS) * Math.PI * 2);
-      const coreR = 26 * pulse;
+      const coreR = layout.radius * 0.2 * pulse;
       const core = liveCtx!.createRadialGradient(
         layout.core.x,
         layout.core.y,
@@ -324,44 +401,6 @@ export default function PlasmaFusion() {
       liveCtx!.beginPath();
       liveCtx!.arc(layout.core.x, layout.core.y, coreR, 0, Math.PI * 2);
       liveCtx!.fill();
-
-      // A few motes drifting outward from the core and fading.
-      liveCtx!.shadowBlur = 6;
-      liveCtx!.shadowColor = hexToRgba(BRAND.cyan, 0.8);
-      for (const m of motes) {
-        const cycle =
-          (((time + m.phase) % MOTE_LIFE_MS) + MOTE_LIFE_MS) % MOTE_LIFE_MS;
-        const age = cycle / MOTE_LIFE_MS;
-        const dist = age * MOTE_DRIFT_PX;
-        const mx = layout.core.x + Math.cos(m.angle) * dist;
-        const my = layout.core.y + Math.sin(m.angle) * dist;
-        const edge = Math.min(age / 0.15, 1) * Math.min((1 - age) / 0.35, 1);
-        const alpha = Math.max(0, edge) * 0.85;
-        if (alpha <= 0.02) {
-          continue;
-        }
-        liveCtx!.fillStyle = `rgba(255,255,255,${alpha})`;
-        liveCtx!.beginPath();
-        liveCtx!.arc(mx, my, m.size, 0, Math.PI * 2);
-        liveCtx!.fill();
-      }
-      liveCtx!.shadowBlur = 0;
-
-      // Fade the live layer (filament centrelines + bloom) out under the
-      // copy column on desktop, so no stray strand crosses the h1,
-      // paragraph or buttons; skip on mobile, where the copy stacks above
-      // the scene instead of beside it.
-      if (!layout.mobile) {
-        liveCtx!.globalCompositeOperation = "destination-out";
-        const fade = liveCtx!.createLinearGradient(0, 0, w, 0);
-        fade.addColorStop(0, "rgba(0,0,0,1)");
-        fade.addColorStop(0.54, "rgba(0,0,0,1)");
-        fade.addColorStop(0.64, "rgba(0,0,0,0)");
-        liveCtx!.fillStyle = fade;
-        liveCtx!.fillRect(0, 0, w, h);
-      }
-
-      liveCtx!.globalCompositeOperation = "source-over";
     }
 
     drawLiveRef.current = drawLive;
@@ -440,13 +479,13 @@ export default function PlasmaFusion() {
       <div
         className="absolute inset-0 md:hidden"
         style={{
-          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0)} 90%, ${hexToRgba(BRAND.navy, 0.92)} 100%)`,
+          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0)} 94%, ${hexToRgba(BRAND.navy, 0.92)} 100%)`,
         }}
       />
       <div
         className="absolute inset-0 md:hidden"
         style={{
-          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.55)} 0%, ${hexToRgba(BRAND.navy, 0.55)} 72%, ${hexToRgba(BRAND.navy, 0)} 80%)`,
+          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.55)} 0%, ${hexToRgba(BRAND.navy, 0.55)} 72%, ${hexToRgba(BRAND.navy, 0)} 77%)`,
         }}
       />
     </div>
