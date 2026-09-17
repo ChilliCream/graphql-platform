@@ -33,6 +33,7 @@ internal sealed class SourceSchemaParser(
     bool isApolloFederationV1 = false)
 {
     private static readonly SchemaValidator s_schemaValidator = new();
+    private static readonly string[] s_injectableDirectiveNames = [DirectiveNames.Cost, DirectiveNames.ListSize];
     private readonly SourceSchemaParserOptions _options = options ?? new SourceSchemaParserOptions();
     private readonly ScopedCompositionLog _log = new(log);
 
@@ -81,7 +82,7 @@ internal sealed class SourceSchemaParser(
             // Fusion @external definition does not allow. Replace it so federation applications
             // bind to the federation shape; RemoveFederationInfrastructure drops the definition
             // during preprocessing.
-            schema.DirectiveDefinitions.Remove(WellKnownDirectiveNames.External);
+            schema.DirectiveDefinitions.Remove(DirectiveNames.External);
             schema.DirectiveDefinitions.Add(
                 new MutableDirectiveDefinition(FederationDirectiveNames.External)
                 {
@@ -175,8 +176,6 @@ internal sealed class SourceSchemaParser(
            || (sourceSchemaText.ExtensionsSourceText?.Contains(
                FederationSchemaAnalyzer.FederationUrlPrefix,
                StringComparison.Ordinal) ?? false);
-
-    private static readonly string[] s_injectableDirectiveNames = [DirectiveNames.Cost, DirectiveNames.ListSize];
 
     /// <summary>
     /// Determines, in one pass over the source schema's combined text, which of the injectable
