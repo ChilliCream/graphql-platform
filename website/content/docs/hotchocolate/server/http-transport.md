@@ -18,7 +18,7 @@ Hot Chocolate uses the HTTP `Accept` header to determine how to format the respo
 
 When a client sends no `Accept` header or sends `*/*`, the server responds with `application/graphql-response+json` for single results. For streaming operations, the server defaults to `multipart/mixed` unless the client explicitly requests a different format.
 
-When the client sends `Accept: application/json`, the response `Content-Type` is `application/json`. Under `Draft20250508`, the default transport version, every request the server reads is then answered with a `200` status code, including one that fails validation; only a request it cannot interpret or refuses to run, such as a disabled batch, has a `400` status code. Under `Draft20260903`, the response takes the same status code as `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`.
+When the client sends `Accept: application/json`, the response `Content-Type` is `application/json`. Under `Draft20250508`, the default transport version, every request the server reads is then answered with a `200` status code, including one that fails validation or asks for an operation kind the request method does not allow; only a request it cannot read, such as a body that is not valid JSON or a request that is not a well-formed GraphQL over HTTP request, and a batch it does not accept have a `400` status code. Under `Draft20260903`, the response takes the same status code as `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`.
 
 # Types of Requests
 
