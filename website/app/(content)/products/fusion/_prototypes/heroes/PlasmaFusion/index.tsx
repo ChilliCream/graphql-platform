@@ -14,14 +14,22 @@ import {
 import { computeLayout, type PlasmaLayout } from "./layout";
 import { paintStatic } from "./paint";
 
-const DESKTOP_STRANDS_PER_SPHERE = 26;
+/**
+ * Total strand count per sphere (static + live), 3-5x the pre-craft-pass
+ * count so the shell reads as a dense, woven web (comment 29 item 2). Most
+ * of these are baked once into the static canvas; only `*_LIVE_*` of them
+ * animate every frame.
+ */
+const DESKTOP_TOTAL_STRANDS_PER_SPHERE = 100;
+const DESKTOP_LIVE_STRANDS_PER_SPHERE = 18;
 /** Fewer strands at 375: the beam and core flare must read through the knot. */
-const MOBILE_STRANDS_PER_SPHERE = 14;
+const MOBILE_TOTAL_STRANDS_PER_SPHERE = 50;
+const MOBILE_LIVE_STRANDS_PER_SPHERE = 16;
 /** Offscreen bloom source, a fraction of the live canvas' CSS size. */
 const BLOOM_SCALE = 0.22;
 const CORE_PULSE_PERIOD_MS = 4800;
 const BEAM_SHIMMER_PERIOD_MS = 3200;
-const MOTE_COUNT = 14;
+const MOTE_COUNT = 20;
 const MOTE_LIFE_MS = 2600;
 
 interface Mote {
@@ -120,6 +128,8 @@ export default function PlasmaFusion() {
     let bloomH = 0;
     let strandsA: Strand[] = [];
     let strandsB: Strand[] = [];
+    let staticPathsA: FilamentPath[] = [];
+    let staticPathsB: FilamentPath[] = [];
     let motes: Mote[] = [];
     let disposed = false;
     // Tracks the rAF timestamp of the previous step() call, so the first
@@ -139,15 +149,29 @@ export default function PlasmaFusion() {
         y: layout.sphereB.y,
         radius: layout.radius,
       };
-      const strandsPerSphere = layout.mobile
-        ? MOBILE_STRANDS_PER_SPHERE
-        : DESKTOP_STRANDS_PER_SPHERE;
-      strandsA = Array.from({ length: strandsPerSphere }, () =>
+      const totalPerSphere = layout.mobile
+        ? MOBILE_TOTAL_STRANDS_PER_SPHERE
+        : DESKTOP_TOTAL_STRANDS_PER_SPHERE;
+      const livePerSphere = layout.mobile
+        ? MOBILE_LIVE_STRANDS_PER_SPHERE
+        : DESKTOP_LIVE_STRANDS_PER_SPHERE;
+      const staticPerSphere = Math.max(0, totalPerSphere - livePerSphere);
+      // Live subset: kept as `Strand`s with their own reseed timers so a
+      // small, staggered group crawls every frame.
+      strandsA = Array.from({ length: livePerSphere }, () =>
         createStrand(sphereA, layout.core, rand),
       );
-      strandsB = Array.from({ length: strandsPerSphere }, () =>
+      strandsB = Array.from({ length: livePerSphere }, () =>
         createStrand(sphereB, layout.core, rand),
       );
+      // Static majority: baked once into the static canvas by `measure()`
+      // (and again on resize), so only their flattened paths are kept.
+      staticPathsA = Array.from({ length: staticPerSphere }, () =>
+        createStrand(sphereA, layout.core, rand),
+      ).flatMap((strand) => strand.paths);
+      staticPathsB = Array.from({ length: staticPerSphere }, () =>
+        createStrand(sphereB, layout.core, rand),
+      ).flatMap((strand) => strand.paths);
       motes = Array.from({ length: MOTE_COUNT }, () => ({
         angle: rand() * Math.PI * 2,
         size: 0.8 + rand() * 1.4,
@@ -173,7 +197,7 @@ export default function PlasmaFusion() {
       bloom.height = bloomH;
       layout = computeLayout(w, h);
       buildScene();
-      paintStatic(staticCtx!, w, h, layout);
+      paintStatic(staticCtx!, w, h, layout, staticPathsA, staticPathsB);
     }
 
     // Re-seed just the strands whose independent timer has elapsed, in
@@ -304,9 +328,15 @@ export default function PlasmaFusion() {
         const cycle =
           (((time + m.phase) % MOTE_LIFE_MS) + MOTE_LIFE_MS) % MOTE_LIFE_MS;
         const age = cycle / MOTE_LIFE_MS;
-        const dist = age * layout.radius * 0.9;
+        const dist = age * layout.radius * 1.6;
         const mx = layout.core.x + Math.cos(m.angle) * dist;
-        const my = layout.core.y + Math.sin(m.angle) * dist;
+        // A gentle downward bias on top of the radial drift, so motes settle
+        // toward the lower part of the scene instead of spreading evenly;
+        // clamped so the wider drift can never carry a mote above the
+        // mobile copy-clear boundary regardless of its angle.
+        const myRaw =
+          layout.core.y + Math.sin(m.angle) * dist + age * layout.radius * 0.2;
+        const my = layout.mobile ? Math.max(layout.artTop, myRaw) : myRaw;
         const edge = Math.min(age / 0.15, 1) * Math.min((1 - age) / 0.35, 1);
         const alpha = Math.max(0, edge) * 0.85;
         if (alpha <= 0.02) {
@@ -380,12 +410,64 @@ export default function PlasmaFusion() {
       liveCtx!.fillStyle = beam;
       liveCtx!.fillRect(0, layout.beamY - 1.5, w, 3);
 
-      // White-hot core with a coral-then-amber flare, crisp on top. The
-      // flare radius scales with the sphere radius instead of a fixed 26px,
-      // so it reads at 375 (about 15px) as well as at 1440 (about 32px).
+      // Near-core beam segment: a near-white centre with a cyan glow,
+      // brighter and thicker than the full-width line, tapering to it over
+      // roughly one sphere diameter each side of the core (comment 29 item
+      // 3). At 1440 the taper's left edge lands at `core.x - 2r`, right of
+      // the paragraph rect (its copy-clear zone edge is `core.x - 2r` here).
+      const taper = layout.radius * 2;
+      const nearGlow = liveCtx!.createLinearGradient(
+        layout.core.x - taper,
+        0,
+        layout.core.x + taper,
+        0,
+      );
+      nearGlow.addColorStop(0, hexToRgba(BRAND.cyan, 0));
+      nearGlow.addColorStop(0.5, hexToRgba(BRAND.cyan, 0.32));
+      nearGlow.addColorStop(1, hexToRgba(BRAND.cyan, 0));
+      liveCtx!.fillStyle = nearGlow;
+      liveCtx!.fillRect(layout.core.x - taper, layout.beamY - 6, taper * 2, 12);
+
+      const nearCentre = liveCtx!.createLinearGradient(
+        layout.core.x - taper,
+        0,
+        layout.core.x + taper,
+        0,
+      );
+      nearCentre.addColorStop(0, "rgba(255,255,255,0)");
+      nearCentre.addColorStop(0.5, "rgba(255,255,255,0.85)");
+      nearCentre.addColorStop(1, "rgba(255,255,255,0)");
+      liveCtx!.fillStyle = nearCentre;
+      liveCtx!.fillRect(layout.core.x - taper, layout.beamY - 2, taper * 2, 4);
+
+      // Wide coral/amber halo, drawn before the white-hot disc, bleeding
+      // onto both shells (comment 29 item 3).
       const pulse =
         0.85 + 0.15 * Math.sin((time / CORE_PULSE_PERIOD_MS) * Math.PI * 2);
-      const coreR = layout.radius * 0.2 * pulse;
+      liveCtx!.globalCompositeOperation = "lighter";
+      const haloR = layout.radius * 1.1;
+      const halo = liveCtx!.createRadialGradient(
+        layout.core.x,
+        layout.core.y,
+        0,
+        layout.core.x,
+        layout.core.y,
+        haloR,
+      );
+      halo.addColorStop(0, hexToRgba(BRAND.coral, 0.35 * pulse));
+      halo.addColorStop(0.35, hexToRgba(BRAND.amber, 0.18 * pulse));
+      halo.addColorStop(1, hexToRgba(BRAND.coral, 0));
+      liveCtx!.fillStyle = halo;
+      liveCtx!.beginPath();
+      liveCtx!.arc(layout.core.x, layout.core.y, haloR, 0, Math.PI * 2);
+      liveCtx!.fill();
+      liveCtx!.globalCompositeOperation = "source-over";
+
+      // White-hot core disc on top, crisp: 0.2-0.25x the sphere radius, its
+      // pulse floored at 0.9x so it never dips into a dim ember (comment 29
+      // item 3). The flare radius scales with the sphere radius instead of a
+      // fixed px value, so it reads at 375 as well as at 1440.
+      const coreR = layout.radius * 0.225 * Math.max(0.9, pulse);
       const core = liveCtx!.createRadialGradient(
         layout.core.x,
         layout.core.y,

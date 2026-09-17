@@ -1,53 +1,126 @@
 import { BRAND } from "../../../tokens";
 import { hexToRgba } from "./colors";
+import type { FilamentPath } from "./filaments";
 import type { PlasmaLayout } from "./layout";
 
 const SPHERES = ["sphereA", "sphereB"] as const;
 
+function strokeFilament(
+  ctx: CanvasRenderingContext2D,
+  path: FilamentPath,
+  strokeStyle: string,
+  lineWidth: number,
+): void {
+  if (path.points.length < 2) {
+    return;
+  }
+  ctx.beginPath();
+  ctx.moveTo(path.points[0].x, path.points[0].y);
+  for (let i = 1; i < path.points.length; i++) {
+    ctx.lineTo(path.points[i].x, path.points[i].y);
+  }
+  ctx.strokeStyle = strokeStyle;
+  ctx.lineWidth = lineWidth;
+  ctx.stroke();
+}
+
 /**
- * Static structure: the two sphere shells (a faint radial gradient plus a
- * rim so the silhouette reads even between filaments), the faint beam base
- * and the vignette. Painted once on mount and again on resize; the animated
- * layer draws the filaments, the core flare and the beam shimmer on top of
- * this every frame instead of rebuilding any of it.
+ * Static structure: the two sphere shells (a soft ring-shaped glow, never a
+ * stroked edge), the low-alpha floor glow, the dense static majority of the
+ * filament web, the faint beam base and the vignette. Painted once on mount
+ * and again on resize (`measure()`); the animated layer draws a small live
+ * subset of filaments, the core flare and the beam shimmer on top of this
+ * every frame instead of rebuilding any of it.
  */
 export function paintStatic(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
   layout: PlasmaLayout,
+  staticPathsA: readonly FilamentPath[],
+  staticPathsB: readonly FilamentPath[],
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.globalCompositeOperation = "source-over";
 
+  // Low-alpha floor glow so the desktop scene's lower quarter reads as
+  // static light instead of bare navy, without adding a new shape (planner
+  // craft read, ticket hc-0-wrc.2 comment 29/31, minor C4).
+  if (!layout.mobile) {
+    const floorRadius = layout.radius * 2.2;
+    const floor = ctx.createRadialGradient(
+      layout.core.x,
+      layout.core.y,
+      0,
+      layout.core.x,
+      layout.core.y,
+      floorRadius,
+    );
+    floor.addColorStop(0, hexToRgba(BRAND.cyan, 0.07));
+    floor.addColorStop(0.6, hexToRgba(BRAND.cyan, 0.03));
+    floor.addColorStop(1, hexToRgba(BRAND.cyan, 0));
+    ctx.fillStyle = floor;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  // Sphere shells: a soft ring-shaped radial gradient peaking just inside
+  // the radius (about 0.9-0.95x) and falling off both ways to 0 -- never a
+  // stroked rim. A large shape's silhouette must come from filament density
+  // plus this glow, not a hard vector edge (README section 4; a visible rim
+  // is a major finding on its own, comment 29 item 1).
   for (const key of SPHERES) {
     const center = layout[key];
+    const outer = layout.radius * 1.15;
+    const stop = (fractionOfRadius: number) =>
+      (fractionOfRadius * layout.radius) / outer;
     const shell = ctx.createRadialGradient(
       center.x,
       center.y,
-      layout.radius * 0.1,
+      0,
       center.x,
       center.y,
-      layout.radius * 1.08,
+      outer,
     );
-    shell.addColorStop(0, hexToRgba(BRAND.cyan, 0.09));
-    shell.addColorStop(0.55, hexToRgba(BRAND.cyan, 0.045));
+    shell.addColorStop(0, hexToRgba(BRAND.cyan, 0));
+    shell.addColorStop(stop(0.55), hexToRgba(BRAND.cyan, 0.02));
+    shell.addColorStop(stop(0.9), hexToRgba(BRAND.cyan, 0.1));
+    shell.addColorStop(stop(0.95), hexToRgba(BRAND.cyan, 0.12));
+    shell.addColorStop(stop(1.0), hexToRgba(BRAND.cyan, 0.06));
     shell.addColorStop(1, hexToRgba(BRAND.cyan, 0));
     ctx.fillStyle = shell;
     ctx.beginPath();
-    ctx.arc(center.x, center.y, layout.radius * 1.08, 0, Math.PI * 2);
+    ctx.arc(center.x, center.y, outer, 0, Math.PI * 2);
     ctx.fill();
-
-    ctx.strokeStyle = hexToRgba(BRAND.cyan, 0.1);
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(center.x, center.y, layout.radius, 0, Math.PI * 2);
-    ctx.stroke();
   }
 
-  // Feather the shells/rims out of the copy-clear zone: this only cleans up
-  // stray pixels at the zone edge (`artLeft`/`artTop`) -- the shells and
-  // rims themselves are already centred on the ruled sphere geometry, so no
+  // The dense majority of the filament web is baked in here once (comment 29
+  // item 2: 3-5x the strand count, a wide soft cyan glow under 1-1.5px
+  // near-white centres); a small live subset drawn every frame on the
+  // animated layer keeps the crawl/reseed motion without repainting this.
+  ctx.lineCap = "round";
+  const allStaticPaths = [...staticPathsA, ...staticPathsB];
+  ctx.globalCompositeOperation = "lighter";
+  for (const path of allStaticPaths) {
+    strokeFilament(
+      ctx,
+      path,
+      hexToRgba(BRAND.cyan, path.alpha * 0.4),
+      path.width * 3,
+    );
+  }
+  ctx.globalCompositeOperation = "source-over";
+  for (const path of allStaticPaths) {
+    strokeFilament(
+      ctx,
+      path,
+      `rgba(255,255,255,${path.alpha * 0.8})`,
+      path.width,
+    );
+  }
+
+  // Feather the shells/web out of the copy-clear zone: this only cleans up
+  // stray pixels at the zone edge (`artLeft`/`artTop`) -- the shells and web
+  // themselves are already centred on the ruled sphere geometry, so no
   // erased-interior ring can appear here (planner ruling 2, ticket
   // hc-0-wrc.2 comment 152).
   ctx.globalCompositeOperation = "destination-out";
