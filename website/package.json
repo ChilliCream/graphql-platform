@@ -24,8 +24,8 @@
   },
   "dependencies": {
     "@chillicream/mocha-visualizer": "file:../src/Mocha/src/mocha-visualizer",
-    "@docsearch/css": "^5.0.4",
-    "@docsearch/react": "^5.0.4",
+    "@docsearch/css": "^5.1.0",
+    "@docsearch/react": "^5.1.0",
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
     "@fortawesome/free-solid-svg-icons": "^7.3.1",
     "@fortawesome/react-fontawesome": "^3.5.0",
@@ -48,7 +48,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
-    "@storybook/nextjs-vite": "10.5.10",
+    "@storybook/nextjs-vite": "10.6.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",
     "@types/mdx": "^2.0.14",
@@ -57,7 +57,7 @@
     "@types/react-dom": "^19.2.5",
     "eslint": "^9",
     "eslint-config-next": "16.3.3",
-    "eslint-plugin-storybook": "10.5.10",
+    "eslint-plugin-storybook": "10.6.0",
     "http-server": "^14.1.1",
     "node-html-markdown": "^2.0.0",
     "node-html-parser": "^9.0.1",
@@ -65,7 +65,7 @@
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "rehype-mermaid": "^3.0.0",
-    "storybook": "10.5.10",
+    "storybook": "10.6.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "vite": "^8.2.1"
