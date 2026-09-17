@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { BRAND } from "../../../tokens";
 import { useElementMotion } from "../../../visuals/hooks";
-import { hexToRgba } from "./colors";
+import { hexToRgba, mixHexToRgba } from "./colors";
 import {
   createStrand,
   reseedStrand,
@@ -15,15 +15,20 @@ import { computeLayout, type PlasmaLayout } from "./layout";
 import { paintStatic } from "./paint";
 
 /**
- * Total strand count per sphere (static + live), 3-5x the pre-craft-pass
- * count so the shell reads as a dense, woven web (comment 29 item 2). Most
- * of these are baked once into the static canvas; only `*_LIVE_*` of them
- * animate every frame.
+ * Total strand count per sphere (static + live). Now that each strand walks
+ * the sphere's surface in 3D and covers the whole disc instead of a 0.9-1.1r
+ * band (ticket hc-0-wrc.5), the same strand reaches much more of the disc,
+ * but the static majority is raised further so the interior still reads as
+ * dense fibre at every scale rather than a few long, clean loops -- this
+ * changes only how many copies of the same walk are drawn, not the
+ * branch/length/flicker parameters of any one strand. Most of these are
+ * baked once into the static canvas; only `*_LIVE_*` of them animate every
+ * frame.
  */
-const DESKTOP_TOTAL_STRANDS_PER_SPHERE = 100;
+const DESKTOP_TOTAL_STRANDS_PER_SPHERE = 160;
 const DESKTOP_LIVE_STRANDS_PER_SPHERE = 18;
 /** Fewer strands at 375: the beam and core flare must read through the knot. */
-const MOBILE_TOTAL_STRANDS_PER_SPHERE = 50;
+const MOBILE_TOTAL_STRANDS_PER_SPHERE = 80;
 const MOBILE_LIVE_STRANDS_PER_SPHERE = 16;
 /** Offscreen bloom source, a fraction of the live canvas' CSS size. */
 const BLOOM_SCALE = 0.22;
@@ -31,6 +36,13 @@ const CORE_PULSE_PERIOD_MS = 4800;
 const BEAM_SHIMMER_PERIOD_MS = 3200;
 const MOTE_COUNT = 20;
 const MOTE_LIFE_MS = 2600;
+/**
+ * Caps how far a run's warm tint (`FilamentPath.warm`) can pull its glow
+ * colour from cyan toward coral, so the seam-facing hemisphere bleeds warm
+ * without the shell losing its one dominant cyan/teal light (README craft
+ * bar's restrained palette). Matches `paint.ts`'s static-layer cap.
+ */
+const WARM_TINT_MAX = 0.3;
 
 interface Mote {
   readonly angle: number;
@@ -64,7 +76,12 @@ function strokePath(
   for (let i = 1; i < path.points.length; i++) {
     ctx.lineTo(path.points[i].x, path.points[i].y);
   }
-  ctx.strokeStyle = hexToRgba(colorHex, path.alpha * alphaMul);
+  ctx.strokeStyle = mixHexToRgba(
+    colorHex,
+    BRAND.coral,
+    path.warm * WARM_TINT_MAX,
+    path.alpha * alphaMul,
+  );
   ctx.lineWidth = path.width;
   ctx.stroke();
 }

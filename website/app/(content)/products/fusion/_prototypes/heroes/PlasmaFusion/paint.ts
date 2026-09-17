@@ -1,9 +1,17 @@
 import { BRAND } from "../../../tokens";
-import { hexToRgba } from "./colors";
+import { hexToRgba, mixHexToRgba } from "./colors";
 import type { FilamentPath } from "./filaments";
 import type { PlasmaLayout } from "./layout";
 
 const SPHERES = ["sphereA", "sphereB"] as const;
+
+/**
+ * Caps how far a run's warm tint (`FilamentPath.warm`) can pull its glow
+ * colour from cyan toward coral, so the seam-facing hemisphere bleeds warm
+ * without the shell losing its one dominant cyan/teal light (README craft
+ * bar's restrained palette).
+ */
+const WARM_TINT_MAX = 0.3;
 
 function strokeFilament(
   ctx: CanvasRenderingContext2D,
@@ -104,7 +112,12 @@ export function paintStatic(
     strokeFilament(
       ctx,
       path,
-      hexToRgba(BRAND.cyan, path.alpha * 0.4),
+      mixHexToRgba(
+        BRAND.cyan,
+        BRAND.coral,
+        path.warm * WARM_TINT_MAX,
+        path.alpha * 0.4,
+      ),
       path.width * 3,
     );
   }
