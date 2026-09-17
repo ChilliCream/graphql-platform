@@ -353,7 +353,7 @@ A value outside this list throws an `ArgumentOutOfRangeException` when the forma
 
 - An `application/json` response takes the status code of `application/graphql-response+json`, and only a `2xx` response carries `Content-Type: application/json`. Under `Draft20250508`, an `application/json` response has a `200` status code for every well-formed request and a `400` status code for a request the server cannot interpret.
 - A result that carries both `data` and `errors` has a `294` status code. Under `Draft20250508`, it has a `200` status code.
-- A request the server read but cannot execute has a `422` status code: a request that is not a well-formed GraphQL over HTTP request, a document that fails validation, an operation that cannot be determined, and variables that cannot be coerced. Under `Draft20250508`, these requests have a `400` status code. A request body that is not valid JSON and a GraphQL document that cannot be parsed have a `400` status code under both.
+- A request the server read but cannot execute has a `422` status code: a request that is not a well-formed GraphQL over HTTP request, a document that fails validation, an operation that cannot be determined, and variables that cannot be coerced. Under `Draft20250508`, these requests have a `400` status code for `application/graphql-response+json`; for `application/json`, only the request that is not well-formed has a `400` status code and the others have `200`. A request body that is not valid JSON and a GraphQL document that cannot be parsed have a `400` status code under both.
 - A request on the GraphQL endpoint whose method the endpoint does not support has a `405` status code and an `Allow` header listing the supported methods, and a `POST` request whose `Content-Type` the endpoint does not support has a `415` status code. Under `Draft20250508`, both have a `404` status code.
 
 > [!NOTE]
@@ -361,7 +361,7 @@ A value outside this list throws an `ArgumentOutOfRangeException` when the forma
 
 # Supporting Legacy Clients
 
-Your clients might not yet support the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md). This can be problematic if they cannot handle a different response `Content-Type` or HTTP status codes besides `200`.
+Your clients might not yet support the [GraphQL over HTTP specification](https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md). This can be problematic if they cannot handle a different response `Content-Type` or HTTP status codes besides `200`.
 
 If you have control over the client, you can either:
 
@@ -376,7 +376,7 @@ builder.Services.AddHttpResponseFormatter(new HttpResponseFormatterOptions {
 });
 ```
 
-An `Accept` header with the value `application/json` makes the response `Content-Type` `application/json`. Under `Legacy` and `Draft20250508`, it also opts the client out of the status codes of the [GraphQL over HTTP](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) specification: a status code of 200 is returned for every well-formed request, even if it had validation errors. Under `Draft20260903`, the specification's status codes apply to `application/json` as well, see [Transport Versions](#transport-versions).
+An `Accept` header with the value `application/json` makes the response `Content-Type` `application/json`. Under `Legacy` and `Draft20250508`, it also opts the client out of the status codes of the [2025-05-08 revision](https://github.com/graphql/graphql-over-http/blob/a1e6d8ca248c9a19eb59a2eedd988c204909ee3f/spec/GraphQLOverHTTP.md) of the GraphQL over HTTP specification: a status code of 200 is returned for every well-formed request, even if it had validation errors. Under `Draft20260903`, the specification's status codes apply to `application/json` as well, see [Transport Versions](#transport-versions).
 
 # WebSocket Transport
 
