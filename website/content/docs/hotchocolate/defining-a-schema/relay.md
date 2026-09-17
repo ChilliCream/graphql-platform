@@ -214,6 +214,15 @@ The schema now exposes the `Node` interface, and the Query type has no `node` or
 interface Node {
   id: ID!
 }
+
+type Product implements Node {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  product(id: ID!): Product
+}
 ```
 
 Fields annotated with `[NodeResolver]` still get an `id: ID!` argument that is decoded to the raw ID.
