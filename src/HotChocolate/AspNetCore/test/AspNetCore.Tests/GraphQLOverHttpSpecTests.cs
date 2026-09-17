@@ -791,6 +791,57 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedStatusCode, response.StatusCode);
     }
 
+    // A document that cannot be parsed is answered on the same terms over GET as over POST:
+    // 400 for application/graphql-response+json, 200 for application/json under Legacy and the
+    // 2025-05-08 revision, and 400 for application/json from the 2026-09-03 revision on.
+    [Theory]
+    [InlineData(null, Draft20250508, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20250508, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    public async Task Get_Should_ApplyContentTypeRule_When_DocumentCannotBeParsed(
+        string? acceptHeader,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+        var query = Uri.EscapeDataString("{ __typ$ename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={query}"));
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    // A body without a JSON token is a body the server cannot read, so it stays 400.
+    [Theory]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Post_Should_ReturnBadRequest_When_BodyHasNoJsonToken(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent("   ", Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(BadRequest, response.StatusCode);
+    }
+
     // A failure inside the server is answered 500 wherever status codes carry meaning. The
     // legacy application/json path keeps its 200.
     [Theory]
