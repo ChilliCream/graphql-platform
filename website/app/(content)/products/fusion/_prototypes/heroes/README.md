@@ -165,8 +165,11 @@ finds nothing left to fix.
 ## 8. Review rubric (reviewer)
 
 Capture `/products/mocha` at 1440x900 to `test-results/mocha-1440.png` in the
-same container the hero screenshot came from, view it next to the hero
-screenshot, and answer these in writing on the ticket:
+same container the hero screenshot came from, waiting for the `HeroBoard`
+canvas to paint first (about 3s after load, or until the visible canvas is
+non-blank) - a pre-paint capture that shows only labels on bare navy does not
+count. View it next to the hero screenshot and answer these in writing on
+the ticket:
 
 - (a) Does the hero sit next to the Mocha screenshot as the same site?
 - (b) Does the scene show lighting and depth, or does it read flat?

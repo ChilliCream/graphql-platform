@@ -24,4 +24,10 @@ export const PROTOTYPE_VERSIONS: readonly PrototypeVersion[] = [
     name: "Plasma Fusion",
     component: "heroes/PlasmaFusion",
   },
+  {
+    n: 12,
+    slug: "v12",
+    name: "Tokamak",
+    component: "heroes/Tokamak",
+  },
 ];
