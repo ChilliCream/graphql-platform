@@ -4,25 +4,25 @@ using static HotChocolate.Execution.ErrorHelper;
 
 namespace HotChocolate.Execution.Pipeline;
 
-internal sealed class OperationResolverMiddleware
+internal sealed class OperationCompilerMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly OperationCompiler _operationPlanner;
+    private readonly OperationCompiler _operationCompiler;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
 
-    private OperationResolverMiddleware(
+    private OperationCompilerMiddleware(
         RequestDelegate next,
         ISchemaDefinition schema,
-        OperationCompiler operationPlanner,
+        OperationCompiler operationCompiler,
         IExecutionDiagnosticEvents diagnosticEvents)
     {
         ArgumentNullException.ThrowIfNull(next);
         ArgumentNullException.ThrowIfNull(schema);
-        ArgumentNullException.ThrowIfNull(operationPlanner);
+        ArgumentNullException.ThrowIfNull(operationCompiler);
         ArgumentNullException.ThrowIfNull(diagnosticEvents);
 
         _next = next;
-        _operationPlanner = operationPlanner;
+        _operationCompiler = operationCompiler;
         _diagnosticEvents = diagnosticEvents;
     }
 
@@ -35,7 +35,8 @@ internal sealed class OperationResolverMiddleware
         }
 
         var documentInfo = context.OperationDocumentInfo;
-        if (documentInfo.Document is not null && documentInfo.IsValidated)
+
+        if (documentInfo.IsValidated && context.TryGetNormalizedDocument(out var normalizedDocument))
         {
             var inFlightOperation = context.Features.Get<TaskCompletionSource<Operation>>();
 
@@ -43,12 +44,13 @@ internal sealed class OperationResolverMiddleware
             {
                 try
                 {
-                    operation = _operationPlanner.Compile(
+                    operation = _operationCompiler.Compile(
                         operationId ?? Guid.NewGuid().ToString("N"),
                         documentInfo.Hash.Value,
                         context.Request.OperationName,
-                        documentInfo.Document,
-                        context);
+                        normalizedDocument,
+                        context,
+                        isDocumentNormalized: true);
 
                     context.SetOperation(operation);
                     inFlightOperation?.TrySetResult(operation);
@@ -75,12 +77,12 @@ internal sealed class OperationResolverMiddleware
                 var operationCompiler = core.SchemaServices.GetRequiredService<OperationCompiler>();
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
 
-                var middleware = new OperationResolverMiddleware(
+                var middleware = new OperationCompilerMiddleware(
                     next,
                     schema,
                     operationCompiler,
                     diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
-            WellKnownRequestMiddleware.OperationResolverMiddleware);
+            WellKnownRequestMiddleware.OperationCompilerMiddleware);
 }
