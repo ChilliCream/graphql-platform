@@ -9,6 +9,8 @@ namespace HotChocolate.CostAnalysis;
 /// </summary>
 internal static class ConditionTreeExtractor
 {
+    private static readonly Dictionary<string, FragmentDefinitionNode> s_emptyFragments = [];
+
     /// <summary>
     /// Extracts the condition tree of an operation's root boundary,
     /// resolving named fragment spreads from <paramref name="document"/>.
@@ -112,6 +114,4 @@ internal static class ConditionTreeExtractor
 
         return fragments ?? s_emptyFragments;
     }
-
-    private static readonly Dictionary<string, FragmentDefinitionNode> s_emptyFragments = [];
 }
