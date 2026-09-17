@@ -247,28 +247,29 @@ concept on its own, not an empty first frame.
 Each version task owns one route and nothing else:
 
 ```tsx
-// app/(content)/products/fusion/v1/page.tsx
+// app/(content)/products/fusion/v11/page.tsx
 import type { Metadata } from "next";
 
 import { FusionPage } from "../FusionPage";
 import { HeroShell } from "../_prototypes/HeroShell";
 import { PrototypeShell } from "../_prototypes/PrototypeShell";
-import Prism from "../_prototypes/heroes/Prism";
+import PlasmaFusion from "../_prototypes/heroes/PlasmaFusion";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function PrototypeV1Page() {
+export default function PrototypeV11Page() {
   return (
-    <PrototypeShell version={1}>
-      <FusionPage hero={<HeroShell art={<Prism />} />} />
+    <PrototypeShell version={11}>
+      <FusionPage hero={<HeroShell art={<PlasmaFusion />} />} />
     </PrototypeShell>
   );
 }
 ```
 
-`../versions.ts` already registers v1..v10 with the hero module path in its
-`component` field (a plain string - do not turn it into an import), and the
-switcher, the sitemap and the llms script already cover the `/products/fusion/vN`
-routes via their `/products/fusion/v\d+` pattern.
+`../versions.ts` registers the hero module path in its `component` field (a
+plain string - do not turn it into an import); the registry starts at v11
+and each concept appends its own entry. The switcher, the sitemap and the
+llms script already cover the `/products/fusion/vN` routes via their
+`/products/fusion/v\d+` pattern.

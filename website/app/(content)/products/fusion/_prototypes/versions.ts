@@ -17,4 +17,11 @@ export interface PrototypeVersion {
  * Stable exports (imported by the version tasks): `PrototypeVersion`,
  * `PROTOTYPE_VERSIONS`.
  */
-export const PROTOTYPE_VERSIONS: readonly PrototypeVersion[] = [];
+export const PROTOTYPE_VERSIONS: readonly PrototypeVersion[] = [
+  {
+    n: 11,
+    slug: "v11",
+    name: "Plasma Fusion",
+    component: "heroes/PlasmaFusion",
+  },
+];
