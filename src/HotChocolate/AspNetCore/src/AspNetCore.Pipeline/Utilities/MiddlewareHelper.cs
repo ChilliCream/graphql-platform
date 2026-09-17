@@ -72,7 +72,7 @@ internal static class MiddlewareHelper
                 var errors = executorSession.Handle(ex.Errors);
                 executorSession.DiagnosticEvents.ParserErrors(context, errors);
                 return new ParseRequestResult(
-                    CreateRequestErrorResult(ex.Errors, errors),
+                    CreateRequestErrorResult(ex, errors),
                     HttpStatusCode.BadRequest);
             }
             catch (Exception ex)
@@ -110,7 +110,7 @@ internal static class MiddlewareHelper
                 var errors = executorSession.Handle(ex.Errors);
                 executorSession.DiagnosticEvents.ParserErrors(context, errors);
                 return new ParseRequestResult(
-                    CreateRequestErrorResult(ex.Errors, errors),
+                    CreateRequestErrorResult(ex, errors),
                     HttpStatusCode.BadRequest);
             }
             catch (Exception ex)
@@ -146,11 +146,11 @@ internal static class MiddlewareHelper
                 // A GraphQL request exception is thrown if the HTTP request body couldn't be
                 // parsed. In this case, we will return HTTP status code 400 and return a
                 // GraphQL error result.
-                IError error = new Error { Message = ex.Message, Exception = ex };
+                IError error = new Error { Message = ex.Message };
                 var handledError = executorSession.Handle(error);
                 executorSession.DiagnosticEvents.ParserErrors(context, [handledError]);
                 return new ParseRequestResult(
-                    CreateRequestErrorResult([error], [handledError]),
+                    CreateRequestErrorResult(ex, handledError),
                     HttpStatusCode.BadRequest);
             }
             catch (GraphQLRequestException ex)
@@ -161,7 +161,7 @@ internal static class MiddlewareHelper
                 var errors = executorSession.Handle(ex.Errors);
                 executorSession.DiagnosticEvents.ParserErrors(context, errors);
                 return new ParseRequestResult(
-                    CreateRequestErrorResult(ex.Errors, errors),
+                    CreateRequestErrorResult(ex, errors),
                     HttpStatusCode.BadRequest);
             }
             catch (Exception ex)
@@ -179,22 +179,42 @@ internal static class MiddlewareHelper
     /// Creates the result for a request the parser rejected. The result of a document the
     /// parser could not read carries a <c>400</c>, and the result of a request the parser read
     /// but could not accept as a GraphQL over HTTP request is marked as not well-formed. The
-    /// parser's own errors decide the kind, since an error filter may have rewritten the errors
-    /// that are written to the response.
+    /// exception the parser threw decides the kind, since an error filter may have rewritten
+    /// the errors that are written to the response.
     /// </summary>
     public static OperationResult CreateRequestErrorResult(
-        IReadOnlyList<IError> parserErrors,
+        GraphQLRequestException exception,
         IReadOnlyList<IError> handledErrors)
     {
         var result = OperationResult.FromError([.. handledErrors]);
 
-        if (IsDocumentSyntaxError(parserErrors))
+        if (IsDocumentSyntaxError(exception.Errors))
         {
             result.ContextData = result.ContextData.Add(
                 ExecutionContextData.HttpStatusCode,
                 HttpStatusCode.BadRequest);
         }
-        else if (IsRequestNotWellFormed(parserErrors))
+        else if (IsRequestNotWellFormed(exception))
+        {
+            result.ContextData = result.ContextData.Add(
+                HttpResultContextData.RequestNotWellFormed,
+                null);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Creates the result for a request whose structure the parser rejected. The result is
+    /// marked as not well-formed unless the body was not JSON.
+    /// </summary>
+    public static OperationResult CreateRequestErrorResult(
+        InvalidGraphQLRequestException exception,
+        IError handledError)
+    {
+        var result = OperationResult.FromError(handledError);
+
+        if (IsRequestNotWellFormed(exception))
         {
             result.ContextData = result.ContextData.Add(
                 HttpResultContextData.RequestNotWellFormed,
@@ -229,13 +249,20 @@ internal static class MiddlewareHelper
     }
 
     /// <summary>
-    /// Whether every error describes a request the parser read but could not accept as a
+    /// Whether the exception describes a request the parser read but could not accept as a
     /// GraphQL over HTTP request: a body that is not a request object, a parameter of the
     /// wrong type, or a request that names neither a document nor a document ID. A body that
     /// is not JSON is not such a request.
     /// </summary>
-    private static bool IsRequestNotWellFormed(IReadOnlyList<IError> errors)
+    private static bool IsRequestNotWellFormed(GraphQLRequestException exception)
     {
+        if (exception.InnerException is InvalidGraphQLRequestException cause)
+        {
+            return IsRequestNotWellFormed(cause);
+        }
+
+        var errors = exception.Errors;
+
         if (errors.Count == 0)
         {
             return false;
@@ -243,27 +270,20 @@ internal static class MiddlewareHelper
 
         for (var i = 0; i < errors.Count; i++)
         {
-            var error = errors[i];
-
-            if (string.Equals(
-                error.Code,
+            if (!string.Equals(
+                errors[i].Code,
                 ErrorCodes.Server.QueryAndIdMissing,
                 StringComparison.Ordinal))
             {
-                continue;
+                return false;
             }
-
-            if (error.Exception is InvalidGraphQLRequestException invalidRequest
-                && invalidRequest.InnerException is not JsonException)
-            {
-                continue;
-            }
-
-            return false;
         }
 
         return true;
     }
+
+    private static bool IsRequestNotWellFormed(InvalidGraphQLRequestException exception)
+        => exception.InnerException is not JsonException;
 
     public static RequestFlags DetermineHttpGetRequestFlags(
         RequestFlags requestFlags,

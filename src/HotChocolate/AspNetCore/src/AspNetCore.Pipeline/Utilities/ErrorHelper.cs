@@ -17,11 +17,12 @@ internal static class ErrorHelper
 
     public static GraphQLRequestException InvalidRequest(
         InvalidGraphQLRequestException ex) =>
-        new(ErrorBuilder.New()
-            .SetMessage(ex.Message)
-            .SetCode(ErrorCodes.Server.RequestInvalid)
-            .SetException(ex)
-            .Build());
+        new(
+            ErrorBuilder.New()
+                .SetMessage(ex.Message)
+                .SetCode(ErrorCodes.Server.RequestInvalid)
+                .Build(),
+            ex);
 
     public static IError RequestHasNoElements()
         => ErrorBuilder.New()

@@ -22,6 +22,8 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
 
     private const string NotWellFormedRequest = """{ "query": 123 }""";
+    private const string EmptyBatchRequest = "[]";
+    private const string NonObjectBatchRequest = "[1]";
     private const string AmbiguousOperationRequest =
         """{ "query": "query A { __typename } query B { __typename }" }""";
     private const string InvalidVariableRequest =
@@ -682,6 +684,10 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(NotWellFormedRequest, Draft20250508, BadRequest)]
     [InlineData(NotWellFormedRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(EmptyBatchRequest, Draft20250508, BadRequest)]
+    [InlineData(EmptyBatchRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(NonObjectBatchRequest, Draft20250508, BadRequest)]
+    [InlineData(NonObjectBatchRequest, Draft20260903, UnprocessableContent)]
     [InlineData(AmbiguousOperationRequest, Draft20250508, BadRequest)]
     [InlineData(AmbiguousOperationRequest, Draft20260903, UnprocessableContent)]
     [InlineData(InvalidVariableRequest, Draft20250508, BadRequest)]
@@ -703,6 +709,33 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
         Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Post_Should_ReturnUnprocessableContent_When_MultipartRequestIsNotWellFormed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(NotWellFormedRequest), "operations" },
+            { new StringContent("{}"), "map" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            s_url,
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
     }
 
     [Theory]

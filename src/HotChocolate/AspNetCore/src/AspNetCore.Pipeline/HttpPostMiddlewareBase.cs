@@ -110,7 +110,7 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
                     ? null
                     : HttpStatusCode.BadRequest;
                 var errors = session.Handle(ex.Errors);
-                result = MiddlewareHelper.CreateRequestErrorResult(ex.Errors, errors);
+                result = MiddlewareHelper.CreateRequestErrorResult(ex, errors);
                 session.DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
             }
@@ -131,11 +131,17 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             {
                 // if the HTTP request body contains no GraphQL request structure the
                 // whole request is invalid, and we will create a GraphQL error response.
+                // the body was read, so the result is marked as not well-formed for the
+                // revisions that answer that with 422.
                 case 0:
                 {
                     statusCode = HttpStatusCode.BadRequest;
                     var error = session.Handle(ErrorHelper.RequestHasNoElements());
-                    result = OperationResult.FromError(error);
+                    var errorResult = OperationResult.FromError(error);
+                    errorResult.ContextData = errorResult.ContextData.Add(
+                        HttpResultContextData.RequestNotWellFormed,
+                        null);
+                    result = errorResult;
                     session.DiagnosticEvents.HttpRequestError(context, error);
                     break;
                 }
