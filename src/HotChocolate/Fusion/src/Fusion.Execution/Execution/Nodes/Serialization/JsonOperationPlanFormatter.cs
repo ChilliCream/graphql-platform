@@ -13,12 +13,23 @@ namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 /// Formats an <see cref="OperationPlan"/> as a JSON document,
 /// including its operation metadata, execution nodes, and optional trace information.
 /// </summary>
+/// <remarks>
+/// The written document declares its shape through the root <c>version</c> property.
+/// Any change to the emitted JSON requires bumping <see cref="PlanFormatVersion"/> and
+/// adding the matching variant to the plan schema in
+/// <c>website/public/schemas/fusion/operation-plan.json</c>.
+/// </remarks>
 /// <param name="options">
 /// Optional <see cref="JsonWriterOptions"/> to control JSON formatting.
 /// Defaults to compact (non-indented) output with relaxed encoding.
 /// </param>
 public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null) : OperationPlanFormatter
 {
+    /// <summary>
+    /// The version of the operation plan JSON format written by this formatter.
+    /// </summary>
+    private const string PlanFormatVersion = "1.0.0";
+
     private readonly JsonWriterOptions _writerOptions = options ?? new JsonWriterOptions
     {
         Indented = false,
@@ -44,6 +55,9 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     {
         var jsonWriter = new JsonWriter(writer, _writerOptions);
         jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("version");
+        jsonWriter.WriteStringValue(PlanFormatVersion);
 
         jsonWriter.WritePropertyName("id");
         jsonWriter.WriteStringValue(plan.Id);

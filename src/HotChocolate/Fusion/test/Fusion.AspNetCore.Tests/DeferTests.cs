@@ -785,7 +785,7 @@ public class DeferTests : FusionTestBase
         // assert
         var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
             TestContext.Current.CancellationToken);
-        rawBody.MatchSnapshot();
+        RemoveOperationPlan(rawBody).MatchSnapshot();
     }
 
     [Fact]
@@ -843,7 +843,7 @@ public class DeferTests : FusionTestBase
         // assert
         var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
             TestContext.Current.CancellationToken);
-        rawBody.MatchSnapshot();
+        RemoveOperationPlan(rawBody).MatchSnapshot();
     }
 
     [Fact]
@@ -915,7 +915,7 @@ public class DeferTests : FusionTestBase
         // assert
         var rawBody = await result.HttpResponseMessage.Content.ReadAsStringAsync(
             TestContext.Current.CancellationToken);
-        rawBody.MatchSnapshot();
+        RemoveOperationPlan(rawBody).MatchSnapshot();
     }
 
     [Fact(Skip = "Requires validation of @skip/@include interaction with @defer at the planning level")]

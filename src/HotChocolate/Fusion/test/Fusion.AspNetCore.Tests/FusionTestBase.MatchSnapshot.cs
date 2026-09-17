@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using CookieCrumble.HotChocolate.Formatters;
 using HotChocolate.Buffers;
@@ -141,6 +142,46 @@ public abstract partial class FusionTestBase
         gateway.Interactions.Clear();
 
         await snapshot.MatchAsync();
+    }
+
+    /// <summary>
+    /// Removes the operation plan the test gateway attaches to every response from a
+    /// JSON Lines response body, so a raw body snapshot only covers the payloads.
+    /// </summary>
+    protected static string RemoveOperationPlan(string responseBody)
+    {
+        var builder = new StringBuilder();
+
+        foreach (var line in responseBody.Split('\n'))
+        {
+            if (line.Length == 0)
+            {
+                continue;
+            }
+
+            var payload = JsonNode.Parse(line)!.AsObject();
+
+            if (payload["extensions"] is JsonObject extensions
+                && extensions["fusion"] is JsonObject fusion)
+            {
+                fusion.Remove("operationPlan");
+
+                if (fusion.Count == 0)
+                {
+                    extensions.Remove("fusion");
+                }
+
+                if (extensions.Count == 0)
+                {
+                    payload.Remove("extensions");
+                }
+            }
+
+            builder.Append(payload.ToJsonString());
+            builder.Append('\n');
+        }
+
+        return builder.ToString();
     }
 
     private static async Task TryWriteOperationPlanAsync(
