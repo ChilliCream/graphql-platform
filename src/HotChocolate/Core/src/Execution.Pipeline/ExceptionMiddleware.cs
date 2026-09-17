@@ -1,3 +1,4 @@
+using System.Net;
 using HotChocolate.Execution.Instrumentation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -44,7 +45,15 @@ internal sealed class ExceptionMiddleware
         catch (Exception ex)
         {
             var error = _errorHandler.Handle(ErrorBuilder.FromException(ex).Build());
-            context.Result = OperationResult.FromError(error);
+
+            // A failure inside the server is answered 500 under every revision of the GraphQL
+            // over HTTP specification.
+            var result = OperationResult.FromError(error);
+            result.ContextData = result.ContextData.Add(
+                ExecutionContextData.HttpStatusCode,
+                HttpStatusCode.InternalServerError);
+
+            context.Result = result;
             _diagnosticEvents.RequestError(context, ex);
         }
     }

@@ -7,6 +7,7 @@ using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
@@ -14,6 +15,7 @@ using static System.Net.Http.HttpCompletionOption;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.HttpTransportVersion;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
+using WellKnownRequestMiddleware = HotChocolate.Execution.WellKnownRequestMiddleware;
 
 namespace HotChocolate.AspNetCore;
 
@@ -787,6 +789,46 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
         // assert
         Assert.Equal(expectedStatusCode, response.StatusCode);
+    }
+
+    // A failure inside the server is answered 500 wherever status codes carry meaning. The
+    // legacy application/json path keeps its 200.
+    [Theory]
+    [InlineData(Legacy, OK, ContentType.Json)]
+    [InlineData(Draft20250508, InternalServerError, ContentType.GraphQLResponse)]
+    [InlineData(Draft20260903, InternalServerError, ContentType.GraphQLResponse)]
+    public async Task Post_Should_ReturnInternalServerError_When_PipelineThrowsUnexpectedly(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer("test")
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .UseRequest(
+                    _ => context => throw new InvalidOperationException("Unexpected."),
+                    key: "ThrowingMiddleware",
+                    after: WellKnownRequestMiddleware.ExceptionMiddleware)
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/test"));
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ foo }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
     }
 
     [Theory]
