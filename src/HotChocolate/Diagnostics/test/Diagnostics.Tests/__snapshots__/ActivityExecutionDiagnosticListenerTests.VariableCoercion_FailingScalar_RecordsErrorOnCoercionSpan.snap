@@ -5,7 +5,7 @@
   "activities": [
     {
       "OperationName": "GraphQL Operation",
-      "DisplayName": "GraphQL Operation",
+      "DisplayName": "query",
       "Kind": "Internal",
       "Status": "Error",
       "tags": [
@@ -16,6 +16,10 @@
         {
           "Key": "error.type",
           "Value": "HotChocolate.Types.LeafCoercionException"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
         },
         {
           "Key": "graphql.document.hash",
@@ -54,6 +58,10 @@
             {
               "Key": "graphql.field.path",
               "Value": "mood"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
             },
             {
               "Key": "graphql.document.hash",
