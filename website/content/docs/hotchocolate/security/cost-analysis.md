@@ -7,6 +7,10 @@ Cost analysis evaluates an operation before execution and rejects it when its co
 
 Hot Chocolate implements the draft [IBM Cost Analysis specification](https://ibm.github.io/graphql-specs/cost-spec.html). The analyzer compiles an operation into a cost plan, caches that plan, and evaluates it against each request's coerced variables.
 
+# Pipeline Placement
+
+In the request pipeline, cost analysis runs after document normalization and variable coercion, but before the operation cache and the operation compiler. Enforcing cost limits ahead of the operation cache means a request that fails cost enforcement is rejected before it can enter the compiler's single-flight coalescing or create a prepared-operation cache entry, so an attacker cannot pin cache or compiler resources with an operation that is expensive enough to be rejected.
+
 # Cost Metrics
 
 The analyzer produces these metrics:

@@ -57,19 +57,29 @@ Update positional construction as follows:
 
 ## Cost analyzer pipeline placement changed
 
-`CostAnalyzerMiddleware` now runs after `OperationVariableCoercionMiddleware`. When `AddCostAnalyzer()` is registered, the default, persisted-operation, and automatic-persisted-operation pipelines use this order.
+The request pipeline gained a `DocumentNormalizationMiddleware` stage that flattens the selected operation's fragments into its own selection set right after document validation, and cost analysis now runs before the operation cache and the operation compiler, so a request that fails cost enforcement never enters the compiler's single-flight coalescing and never creates a prepared-operation cache entry. The default, persisted-operation, and automatic-persisted-operation pipelines now use this order:
 
-`AddCostAnalyzer()` inserts the analyzer after the keyed variable-coercion middleware. A custom pipeline must contain that middleware, and variable coercion must precede the remaining execution stages:
+```text
+DocumentValidation -> DocumentNormalization -> OperationVariableCoercion -> CostAnalyzer -> OperationCache -> OperationCompiler
+```
+
+`OperationResolverMiddleware`/`UseOperationResolver()` are renamed to `OperationCompilerMiddleware`/`UseOperationCompiler()`, because normalization now owns the fragment-inlining step that the resolver used to perform, leaving only the compile step. The old names remain available as `[Obsolete]` forwarders that resolve to the same middleware key, so an existing `before:`/`after:` insertion that references `WellKnownRequestMiddleware.OperationResolverMiddleware` keeps working.
+
+`AddCostAnalyzer()` still inserts the analyzer after the keyed variable-coercion middleware, which now lands it before the operation cache instead of after the compiler. A custom pipeline must add `UseDocumentNormalization()` and move variable coercion ahead of the operation cache; a document normalization stage is required, otherwise variable coercion and operation compilation fail with a state-invalid request error:
 
 ```diff
  builder
      .AddGraphQL()
      .AddCostAnalyzer()
-     // ... parsing, validation, operation cache ...
-     .UseOperationResolver()
--    .UseSkipWarmupExecution()
-     .UseOperationVariableCoercion()
-+    .UseSkipWarmupExecution()
+     // ... parsing, validation ...
++    .UseDocumentNormalization()
++    .UseOperationVariableCoercion()
+-    .UseOperationCache()
+-    .UseOperationResolver()
+-    .UseOperationVariableCoercion()
++    .UseOperationCache()
++    .UseOperationCompiler()
+     .UseSkipWarmupExecution()
      .UseConcurrencyGate()
      .UseOperationExecution();
 ```
