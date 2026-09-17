@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using HotChocolate.CostAnalysis.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
@@ -13,6 +14,7 @@ namespace HotChocolate.CostAnalysis;
 internal sealed class CostAnalyzerMiddleware(
     RequestDelegate next,
     [SchemaService] RequestCostOptions options,
+    [SchemaService] Schema schema,
     [SchemaService] CostSchemaIndex schemaIndex,
     [SchemaService] CostPlanCache cache,
     ObjectPool<DocumentValidatorContext> contextPool,
@@ -39,7 +41,8 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
-        if (!context.TryGetOperation(out var operation)
+        if (!context.TryGetNormalizedDocument(out var normalizedDocument)
+            || !context.TryGetOperationId(out var operationId)
             || !context.TryGetOperationDocument(out var document, out var documentId)
             || documentId.IsEmpty)
         {
@@ -47,13 +50,15 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
+        var normalizedOperation = context.GetNormalizedOperation();
+
         ImmutableArray<CostMetrics> costMetrics;
 
         using (diagnosticEvents.AnalyzeOperationCost(context))
         {
             try
             {
-                if (!cache.TryGetPlan(operation.Id, out var plan))
+                if (!cache.TryGetPlan(operationId, out var plan))
                 {
                     var analyses = CostAnalyses.Cost;
 
@@ -64,14 +69,16 @@ internal sealed class CostAnalyzerMiddleware(
 
                     plan = CostPlanCompiler.Compile(
                         schemaIndex,
-                        operation.Document,
-                        operation.Definition,
+                        normalizedDocument,
+                        normalizedOperation,
                         analyses);
-                    cache.TryAddPlan(operation.Id, plan);
+                    cache.TryAddPlan(operationId, plan);
                 }
 
                 CostAnalyzerUtilities.ValidateRequireOneSlicingArgument(
-                    operation,
+                    schema,
+                    normalizedOperation,
+                    normalizedDocument,
                     document,
                     documentId,
                     context.Features,
@@ -291,6 +298,7 @@ internal sealed class CostAnalyzerMiddleware(
             (core, next) =>
             {
                 var options = core.SchemaServices.GetRequiredService<RequestCostOptions>();
+                var schema = core.SchemaServices.GetRequiredService<Schema>();
                 var schemaIndex = core.SchemaServices.GetRequiredService<CostSchemaIndex>();
                 var cache = core.SchemaServices.GetRequiredService<CostPlanCache>();
                 var contextPool = core.Services.GetRequiredService<ObjectPool<DocumentValidatorContext>>();
@@ -299,6 +307,7 @@ internal sealed class CostAnalyzerMiddleware(
                 var middleware = new CostAnalyzerMiddleware(
                     next,
                     options,
+                    schema,
                     schemaIndex,
                     cache,
                     contextPool,
