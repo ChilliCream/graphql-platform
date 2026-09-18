@@ -57,28 +57,26 @@ Update positional construction as follows:
 
 ## Cost analyzer pipeline placement changed
 
-The request pipeline gained a `DocumentNormalizationMiddleware` stage that flattens the selected operation's fragments into its own selection set right after document validation, and cost analysis now runs before the operation cache and the operation compiler, so a request that fails cost enforcement never enters the compiler's single-flight coalescing and never creates a prepared-operation cache entry. The default, persisted-operation, and automatic-persisted-operation pipelines now use this order:
+Document normalization, i.e. flattening the selected operation's fragments into its own selection set, is no longer a pipeline stage. It is a lazy `IOperationDocumentNormalizer` service instead: a middleware that needs the normalized document calls `context.GetNormalizedDocument()`, which normalizes once per request on first access and stores the result on the document info, so an operation cache hit never triggers normalization work. The default, persisted-operation, and automatic-persisted-operation pipelines use this order:
 
 ```text
-DocumentValidation -> DocumentNormalization -> OperationVariableCoercion -> CostAnalyzer -> OperationCache -> OperationCompiler
+DocumentValidation -> OperationCache -> OperationCompiler -> OperationVariableCoercion -> CostAnalyzer
 ```
 
-`OperationResolverMiddleware`/`UseOperationResolver()` are renamed to `OperationCompilerMiddleware`/`UseOperationCompiler()`, because normalization now owns the fragment-inlining step that the resolver used to perform, leaving only the compile step. The old names remain available as `[Obsolete]` forwarders that resolve to the same middleware key, so an existing `before:`/`after:` insertion that references `WellKnownRequestMiddleware.OperationResolverMiddleware` keeps working.
+`OperationResolverMiddleware`/`UseOperationResolver()` are renamed to `OperationCompilerMiddleware`/`UseOperationCompiler()`; the compiler now asks the normalizer service for the normalized document itself on an operation cache miss, instead of relying on a prior pipeline stage. The old names remain available as `[Obsolete]` forwarders that resolve to the same middleware key, so an existing `before:`/`after:` insertion that references `WellKnownRequestMiddleware.OperationResolverMiddleware` keeps working.
 
-`AddCostAnalyzer()` still inserts the analyzer after the keyed variable-coercion middleware, which now lands it before the operation cache instead of after the compiler. A custom pipeline must add `UseDocumentNormalization()` and move variable coercion ahead of the operation cache; a document normalization stage is required, otherwise variable coercion and operation compilation fail with a state-invalid request error:
+`AddCostAnalyzer()` still inserts the analyzer after the keyed variable-coercion middleware, which now lands it after the operation cache and the operation compiler: a request that fails cost enforcement has already compiled and cached its operation by the time it is rejected, so a burst of identical, over-budget requests still coalesces into a single compilation instead of skipping the compiler's single-flight coalescing. A custom pipeline no longer needs a document normalization stage; it moves variable coercion behind the operation cache and the operation compiler:
 
 ```diff
  builder
      .AddGraphQL()
      .AddCostAnalyzer()
      // ... parsing, validation ...
-+    .UseDocumentNormalization()
-+    .UseOperationVariableCoercion()
--    .UseOperationCache()
+     .UseOperationCache()
 -    .UseOperationResolver()
 -    .UseOperationVariableCoercion()
-+    .UseOperationCache()
 +    .UseOperationCompiler()
++    .UseOperationVariableCoercion()
      .UseSkipWarmupExecution()
      .UseConcurrencyGate()
      .UseOperationExecution();
