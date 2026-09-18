@@ -628,6 +628,11 @@ public class FusionActivityExecutionDiagnosticListenerTests : FusionTestBase
         }
     }
 
+    // The source schema rejects the value, so the coercion error is a source schema request
+    // error: it carries no path, and its input position travels in the extensions. The gateway
+    // relays it verbatim as a root error and then fills the still unresolved greetMood field
+    // with its standard "Unexpected Execution Error" fallback, which is the second recorded
+    // error.
     [Fact]
     public async Task VariableCoercion_FailingScalar_RecordsErrorOnCoercionSpan()
     {

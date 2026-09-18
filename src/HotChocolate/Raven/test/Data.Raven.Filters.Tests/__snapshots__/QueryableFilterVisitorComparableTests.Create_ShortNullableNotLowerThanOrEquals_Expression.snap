@@ -67,12 +67,6 @@ null
   "errors": [
     {
       "message": "The provided value for filter `nlte` of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 35
-        }
-      ],
       "path": [
         "root"
       ],

@@ -48,6 +48,7 @@ public sealed class AssumedBoundTests
                     coercionSchema,
                     operation.VariableDefinitions,
                     variablesDocument.RootElement,
+                    false,
                     out var coerced,
                     out var error))
             {

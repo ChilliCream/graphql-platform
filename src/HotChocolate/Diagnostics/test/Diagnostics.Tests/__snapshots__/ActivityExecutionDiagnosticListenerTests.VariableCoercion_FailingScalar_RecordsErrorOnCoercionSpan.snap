@@ -60,10 +60,6 @@
               "Value": "Mood cannot coerce the given value JSON element of type `String` to a runtime value."
             },
             {
-              "Key": "graphql.field.path",
-              "Value": "mood"
-            },
-            {
               "Key": "graphql.operation.type",
               "Value": "query"
             },

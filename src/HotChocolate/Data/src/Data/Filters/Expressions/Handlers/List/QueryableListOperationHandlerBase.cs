@@ -42,7 +42,7 @@ public abstract class QueryableListOperationHandlerBase
         if (node.Value.IsNull())
         {
             context.ReportError(
-                ErrorHelper.CreateNonNullError(field, node.Value, context));
+                ErrorHelper.CreateNonNullError(field, context));
 
             action = SyntaxVisitor.Skip;
 
