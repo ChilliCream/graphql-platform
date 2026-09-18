@@ -39,14 +39,9 @@ internal sealed class OperationPlanMiddleware
             return next(context);
         }
 
-        // The document has already been de-fragmentized and had its statically excluded
-        // selections removed by the DocumentNormalizationMiddleware.
-        if (!context.TryGetNormalizedDocument(out _))
-        {
-            context.Result = ErrorHelper.StateInvalidForOperationPlanning();
-            return default;
-        }
-
+        // Normalizing de-fragmentizes the operation and removes statically excluded
+        // selections; this runs at most once per operation, since the normalizer caches
+        // its result for reuse by later requests.
         PlanOperation(context, operationDocumentInfo, context.GetNormalizedOperation());
 
         return next(context);

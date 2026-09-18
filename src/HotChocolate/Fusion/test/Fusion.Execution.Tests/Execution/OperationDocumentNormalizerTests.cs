@@ -1,14 +1,13 @@
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Pipeline;
-using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-public class DocumentNormalizationMiddlewareTests : FusionTestBase
+public class OperationDocumentNormalizerTests : FusionTestBase
 {
     [Fact]
     public async Task Normalized_Document_Should_Inline_Fragments_And_Drop_Statically_Excluded_Selections()
@@ -187,40 +186,6 @@ public class DocumentNormalizationMiddlewareTests : FusionTestBase
             query B {
               bar
             }
-            """);
-    }
-
-    [Fact]
-    public async Task InvokeAsync_Should_ThrowCorrectMessage_When_DocumentIsMissing()
-    {
-        // arrange
-        var services = new ServiceCollection();
-        var builder = services.AddGraphQLGateway();
-        FusionSetupUtilities.ClearPipeline(builder);
-
-        var executor = await builder
-            .UseDocumentNormalization()
-            .AddInMemoryConfiguration(
-                ComposeSchemaDocument(
-                    """
-                    type Query {
-                      foo: String
-                    }
-                    """))
-            .Services
-            .BuildServiceProvider()
-            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
-
-        // act
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            async () => await executor.ExecuteAsync(
-                "{ foo }",
-                TestContext.Current.CancellationToken));
-
-        // assert
-        exception.Message.MatchInlineSnapshot(
-            """
-            The operation document is not available in the context.
             """);
     }
 }

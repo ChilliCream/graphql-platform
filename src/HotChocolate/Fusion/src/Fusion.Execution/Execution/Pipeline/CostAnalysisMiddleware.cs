@@ -37,14 +37,6 @@ internal sealed class CostAnalysisMiddleware
             return next(context);
         }
 
-        if (!context.TryGetNormalizedDocument(out _))
-        {
-            context.Result = ErrorHelper.StateInvalidForCostAnalysis();
-            return default;
-        }
-
-        var operation = context.GetNormalizedOperation();
-
         var isWarmup = context.IsWarmupRequest();
 
         // Non-warmup cost analysis requires at least one coerced variable set, so an explicit empty variable batch is invalid.
@@ -75,7 +67,7 @@ internal sealed class CostAnalysisMiddleware
                 plan = CostPlanCompiler.Compile(
                     _schemaIndex,
                     context.GetNormalizedDocument(),
-                    operation,
+                    context.GetNormalizedOperation(),
                     analyses);
                 _cache.TryAdd(operationId, plan);
             }

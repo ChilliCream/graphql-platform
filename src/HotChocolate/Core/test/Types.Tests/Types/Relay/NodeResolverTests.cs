@@ -343,11 +343,132 @@ public class NodeResolverTests
         Assert.Empty(result.ExpectOperationResult().Errors);
     }
 
+    [Fact]
+    public async Task NodeResolver_QueryField_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType<QueryWithoutNodeAndNodesFields>()
+            .AddGlobalObjectIdentification(o =>
+            {
+                o.AddNodeField = false;
+                o.AddNodesField = false;
+            });
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NodeResolver_ResolveNode_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithoutNodeAndNodesFields>()
+                .AddGlobalObjectIdentification(o =>
+                {
+                    o.AddNodeField = false;
+                    o.AddNodesField = false;
+                })
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ entity(id: \"RW50aXR5OmZvbw==\") { id name } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task NodeResolver_InvalidId_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var executor =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<QueryWithoutNodeAndNodesFields>()
+                .AddGlobalObjectIdentification(o =>
+                {
+                    o.AddNodeField = false;
+                    o.AddNodesField = false;
+                })
+                .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        var result = await executor.ExecuteAsync(
+            "{ entity(id: \"invalid\") { id name } }",
+            TestContext.Current.CancellationToken);
+
+        // assert
+        result.ToJson().MatchSnapshot();
+    }
+
+    [Fact]
+    public void NodeAttribute_Type_Builds_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var builder = SchemaBuilder.New()
+            .AddGlobalObjectIdentification(o =>
+            {
+                o.AddNodeField = false;
+                o.AddNodesField = false;
+            })
+            .AddQueryType<Query>()
+            .AddType<Entity3>();
+
+        // act
+        var schema = builder.Create();
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task ImplementsNode_ResolveNode_Type_Builds_Without_Node_And_Nodes_Fields()
+    {
+        // arrange
+        var builder = new ServiceCollection()
+            .AddGraphQLServer()
+            .AddGlobalObjectIdentification(o =>
+            {
+                o.AddNodeField = false;
+                o.AddNodesField = false;
+            })
+            .AddObjectType<Entity>(d =>
+            {
+                d.ImplementsNode()
+                    .ResolveNode<string>(
+                        (_, id) => Task.FromResult<Entity?>(new Entity { Name = id }))
+                    .Resolve(ctx => ctx.Parent<Entity>().Id);
+            })
+            .AddQueryType<Query>();
+
+        // act
+        var schema = await builder.BuildSchemaAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // assert
+        schema.ToString().MatchSnapshot();
+    }
+
     public class Query
     {
         public Entity GetEntity(string name) => new Entity { Name = name };
 
         public Entity2 GetEntity2(string name) => new Entity2 { Name = name };
+    }
+
+    public class QueryWithoutNodeAndNodesFields
+    {
+        [NodeResolver]
+        public Entity GetEntity(string id) => new() { Name = id };
     }
 
     public class EntityType : ObjectType<Entity>

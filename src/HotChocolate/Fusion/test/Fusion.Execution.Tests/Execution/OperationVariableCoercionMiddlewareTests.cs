@@ -127,7 +127,6 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
                 .UseDocumentCache()
                 .UseDocumentParser()
                 .UseDocumentValidation()
-                .UseDocumentNormalization()
                 .UseOperationVariableCoercion();
         }
 

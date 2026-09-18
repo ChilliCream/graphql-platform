@@ -26,38 +26,20 @@ internal sealed class OperationVariableCoercionMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.TryGetOperation(out var operation))
-        {
-            if (!context.IsWarmupRequest())
-            {
-                CoerceVariables(
-                    context,
-                    _coercionHelper,
-                    operation.Definition.VariableDefinitions,
-                    _diagnosticEvents);
-            }
+        var variableDefinitions = context.TryGetOperation(out var operation)
+            ? operation.Definition.VariableDefinitions
+            : context.GetNormalizedOperation().VariableDefinitions;
 
-            await _next(context).ConfigureAwait(false);
-        }
-        else if (context.TryGetNormalizedDocument(out _))
+        if (!context.IsWarmupRequest())
         {
-            if (!context.IsWarmupRequest())
-            {
-                var normalizedOperation = context.GetNormalizedOperation();
-
-                CoerceVariables(
-                    context,
-                    _coercionHelper,
-                    normalizedOperation.VariableDefinitions,
-                    _diagnosticEvents);
-            }
-
-            await _next(context).ConfigureAwait(false);
+            CoerceVariables(
+                context,
+                _coercionHelper,
+                variableDefinitions,
+                _diagnosticEvents);
         }
-        else
-        {
-            context.Result = ErrorHelper.StateInvalidForOperationVariableCoercion();
-        }
+
+        await _next(context).ConfigureAwait(false);
     }
 
     public static RequestMiddlewareConfiguration Create()

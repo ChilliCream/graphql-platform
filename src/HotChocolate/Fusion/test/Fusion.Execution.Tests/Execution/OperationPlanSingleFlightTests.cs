@@ -3,10 +3,17 @@ using System.Diagnostics;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
+using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Planning;
+using HotChocolate.Fusion.Types;
+using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.Fusion.Execution;
 
@@ -91,6 +98,101 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
 
         var operationId = Assert.Single(operationIds.Distinct());
         Assert.Equal(1, listener.PlanStartCount(operationId));
+    }
+
+    [Fact]
+    public async Task Follower_Released_At_Plan_Set_Time_Never_Normalizes()
+    {
+        // arrange
+        // Variable coercion and cost analysis run ahead of the plan cache and each ask for
+        // the normalized document on their own, independently of any single-flight
+        // coalescing; leaving both out of this pipeline isolates the one normalizer call
+        // that planning itself needs, so the assertion below is exact: a follower released
+        // at plan-set time - before it would ever reach OperationPlanMiddleware's own
+        // normalization call - must not add a second call of its own.
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var operationIds = new ConcurrentBag<string>();
+        var leaderGate = new SingleFlightLeaderGate();
+        var secondRequestObserver = new SecondRequestObserver();
+        var normalizeCallCount = 0;
+
+        var services = new ServiceCollection();
+        var builder = services.AddGraphQLGateway();
+        FusionSetupUtilities.ClearPipeline(builder);
+
+        var executor = await builder
+            .UseInstrumentation()
+            .UseExceptions()
+            .UseTimeout()
+            .UseDocumentCache()
+            .UseDocumentParser()
+            .UseDocumentValidation()
+            .UseOperationPlanCache()
+            .UseOperationPlan()
+            .UseSkipWarmupExecution()
+            .UseConcurrencyGate()
+            .UseOperationExecution()
+            .ConfigureSchemaServices((_, schemaServices) =>
+            {
+                schemaServices.RemoveAll<IOperationDocumentNormalizer>();
+                schemaServices.AddSingleton<IOperationDocumentNormalizer>(
+                    sp => new CountingOperationDocumentNormalizer(
+                        new OperationDocumentNormalizer(
+                            sp.GetRequiredService<FusionSchemaDefinition>(),
+                            sp.GetRequiredService<NormalizedDocumentCache>()),
+                        () => Interlocked.Increment(ref normalizeCallCount)));
+            })
+            .UseRequest(
+                (_, next) => CreateSecondRequestEnteredDownstreamMiddleware(next, secondRequestObserver),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSingleFlightLeaderBlockMiddleware(next, leaderGate),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      foo: String
+                    }
+                    """))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        const string operationText =
+            """
+            query FollowerNeverNormalizes {
+              foo
+            }
+            """;
+
+        // act
+        var leaderTask = executor.ExecuteAsync(operationText, cts.Token);
+        await leaderGate.WaitForEntryAsync(cts.Token);
+
+        var followerTask = executor.ExecuteAsync(operationText, cts.Token);
+        await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(cts.Token);
+
+        leaderGate.Release();
+        var results = await Task.WhenAll(leaderTask, followerTask);
+
+        // assert
+        Assert.All(results, t => Assert.Empty(t.ExpectOperationResult().Errors));
+        Assert.Single(operationIds.Distinct());
+
+        // the leader normalizes once, for its own plan; the follower is released the
+        // moment the leader's plan is set and never calls the normalizer itself.
+        Assert.Equal(1, Volatile.Read(ref normalizeCallCount));
     }
 
     [Fact]
@@ -1597,5 +1699,15 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             => _addedToCache.TryGetValue(operationId, out var count)
                 ? count
                 : 0;
+    }
+
+    private sealed class CountingOperationDocumentNormalizer(IOperationDocumentNormalizer inner, Action onNormalize)
+        : IOperationDocumentNormalizer
+    {
+        public DocumentNode NormalizeDocument(RequestContext context)
+        {
+            onNormalize();
+            return inner.NormalizeDocument(context);
+        }
     }
 }

@@ -1,0 +1,75 @@
+title: Gateway_Should_SkipUndefinedInputFields_When_IgnoreAdditionalInputFieldsIsEnabled
+request:
+  document: |
+    query testQuery($input: SearchInput!) {
+      search(input: $input)
+    }
+  variables: |
+    {
+      "input": {
+        "term": "abc",
+        "unknown": "wrong"
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "search": "Query"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        search(input: SearchInput!): String
+      }
+
+      input SearchInput {
+        term: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_b9069d12_1($input: SearchInput!) {
+              search(input: $input)
+            }
+          variables: |
+            {
+              "input": {
+                "term": "abc"
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "search": "Query"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery($input: SearchInput!) {
+          search(input: $input)
+        }
+      name: testQuery
+      hash: b9069d121712d12a6e787f1f687c469a
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_b9069d12_1($input: SearchInput!) {
+          search(input: $input)
+        }
+      forwardedVariables:
+        - input

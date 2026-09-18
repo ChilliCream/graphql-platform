@@ -9,12 +9,12 @@ Variable batching is based on an [open proposal](https://github.com/graphql/grap
 
 # Enabling Batching
 
-Batching is disabled by default as a security measure. You enable the types of batching you want to allow through the `AllowedBatching` flags enum using `ModifyServerOptions`:
+Variable batching is enabled by default. Request batching is disabled by default. You configure the allowed types through the `AllowedBatching` flags enum using `ModifyServerOptions`. To disable all batching:
 
 ```csharp
 builder
     .AddGraphQL()
-    .ModifyServerOptions(o => o.Batching = AllowedBatching.VariableBatching);
+    .ModifyServerOptions(o => o.Batching = AllowedBatching.None);
 ```
 
 You can combine flags to enable multiple batching modes:
@@ -35,7 +35,7 @@ builder
 ```
 
 > [!NOTE]
-> If your GraphQL server is a Fusion subgraph, both variable batching and request batching are enabled by default. You do not need to configure this explicitly.
+> Calling `AddSourceSchemaDefaults()` on a Fusion subgraph enables both variable batching and request batching.
 
 ## Batch Size Limits
 
@@ -171,6 +171,6 @@ For more details about streaming transports, see [HTTP Transport](./http-transpo
 
 - [HTTP Transport](./http-transport.md) for details on streaming transports and incremental delivery.
 - [Persisted Operations](../performance/trusted-documents.md) for reducing request payload size.
-- [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md#batching-is-now-disabled-by-default) for the batching migration details.
+- [Migrate from v15 to v16](../migrating/migrate-from-15-to-16.md#request-batching-is-now-disabled-by-default) for the batching migration details.
 
 <!-- spell-checker:ignore Cbnia, Yero -->
