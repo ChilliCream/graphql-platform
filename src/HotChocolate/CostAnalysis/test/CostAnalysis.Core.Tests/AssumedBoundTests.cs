@@ -48,7 +48,7 @@ public sealed class AssumedBoundTests
                     coercionSchema,
                     operation.VariableDefinitions,
                     variablesDocument.RootElement,
-                    false,
+                    ignoreAdditionalInputFields: false,
                     out var coerced,
                     out var error))
             {
