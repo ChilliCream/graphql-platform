@@ -31,9 +31,10 @@ internal sealed class DocumentNormalizationMiddleware
         var documentInfo = context.OperationDocumentInfo;
         var document = documentInfo.Document;
 
-        if (document is null)
+        if (document is null || documentInfo.Id.IsEmpty || !documentInfo.IsValidated)
         {
-            throw ThrowHelper.OperationDocumentNotAvailable();
+            context.Result = ErrorHelper.StateInvalidForOperationResolver();
+            return;
         }
 
         if (!context.TryGetOperationId(out var operationId))

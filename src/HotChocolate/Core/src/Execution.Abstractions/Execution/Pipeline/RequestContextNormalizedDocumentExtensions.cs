@@ -7,7 +7,7 @@ namespace HotChocolate.Execution.Pipeline;
 /// Provides access to the normalized operation document on the <see cref="RequestContext"/>,
 /// i.e. the document produced by a document normalization pipeline stage.
 /// </summary>
-internal static class RequestContextNormalizedDocumentExtensions
+public static class RequestContextNormalizedDocumentExtensions
 {
     /// <summary>
     /// Gets the normalized operation document from the request context.

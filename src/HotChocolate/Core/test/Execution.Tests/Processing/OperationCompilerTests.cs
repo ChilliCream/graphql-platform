@@ -1,4 +1,6 @@
+using System.Reflection;
 using System.Text;
+using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
@@ -944,8 +946,173 @@ public class OperationCompilerTests
             schema);
 
         // assert
+        Assert.False(operation.HasIncrementalParts);
         MatchSnapshot(document, operation);
     }
+
+    [Fact]
+    public void Stream_With_Statically_True_Skip_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // @stream on a field that is itself statically excluded via @skip(if: true) never
+        // reaches the compiled operation, so it must not be reported as incremental either.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                appearsIn @stream @skip(if: true)
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Defer_On_Statically_Skipped_Fragment_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // The fragment spread itself is statically excluded via @skip(if: true), so the
+        // @defer nested inside its definition never reaches the compiled operation.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            query Q {
+              hero(episode: EMPIRE) {
+                ...F @skip(if: true)
+              }
+            }
+
+            fragment F on Character {
+              ... @defer {
+                name
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            "Q",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public async Task Compile_PreNormalized_Document_Reports_Incremental_Parts_Correctly()
+    {
+        // arrange
+        // The `isDocumentNormalized: true` overload derives HasIncrementalParts from the
+        // document it is handed rather than trusting a value carried alongside it. Both
+        // documents below are already in normalized shape (no fragment spreads, no static
+        // include conditions left to resolve).
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddStarWarsTypes()
+            .AddStarWarsRepositories()
+            .UseDefaultPipeline()
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
+        var context = new Mock<IFeatureProvider>().Object;
+
+        var deferIfFalseDocument = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ... @defer(if: false) {
+                  name
+                }
+              }
+            }
+            """);
+
+        var deferDocument = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                ... @defer {
+                  name
+                }
+              }
+            }
+            """);
+
+        // act
+        var notIncremental = operationCompiler.Compile(
+            "opid-1",
+            "opid-1",
+            operationName: null,
+            deferIfFalseDocument,
+            context,
+            isDocumentNormalized: true);
+
+        var incremental = operationCompiler.Compile(
+            "opid-2",
+            "opid-2",
+            operationName: null,
+            deferDocument,
+            context,
+            isDocumentNormalized: true);
+
+        // assert
+        Assert.False(notIncremental.HasIncrementalParts);
+        Assert.True(incremental.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Compile_ExposesOriginalPublicSignatures_PlusATrueNormalizedDocumentOverload()
+    {
+        // arrange
+        // Pins the pre-branch public API shape (origin/main) so a pre-normalized document path
+        // is added as a true overload rather than an optional parameter bolted onto an existing
+        // public method, which would be binary-breaking for already-compiled callers.
+        var actualSignatures = typeof(OperationCompiler)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(m => m.Name == nameof(OperationCompiler.Compile))
+            .Select(DescribeSignature)
+            .ToHashSet();
+
+        var expectedSignatures = new HashSet<string>
+        {
+            // the three pre-branch static entry points, unchanged.
+            "static(String, DocumentNode, Schema, IFeatureProvider)",
+            "static(String, String, DocumentNode, Schema, IFeatureProvider)",
+            "static(String, String, String, DocumentNode, Schema, IFeatureProvider)",
+
+            // the pre-branch instance signature, unchanged.
+            "instance(String, String, String, DocumentNode, IFeatureProvider)",
+
+            // the new, true overload for a document already normalized upstream.
+            "instance(String, String, String, DocumentNode, IFeatureProvider, Boolean)"
+        };
+
+        // act & assert
+        Assert.Equal(expectedSignatures, actualSignatures);
+    }
+
+    private static string DescribeSignature(MethodInfo method)
+        => $"{(method.IsStatic ? "static" : "instance")}"
+            + $"({string.Join(", ", method.GetParameters().Select(p => p.ParameterType.Name))})";
 
     [Fact]
     public async Task Defer_Different_Branches_Overlapping_Fields()

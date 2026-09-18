@@ -84,32 +84,71 @@ public sealed partial class OperationCompiler
         string? operationName,
         DocumentNode document,
 #pragma warning disable RCS1163 // Unused parameter
-        IFeatureProvider context,
+        IFeatureProvider context)
 #pragma warning restore RCS1163 // Unused parameter
-        bool isDocumentNormalized = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(document);
 
-        OperationDefinitionNode operationDefinition;
-        bool hasIncrementalParts;
+        // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
+        var result = _documentRewriter.RewriteDocument(document, operationName);
+        document = result.Document;
+        var operationDefinition = document.GetOperation(operationName);
 
-        if (isDocumentNormalized)
+        // The normalized selection set is the source of truth for whether the operation still
+        // has incremental parts once statically excluded @defer/@stream selections are taken
+        // into account, so we derive the flag from it instead of trusting the rewriter result,
+        // which does not evaluate a literal "if: false" condition on the directive itself.
+        var hasIncrementalParts = ContainsIncrementalDirectives(operationDefinition.SelectionSet);
+
+        return CompileOperation(id, hash, document, operationDefinition, hasIncrementalParts);
+    }
+
+    /// <summary>
+    /// Compiles an operation from a document that was already de-fragmentized and had its
+    /// static include conditions removed by a document normalization pipeline stage, skipping
+    /// that step here.
+    /// </summary>
+    /// <param name="id">A unique identifier for the operation.</param>
+    /// <param name="hash">The document hash.</param>
+    /// <param name="operationName">The name of the operation to compile.</param>
+    /// <param name="document">The already normalized document.</param>
+    /// <param name="context">Reserved for future use.</param>
+    /// <param name="isDocumentNormalized">
+    /// Must be <c>true</c>; distinguishes this overload from the overload that compiles a
+    /// document which still needs to be de-fragmentized.
+    /// </param>
+    public Operation Compile(
+        string id,
+        string hash,
+        string? operationName,
+        DocumentNode document,
+#pragma warning disable RCS1163 // Unused parameter
+        IFeatureProvider context,
+#pragma warning restore RCS1163 // Unused parameter
+        bool isDocumentNormalized)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(id);
+        ArgumentNullException.ThrowIfNull(document);
+
+        if (!isDocumentNormalized)
         {
-            // The document was already de-fragmentized and had its static include conditions
-            // removed by the document normalization pipeline stage, so we can skip that step here.
-            operationDefinition = document.GetOperation(operationName);
-            hasIncrementalParts = ContainsIncrementalDirectives(operationDefinition.SelectionSet);
-        }
-        else
-        {
-            // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
-            var result = _documentRewriter.RewriteDocument(document, operationName);
-            document = result.Document;
-            operationDefinition = document.GetOperation(operationName);
-            hasIncrementalParts = result.HasIncrementalParts;
+            return Compile(id, hash, operationName, document, context);
         }
 
+        var operationDefinition = document.GetOperation(operationName);
+        var hasIncrementalParts = ContainsIncrementalDirectives(operationDefinition.SelectionSet);
+
+        return CompileOperation(id, hash, document, operationDefinition, hasIncrementalParts);
+    }
+
+    private Operation CompileOperation(
+        string id,
+        string hash,
+        DocumentNode document,
+        OperationDefinitionNode operationDefinition,
+        bool hasIncrementalParts)
+    {
         var includeConditions = new IncludeConditionCollection(_maxAllowedIncludeConditions);
         var deferConditions = new DeferConditionCollection(_maxAllowedDeferConditions);
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
@@ -707,11 +746,12 @@ public sealed partial class OperationCompiler
         }
     }
 
-    // The document normalization pipeline stage already inlines fragments and detects
-    // incremental parts for us, but when a pre-normalized document is compiled directly
-    // (skipping that stage), we still need to know whether the operation has @defer or
-    // @stream selections, since a normalized document only ever contains fields and
-    // inline fragments (fragment spreads are always inlined away by the rewriter).
+    // A normalized document only ever contains fields and inline fragments (fragment spreads
+    // are always inlined away by the rewriter), so walking the selection set is sufficient to
+    // determine whether the operation still has incremental parts once statically excluded
+    // @defer/@stream selections are accounted for. Selections removed outright by the rewriter
+    // (a statically skipped field or fragment) never reach this walk; a directive with a
+    // literal "if: false" argument survives the rewrite, so it is checked explicitly.
     private static bool ContainsIncrementalDirectives(SelectionSetNode selectionSet)
     {
         foreach (var selection in selectionSet.Selections)
@@ -719,7 +759,10 @@ public sealed partial class OperationCompiler
             switch (selection)
             {
                 case FieldNode field:
-                    if (HasDirective(field.Directives, DirectiveNames.Stream.Name)
+                    if (HasIncrementalDirective(
+                            field.Directives,
+                            DirectiveNames.Stream.Name,
+                            DirectiveNames.Stream.Arguments.If)
                         || (field.SelectionSet is not null
                             && ContainsIncrementalDirectives(field.SelectionSet)))
                     {
@@ -728,7 +771,10 @@ public sealed partial class OperationCompiler
                     break;
 
                 case InlineFragmentNode inlineFragment:
-                    if (HasDirective(inlineFragment.Directives, DirectiveNames.Defer.Name)
+                    if (HasIncrementalDirective(
+                            inlineFragment.Directives,
+                            DirectiveNames.Defer.Name,
+                            DirectiveNames.Defer.Arguments.If)
                         || ContainsIncrementalDirectives(inlineFragment.SelectionSet))
                     {
                         return true;
@@ -740,14 +786,37 @@ public sealed partial class OperationCompiler
         return false;
     }
 
-    private static bool HasDirective(IReadOnlyList<DirectiveNode> directives, string name)
+    // Finds the named incremental delivery directive (@defer or @stream) and reports whether
+    // it is still active after static evaluation. A literal "if: false" argument makes the
+    // directive a compile-time no-op, so it must not count towards the operation having
+    // incremental parts; a missing "if" argument, a literal "if: true", or a variable
+    // reference (only resolvable at runtime) all count.
+    private static bool HasIncrementalDirective(
+        IReadOnlyList<DirectiveNode> directives,
+        string directiveName,
+        string ifArgumentName)
     {
         for (var i = 0; i < directives.Count; i++)
         {
-            if (directives[i].Name.Value.Equals(name, StringComparison.Ordinal))
+            var directive = directives[i];
+
+            if (!directive.Name.Value.Equals(directiveName, StringComparison.Ordinal))
             {
-                return true;
+                continue;
             }
+
+            for (var j = 0; j < directive.Arguments.Count; j++)
+            {
+                var argument = directive.Arguments[j];
+
+                if (argument.Name.Value.Equals(ifArgumentName, StringComparison.Ordinal)
+                    && argument.Value is BooleanValueNode { Value: false })
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         return false;
