@@ -114,24 +114,31 @@ internal sealed class OperationPlanCacheMiddleware
             // context carries when the pipeline returns and release followers with it. Only
             // when the pipeline returned without producing a plan at all, and without
             // throwing, does this fault the followers so they do not wait forever.
-            if (!leaderEntry.Value.Task.IsCompleted)
+            try
             {
-                if (context.GetOperationPlan() is { } operationPlan)
+                // Guard against a faulty diagnostic event handler preventing cleanup: a throw
+                // from the cache or a listener here must not leak the in-flight entry.
+                if (!leaderEntry.Value.Task.IsCompleted)
                 {
-                    _cache.TryAdd(operationId, operationPlan);
-                    _diagnosticEvents.AddedOperationPlanToCache(context, operationId);
-                    leaderEntry.Value.TrySetResult(operationPlan);
-                }
-                else
-                {
-                    leaderEntry.Value.TrySetException(ThrowHelper.OperationPlanTaskCompletedWithoutResult());
+                    if (context.GetOperationPlan() is { } operationPlan)
+                    {
+                        _cache.TryAdd(operationId, operationPlan);
+                        _diagnosticEvents.AddedOperationPlanToCache(context, operationId);
+                        leaderEntry.Value.TrySetResult(operationPlan);
+                    }
+                    else
+                    {
+                        leaderEntry.Value.TrySetException(ThrowHelper.OperationPlanTaskCompletedWithoutResult());
+                    }
                 }
             }
-
-            // The leader alone owns this entry: added it, and removes it here regardless of
-            // whether planning succeeded, failed, or was cancelled.
-            _inFlightPlans.TryRemove(
-                new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(operationId, leaderEntry));
+            finally
+            {
+                // The leader alone owns this entry: added it, and removes it here regardless of
+                // whether planning succeeded, failed, or was cancelled.
+                _inFlightPlans.TryRemove(
+                    new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(operationId, leaderEntry));
+            }
         }
     }
 
