@@ -177,7 +177,7 @@ internal static class PersistedOperationMiddleware
 
             if (!parserResult.IsValid)
             {
-                statusCode = parserResult.StatusCode.Value;
+                statusCode = parserResult.StatusCode;
                 result = parserResult.Error;
                 goto HANDLE_RESULT;
             }
@@ -253,7 +253,7 @@ HANDLE_RESULT:
 
             if (!parserResult.IsValid)
             {
-                statusCode = parserResult.StatusCode.Value;
+                statusCode = parserResult.StatusCode;
                 result = parserResult.Error;
                 goto HANDLE_RESULT;
             }

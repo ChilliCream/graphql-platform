@@ -170,6 +170,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         IncrementalDeliveryFormat incrementalDeliveryFormat = IncrementalDeliveryFormat.Version_0_2)
     {
         ArgumentNullException.ThrowIfNull(builder);
+        DefaultHttpResponseFormatter.EnsureTransportVersionIsSupported(
+            options.HttpTransportVersion,
+            nameof(options));
 
         builder.ConfigureSchemaServices(
             s => s.RemoveAll<IHttpResponseFormatter>()
