@@ -49,6 +49,17 @@ const LIGHT_DIR = normalize3({ x: 0.4, y: 0.7, z: -0.6 });
  * or below the wall's own achieved brightness.
  */
 const COLUMN_SHADE_CEILING = 0.15;
+/**
+ * The wall's own shade ceiling (hc-0-g8l: the wall now paints across the
+ * full width, under the copy too, so its brightest specular facets sit
+ * right next to a seam far more often than when only the right two-thirds
+ * ever rendered -- that hi-shade-to-seam jump is what read as a residual
+ * "start line" in the luminance-step measure even after the coverage gap
+ * itself was closed). Softening the ceiling (still well above the
+ * column's own, since the wall must keep more of its specular range) trims
+ * the brightest facets without flattening the tiles into a uniform plate.
+ */
+const WALL_SHADE_CEILING = 0.52;
 
 function normalize3(v: { x: number; y: number; z: number }) {
   const len = Math.hypot(v.x, v.y, v.z) || 1;
@@ -201,7 +212,9 @@ export function buildChamberTiles(
       const normal = { x: Math.cos(midTheta), y: 0, z: Math.sin(midTheta) };
       const rawShade = clamp(dot3(normal, LIGHT_DIR) * 0.5 + 0.5, 0.16, 1);
       const shade =
-        kind === "column" ? rawShade * COLUMN_SHADE_CEILING : rawShade;
+        kind === "column"
+          ? rawShade * COLUMN_SHADE_CEILING
+          : rawShade * WALL_SHADE_CEILING;
       tiles.push({
         poly,
         hi: poly[0],

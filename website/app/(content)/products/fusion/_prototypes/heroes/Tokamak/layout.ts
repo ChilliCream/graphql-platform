@@ -125,7 +125,23 @@ export function computeLayout(w: number, h: number): TokamakLayout {
     const originY = h * 0.5;
     const camera = makeCamera(originX, originY, 650, 300, 8);
     const columnRows = buildTaperedRows(92, 132, 700, 260, 1.6);
-    const wallRows = buildTaperedRows(700, 132, 780, 920, 1.1);
+    // Waist radius raised 700 -> 1500 and the taper's `power` raised 1.1 ->
+    // 2.2 (hc-0-g8l): removing the copy-column's destination-out erase from
+    // the wall canvas (see `index.tsx`'s `featherCopyClearZone` comment)
+    // exposed a real, second bug underneath it -- at the old 700/1.1 only
+    // the row exactly at the plasma's height reached back far enough (its
+    // own grazing/back-face cutoff, `theta = 180`) to project past the
+    // frame's left edge; every row above/below it, tapering toward
+    // `edgeRadius` and pushed back in `z` by `zSpread`, fell short and left
+    // a visible cliff (`x` in the 700s-800s at 1440) between painted and
+    // bare-navy wall. Raising `power` keeps the radius near `waistRadius`
+    // for most of the row range (only tapering sharply right at the rows
+    // that must meet the column near the top/bottom), so the rows spanning
+    // the section's visible height (`yScreen` roughly 55-1040 at 1440,
+    // derived the same way `occludeHelixBehindColumn`'s column half-width
+    // is: project each row's own `theta = 180` corner) all clear `x = 0`
+    // with margin instead of just the one row at the waist.
+    const wallRows = buildTaperedRows(1500, 132, 780, 920, 2.2);
     // R/a shrunk from 130/34 (hc-0-wrc.3 review 2, F2): the near-tube band
     // ran to 0.36 of the column's visible height (over the 0.35 ceiling)
     // and its right limb projected past the 1440 frame edge. `a` is a
@@ -145,7 +161,16 @@ export function computeLayout(w: number, h: number): TokamakLayout {
       // offset.
       columnThetaSegments: 18,
       wallRows,
-      wallThetaSegments: 56,
+      // Raised 56 -> 200 (hc-0-g8l): at the wider `waistRadius` above, each
+      // theta segment sweeps a much bigger span of world `x`, so the same
+      // 56-way split produced a few large, high-contrast tiles right where
+      // the wall now shows under the copy -- a seam-to-specular-highlight
+      // jump big enough to still read as a faint "start line" in the
+      // no-luminance-step measure even after the coverage gap itself was
+      // closed. Finer segments (smaller tiles, more seams) spread that
+      // contrast out; the per-frame cost is unaffected (the wall paints
+      // once per `measure()`/resize, never per frame).
+      wallThetaSegments: 200,
       torus,
       artLeft,
       artTop: 0,
