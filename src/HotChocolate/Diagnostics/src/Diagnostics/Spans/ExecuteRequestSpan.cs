@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Language;
 
 namespace HotChocolate.Diagnostics;
@@ -52,7 +52,7 @@ internal sealed class ExecuteRequestSpan(
         // already be validated, otherwise a request that never reaches a known operation,
         // such as one that fails document validation, would incorrectly report one.
         if (Context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
-            && TryGetOperationDefinition(document, Context.Request.OperationName, out var operationDefinition))
+            && document.TryGetOperationDefinition(Context.Request.OperationName, out var operationDefinition))
         {
             operationType = operationDefinition.Operation;
             operationName = operationDefinition.Name?.Value;
@@ -62,44 +62,5 @@ internal sealed class ExecuteRequestSpan(
         operationType = default;
         operationName = null;
         return false;
-    }
-
-    private static bool TryGetOperationDefinition(
-        DocumentNode document,
-        string? operationName,
-        [NotNullWhen(true)] out OperationDefinitionNode? operationDefinition)
-    {
-        OperationDefinitionNode? match = null;
-
-        foreach (var definition in document.Definitions)
-        {
-            if (definition is not OperationDefinitionNode operation)
-            {
-                continue;
-            }
-
-            if (string.IsNullOrEmpty(operationName))
-            {
-                // More than one anonymous candidate makes the request itself ambiguous;
-                // there is no single operation left to report.
-                if (match is not null)
-                {
-                    operationDefinition = null;
-                    return false;
-                }
-
-                match = operation;
-                continue;
-            }
-
-            if (operation.Name is { } name && name.Value.Equals(operationName, StringComparison.Ordinal))
-            {
-                operationDefinition = operation;
-                return true;
-            }
-        }
-
-        operationDefinition = match;
-        return match is not null;
     }
 }
