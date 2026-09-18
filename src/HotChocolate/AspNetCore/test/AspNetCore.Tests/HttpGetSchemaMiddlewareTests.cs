@@ -3,6 +3,7 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -304,6 +305,133 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
+    }
+
+    [Theory]
+    [InlineData("/graphql/schema.graphql", "october-2021")]
+    [InlineData("/graphql/schema.graphql", "2021-10")]
+    [InlineData("/graphql/schema.graphql", "september-2025")]
+    [InlineData("/graphql/schema.graphql", "SEPTEMBER-2025")]
+    [InlineData("/graphql/schema", "october-2021")]
+    [InlineData("/graphql/schema", "2021-10")]
+    [InlineData("/graphql/schema", "september-2025")]
+    [InlineData("/graphql/schema", "SEPTEMBER-2025")]
+    [InlineData("/graphql/schema/", "october-2021")]
+    [InlineData("/graphql/schema/", "2021-10")]
+    [InlineData("/graphql/schema/", "september-2025")]
+    [InlineData("/graphql/schema/", "SEPTEMBER-2025")]
+    public async Task Download_GraphQL_Schema_Should_Remove_DirectiveDefinition_When_SpecVersionIsSpecified(
+        string path,
+        string specVersion)
+    {
+        // arrange
+        var server = CreateTaggedStarWarsServer();
+        var url = TestServerExtensions.CreateUrl($"{path}?spec-version={specVersion}");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.False(result.Contains("DIRECTIVE_DEFINITION", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_Schema_Should_ReturnVersionedSchema_When_SpecVersionIsSpecified()
+    {
+        // arrange
+        var server = CreateTaggedStarWarsServer();
+        var url = TestServerExtensions.CreateUrl("/graphql/schema.graphql?spec-version=october-2021");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        response.Headers.Remove("ETag");
+        response.Content.Headers.ContentLength = null;
+
+        response.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_Schema_Should_UseDifferentEtag_When_SpecVersionIsSpecified()
+    {
+        // arrange
+        var server = CreateTaggedStarWarsServer();
+        var client = server.CreateClient();
+        var nativeUrl = TestServerExtensions.CreateUrl("/graphql/schema.graphql");
+        var versionedUrl = TestServerExtensions.CreateUrl("/graphql/schema.graphql?spec-version=october-2021");
+
+        // act
+        var nativeResponse = await client.GetAsync(nativeUrl, TestContext.Current.CancellationToken);
+        var versionedResponse = await client.GetAsync(versionedUrl, TestContext.Current.CancellationToken);
+        var nativeResult = await nativeResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var versionedResult = await versionedResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Contains("DIRECTIVE_DEFINITION", nativeResult, StringComparison.Ordinal);
+        Assert.False(versionedResult.Contains("DIRECTIVE_DEFINITION", StringComparison.Ordinal));
+        Assert.NotEqual(nativeResponse.Headers.ETag, versionedResponse.Headers.ETag);
+    }
+
+    [Theory]
+    [InlineData("invalid", "unknown")]
+    [InlineData("", "empty")]
+    [InlineData("   ", "whitespace")]
+    public async Task Download_GraphQL_Schema_Should_ReturnBadRequest_When_SpecVersionIsInvalid(
+        string specVersion,
+        string snapshotPostFix)
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var url = TestServerExtensions.CreateUrl(
+            $"/graphql/schema.graphql?spec-version={Uri.EscapeDataString(specVersion)}");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        response.MatchMarkdownSnapshot(postFix: snapshotPostFix);
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_Types_SDL_Should_IgnoreSpecVersion_When_TypesAreSpecified()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var url = TestServerExtensions.CreateUrl("/graphql?sdl&types=Query&spec-version=bogus");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    private TestServer CreateTaggedStarWarsServer()
+        => CreateStarWarsServer(
+            configureServices: services =>
+                services
+                    .AddGraphQLServer()
+                    .ConfigureSchemaServices(schemaServices =>
+                        schemaServices
+                            .RemoveAll<ITimeProvider>()
+                            .AddSingleton<ITimeProvider, StaticTimeProvider>())
+                    .AddTypeExtension<TaggedQueryExtension>());
+
+    private sealed class TaggedQueryExtension : ObjectTypeExtension
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("Query").Tag("schema-download");
+        }
     }
 
     private sealed class StaticTimeProvider : ITimeProvider

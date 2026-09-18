@@ -266,6 +266,12 @@ namespace HotChocolate.AspNetCore.Properties {
                 return ResourceManager.GetString("ErrorHelper_InvalidTypeName", resourceCulture);
             }
         }
+
+        internal static string ErrorHelper_InvalidSpecVersion {
+            get {
+                return ResourceManager.GetString("ErrorHelper_InvalidSpecVersion", resourceCulture);
+            }
+        }
         
         internal static string ErrorHelper_TypeNameIsEmpty {
             get {

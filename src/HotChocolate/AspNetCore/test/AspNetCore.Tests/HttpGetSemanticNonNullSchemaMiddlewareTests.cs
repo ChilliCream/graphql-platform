@@ -3,6 +3,7 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -156,6 +157,109 @@ public class HttpGetSemanticNonNullSchemaMiddlewareTests(TestServerFactory serve
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         result.MatchSnapshot();
+    }
+
+    [Theory]
+    [InlineData("october-2021")]
+    [InlineData("2021-10")]
+    [InlineData("september-2025")]
+    [InlineData("SEPTEMBER-2025")]
+    public async Task Download_GraphQL_SemanticNonNull_Schema_Should_Remove_DirectiveDefinition_When_SpecVersionIsSpecified(
+        string specVersion)
+    {
+        // arrange
+        var server = CreateTaggedStarWarsServer();
+        var url = TestServerExtensions.CreateUrl(
+            $"/graphql/semantic-non-null-schema.graphql?spec-version={specVersion}");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+        var result = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("@semanticNonNull", result, StringComparison.Ordinal);
+        Assert.False(result.Contains("DIRECTIVE_DEFINITION", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_SemanticNonNull_Schema_Should_ReturnVersionedSchema_When_SpecVersionIsSpecified()
+    {
+        // arrange
+        var server = CreateTaggedStarWarsServer();
+        var url = TestServerExtensions.CreateUrl(
+            "/graphql/semantic-non-null-schema.graphql?spec-version=october-2021");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        response.Headers.Remove("ETag");
+        response.Content.Headers.ContentLength = null;
+
+        response.MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public async Task Download_GraphQL_SemanticNonNull_Schema_Should_UseDifferentEtag_When_SpecVersionIsSpecified()
+    {
+        // arrange
+        var server = CreateTaggedStarWarsServer();
+        var client = server.CreateClient();
+        var nativeUrl = TestServerExtensions.CreateUrl("/graphql/semantic-non-null-schema.graphql");
+        var versionedUrl = TestServerExtensions.CreateUrl(
+            "/graphql/semantic-non-null-schema.graphql?spec-version=october-2021");
+
+        // act
+        var nativeResponse = await client.GetAsync(nativeUrl, TestContext.Current.CancellationToken);
+        var versionedResponse = await client.GetAsync(versionedUrl, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.NotEqual(nativeResponse.Headers.ETag, versionedResponse.Headers.ETag);
+    }
+
+    [Theory]
+    [InlineData("invalid", "unknown")]
+    [InlineData("", "empty")]
+    [InlineData("   ", "whitespace")]
+    public async Task Download_GraphQL_SemanticNonNull_Schema_Should_ReturnBadRequest_When_SpecVersionIsInvalid(
+        string specVersion,
+        string snapshotPostFix)
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var url = TestServerExtensions.CreateUrl(
+            $"/graphql/semantic-non-null-schema.graphql?spec-version={Uri.EscapeDataString(specVersion)}");
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+        // act
+        var response = await server.CreateClient().SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        response.MatchMarkdownSnapshot(postFix: snapshotPostFix);
+    }
+
+    private TestServer CreateTaggedStarWarsServer()
+        => CreateStarWarsServer(
+            configureServices: services =>
+                services
+                    .AddGraphQLServer()
+                    .ConfigureSchemaServices(schemaServices =>
+                        schemaServices
+                            .RemoveAll<ITimeProvider>()
+                            .AddSingleton<ITimeProvider, StaticTimeProvider>())
+                    .AddTypeExtension<TaggedQueryExtension>());
+
+    private sealed class TaggedQueryExtension : ObjectTypeExtension
+    {
+        protected override void Configure(IObjectTypeDescriptor descriptor)
+        {
+            descriptor.Name("Query").Tag("schema-download");
+        }
     }
 
     private sealed class StaticTimeProvider : ITimeProvider
