@@ -1,6 +1,7 @@
 using System.CommandLine;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Internal;
+using HotChocolate.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -21,10 +22,12 @@ internal sealed class ExportCommand : Command
         var outputOption = new OutputOption();
         var schemaNameOption = new SchemaNameOption();
         var semanticNonNullOption = new SemanticNonNullOption();
+        var specVersionOption = new SpecVersionOption();
 
         Options.Add(outputOption);
         Options.Add(schemaNameOption);
         Options.Add(semanticNonNullOption);
+        Options.Add(specVersionOption);
 
         SetAction(
             (parseResult, cancellationToken) =>
@@ -33,8 +36,23 @@ internal sealed class ExportCommand : Command
                 var outputFile = parseResult.GetValue(outputOption);
                 var schemaName = parseResult.GetValue(schemaNameOption);
                 var semanticNonNull = parseResult.GetValue(semanticNonNullOption);
+                var specVersionValue = parseResult.GetValue(specVersionOption);
+                GraphQLSpecVersion? specVersion = null;
 
-                return ExecuteAsync(output, host, outputFile, schemaName, semanticNonNull, cancellationToken);
+                if (specVersionValue is not null)
+                {
+                    GraphQLSpecVersions.TryParse(specVersionValue, out var parsedSpecVersion);
+                    specVersion = parsedSpecVersion;
+                }
+
+                return ExecuteAsync(
+                    output,
+                    host,
+                    outputFile,
+                    schemaName,
+                    semanticNonNull,
+                    specVersion,
+                    cancellationToken);
             });
     }
 
@@ -44,6 +62,7 @@ internal sealed class ExportCommand : Command
         FileInfo? outputFile,
         string? schemaName,
         bool semanticNonNull,
+        GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken)
     {
         var provider = host.Services.GetRequiredService<IRequestExecutorProvider>();
@@ -69,6 +88,7 @@ internal sealed class ExportCommand : Command
             outputFile.FullName,
             executor,
             semanticNonNull,
+            specVersion,
             cancellationToken);
 
         await output.WriteLineAsync("Exported Files:");
