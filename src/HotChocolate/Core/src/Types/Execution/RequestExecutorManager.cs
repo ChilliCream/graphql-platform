@@ -338,8 +338,17 @@ internal sealed partial class RequestExecutorManager
                 return new DefaultPreparedOperationCache(options.PreparedOperationCacheSize);
             });
 
+        serviceCollection.AddSingleton(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
+                return new NormalizedDocumentCache(options.PreparedOperationCacheSize);
+            });
+
         serviceCollection.AddSingleton<IOperationDocumentNormalizer>(
-            static sp => new OperationDocumentNormalizer(sp.GetRequiredService<ISchemaDefinition>()));
+            static sp => new OperationDocumentNormalizer(
+                sp.GetRequiredService<ISchemaDefinition>(),
+                sp.GetRequiredService<NormalizedDocumentCache>()));
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
         serviceCollection.AddSingleton(

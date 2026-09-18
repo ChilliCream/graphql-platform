@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Caching;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 
@@ -6,15 +7,20 @@ namespace HotChocolate.Execution.Pipeline;
 internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
 {
     private readonly InlineFragmentOperationRewriter _documentRewriter;
+    private readonly NormalizedDocumentCache _normalizedDocumentCache;
 
-    public OperationDocumentNormalizer(ISchemaDefinition schema)
+    public OperationDocumentNormalizer(
+        ISchemaDefinition schema,
+        NormalizedDocumentCache normalizedDocumentCache)
     {
         ArgumentNullException.ThrowIfNull(schema);
+        ArgumentNullException.ThrowIfNull(normalizedDocumentCache);
 
         _documentRewriter = new InlineFragmentOperationRewriter(
             schema,
             removeStaticallyExcludedSelections: true,
             includeTypeNameToEmptySelectionSets: false);
+        _normalizedDocumentCache = normalizedDocumentCache;
     }
 
     public DocumentNode NormalizeDocument(RequestContext context)
@@ -25,7 +31,23 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
         var document = documentInfo.Document
             ?? throw HotChocolate.Execution.ThrowHelper.OperationDocumentNotAvailable();
 
-        return NormalizeDocument(document, context.Request.OperationName);
+        if (!context.TryGetOperationId(out var operationId))
+        {
+            throw HotChocolate.Execution.ThrowHelper.OperationIdNotAvailable();
+        }
+
+        if (_normalizedDocumentCache.TryGet(operationId, out var normalizedDocument))
+        {
+            return normalizedDocument;
+        }
+
+        // Before we can plan an operation, we must de-fragmentize it and remove static
+        // include conditions. The resulting document always has the operation as its
+        // only definition, at Definitions[0].
+        normalizedDocument = _documentRewriter.RewriteDocument(document, context.Request.OperationName).Document;
+        _normalizedDocumentCache.TryAdd(operationId, normalizedDocument);
+
+        return normalizedDocument;
     }
 
     /// <summary>
