@@ -29,12 +29,6 @@ null
   "errors": [
     {
       "message": "The provided value for filter `foo` of type FooNullableFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 22
-        }
-      ],
       "path": [
         "root"
       ],

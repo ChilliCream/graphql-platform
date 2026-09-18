@@ -71,7 +71,10 @@ internal sealed class VariableCoercionHelper
 
             if (!hasValue && variableDefinition.DefaultValue is { Kind: not SyntaxKind.NullValue } defaultValue)
             {
-                var runtimeValue = _inputParser.ParseLiteral(defaultValue, variableType);
+                var runtimeValue = _inputParser.ParseLiteral(
+                    defaultValue,
+                    variableType,
+                    path: Path.Root.Append(variableName));
                 coercedValues[variableName] = new VariableValue(variableName, variableType, runtimeValue, defaultValue);
                 continue;
             }

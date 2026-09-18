@@ -144,7 +144,6 @@ public class QueryableFilterProvider : FilterProvider<QueryableFilterContext>
                             {
                                 throw new GraphQLException(
                                     ErrorHelper.MaxAllowedFilterOperationsExceeded(
-                                        fieldValue.Value,
                                         filterOperations,
                                         maxAllowedFilterOperations));
                             }
