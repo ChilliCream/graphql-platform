@@ -39,21 +39,6 @@ internal sealed class OperationVariableCoercionMiddleware
 
             await _next(context).ConfigureAwait(false);
         }
-        else if (context.TryGetNormalizedDocument(out _))
-        {
-            if (!context.IsWarmupRequest())
-            {
-                var normalizedOperation = context.GetNormalizedOperation();
-
-                CoerceVariables(
-                    context,
-                    _coercionHelper,
-                    normalizedOperation.VariableDefinitions,
-                    _diagnosticEvents);
-            }
-
-            await _next(context).ConfigureAwait(false);
-        }
         else
         {
             context.Result = ErrorHelper.StateInvalidForOperationVariableCoercion();

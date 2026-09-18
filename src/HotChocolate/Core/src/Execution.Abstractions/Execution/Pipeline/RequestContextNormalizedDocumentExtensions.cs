@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -49,29 +48,6 @@ public static class RequestContextNormalizedDocumentExtensions
         normalizedDocument = normalizer.NormalizeDocument(context);
         documentInfo.NormalizedDocument = normalizedDocument;
         return normalizedDocument;
-    }
-
-    /// <summary>
-    /// Tries to get the normalized operation document from the request context without
-    /// normalizing the operation document if it is not already available.
-    /// </summary>
-    /// <param name="context">
-    /// The request context.
-    /// </param>
-    /// <param name="document">
-    /// The normalized operation document, if one is available.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if a normalized operation document is available, otherwise <c>false</c>.
-    /// </returns>
-    public static bool TryGetNormalizedDocument(
-        this RequestContext context,
-        [NotNullWhen(true)] out DocumentNode? document)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        document = context.OperationDocumentInfo.NormalizedDocument;
-        return document is not null;
     }
 
     /// <summary>
