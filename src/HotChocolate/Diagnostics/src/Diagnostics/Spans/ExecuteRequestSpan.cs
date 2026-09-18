@@ -48,8 +48,10 @@ internal sealed class ExecuteRequestSpan(
         // Cost analysis and other short-circuits can complete the request before the
         // operation is compiled and, unlike the compiled operation, the source document
         // is never normalized as a side effect of merely handling the request, so the
-        // fallback reads the operation type and name straight from it.
-        if (Context.OperationDocumentInfo.Document is { } document
+        // fallback reads the operation type and name straight from it. The document must
+        // already be validated, otherwise a request that never reaches a known operation,
+        // such as one that fails document validation, would incorrectly report one.
+        if (Context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
             && TryGetOperationDefinition(document, Context.Request.OperationName, out var operationDefinition))
         {
             operationType = operationDefinition.Operation;
