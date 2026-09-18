@@ -2,7 +2,6 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using HotChocolate.Execution.Caching;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Features;
@@ -69,11 +68,11 @@ public sealed partial class OperationCompiler
     {
         ArgumentNullException.ThrowIfNull(schema);
 
-        // The static convenience overloads compile a single, already-known document, so the
-        // normalizer is only ever used for its uncached document-plus-name entry; the cache
-        // it also requires is never consulted through that entry.
-        var normalizedDocument = new OperationDocumentNormalizer(schema, new NormalizedDocumentCache())
-            .NormalizeDocument(document, operationName);
+        // The static convenience overloads compile a single, already-known document, so they
+        // rewrite it through the normalizer's uncached static entry point rather than
+        // constructing a normalizer instance and a normalized-document cache that would
+        // never be consulted.
+        var normalizedDocument = OperationDocumentNormalizer.NormalizeDocument(schema, document, operationName);
 
         return new OperationCompiler(
             schema,
