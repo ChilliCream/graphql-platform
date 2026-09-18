@@ -733,6 +733,240 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.Equal(1, listener.PlanStartCount(operationId));
     }
 
+    [Fact]
+    public async Task Plan_Set_By_A_Preceding_Custom_Middleware_Is_Cached_And_Releases_Followers()
+    {
+        // arrange
+        const string schemaDocument =
+            """
+            type Query {
+              foo: String
+            }
+            """;
+        const string operationText =
+            """
+            query PlanSetByCustomMiddleware {
+              foo
+            }
+            """;
+
+        // A real plan produced independently, on a throwaway executor over the same
+        // schema; used below to stand in for a plan that a custom middleware ahead of
+        // OperationPlanMiddleware set on the context some other way than the normal
+        // CreatePlan path. Its content does not otherwise matter: the plan-capturing
+        // middleware below short-circuits before the plan would ever actually be
+        // executed against it.
+        var primedPlans = new ConcurrentBag<OperationPlan>();
+        var primingExecutor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(primedPlans),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(ComposeSchemaDocument(schemaDocument))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var primingResult = await primingExecutor.ExecuteAsync(
+            operationText,
+            TestContext.Current.CancellationToken);
+        Assert.Empty(primingResult.ExpectOperationResult().Errors);
+        var externalPlan = Assert.Single(primedPlans);
+
+        using var testCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var listener = new PlanningCountDiagnosticListener();
+        var operationIds = new ConcurrentBag<string>();
+        var leaderGate = new SingleFlightLeaderGate();
+        var secondRequestObserver = new SecondRequestObserver();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .AddDiagnosticEventListener(_ => listener)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSecondRequestEnteredDownstreamMiddleware(next, secondRequestObserver),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateExternalPlanBeforePlanningMiddleware(next, leaderGate, externalPlan),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(ComposeSchemaDocument(schemaDocument))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: testCts.Token);
+
+        // act
+        var leaderTask = executor.ExecuteAsync(operationText, testCts.Token);
+        await leaderGate.WaitForEntryAsync(testCts.Token);
+
+        var followerTask = executor.ExecuteAsync(operationText, testCts.Token);
+        await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
+
+        // the leader never reaches OperationPlanMiddleware's own CreatePlan path: the plan
+        // was already set on its context by the middleware above. Releasing it lets the
+        // pipeline return, which must cache that plan and release the follower with it.
+        leaderGate.Release();
+        var results = await Task.WhenAll(leaderTask, followerTask);
+
+        // assert
+        Assert.All(results, t => Assert.Empty(t.ExpectOperationResult().Errors));
+
+        var operationId = Assert.Single(operationIds.Distinct());
+        Assert.Equal(0, listener.PlanStartCount(operationId));
+        Assert.Equal(1, listener.AddedToCacheCount(operationId));
+
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        Assert.Equal(1, operationPlanCache.Count);
+        Assert.True(operationPlanCache.TryGet(operationId, out var cachedPlan));
+        Assert.Same(externalPlan, cachedPlan);
+    }
+
+    [Fact]
+    public async Task Retrying_Follower_Reuses_A_Plan_Cached_Meanwhile_Instead_Of_Replanning()
+    {
+        // arrange
+        const string schemaDocument =
+            """
+            type Query {
+              foo: String
+            }
+            """;
+        const string operationText =
+            """
+            query RetryReusesCachedPlan {
+              foo
+            }
+            """;
+
+        // A real plan for this exact operation, produced independently and up front on a
+        // throwaway executor over the same schema. It stands in below for the plan that a
+        // third, fully-completed request would have cached for this operation while the
+        // follower was coalesced onto the leader: a genuine, concurrently overlapping
+        // third request cannot plan this operation independently here, because as long as
+        // the leader's in-flight entry is registered, any concurrent request for the same
+        // operation coalesces onto it too, instead of planning on its own.
+        var meanwhilePlans = new ConcurrentBag<OperationPlan>();
+        var meanwhileExecutor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(meanwhilePlans),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(ComposeSchemaDocument(schemaDocument))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var meanwhileResult = await meanwhileExecutor.ExecuteAsync(
+            operationText,
+            TestContext.Current.CancellationToken);
+        Assert.Empty(meanwhileResult.ExpectOperationResult().Errors);
+        var meanwhilePlan = Assert.Single(meanwhilePlans);
+
+        using var leaderCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var testCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var listener = new PlanningCountDiagnosticListener();
+        var operationIds = new ConcurrentBag<string>();
+        var planningGate = new SingleFlightLeaderGate();
+        var secondRequestObserver = new SecondRequestObserver();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .AddDiagnosticEventListener(_ => listener)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSecondRequestEnteredDownstreamMiddleware(next, secondRequestObserver),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateLeaderPlanningBlockMiddleware(next, planningGate),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(ComposeSchemaDocument(schemaDocument))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: testCts.Token);
+
+        // act
+        var leaderTask = executor.ExecuteAsync(operationText, leaderCts.Token);
+        await planningGate.WaitForEntryAsync(testCts.Token);
+
+        var followerTask = executor.ExecuteAsync(operationText, testCts.Token);
+        await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
+
+        var operationId = Assert.Single(operationIds.Distinct());
+
+        // While the follower is still coalesced onto the (not yet cancelled) leader, the
+        // plan for this operation becomes available in the cache, exactly as if a third,
+        // already-completed request had planned and cached it in the meantime. Neither the
+        // still-blocked leader nor the still-waiting follower has touched the cache yet.
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        operationPlanCache.TryAdd(operationId, meanwhilePlan);
+
+        // the leader is cancelled before it plans. Releasing it afterward makes the
+        // planner observe an already-cancelled token, so the leader fails without ever
+        // producing a plan. On retry, the follower must find the plan that is already
+        // cached instead of becoming a new leader candidate and planning it again.
+        await leaderCts.CancelAsync();
+        planningGate.Release();
+
+        var leaderResult = await leaderTask;
+        var followerResult = await followerTask;
+
+        // assert
+        Assert.NotEmpty(leaderResult.ExpectOperationResult().Errors);
+        Assert.Empty(followerResult.ExpectOperationResult().Errors);
+
+        // the leader's own, doomed attempt still starts planning before it observes its
+        // cancellation; what matters is that the follower's retry does not plan a second
+        // time, since it finds the plan already sitting in the cache instead.
+        Assert.Equal(1, listener.PlanStartCount(operationId));
+        Assert.Equal(0, listener.AddedToCacheCount(operationId));
+
+        Assert.Equal(1, operationPlanCache.Count);
+        Assert.True(operationPlanCache.TryGet(operationId, out var cachedPlan));
+        Assert.Same(meanwhilePlan, cachedPlan);
+    }
+
+    private static RequestDelegate CreateExternalPlanBeforePlanningMiddleware(
+        RequestDelegate next,
+        SingleFlightLeaderGate gate,
+        OperationPlan plan)
+        => async context =>
+        {
+            // Only the leader candidate lacks a plan at this point; a follower already
+            // carries the coalesced plan set by OperationPlanCacheMiddleware.
+            if (context.GetOperationPlan() is null
+                && context.Features.Get<TaskCompletionSource<OperationPlan>>() is not null)
+            {
+                // Simulate a plan produced by a preceding custom middleware, entirely
+                // outside OperationPlanMiddleware's own CreatePlan path.
+                context.SetOperationPlan(plan);
+                gate.SignalEntry();
+                await gate.WaitForReleaseAsync(context.RequestAborted);
+            }
+
+            await next(context);
+        };
+
     private static RequestDelegate CreateGateMiddleware(
         RequestDelegate next,
         RequestGate gate)
