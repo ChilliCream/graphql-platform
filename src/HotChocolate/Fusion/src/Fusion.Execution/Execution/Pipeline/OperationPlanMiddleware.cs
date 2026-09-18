@@ -1,4 +1,3 @@
-using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Diagnostics;
@@ -12,18 +11,15 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 internal sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
-    private readonly Cache<OperationPlan> _cache;
     private readonly IOperationPlannerInterceptor[] _interceptors;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticsEvents;
 
     private OperationPlanMiddleware(
         OperationPlanner planner,
-        Cache<OperationPlan> cache,
         IEnumerable<IOperationPlannerInterceptor>? interceptors,
         IFusionExecutionDiagnosticEvents diagnosticsEvents)
     {
         _planner = planner;
-        _cache = cache;
         _interceptors = interceptors?.ToArray() ?? [];
         _diagnosticsEvents = diagnosticsEvents;
     }
@@ -79,15 +75,12 @@ internal sealed class OperationPlanMiddleware
                     operation,
                     context.RequestAborted);
             OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
-            context.SetOperationPlan(operationPlan);
 
-            // The plan is cached and the followers are released right after planning
-            // succeeds, before this (the leader's) request continues into execution.
-            // A failure further downstream affects only the leader; the plan is already
-            // safely shared with every follower that coalesced onto this operation.
-            _cache.TryAdd(operationId, operationPlan);
-            _diagnosticsEvents.AddedOperationPlanToCache(context, operationId);
-            inFlightPlan?.TrySetResult(operationPlan);
+            // Setting the plan caches it and releases every coalesced follower right away,
+            // before this (the leader's) request continues into execution, if this context
+            // is the leader of an in-flight entry; see SetOperationPlan. A failure further
+            // downstream then affects only the leader.
+            context.SetOperationPlan(operationPlan);
         }
         catch (Exception ex)
         {
@@ -131,12 +124,10 @@ internal sealed class OperationPlanMiddleware
             (fc, next) =>
             {
                 var planner = fc.SchemaServices.GetRequiredService<OperationPlanner>();
-                var cache = fc.SchemaServices.GetRequiredService<Cache<OperationPlan>>();
                 var interceptors = fc.SchemaServices.GetService<IEnumerable<IOperationPlannerInterceptor>>();
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
                 var middleware = new OperationPlanMiddleware(
                     planner,
-                    cache,
                     interceptors,
                     diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
