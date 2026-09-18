@@ -24,6 +24,9 @@ namespace HotChocolate.AspNetCore.Formatters;
 /// </summary>
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
+    private const HttpTransportVersion LatestTransportVersion = HttpTransportVersion.Draft20250508;
+    private const HttpStatusCode PartialSuccess = (HttpStatusCode)294;
+
     private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = new(StringComparer.Ordinal);
     private readonly ITimeProvider _timeProvider;
@@ -34,8 +37,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo _eventStreamFormat;
     private readonly FormatInfo _jsonLinesFormat;
     private readonly FormatInfo _legacyFormat;
-    private readonly bool _isLegacyTransport;
+    private readonly FormatInfo[] _singleFormats;
+    private readonly FormatInfo[] _streamFormats;
+    private readonly FormatInfo[] _subscriptionFormats;
+    private readonly FormatInfo[] _singlePreferred;
+    private readonly FormatInfo[] _streamPreferred;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
+    private readonly bool _jsonFollowsGraphQLResponseRules;
+    private readonly bool _reportsPartialSuccess;
+    private readonly bool _reportsUnprocessableRequest;
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -123,15 +133,69 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             ContentType.JsonLines,
             ResponseContentType.JsonLines,
             jsonLinesResultFormatter);
-        _isLegacyTransport = options.HttpTransportVersion is HttpTransportVersion.Legacy;
-        _defaultFormat = _isLegacyTransport
+        TransportVersion = ResolveTransportVersion(options.HttpTransportVersion, nameof(options));
+        _defaultFormat = TransportVersion is HttpTransportVersion.Legacy
             ? _legacyFormat
             : _graphqlResponseFormat;
+
+        // From the 2026-09-03 revision on, a client that accepts application/json is answered as
+        // if it had asked for application/graphql-response+json, and only a 2xx response is
+        // written with application/json as its Content-Type. The same revision answers a result
+        // that carries errors beside its data with 294, a request the server read but cannot
+        // execute with 422 rather than 400, and a request whose method or Content-Type the
+        // endpoint does not support with 405 or 415 rather than 404.
+        var usesRevision20260903 = TransportVersion is not
+            (HttpTransportVersion.Legacy or HttpTransportVersion.Draft20250508);
+        _jsonFollowsGraphQLResponseRules = usesRevision20260903;
+        _reportsPartialSuccess = usesRevision20260903;
+        _reportsUnprocessableRequest = usesRevision20260903;
+        ReportsUnsupportedMethodOrMediaType = usesRevision20260903;
+
+        // The formats the server can produce for each result kind, in the order it prefers them.
+        // A tie on quality is resolved by this order.
+        _singleFormats =
+        [
+            _graphqlResponseFormat,
+            _legacyFormat,
+            _multiPartFormat,
+            _eventStreamFormat
+        ];
+        _streamFormats =
+        [
+            _graphqlResponseStreamFormat,
+            _jsonLinesFormat,
+            _multiPartFormat,
+            _eventStreamFormat
+        ];
+        _subscriptionFormats =
+        [
+            _graphqlResponseStreamFormat,
+            _jsonLinesFormat,
+            _eventStreamFormat
+        ];
+
+        // Naming one of these outright is a request the server grants as it stands. Every other
+        // format it can produce is a fallback, never something the client's ordering promotes.
+        _singlePreferred = [_graphqlResponseFormat];
+        _streamPreferred = [_graphqlResponseStreamFormat, _jsonLinesFormat];
 
         _incrementalDeliveryDefaultFormat = incrementalDeliveryFormat is IncrementalDeliveryFormat.Undefined
             ? IncrementalDeliveryFormat.Version_0_2
             : incrementalDeliveryFormat;
     }
+
+    /// <summary>
+    /// Gets the transport version the formatter writes responses against, with
+    /// <see cref="HttpTransportVersion.Latest"/> resolved to the revision it stands for.
+    /// </summary>
+    internal HttpTransportVersion TransportVersion { get; }
+
+    /// <summary>
+    /// Whether a request whose method the GraphQL endpoint does not support is answered 405,
+    /// and a POST request whose Content-Type it does not support is answered 415, rather than
+    /// 404.
+    /// </summary>
+    internal bool ReportsUnsupportedMethodOrMediaType { get; }
 
     public RequestFlags CreateRequestFlags(
         AcceptMediaType[] acceptMediaTypes)
@@ -148,6 +212,15 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         for (var i = 0; i < acceptMediaTypes.Length; i++)
         {
             var acceptMediaType = Unsafe.Add(ref searchSpace, i);
+
+            // RFC 9110, section 12.4.2: a media type with q=0 is not acceptable. Excluding it
+            // here leaves the request with no usable media type, which the middleware answers
+            // with 406 before a response is ever formatted.
+            if (GetQuality(acceptMediaType) is 0)
+            {
+                continue;
+            }
+
             flags |= CreateRequestFlags(acceptMediaType);
 
             if (flags is RequestFlags.AllowAll)
@@ -178,7 +251,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             flags |= RequestFlags.AllowStreams;
         }
 
-        if (acceptMediaType.Kind is ApplicationGraphQLStream or EventStream or ApplicationJsonLines or All)
+        if (acceptMediaType.Kind
+            is ApplicationGraphQLStream or EventStream or AllText or ApplicationJsonLines or All)
         {
             flags = RequestFlags.AllowAll;
         }
@@ -193,20 +267,40 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         HttpStatusCode? proposedStatusCode,
         CancellationToken cancellationToken)
     {
+        var resultToWrite = result;
+        var statusCode =
+            ProposeStatusCodeForRefusedOperationKind(result, acceptMediaTypes, proposedStatusCode);
+        OperationResult? notAcceptable = null;
+
         if (!TryGetFormatter(result, acceptMediaTypes, out var selectedAcceptMediaType, out var format))
         {
-            // we should not hit this point except if middleware did not validate the
-            // GraphQL request flags which would indicate that there is no way to execute
-            // the GraphQL request with the specified accept-header content types.
-            throw ThrowHelper.Formatter_InvalidAcceptMediaType();
+            // The request flags are validated before the operation runs, but they cannot know
+            // which result kind it will produce, so an Accept header that excludes every format
+            // this kind can be written in only becomes visible here. RFC 9110, section 15.5.7
+            // answers that with a 406, and section 15.5.7 only recommends content rather than
+            // requiring it. The error is written in the server's default format while the client
+            // still accepts that format, and the status stands alone once it does not: a result
+            // kind can be unwritable while a plain error remains readable, as a deferred result
+            // is for a client that rejects every streaming media type but not application/json.
+            if (MatchFormat(acceptMediaTypes, _defaultFormat.Kind).Quality is 0)
+            {
+                response.StatusCode = (int)(proposedStatusCode ?? HttpStatusCode.NotAcceptable);
+                return;
+            }
+
+            notAcceptable = OperationResult.FromError(ErrorHelper.NoSupportedAcceptMediaType());
+            resultToWrite = notAcceptable;
+            selectedAcceptMediaType = default;
+            format = _defaultFormat;
+            statusCode = proposedStatusCode ?? HttpStatusCode.NotAcceptable;
         }
 
         try
         {
             await FormatInternalAsync(
                 response,
-                result,
-                proposedStatusCode,
+                resultToWrite,
+                statusCode,
                 format,
                 selectedAcceptMediaType,
                 cancellationToken);
@@ -215,6 +309,38 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             // if the request is aborted, we will fail gracefully.
         }
+        finally
+        {
+            if (notAcceptable is not null)
+            {
+                await notAcceptable.DisposeAsync();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Resolves the status code for an operation kind the executor refused. RFC 9110, section
+    /// 15.5.6 scopes a 405 to a method the target resource does not support, so a refusal no
+    /// change of method can resolve is a 406 instead. An operation kind the client's own
+    /// <c>Accept</c> header never granted is such a refusal, because every other method carries
+    /// the same header and is refused alike.
+    /// </summary>
+    private HttpStatusCode? ProposeStatusCodeForRefusedOperationKind(
+        IExecutionResult result,
+        AcceptMediaType[] acceptMediaTypes,
+        HttpStatusCode? proposedStatusCode)
+    {
+        if (proposedStatusCode.HasValue
+            || result.ContextData is not { } contextData
+            || !contextData.TryGetValue(ExecutionContextData.OperationNotAllowed, out var value)
+            || value is not RequestFlags requiredFlag)
+        {
+            return proposedStatusCode;
+        }
+
+        return (CreateRequestFlags(acceptMediaTypes) & requiredFlag) == requiredFlag
+            ? proposedStatusCode
+            : HttpStatusCode.NotAcceptable;
     }
 
     private async ValueTask FormatInternalAsync(
@@ -233,8 +359,20 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             {
                 var statusCode = (int)OnDetermineStatusCode(operationResult, format, proposedStatusCode);
 
-                response.ContentType = format.ContentType;
+                response.ContentType = GetContentType(format, statusCode);
                 response.StatusCode = statusCode;
+
+                // RFC 9110, section 15.5.6 requires a 405 to list the methods the target resource
+                // supports, and section 10.2.1 defines that set per request. A GET or HEAD
+                // carrying an operation kind this server only serves over POST leaves POST as the
+                // one method that can satisfy it. A status code an overriding formatter chose is
+                // left alone, along with whatever Allow header it means to write for it.
+                if (statusCode is (int)HttpStatusCode.MethodNotAllowed
+                    && result.ContextData.ContainsKey(ExecutionContextData.OperationNotAllowed)
+                    && response.HttpContext.Request.IsGetOrHeadMethod())
+                {
+                    response.Headers.Allow = HttpMethods.Post;
+                }
 
                 if (result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
                     && value is CacheControlHeaderValue cacheControlHeaderValue)
@@ -312,6 +450,23 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         return format is IncrementalDeliveryFormat.Version_0_1
             ? ExecutionResultFormatFlags.IncrementalRfc1
             : ExecutionResultFormatFlags.None;
+    }
+
+    /// <summary>
+    /// Gets the <c>Content-Type</c> of a single result. From the 2026-09-03 revision on, a
+    /// response written as <c>application/json</c> keeps that media type only when its status
+    /// is a <c>2xx</c>, and otherwise carries <c>application/graphql-response+json</c>.
+    /// </summary>
+    private string GetContentType(FormatInfo format, int statusCode)
+    {
+        if (_jsonFollowsGraphQLResponseRules
+            && format.Kind is ResponseContentType.Json
+            && statusCode is < 200 or >= 300)
+        {
+            return _graphqlResponseFormat.ContentType;
+        }
+
+        return format.ContentType;
     }
 
     public async ValueTask FormatAsync(
@@ -402,20 +557,20 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
-        if (format.Kind is ResponseContentType.Json)
+        if (format.Kind is ResponseContentType.Json && !_jsonFollowsGraphQLResponseRules)
         {
             // the legacy transport preserves the pre-spec behavior of always returning
             // 200 for the application/json response content-type.
-            if (_isLegacyTransport)
+            if (TransportVersion is HttpTransportVersion.Legacy)
             {
                 return HttpStatusCode.OK;
             }
 
-            // per graphql-over-http §6.4.1, the application/json response content-type
-            // should return 200 for every well-formed request regardless of errors
-            // raised. the only 4xx is 400 for requests the server cannot interpret
-            // (§6.4.1.1.1 JSON parse, §6.4.1.1.2 invalid parameters). honor a proposed
-            // 400; everything else, including an unexpected 500, stays 200.
+            // under the 2025-05-08 revision, the application/json response content-type
+            // returns 200 for every well-formed request regardless of errors raised. the
+            // only 4xx is 400 for requests the server cannot interpret, such as a JSON body
+            // or a request parameter it cannot read. honor a proposed 400; everything else,
+            // including an unexpected 500, stays 200.
             return proposedStatusCode is HttpStatusCode.BadRequest
                 ? HttpStatusCode.BadRequest
                 : HttpStatusCode.OK;
@@ -429,15 +584,26 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             return HttpStatusCode.OK;
         }
 
-        // in the case of the application/graphql-response+json, we will
-        // use status code to indicate certain kinds of error categories.
-        if (format.Kind is ResponseContentType.GraphQLResponse)
+        // in the case of the application/graphql-response+json, and of application/json from
+        // the 2026-09-03 revision on, we will use status code to indicate certain kinds of
+        // error categories.
+        if (format.Kind is ResponseContentType.GraphQLResponse or ResponseContentType.Json)
         {
             // if a status code was proposed by the middleware, we will in general accept it.
             // the middleware is implemented in a way that they will propose status code for
             // the application/graphql-response+json response content-type.
             if (proposedStatusCode.HasValue)
             {
+                // From the 2026-09-03 revision on, a request the server read but that is not a
+                // well-formed GraphQL over HTTP request is answered 422 rather than the proposed
+                // 400, which stays for a body the server could not read at all.
+                if (_reportsUnprocessableRequest
+                    && proposedStatusCode is HttpStatusCode.BadRequest
+                    && result.ContextData.ContainsKey(HttpResultContextData.RequestNotWellFormed))
+                {
+                    return HttpStatusCode.UnprocessableContent;
+                }
+
                 return proposedStatusCode.Value;
             }
 
@@ -459,11 +625,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     }
                 }
 
-                // Next, we check if the validation of the request failed.
-                // If that is the case, we will return a BadRequest status code (400).
+                // Next, we check if the validation of the request failed. Such a request is
+                // answered 400, or 422 from the 2026-09-03 revision on.
                 if (contextData.ContainsKey(ExecutionContextData.ValidationErrors))
                 {
-                    return HttpStatusCode.BadRequest;
+                    return _reportsUnprocessableRequest
+                        ? HttpStatusCode.UnprocessableContent
+                        : HttpStatusCode.BadRequest;
                 }
 
                 if (contextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
@@ -481,12 +649,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             // that erased the result.
             if (result.Data.HasValue)
             {
-                return HttpStatusCode.OK;
+                // From the 2026-09-03 revision on, a result that carries errors beside its data
+                // is a partial success and is answered with 294.
+                return _reportsPartialSuccess && result.Errors.Count > 0
+                    ? PartialSuccess
+                    : HttpStatusCode.OK;
             }
 
-            // if data was never set the result not valid and execution has never started, and we return a 400
-            // if the user did not override the status code with a different status code.
-            return HttpStatusCode.BadRequest;
+            // if data was never set the result is not valid and execution has never started. such
+            // a request is answered 400, or 422 from the 2026-09-03 revision on, unless the user
+            // overrode the status code above.
+            return _reportsUnprocessableRequest
+                ? HttpStatusCode.UnprocessableContent
+                : HttpStatusCode.BadRequest;
         }
 
         // we allow for users to implement alternative protocols or response content-type.
@@ -621,206 +796,255 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         selectedAcceptMediaType = default;
         format = null;
-        var length = acceptMediaTypes.Length;
 
         // There is no Accept header present, so the server is allowed
         // to select what makes the most sense for the response.
-        if (length == 0)
+        if (acceptMediaTypes.Length == 0)
         {
-            if (result.Kind is SingleResult)
+            format = result.Kind switch
             {
-                format = _defaultFormat;
-                return true;
-            }
+                SingleResult => _defaultFormat,
+                DeferredResult or BatchResult => _multiPartFormat,
+                SubscriptionResult => _eventStreamFormat,
+                _ => null
+            };
 
-            if (result.Kind is DeferredResult or BatchResult)
-            {
-                format = _multiPartFormat;
-                return true;
-            }
-
-            if (result.Kind is SubscriptionResult)
-            {
-                format = _eventStreamFormat;
-                return true;
-            }
-
-            return false;
+            return format is not null;
         }
 
-        // If the request specifies at least one accept media-type, we will
-        // determine which is best to use.
-        // For this, we first determine which characteristics our GraphQL result has.
-        var resultKind = result.Kind switch
+        var candidates = result.Kind switch
         {
-            SingleResult => ResultKind.Single,
-            SubscriptionResult => ResultKind.Subscription,
-            _ => ResultKind.Stream
+            SingleResult => _singleFormats,
+            SubscriptionResult => _subscriptionFormats,
+            _ => _streamFormats
         };
 
-        ref var start = ref MemoryMarshal.GetArrayDataReference(acceptMediaTypes);
-
-        // If we just have one Accept header value, we will try to determine which formatter to take.
-        // We should only be unable to find a match if there was a previous validation skipped.
-        if (length == 1)
+        // The format each result kind falls back to, which is the one chosen above for a request
+        // that carries no Accept header at all. It settles ties between formats that only a
+        // wildcard matched, because such a header names none of them in particular.
+        var wildcardDefault = result.Kind switch
         {
-            var mediaType = start;
+            SingleResult => _defaultFormat,
+            SubscriptionResult => _eventStreamFormat,
+            _ => _multiPartFormat
+        };
 
-            if (resultKind is ResultKind.Single && mediaType.Kind is ApplicationGraphQL)
+        var preferred = result.Kind is SingleResult ? _singlePreferred : _streamPreferred;
+
+        // Every format the server can produce for this result is scored against the header, on
+        // three keys in order.
+        //
+        // Quality first, per RFC 9110, sections 12.4.2 and 12.5.1. Scoring the server's formats
+        // rather than walking the client's ranges is what lets a specific range override a
+        // wildcard in both directions, whether it raises or removes a format.
+        //
+        // Then whether the client asked for the format or merely allowed it. Naming a preferred
+        // format outright is a request, and so is a wildcard, which asks for the default; any
+        // other match is a fallback.
+        //
+        // Then, between two requests, the one the client wrote first. Section 12.5.1 gives that
+        // order no meaning, so this is the server's own choice among equally acceptable media
+        // types, and it keeps a named format from losing to a wildcard beside it.
+        var bestQuality = 0d;
+        var bestRequested = false;
+        var bestPosition = int.MaxValue;
+
+        foreach (var candidate in candidates)
+        {
+            var match = MatchFormat(acceptMediaTypes, candidate.Kind);
+
+            if (match.Quality is 0)
             {
-                selectedAcceptMediaType = mediaType;
-                format = _graphqlResponseFormat;
-                return true;
+                continue;
             }
 
-            if (mediaType.Kind is ApplicationGraphQLStream)
+            var named = match.NamedPosition >= 0 && Contains(preferred, candidate);
+            var byWildcard =
+                match.WildcardPosition >= 0 && ReferenceEquals(candidate, wildcardDefault);
+            var position = int.MaxValue;
+
+            if (named)
             {
-                selectedAcceptMediaType = mediaType;
-                format = _graphqlResponseStreamFormat;
-                return true;
+                position = match.NamedPosition;
             }
 
-            if (resultKind is ResultKind.Single && mediaType.Kind is ApplicationJson)
+            if (byWildcard && match.WildcardPosition < position)
             {
-                selectedAcceptMediaType = mediaType;
-                format = _legacyFormat;
-                return true;
+                position = match.WildcardPosition;
             }
 
-            if (resultKind is ResultKind.Single && mediaType.Kind is AllApplication or All)
-            {
-                selectedAcceptMediaType = mediaType;
-                format = _defaultFormat;
-                return true;
-            }
+            var requested = named || byWildcard;
 
-            if (resultKind is ResultKind.Stream or ResultKind.Single
-                && mediaType.Kind is MultiPartMixed or AllMultiPart or All)
+            if (match.Quality > bestQuality
+                || (match.Quality.Equals(bestQuality)
+                    && requested
+                    && (!bestRequested || position < bestPosition)))
             {
-                selectedAcceptMediaType = mediaType;
-                format = _multiPartFormat;
-                return true;
+                bestQuality = match.Quality;
+                bestRequested = requested;
+                bestPosition = position;
+                selectedAcceptMediaType = acceptMediaTypes[match.RangeIndex];
+                format = candidate;
             }
-
-            if (resultKind is ResultKind.Stream or ResultKind.Subscription
-                && mediaType.Kind is ApplicationJsonLines)
-            {
-                selectedAcceptMediaType = mediaType;
-                format = _jsonLinesFormat;
-                return true;
-            }
-
-            if (mediaType.Kind is EventStream or All)
-            {
-                selectedAcceptMediaType = mediaType;
-                format = _eventStreamFormat;
-                return true;
-            }
-
-            return false;
         }
 
-        // If we have more than one specified accept-header value, we will try to find the best for
-        // our GraphQL result.
-        ref var end = ref Unsafe.Add(ref start, length);
-        FormatInfo? possibleFormat = null;
-        AcceptMediaType possibleMediaType = default;
+        return format is not null;
+    }
 
-        while (Unsafe.IsAddressLessThan(ref start, ref end))
+    private static bool Contains(FormatInfo[] formats, FormatInfo format)
+    {
+        foreach (var candidate in formats)
         {
-            if (resultKind is ResultKind.Single && start.Kind is AllApplication or All)
+            if (ReferenceEquals(candidate, format))
             {
-                selectedAcceptMediaType = start;
-                format = _defaultFormat;
                 return true;
             }
-
-            if (resultKind is ResultKind.Single && start.Kind is ApplicationJson)
-            {
-                // application/json is a legacy response content-type.
-                // We will create a formatInfo but keep on validating for
-                // a better suited format.
-                possibleFormat = _legacyFormat;
-                possibleMediaType = start;
-            }
-
-            if (resultKind is ResultKind.Single && start.Kind is ApplicationGraphQL)
-            {
-                selectedAcceptMediaType = start;
-                format = _graphqlResponseFormat;
-                return true;
-            }
-
-            if (resultKind is ResultKind.Stream or ResultKind.Subscription && start.Kind is ApplicationGraphQLStream)
-            {
-                selectedAcceptMediaType = start;
-                format = _graphqlResponseStreamFormat;
-                return true;
-            }
-
-            if (resultKind is ResultKind.Stream or ResultKind.Subscription && start.Kind is ApplicationJsonLines)
-            {
-                selectedAcceptMediaType = start;
-                format = _jsonLinesFormat;
-                return true;
-            }
-
-            if (resultKind is ResultKind.Stream or ResultKind.Single
-                && start.Kind is MultiPartMixed or AllMultiPart or All)
-            {
-                // if the result is a stream, we consider this a perfect match and
-                // will use this format.
-                if (resultKind is ResultKind.Stream)
-                {
-                    possibleFormat = _multiPartFormat;
-                    possibleMediaType = start;
-                }
-
-                // if the format is an event-stream or not set, we will create a
-                // multipart/mixed formatInfo for the current result but also keep
-                // on validating for a better suited format.
-                if (possibleFormat?.Kind is not ResponseContentType.Json)
-                {
-                    possibleFormat = _multiPartFormat;
-                    possibleMediaType = start;
-                }
-            }
-
-            if (start.Kind is EventStream or All)
-            {
-                // if the result is a subscription, we consider this a perfect match and
-                // will use this format.
-                if (resultKind is ResultKind.Subscription or ResultKind.Stream)
-                {
-                    possibleFormat = _eventStreamFormat;
-                    possibleMediaType = start;
-                }
-
-                // if the result is stream, it means that we did not yet validate a
-                // multipart content-type and thus will create a format for the case that it
-                // is not specified;
-                // or we have a single result, but there is no format yet specified
-                // we will create a text/event-stream formatInfo for the current result
-                // but also keep on validating for a better suited format.
-                if (possibleFormat?.Kind is ResponseContentType.Unknown)
-                {
-                    possibleFormat = _multiPartFormat;
-                    possibleMediaType = start;
-                }
-            }
-
-            start = ref Unsafe.Add(ref start, 1);
-        }
-
-        if (possibleFormat is not null)
-        {
-            selectedAcceptMediaType = possibleMediaType;
-            format = possibleFormat;
-            return true;
         }
 
         return false;
     }
+
+    /// <summary>
+    /// Matches one response content type against the header. The quality comes from the media
+    /// range with the highest precedence that matches it, per RFC 9110, section 12.5.1, where a
+    /// specific media type outranks <c>type/*</c>, which outranks <c>*/*</c>; a quality of zero
+    /// means not acceptable, per section 12.4.2. The two positions are reported separately
+    /// because a format can be both named and covered by a wildcard, and each carries a
+    /// different request from the client.
+    /// </summary>
+    private static FormatMatch MatchFormat(
+        AcceptMediaType[] acceptMediaTypes,
+        ResponseContentType contentType)
+    {
+        var exactKind = GetExactKind(contentType);
+        var wildcardKind = GetWildcardKind(contentType);
+        var precedence = 0;
+        var quality = 0d;
+        var namedPosition = -1;
+        var wildcardPosition = -1;
+        var rangeIndex = -1;
+
+        for (var i = 0; i < acceptMediaTypes.Length; i++)
+        {
+            ref readonly var acceptMediaType = ref acceptMediaTypes[i];
+            int candidate;
+
+            if (acceptMediaType.Kind == exactKind)
+            {
+                candidate = ExactRange;
+            }
+            else if (acceptMediaType.Kind == wildcardKind)
+            {
+                candidate = TypeWildcardRange;
+            }
+            else if (acceptMediaType.Kind is All)
+            {
+                candidate = FullWildcardRange;
+            }
+            else
+            {
+                continue;
+            }
+
+            if (candidate is ExactRange)
+            {
+                if (namedPosition < 0)
+                {
+                    namedPosition = i;
+                }
+            }
+            else if (wildcardPosition < 0)
+            {
+                wildcardPosition = i;
+            }
+
+            if (candidate < precedence)
+            {
+                continue;
+            }
+
+            var candidateQuality = GetQuality(acceptMediaType);
+
+            if (candidate > precedence || candidateQuality > quality)
+            {
+                precedence = candidate;
+                quality = candidateQuality;
+                rangeIndex = i;
+            }
+        }
+
+        return new FormatMatch(quality, namedPosition, wildcardPosition, rangeIndex);
+    }
+
+    /// <summary>
+    /// How one response content type fared against the client's Accept header. The range the
+    /// quality came from is carried as an index into the header, <c>-1</c> when none matched,
+    /// so that scoring a format does not copy an <see cref="AcceptMediaType"/>.
+    /// </summary>
+    private readonly record struct FormatMatch(
+        double Quality,
+        int NamedPosition,
+        int WildcardPosition,
+        int RangeIndex);
+
+    /// <summary>
+    /// Gets the media range that names a response content type exactly.
+    /// </summary>
+    private static AcceptMediaTypeKind GetExactKind(ResponseContentType contentType)
+        => contentType switch
+        {
+            ResponseContentType.GraphQLResponse => ApplicationGraphQL,
+            ResponseContentType.GraphQLResponseStream => ApplicationGraphQLStream,
+            ResponseContentType.Json => ApplicationJson,
+            ResponseContentType.JsonLines => ApplicationJsonLines,
+            ResponseContentType.MultiPartMixed => MultiPartMixed,
+            ResponseContentType.EventStream => EventStream,
+            _ => Unknown
+        };
+
+    /// <summary>
+    /// Gets the <c>type/*</c> range that covers a response content type.
+    /// </summary>
+    private static AcceptMediaTypeKind GetWildcardKind(ResponseContentType contentType)
+        => contentType switch
+        {
+            ResponseContentType.MultiPartMixed => AllMultiPart,
+            ResponseContentType.EventStream => AllText,
+            _ => AllApplication
+        };
+
+    /// <summary>
+    /// The media-range precedence levels of RFC 9110, section 12.5.1, from most to least
+    /// specific: a named media type, then <c>type/*</c>, then <c>*/*</c>.
+    /// </summary>
+    private const int ExactRange = 3;
+    private const int TypeWildcardRange = 2;
+    private const int FullWildcardRange = 1;
+
+    private static double GetQuality(AcceptMediaType mediaType)
+        => mediaType.Quality ?? 1.0;
+
+    /// <summary>
+    /// Throws <see cref="ArgumentOutOfRangeException"/> when <paramref name="version"/> is not a
+    /// member of <see cref="HttpTransportVersion"/>.
+    /// </summary>
+    internal static void EnsureTransportVersionIsSupported(
+        HttpTransportVersion version,
+        string paramName)
+        => ResolveTransportVersion(version, paramName);
+
+    private static HttpTransportVersion ResolveTransportVersion(
+        HttpTransportVersion version,
+        string paramName)
+        => version switch
+        {
+            HttpTransportVersion.Latest => LatestTransportVersion,
+            HttpTransportVersion.Legacy => HttpTransportVersion.Legacy,
+            HttpTransportVersion.Draft20230127 => HttpTransportVersion.Draft20250508,
+            HttpTransportVersion.Draft20250508 => HttpTransportVersion.Draft20250508,
+            HttpTransportVersion.Draft20260903 => HttpTransportVersion.Draft20260903,
+            _ => throw ThrowHelper.Formatter_TransportVersionNotSupported(paramName, version)
+        };
 
     internal static DefaultHttpResponseFormatter Create(
         HttpResponseFormatterOptions options,

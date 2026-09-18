@@ -4,7 +4,7 @@
   "Data": null,
   "Errors": [
     {
-      "message": "The operation id has an invalid format."
+      "message": "The operation ID has an invalid format."
     }
   ],
   "Extensions": null

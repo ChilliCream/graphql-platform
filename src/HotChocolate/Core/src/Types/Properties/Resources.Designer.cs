@@ -422,5 +422,11 @@ namespace HotChocolate.Properties {
                 return ResourceManager.GetString("VariableCoercionHelper_CoerceVariableValues_VariablesMustBeObject", resourceCulture);
             }
         }
+        
+        internal static string ErrorHelper_IncrementalDeliveryNotAcceptable {
+            get {
+                return ResourceManager.GetString("ErrorHelper_IncrementalDeliveryNotAcceptable", resourceCulture);
+            }
+        }
     }
 }

@@ -11,11 +11,14 @@ internal sealed class OperationVariableCoercionMiddleware
 {
     private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
     private readonly ICoreExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly bool _ignoreAdditionalInputFields;
 
     private OperationVariableCoercionMiddleware(
-        ICoreExecutionDiagnosticEvents diagnosticEvents)
+        ICoreExecutionDiagnosticEvents diagnosticEvents,
+        FusionRequestOptions options)
     {
         _diagnosticEvents = diagnosticEvents;
+        _ignoreAdditionalInputFields = options.IgnoreAdditionalInputFields;
     }
 
     public ValueTask InvokeAsync(
@@ -33,7 +36,8 @@ internal sealed class OperationVariableCoercionMiddleware
         return TryCoerceVariables(
             context,
             operationExecutionPlan.VariableDefinitions,
-            _diagnosticEvents)
+            _diagnosticEvents,
+            _ignoreAdditionalInputFields)
             ? next(context)
             : default;
     }
@@ -41,7 +45,8 @@ internal sealed class OperationVariableCoercionMiddleware
     private static bool TryCoerceVariables(
         RequestContext context,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
-        ICoreExecutionDiagnosticEvents diagnosticEvents)
+        ICoreExecutionDiagnosticEvents diagnosticEvents,
+        bool ignoreAdditionalInputFields)
     {
         if (context.VariableValues.Length > 0)
         {
@@ -63,6 +68,7 @@ internal sealed class OperationVariableCoercionMiddleware
                     context.Schema,
                     variableDefinitions,
                     operationRequest.VariableValues?.Document.RootElement ?? default,
+                    ignoreAdditionalInputFields,
                     out var coercedValues,
                     out var error))
                 {
@@ -90,6 +96,7 @@ internal sealed class OperationVariableCoercionMiddleware
                         context.Schema,
                         variableDefinitions,
                         variableValuesInput,
+                        ignoreAdditionalInputFields,
                         out var coercedValues,
                         out var error))
                     {
@@ -115,7 +122,8 @@ internal sealed class OperationVariableCoercionMiddleware
             (fc, next) =>
             {
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<ICoreExecutionDiagnosticEvents>();
-                var middleware = new OperationVariableCoercionMiddleware(diagnosticEvents);
+                var options = fc.SchemaServices.GetRequiredService<FusionRequestOptions>();
+                var middleware = new OperationVariableCoercionMiddleware(diagnosticEvents, options);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             WellKnownRequestMiddleware.OperationVariableCoercionMiddleware);

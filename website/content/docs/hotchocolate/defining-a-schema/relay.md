@@ -194,6 +194,39 @@ builder
 
 At least one type in the schema must implement `Node`, or the schema fails to build.
 
+## Node interface without the node fields
+
+Disable `AddNodeField` and `AddNodesField` to keep the `Node` interface without adding the `node` and `nodes` fields to the Query type:
+
+```csharp
+builder
+    .AddGraphQL()
+    .AddGlobalObjectIdentification(opts =>
+    {
+        opts.AddNodeField = false;
+        opts.AddNodesField = false;
+    });
+```
+
+The schema now exposes the `Node` interface, and the Query type has no `node` or `nodes` field:
+
+```graphql
+interface Node {
+  id: ID!
+}
+
+type Product implements Node {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  product(id: ID!): Product
+}
+```
+
+Fields annotated with `[NodeResolver]` still get an `id: ID!` argument that is decoded to the raw ID.
+
 ## Implementing Node
 
 <ExampleTabs>

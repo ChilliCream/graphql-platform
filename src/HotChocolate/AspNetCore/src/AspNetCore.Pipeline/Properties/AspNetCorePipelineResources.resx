@@ -117,8 +117,8 @@
   <data name="ThrowHelper_Formatter_ResponseContentTypeNotSupported" xml:space="preserve">
     <value>The specified response content-type `{0}` is not supported.</value>
   </data>
-  <data name="ThrowHelper_Formatter_InvalidAcceptMediaType" xml:space="preserve">
-    <value>Invalid accept media types specified.</value>
+  <data name="ThrowHelper_Formatter_TransportVersionNotSupported" xml:space="preserve">
+    <value>The specified HTTP transport version `{0}` is not supported.</value>
   </data>
   <data name="ErrorHelper_InvalidAcceptMediaType" xml:space="preserve">
     <value>Unable to parse the accept header value `{0}`.</value>

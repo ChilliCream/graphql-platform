@@ -140,14 +140,32 @@ internal static class ErrorHelper
             .AddLocations(selection)
             .Build();
 
-    public static OperationResult OperationKindNotAllowed()
+    public static OperationResult OperationKindNotAllowed(RequestFlags requiredFlag)
     {
         var result = OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage("The specified operation kind is not allowed.")
                 .Build());
 
-        result.ContextData = result.ContextData.Add(ExecutionContextData.OperationNotAllowed, null);
+        // The flag the operation kind required lets the transport tell a refusal the request
+        // method can resolve from one it cannot, which is the difference between 405 and 406.
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.OperationNotAllowed,
+            requiredFlag);
+
+        return result;
+    }
+
+    public static OperationResult IncrementalDeliveryNotAcceptable()
+    {
+        var result = OperationResult.FromError(
+            ErrorBuilder.New()
+                .SetMessage(ErrorHelper_IncrementalDeliveryNotAcceptable)
+                .Build());
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.NotAcceptable);
 
         return result;
     }

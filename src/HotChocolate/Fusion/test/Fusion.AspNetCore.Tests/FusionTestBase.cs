@@ -41,7 +41,8 @@ public abstract partial class FusionTestBase : IDisposable
         [StringSyntax("json")] string? gatewaySettings = null,
         string? environmentName = "Development",
         bool disableDefaultSecurity = false,
-        bool enableGlobalObjectIdentification = true)
+        bool enableGlobalObjectIdentification = true,
+        bool includeOperationPlan = true)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
@@ -167,7 +168,12 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         gatewayBuilder.AddInMemoryConfiguration(result.Value.ToSyntaxNode(), settings);
-        gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+
+        if (includeOperationPlan)
+        {
+            gatewayBuilder.AddHttpRequestInterceptor<OperationPlanHttpRequestInterceptor>();
+        }
+
         gatewayBuilder.ModifyRequestOptions(o =>
         {
             o.CollectOperationPlanTelemetry = false;
