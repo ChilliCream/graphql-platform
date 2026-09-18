@@ -2,6 +2,7 @@ using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -93,6 +94,11 @@ public static class FusionRequestContextExtensions
 
         context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
         context.Features.Set<IOperation>(plan.Operation);
+
+        // If this context is the leader of an in-flight plan, assigning the plan releases
+        // every coalesced follower and caches it right here, regardless of which middleware
+        // made the assignment.
+        context.Features.Get<OperationPlanInFlightRelease>()?.TryRelease(context, plan);
     }
 
     internal static bool CollectOperationPlanTelemetry(

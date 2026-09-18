@@ -27,6 +27,7 @@ internal sealed class OperationPlanCacheMiddleware
         var retried = false;
         var resolved = false;
         Lazy<TaskCompletionSource<OperationPlan>>? leaderEntry = null;
+        OperationPlanInFlightRelease? inFlightRelease = null;
 
         // A follower whose leader is cancelled before it produces a plan evicts the
         // cancelled leader's entry and gets exactly one opportunity to step up as the new
@@ -52,7 +53,10 @@ internal sealed class OperationPlanCacheMiddleware
             if (ReferenceEquals(current, candidate))
             {
                 leaderEntry = current;
+                inFlightRelease = new OperationPlanInFlightRelease(
+                    operationId, current.Value, _cache, _diagnosticEvents);
                 context.Features.Set(current.Value);
+                context.Features.Set(inFlightRelease);
                 resolved = true;
                 continue;
             }
@@ -90,7 +94,7 @@ internal sealed class OperationPlanCacheMiddleware
         catch (Exception ex)
         {
             // Propagate the failure to followers only if nothing has resolved the TCS yet
-            // (OperationPlanMiddleware already completes it once a plan is produced).
+            // (SetOperationPlan releases them the moment any middleware sets a plan).
             if (!leaderEntry.Value.Task.IsCompleted)
             {
                 if (ex is OperationCanceledException oce)
@@ -107,13 +111,14 @@ internal sealed class OperationPlanCacheMiddleware
         }
         finally
         {
-            // OperationPlanMiddleware already caches the plan and releases followers right
-            // after planning succeeds; that is the primary path and this is a no-op then.
-            // This is the fallback for a plan that reached the context some other way (e.g.
-            // a custom middleware ahead of OperationPlanMiddleware): cache whatever plan the
-            // context carries when the pipeline returns and release followers with it. Only
-            // when the pipeline returned without producing a plan at all, and without
-            // throwing, does this fault the followers so they do not wait forever.
+            // Assigning a plan to the context (SetOperationPlan) already caches it and
+            // releases followers the moment it happens, whichever middleware assigns it;
+            // that is the primary path and this is a no-op then. This is the safety net for
+            // a plan that reached the context some other way, bypassing that hook entirely:
+            // cache whatever plan the context carries when the pipeline returns and release
+            // followers with it. Only when the pipeline returned without producing a plan at
+            // all, and without throwing, does this fault the followers so they do not wait
+            // forever.
             try
             {
                 // Guard against a faulty diagnostic event handler preventing cleanup: a throw
@@ -122,9 +127,7 @@ internal sealed class OperationPlanCacheMiddleware
                 {
                     if (context.GetOperationPlan() is { } operationPlan)
                     {
-                        _cache.TryAdd(operationId, operationPlan);
-                        _diagnosticEvents.AddedOperationPlanToCache(context, operationId);
-                        leaderEntry.Value.TrySetResult(operationPlan);
+                        inFlightRelease!.TryRelease(context, operationPlan);
                     }
                     else
                     {
