@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Tests.Commands;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 public sealed class TakeoverAgentCommandTests(NitroCommandFixture fixture)

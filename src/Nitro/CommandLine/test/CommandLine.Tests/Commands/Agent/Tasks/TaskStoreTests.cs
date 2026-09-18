@@ -1234,7 +1234,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
             ("@id", id), ("@title", title), ("@status", status),
             ("@priority", priority), ("@type", type), ("@now", now),
             ("@closedAt", (object?)closedAt ?? DBNull.Value),
-            ("@assignee", assignee is null ? DBNull.Value : (object)assignee));
+            ("@assignee", (object?)assignee ?? DBNull.Value));
     }
 
     private Task InsertLabelAsync(SqliteConnection connection, string taskId, string label)
