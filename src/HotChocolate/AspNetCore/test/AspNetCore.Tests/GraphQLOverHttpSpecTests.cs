@@ -2,16 +2,20 @@ using System.Net;
 #if !NET11_0_OR_GREATER
 using System.Net.Http.Json;
 #endif
+using System.Text;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Net.Http.Headers;
 using static System.Net.Http.HttpCompletionOption;
 using static System.Net.HttpStatusCode;
 using static HotChocolate.AspNetCore.HttpTransportVersion;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
+using WellKnownRequestMiddleware = HotChocolate.Execution.WellKnownRequestMiddleware;
 
 namespace HotChocolate.AspNetCore;
 
@@ -19,9 +23,26 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
 
+    private const string NotWellFormedRequest = """{ "query": 123 }""";
+    private const string EmptyBatchRequest = "[]";
+    private const string NonObjectBatchRequest = "[1]";
+    private const string AmbiguousOperationRequest =
+        """{ "query": "query A { __typename } query B { __typename }" }""";
+    private const string VariablesNotJsonQuery = "?query=%7B%20__typename%20%7D&variables=%7B";
+    private const string ExtensionsNotJsonQuery = "?query=%7B%20__typename%20%7D&extensions=%7B";
+    private const string ExtensionsOnlyNotJsonQuery = "?extensions=%7B";
+    private const string InvalidVariableRequest =
+        """
+        {
+            "query": "query($e: Episode!) { hero(episode: $e) { name } }",
+            "variables": { "e": "UNKNOWN" }
+        }
+        """;
+
     [Theory]
     [InlineData(null, Latest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, ContentType.Json)]
+    [InlineData(null, Draft20260903, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, ContentType.Json)]
     [InlineData("application/*", Latest, ContentType.GraphQLResponse)]
@@ -34,6 +55,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [InlineData("application/json, text/plain, */*", Legacy, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, ContentType.Json)]
     [InlineData(ContentType.GraphQLResponse, Latest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, ContentType.GraphQLResponse)]
     [InlineData("application/graphql-response+json; charset=utf-8, multipart/mixed; charset=utf-8",
@@ -119,14 +141,17 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, OK, ContentType.Json)]
+    [InlineData(null, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, BadRequest, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.GraphQLResponse, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     public async Task Query_No_Body(string? acceptHeader, HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode, string expectedContentType)
     {
@@ -167,14 +192,17 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, OK, ContentType.Json)]
+    [InlineData(null, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.GraphQLResponse, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
     public async Task ValidationError(string? acceptHeader, HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode, string expectedContentType)
     {
@@ -207,14 +235,18 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
     [Theory]
     [InlineData(null, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(null, Legacy, OK, ContentType.Json)]
+    [InlineData(null, Draft20260903, UnprocessableContent, ContentType.GraphQLResponse)]
     [InlineData("*/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("*/*", Legacy, OK, ContentType.Json)]
     [InlineData("application/*", Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData("application/*", Legacy, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Latest, OK, ContentType.Json)]
     [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, UnprocessableContent, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Latest, BadRequest, ContentType.GraphQLResponse)]
     [InlineData(ContentType.GraphQLResponse, Legacy, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.GraphQLResponse, Draft20260903, UnprocessableContent,
+            ContentType.GraphQLResponse)]
     public async Task ValidationError2(string? acceptHeader, HttpTransportVersion transportVersion,
         HttpStatusCode expectedStatusCode, string expectedContentType)
     {
@@ -558,7 +590,7 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
         request.Content = new StringContent(
             """{"query":"{ __typename }","onError":"HALT"}""",
-            System.Text.Encoding.UTF8,
+            Encoding.UTF8,
             "application/json");
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
@@ -567,6 +599,384 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(BadRequest, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.Contains("onError", body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // From the 2026-09-03 revision on, a result that carries both data and errors is answered
+    // 294, and as a 2xx it keeps application/json for a client that asked for that media type.
+    [Theory]
+    [InlineData(null, Draft20250508, OK, ContentType.GraphQLResponse)]
+    [InlineData(null, Draft20260903, (HttpStatusCode)294, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, Draft20260903, (HttpStatusCode)294, ContentType.Json)]
+    public async Task Post_Should_ReturnPartialSuccess_When_ResultHasDataAndErrors(
+        string? acceptHeader,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(
+            new ClientQueryRequest
+            {
+                Query = """{ character(characterIds: ["1000", "unknown"]) { name } }"""
+            });
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: {{{expectedContentType}}}
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"Could not resolve a character for the character-id unknown.","path":["character"]}],"data":{"character":[{"name":"Luke Skywalker"}]}}
+                """);
+    }
+
+    // A non-null violation at the root erases data to null, which is still a data entry, so
+    // the result is a partial success rather than a request error.
+    [Theory]
+    [InlineData(Draft20250508, OK)]
+    [InlineData(Draft20260903, (HttpStatusCode)294)]
+    public async Task Post_Should_ReturnPartialSuccess_When_NonNullViolationErasesData(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer("notnull").AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = transportVersion
+                }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/notnull"));
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ error }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                $$$"""
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: {{{expectedStatusCode}}}
+                -------------------------->
+                {"errors":[{"message":"Cannot return null for non-nullable field.","path":["error"],"extensions":{"code":"HC0018"}}],"data":null}
+                """);
+    }
+
+    // From the 2026-09-03 revision on, a request the server read but cannot execute is answered
+    // 422: one that is not a well-formed GraphQL-over-HTTP request, one whose operation cannot
+    // be determined, and one whose variables cannot be coerced.
+    [Theory]
+    [InlineData(NotWellFormedRequest, Draft20250508, BadRequest)]
+    [InlineData(NotWellFormedRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(EmptyBatchRequest, Draft20250508, BadRequest)]
+    [InlineData(EmptyBatchRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(NonObjectBatchRequest, Draft20250508, BadRequest)]
+    [InlineData(NonObjectBatchRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(AmbiguousOperationRequest, Draft20250508, BadRequest)]
+    [InlineData(AmbiguousOperationRequest, Draft20260903, UnprocessableContent)]
+    [InlineData(InvalidVariableRequest, Draft20250508, BadRequest)]
+    [InlineData(InvalidVariableRequest, Draft20260903, UnprocessableContent)]
+    public async Task Post_Should_ReturnUnprocessableContent_When_RequestCannotBeExecuted(
+        string body,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Post_Should_ReturnUnprocessableContent_When_MultipartRequestIsNotWellFormed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent(NotWellFormedRequest), "operations" },
+            { new StringContent("{}"), "map" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            s_url,
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+    }
+
+    // A document that cannot be parsed in a multipart request is answered on the same terms as
+    // one in a JSON body.
+    [Theory]
+    [InlineData(Legacy, OK, ContentType.Json)]
+    [InlineData(Draft20250508, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    public async Task Post_Should_ApplyContentTypeRule_When_MultipartDocumentCannotBeParsed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var form = new MultipartFormDataContent
+        {
+            { new StringContent("""{ "query": "{" }"""), "operations" },
+            { new StringContent("{}"), "map" }
+        };
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        using var response = await client.PostAsync(
+            s_url,
+            form,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    // A persisted operation request whose document cannot be parsed is answered on the same
+    // terms as a plain request.
+    [Theory]
+    [InlineData(null, Draft20250508, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, Draft20250508, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    public async Task Post_Should_ApplyContentTypeRule_When_PersistedDocumentCannotBeParsed(
+        string? acceptHeader,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql/persisted/abc"));
+        request.Content = new StringContent(
+            """{ "query": "{" }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Get_Should_ReturnUnprocessableContent_When_DocumentIdIsInvalid(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?id=not%20valid!!"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+    }
+
+    // A GET parameter that must be JSON but is not makes the request not well-formed, whether
+    // or not a document accompanies it. A request body that is not JSON is unreadable and stays
+    // 400.
+    [Theory]
+    [InlineData(VariablesNotJsonQuery, Draft20250508, BadRequest)]
+    [InlineData(VariablesNotJsonQuery, Draft20260903, UnprocessableContent)]
+    [InlineData(ExtensionsNotJsonQuery, Draft20250508, BadRequest)]
+    [InlineData(ExtensionsNotJsonQuery, Draft20260903, UnprocessableContent)]
+    [InlineData(ExtensionsOnlyNotJsonQuery, Draft20250508, BadRequest)]
+    [InlineData(ExtensionsOnlyNotJsonQuery, Draft20260903, UnprocessableContent)]
+    public async Task Get_Should_ReturnUnprocessableContent_When_JsonParameterIsNotValidJson(
+        string queryString,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}{queryString}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, BadRequest)]
+    [InlineData(Draft20260903, UnprocessableContent)]
+    public async Task Get_Should_ReturnUnprocessableContent_When_RequestIsNotWellFormed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Get, new Uri($"{s_url}?query="));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+    }
+
+    // A document that cannot be parsed is answered on the same terms over GET as over POST:
+    // 400 for application/graphql-response+json, 200 for application/json under Legacy and the
+    // 2025-05-08 revision, and 400 for application/json from the 2026-09-03 revision on.
+    [Theory]
+    [InlineData(null, Draft20250508, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(ContentType.Json, Legacy, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20250508, OK, ContentType.Json)]
+    [InlineData(ContentType.Json, Draft20260903, BadRequest, ContentType.GraphQLResponse)]
+    public async Task Get_Should_ApplyContentTypeRule_When_DocumentCannotBeParsed(
+        string? acceptHeader,
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+        var query = Uri.EscapeDataString("{ __typ$ename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={query}"));
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    // A body without a JSON token is a body the server cannot read, so it stays 400.
+    [Theory]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Post_Should_ReturnBadRequest_When_BodyHasNoJsonToken(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent("   ", Encoding.UTF8, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid JSON document.","extensions":{"code":"HC0012"}}]}
+                """);
+    }
+
+    // A failure inside the server is answered 500 for application/graphql-response+json, and
+    // for application/json from the 2026-09-03 revision on. The legacy application/json path
+    // keeps its 200.
+    [Theory]
+    [InlineData(Legacy, OK, ContentType.Json)]
+    [InlineData(Draft20250508, InternalServerError, ContentType.GraphQLResponse)]
+    [InlineData(Draft20260903, InternalServerError, ContentType.GraphQLResponse)]
+    public async Task Post_Should_ReturnInternalServerError_When_PipelineThrowsUnexpectedly(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer("test")
+                .AddQueryType(d => d.Name("Query").Field("foo").Resolve("bar"))
+                .UseRequest(
+                    _ => context => throw new InvalidOperationException("Unexpected."),
+                    key: "ThrowingMiddleware",
+                    after: WellKnownRequestMiddleware.ExceptionMiddleware)
+                .AddHttpResponseFormatter(
+                    new HttpResponseFormatterOptions
+                    {
+                        HttpTransportVersion = transportVersion
+                    }));
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/test"));
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ foo }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
     }
 
     [Theory]
@@ -626,6 +1036,132 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(NotFound, response.StatusCode);
     }
 
+    // From the 2026-09-03 revision on, a request on the GraphQL endpoint whose method the
+    // endpoint does not support is answered 405 with the methods it does support, and a POST
+    // request whose Content-Type the endpoint does not support is answered 415. Neither carries
+    // a response body.
+    [Theory]
+    [InlineData(Draft20250508, NotFound, new string[0])]
+    [InlineData(Draft20260903, MethodNotAllowed, new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    public async Task Put_Should_ReturnMethodNotAllowed_When_MethodIsUnsupported(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Put, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    // OPTIONS asks which methods the endpoint supports and is answered with them.
+    [Theory]
+    [InlineData(Draft20250508, NotFound, new string[0])]
+    [InlineData(Draft20260903, NoContent, new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    public async Task Options_Should_ReturnAllowedMethods_When_EndpointIsRequested(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Options, s_url);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, NotFound, new string[0])]
+    [InlineData(Draft20260903, MethodNotAllowed, new[] { "OPTIONS", "POST" })]
+    public async Task Get_Should_ReturnMethodNotAllowed_When_GetRequestsAreDisabled(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = transportVersion
+                }),
+            configureConventions: b => b.WithOptions(o =>
+            {
+                o.EnableGetRequests = false;
+                o.Tool.Enable = false;
+            }));
+        var client = server.CreateClient();
+        var query = Uri.EscapeDataString("{ __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={query}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, NotFound)]
+    [InlineData(Draft20260903, UnsupportedMediaType)]
+    public async Task Post_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = new StringContent("{ __typename }", Encoding.UTF8, "text/plain");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    // The 405 and 415 answers are for the GraphQL endpoint itself. A request below it is
+    // answered 404 as before.
+    [Fact]
+    public async Task Put_Should_ReturnNotFound_When_PathIsBelowTheGraphQLEndpoint()
+    {
+        // arrange
+        var client = GetClient(Draft20260903);
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Put,
+            new Uri("http://localhost:5000/graphql/other"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NotFound, response.StatusCode);
+    }
+
     [Fact]
     public async Task Get_Should_ReturnAllowHeader_When_OperationKindIsNotAllowed()
     {
@@ -641,6 +1177,36 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         // assert
         Assert.Equal(MethodNotAllowed, response.StatusCode);
         Assert.Equal(["POST"], response.Content.Headers.Allow);
+    }
+
+    // From the 2026-09-03 revision on, a client that accepts only application/json is answered
+    // as if it had asked for application/graphql-response+json, and only a 2xx response carries
+    // application/json as its Content-Type.
+    [Theory]
+    [InlineData(Draft20250508, OK, ContentType.Json, new string[0])]
+    [InlineData(Draft20260903, MethodNotAllowed, ContentType.GraphQLResponse, new[] { "POST" })]
+    public async Task Get_Should_UseSpecStatusCodeForJson_When_MutationIsNotAllowed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType,
+        string[] expectedAllow)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+        var query = Uri.EscapeDataString("mutation { __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={query}"));
+        AddAcceptHeader(request, "application/json");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
     }
 
     [Fact]
@@ -778,6 +1344,30 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
 
         // act
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.TryAddWithoutValidation("Accept", "unsupported");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+    }
+
+    // The POST path disregards an unparseable Accept header on the same terms as the GET path.
+    [Theory]
+    [InlineData(Latest, BadRequest, ContentType.GraphQLResponse)]
+    [InlineData(Legacy, OK, ContentType.Json)]
+    public async Task Post_Should_AnswerInServerChoice_When_AcceptHeaderCannotBeParsed(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Post, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
         request.Headers.TryAddWithoutValidation("Accept", "unsupported");
 
         using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);

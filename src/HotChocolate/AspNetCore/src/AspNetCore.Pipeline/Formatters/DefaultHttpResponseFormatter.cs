@@ -25,6 +25,7 @@ namespace HotChocolate.AspNetCore.Formatters;
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
     private const HttpTransportVersion LatestTransportVersion = HttpTransportVersion.Draft20250508;
+    private const HttpStatusCode PartialSuccess = (HttpStatusCode)294;
 
     private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = new(StringComparer.Ordinal);
@@ -42,6 +43,9 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     private readonly FormatInfo[] _singlePreferred;
     private readonly FormatInfo[] _streamPreferred;
     private readonly IncrementalDeliveryFormat _incrementalDeliveryDefaultFormat;
+    private readonly bool _jsonFollowsGraphQLResponseRules;
+    private readonly bool _reportsPartialSuccess;
+    private readonly bool _reportsUnprocessableRequest;
 
     /// <summary>
     /// Creates a new instance of <see cref="DefaultHttpResponseFormatter" />.
@@ -134,6 +138,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             ? _legacyFormat
             : _graphqlResponseFormat;
 
+        // From the 2026-09-03 revision on, a client that accepts application/json is answered as
+        // if it had asked for application/graphql-response+json, and only a 2xx response is
+        // written with application/json as its Content-Type. The same revision answers a result
+        // that carries errors beside its data with 294, a request the server read but cannot
+        // execute with 422 rather than 400, and a request whose method or Content-Type the
+        // endpoint does not support with 405 or 415 rather than 404.
+        var usesRevision20260903 = TransportVersion is not
+            (HttpTransportVersion.Legacy or HttpTransportVersion.Draft20250508);
+        _jsonFollowsGraphQLResponseRules = usesRevision20260903;
+        _reportsPartialSuccess = usesRevision20260903;
+        _reportsUnprocessableRequest = usesRevision20260903;
+        ReportsUnsupportedMethodOrMediaType = usesRevision20260903;
+
         // The formats the server can produce for each result kind, in the order it prefers them.
         // A tie on quality is resolved by this order.
         _singleFormats =
@@ -172,6 +189,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     /// <see cref="HttpTransportVersion.Latest"/> resolved to the revision it stands for.
     /// </summary>
     internal HttpTransportVersion TransportVersion { get; }
+
+    /// <summary>
+    /// Whether a request whose method the GraphQL endpoint does not support is answered 405,
+    /// and a POST request whose Content-Type it does not support is answered 415, rather than
+    /// 404.
+    /// </summary>
+    internal bool ReportsUnsupportedMethodOrMediaType { get; }
 
     public RequestFlags CreateRequestFlags(
         AcceptMediaType[] acceptMediaTypes)
@@ -335,7 +359,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             {
                 var statusCode = (int)OnDetermineStatusCode(operationResult, format, proposedStatusCode);
 
-                response.ContentType = format.ContentType;
+                response.ContentType = GetContentType(format, statusCode);
                 response.StatusCode = statusCode;
 
                 // RFC 9110, section 15.5.6 requires a 405 to list the methods the target resource
@@ -428,6 +452,23 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             : ExecutionResultFormatFlags.None;
     }
 
+    /// <summary>
+    /// Gets the <c>Content-Type</c> of a single result. From the 2026-09-03 revision on, a
+    /// response written as <c>application/json</c> keeps that media type only when its status
+    /// is a <c>2xx</c>, and otherwise carries <c>application/graphql-response+json</c>.
+    /// </summary>
+    private string GetContentType(FormatInfo format, int statusCode)
+    {
+        if (_jsonFollowsGraphQLResponseRules
+            && format.Kind is ResponseContentType.Json
+            && statusCode is < 200 or >= 300)
+        {
+            return _graphqlResponseFormat.ContentType;
+        }
+
+        return format.ContentType;
+    }
+
     public async ValueTask FormatAsync(
         HttpResponse response,
         ISchemaDefinition schema,
@@ -516,7 +557,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         FormatInfo format,
         HttpStatusCode? proposedStatusCode)
     {
-        if (format.Kind is ResponseContentType.Json)
+        if (format.Kind is ResponseContentType.Json && !_jsonFollowsGraphQLResponseRules)
         {
             // the legacy transport preserves the pre-spec behavior of always returning
             // 200 for the application/json response content-type.
@@ -525,11 +566,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 return HttpStatusCode.OK;
             }
 
-            // per graphql-over-http §6.4.1, the application/json response content-type
-            // should return 200 for every well-formed request regardless of errors
-            // raised. the only 4xx is 400 for requests the server cannot interpret
-            // (§6.4.1.1.1 JSON parse, §6.4.1.1.2 invalid parameters). honor a proposed
-            // 400; everything else, including an unexpected 500, stays 200.
+            // under the 2025-05-08 revision, the application/json response content-type
+            // returns 200 for every well-formed request regardless of errors raised. the
+            // only 4xx is 400 for requests the server cannot interpret, such as a JSON body
+            // or a request parameter it cannot read. honor a proposed 400; everything else,
+            // including an unexpected 500, stays 200.
             return proposedStatusCode is HttpStatusCode.BadRequest
                 ? HttpStatusCode.BadRequest
                 : HttpStatusCode.OK;
@@ -543,15 +584,26 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             return HttpStatusCode.OK;
         }
 
-        // in the case of the application/graphql-response+json, we will
-        // use status code to indicate certain kinds of error categories.
-        if (format.Kind is ResponseContentType.GraphQLResponse)
+        // in the case of the application/graphql-response+json, and of application/json from
+        // the 2026-09-03 revision on, we will use status code to indicate certain kinds of
+        // error categories.
+        if (format.Kind is ResponseContentType.GraphQLResponse or ResponseContentType.Json)
         {
             // if a status code was proposed by the middleware, we will in general accept it.
             // the middleware is implemented in a way that they will propose status code for
             // the application/graphql-response+json response content-type.
             if (proposedStatusCode.HasValue)
             {
+                // From the 2026-09-03 revision on, a request the server read but that is not a
+                // well-formed GraphQL over HTTP request is answered 422 rather than the proposed
+                // 400, which stays for a body the server could not read at all.
+                if (_reportsUnprocessableRequest
+                    && proposedStatusCode is HttpStatusCode.BadRequest
+                    && result.ContextData.ContainsKey(HttpResultContextData.RequestNotWellFormed))
+                {
+                    return HttpStatusCode.UnprocessableContent;
+                }
+
                 return proposedStatusCode.Value;
             }
 
@@ -573,11 +625,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     }
                 }
 
-                // Next, we check if the validation of the request failed.
-                // If that is the case, we will return a BadRequest status code (400).
+                // Next, we check if the validation of the request failed. Such a request is
+                // answered 400, or 422 from the 2026-09-03 revision on.
                 if (contextData.ContainsKey(ExecutionContextData.ValidationErrors))
                 {
-                    return HttpStatusCode.BadRequest;
+                    return _reportsUnprocessableRequest
+                        ? HttpStatusCode.UnprocessableContent
+                        : HttpStatusCode.BadRequest;
                 }
 
                 if (contextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
@@ -595,12 +649,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             // that erased the result.
             if (result.Data.HasValue)
             {
-                return HttpStatusCode.OK;
+                // From the 2026-09-03 revision on, a result that carries errors beside its data
+                // is a partial success and is answered with 294.
+                return _reportsPartialSuccess && result.Errors.Count > 0
+                    ? PartialSuccess
+                    : HttpStatusCode.OK;
             }
 
-            // if data was never set the result not valid and execution has never started, and we return a 400
-            // if the user did not override the status code with a different status code.
-            return HttpStatusCode.BadRequest;
+            // if data was never set the result is not valid and execution has never started. such
+            // a request is answered 400, or 422 from the 2026-09-03 revision on, unless the user
+            // overrode the status code above.
+            return _reportsUnprocessableRequest
+                ? HttpStatusCode.UnprocessableContent
+                : HttpStatusCode.BadRequest;
         }
 
         // we allow for users to implement alternative protocols or response content-type.
@@ -981,6 +1042,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             HttpTransportVersion.Legacy => HttpTransportVersion.Legacy,
             HttpTransportVersion.Draft20230127 => HttpTransportVersion.Draft20250508,
             HttpTransportVersion.Draft20250508 => HttpTransportVersion.Draft20250508,
+            HttpTransportVersion.Draft20260903 => HttpTransportVersion.Draft20260903,
             _ => throw ThrowHelper.Formatter_TransportVersionNotSupported(paramName, version)
         };
 
