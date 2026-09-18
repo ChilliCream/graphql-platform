@@ -41,16 +41,13 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
-        if (!context.TryGetNormalizedDocument(out var normalizedDocument)
-            || !context.TryGetOperationId(out var operationId)
+        if (!context.TryGetOperationId(out var operationId)
             || !context.TryGetOperationDocument(out var document, out var documentId)
             || documentId.IsEmpty)
         {
             context.Result = ErrorHelper.StateInvalidForCostAnalysis();
             return;
         }
-
-        var normalizedOperation = context.GetNormalizedOperation();
 
         ImmutableArray<CostMetrics> costMetrics;
 
@@ -60,6 +57,23 @@ internal sealed class CostAnalyzerMiddleware(
             {
                 if (!cache.TryGetPlan(operationId, out var plan))
                 {
+                    // The document is normalized here, and nowhere else on this path, because a
+                    // plan cache hit means an earlier request already normalized, planned, and
+                    // validated the very same operation shape. Validation runs before the plan
+                    // is cached so a violation is never masked by a plan a failed request left
+                    // behind: it keeps missing, and keeps failing, on every retry.
+                    var normalizedDocument = context.GetNormalizedDocument();
+                    var normalizedOperation = context.GetNormalizedOperation();
+
+                    CostAnalyzerUtilities.ValidateRequireOneSlicingArgument(
+                        schema,
+                        normalizedOperation,
+                        normalizedDocument,
+                        document,
+                        documentId,
+                        context.Features,
+                        contextPool);
+
                     var analyses = CostAnalyses.Cost;
 
                     if (options.MaxResponseSize.HasValue)
@@ -74,15 +88,6 @@ internal sealed class CostAnalyzerMiddleware(
                         analyses);
                     cache.TryAddPlan(operationId, plan);
                 }
-
-                CostAnalyzerUtilities.ValidateRequireOneSlicingArgument(
-                    schema,
-                    normalizedOperation,
-                    normalizedDocument,
-                    document,
-                    documentId,
-                    context.Features,
-                    contextPool);
 
                 var isAssumedBound = context.IsWarmupRequest();
 

@@ -8,6 +8,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -337,12 +338,8 @@ internal sealed partial class RequestExecutorManager
                 return new DefaultPreparedOperationCache(options.PreparedOperationCacheSize);
             });
 
-        serviceCollection.AddSingleton(
-            static sp =>
-            {
-                var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
-                return new NormalizedDocumentCache(options.PreparedOperationCacheSize);
-            });
+        serviceCollection.AddSingleton<IOperationDocumentNormalizer>(
+            static sp => new OperationDocumentNormalizer(sp.GetRequiredService<ISchemaDefinition>()));
 
         serviceCollection.AddSingleton<IErrorHandler, DefaultErrorHandler>();
         serviceCollection.AddSingleton(

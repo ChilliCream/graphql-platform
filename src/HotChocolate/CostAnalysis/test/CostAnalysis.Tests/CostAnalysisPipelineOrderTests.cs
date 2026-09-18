@@ -7,11 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Cost analysis now runs before the operation cache and the operation compiler, so a
-/// cost-rejected request must never coalesce into the compiler's single-flight and must
-/// never create a prepared-operation cache entry.
+/// Cost analysis runs behind the operation cache and the operation compiler, alongside
+/// variable coercion, so a cost-rejected request has already compiled and cached its
+/// operation by the time it is rejected, and identical concurrent requests still coalesce
+/// into a single compilation.
 /// </summary>
-public sealed class CostPreCompileEnforcementTests
+public sealed class CostAnalysisPipelineOrderTests
 {
     private const string Schema =
         """
@@ -35,7 +36,7 @@ public sealed class CostPreCompileEnforcementTests
         """;
 
     [Fact]
-    public async Task Rejected_Request_Leaves_No_PreparedOperationCache_Entry_And_Never_Compiles()
+    public async Task Rejected_Request_Still_Compiles_And_Caches_The_Operation()
     {
         // arrange
         var compileCount = 0;
@@ -53,16 +54,16 @@ public sealed class CostPreCompileEnforcementTests
 
         // assert
         Assert.NotEmpty(result.ExpectOperationResult().Errors);
-        Assert.Equal(0, operationCache.Count);
-        Assert.Equal(0, Volatile.Read(ref compileCount));
+        Assert.Equal(1, operationCache.Count);
+        Assert.Equal(1, Volatile.Read(ref compileCount));
     }
 
     [Fact]
-    public async Task Concurrent_Rejected_Requests_Never_Coalesce_And_Never_Compile()
+    public async Task Concurrent_Rejected_Requests_Still_Coalesce_Into_One_Compilation()
     {
-        // arrange: a burst of identical, cost-rejected requests must not race into the
+        // arrange: a burst of identical, cost-rejected requests still races into the
         // operation cache's single-flight leader/follower coalescing, because cost
-        // enforcement rejects every one of them before the operation cache ever sees them.
+        // enforcement only runs once the operation is already compiled and cached.
         var compileCount = 0;
 
         var requestExecutor = await CreateRequestExecutorBuilder()
@@ -81,8 +82,8 @@ public sealed class CostPreCompileEnforcementTests
 
         // assert
         Assert.All(results, r => Assert.NotEmpty(r.ExpectOperationResult().Errors));
-        Assert.Equal(0, operationCache.Count);
-        Assert.Equal(0, Volatile.Read(ref compileCount));
+        Assert.Equal(1, operationCache.Count);
+        Assert.Equal(1, Volatile.Read(ref compileCount));
     }
 
     private static IRequestExecutorBuilder CreateRequestExecutorBuilder()

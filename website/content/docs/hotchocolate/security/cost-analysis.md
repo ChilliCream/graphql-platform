@@ -9,7 +9,7 @@ Hot Chocolate implements the draft [IBM Cost Analysis specification](https://ibm
 
 # Pipeline Placement
 
-In the request pipeline, cost analysis runs after document normalization and variable coercion, but before the operation cache and the operation compiler. Enforcing cost limits ahead of the operation cache means a request that fails cost enforcement is rejected before it can enter the compiler's single-flight coalescing or create a prepared-operation cache entry, so an attacker cannot pin cache or compiler resources with an operation that is expensive enough to be rejected. Cost enforcement is per request and reflects the coerced variable values; limits on operation structure, such as maximum depth, node count, and parser limits, remain the protection against operations that are expensive to compile regardless of their variables.
+In the request pipeline, cost analysis runs after the operation cache, the operation compiler, and variable coercion. A request that fails cost enforcement has therefore already compiled and cached its operation, so identical concurrent requests still coalesce into a single compilation instead of each one recompiling. Document normalization, i.e. inlining fragments into the selected operation, is not a pipeline stage; it is a lazy service that the operation compiler asks for on a cache miss, so an operation cache hit never re-normalizes the document. Cost enforcement is per request and reflects the coerced variable values; limits on operation structure, such as maximum depth, node count, and parser limits, remain the protection against operations that are expensive to compile regardless of their variables.
 
 # Cost Metrics
 

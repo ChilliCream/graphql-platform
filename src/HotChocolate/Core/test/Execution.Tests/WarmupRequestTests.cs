@@ -37,11 +37,9 @@ public class WarmupRequestTests
 
         var documentCache = executor.Schema.Services.GetRequiredService<IDocumentCache>();
         var operationCache = executor.Schema.Services.GetRequiredService<IPreparedOperationCache>();
-        var normalizedDocumentCache = executor.Schema.Services.GetRequiredService<NormalizedDocumentCache>();
 
         Assert.True(documentCache.TryGetDocument(documentId, out _));
         Assert.Equal(1, operationCache.Count);
-        Assert.Equal(1, normalizedDocumentCache.Count);
 
         // act 2
         var regularResult = await executor.ExecuteAsync(regularRequest, TestContext.Current.CancellationToken);
@@ -53,7 +51,6 @@ public class WarmupRequestTests
 
         Assert.True(documentCache.TryGetDocument(documentId, out _));
         Assert.Equal(1, operationCache.Count);
-        Assert.Equal(1, normalizedDocumentCache.Count);
     }
 
     [Fact]
@@ -87,11 +84,9 @@ public class WarmupRequestTests
         var provider = executor.Schema.Services;
         var documentCache = provider.GetRequiredService<IDocumentCache>();
         var operationCache = provider.GetRequiredService<IPreparedOperationCache>();
-        var normalizedDocumentCache = provider.GetRequiredService<NormalizedDocumentCache>();
 
         Assert.True(documentCache.TryGetDocument(documentId, out _));
         Assert.Equal(1, operationCache.Count);
-        Assert.Equal(1, normalizedDocumentCache.Count);
     }
 
     public class Query

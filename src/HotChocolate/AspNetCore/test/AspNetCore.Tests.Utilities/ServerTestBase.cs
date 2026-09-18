@@ -59,10 +59,9 @@ public abstract class ServerTestBase(TestServerFactory serverFactory) : IClassFi
                     .UseWritePersistedOperation()
                     .UseDocumentParser()
                     .UseDocumentValidation()
-                    .UseDocumentNormalization()
-                    .UseOperationVariableCoercion()
                     .UseOperationCache()
                     .UseOperationCompiler()
+                    .UseOperationVariableCoercion()
                     .UseOperationExecution()
                     .ConfigureSchemaServices(
                         s => s.AddSingleton<IOperationDocumentStorage, TestOperationDocumentStorage>())

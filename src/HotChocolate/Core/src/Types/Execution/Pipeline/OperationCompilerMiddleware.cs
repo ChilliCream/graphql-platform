@@ -36,8 +36,9 @@ internal sealed class OperationCompilerMiddleware
 
         var documentInfo = context.OperationDocumentInfo;
 
-        if (documentInfo.IsValidated && context.TryGetNormalizedDocument(out var normalizedDocument))
+        if (documentInfo.Document is not null && !documentInfo.Id.IsEmpty && documentInfo.IsValidated)
         {
+            var normalizedDocument = context.GetNormalizedDocument();
             var inFlightOperation = context.Features.Get<TaskCompletionSource<Operation>>();
 
             using (_diagnosticEvents.CompileOperation(context))
@@ -48,9 +49,7 @@ internal sealed class OperationCompilerMiddleware
                         operationId ?? Guid.NewGuid().ToString("N"),
                         documentInfo.Hash.Value,
                         context.Request.OperationName,
-                        normalizedDocument,
-                        context,
-                        isDocumentNormalized: true);
+                        normalizedDocument);
 
                     context.SetOperation(operation);
                     inFlightOperation?.TrySetResult(operation);

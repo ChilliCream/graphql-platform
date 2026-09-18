@@ -1,16 +1,17 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution.Pipeline;
 
 /// <summary>
-/// Provides access to the normalized operation document on the <see cref="RequestContext"/>,
-/// i.e. the document produced by a document normalization pipeline stage.
+/// Provides access to the normalized operation document on the <see cref="RequestContext"/>.
 /// </summary>
 public static class RequestContextNormalizedDocumentExtensions
 {
     /// <summary>
-    /// Gets the normalized operation document from the request context.
+    /// Gets the normalized operation document from the request context, normalizing the
+    /// operation document on first access and caching the result on the request context.
     /// </summary>
     /// <param name="context">
     /// The request context.
@@ -22,12 +23,37 @@ public static class RequestContextNormalizedDocumentExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        return context.OperationDocumentInfo.NormalizedDocument
-            ?? throw new InvalidOperationException("The normalized document was not set.");
+        var documentInfo = context.OperationDocumentInfo;
+
+        if (documentInfo.NormalizedDocument is { } normalizedDocument)
+        {
+            return normalizedDocument;
+        }
+
+        if (documentInfo.Document is null)
+        {
+            throw ThrowHelper.NormalizedDocument_NoDocument();
+        }
+
+        if (!documentInfo.IsValidated)
+        {
+            throw ThrowHelper.NormalizedDocument_DocumentNotValidated();
+        }
+
+        if (documentInfo.Id.IsEmpty)
+        {
+            throw ThrowHelper.NormalizedDocument_DocumentIdEmpty();
+        }
+
+        var normalizer = context.Schema.Services.GetRequiredService<IOperationDocumentNormalizer>();
+        normalizedDocument = normalizer.NormalizeDocument(context);
+        documentInfo.NormalizedDocument = normalizedDocument;
+        return normalizedDocument;
     }
 
     /// <summary>
-    /// Tries to get the normalized operation document from the request context.
+    /// Tries to get the normalized operation document from the request context without
+    /// normalizing the operation document if it is not already available.
     /// </summary>
     /// <param name="context">
     /// The request context.
