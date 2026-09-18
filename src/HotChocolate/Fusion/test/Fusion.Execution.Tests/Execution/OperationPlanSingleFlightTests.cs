@@ -946,6 +946,135 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.Same(meanwhilePlan, cachedPlan);
     }
 
+    [Fact]
+    public async Task Faulty_AddedToCache_Listener_Does_Not_Leak_The_InFlight_Entry()
+    {
+        // arrange
+        const string schemaDocument =
+            """
+            type Query {
+              foo: String
+            }
+            """;
+        const string operationText =
+            """
+            query FaultyListenerLeaderPlan {
+              foo
+            }
+            """;
+        // The plan cache is a fixed-size ring buffer (16 is the minimum); once every slot
+        // is occupied, inserting one more distinct entry evicts whichever slot the clock
+        // hand lands on next, which - since nothing above ever looks the leader's plan
+        // back up - is deterministically the leader's own entry once exactly that many
+        // brand new operations have been planned and cached after it.
+        const int planCacheCapacity = 16;
+
+        // A real plan produced independently, on a throwaway executor over the same
+        // schema; stands in for a plan that a preceding custom middleware set on the
+        // context some other way than the normal CreatePlan path (the same fallback
+        // scenario covered above), this time paired with a diagnostic listener that
+        // throws once the plan reaches the cache.
+        var primedPlans = new ConcurrentBag<OperationPlan>();
+        var primingExecutor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(primedPlans),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(ComposeSchemaDocument(schemaDocument))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+        var primingResult = await primingExecutor.ExecuteAsync(
+            operationText,
+            TestContext.Current.CancellationToken);
+        Assert.Empty(primingResult.ExpectOperationResult().Errors);
+        var externalPlan = Assert.Single(primedPlans);
+
+        using var testCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var listener = new PlanningCountDiagnosticListener();
+        var faultyListener = new FaultyOnceAddedToCacheDiagnosticListener();
+        var leaderOperationIds = new ConcurrentBag<string>();
+        var planOnceGate = new OnceGate();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .ModifyOptions(o => o.OperationExecutionPlanCacheSize = planCacheCapacity)
+            .AddDiagnosticEventListener(_ => listener)
+            .AddDiagnosticEventListener(_ => faultyListener)
+            .UseRequest(
+                (_, next) => CreateSetPlanOnFirstRequestMiddleware(
+                    next, planOnceGate, externalPlan, leaderOperationIds),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(ComposeSchemaDocument(schemaDocument))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: testCts.Token);
+
+        // act
+        // the leader's plan is set by the custom middleware, so OperationPlanMiddleware
+        // never plans it itself; OperationPlanCacheMiddleware's finally caches it and the
+        // faulty listener then throws, before it can TrySetResult. With the fix, the
+        // in-flight entry is still evicted; without it, the entry is leaked and every
+        // later request for this operation would coalesce onto its never-completing task
+        // instead of being served from the cache or planning again. The plan-capturing
+        // middleware above short-circuits before any plan would actually be executed, the
+        // same way the fallback-caching test above does, since the externally-set plan
+        // was produced on a different executor.
+        var leaderResult = await executor.ExecuteAsync(operationText, testCts.Token);
+
+        // evict the leader's cached plan by planning and caching one brand new operation
+        // per remaining slot, then one more: the cache never looks the leader's plan back
+        // up in the meantime, so once every slot has been visited once (clearing its
+        // "recently used" bit) the next new entry deterministically evicts it, forcing
+        // the final request below to actually consult the in-flight map instead of
+        // short-circuiting on the cache.
+        for (var i = 0; i < planCacheCapacity; i++)
+        {
+            var fillerOperationText =
+                $$"""
+                query FaultyListenerCacheFiller{{i}} {
+                  foo
+                }
+                """;
+            var fillerResult = await executor.ExecuteAsync(fillerOperationText, testCts.Token);
+            Assert.Empty(fillerResult.ExpectOperationResult().Errors);
+        }
+
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        var operationId = Assert.Single(leaderOperationIds.Distinct());
+        Assert.False(
+            operationPlanCache.TryGet(operationId, out _),
+            "The leader's plan should have been evicted by the filler operations above.");
+
+        // without the fix, the leader's finally never removed its in-flight entry, so this
+        // request coalesces onto its never-completing task and hangs until its own
+        // cancellation instead of planning again.
+        var secondRequestTask = executor.ExecuteAsync(operationText, testCts.Token);
+        var firstToComplete = await Task.WhenAny(
+            secondRequestTask,
+            Task.Delay(TimeSpan.FromSeconds(2), testCts.Token));
+
+        // assert
+        Assert.NotEmpty(leaderResult.ExpectOperationResult().Errors);
+        Assert.Same(
+            secondRequestTask,
+            firstToComplete);
+        var secondResult = await secondRequestTask;
+        Assert.Empty(secondResult.ExpectOperationResult().Errors);
+
+        Assert.Equal(1, listener.PlanStartCount(operationId));
+        Assert.Equal(planCacheCapacity, operationPlanCache.Count);
+        Assert.True(operationPlanCache.TryGet(operationId, out _));
+    }
+
     private static RequestDelegate CreateExternalPlanBeforePlanningMiddleware(
         RequestDelegate next,
         SingleFlightLeaderGate gate,
@@ -965,6 +1094,22 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             }
 
             await next(context);
+        };
+
+    private static RequestDelegate CreateSetPlanOnFirstRequestMiddleware(
+        RequestDelegate next,
+        OnceGate gate,
+        OperationPlan plan,
+        ConcurrentBag<string> leaderOperationIds)
+        => context =>
+        {
+            if (gate.TryEnter())
+            {
+                leaderOperationIds.Add(context.GetOperationId());
+                context.SetOperationPlan(plan);
+            }
+
+            return next(context);
         };
 
     private static RequestDelegate CreateGateMiddleware(
@@ -1163,6 +1308,28 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
 
         public ValueTask WaitForReleaseAsync(CancellationToken cancellationToken)
             => new(_release.Task.WaitAsync(cancellationToken));
+    }
+
+    private sealed class OnceGate
+    {
+        private int _entered;
+
+        public bool TryEnter()
+            => Interlocked.Exchange(ref _entered, 1) == 0;
+    }
+
+    private sealed class FaultyOnceAddedToCacheDiagnosticListener : FusionExecutionDiagnosticEventListener
+    {
+        private int _hasThrown;
+
+        public override void AddedOperationPlanToCache(RequestContext context, string operationPlanId)
+        {
+            if (Interlocked.Exchange(ref _hasThrown, 1) == 0)
+            {
+                throw new InvalidOperationException(
+                    "Boom: a faulty diagnostic listener throwing from AddedOperationPlanToCache.");
+            }
+        }
     }
 
     private sealed class SecondRequestObserver
