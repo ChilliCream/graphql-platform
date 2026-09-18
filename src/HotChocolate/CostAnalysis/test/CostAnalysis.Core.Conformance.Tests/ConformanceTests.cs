@@ -73,6 +73,7 @@ public sealed class ConformanceTests
                 coercionSchema,
                 operation.VariableDefinitions,
                 variables,
+                ignoreAdditionalInputFields: false,
                 out var coerced,
                 out var error))
         {
