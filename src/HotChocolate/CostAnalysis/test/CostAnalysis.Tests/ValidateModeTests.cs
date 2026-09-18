@@ -48,12 +48,6 @@ public sealed class ValidateModeTests
               "errors": [
                 {
                   "message": "Variable `first` is required.",
-                  "locations": [
-                    {
-                      "line": 1,
-                      "column": 7
-                    }
-                  ],
                   "extensions": {
                     "code": "HC0018",
                     "variable": "first"
@@ -171,12 +165,6 @@ public sealed class ValidateModeTests
               "errors": [
                 {
                   "message": "Variable `first` is required.",
-                  "locations": [
-                    {
-                      "line": 1,
-                      "column": 7
-                    }
-                  ],
                   "extensions": {
                     "code": "HC0018",
                     "variable": "first"
