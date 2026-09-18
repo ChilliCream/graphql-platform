@@ -351,7 +351,14 @@ export default function Tokamak() {
           theta0: streak.theta0 + orbitPhase,
         };
         const pts = occludeBehindColumn(
-          projectStreak(advanced, layout.torus, layout.camera, timeSec, true, 8),
+          projectStreak(
+            advanced,
+            layout.torus,
+            layout.camera,
+            timeSec,
+            true,
+            8,
+          ),
           advanced.theta0,
           layout.camera,
           columnHalfWidthPx,
@@ -454,7 +461,14 @@ export default function Tokamak() {
         // within the column's own projected width so they read as passing
         // behind it, not just further away (planner ruling 187 item 3).
         const pts = occludeBehindColumn(
-          projectStreak(advanced, layout.torus, layout.camera, timeSec, true, 8),
+          projectStreak(
+            advanced,
+            layout.torus,
+            layout.camera,
+            timeSec,
+            true,
+            8,
+          ),
           advanced.theta0,
           layout.camera,
           columnHalfWidthPx,
