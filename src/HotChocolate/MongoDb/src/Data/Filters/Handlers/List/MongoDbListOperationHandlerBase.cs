@@ -43,7 +43,7 @@ public abstract class MongoDbListOperationHandlerBase
         if (node.Value.IsNull())
         {
             context.ReportError(
-                ErrorHelper.CreateNonNullError(field, node.Value, context));
+                ErrorHelper.CreateNonNullError(field, context));
 
             action = SyntaxVisitor.Skip;
             return true;

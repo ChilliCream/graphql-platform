@@ -477,9 +477,12 @@ public class VariableCoercionHelperTests
                 "errors": [
                   {
                     "message": "String cannot coerce the given value JSON element of type `Number` to a runtime value.",
-                    "path": [
-                      "abc"
-                    ]
+                    "extensions": {
+                      "inputPath": [
+                        "abc"
+                      ],
+                      "fieldType": "String"
+                    }
                   }
                 ]
                 """);
@@ -645,10 +648,13 @@ public class VariableCoercionHelperTests
                 "errors": [
                   {
                     "message": "Int cannot coerce the given value JSON element of type `String` to a runtime value.",
-                    "path": [
-                      "abc",
-                      0
-                    ]
+                    "extensions": {
+                      "inputPath": [
+                        "abc",
+                        0
+                      ],
+                      "fieldType": "Int"
+                    }
                   }
                 ]
                 """);

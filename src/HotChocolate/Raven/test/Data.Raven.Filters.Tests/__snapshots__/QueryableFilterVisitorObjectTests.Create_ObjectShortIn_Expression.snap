@@ -54,12 +54,6 @@ nullAnd14
   "errors": [
     {
       "message": "The provided value for filter `in` of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 40
-        }
-      ],
       "path": [
         "root"
       ],
