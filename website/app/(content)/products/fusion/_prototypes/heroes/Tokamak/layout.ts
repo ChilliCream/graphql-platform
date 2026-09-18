@@ -112,7 +112,7 @@ function buildTaperedRows(
  * read as a cylinder -- untouched by a focal-only change). `nearFactor`
  * (`scale / camera.baseScale`) is a ratio of two focal-proportional
  * quantities, so the near/far dimming envelope is unaffected too. At
- * `focal = 535` the rendered ring spans ~87% of a 375px viewport (target
+ * `focal = 480` the rendered ring spans ~86% of a 375px viewport (target
  * 85-90%, measured with `r3-band375.cjs`'s `bandX` extent), up from ~41% at
  * the old `focal = 250`.
  */
