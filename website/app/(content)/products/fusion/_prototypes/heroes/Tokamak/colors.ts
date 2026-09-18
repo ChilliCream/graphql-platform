@@ -1,5 +1,5 @@
 /**
- * Converts a `#rrggbb` hex literal from `BRAND`/`SERVICE_SPECTRUM` to an
+ * Converts a `#rrggbb` hex literal from `BRAND` to an
  * `rgba(...)` string, the only way canvas code in this hero gets an
  * alpha-blended colour. Each hex is parsed once and the RGB triple is
  * cached, the same idea as `board.ts`'s `GLOW_RGB` constant: no re-parse at

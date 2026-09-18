@@ -21,11 +21,10 @@ import {
 } from "./paint";
 import {
   createStreak,
+  occludeBehindColumn,
   projectHelix,
-  projectSpiralDashes,
   projectStreak,
   type ShadedPoint,
-  type SpiralDash,
   type Streak,
 } from "./plasma";
 
@@ -41,7 +40,6 @@ const DESKTOP_STATIC_STREAKS = 420;
 const DESKTOP_LIVE_STREAKS = 48;
 const MOBILE_STATIC_STREAKS = 210;
 const MOBILE_LIVE_STREAKS = 26;
-const SPECTRUM_STREAM_COUNT = 5;
 /** Offscreen glow source for the live streaks/helix, a fraction of the live canvas' CSS size -- a cheap bloom from downscale + upscale instead of a per-stroke blur filter (same technique as `PlasmaFusion`'s `drawBloomSource`). */
 const GLOW_SCALE = 0.25;
 
@@ -59,12 +57,6 @@ function mulberry32(seed: number): () => number {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-interface SpiralSeed {
-  readonly theta0: number;
-  readonly outerRadius: number;
-  readonly loops: number;
 }
 
 /**
@@ -132,7 +124,8 @@ export default function Tokamak() {
     let glowW = 0;
     let glowH = 0;
     let liveStreaks: Streak[] = [];
-    let spirals: SpiralSeed[] = [];
+    /** The column's own projected half-width at the plasma's height, in px -- see `occludeBehindColumn`. Recomputed in `buildScene` whenever the layout changes. */
+    let columnHalfWidthPx = 0;
     let disposed = false;
 
     function featherEdge(ctx: CanvasRenderingContext2D) {
@@ -165,37 +158,35 @@ export default function Tokamak() {
         ? MOBILE_LIVE_STREAKS
         : DESKTOP_LIVE_STREAKS;
 
+      // The column's projected half-width at the plasma's height: the
+      // middle column row sits at the torus' own y (see `layout.ts`'s
+      // `buildTaperedRows`, t=0), so projecting its edge (world x = radius)
+      // and comparing to the on-axis centre (`camera.originX`) gives the
+      // span a far-side streak has to fall inside to read as behind the
+      // column -- planner ruling 187 item 3.
+      const midColumnRow =
+        layout.columnRows[Math.floor(layout.columnRows.length / 2)];
+      const columnEdge = project(
+        { x: midColumnRow.radius, y: layout.torus.y, z: layout.torus.z },
+        layout.camera,
+      );
+      columnHalfWidthPx = Math.abs(columnEdge.x - layout.camera.originX);
+
       const staticAngles = stratifiedAngles(totalStatic, rand);
       const staticStreakPaths: ShadedPoint[][] = staticAngles.map(
         ([theta0, phi]) =>
-          projectStreak(
-            createStreak(rand, theta0, phi),
-            layout.torus,
+          occludeBehindColumn(
+            projectStreak(
+              createStreak(rand, theta0, phi),
+              layout.torus,
+              layout.camera,
+              0,
+              false,
+            ),
+            theta0,
             layout.camera,
-            0,
-            false,
+            columnHalfWidthPx,
           ),
-      );
-
-      // Starts just outside the column's own flare, not out at the wall's
-      // full bulge radius -- the wall sits mostly out of frame or deep in
-      // z at this camera distance, so a spiral starting there would spend
-      // almost its whole run invisible. Staying close to the ring keeps
-      // every turn of the inward spiral on screen.
-      const outerRadius = layout.torus.R * 2.35;
-      spirals = Array.from({ length: SPECTRUM_STREAM_COUNT }, (_, i) => ({
-        theta0: (i / SPECTRUM_STREAM_COUNT) * Math.PI * 2 + rand() * 0.4,
-        outerRadius,
-        loops: 2.4 + rand() * 1.1,
-      }));
-      const spiralStreams: SpiralDash[][] = spirals.map((seed) =>
-        projectSpiralDashes(
-          layout.torus,
-          layout.camera,
-          seed.theta0,
-          seed.outerRadius,
-          seed.loops,
-        ),
       );
 
       const liveAngles = stratifiedAngles(totalLive, rand);
@@ -237,7 +228,7 @@ export default function Tokamak() {
       );
       paintChamber(chamberCtx!, w, h, tiles, lights);
 
-      paintPlasmaCache(plasmaCtx!, w, h, staticStreakPaths, spiralStreams);
+      paintPlasmaCache(plasmaCtx!, w, h, staticStreakPaths);
       featherEdge(plasmaCtx!);
     }
 
@@ -275,12 +266,11 @@ export default function Tokamak() {
           ...streak,
           theta0: streak.theta0 + orbitPhase,
         };
-        const pts = projectStreak(
-          advanced,
-          layout.torus,
+        const pts = occludeBehindColumn(
+          projectStreak(advanced, layout.torus, layout.camera, timeSec, true),
+          advanced.theta0,
           layout.camera,
-          timeSec,
-          true,
+          columnHalfWidthPx,
         );
         strokeShadedPath(glowCtx!, pts, BRAND.coral, 5.5, streak.alpha * 0.5);
       }
@@ -346,16 +336,16 @@ export default function Tokamak() {
           theta0: streak.theta0 + orbitPhase,
         };
         // Streaks on the torus' far side (opposite the camera) project at
-        // greater depth, so `near` (from `nearFactor`) is already small --
-        // they draw dimmer and thinner purely from the projection, the same
-        // stand-in for "occluded by the column" every other shaded path in
-        // this hero uses, never a hand-set 2D fade.
-        const pts = projectStreak(
-          advanced,
-          layout.torus,
+        // greater depth, so `near` (from `nearFactor`) is already small,
+        // drawing them dimmer and thinner purely from the projection; on
+        // top of that, `occludeBehindColumn` dims the ones that fall
+        // within the column's own projected width so they read as passing
+        // behind it, not just further away (planner ruling 187 item 3).
+        const pts = occludeBehindColumn(
+          projectStreak(advanced, layout.torus, layout.camera, timeSec, true),
+          advanced.theta0,
           layout.camera,
-          timeSec,
-          true,
+          columnHalfWidthPx,
         );
         const flicker =
           0.65 +

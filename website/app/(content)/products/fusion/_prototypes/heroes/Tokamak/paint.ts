@@ -1,8 +1,7 @@
-import { SERVICE_SPECTRUM } from "../../spectrum";
 import { BRAND } from "../../../tokens";
 import type { InstrumentLight, Tile } from "./chamber";
 import { hexToRgba, mixHexToRgba } from "./colors";
-import type { ShadedPoint, SpiralDash } from "./plasma";
+import type { ShadedPoint } from "./plasma";
 
 /**
  * Strokes a projected, per-point-shaded path (a streak arc, the helix, a
@@ -59,21 +58,48 @@ export function strokeShadedPathRgba(
 }
 
 /**
- * Draws `paths` twice through `stroke` -- once as a wide, low-alpha halo
- * under a canvas-level blur filter, once as the caller's normal sharp pass
- * -- so every luminous element this touches carries a glow instead of a
- * hard vector edge (README section 3, planner ruling 187 item 3). Only used
- * for the plasma cache, which is baked once per `measure()`, so the filter
- * cost never lands on a live frame.
+ * A wide, low-alpha halo pass underneath the caller's normal sharp strokes,
+ * so every luminous element this touches carries a glow instead of a hard
+ * vector edge (README section 3, planner ruling 187 item 3). Only used for
+ * the plasma cache, which is baked once per `measure()`, so the cost never
+ * lands on a live frame.
+ *
+ * `paint` draws every halo path UNFILTERED into a same-size, same-transform
+ * offscreen canvas (one `ctx.filter`-free stroke per path, cheap), and this
+ * then composites that whole canvas onto `ctx` ONCE under a single
+ * `ctx.filter = 'blur(...)'` pass. Setting `ctx.filter` before hundreds of
+ * individual filtered strokes (the original approach) is not just slower --
+ * it is catastrophically slower: a synthetic bench of 2100 strokes in this
+ * same headless Chromium measured ~43.7s with `ctx.filter` set per stroke
+ * versus ~29ms for one filtered `drawImage` of the same strokes rasterised
+ * unfiltered first (see ticket hc-0-wrc.3 F2), which is exactly what caused
+ * the two ~8.3s long tasks that blocked the RAF loop from reaching 60fps
+ * until t=17s.
  */
 function withBlurHalo(
   ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
   blurPx: number,
-  paint: () => void,
+  paint: (haloCtx: CanvasRenderingContext2D) => void,
 ): void {
+  const canvas = ctx.canvas;
+  const off = document.createElement("canvas");
+  off.width = canvas.width;
+  off.height = canvas.height;
+  const offCtx = off.getContext("2d");
+  if (!offCtx) {
+    return;
+  }
+  offCtx.setTransform(ctx.getTransform());
+  offCtx.lineCap = "round";
+  offCtx.globalCompositeOperation = "lighter";
+  paint(offCtx);
+
   ctx.save();
   ctx.filter = `blur(${blurPx}px)`;
-  paint();
+  ctx.globalCompositeOperation = "lighter";
+  ctx.drawImage(off, 0, 0, off.width, off.height, 0, 0, w, h);
   ctx.restore();
 }
 
@@ -208,30 +234,35 @@ export function paintChamber(
 }
 
 /**
- * Cached plasma layer: the dense static majority of streaks (hundreds) plus
- * the five service-colour dash trails, baked once per `measure()` with
- * `lighter` compositing so their glow adds instead of covering. Every
- * luminous element gets a wide, low-alpha, canvas-blurred halo pass
- * underneath its sharp core (README section 3, planner ruling 187 item 3) --
- * affordable here because this canvas is re-rendered only on resize, never
- * per frame; the live layer draws the small orbiting subset, the helix and
- * the breathing bloom on top of this every frame using a cheaper downscaled
- * bloom pass instead (see `index.tsx`).
+ * Cached plasma layer: the dense static majority of streaks (hundreds),
+ * baked once per `measure()` with `lighter` compositing so their glow adds
+ * instead of covering. Every luminous element gets a wide, low-alpha,
+ * canvas-blurred halo pass underneath its sharp core (README section 3,
+ * planner ruling 187 item 3) -- affordable here because this canvas is
+ * re-rendered only on resize, never per frame; the live layer draws the
+ * small orbiting subset, the helix and the breathing bloom on top of this
+ * every frame using a cheaper downscaled bloom pass instead (see
+ * `index.tsx`).
+ *
+ * The five service-colour streams (README section 4) were dropped
+ * entirely (ticket hc-0-wrc.3 F3/verifier correction): even as dash
+ * trails they read as thin straight lines crossing the frame at this
+ * camera distance, and the planner's own ruling permits dropping them --
+ * "the picture is slate plus coral."
  */
 export function paintPlasmaCache(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
   staticStreakPaths: readonly ShadedPoint[][],
-  spiralStreams: readonly (readonly SpiralDash[])[],
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.lineCap = "round";
   ctx.globalCompositeOperation = "lighter";
 
-  withBlurHalo(ctx, 3.5, () => {
+  withBlurHalo(ctx, w, h, 3.5, (haloCtx) => {
     for (const path of staticStreakPaths) {
-      strokeShadedPath(ctx, path, BRAND.coral, 2.6, 0.1);
+      strokeShadedPath(haloCtx, path, BRAND.coral, 2.6, 0.1);
     }
   });
   for (const path of staticStreakPaths) {
@@ -239,23 +270,6 @@ export function paintPlasmaCache(
   }
   for (const path of staticStreakPaths) {
     strokeShadedPathRgba(ctx, path, [255, 255, 255], 0.8, 0.55);
-  }
-
-  // Five thin, low-saturation dash trails per stream, fading and tapering
-  // to nothing as `dash.t` approaches 1 (the ring join) -- never one
-  // continuous orbit line (README section 4, planner ruling 187 item 4).
-  for (let i = 0; i < spiralStreams.length; i++) {
-    const spectrum = SERVICE_SPECTRUM[i % SERVICE_SPECTRUM.length];
-    for (const dash of spiralStreams[i]) {
-      const fade = Math.max(0, 1 - Math.pow(dash.t, 1.6));
-      strokeShadedPath(
-        ctx,
-        dash.pts,
-        spectrum.color,
-        1.4 * (0.4 + fade * 0.6),
-        0.34 * fade,
-      );
-    }
   }
 
   ctx.globalCompositeOperation = "source-over";
