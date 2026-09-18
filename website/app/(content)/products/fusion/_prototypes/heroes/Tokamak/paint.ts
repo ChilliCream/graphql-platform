@@ -311,18 +311,11 @@ export function paintColumnLayer(
  * 206) and the mobile density scale (review 3, F1: the 375 band is dense
  * enough at full alpha to blow out) both fall out of one number, and a
  * separate `colorHex` (`BRAND.coral` for the near half, `BRAND.coralSoft`
- * for the far half) carries the desaturation itself. `widthMul` scales every
- * stroke width in the pass -- the base widths below are absolute px, tuned
- * against the desktop ring's own projected size; the mobile ring did not
- * carry the same px-per-projected-size ratio once its camera zoomed in
- * (hc-0-wrc.7), so the mobile caller passes a `widthMul` above 1 to keep the
- * band's own streak density (not just its alpha) proportional to its now
- * much larger projected area.
+ * for the far half) carries the desaturation itself.
  */
 export interface PlasmaLayerStyle {
   readonly colorHex: string;
   readonly alphaMul: number;
-  readonly widthMul: number;
 }
 
 /**
@@ -366,50 +359,24 @@ export function paintPlasmaLayer(
   ctx.clearRect(0, 0, w, h);
   ctx.lineCap = "round";
   ctx.globalCompositeOperation = "lighter";
-  const { colorHex, alphaMul, widthMul } = style;
-  // The halo passes already grow their own blur radius with `ringWidthPx`
-  // (below) and stack under `lighter` compositing, so giving them the full
-  // sharp-stroke `widthMul` on top double-counts the mobile ring's growth
-  // and over-saturates the band (hc-0-wrc.7: pct85 stuck at 17-18%, over
-  // the 15% ceiling, even after the sharp strokes' own exposure was
-  // brought into the 45-65% mean range). Half the width growth here keeps
-  // the halo's own coverage roughly proportional without doubling up.
-  const haloWidthMul = 1 + (widthMul - 1) * 0.5;
+  const { colorHex, alphaMul } = style;
 
   withBlurHalo(ctx, w, h, Math.max(1, ringWidthPx * 0.022), (haloCtx) => {
     for (const path of paths) {
-      strokeShadedPath(
-        haloCtx,
-        path,
-        colorHex,
-        3 * haloWidthMul,
-        0.18 * alphaMul,
-      );
+      strokeShadedPath(haloCtx, path, colorHex, 3, 0.18 * alphaMul);
     }
   });
 
   withBlurHalo(ctx, w, h, 3.5, (haloCtx) => {
     for (const path of paths) {
-      strokeShadedPath(
-        haloCtx,
-        path,
-        colorHex,
-        2.6 * haloWidthMul,
-        0.08 * alphaMul,
-      );
+      strokeShadedPath(haloCtx, path, colorHex, 2.6, 0.08 * alphaMul);
     }
   });
   for (const path of paths) {
-    strokeShadedPath(ctx, path, colorHex, 2 * widthMul, 0.12 * alphaMul);
+    strokeShadedPath(ctx, path, colorHex, 2, 0.12 * alphaMul);
   }
   for (const path of paths) {
-    strokeShadedPathRgba(
-      ctx,
-      path,
-      whiteToRgba,
-      0.6 * widthMul,
-      0.07 * alphaMul,
-    );
+    strokeShadedPathRgba(ctx, path, whiteToRgba, 0.6, 0.07 * alphaMul);
   }
 
   ctx.globalCompositeOperation = "source-over";

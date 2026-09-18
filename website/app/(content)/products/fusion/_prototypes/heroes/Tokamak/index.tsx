@@ -46,29 +46,18 @@ import {
 // band under `lighter` compositing.
 const DESKTOP_STATIC_STREAKS = 900;
 const DESKTOP_LIVE_STREAKS = 72;
-// Cut from 450 (hc-0-wrc.3 review 3, F1): at full density and alpha the 375
-// band (roughly 170x68 px) blew out to a solid pink lozenge; paired with
-// `MOBILE_DENSITY_SCALE` below.
+// Raised from 260 to 820, close to the desktop count (hc-0-wrc.7: the ring
+// now spans ~85-90% of the mobile viewport, roughly 323x100 px, so the band
+// needs close to desktop-level streak density to read as a continuous torus
+// rather than a sparse scatter); paired with `MOBILE_DENSITY_SCALE` below.
 const MOBILE_STATIC_STREAKS = 820;
 const MOBILE_LIVE_STREAKS = 56;
 /** ~10% of the static majority, added on top as loose, further-dimmed streaks off the tube's own radius -- the reference's sparse strays thinning out above/below the band (review 3, F2). */
 const STRAY_FRACTION = 0.1;
-/** Scales every plasma stroke alpha on mobile, on top of the lower static count above (review 3, F1: the 375 band's own small projected area needs both). */
+/** Alpha multiplier for every plasma stroke on mobile, on top of the static/live counts above -- 1 (no cut) since hc-0-wrc.7 enlarged the band to close to desktop projected size, so the old sub-1 mobile dampening is no longer needed to stay under the exposure ceiling. */
 const MOBILE_DENSITY_SCALE = 1;
-/** Extra dampening on the white-hot core specifically, on top of `plasmaDensityScale`, since the mobile band's tiny projected area (review 3, F1: ~170x68 px) concentrates the core gradient into a much larger share of the band than at desktop scale. */
+/** Extra dampening on the white-hot core specifically, on top of `plasmaDensityScale`: even at the larger ~323x100 px mobile band (hc-0-wrc.7) the core gradient still concentrates into a larger share of the band than at desktop scale, so it stays damped independently. */
 const MOBILE_CORE_SCALE = 0.3;
-/**
- * Scales every plasma stroke's WIDTH on mobile (cached and live alike), on
- * top of `plasmaDensityScale`'s alpha scaling. Every stroke width in
- * `paint.ts`/this file is an absolute px number tuned against the desktop
- * ring's own projected size; raising the mobile camera's `focal` (layout.ts,
- * hc-0-wrc.7) grew the mobile ring's projected area roughly 5x without
- * touching those widths, which thinned the band into a dim, sparse-looking
- * ring (measured band mean luminance well under the 45% floor) even though
- * the ring's own width-of-viewport target was met. `widthMul` restores the
- * same px-per-projected-size ratio the old, smaller mobile ring had.
- */
-const MOBILE_WIDTH_SCALE = 1;
 /**
  * Scales the column-tint and bloom radii (below) on mobile only: at the
  * enlarged mobile ring (hc-0-wrc.7) these radii, unscaled, only reached
@@ -197,10 +186,8 @@ export default function Tokamak() {
     let liveStreaks: Streak[] = [];
     /** The column's own projected half-width at the plasma's height, in px -- see `occludeHelixBehindColumn`. Recomputed in `buildScene` whenever the layout changes. */
     let columnHalfWidthPx = 0;
-    /** `MOBILE_DENSITY_SCALE` on mobile, 1 on desktop -- also scales the live core/bloom/tint gradients in `drawLive`, not just the two cached plasma layers, so the mobile band's small projected area (review 3, F1) does not blow out under the same absolute coefficients desktop uses. */
+    /** `MOBILE_DENSITY_SCALE` on mobile, 1 on desktop -- also scales the live core/bloom/tint gradients in `drawLive`, not just the two cached plasma layers, so every plasma draw uses the same mobile alpha coefficient (currently 1, no cut, since hc-0-wrc.7 enlarged the band to close to desktop projected size). */
     let plasmaDensityScale = 1;
-    /** `MOBILE_WIDTH_SCALE` on mobile, 1 on desktop -- see that constant's doc. */
-    let plasmaWidthScale = 1;
     let disposed = false;
 
     function featherEdge(ctx: CanvasRenderingContext2D) {
@@ -305,8 +292,6 @@ export default function Tokamak() {
       const totalStray = Math.round(totalStatic * STRAY_FRACTION);
       const densityScale = layout.mobile ? MOBILE_DENSITY_SCALE : 1;
       plasmaDensityScale = densityScale;
-      const widthScale = layout.mobile ? MOBILE_WIDTH_SCALE : 1;
-      plasmaWidthScale = widthScale;
 
       // The column's projected half-width at the plasma's height: the
       // middle column row sits at the torus' own y (see `layout.ts`'s
@@ -390,12 +375,10 @@ export default function Tokamak() {
       paintPlasmaLayer(farCtx!, w, h, farPaths, ringWidthPx, {
         colorHex: BRAND.coralSoft,
         alphaMul: FAR_ALPHA_MUL * densityScale,
-        widthMul: widthScale,
       });
       paintPlasmaLayer(nearCtx!, w, h, nearPaths, ringWidthPx, {
         colorHex: BRAND.coral,
         alphaMul: NEAR_ALPHA_MUL * densityScale,
-        widthMul: widthScale,
       });
     }
 
@@ -484,14 +467,14 @@ export default function Tokamak() {
             liveCtx!,
             pts,
             colorHex,
-            2.4 * hot * plasmaWidthScale,
+            2.4 * hot,
             streak.alpha * flicker * 0.4 * alphaMul * hot,
           );
           strokeShadedPathRgba(
             liveCtx!,
             pts,
             whiteToRgba,
-            0.9 * hot * plasmaWidthScale,
+            0.9 * hot,
             flicker * 0.3 * alphaMul * hot,
           );
         }
@@ -503,18 +486,12 @@ export default function Tokamak() {
         alphaMul: number,
       ) => {
         for (const run of runs) {
-          strokeShadedPath(
-            liveCtx!,
-            run,
-            colorHex,
-            4.5 * plasmaWidthScale,
-            0.35 * alphaMul,
-          );
+          strokeShadedPath(liveCtx!, run, colorHex, 4.5, 0.35 * alphaMul);
           strokeShadedPathRgba(
             liveCtx!,
             run,
             warmWhiteToRgba,
-            1.2 * plasmaWidthScale,
+            1.2,
             0.5 * alphaMul,
           );
         }
@@ -549,26 +526,16 @@ export default function Tokamak() {
             true,
             8,
           );
-          // Halved width growth, same as `paint.ts`'s `haloWidthMul`: this
-          // is itself a blurred glow pass (downscaled, then upscaled), so
-          // the full sharp-stroke width scale would double-count the
-          // mobile ring's growth here too.
           strokeShadedPath(
             glowCtx!,
             pts,
             colorHex,
-            5.5 * (1 + (plasmaWidthScale - 1) * 0.5),
+            5.5,
             streak.alpha * 0.5 * alphaMul,
           );
         }
         for (const run of helixRuns) {
-          strokeShadedPath(
-            glowCtx!,
-            run,
-            colorHex,
-            4.5 * (1 + (plasmaWidthScale - 1) * 0.5),
-            0.28 * alphaMul,
-          );
+          strokeShadedPath(glowCtx!, run, colorHex, 4.5, 0.28 * alphaMul);
         }
         liveCtx!.globalCompositeOperation = "lighter";
         liveCtx!.globalAlpha = 0.9;
