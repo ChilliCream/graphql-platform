@@ -103,7 +103,7 @@ public sealed class MessageBusConfigurationValidationTests
         configure(builder);
 
         using var provider = services.BuildServiceProvider();
-        return Assert.Throws<InvalidOperationException>(() => provider.GetRequiredService<IMessagingRuntime>());
+        return Assert.Throws<InvalidOperationException>(provider.GetRequiredService<IMessagingRuntime>);
     }
 
     private static async Task InspectRuntimeAsync(

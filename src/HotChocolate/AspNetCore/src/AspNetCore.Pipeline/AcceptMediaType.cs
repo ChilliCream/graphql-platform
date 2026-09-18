@@ -158,10 +158,19 @@ public readonly struct AcceptMediaType
             }
         }
 
-        if (type.Equals(ContentType.Types.Text, StringComparison.OrdinalIgnoreCase)
-            && subType.Equals(ContentType.SubTypes.EventStream, StringComparison.OrdinalIgnoreCase))
+        if (type.Equals(ContentType.Types.Text, StringComparison.OrdinalIgnoreCase))
         {
-            return AcceptMediaTypeKind.EventStream;
+            if (subType.Equals(ContentType.Types.All, StringComparison.Ordinal))
+            {
+                return AcceptMediaTypeKind.AllText;
+            }
+
+            if (subType.Equals(
+                ContentType.SubTypes.EventStream,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return AcceptMediaTypeKind.EventStream;
+            }
         }
 
         return AcceptMediaTypeKind.Unknown;
@@ -178,7 +187,8 @@ public readonly struct AcceptMediaType
                 or AcceptMediaTypeKind.ApplicationJsonLines => ContentType.Types.Application,
             AcceptMediaTypeKind.AllMultiPart
                 or AcceptMediaTypeKind.MultiPartMixed => ContentType.Types.MultiPart,
-            AcceptMediaTypeKind.EventStream => ContentType.Types.Text,
+            AcceptMediaTypeKind.AllText
+                or AcceptMediaTypeKind.EventStream => ContentType.Types.Text,
             _ => type.Value!
         };
 
@@ -187,7 +197,8 @@ public readonly struct AcceptMediaType
         {
             AcceptMediaTypeKind.All
                 or AcceptMediaTypeKind.AllApplication
-                or AcceptMediaTypeKind.AllMultiPart => ContentType.Types.All,
+                or AcceptMediaTypeKind.AllMultiPart
+                or AcceptMediaTypeKind.AllText => ContentType.Types.All,
             AcceptMediaTypeKind.ApplicationGraphQL => ContentType.SubTypes.GraphQLResponse,
             AcceptMediaTypeKind.ApplicationGraphQLStream => ContentType.SubTypes.GraphQLResponseStream,
             AcceptMediaTypeKind.ApplicationJson => ContentType.SubTypes.Json,

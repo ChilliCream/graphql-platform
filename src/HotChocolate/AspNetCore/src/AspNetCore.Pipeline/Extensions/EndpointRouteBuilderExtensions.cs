@@ -141,11 +141,10 @@ public static class EndpointRouteBuilderExtensions
             .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(
                 executor, serverOptions, path, MiddlewareRoutingType.Integrated))
             .UseNitroApp(path, serverOptions.Tool)
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
+                executor,
+                serverOptions,
+                path));
 
         return applicationBuilder;
     }
@@ -219,11 +218,10 @@ public static class EndpointRouteBuilderExtensions
             .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
             .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
-            .Use(_ => context =>
-            {
-                context.Response.StatusCode = 404;
-                return Task.CompletedTask;
-            });
+            .Use(MiddlewareFactory.CreateHttpUnsupportedRequestMiddleware(
+                executor,
+                serverOptions,
+                path: null));
 
         return new GraphQLHttpEndpointConventionBuilder(
             endpointRouteBuilder

@@ -18,10 +18,12 @@ internal static class ErrorHelper
 
     public static GraphQLRequestException InvalidRequest(
         InvalidGraphQLRequestException ex) =>
-        new(ErrorBuilder.New()
-            .SetMessage(ex.Message)
-            .SetCode(ErrorCodes.Server.RequestInvalid)
-            .Build());
+        new(
+            ErrorBuilder.New()
+                .SetMessage(ex.Message)
+                .SetCode(ErrorCodes.Server.RequestInvalid)
+                .Build(),
+            ex);
 
     public static IError RequestHasNoElements()
         => ErrorBuilder.New()
@@ -98,10 +100,13 @@ internal static class ErrorHelper
             });
 
     public static GraphQLRequestException InvalidOperationIdFormat()
-        => new GraphQLRequestException(
-            ErrorBuilder.New()
-                .SetMessage("The operation id has an invalid format.")
-                .Build());
+    {
+        const string message = "The operation ID has an invalid format.";
+
+        return new GraphQLRequestException(
+            ErrorBuilder.New().SetMessage(message).Build(),
+            new InvalidGraphQLRequestException(message));
+    }
 
     public static IExecutionResult OperationNameRequired()
         => OperationResult.FromError(

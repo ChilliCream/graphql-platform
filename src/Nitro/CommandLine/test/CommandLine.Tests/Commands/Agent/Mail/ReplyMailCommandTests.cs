@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Tests.Hook;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Mail;
 
 public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
@@ -143,6 +141,28 @@ public sealed class ReplyMailCommandTests(NitroCommandFixture fixture)
         Assert.Equal("Root subject", root.GetProperty("subject").GetString());
         Assert.Equal(["alice"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
         Assert.True(root.GetProperty("messageStored").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Reply_Should_NudgeRecipientWithExactMessageIdAndBody()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await ExecuteCommandAsync("agent", "register", "--actor", "alice");
+        await ExecuteCommandAsync("agent", "register", "--actor", "bob");
+        var originalId = await SendOriginalMessageAsync("alice", "Status", "bob");
+        var queueClient = await SetupSuccessfulWakeAsync("host-reply-nudge-test", "alice");
+
+        // act
+        await ExecuteCommandAsync(
+            "agent", "mail", "reply", "--message", originalId, "--body", "Thanks!", "--actor", "bob");
+
+        // assert
+        var replyId = await QueryScalarAsync(
+            "SELECT id FROM messages WHERE in_reply_to = '" + originalId + "'");
+        Assert.Equal(
+            ("thread-alice", replyId, "Thanks!"),
+            ReadDigestCall(Assert.Single(queueClient.Calls)));
     }
 
     [Fact]

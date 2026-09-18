@@ -1839,7 +1839,7 @@ AddErrors_Next:
     private void WriteRawAscii(string value)
     {
         Span<byte> buffer = stackalloc byte[value.Length];
-        System.Text.Encoding.UTF8.GetBytes(value.AsSpan(), buffer);
+        Encoding.UTF8.GetBytes(value.AsSpan(), buffer);
         _jsonWriter.WriteRawValue(buffer);
     }
 

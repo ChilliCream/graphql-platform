@@ -19,10 +19,12 @@ public class MessageType
 
     private IMessageSerializerRegistry _serializerRegistry = null!;
 
-    private ImmutableDictionary<MessageContentType, IMessageSerializer> _serializer = ImmutableDictionary<
-        MessageContentType,
-        IMessageSerializer
-    >.Empty;
+    private ImmutableDictionary<MessageContentType, IMessageSerializer> _serializer
+#if NET10_0_OR_GREATER
+        = [];
+#else
+        = ImmutableDictionary<MessageContentType, IMessageSerializer>.Empty;
+#endif
 
     /// <summary>
     /// Gets the URN-based identity string that uniquely identifies this message type on the wire.

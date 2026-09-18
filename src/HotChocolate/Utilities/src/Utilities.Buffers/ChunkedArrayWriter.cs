@@ -19,7 +19,9 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
     private const int BufferMask = BufferSize - 1;
     private const int BufferShift = 17; // log2(131072) = 17
     private const int DefaultScratchSize = 128;
+#if NET8_0_OR_GREATER
     private const int SimdThreshold = 64;
+#endif
 
     private readonly JsonMemoryKind _memoryKind;
     private byte[][] _chunks;
@@ -63,7 +65,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
 #if NETSTANDARD2_0
         if (_disposed)
         {
-            throw new ObjectDisposedException(typeof(ChunkedArrayWriter).FullName!);
+            throw new ObjectDisposedException(typeof(ChunkedArrayWriter).FullName);
         }
 #else
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -88,9 +90,11 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         while (!remaining.IsEmpty)
         {
             var length = Math.Min(remaining.Length, BufferSize - offsetInChunk);
+#pragma warning disable IDE0057 // Use range operator -- Not available in netstandard2.0.
             remaining.Slice(0, length).CopyTo(
                 _chunks[chunkIndex].AsSpan(offsetInChunk, length));
             remaining = remaining.Slice(length);
+#pragma warning restore IDE0057 // Use range operator
             chunkIndex++;
             offsetInChunk = 0;
         }

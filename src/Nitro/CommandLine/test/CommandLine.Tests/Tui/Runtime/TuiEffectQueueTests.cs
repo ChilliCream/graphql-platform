@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Runtime;
 
 public sealed class TuiEffectQueueTests
 {
-    private static readonly TimeSpan TestTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan s_testTimeout = TimeSpan.FromSeconds(5);
 
     [Fact]
     public async Task TrySubmit_Should_ReturnImmediately_When_EffectIsSlow()
@@ -19,7 +19,7 @@ public sealed class TuiEffectQueueTests
 
         async Task<string> SlowEffect(TuiOperationId id, CancellationToken ct)
         {
-            await release.Task.WaitAsync(TestTimeout, ct);
+            await release.Task.WaitAsync(s_testTimeout, ct);
             return "done";
         }
 
@@ -47,7 +47,7 @@ public sealed class TuiEffectQueueTests
 
         async Task<string> Effect(TuiOperationId id, CancellationToken ct)
         {
-            await release.Task.WaitAsync(TestTimeout, ct);
+            await release.Task.WaitAsync(s_testTimeout, ct);
             return "done";
         }
 
@@ -76,7 +76,7 @@ public sealed class TuiEffectQueueTests
 
         Task<string> BlockingEffect(TuiOperationId id, CancellationToken ct)
         {
-            gate.Wait(TestTimeout);
+            gate.Wait(s_testTimeout);
             return Task.FromResult("done");
         }
 
@@ -199,7 +199,7 @@ public sealed class TuiEffectQueueTests
 
         async Task<string> CancellingEffect(TuiOperationId id, CancellationToken ct)
         {
-            await Task.Delay(TestTimeout, ct);
+            await Task.Delay(s_testTimeout, ct);
             return "unreachable";
         }
 
@@ -257,7 +257,7 @@ public sealed class TuiEffectQueueTests
 
         async Task<string> Effect(TuiOperationId id, CancellationToken ct)
         {
-            await release.Task.WaitAsync(TestTimeout, ct);
+            await release.Task.WaitAsync(s_testTimeout, ct);
             return "done";
         }
 
@@ -299,7 +299,7 @@ public sealed class TuiEffectQueueTests
 
         async Task<string> Effect(TuiOperationId id, CancellationToken ct)
         {
-            await release.Task.WaitAsync(TestTimeout, ct);
+            await release.Task.WaitAsync(s_testTimeout, ct);
             return "done";
         }
 
@@ -356,7 +356,7 @@ public sealed class TuiEffectQueueTests
 
         // act
         queue.TrySubmit("compose", (_, _) => Task.FromResult("stored"), testToken, out _);
-        var wakeEvent = await channel.Reader.ReadAsync(testToken).AsTask().WaitAsync(TestTimeout, testToken);
+        var wakeEvent = await channel.Reader.ReadAsync(testToken).AsTask().WaitAsync(s_testTimeout, testToken);
 
         // assert
         Assert.IsType<TuiEvent.EffectCompletedEvent>(wakeEvent);
@@ -368,7 +368,7 @@ public sealed class TuiEffectQueueTests
     private static async Task WaitUntilAsync(Func<bool> condition, CancellationToken cancellationToken)
     {
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(TestTimeout);
+        timeoutCts.CancelAfter(s_testTimeout);
 
         while (!condition())
         {

@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
 using static HotChocolate.Language.Properties.LangWebResources;
 
@@ -20,7 +19,7 @@ internal static class ThrowHelper
             tokenType));
 
     public static InvalidGraphQLRequestException InvalidDocumentIdFormat()
-        => new("The operation id has an invalid format.");
+        => new("The operation ID has an invalid format.");
 
     public static InvalidGraphQLRequestException InvalidOperationNameValue(JsonTokenType tokenType)
         => new(string.Format(
@@ -51,12 +50,6 @@ internal static class ThrowHelper
             CultureInfo.InvariantCulture,
             ThrowHelper_InvalidExtensionsValue,
             tokenType));
-
-    public static InvalidGraphQLRequestException UnknownRequestProperty(ReadOnlySpan<byte> propertyName)
-        => new(string.Format(
-            CultureInfo.InvariantCulture,
-            ThrowHelper_UnknownRequestProperty,
-            Encoding.UTF8.GetString(propertyName)));
 
     public static InvalidGraphQLRequestException InvalidOperationTypeValue(JsonTokenType tokenType)
         => new(string.Format(

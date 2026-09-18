@@ -217,15 +217,96 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "mail", "read", "--message", message.Id);
 
         // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
-        var root = document.RootElement;
+        result.AssertSuccess(
+            $$"""
+            {
+              "id": "{{message.Id}}",
+              "threadId": "{{message.Id}}",
+              "inReplyTo": null,
+              "from": "bob",
+              "to": [
+                "test-agent"
+              ],
+              "cc": [],
+              "subject": "Status",
+              "body": "All good.",
+              "createdAt": "2026-01-01T00:00:00+00:00",
+              "read": true,
+              "archived": false,
+              "takeovers": []
+            }
+            """);
+    }
 
-        Assert.Equal(0, result.ExitCode);
-        Assert.Equal(message.Id, root.GetProperty("id").GetString());
-        Assert.Equal("All good.", root.GetProperty("body").GetString());
-        Assert.Equal(["test-agent"], root.GetProperty("to").EnumerateArray().Select(e => e.GetString()!).ToArray());
-        Assert.True(root.GetProperty("read").GetBoolean());
-        Assert.False(root.GetProperty("archived").GetBoolean());
+    [Fact]
+    public async Task Read_Should_PrintTwoTakeoverHopsNewestFirst()
+    {
+        // arrange
+        var history = await SeedTakeoverHistoryAsync();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "read", "--message", history.Message.Id, "--actor", "zoe");
+
+        // assert
+        result.AssertSuccess(
+            $"""
+            From: bob
+            To: zoe
+            Date: 2026-01-01 00:00
+            Subject: Status
+            Thread: {history.Message.Id}
+            Takeover: nora -> zoe ({history.LatestId}, 2026-01-02)
+            Takeover: maya -> nora ({history.EarliestId}, 2026-01-01)
+
+            All good.
+            """);
+    }
+
+    [Fact]
+    public async Task Read_Should_ReturnTwoTakeoverHopsInJsonNewestFirst()
+    {
+        // arrange
+        var history = await SeedTakeoverHistoryAsync();
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "agent", "mail", "read", "--message", history.Message.Id, "--actor", "zoe");
+
+        // assert
+        result.AssertSuccess(
+            $$"""
+            {
+              "id": "{{history.Message.Id}}",
+              "threadId": "{{history.Message.Id}}",
+              "inReplyTo": null,
+              "from": "bob",
+              "to": [
+                "zoe"
+              ],
+              "cc": [],
+              "subject": "Status",
+              "body": "All good.",
+              "createdAt": "2026-01-01T00:00:00+00:00",
+              "read": true,
+              "archived": false,
+              "takeovers": [
+                {
+                  "id": "{{history.LatestId}}",
+                  "from": "nora",
+                  "to": "zoe",
+                  "createdAt": "2026-01-02T00:00:00+00:00"
+                },
+                {
+                  "id": "{{history.EarliestId}}",
+                  "from": "maya",
+                  "to": "nora",
+                  "createdAt": "2026-01-01T00:00:00+00:00"
+                }
+              ]
+            }
+            """);
     }
 
     [Fact]
@@ -254,4 +335,30 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
         Assert.Equal(original.Id, items[0].GetProperty("id").GetString());
         Assert.Equal("Pong.", items[1].GetProperty("body").GetString());
     }
+
+    private async Task<TakeoverHistory> SeedTakeoverHistoryAsync()
+    {
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        await SeedAgentAsync("nora");
+        await SeedAgentAsync("zoe");
+        await SeedAgentAsync("bob");
+        var message = await SeedMessageAsync(
+            "bob", "Status", ["maya"], body: "All good.");
+
+        await ExecuteCommandAsync("agent", "takeover", "--from", "maya", "--actor", "nora");
+        var earliestId = await QueryScalarAsync("SELECT id FROM agent_takeovers");
+
+        FakeTime.Advance(TimeSpan.FromDays(1));
+        await ExecuteCommandAsync("agent", "takeover", "--from", "nora", "--actor", "zoe");
+        var latestId = await QueryScalarAsync(
+            "SELECT id FROM agent_takeovers ORDER BY created_at DESC LIMIT 1");
+
+        return new TakeoverHistory(message, earliestId!, latestId!);
+    }
+
+    private sealed record TakeoverHistory(
+        ChilliCream.Nitro.CommandLine.Services.Mail.MailMessage Message,
+        string EarliestId,
+        string LatestId);
 }

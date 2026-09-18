@@ -1,5 +1,7 @@
 using System.Net;
+#if !NET11_0_OR_GREATER
 using System.Net.Http.Json;
+#endif
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Types;
@@ -718,8 +720,9 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         // assert
         // Should reject the request since we have a deferred result but
         // the user only accepts non-streaming JSON payload
-        Assert.Equal(HttpStatusCode.MethodNotAllowed, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotAcceptable, response.StatusCode);
         Assert.Equal("application/graphql-response+json", response.Content.Headers.ContentType?.MediaType);
+        Assert.Empty(response.Content.Headers.Allow);
 
         var content = await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
 
@@ -728,7 +731,7 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
             .Add(content, "Response")
             .MatchInline(
                 """
-                {"errors":[{"message":"The specified operation kind is not allowed."}]}
+                {"errors":[{"message":"The client does not accept a response content type that supports incremental delivery."}]}
                 """);
     }
 
@@ -1363,21 +1366,6 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         Assert.True(
             content.Split("\"name\":\"Abc\"", StringSplitOptions.None).Length - 1 >= 2,
             "Expected both labeled deferred payloads to include product.name.");
-    }
-
-    private static void AssertContainsOverlapIncrementalLegacyPayload(string content)
-    {
-        const string subPathPayload =
-            "\"incremental\":[{\"data\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]},\"path\":[\"product\"],\"label\":\"foo\"}]";
-
-        const string rootPathPayload =
-            "\"incremental\":[{\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]}},"
-            + "\"path\":[],\"label\":\"foo\"}]";
-
-        Assert.True(
-            content.Contains(subPathPayload, StringComparison.Ordinal)
-                || content.Contains(rootPathPayload, StringComparison.Ordinal),
-            "Expected overlap incremental payload in either legacy-compatible shape.");
     }
 
     private TestServer CreateDeferServer(

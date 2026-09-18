@@ -45,9 +45,9 @@ public sealed class FusionRequestOptions : ICloneable
 
     /// <summary>
     /// Gets or sets whether the GraphQL operation kind is annotated onto outgoing subgraph HTTP
-    /// requests via <see cref="System.Net.Http.HttpRequestMessage.Options"/>, so that delegating handlers (such as the
-    /// RequestDeduplicationHandler) can consume it. <c>false</c> by default because materializing the
-    /// request options bag allocates per request.
+    /// requests via <see cref="HttpRequestMessage.Options"/>, so that delegating handlers (such as
+    /// the RequestDeduplicationHandler) can consume it. <c>false</c> by default because
+    /// materializing the request options bag allocates per request.
     /// </summary>
     public bool AnnotateOperationKind
     {
@@ -143,6 +143,27 @@ public sealed class FusionRequestOptions : ICloneable
     } = DefaultMaxAllowedConditions;
 
     /// <summary>
+    /// <para>
+    /// Gets or sets whether input object fields that are not defined on the
+    /// input object type should be ignored while coercing variable values,
+    /// instead of producing a GraphQL request error.
+    /// </para>
+    /// <para>
+    /// The default is <c>false</c>.
+    /// </para>
+    /// </summary>
+    public bool IgnoreAdditionalInputFields
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the persisted operation options.
     /// </summary>
     public PersistedOperationOptions PersistedOperations
@@ -198,6 +219,7 @@ public sealed class FusionRequestOptions : ICloneable
             AllowOperationPlanRequests = AllowOperationPlanRequests,
             MaxAllowedIncludeConditions = MaxAllowedIncludeConditions,
             MaxAllowedDeferConditions = MaxAllowedDeferConditions,
+            IgnoreAdditionalInputFields = IgnoreAdditionalInputFields,
             PersistedOperations = PersistedOperations,
             IncludeExceptionDetails = IncludeExceptionDetails
         };

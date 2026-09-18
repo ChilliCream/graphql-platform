@@ -243,6 +243,36 @@ public class HttpGetSemanticNonNullSchemaMiddlewareTests(TestServerFactory serve
         response.MatchMarkdownSnapshot(postFix: snapshotPostFix);
     }
 
+    // Content suppression for HEAD is the HTTP server's responsibility and TestServer,
+    // unlike Kestrel, does not emulate it, so only the status and headers are compared.
+    [Fact]
+    public async Task Head_Should_AnswerAsGet_When_SchemaIsRequested()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: sp =>
+                sp.AddGraphQLServer()
+                    .ConfigureSchemaServices(s =>
+                        s.RemoveAll<ITimeProvider>()
+                            .AddSingleton<ITimeProvider, StaticTimeProvider>()));
+        var url = TestServerExtensions.CreateUrl("/graphql/semantic-non-null-schema.graphql");
+        var client = server.CreateClient();
+
+        // act
+        using var getRequest = new HttpRequestMessage(HttpMethod.Get, url);
+        using var getResponse = await client.SendAsync(getRequest, TestContext.Current.CancellationToken);
+
+        using var headRequest = new HttpRequestMessage(HttpMethod.Head, url);
+        using var headResponse = await client.SendAsync(headRequest, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        Assert.Equal(getResponse.StatusCode, headResponse.StatusCode);
+        Assert.Equal(
+            getResponse.Content.Headers.ContentType?.ToString(),
+            headResponse.Content.Headers.ContentType?.ToString());
+    }
+
     private TestServer CreateTaggedStarWarsServer()
         => CreateStarWarsServer(
             configureServices: services =>

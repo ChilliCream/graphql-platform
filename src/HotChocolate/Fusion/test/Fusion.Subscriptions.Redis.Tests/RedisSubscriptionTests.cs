@@ -2,7 +2,6 @@ using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Transport.Formatters;
 using Microsoft.Extensions.DependencyInjection;

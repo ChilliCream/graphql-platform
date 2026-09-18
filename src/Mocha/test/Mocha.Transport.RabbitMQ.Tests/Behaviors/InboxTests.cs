@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.DependencyInjection;
-using Mocha.Features;
 using Mocha.Inbox;
 using Mocha.Middlewares;
 using Mocha.Transport.RabbitMQ.Tests.Helpers;

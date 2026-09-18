@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace HotChocolate.Types.Analyzers;

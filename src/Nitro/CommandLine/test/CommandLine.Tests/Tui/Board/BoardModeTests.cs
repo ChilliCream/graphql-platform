@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Board;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
-using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using Microsoft.Extensions.Time.Testing;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
@@ -10,7 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Board;
 
 public sealed class BoardModeTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static BoardView TwoColumnView() => new()
     {
@@ -23,7 +22,7 @@ public sealed class BoardModeTests
     };
 
     private static BoardMode CreateMode(FakeTaskStore store, BoardView? view = null)
-        => new(new BoardDataLoader(store, new FakeTimeProvider(Now)), view is null ? null : [view]);
+        => new(new BoardDataLoader(store, new FakeTimeProvider(s_now)), view is null ? null : [view]);
 
     [Fact]
     public void FocusColumn_Should_ClampAtFirstColumn_When_MovingLeftPastStart()
@@ -62,7 +61,7 @@ public sealed class BoardModeTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
-        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: Now.AddDays(1)));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: s_now.AddDays(1)));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
 
@@ -80,8 +79,8 @@ public sealed class BoardModeTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
-        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: Now.AddDays(1)));
-        store.Tasks.Add(TaskItemBuilder.Create("a-3", status: TaskStates.Open, createdAt: Now.AddDays(2)));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: s_now.AddDays(1)));
+        store.Tasks.Add(TaskItemBuilder.Create("a-3", status: TaskStates.Open, createdAt: s_now.AddDays(2)));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
 
@@ -98,7 +97,7 @@ public sealed class BoardModeTests
         // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open));
-        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: Now.AddDays(1)));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: s_now.AddDays(1)));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
@@ -115,8 +114,8 @@ public sealed class BoardModeTests
     {
         // arrange
         var store = new FakeTaskStore();
-        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open, createdAt: Now));
-        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: Now.AddDays(1)));
+        store.Tasks.Add(TaskItemBuilder.Create("a-1", status: TaskStates.Open, createdAt: s_now));
+        store.Tasks.Add(TaskItemBuilder.Create("a-2", status: TaskStates.Open, createdAt: s_now.AddDays(1)));
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
         mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
@@ -124,7 +123,7 @@ public sealed class BoardModeTests
 
         // act: a new, earlier-priority task pushes a-2 to a different row on refresh
         store.Tasks.Add(TaskItemBuilder.Create(
-            "a-0", status: TaskStates.Open, priority: TaskPriorities.Critical, createdAt: Now.AddDays(-1)));
+            "a-0", status: TaskStates.Open, priority: TaskPriorities.Critical, createdAt: s_now.AddDays(-1)));
         mode.Handle(new TuiMessage.RefreshRequested());
 
         // assert
@@ -142,7 +141,7 @@ public sealed class BoardModeTests
         mode.OnEnter();
 
         // act
-        var selected = ((ITuiMode)mode).SelectedTaskId;
+        var selected = mode.SelectedTaskId;
 
         // assert
         Assert.Equal("a-1", selected);
@@ -157,7 +156,7 @@ public sealed class BoardModeTests
         mode.OnEnter();
 
         // act
-        var selected = ((ITuiMode)mode).SelectedTaskId;
+        var selected = mode.SelectedTaskId;
 
         // assert
         Assert.Null(selected);
@@ -177,7 +176,7 @@ public sealed class BoardModeTests
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
 
         // assert
-        Assert.Equal("a-2", ((ITuiMode)mode).SelectedTaskId);
+        Assert.Equal("a-2", mode.SelectedTaskId);
     }
 
     [Fact]
@@ -191,12 +190,12 @@ public sealed class BoardModeTests
         mode.OnEnter();
 
         // act
-        ((ITuiMode)mode).SelectTask("a-2");
+        mode.SelectTask("a-2");
 
         // assert
         Assert.Equal(1, mode.State.FocusedColumnIndex);
         Assert.Equal(0, mode.State.Columns[1].SelectedRow);
-        Assert.Equal("a-2", ((ITuiMode)mode).SelectedTaskId);
+        Assert.Equal("a-2", mode.SelectedTaskId);
     }
 
     [Fact]
@@ -209,11 +208,11 @@ public sealed class BoardModeTests
         mode.OnEnter();
 
         // act
-        ((ITuiMode)mode).SelectTask("does-not-exist");
+        mode.SelectTask("does-not-exist");
 
         // assert
         Assert.Equal(0, mode.State.FocusedColumnIndex);
-        Assert.Equal("a-1", ((ITuiMode)mode).SelectedTaskId);
+        Assert.Equal("a-1", mode.SelectedTaskId);
     }
 
     [Fact]
@@ -289,7 +288,7 @@ public sealed class BoardModeTests
         var store = new FakeTaskStore();
         var secondView = new BoardView { Name = "Second", Columns = TwoColumnView().Columns };
         var mode = new BoardMode(
-            new BoardDataLoader(store, new FakeTimeProvider(Now)), [TwoColumnView(), secondView]);
+            new BoardDataLoader(store, new FakeTimeProvider(s_now)), [TwoColumnView(), secondView]);
         mode.OnEnter();
 
         // act
@@ -341,7 +340,7 @@ public sealed class BoardModeTests
         for (var i = 1; i <= 15; i++)
         {
             store.Tasks.Add(TaskItemBuilder.Create(
-                $"t-{i:D2}", status: TaskStates.Open, createdAt: Now.AddMinutes(i)));
+                $"t-{i:D2}", status: TaskStates.Open, createdAt: s_now.AddMinutes(i)));
         }
 
         var mode = CreateMode(store, TwoColumnView());
@@ -364,7 +363,7 @@ public sealed class BoardModeTests
         for (var i = 1; i <= 15; i++)
         {
             store.Tasks.Add(TaskItemBuilder.Create(
-                $"t-{i:D2}", status: TaskStates.Open, createdAt: Now.AddMinutes(i)));
+                $"t-{i:D2}", status: TaskStates.Open, createdAt: s_now.AddMinutes(i)));
         }
 
         var mode = CreateMode(store, TwoColumnView());
@@ -445,7 +444,7 @@ public sealed class BoardModeTests
         for (var i = 1; i <= 30; i++)
         {
             store.Tasks.Add(TaskItemBuilder.Create(
-                $"t-{i:D2}", status: TaskStates.Open, createdAt: Now.AddMinutes(i)));
+                $"t-{i:D2}", status: TaskStates.Open, createdAt: s_now.AddMinutes(i)));
         }
 
         var mode = CreateMode(store, TwoColumnView());
@@ -504,7 +503,7 @@ public sealed class BoardModeTests
         store.Tasks.Add(TaskItemBuilder.Create("ready-1", status: TaskStates.Open));
         store.Tasks.Add(TaskItemBuilder.Create("in-progress-1", status: TaskStates.InProgress));
         store.Tasks.Add(TaskItemBuilder.Create(
-            "closed-1", status: TaskStates.Closed, closedAt: Now.AddDays(-1)));
+            "closed-1", status: TaskStates.Closed, closedAt: s_now.AddDays(-1)));
         var mode = CreateMode(store, BoardView.Default);
 
         // act

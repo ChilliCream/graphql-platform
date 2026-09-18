@@ -2,12 +2,6 @@
   "errors": [
     {
       "message": "Variable `b` is required.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 7
-        }
-      ],
       "extensions": {
         "code": "HC0018",
         "variable": "b"

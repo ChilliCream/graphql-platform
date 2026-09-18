@@ -14,13 +14,13 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// </summary>
 public sealed class ClaudeHooksEditorTests
 {
-    private static readonly LaunchDescriptor Descriptor =
+    private static readonly LaunchDescriptor s_descriptor =
         new("/home/agent/.dotnet/tools/nitro", []);
 
     [Fact]
     public void Install_MissingFile_CreatesAllFourEventsAsInstalled()
     {
-        var result = ClaudeHooksEditor.Install(null, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(null, s_descriptor, DateTimeOffset.UnixEpoch);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Installed, o.Outcome));
         Assert.Equal(ClaudeHooksTemplate.Events, result.Outcomes.Select(o => o.Event));
@@ -31,7 +31,7 @@ public sealed class ClaudeHooksEditorTests
         foreach (var claudeEvent in ClaudeHooksTemplate.Events)
         {
             var group = SingleGroup(hooks, claudeEvent);
-            AssertCommand(group, ClaudeHooksTemplate.BuildCommand(Descriptor, claudeEvent), 10);
+            AssertCommand(group, ClaudeHooksTemplate.BuildCommand(s_descriptor, claudeEvent), 10);
         }
 
         Assert.Equal(4, result.Sidecar.Count);
@@ -45,7 +45,7 @@ public sealed class ClaudeHooksEditorTests
         var beforeRoot = Parse(before);
         var herdrBefore = ((JsonObject)beforeRoot["hooks"]!)["SessionStart"]![0];
 
-        var result = ClaudeHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Installed, o.Outcome));
 
@@ -55,7 +55,7 @@ public sealed class ClaudeHooksEditorTests
         Assert.Equal(2, sessionStart.Count);
         Assert.True(JsonNode.DeepEquals(herdrBefore, sessionStart[0]));
         AssertCommand(
-            (JsonObject)sessionStart[1]!, ClaudeHooksTemplate.BuildCommand(Descriptor, "SessionStart"), 10);
+            (JsonObject)sessionStart[1]!, ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
 
         // Untouched foreign top-level content round-trips unchanged.
         Assert.True(JsonNode.DeepEquals(beforeRoot["someOtherTopLevelKey"], afterRoot["someOtherTopLevelKey"]));
@@ -70,7 +70,7 @@ public sealed class ClaudeHooksEditorTests
         var herdrBefore = ((JsonArray)beforeHooks["SessionStart"]!)[0];
         var foreignSessionEndBefore = ((JsonArray)beforeHooks["SessionEnd"]!)[0];
 
-        var result = ClaudeHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
 
         var byEvent = result.Outcomes.ToDictionary(o => o.Event, o => o.Outcome);
         Assert.Equal(HookInstallOutcome.Updated, byEvent["SessionStart"]);
@@ -84,19 +84,19 @@ public sealed class ClaudeHooksEditorTests
         Assert.Equal(2, sessionStart.Count);
         Assert.True(JsonNode.DeepEquals(herdrBefore, sessionStart[0]));
         AssertCommand(
-            (JsonObject)sessionStart[1]!, ClaudeHooksTemplate.BuildCommand(Descriptor, "SessionStart"), 10);
+            (JsonObject)sessionStart[1]!, ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
 
         var sessionEnd = (JsonArray)afterHooks["SessionEnd"]!;
         Assert.Equal(2, sessionEnd.Count);
         Assert.True(JsonNode.DeepEquals(foreignSessionEndBefore, sessionEnd[0]));
         AssertCommand(
-            (JsonObject)sessionEnd[1]!, ClaudeHooksTemplate.BuildCommand(Descriptor, "SessionEnd"), 10);
+            (JsonObject)sessionEnd[1]!, ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionEnd"), 10);
 
         AssertCommand(
             SingleGroup(afterHooks, "UserPromptSubmit"),
-            ClaudeHooksTemplate.BuildCommand(Descriptor, "UserPromptSubmit"),
+            ClaudeHooksTemplate.BuildCommand(s_descriptor, "UserPromptSubmit"),
             10);
-        AssertCommand(SingleGroup(afterHooks, "Stop"), ClaudeHooksTemplate.BuildCommand(Descriptor, "Stop"), 10);
+        AssertCommand(SingleGroup(afterHooks, "Stop"), ClaudeHooksTemplate.BuildCommand(s_descriptor, "Stop"), 10);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class ClaudeHooksEditorTests
     {
         var before = ClaudeHooksInstallFixtures.Read("install", "already-installed.json");
 
-        var result = ClaudeHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
 
         Assert.All(result.Outcomes, o => Assert.Equal(HookInstallOutcome.Unchanged, o.Outcome));
         Assert.True(JsonNode.DeepEquals(Parse(before), Parse(result.SettingsJson)));
@@ -115,7 +115,7 @@ public sealed class ClaudeHooksEditorTests
     {
         var before = ClaudeHooksInstallFixtures.Read("install", "outdated.json");
 
-        var result = ClaudeHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
 
         var byEvent = result.Outcomes.ToDictionary(o => o.Event, o => o.Outcome);
         Assert.Equal(HookInstallOutcome.Updated, byEvent["SessionStart"]);
@@ -125,7 +125,7 @@ public sealed class ClaudeHooksEditorTests
 
         var hooks = (JsonObject)Parse(result.SettingsJson)["hooks"]!;
         AssertCommand(
-            SingleGroup(hooks, "SessionStart"), ClaudeHooksTemplate.BuildCommand(Descriptor, "SessionStart"), 10);
+            SingleGroup(hooks, "SessionStart"), ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
     }
 
     [Fact]
@@ -133,21 +133,21 @@ public sealed class ClaudeHooksEditorTests
     {
         var before = ClaudeHooksInstallFixtures.Read("install", "manually-edited.json");
 
-        var result = ClaudeHooksEditor.Install(before, Descriptor, DateTimeOffset.UnixEpoch);
+        var result = ClaudeHooksEditor.Install(before, s_descriptor, DateTimeOffset.UnixEpoch);
 
         var outcome = Assert.Single(result.Outcomes, o => o.Event == "SessionStart");
         Assert.Equal(HookInstallOutcome.Updated, outcome.Outcome);
 
         var hooks = (JsonObject)Parse(result.SettingsJson)["hooks"]!;
         AssertCommand(
-            SingleGroup(hooks, "SessionStart"), ClaudeHooksTemplate.BuildCommand(Descriptor, "SessionStart"), 10);
+            SingleGroup(hooks, "SessionStart"), ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10);
     }
 
     [Fact]
     public void Install_Twice_IsIdempotent()
     {
-        var once = ClaudeHooksEditor.Install(null, Descriptor, DateTimeOffset.UnixEpoch).SettingsJson;
-        var twice = ClaudeHooksEditor.Install(once, Descriptor, DateTimeOffset.UnixEpoch).SettingsJson;
+        var once = ClaudeHooksEditor.Install(null, s_descriptor, DateTimeOffset.UnixEpoch).SettingsJson;
+        var twice = ClaudeHooksEditor.Install(once, s_descriptor, DateTimeOffset.UnixEpoch).SettingsJson;
 
         Assert.Equal(once, twice);
     }
@@ -155,22 +155,22 @@ public sealed class ClaudeHooksEditorTests
     [Fact]
     public void Status_ReportsMissingInstalledAndOutdated()
     {
-        var missing = ClaudeHooksEditor.Status(null, Descriptor);
+        var missing = ClaudeHooksEditor.Status(null, s_descriptor);
         Assert.All(missing, r => Assert.Equal(HookStatusOutcome.Missing, r.Outcome));
 
         var installed = ClaudeHooksEditor.Status(
-            ClaudeHooksInstallFixtures.Read("install", "already-installed.json"), Descriptor);
+            ClaudeHooksInstallFixtures.Read("install", "already-installed.json"), s_descriptor);
         Assert.All(installed, r => Assert.Equal(HookStatusOutcome.Installed, r.Outcome));
 
         var outdated = ClaudeHooksEditor.Status(
-            ClaudeHooksInstallFixtures.Read("install", "outdated.json"), Descriptor);
+            ClaudeHooksInstallFixtures.Read("install", "outdated.json"), s_descriptor);
         var sessionStart = Assert.Single(outdated, r => r.Event == "SessionStart");
         Assert.Equal(HookStatusOutcome.Outdated, sessionStart.Outcome);
         Assert.Equal("/opt/old/nitro agent hook claude session-start", sessionStart.InstalledCommand);
         Assert.All(outdated.Where(r => r.Event != "SessionStart"), r => Assert.Equal(HookStatusOutcome.Missing, r.Outcome));
 
         var manuallyEdited = ClaudeHooksEditor.Status(
-            ClaudeHooksInstallFixtures.Read("install", "manually-edited.json"), Descriptor);
+            ClaudeHooksInstallFixtures.Read("install", "manually-edited.json"), s_descriptor);
         Assert.Equal(HookStatusOutcome.Outdated, Assert.Single(manuallyEdited, r => r.Event == "SessionStart").Outcome);
     }
 
@@ -222,9 +222,9 @@ public sealed class ClaudeHooksEditorTests
         var staleSidecar = new Dictionary<string, ClaudeHooksSidecarEntry>
         {
             ["SessionStart"] = new(
-                ClaudeHooksTemplate.BuildCommand(Descriptor, "SessionStart"),
+                ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"),
                 10,
-                ClaudeHooksSidecarEntry.ComputeHash(ClaudeHooksTemplate.BuildCommand(Descriptor, "SessionStart"), 10),
+                ClaudeHooksSidecarEntry.ComputeHash(ClaudeHooksTemplate.BuildCommand(s_descriptor, "SessionStart"), 10),
                 DateTimeOffset.UnixEpoch)
         };
 

@@ -48,6 +48,10 @@ public sealed class ExecutorSession
 
     public IServerDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
+    internal bool ReportsUnsupportedMethodOrMediaType
+        => _responseFormatter is DefaultHttpResponseFormatter formatter
+            && formatter.ReportsUnsupportedMethodOrMediaType;
+
     public ulong Version => _executor.Version;
 
     public ISchemaDefinition Schema => _executor.Schema;

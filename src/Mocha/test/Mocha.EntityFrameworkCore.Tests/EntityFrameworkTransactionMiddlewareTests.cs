@@ -136,7 +136,7 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
         }
 
         Assert.True(id > 0);
-        var item = await _dbContext.Items.FindAsync(new object?[] { id }, TestContext.Current.CancellationToken);
+        var item = await _dbContext.Items.FindAsync([id], TestContext.Current.CancellationToken);
         Assert.NotNull(item);
         Assert.Equal("Response Item", item.Name);
     }
@@ -165,7 +165,7 @@ public sealed class EntityFrameworkTransactionMiddlewareTests : IDisposable
             TestContext.Current.CancellationToken);
 
         Assert.True(id > 0);
-        var item = await _dbContext.Items.FindAsync(new object?[] { id }, TestContext.Current.CancellationToken);
+        var item = await _dbContext.Items.FindAsync([id], TestContext.Current.CancellationToken);
         Assert.NotNull(item);
         Assert.Equal("Via Mediator Response", item.Name);
     }

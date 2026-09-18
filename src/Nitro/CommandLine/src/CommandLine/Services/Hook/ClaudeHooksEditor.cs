@@ -149,9 +149,7 @@ internal static class ClaudeHooksEditor
 
         foreach (var claudeEvent in ClaudeHooksTemplate.Events)
         {
-            var eventArray = hooksNode?[claudeEvent] as JsonArray;
-
-            if (eventArray is null)
+            if (hooksNode?[claudeEvent] is not JsonArray eventArray)
             {
                 outcomes.Add(new HookUninstallEventResult(claudeEvent, HookUninstallOutcome.NotPresent));
                 continue;
@@ -177,7 +175,7 @@ internal static class ClaudeHooksEditor
 
             if (eventArray.Count == 0)
             {
-                hooksNode!.Remove(claudeEvent);
+                hooksNode.Remove(claudeEvent);
             }
         }
 

@@ -117,11 +117,10 @@ internal static class ThrowHelper
                     type.Name)
                 .Build());
 
-    public static GraphQLException FilterConvention_CouldNotConvertValue(IValueNode node) =>
+    public static GraphQLException FilterConvention_CouldNotConvertValue() =>
         new GraphQLException(
             ErrorBuilder.New()
                 .SetMessage(DataResources.FilterConvention_CouldNotConvertValue)
-                .AddLocation(node)
                 .Build());
 
     public static SchemaException FilterObjectFieldDescriptorExtensions_CannotInfer() =>

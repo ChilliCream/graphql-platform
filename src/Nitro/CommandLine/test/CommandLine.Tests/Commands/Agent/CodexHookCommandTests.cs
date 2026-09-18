@@ -5,14 +5,12 @@ using ChilliCream.Nitro.CommandLine.Tests.Hook;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Covers the command's wiring and the response it writes to stdout, plus
-/// the queue call <c>notify</c> makes (its own stdout carries nothing). The
-/// event state machine, digest, gate, and ledger behavior are exercised
-/// directly against
-/// <see cref="ChilliCream.Nitro.CommandLine.Services.Hook.CodexHookHandler"/>
-/// in <c>CodexHookHandlerTests</c>, and the fail-open envelopes against
-/// <see cref="ChilliCream.Nitro.CommandLine.Services.Hook.CodexHookExecutor"/>
-/// / <c>CodexNotifyExecutor</c> in <c>CodexHookExecutorTests</c>.
+/// Covers the command's wiring and the response it writes to stdout, plus the queue call
+/// <c>notify</c> makes (its own stdout carries nothing). The event state machine, digest, gate, and
+/// ledger behavior are exercised directly against <see cref="Services.Hook.CodexHookHandler"/> in
+/// <c>CodexHookHandlerTests</c>, and the fail-open envelopes against
+/// <see cref="Services.Hook.CodexHookExecutor"/> / <c>CodexNotifyExecutor</c> in
+/// <c>CodexHookExecutorTests</c>.
 /// </summary>
 public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
@@ -148,7 +146,27 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         Assert.Equal(SessionId, call.ThreadId);
         call.Message.Replace(message.Id, "<id>").MatchInlineSnapshot(
             """
-            You have 1 unread nitro message. Run `nitro agent mail inbox --actor maya`.
+            You have 1 unread nitro message; 1 shown below as `nitro agent mail read --thread --output json` prints them. Reply with `nitro agent mail reply --message <id> --actor maya --body "..."` or ack with `nitro agent mail ack --message <id> --actor maya`; anything not shown is in `nitro agent mail inbox --unread --actor maya`.
+            {
+              "items": [
+                {
+                  "id": "<id>",
+                  "threadId": "<id>",
+                  "inReplyTo": null,
+                  "from": "bob",
+                  "to": [
+                    "maya"
+                  ],
+                  "cc": [],
+                  "subject": "status",
+                  "body": "please check",
+                  "createdAt": "2026-01-01T00:00:00+00:00",
+                  "read": false,
+                  "archived": false,
+                  "takeovers": []
+                }
+              ]
+            }
             """);
     }
 

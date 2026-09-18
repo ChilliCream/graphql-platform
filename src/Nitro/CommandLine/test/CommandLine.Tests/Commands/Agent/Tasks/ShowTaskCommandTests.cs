@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using System.Text.Json;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
 
@@ -236,8 +237,55 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
               "blockers": [],
               "dependencies": [],
               "dependents": [],
-              "comments": []
+              "comments": [],
+              "takeovers": []
             }
+            """);
+    }
+
+    [Fact]
+    public async Task MovedTask_Should_DisplayTakeoverAndReturnItInJson()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        await SeedAgentAsync("maya");
+        await SeedAgentAsync("nora");
+        var id = await CreateTaskAsync("Moved task", "--assignee", "maya");
+        FakeTime.Advance(TimeSpan.FromDays(1));
+        await ExecuteCommandAsync("agent", "takeover", "--from", "maya", "--actor", "nora");
+        var takeoverId = (await QueryScalarAsync("SELECT id FROM agent_takeovers"))!;
+
+        // act
+        var human = await ExecuteCommandAsync("agent", "tasks", "show", id);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        var json = await ExecuteCommandAsync("agent", "tasks", "show", id);
+
+        // assert
+        human.AssertSuccess(
+            $"""
+            {id}: Moved task
+
+            Status: open  Priority: P2  Type: task
+            Assignee: nora
+            Created: 2026-01-01 00:00 by test-agent
+            Updated: 2026-01-02 00:00
+            Takeover: maya -> nora ({takeoverId}, 2026-01-02)
+
+            Comments:
+              [1] nora 2026-01-02 00:00
+                Taken over from 'maya' by 'nora'.
+            """);
+        using var document = JsonDocument.Parse(json.StdOut);
+        document.RootElement.GetProperty("takeovers").GetRawText().MatchInlineSnapshot(
+            $$"""
+            [
+                {
+                  "id": "{{takeoverId}}",
+                  "from": "maya",
+                  "to": "nora",
+                  "createdAt": "2026-01-02T00:00:00+00:00"
+                }
+              ]
             """);
     }
 
@@ -263,6 +311,24 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
         Assert.Equal(baseId, root.GetProperty("blockers")[0].GetString()!.Split(':')[0]);
         Assert.Equal("blocks", root.GetProperty("dependencies")[0].GetProperty("type").GetString());
         Assert.Equal(baseId, root.GetProperty("dependencies")[0].GetProperty("dependsOnId").GetString());
+    }
+
+    [Fact]
+    public async Task JsonOutput_LongDescription_ReturnsParseableDocument()
+    {
+        // arrange
+        await InitWorkspaceAsync();
+        var description = new string('a', 3000);
+        var id = await CreateTaskAsync("Fix the parser", "--description", description);
+        SetupInteractionMode(InteractionMode.JsonOutput);
+
+        // act
+        var result = await ExecuteCommandAsync("agent", "tasks", "show", id);
+
+        // assert
+        using var document = JsonDocument.Parse(result.StdOut);
+        Assert.Equal(0, result.ExitCode);
+        Assert.Equal(description, document.RootElement.GetProperty("description").GetString());
     }
 
     /// <summary>

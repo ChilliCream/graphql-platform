@@ -392,19 +392,19 @@ builder
 
 The full set of properties available on `GraphQLServerOptions` is listed below. You can set these via `ModifyServerOptions` (schema-level) or `WithOptions` (per-endpoint).
 
-| Property                                  | Type                   | Default       | Description                                                                                                                     |
-| ----------------------------------------- | ---------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `EnableGetRequests`                       | `bool`                 | `true`        | Controls whether HTTP GET requests are accepted.                                                                                |
-| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`       | Which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`. |
-| `EnableMultipartRequests`                 | `bool`                 | `true`        | Controls whether multipart form requests (file uploads) are accepted.                                                           |
-| `EnableSchemaRequests`                    | `bool`                 | `true`        | Controls whether the schema SDL can be downloaded via `?sdl`.                                                                   |
-| `EnableSchemaFileSupport`                 | `bool`                 | `true`        | Controls whether the schema SDL is served as a downloadable file.                                                               |
-| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`       | When `true`, GET requests must include a CSRF preflight header.                                                                 |
-| `EnforceMultipartRequestsPreflightHeader` | `bool`                 | `true`        | When `true`, multipart requests must include a CSRF preflight header.                                                           |
-| `Batching`                                | `AllowedBatching`      | `None`        | Which batching modes are allowed.                                                                                               |
-| `MaxBatchSize`                            | `int`                  | `1024`        | Maximum number of operations in a single batch. `0` means unlimited.                                                            |
-| `Sockets`                                 | `GraphQLSocketOptions` | _(see below)_ | WebSocket-specific options.                                                                                                     |
-| `Tool`                                    | `NitroAppOptions`      | _(see below)_ | Nitro IDE options.                                                                                                              |
+| Property                                  | Type                   | Default            | Description                                                                                                                     |
+| ----------------------------------------- | ---------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `EnableGetRequests`                       | `bool`                 | `true`             | Controls whether HTTP GET requests are accepted.                                                                                |
+| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`. |
+| `EnableMultipartRequests`                 | `bool`                 | `true`             | Controls whether multipart form requests (file uploads) are accepted.                                                           |
+| `EnableSchemaRequests`                    | `bool`                 | `true`             | Controls whether the schema SDL can be downloaded via `?sdl`.                                                                   |
+| `EnableSchemaFileSupport`                 | `bool`                 | `true`             | Controls whether the schema SDL is served as a downloadable file.                                                               |
+| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`            | When `true`, GET requests must include a CSRF preflight header.                                                                 |
+| `EnforceMultipartRequestsPreflightHeader` | `bool`                 | `true`             | When `true`, multipart requests must include a CSRF preflight header.                                                           |
+| `Batching`                                | `AllowedBatching`      | `VariableBatching` | Which batching modes are allowed. Request batching must be enabled explicitly.                                                  |
+| `MaxBatchSize`                            | `int`                  | `1024`             | Maximum number of operations in a single batch. `0` means unlimited.                                                            |
+| `Sockets`                                 | `GraphQLSocketOptions` | _(see below)_      | WebSocket-specific options.                                                                                                     |
+| `Tool`                                    | `NitroAppOptions`      | _(see below)_      | Nitro IDE options.                                                                                                              |
 
 The `Sockets` property contains a `GraphQLSocketOptions` object with these properties:
 

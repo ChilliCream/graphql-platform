@@ -7,7 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
 public sealed class MailDetailViewTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     private static async Task<MailState> CreateStateWithMessageAsync(FakeMailStore store, string body = "Hello there.")
     {
@@ -16,7 +16,7 @@ public sealed class MailDetailViewTests
             sender: "bob",
             subject: "Status update",
             body: body,
-            createdAt: Now,
+            createdAt: s_now,
             recipients: [MailMessageBuilder.ToRecipient("alice")]));
 
         var state = new MailState("alice", new MailDataLoader(store));
@@ -72,7 +72,7 @@ public sealed class MailDetailViewTests
         var store = new FakeMailStore();
         var state = await CreateStateWithMessageAsync(store);
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", body: "Reply body.", threadId: "m-1", createdAt: Now.AddMinutes(1)));
+            "m-2", sender: "carol", body: "Reply body.", threadId: "m-1", createdAt: s_now.AddMinutes(1)));
         await state.ShowThreadAsync(CancellationToken.None);
         var view = new MailDetailView();
         var console = new TestConsole().Width(80).Height(20);
@@ -127,10 +127,10 @@ public sealed class MailDetailViewTests
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
             sender: "bob",
-            createdAt: Now,
+            createdAt: s_now,
             recipients:
             [
-                MailMessageBuilder.ToRecipient("orchestrator", ordinal: 0, readAt: Now.AddHours(14).AddMinutes(2)),
+                MailMessageBuilder.ToRecipient("orchestrator", ordinal: 0, readAt: s_now.AddHours(14).AddMinutes(2)),
                 MailMessageBuilder.ToRecipient("planner-1", ordinal: 1)
             ]));
         var state = new MailState("orchestrator", new MailDataLoader(store));
@@ -155,10 +155,10 @@ public sealed class MailDetailViewTests
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
             sender: "bob",
-            createdAt: Now,
+            createdAt: s_now,
             recipients:
             [
-                MailMessageBuilder.ToRecipient("alice", readAt: Now, archivedAt: Now.AddMinutes(5))
+                MailMessageBuilder.ToRecipient("alice", readAt: s_now, archivedAt: s_now.AddMinutes(5))
             ]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
@@ -185,7 +185,7 @@ public sealed class MailDetailViewTests
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
             sender: "alice",
-            createdAt: Now,
+            createdAt: s_now,
             recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
@@ -213,7 +213,7 @@ public sealed class MailDetailViewTests
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
             sender: "bob",
-            createdAt: Now,
+            createdAt: s_now,
             recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
@@ -242,7 +242,7 @@ public sealed class MailDetailViewTests
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
             sender: "bob",
-            createdAt: Now,
+            createdAt: s_now,
             recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
@@ -275,7 +275,7 @@ public sealed class MailDetailViewTests
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
             sender: "bob",
-            createdAt: Now,
+            createdAt: s_now,
             recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
@@ -298,10 +298,10 @@ public sealed class MailDetailViewTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", body: "Hello.", createdAt: Now,
+            "m-1", sender: "bob", body: "Hello.", createdAt: s_now,
             recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", body: "Reply body.", threadId: "m-1", createdAt: Now.AddMinutes(1)));
+            "m-2", sender: "carol", body: "Reply body.", threadId: "m-1", createdAt: s_now.AddMinutes(1)));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
         await state.ShowThreadAsync(CancellationToken.None);
@@ -326,7 +326,7 @@ public sealed class MailDetailViewTests
             .Select(i => MailMessageBuilder.ToRecipient($"agent-{i}", ordinal: i))
             .ToArray();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: recipients));
+            "m-1", sender: "bob", createdAt: s_now, recipients: recipients));
         var state = new MailState("agent-0", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
         var view = new MailDetailView();
@@ -367,10 +367,10 @@ public sealed class MailDetailViewTests
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
             sender: "bob",
-            createdAt: Now,
+            createdAt: s_now,
             recipients:
             [
-                MailMessageBuilder.ToRecipient("orchestrator", ordinal: 0, readAt: Now.AddHours(14).AddMinutes(2)),
+                MailMessageBuilder.ToRecipient("orchestrator", ordinal: 0, readAt: s_now.AddHours(14).AddMinutes(2)),
                 MailMessageBuilder.ToRecipient("planner-1", ordinal: 1)
             ]));
         var state = new MailState("orchestrator", new MailDataLoader(store));

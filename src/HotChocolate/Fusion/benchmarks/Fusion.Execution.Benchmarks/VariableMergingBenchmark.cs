@@ -1,13 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Results;
 using HotChocolate.Fusion.Execution.Rewriters;
@@ -71,7 +67,7 @@ public class VariableMergingBenchmark : FusionBenchmarkBase
     private MemoryArena _baselineArena = null!;
     private MemoryArena _snapshotArena = null!;
     private FusionSchemaDefinition _schema = null!;
-    private HotChocolate.Fusion.Execution.Nodes.Operation _operation = null!;
+    private Operation _operation = null!;
 
     private ImmutableArray<VariableValues> _singleEntrySnapshot;
     private ImmutableArray<VariableValues> _subsetEntrySnapshot;

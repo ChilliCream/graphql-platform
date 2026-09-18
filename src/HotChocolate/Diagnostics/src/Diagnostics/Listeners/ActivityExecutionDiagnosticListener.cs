@@ -25,15 +25,15 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         if (options.SkipExecuteRequest)
         {
-            if (!options.SkipExecuteHttpRequest
-                && context.Features.TryGet<HttpContext>(out var httpContext)
-                && httpContext.Features.Get<ExecuteHttpRequestSpan>() is { } httpRequestSpan)
-            {
-                httpContextActivity = httpRequestSpan.Activity;
-            }
-            else
+            if (options.SkipExecuteHttpRequest
+                || !context.Features.TryGet<HttpContext>(out var httpContext))
             {
                 return EmptyScope;
+            }
+
+            if (httpContext.Features.Get<ExecuteHttpRequestSpan>() is { IsBatch: false } httpRequestSpan)
+            {
+                httpContextActivity = httpRequestSpan.Activity;
             }
         }
 

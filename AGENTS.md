@@ -19,16 +19,18 @@ yarn
 
 ### C# Source Code
 
+Always pass `-p:EnforceCodeStyleInBuild=true` when building or testing. It reports IDE code-style violations (`IDE*`) as build errors, the same as CI does. Fix every reported style error.
+
 Build the full solution:
 
 ```bash
-dotnet build src/All.slnx
+dotnet build src/All.slnx -p:EnforceCodeStyleInBuild=true
 ```
 
 Each area has its own solution file, so you can build or test a subset directly:
 
 ```bash
-dotnet test src/HotChocolate/Fusion
+dotnet test src/HotChocolate/Fusion -p:EnforceCodeStyleInBuild=true
 ```
 
 ## Code Quality
@@ -124,3 +126,14 @@ When you add a value to `ExecutionNodeType`, map it in two places:
 - `GraphQL.Operation.Step.KindValues` in `src/HotChocolate/Diagnostics/src/Diagnostics.Core/SemanticConventions.cs`, if the kind needs a new constant. Tag values are snake_case.
 
 `KindValues` supplies the `graphql.operation.step.kind` tag on the step span. An unmapped type does not fail execution. `ExecutePlanNodeSpan.Start` falls back to an untagged span, so the node silently loses its kind in traces. The guard test `StepSpan_Should_MapEveryExecutionNodeTypeToAKindValue` in `src/HotChocolate/Fusion/test/Fusion.Diagnostics.Tests/FusionActivityExecutionDiagnosticListenerTests.cs` fails until the mapping exists.
+
+#### Operation plan JSON format
+
+`JsonOperationPlanFormatter` in `src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/Serialization/JsonOperationPlanFormatter.cs` writes the plan document that tooling consumes. Its shape is published as a JSON schema, so any change to the emitted JSON is a two part change:
+
+1. Bump `JsonOperationPlanFormatter.FormatVersion`. It is written as the root `version` property and is the discriminator consumers pin against. Additive optional properties bump the minor version, anything that changes or removes an existing property bumps the major version.
+2. Add the matching variant to `website/public/schemas/fusion/operation-plan.json`, published at `https://chillicream.com/schemas/fusion/operation-plan.json`. Add a `#/$defs/<version>_plan` entry and the `allOf` branch that selects it for that root `version`, and list the new version in the root `version` enum. Every other definition is unprefixed and shared across versions. When a version changes one of them, fork only that definition to `<version>_<name>` and point the new plan at the fork, so a released version keeps validating exactly what it validated before.
+
+The root `version` enum and the `allOf` branch that selects `v1_0_0_plan` are the pattern to copy: a new version adds one enum entry, one branch and one plan definition.
+
+The internal `Format(IBufferWriter<byte>, Operation, ImmutableArray<ExecutionNode>)` overload feeds the SHA-256 that becomes `OperationPlan.Id`. It deliberately omits the `version` property, so leave it alone unless you intend to change every plan id.

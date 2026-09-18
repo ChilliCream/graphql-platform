@@ -28,7 +28,7 @@ public sealed class HttpGetSemanticNonNullSchemaMiddleware : MiddlewareBase
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (HttpMethods.IsGet(context.Request.Method))
+        if (context.Request.IsGetOrHeadMethod())
         {
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
             var options = GetOptions(context);

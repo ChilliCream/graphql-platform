@@ -4,7 +4,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
 public sealed class MailDataLoaderTests
 {
-    private static readonly DateTimeOffset Now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    private static readonly DateTimeOffset s_now = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
     [Fact]
     public async Task LoadInboxAsync_Should_ExcludeArchived_When_FilterIsInbox()
@@ -12,11 +12,11 @@ public sealed class MailDataLoaderTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
             "m-2",
-            createdAt: Now,
-            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: Now)]));
+            createdAt: s_now,
+            recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: s_now)]));
         var loader = new MailDataLoader(store);
 
         // act
@@ -32,9 +32,9 @@ public sealed class MailDataLoaderTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice", readAt: Now)]));
+            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice", readAt: s_now)]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var loader = new MailDataLoader(store);
 
         // act
@@ -50,9 +50,9 @@ public sealed class MailDataLoaderTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: Now)]));
+            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice", archivedAt: s_now)]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var loader = new MailDataLoader(store);
 
         // act
@@ -68,9 +68,9 @@ public sealed class MailDataLoaderTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var loader = new MailDataLoader(store);
 
         // act
@@ -86,9 +86,9 @@ public sealed class MailDataLoaderTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var loader = new MailDataLoader(store);
 
         // act
@@ -105,7 +105,7 @@ public sealed class MailDataLoaderTests
         // is otherwise unreachable in the Inbox mailbox.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", threadId: "m-1", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", threadId: "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var loader = new MailDataLoader(store);
 
         // act
@@ -123,11 +123,11 @@ public sealed class MailDataLoaderTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "bob", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", sender: "bob", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-3", sender: "bob", createdAt: Now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("carol")]));
+            "m-3", sender: "bob", createdAt: s_now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("carol")]));
         var loader = new MailDataLoader(store);
 
         // act
@@ -143,7 +143,7 @@ public sealed class MailDataLoaderTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "bob", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
+            "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("carol")]));
         var loader = new MailDataLoader(store);
 
         // act
@@ -165,11 +165,11 @@ public sealed class MailDataLoaderTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", sender: "alice", createdAt: Now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", sender: "carol", createdAt: Now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
+            "m-2", sender: "carol", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-3", sender: "carol", createdAt: Now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("bob")]));
+            "m-3", sender: "carol", createdAt: s_now.AddMinutes(2), recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var loader = new MailDataLoader(store);
 
         // act
@@ -188,7 +188,7 @@ public sealed class MailDataLoaderTests
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
             sender: "carol",
-            createdAt: Now,
+            createdAt: s_now,
             recipients:
             [
                 MailMessageBuilder.ToRecipient("bob"),
@@ -210,11 +210,11 @@ public sealed class MailDataLoaderTests
         // arrange
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-2", threadId: "t-1", createdAt: Now.AddMinutes(1)));
+            "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1)));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-1", threadId: "t-1", createdAt: Now));
+            "m-1", threadId: "t-1", createdAt: s_now));
         store.Messages.Add(MailMessageBuilder.Create(
-            "m-3", threadId: "t-other", createdAt: Now));
+            "m-3", threadId: "t-other", createdAt: s_now));
         var loader = new MailDataLoader(store);
 
         // act

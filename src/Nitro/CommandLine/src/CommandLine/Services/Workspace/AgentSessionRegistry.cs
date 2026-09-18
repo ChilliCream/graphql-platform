@@ -119,7 +119,7 @@ internal sealed class AgentSessionRegistry(
                         now,
                         harness = generation.Harness,
                         sessionId = generation.SessionId,
-                                host = generation.Host,
+                        host = generation.Host,
                         cancellationToken
                     },
                     transaction);
@@ -139,7 +139,7 @@ internal sealed class AgentSessionRegistry(
                         now,
                         harness = generation.Harness,
                         sessionId = generation.SessionId,
-                                host = generation.Host,
+                        host = generation.Host,
                         cancellationToken
                     },
                     transaction);

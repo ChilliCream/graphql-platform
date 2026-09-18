@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
@@ -12,6 +11,7 @@ internal sealed class ReadyTaskCommand : Command
     {
         Description = "List tasks that are ready to work on.";
 
+        Options.Add(Opt<TaskTypeFilterOption>.Instance);
         Options.Add(Opt<TaskPriorityOption>.Instance);
         Options.Add(Opt<TaskAssigneeOption>.Instance);
         Options.Add(Opt<TaskLabelOption>.Instance);
@@ -34,6 +34,7 @@ internal sealed class ReadyTaskCommand : Command
         var timeProvider = services.GetRequiredService<TimeProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
+        var type = parseResult.GetValue(Opt<TaskTypeFilterOption>.Instance);
         var priorityValue = parseResult.GetValue(Opt<TaskPriorityOption>.Instance);
         var assignee = parseResult.GetValue(Opt<TaskAssigneeOption>.Instance);
         var labels = parseResult.GetValue(Opt<TaskLabelOption>.Instance);
@@ -50,6 +51,7 @@ internal sealed class ReadyTaskCommand : Command
         var filter = new TaskFilter
         {
             Statuses = [TaskStates.Open],
+            Type = type,
             PriorityMin = priorityRange?.Min,
             PriorityMax = priorityRange?.Max,
             Unassigned = unassigned,

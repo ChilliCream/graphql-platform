@@ -53,7 +53,11 @@ public sealed class AgentDatabaseTests : IDisposable
 
         // assert
         var version = await QueryScalarLongAsync(connection, "PRAGMA user_version;", cancellationToken);
+        var journalMode = await QueryScalarStringAsync(connection, "PRAGMA journal_mode;", cancellationToken);
+        var foreignKeysEnabled = await QueryScalarLongAsync(connection, "PRAGMA foreign_keys;", cancellationToken);
         Assert.Equal(AgentDatabase.CurrentVersion, version);
+        Assert.Equal("wal", journalMode);
+        Assert.Equal(1, foreignKeysEnabled);
 
         var taskTableCount = await QueryScalarLongAsync(
             connection,
@@ -67,9 +71,19 @@ public sealed class AgentDatabaseTests : IDisposable
             connection,
             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agents'",
             cancellationToken);
+        var takeoverTableCount = await QueryScalarLongAsync(
+            connection,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeovers'",
+            cancellationToken);
+        var takeoverItemsTableCount = await QueryScalarLongAsync(
+            connection,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeover_items'",
+            cancellationToken);
         Assert.Equal(1, taskTableCount);
         Assert.Equal(1, mailTableCount);
         Assert.Equal(1, agentTableCount);
+        Assert.Equal(1, takeoverTableCount);
+        Assert.Equal(1, takeoverItemsTableCount);
 
         foreach (var sessionTable in new[]
         {
@@ -159,6 +173,82 @@ public sealed class AgentDatabaseTests : IDisposable
         // assert
         var version = await QueryScalarLongAsync(second, "PRAGMA user_version;", cancellationToken);
         Assert.Equal(AgentDatabase.CurrentVersion, version);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Should_UpgradeV11AndPreserveRows_When_TakeoverTablesAreMissing()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO tasks (id, title, created_at, updated_at)
+                VALUES ('task-v11', 'Preserve me', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+                DROP TABLE agent_takeover_items;
+                DROP TABLE agent_takeovers;
+                PRAGMA user_version = 11;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+        Assert.Equal("Preserve me", await QueryScalarStringAsync(
+            upgraded, "SELECT title FROM tasks WHERE id = 'task-v11'", cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeovers'",
+            cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeover_items'",
+            cancellationToken));
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Should_LeaveV12RowsUnchanged_When_DatabaseIsCurrent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO agent_takeovers (
+                    id, from_actor, to_actor, actor, created_at, forced, role, reason
+                ) VALUES (
+                    'to-current', 'maya', 'nora', 'maya', '2026-01-10T12:00:00+00:00', 1, NULL, NULL
+                );
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var reopened = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(reopened, "PRAGMA user_version", cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            reopened, "SELECT COUNT(*) FROM agent_takeovers WHERE id = 'to-current'", cancellationToken));
+    }
+
+    [Fact]
+    public void IsUpgradableVersion_Should_ReturnTrue_When_VersionIs11()
+    {
+        // act
+        var isUpgradable = AgentDatabase.IsUpgradableVersion(11);
+
+        // assert
+        Assert.True(isUpgradable);
     }
 
     /// <summary>
@@ -772,10 +862,28 @@ public sealed class AgentDatabaseTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await StampVersionOnNewFileAsync(AgentDatabase.CurrentVersion + 1, cancellationToken);
+        await using (var journalModeConnection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await journalModeConnection.OpenAsync(cancellationToken);
+            _ = await QueryScalarStringAsync(
+                journalModeConnection, "PRAGMA journal_mode = DELETE;", cancellationToken);
+        }
 
         // act & assert
         await Assert.ThrowsAsync<ExitException>(
             () => _database.InitializeAsync(_workspaceDirectory, cancellationToken));
+
+        await using var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False");
+        await connection.OpenAsync(cancellationToken);
+        Assert.Equal(13, await QueryScalarLongAsync(connection, "PRAGMA user_version", cancellationToken));
+        Assert.Equal("delete", await QueryScalarStringAsync(connection, "PRAGMA journal_mode", cancellationToken));
+        Assert.Equal(0, await QueryScalarLongAsync(
+            connection,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' "
+            + "AND name IN ('agent_takeovers', 'agent_takeover_items')",
+            cancellationToken));
     }
 
     /// <summary>
@@ -825,7 +933,36 @@ public sealed class AgentDatabaseTests : IDisposable
 
         // assert
         var version = await QueryScalarLongAsync(connected, "PRAGMA user_version;", cancellationToken);
+        var journalMode = await QueryScalarStringAsync(connected, "PRAGMA journal_mode;", cancellationToken);
+        var foreignKeysEnabled = await QueryScalarLongAsync(connected, "PRAGMA foreign_keys;", cancellationToken);
         Assert.Equal(AgentDatabase.CurrentVersion, version);
+        Assert.Equal("wal", journalMode);
+        Assert.Equal(1, foreignKeysEnabled);
+    }
+
+    [Fact]
+    public async Task ReadVersionAsync_Should_NotChangeJournalMode_When_DatabaseHasUnknownVersion()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await StampVersionOnNewFileAsync(AgentDatabase.CurrentVersion + 1, cancellationToken);
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            _ = await QueryScalarStringAsync(connection, "PRAGMA journal_mode = DELETE;", cancellationToken);
+        }
+
+        // act
+        var version = await _database.ReadVersionAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        await using var verifiedConnection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False");
+        await verifiedConnection.OpenAsync(cancellationToken);
+        Assert.Equal(AgentDatabase.CurrentVersion + 1, version);
+        Assert.Equal("delete", await QueryScalarStringAsync(
+            verifiedConnection, "PRAGMA journal_mode", cancellationToken));
     }
 
     [Fact]

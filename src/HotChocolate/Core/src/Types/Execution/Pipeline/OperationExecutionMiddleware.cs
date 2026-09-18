@@ -51,9 +51,18 @@ internal sealed class OperationExecutionMiddleware
 
         if (context.TryGetOperation(out var operation) && context.VariableValues.Length > 0)
         {
-            if (!IsOperationAllowed(operation, context.Request))
+            // The incremental delivery constraint comes from the accepted response content types
+            // alone, so no change of request method can resolve it. It is evaluated first so that
+            // its 406 wins over the 405 an operation kind refusal would otherwise produce.
+            if (!IsIncrementalDeliveryAllowed(operation, context.Request))
             {
-                context.Result = ErrorHelper.OperationKindNotAllowed();
+                context.Result = ErrorHelper.IncrementalDeliveryNotAcceptable();
+                return;
+            }
+
+            if (!IsOperationKindAllowed(operation, context.Request))
+            {
+                context.Result = ErrorHelper.OperationKindNotAllowed(GetRequiredFlag(operation));
                 return;
             }
 
@@ -319,27 +328,42 @@ internal sealed class OperationExecutionMiddleware
             ref _cachedMutation);
     }
 
-    private static bool IsOperationAllowed(Operation operation, IOperationRequest request)
+    private static bool IsOperationKindAllowed(Operation operation, IOperationRequest request)
     {
         if (request.Flags is AllowAll)
         {
             return true;
         }
 
-        var allowed = operation.Definition.Operation switch
+        var requiredFlag = GetRequiredFlag(operation);
+
+        return requiredFlag is None || (request.Flags & requiredFlag) == requiredFlag;
+    }
+
+    /// <summary>
+    /// Translates an operation kind into the <see cref="RequestFlags"/> value that permits it.
+    /// This is the only place the two vocabularies meet, so a refusal is reported as the flag the
+    /// operation required rather than as its kind.
+    /// </summary>
+    private static RequestFlags GetRequiredFlag(Operation operation)
+        => operation.Definition.Operation switch
         {
-            OperationType.Query => (request.Flags & AllowQuery) == AllowQuery,
-            OperationType.Mutation => (request.Flags & AllowMutation) == AllowMutation,
-            OperationType.Subscription => (request.Flags & AllowSubscription) == AllowSubscription,
-            _ => true
+            OperationType.Query => AllowQuery,
+            OperationType.Mutation => AllowMutation,
+            OperationType.Subscription => AllowSubscription,
+            _ => None
         };
 
-        if (allowed && operation.HasIncrementalParts)
+    // AllowStreams is granted by the accepted response content types alone, so a refusal here
+    // is a content negotiation failure rather than one the request method can resolve.
+    private static bool IsIncrementalDeliveryAllowed(Operation operation, IOperationRequest request)
+    {
+        if (request.Flags is AllowAll || !operation.HasIncrementalParts)
         {
-            return (request.Flags & AllowStreams) == AllowStreams;
+            return true;
         }
 
-        return allowed;
+        return (request.Flags & AllowStreams) == AllowStreams;
     }
 
     private static bool IsRequestTypeAllowed(
