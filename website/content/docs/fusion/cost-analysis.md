@@ -104,16 +104,16 @@ The predefined Fusion pipelines run these stages in order:
 3. Document Validation
 4. Document Normalization
 5. Operation Variable Coercion
-6. Operation Plan Cache
-7. Cost Analysis
+6. Cost Analysis
+7. Operation Plan Cache
 8. Operation Plan
 9. Skip Warmup Execution
 10. Concurrency Gate
 11. Operation Execution
 
-Cost enforcement runs before operation planning. A rejected request does not create an operation-plan cache entry. `DocumentNormalization` expands fragments and removes statically excluded selections before variable coercion and cost analysis.
+Cost enforcement runs before the operation-plan cache and before operation planning. A rejected request never enters the planner's single-flight coalescing and does not create an operation-plan cache entry or an in-flight planning entry, so an attacker cannot pin planner resources with an operation that is expensive enough to be rejected. `DocumentNormalization` expands fragments and removes statically excluded selections before variable coercion and cost analysis. Cost enforcement is per request and reflects the coerced variable values; limits on operation structure, such as maximum depth, node count, and parser limits, remain the protection against operations that are expensive to plan regardless of their variables.
 
-A custom pipeline must include `UseDocumentNormalization()`, place `UseOperationVariableCoercion()` before `UseCostAnalysis()`, and place `UseCostAnalysis()` after `UseOperationPlanCache()` and before `UseOperationPlan()`.
+A custom pipeline must include `UseDocumentNormalization()`, place `UseOperationVariableCoercion()` before `UseCostAnalysis()`, and place `UseCostAnalysis()` before `UseOperationPlanCache()`.
 
 # Options Reference
 

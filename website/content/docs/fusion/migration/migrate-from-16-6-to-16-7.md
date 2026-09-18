@@ -27,7 +27,7 @@ The payload of `connectionInitMessage` is only valid for the duration of the cal
 
 ## Custom request pipelines must add the cost stages
 
-All three predefined Fusion pipelines now normalize the document, coerce variables, check cost, and only then plan the operation. Update custom pipelines to use the same relative order:
+All three predefined Fusion pipelines now normalize the document, coerce variables, check cost, and only then look up or plan the operation. Update custom pipelines to use the same relative order:
 
 ```diff
  builder
@@ -35,16 +35,18 @@ All three predefined Fusion pipelines now normalize the document, coerce variabl
      .UseDocumentValidation()
 +    .UseDocumentNormalization()
 +    .UseOperationVariableCoercion()
-     .UseOperationPlanCache()
 +    .UseCostAnalysis()
-     .UseOperationPlan()
-     .UseSkipWarmupExecution()
+     .UseOperationPlanCache()
+-    .UseOperationPlan()
+-    .UseSkipWarmupExecution()
 -    .UseOperationVariableCoercion()
++    .UseOperationPlan()
++    .UseSkipWarmupExecution()
      .UseConcurrencyGate()
      .UseOperationExecution();
 ```
 
-`DocumentNormalization` is new. `OperationVariableCoercion` now runs before `OperationPlanCache`, and `CostAnalysis` runs before `OperationPlan`. Coercion errors therefore precede planning errors. Only warmup requests skip coercion and use the assumed-bound path; `GraphQL-Cost: validate` requests coerce variables exactly like `execute` and `report`, and fail with the ordinary coercion error when required variables are missing.
+`DocumentNormalization` is new. `OperationVariableCoercion` and `CostAnalysis` now both run before `OperationPlanCache`. Coercion errors therefore precede cost and planning errors, and a cost rejection precedes the operation-plan cache lookup: a rejected request never creates an operation-plan cache entry or an in-flight planning entry. Only warmup requests skip coercion and use the assumed-bound path; `GraphQL-Cost: validate` requests coerce variables exactly like `execute` and `report`, and fail with the ordinary coercion error when required variables are missing.
 
 ## Fusion diagnostic event interface expanded
 

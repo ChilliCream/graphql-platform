@@ -11,7 +11,7 @@ internal sealed class OperationPlanCacheMiddleware
 {
     private readonly Cache<OperationPlan> _cache;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly ConcurrentDictionary<string, Lazy<TaskCompletionSource<OperationPlan?>>> _inFlightPlans =
+    private readonly ConcurrentDictionary<string, Lazy<TaskCompletionSource<OperationPlan>>> _inFlightPlans =
         new(StringComparer.Ordinal);
 
     private OperationPlanCacheMiddleware(Cache<OperationPlan> cache, IFusionExecutionDiagnosticEvents diagnosticEvents)
@@ -22,116 +22,102 @@ internal sealed class OperationPlanCacheMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
-        var documentInfo = context.OperationDocumentInfo;
+        var operationId = context.GetOperationId();
 
-        if (documentInfo.Hash.IsEmpty)
+        if (_cache.TryGet(operationId, out var plan))
         {
-            context.Result = ErrorHelper.StateInvalidForOperationPlanCache();
+            context.SetOperationPlan(plan);
+            _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
+            await next(context).ConfigureAwait(false);
             return;
         }
 
-        var operationId = documentInfo.OperationCount == 1
-            ? documentInfo.Hash.Value
-            : $"{documentInfo.Hash.Value}.{context.Request.OperationName ?? "Default"}";
-        context.SetOperationId(operationId);
+        var retried = false;
+        var resolved = false;
+        Lazy<TaskCompletionSource<OperationPlan>>? leaderEntry = null;
 
-        Lazy<TaskCompletionSource<OperationPlan?>>? inFlightPlan = null;
-
-        while (true)
+        // A follower whose leader is cancelled before it produces a plan evicts the
+        // cancelled leader's entry and gets exactly one opportunity to step up as the new
+        // leader candidate instead of failing outright; any cancellation after that
+        // (including one observed on the retry) propagates.
+        while (!resolved)
         {
-            if (_cache.TryGet(operationId, out var plan))
-            {
-                context.SetOperationPlan(plan);
-                _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
-                break;
-            }
-
-            var candidate = new Lazy<TaskCompletionSource<OperationPlan?>>(
-                static () => new TaskCompletionSource<OperationPlan?>(
+            var candidate = new Lazy<TaskCompletionSource<OperationPlan>>(
+                static () => new TaskCompletionSource<OperationPlan>(
                     TaskCreationOptions.RunContinuationsAsynchronously));
             var current = _inFlightPlans.GetOrAdd(operationId, candidate);
 
             if (ReferenceEquals(current, candidate))
             {
-                inFlightPlan = candidate;
-                context.Features.Set(candidate.Value);
-                break;
+                leaderEntry = current;
+                context.Features.Set(current.Value);
+                resolved = true;
+                continue;
             }
 
-            var coalescedPlan = await current.Value.Task
-                .WaitAsync(context.RequestAborted)
-                .ConfigureAwait(false);
-
-            if (coalescedPlan is not null)
+            try
             {
+                var coalescedPlan = await current.Value.Task
+                    .WaitAsync(context.RequestAborted)
+                    .ConfigureAwait(false);
                 context.SetOperationPlan(coalescedPlan);
-                break;
+                resolved = true;
             }
+            catch (OperationCanceledException ex)
+                when (!retried && ex.CancellationToken != context.RequestAborted)
+            {
+                // The leader was cancelled before it produced a plan; this request's own
+                // token was not the cause, so it evicts the cancelled leader's entry and
+                // retries once as a leader candidate.
+                retried = true;
+                _inFlightPlans.TryRemove(
+                    new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(operationId, current));
+            }
+        }
+
+        if (leaderEntry is null)
+        {
+            await next(context).ConfigureAwait(false);
+            return;
         }
 
         try
         {
-            await next(context);
+            await next(context).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            if (inFlightPlan is not null)
+            // Propagate the failure to followers only if nothing has resolved the TCS yet
+            // (OperationPlanMiddleware already completes it once a plan is produced).
+            if (!leaderEntry.Value.Task.IsCompleted)
             {
-                RemoveInFlightPlan(operationId, inFlightPlan);
-
-                if (ex is OperationCanceledException cancellationException)
+                if (ex is OperationCanceledException oce)
                 {
-                    inFlightPlan.Value.TrySetCanceled(cancellationException.CancellationToken);
+                    leaderEntry.Value.TrySetCanceled(oce.CancellationToken);
                 }
                 else
                 {
-                    inFlightPlan.Value.TrySetException(ex);
+                    leaderEntry.Value.TrySetException(ex);
                 }
             }
 
             throw;
         }
-
-        if (inFlightPlan is not null)
+        finally
         {
-            try
+            // Guard against a pipeline that returns without producing a plan and without
+            // throwing, which would otherwise leave followers awaiting the TCS forever.
+            if (!leaderEntry.Value.Task.IsCompleted)
             {
-                if (context.GetOperationPlan() is { } operationPlan)
-                {
-                    _cache.TryAdd(operationId, operationPlan);
-                    _diagnosticEvents.AddedOperationPlanToCache(context, operationId);
-                    RemoveInFlightPlan(operationId, inFlightPlan);
-                    inFlightPlan.Value.TrySetResult(operationPlan);
-                }
-                else
-                {
-                    RemoveInFlightPlan(operationId, inFlightPlan);
-                    inFlightPlan.Value.TrySetResult(null);
-                }
+                leaderEntry.Value.TrySetException(ThrowHelper.OperationPlanTaskCompletedWithoutResult());
             }
-            catch (Exception ex)
-            {
-                RemoveInFlightPlan(operationId, inFlightPlan);
 
-                if (ex is OperationCanceledException cancellationException)
-                {
-                    inFlightPlan.Value.TrySetCanceled(cancellationException.CancellationToken);
-                }
-                else
-                {
-                    inFlightPlan.Value.TrySetException(ex);
-                }
-
-                throw;
-            }
+            // The leader alone owns this entry: added it, and removes it here regardless of
+            // whether planning succeeded, failed, or was cancelled.
+            _inFlightPlans.TryRemove(
+                new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(operationId, leaderEntry));
         }
     }
-
-    private void RemoveInFlightPlan(
-        string operationId,
-        Lazy<TaskCompletionSource<OperationPlan?>> inFlightPlan)
-        => ((ICollection<KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan?>>>>)_inFlightPlans)
-            .Remove(new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan?>>>(operationId, inFlightPlan));
 
     public static RequestMiddlewareConfiguration Create()
         => new RequestMiddlewareConfiguration(

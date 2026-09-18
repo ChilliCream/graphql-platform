@@ -1,8 +1,7 @@
 using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Fusion.Execution.Rewriters;
-using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
-using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Pipeline;
@@ -10,12 +9,14 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 internal sealed class DocumentNormalizationMiddleware
 {
     private readonly DocumentRewriter _documentRewriter;
-    private readonly IDocumentCache _documentCache;
+    private readonly NormalizedDocumentCache _normalizedDocumentCache;
 
-    private DocumentNormalizationMiddleware(FusionSchemaDefinition schema, IDocumentCache documentCache)
+    private DocumentNormalizationMiddleware(
+        FusionSchemaDefinition schema,
+        NormalizedDocumentCache normalizedDocumentCache)
     {
         _documentRewriter = new DocumentRewriter(schema, removeStaticallyExcludedSelections: true);
-        _documentCache = documentCache;
+        _normalizedDocumentCache = normalizedDocumentCache;
     }
 
     public ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
@@ -28,31 +29,28 @@ internal sealed class DocumentNormalizationMiddleware
             throw ThrowHelper.OperationDocumentNotAvailable();
         }
 
-        CachedDocument? cachedDocument = null;
-
-        if (!documentInfo.Id.IsEmpty && documentInfo.OperationCount == 1)
+        if (documentInfo.Hash.IsEmpty)
         {
-            _documentCache.TryGetDocument(documentInfo.Id.Value, out cachedDocument);
+            context.Result = ErrorHelper.StateInvalidForOperationPlanCache();
+            return default;
         }
 
-        var normalizedDocument = cachedDocument?.NormalizedBody;
+        var operationId = documentInfo.OperationCount == 1
+            ? documentInfo.Hash.Value
+            : $"{documentInfo.Hash.Value}.{context.Request.OperationName ?? "Default"}";
+        context.SetOperationId(operationId);
 
-        if (normalizedDocument is null)
+        if (!_normalizedDocumentCache.TryGet(operationId, out var normalizedDocument))
         {
-            // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
+            // Before we can plan an operation, we must de-fragmentize it and remove static
+            // include conditions. The resulting document always has the operation as its
+            // only definition, at Definitions[0].
             normalizedDocument = _documentRewriter.RewriteDocument(document, context.Request.OperationName);
 
-            // If the document is already in the document cache, we keep the normalized body on
-            // the cached entry so that later hits for the same document can reuse it. Multi-operation
-            // documents are rewritten per request because the normalized body is operation-specific.
-            if (cachedDocument is { })
-            {
-                cachedDocument.NormalizedBody = normalizedDocument;
-            }
+            _normalizedDocumentCache.TryAdd(operationId, normalizedDocument);
         }
 
-        var normalizedOperation = normalizedDocument.GetOperation(context.Request.OperationName);
-        context.SetNormalizedDocument(normalizedDocument, normalizedOperation);
+        documentInfo.NormalizedDocument = normalizedDocument;
 
         return next(context);
     }
@@ -61,8 +59,10 @@ internal sealed class DocumentNormalizationMiddleware
         => new RequestMiddlewareConfiguration(
             (fc, next) =>
             {
-                var documentCache = fc.SchemaServices.GetRequiredService<IDocumentCache>();
-                var middleware = new DocumentNormalizationMiddleware((FusionSchemaDefinition)fc.Schema, documentCache);
+                var normalizedDocumentCache = fc.SchemaServices.GetRequiredService<NormalizedDocumentCache>();
+                var middleware = new DocumentNormalizationMiddleware(
+                    (FusionSchemaDefinition)fc.Schema,
+                    normalizedDocumentCache);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
             },
             WellKnownRequestMiddleware.DocumentNormalizationMiddleware);

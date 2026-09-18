@@ -98,7 +98,9 @@ public static class FusionRequestContextExtensions
     }
 
     /// <summary>
-    /// Gets the normalized operation document from the request context.
+    /// Gets the normalized operation document from the request context. The normalized
+    /// document is produced by the document normalization pipeline stage and holds exactly
+    /// one definition, the operation, at <c>Definitions[0]</c>.
     /// </summary>
     /// <param name="context">
     /// The request context.
@@ -111,14 +113,8 @@ public static class FusionRequestContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var normalizedDocument = context.Features.Get<FusionOperationInfo>()?.NormalizedDocument;
-
-        if (normalizedDocument is null)
-        {
-            throw ThrowHelper.NormalizedDocumentNotSet();
-        }
-
-        return normalizedDocument;
+        return context.OperationDocumentInfo.NormalizedDocument
+            ?? throw ThrowHelper.NormalizedDocumentNotSet();
     }
 
     /// <summary>
@@ -139,34 +135,14 @@ public static class FusionRequestContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        operation = context.Features.Get<FusionOperationInfo>()?.NormalizedOperation;
-        return operation is not null;
-    }
+        if (context.OperationDocumentInfo.NormalizedDocument is { Definitions: [OperationDefinitionNode op] })
+        {
+            operation = op;
+            return true;
+        }
 
-    /// <summary>
-    /// Sets the normalized operation document and its operation definition on the request context.
-    /// </summary>
-    /// <param name="context">
-    /// The request context.
-    /// </param>
-    /// <param name="document">
-    /// The normalized operation document.
-    /// </param>
-    /// <param name="operation">
-    /// The operation definition contained in <paramref name="document"/>.
-    /// </param>
-    internal static void SetNormalizedDocument(
-        this RequestContext context,
-        DocumentNode document,
-        OperationDefinitionNode operation)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentNullException.ThrowIfNull(document);
-        ArgumentNullException.ThrowIfNull(operation);
-
-        var info = context.Features.GetOrSet<FusionOperationInfo>();
-        info.NormalizedDocument = document;
-        info.NormalizedOperation = operation;
+        operation = null;
+        return false;
     }
 
     internal static bool CollectOperationPlanTelemetry(
