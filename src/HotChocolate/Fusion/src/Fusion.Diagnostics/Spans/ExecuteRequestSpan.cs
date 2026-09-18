@@ -64,7 +64,7 @@ internal sealed class ExecuteRequestSpan(
         return false;
     }
 
-    private static bool TryGetOperationDefinition(
+    internal static bool TryGetOperationDefinition(
         DocumentNode document,
         string? operationName,
         [NotNullWhen(true)] out OperationDefinitionNode? operationDefinition)

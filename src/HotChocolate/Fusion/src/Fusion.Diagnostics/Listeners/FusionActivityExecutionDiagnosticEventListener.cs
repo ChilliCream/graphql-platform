@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -191,11 +190,22 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             operationType = plan.Operation.Definition.Operation;
             operationName = plan.OperationName;
         }
+        else if (context.OperationDocumentInfo.NormalizedDocument is
+        { Definitions: [OperationDefinitionNode normalizedOperation] })
+        {
+            operationType = normalizedOperation.Operation;
+            operationName = normalizedOperation.Name?.Value;
+        }
+        else if (context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
+            && ExecuteRequestSpan.TryGetOperationDefinition(
+                document, context.Request.OperationName, out var operationDefinition))
+        {
+            operationType = operationDefinition.Operation;
+            operationName = operationDefinition.Name?.Value;
+        }
         else
         {
-            var operation = context.GetNormalizedOperation();
-            operationType = operation.Operation;
-            operationName = operation.Name?.Value ?? context.Request.OperationName;
+            return EmptyScope;
         }
 
         var span = VariableCoercionSpan.Start(
