@@ -35,11 +35,11 @@ internal sealed class OperationPlanCacheMiddleware
         var retried = false;
         var resolved = false;
         Lazy<TaskCompletionSource<OperationPlan>>? leaderEntry = null;
-        Lazy<TaskCompletionSource<OperationPlan>>? cancelledLeader = null;
 
-        // A follower whose leader is cancelled before it produces a plan gets exactly one
-        // opportunity to step up as the new leader candidate instead of failing outright;
-        // any cancellation after that (including one observed on the retry) propagates.
+        // A follower whose leader is cancelled before it produces a plan evicts the
+        // cancelled leader's entry and gets exactly one opportunity to step up as the new
+        // leader candidate instead of failing outright; any cancellation after that
+        // (including one observed on the retry) propagates.
         while (!resolved)
         {
             var candidate = new Lazy<TaskCompletionSource<OperationPlan>>(
@@ -55,16 +55,6 @@ internal sealed class OperationPlanCacheMiddleware
                 continue;
             }
 
-            if (ReferenceEquals(current, cancelledLeader))
-            {
-                // The leadership decision was already made (this request is retrying as a
-                // candidate); the cancelled leader's own entry just has not been removed
-                // yet. Yield for its cleanup to run and look again - this is not another
-                // retry of the operation, only a wait for that removal to land.
-                await Task.Yield();
-                continue;
-            }
-
             try
             {
                 var coalescedPlan = await current.Value.Task
@@ -77,9 +67,11 @@ internal sealed class OperationPlanCacheMiddleware
                 when (!retried && ex.CancellationToken != context.RequestAborted)
             {
                 // The leader was cancelled before it produced a plan; this request's own
-                // token was not the cause, so it retries once as a leader candidate.
+                // token was not the cause, so it evicts the cancelled leader's entry and
+                // retries once as a leader candidate.
                 retried = true;
-                cancelledLeader = current;
+                _inFlightPlans.TryRemove(
+                    new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(operationId, current));
             }
         }
 
