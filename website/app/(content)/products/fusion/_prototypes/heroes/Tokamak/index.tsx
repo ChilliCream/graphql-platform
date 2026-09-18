@@ -190,20 +190,20 @@ export default function Tokamak() {
     let plasmaDensityScale = 1;
     let disposed = false;
 
-    // Erases the LIVE (plasma) canvas's own copy-clear zone on desktop --
-    // the ring/streaks/filament/bloom must never render under the copy
+    // Erases the LIVE (plasma) canvas's own copy-clear zone -- the
+    // ring/streaks/filament/bloom must never render under the copy
     // (item 4), so every live frame gets this destination-out fade from
-    // `artLeft` back to 0, a hard guarantee on top of the geometry already
-    // keeping the band at 0.775w. On mobile it instead feathers the WHOLE
-    // scene's top edge (both this canvas and the wall's, via
-    // `featherWallTop` below) so nothing shows above the copy/button row.
-    // hc-0-g8l: this used to ALSO run against the wall canvas on desktop,
-    // erasing every tile from x=0 to `artLeft`+24 -- not a gentle scrim but
-    // a full destination-out wipe, which is what actually produced the
-    // "right-hand panel" look (a hard coverage cliff at `artLeft`, not a
-    // geometry gap). The wall keeps its structure under the copy now
-    // (low-alpha, per the DOM scrim); only the plasma still clears the zone
-    // by erasure.
+    // `artLeft` back to 0 on desktop, a hard guarantee on top of the
+    // geometry already keeping the band at 0.775w. On mobile it instead
+    // feathers the whole scene's top edge (`featherMobileTop` below) so
+    // the plasma never shows above the copy/button row. hc-0-g8l: this
+    // used to ALSO run against the wall canvas (on desktop as a
+    // destination-out wipe from x=0 to `artLeft`+24, on mobile as a top
+    // erase) -- not a gentle scrim but a full erase, which is what
+    // actually produced the "right-hand panel" look on desktop and the
+    // empty mobile copy band (planner ruling, F1). The wall now keeps its
+    // structure under the copy at both widths (low-alpha, per the DOM
+    // scrims); only the plasma canvas still clears the zone by erasure.
     function featherCopyClearZone(ctx: CanvasRenderingContext2D) {
       ctx.globalCompositeOperation = "destination-out";
       if (!layout.mobile) {
@@ -221,12 +221,12 @@ export default function Tokamak() {
     }
 
     // Feathers the top edge of the mobile band (the copy/button row sits
-    // above `artTop`) so the art reads as ending there instead of being cut
-    // off -- shared by the wall canvas (painted once per `measure()`) and
-    // the live canvas (every frame, via `featherCopyClearZone` above). A
-    // no-op call site on desktop, where the wall no longer erases anything
-    // (see `featherCopyClearZone`'s comment) and instead relies on the DOM
-    // top/bottom scrims to end the image at the section's edges.
+    // above `artTop`) so the plasma reads as ending there instead of being
+    // cut off -- called only against the live/plasma canvas, via
+    // `featherCopyClearZone` above. The wall canvas is never erased at
+    // this edge: it paints behind the mobile copy band the same way it
+    // paints behind the desktop copy column, at low alpha under the DOM
+    // scrim (planner ruling, F1).
     function featherMobileTop(ctx: CanvasRenderingContext2D) {
       const top = layout.artTop;
       const bottom = layout.artTop + 24;
@@ -235,15 +235,6 @@ export default function Tokamak() {
       fade.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = fade;
       ctx.fillRect(0, 0, w, bottom);
-    }
-
-    function featherWallTop(ctx: CanvasRenderingContext2D) {
-      if (!layout.mobile) {
-        return;
-      }
-      ctx.globalCompositeOperation = "destination-out";
-      featherMobileTop(ctx);
-      ctx.globalCompositeOperation = "source-over";
     }
 
     // Blits an already-dpr-scaled offscreen cache (the column, or a plasma
@@ -397,7 +388,6 @@ export default function Tokamak() {
         6,
       );
       paintWall(wallCtx!, w, h, wallTiles, lights);
-      featherWallTop(wallCtx!);
       paintColumnLayer(columnCtx!, w, h, columnTiles);
 
       // The ring's projected width uses the camera's own base scale (the

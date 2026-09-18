@@ -173,7 +173,16 @@ export function computeLayout(w: number, h: number): TokamakLayout {
   const originX = w * 0.5;
   const camera = makeCamera(originX, bandCenterY, 480, 160, 10);
   const columnRows = buildTaperedRows(36, 52, 275, 100, 1.6);
-  const wallRows = buildTaperedRows(280, 52, 300, 350, 1.1);
+  // Widened from 280/52/300/350 (hc-0-g8l): the mobile wall must paint
+  // behind the copy band across the full width, like the desktop wall
+  // does (planner ruling, F1) -- at the old, narrower rows only the band
+  // right at the plasma's height reached the frame edges; every row above
+  // it (the band under the copy) fell short on both `y` (never reaching
+  // the section's top) and `x` (never reaching the left/right edges).
+  // Confirmed with test-results/ver2-sweep-375.js: every row intersecting
+  // the frame spans x<=0 and x>=375, and the topmost row reaches y<=0
+  // (minY -102).
+  const wallRows = buildTaperedRows(600, 400, 900, 200, 1.1);
   // Scaled proportionally to the desktop R/a change above (105/26, same
   // ~0.39/0.38 ratio the original 51/13 kept against the original 130/34).
   const torus: TorusParams = { R: 41, a: 8, y: 0, z: 0 };
