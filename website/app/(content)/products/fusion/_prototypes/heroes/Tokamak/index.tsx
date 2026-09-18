@@ -190,7 +190,21 @@ export default function Tokamak() {
     let plasmaDensityScale = 1;
     let disposed = false;
 
-    function featherEdge(ctx: CanvasRenderingContext2D) {
+    // Erases the LIVE (plasma) canvas's own copy-clear zone on desktop --
+    // the ring/streaks/filament/bloom must never render under the copy
+    // (item 4), so every live frame gets this destination-out fade from
+    // `artLeft` back to 0, a hard guarantee on top of the geometry already
+    // keeping the band at 0.775w. On mobile it instead feathers the WHOLE
+    // scene's top edge (both this canvas and the wall's, via
+    // `featherWallTop` below) so nothing shows above the copy/button row.
+    // hc-0-g8l: this used to ALSO run against the wall canvas on desktop,
+    // erasing every tile from x=0 to `artLeft`+24 -- not a gentle scrim but
+    // a full destination-out wipe, which is what actually produced the
+    // "right-hand panel" look (a hard coverage cliff at `artLeft`, not a
+    // geometry gap). The wall keeps its structure under the copy now
+    // (low-alpha, per the DOM scrim); only the plasma still clears the zone
+    // by erasure.
+    function featherCopyClearZone(ctx: CanvasRenderingContext2D) {
       ctx.globalCompositeOperation = "destination-out";
       if (!layout.mobile) {
         const left = layout.artLeft;
@@ -201,14 +215,34 @@ export default function Tokamak() {
         ctx.fillStyle = fade;
         ctx.fillRect(0, 0, left + 24, h);
       } else {
-        const top = layout.artTop;
-        const bottom = layout.artTop + 24;
-        const fade = ctx.createLinearGradient(0, top, 0, bottom);
-        fade.addColorStop(0, "rgba(0,0,0,1)");
-        fade.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = fade;
-        ctx.fillRect(0, 0, w, bottom);
+        featherMobileTop(ctx);
       }
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    // Feathers the top edge of the mobile band (the copy/button row sits
+    // above `artTop`) so the art reads as ending there instead of being cut
+    // off -- shared by the wall canvas (painted once per `measure()`) and
+    // the live canvas (every frame, via `featherCopyClearZone` above). A
+    // no-op call site on desktop, where the wall no longer erases anything
+    // (see `featherCopyClearZone`'s comment) and instead relies on the DOM
+    // top/bottom scrims to end the image at the section's edges.
+    function featherMobileTop(ctx: CanvasRenderingContext2D) {
+      const top = layout.artTop;
+      const bottom = layout.artTop + 24;
+      const fade = ctx.createLinearGradient(0, top, 0, bottom);
+      fade.addColorStop(0, "rgba(0,0,0,1)");
+      fade.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = fade;
+      ctx.fillRect(0, 0, w, bottom);
+    }
+
+    function featherWallTop(ctx: CanvasRenderingContext2D) {
+      if (!layout.mobile) {
+        return;
+      }
+      ctx.globalCompositeOperation = "destination-out";
+      featherMobileTop(ctx);
       ctx.globalCompositeOperation = "source-over";
     }
 
@@ -363,7 +397,7 @@ export default function Tokamak() {
         6,
       );
       paintWall(wallCtx!, w, h, wallTiles, lights);
-      featherEdge(wallCtx!);
+      featherWallTop(wallCtx!);
       paintColumnLayer(columnCtx!, w, h, columnTiles);
 
       // The ring's projected width uses the camera's own base scale (the
@@ -683,7 +717,7 @@ export default function Tokamak() {
       liveCtx!.fill();
 
       liveCtx!.globalCompositeOperation = "source-over";
-      featherEdge(liveCtx!);
+      featherCopyClearZone(liveCtx!);
     }
 
     drawLiveRef.current = drawLive;
@@ -737,9 +771,9 @@ export default function Tokamak() {
       <canvas ref={wallRef} className="absolute inset-0 h-full w-full" />
       <canvas ref={liveRef} className="absolute inset-0 h-full w-full" />
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 hidden md:block"
         style={{
-          background: `linear-gradient(90deg, ${hexToRgba(BRAND.navy, 0.92)} 0%, ${hexToRgba(BRAND.navy, 0.62)} 42%, ${hexToRgba(BRAND.navy, 0)} 66%)`,
+          background: `linear-gradient(90deg, ${hexToRgba(BRAND.navy, 0.76)} 0%, ${hexToRgba(BRAND.navy, 0.6)} 54%, ${hexToRgba(BRAND.navy, 0)} 74%)`,
         }}
       />
       <div
@@ -757,7 +791,7 @@ export default function Tokamak() {
       <div
         className="absolute inset-0 md:hidden"
         style={{
-          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.6)} 0%, ${hexToRgba(BRAND.navy, 0.6)} 72%, ${hexToRgba(BRAND.navy, 0)} 78%)`,
+          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.45)} 0%, ${hexToRgba(BRAND.navy, 0.45)} 72%, ${hexToRgba(BRAND.navy, 0)} 78%)`,
         }}
       />
       <div
