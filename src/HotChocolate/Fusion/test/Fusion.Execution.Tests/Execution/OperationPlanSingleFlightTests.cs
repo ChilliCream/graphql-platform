@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
@@ -504,6 +505,163 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Leader_ShortCircuit_Before_Planning_Should_Release_Followers()
+    {
+        // arrange
+        using var testCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var followerCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var listener = new PlanningCountDiagnosticListener();
+        var operationIds = new ConcurrentBag<string>();
+        var leaderGate = new SingleFlightLeaderGate();
+        var secondRequestObserver = new SecondRequestObserver();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .AddDiagnosticEventListener(_ => listener)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSecondRequestEnteredDownstreamMiddleware(next, secondRequestObserver),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateLeaderShortCircuitBeforePlanningMiddleware(next, leaderGate),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      foo: String
+                    }
+                    """))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: testCts.Token);
+
+        const string operationText =
+            """
+            query LeaderShortCircuitsBeforePlanning {
+              foo
+            }
+            """;
+
+        // act
+        var leaderTask = executor.ExecuteAsync(operationText, testCts.Token);
+        await leaderGate.WaitForEntryAsync(testCts.Token);
+
+        var followerStopwatch = Stopwatch.StartNew();
+        var followerTask = executor.ExecuteAsync(operationText, followerCts.Token);
+        await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
+
+        // the leader short-circuits with a result instead of calling into OperationPlanMiddleware;
+        // the follower must be released by that, not by waiting out its own token.
+        leaderGate.Release();
+        var followerResult = await followerTask;
+        followerStopwatch.Stop();
+        var leaderResult = await leaderTask;
+
+        // assert
+        Assert.NotEmpty(leaderResult.ExpectOperationResult().Errors);
+        Assert.NotEmpty(followerResult.ExpectOperationResult().Errors);
+        Assert.True(
+            followerStopwatch.Elapsed < TimeSpan.FromSeconds(2),
+            "The follower should be released once the leader's task resolves, not wait out "
+                + $"its own token (elapsed: {followerStopwatch.Elapsed}).");
+
+        var operationId = Assert.Single(operationIds.Distinct());
+        Assert.Equal(0, listener.PlanStartCount(operationId));
+        Assert.Equal(0, listener.AddedToCacheCount(operationId));
+
+        // the in-flight entry was removed, so a later request for the same operation plans
+        // normally instead of coalescing onto the dead entry.
+        var laterResult = await executor.ExecuteAsync(operationText, testCts.Token);
+        Assert.Empty(laterResult.ExpectOperationResult().Errors);
+        Assert.Equal(1, listener.PlanStartCount(operationId));
+    }
+
+    [Fact]
+    public async Task Leader_Cancellation_In_Middleware_Before_Planning_Should_Not_Be_Observed_By_Followers()
+    {
+        // arrange
+        using var leaderCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var testCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var listener = new PlanningCountDiagnosticListener();
+        var operationIds = new ConcurrentBag<string>();
+        var planningGate = new SingleFlightLeaderGate();
+        var secondRequestObserver = new SecondRequestObserver();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .AddDiagnosticEventListener(_ => listener)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSecondRequestEnteredDownstreamMiddleware(next, secondRequestObserver),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSingleFlightLeaderBlockMiddleware(next, planningGate),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      foo: String
+                    }
+                    """))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: testCts.Token);
+
+        const string operationText =
+            """
+            query LeaderCancelledInMiddlewareBeforePlanning {
+              foo
+            }
+            """;
+
+        // act
+        var leaderTask = executor.ExecuteAsync(operationText, leaderCts.Token);
+        await planningGate.WaitForEntryAsync(testCts.Token);
+
+        var followerTask = executor.ExecuteAsync(operationText, testCts.Token);
+        await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
+
+        // the leader observes its own cancellation directly in the middleware, before the
+        // planner ever runs: the OCE is raised right where the leader's path awaits `next`,
+        // not deep inside the planner.
+        await leaderCts.CancelAsync();
+
+        var leaderResult = await leaderTask;
+        planningGate.Release();
+        var followerResult = await followerTask;
+
+        // assert
+        Assert.NotEmpty(leaderResult.ExpectOperationResult().Errors);
+        Assert.Empty(followerResult.ExpectOperationResult().Errors);
+
+        var operationId = Assert.Single(operationIds.Distinct());
+        Assert.Equal(1, listener.PlanStartCount(operationId));
+        Assert.Equal(1, listener.AddedToCacheCount(operationId));
+    }
+
+    [Fact]
     public async Task Follower_Cancellation_Should_Not_Cancel_Leader_Planning()
     {
         // arrange
@@ -638,6 +796,30 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
 
             await next(context);
         };
+
+    private static RequestDelegate CreateLeaderShortCircuitBeforePlanningMiddleware(
+        RequestDelegate next,
+        SingleFlightLeaderGate gate)
+    {
+        var shortCircuited = 0;
+
+        return async context =>
+        {
+            // Only the original leader short-circuits; a later request that becomes the new
+            // leader after the in-flight entry was removed must plan normally.
+            if (context.Features.Get<TaskCompletionSource<OperationPlan>>() is not null
+                && Interlocked.Exchange(ref shortCircuited, 1) == 0)
+            {
+                gate.SignalEntry();
+                await gate.WaitForReleaseAsync(context.RequestAborted);
+                context.Result = OperationResult.FromError(
+                    new Error { Message = "Leader short-circuited before planning." });
+                return;
+            }
+
+            await next(context);
+        };
+    }
 
     private static RequestDelegate CreateSecondRequestEnteredDownstreamMiddleware(
         RequestDelegate next,
