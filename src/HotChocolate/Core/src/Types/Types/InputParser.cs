@@ -50,7 +50,7 @@ public sealed class InputParser
             targetType = field.RuntimeType;
         }
 
-        return FormatAndConvertValue(field, path, value.Location, runtimeValue, false, false, targetType);
+        return FormatAndConvertValue(field, path, runtimeValue, false, false, targetType);
     }
 
     public object? ParseLiteral(IValueNode value, IType type, Path? path = null)
@@ -204,7 +204,7 @@ public sealed class InputParser
         {
             if (field is not null)
             {
-                throw InvalidTypeConversion(type.ElementType, field, path, null, conversionException);
+                throw InvalidTypeConversion(type.ElementType, field, path, conversionException);
             }
 
             // Without a field context (the IType / JsonElement overloads) there is no
@@ -343,16 +343,14 @@ public sealed class InputParser
         }
         catch (LeafCoercionException ex)
         {
-            if (field is null)
+            var errorBuilder = ErrorBuilder.FromError(ex.Errors[0]).SetInputPath(path);
+
+            if (field is not null)
             {
-                throw new LeafCoercionException(ex.Errors[0].WithPath(path), ex.Type, path);
+                errorBuilder.SetCoordinate(field.Coordinate);
             }
 
-            var error = ErrorBuilder.FromError(ex.Errors[0])
-                .SetInputPath(path)
-                .SetCoordinate(field.Coordinate)
-                .SetExtension("fieldType", type.Name)
-                .Build();
+            var error = errorBuilder.SetExtension("fieldType", type.Name).Build();
 
             throw new LeafCoercionException(error, ex.Type, path);
         }
@@ -600,7 +598,7 @@ public sealed class InputParser
                             }
 
                             var value = Deserialize(property.Value, field.Type, fieldPath, field, context);
-                            value = FormatAndConvertValue(field, path, null, value, field.IsOptional, true);
+                            value = FormatAndConvertValue(field, path, value, field.IsOptional, true);
 
                             fieldValues[field.Index] = value;
                         }
@@ -654,16 +652,14 @@ public sealed class InputParser
         }
         catch (LeafCoercionException ex)
         {
-            if (field is null)
+            var errorBuilder = ErrorBuilder.FromError(ex.Errors[0]).SetInputPath(path);
+
+            if (field is not null)
             {
-                throw new LeafCoercionException(ex.Errors[0].WithPath(path), ex.Type, path);
+                errorBuilder.SetCoordinate(field.Coordinate);
             }
 
-            var error = ErrorBuilder.FromError(ex.Errors[0])
-                .SetInputPath(path)
-                .SetCoordinate(field.Coordinate)
-                .SetExtension("fieldType", type.Name)
-                .Build();
+            var error = errorBuilder.SetExtension("fieldType", type.Name).Build();
 
             throw new LeafCoercionException(error, ex.Type, path);
         }
@@ -745,13 +741,12 @@ public sealed class InputParser
             stack,
             defaults,
             field);
-        return FormatAndConvertValue(field, fieldPath, literal.Location, value, isOptional, optionalHasValue);
+        return FormatAndConvertValue(field, fieldPath, value, isOptional, optionalHasValue);
     }
 
     private object? FormatAndConvertValue(
         IInputValueInfo inputValueInfo,
         Path fieldPath,
-        Language.Location? location,
         object? value,
         bool isOptional,
         bool optionalHasValue,
@@ -761,7 +756,7 @@ public sealed class InputParser
         value = ConvertValue(requestedType ?? inputValueInfo.RuntimeType, value, out var conversionException);
         if (conversionException != null)
         {
-            throw InvalidTypeConversion(inputValueInfo.Type, inputValueInfo, fieldPath, location, conversionException);
+            throw InvalidTypeConversion(inputValueInfo.Type, inputValueInfo, fieldPath, conversionException);
         }
 
         if (isOptional)

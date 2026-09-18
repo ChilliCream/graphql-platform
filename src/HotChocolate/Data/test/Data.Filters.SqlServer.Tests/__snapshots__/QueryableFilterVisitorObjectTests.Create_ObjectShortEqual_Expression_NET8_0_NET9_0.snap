@@ -59,12 +59,6 @@ null
   "errors": [
     {
       "message": "The provided value for filter `eq` of type ShortOperationFilterInput is invalid. Null values are not supported.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 40
-        }
-      ],
       "path": [
         "root"
       ],
