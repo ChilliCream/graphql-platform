@@ -112,14 +112,24 @@ export function computeLayout(w: number, h: number): TokamakLayout {
     const camera = makeCamera(originX, originY, 650, 300, 8);
     const columnRows = buildTaperedRows(92, 132, 700, 260, 1.6);
     const wallRows = buildTaperedRows(700, 132, 780, 920, 1.1);
-    const torus: TorusParams = { R: 130, a: 34, y: 0, z: 0 };
+    // R/a shrunk from 130/34 (hc-0-wrc.3 review 2, F2): the near-tube band
+    // ran to 0.36 of the column's visible height (over the 0.35 ceiling)
+    // and its right limb projected past the 1440 frame edge. `a` is a
+    // touch below the planner's ~26 guidance -- at 26 the band (now denser
+    // and blurred per F3) still measured ~0.37 of the column's visible
+    // height; 21 lands the measured ratio at ~0.32, comfortably under 0.35.
+    const torus: TorusParams = { R: 105, a: 21, y: 0, z: 0 };
     return {
       w,
       h,
       mobile,
       camera,
       columnRows,
-      columnThetaSegments: 28,
+      // Reduced from 28 (review 2, F1): fewer, wider segments so a half-
+      // segment row stagger visibly breaks up the seam alignment instead of
+      // the stagger itself being smaller than the segment it is meant to
+      // offset.
+      columnThetaSegments: 18,
       wallRows,
       wallThetaSegments: 56,
       torus,
@@ -134,14 +144,16 @@ export function computeLayout(w: number, h: number): TokamakLayout {
   const camera = makeCamera(originX, bandCenterY, 250, 160, 10);
   const columnRows = buildTaperedRows(36, 52, 275, 100, 1.6);
   const wallRows = buildTaperedRows(280, 52, 300, 350, 1.1);
-  const torus: TorusParams = { R: 51, a: 13, y: 0, z: 0 };
+  // Scaled proportionally to the desktop R/a change above (105/26, same
+  // ~0.39/0.38 ratio the original 51/13 kept against the original 130/34).
+  const torus: TorusParams = { R: 41, a: 8, y: 0, z: 0 };
   return {
     w,
     h,
     mobile,
     camera,
     columnRows,
-    columnThetaSegments: 22,
+    columnThetaSegments: 14,
     wallRows,
     wallThetaSegments: 44,
     torus,

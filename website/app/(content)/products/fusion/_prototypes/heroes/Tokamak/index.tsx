@@ -11,19 +11,23 @@ import {
   type Tile,
 } from "./chamber";
 import { hexToRgba } from "./colors";
-import { project } from "./geometry";
+import { project, torusPoint } from "./geometry";
 import { computeLayout, type TokamakLayout } from "./layout";
 import {
   paintChamber,
   paintPlasmaCache,
   strokeShadedPath,
   strokeShadedPathRgba,
+  type BandBloomTarget,
 } from "./paint";
 import {
   createStreak,
   occludeBehindColumn,
+  occludeHelixBehindColumn,
   projectHelix,
   projectStreak,
+  splitByPredicate,
+  type HelixPoint,
   type ShadedPoint,
   type Streak,
 } from "./plasma";
@@ -36,10 +40,15 @@ import {
  * subset orbits live every frame so the average frame stays well under the
  * 4ms budget.
  */
-const DESKTOP_STATIC_STREAKS = 420;
-const DESKTOP_LIVE_STREAKS = 48;
-const MOBILE_STATIC_STREAKS = 210;
-const MOBILE_LIVE_STREAKS = 26;
+// Counts and per-streak arc length both raised (hc-0-wrc.3 review 2, F2):
+// at the old 420/48 desktop count with short 0.045-0.155 rad arcs the band
+// read as a scattered cloud of dashes rather than a continuous glowing
+// ring; longer tangential arcs at 2x+ the density stack into a continuous
+// band under `lighter` compositing.
+const DESKTOP_STATIC_STREAKS = 900;
+const DESKTOP_LIVE_STREAKS = 72;
+const MOBILE_STATIC_STREAKS = 450;
+const MOBILE_LIVE_STREAKS = 39;
 /** Offscreen glow source for the live streaks/helix, a fraction of the live canvas' CSS size -- a cheap bloom from downscale + upscale instead of a per-stroke blur filter (same technique as `PlasmaFusion`'s `drawBloomSource`). */
 const GLOW_SCALE = 0.25;
 
@@ -150,6 +159,62 @@ export default function Tokamak() {
       ctx.globalCompositeOperation = "source-over";
     }
 
+    // The band's own visual centre: the near-side point of the torus tube
+    // (theta = -PI/2, the "front-facing" convention `occludeBehindColumn`
+    // and `chamber.ts`'s column back-face cull both use, phi = 0 for the
+    // tube's own mid-line), NOT the axis point `{x:0,y:torus.y,z:torus.z}`
+    // the core/bloom used to project through. The axis point and the band's
+    // actual near-side centre project to different screen y (the axis
+    // point ignores the camera tilt's effect on the tube's own radius), so
+    // the core/bloom used to sit ~70px below the band it was meant to mark
+    // (hc-0-wrc.3 review 2, F2: "the core is not at the band's centre").
+    function bandCenter() {
+      return project(
+        torusPoint(
+          layout.torus.R,
+          layout.torus.a,
+          -Math.PI / 2,
+          0,
+          layout.torus.y,
+          layout.torus.z,
+        ),
+        layout.camera,
+      );
+    }
+
+    /**
+     * The band's own projected vertical half-height in px, from the tube's
+     * actual top/bottom points at the near side (`theta = -PI/2`, `phi =
+     * +-PI/2`) rather than a flat `a * scale` guess -- the tilt changes
+     * each phi's own depth/scale slightly, so projecting the real extremes
+     * keeps the coral halo sized to what the band actually renders as.
+     */
+    function bandHalfHeightPx() {
+      const top = project(
+        torusPoint(
+          layout.torus.R,
+          layout.torus.a,
+          -Math.PI / 2,
+          Math.PI / 2,
+          layout.torus.y,
+          layout.torus.z,
+        ),
+        layout.camera,
+      );
+      const bot = project(
+        torusPoint(
+          layout.torus.R,
+          layout.torus.a,
+          -Math.PI / 2,
+          -Math.PI / 2,
+          layout.torus.y,
+          layout.torus.z,
+        ),
+        layout.camera,
+      );
+      return Math.abs(bot.y - top.y) / 2;
+    }
+
     function buildScene() {
       const totalStatic = layout.mobile
         ? MOBILE_STATIC_STREAKS
@@ -228,7 +293,21 @@ export default function Tokamak() {
       );
       paintChamber(chamberCtx!, w, h, tiles, lights);
 
-      paintPlasmaCache(plasmaCtx!, w, h, staticStreakPaths);
+      const bc = bandCenter();
+      const bloomTarget: BandBloomTarget = {
+        x: bc.x,
+        y: bc.y,
+        // The ring's projected width uses the camera's own base scale (the
+        // scale at its aim depth), the same basis the ring's actual
+        // left/right on-screen extent falls out of -- not the band
+        // centre's own much-larger near-side scale, which previously
+        // ~doubled this and produced a blur wide enough to wash out the
+        // whole frame instead of just the band (hc-0-wrc.3 review 2, F3).
+        ringWidthPx:
+          (layout.torus.R + layout.torus.a) * layout.camera.baseScale * 2,
+        bandHalfHeightPx: bandHalfHeightPx(),
+      };
+      paintPlasmaCache(plasmaCtx!, w, h, staticStreakPaths, bloomTarget);
       featherEdge(plasmaCtx!);
     }
 
@@ -261,13 +340,18 @@ export default function Tokamak() {
       glowCtx!.clearRect(0, 0, w, h);
       glowCtx!.globalCompositeOperation = "lighter";
       glowCtx!.lineCap = "round";
+      // 8 samples here (vs the default 16 the static cache bakes once with)
+      // -- these `liveStreaks` re-project every frame, so halving their
+      // per-streak sample count keeps the longer 0.35-0.7 rad arcs (F2)
+      // affordable at the raised live count (72) within the 4ms budget; the
+      // cached majority (the visual bulk) still gets the full 16.
       for (const streak of liveStreaks) {
         const advanced: Streak = {
           ...streak,
           theta0: streak.theta0 + orbitPhase,
         };
         const pts = occludeBehindColumn(
-          projectStreak(advanced, layout.torus, layout.camera, timeSec, true),
+          projectStreak(advanced, layout.torus, layout.camera, timeSec, true, 8),
           advanced.theta0,
           layout.camera,
           columnHalfWidthPx,
@@ -275,7 +359,11 @@ export default function Tokamak() {
         strokeShadedPath(glowCtx!, pts, BRAND.coral, 5.5, streak.alpha * 0.5);
       }
       const twistPhase = (timeSec / TWIST_PERIOD_S) * Math.PI * 2;
-      const helixPts = projectHelix(layout.torus, layout.camera, twistPhase);
+      const helixPts = occludeHelixBehindColumn(
+        projectHelix(layout.torus, layout.camera, twistPhase),
+        layout.camera,
+        columnHalfWidthPx,
+      );
       strokeShadedPath(glowCtx!, helixPts, BRAND.coral, 4.5, 0.28);
     }
 
@@ -285,14 +373,14 @@ export default function Tokamak() {
       liveCtx!.setTransform(dpr, 0, 0, dpr, 0, 0);
       liveCtx!.lineCap = "round";
 
-      const torusCenter = project(
-        { x: 0, y: layout.torus.y, z: layout.torus.z },
-        layout.camera,
-      );
+      // The near-side band centre (see `bandCenter`), not the axis point:
+      // the axis point projects the bloom/core ~70px above where the band
+      // actually renders (hc-0-wrc.3 review 2, F2).
+      const torusCenter = bandCenter();
       const breathe =
         0.86 + 0.14 * Math.sin((timeSec / BREATHE_PERIOD_S) * Math.PI * 2);
       const bloomR =
-        (layout.torus.R + layout.torus.a) * torusCenter.scale * 0.62;
+        (layout.torus.R + layout.torus.a) * torusCenter.scale * 0.4;
 
       liveCtx!.globalCompositeOperation = "lighter";
       const bloom = liveCtx!.createRadialGradient(
@@ -303,8 +391,8 @@ export default function Tokamak() {
         torusCenter.y,
         bloomR,
       );
-      bloom.addColorStop(0, hexToRgba(BRAND.coral, 0.26 * breathe));
-      bloom.addColorStop(0.45, hexToRgba(BRAND.coral, 0.11 * breathe));
+      bloom.addColorStop(0, hexToRgba(BRAND.coral, 0.16 * breathe));
+      bloom.addColorStop(0.45, hexToRgba(BRAND.coral, 0.06 * breathe));
       bloom.addColorStop(1, hexToRgba(BRAND.coral, 0));
       liveCtx!.fillStyle = bloom;
       liveCtx!.beginPath();
@@ -326,6 +414,30 @@ export default function Tokamak() {
       liveCtx!.drawImage(glow, 0, 0, glowW, glowH, 0, 0, w, h);
       liveCtx!.globalAlpha = 1;
 
+      // The helix's far half (behind the column, per-point occluded) draws
+      // BEFORE the front streaks below so they visually cross over it; its
+      // near half draws AFTER, on top of the streaks -- "thread partly
+      // hidden by the column and crossed by front streaks" (hc-0-wrc.3
+      // review 2, F4). A thin, low-contrast core (not the old 1px/alpha
+      // 0.85 hard white wire) plus a wider, low-alpha coral pass under it.
+      const twistPhase = (timeSec / TWIST_PERIOD_S) * Math.PI * 2;
+      const helixPts = occludeHelixBehindColumn(
+        projectHelix(layout.torus, layout.camera, twistPhase),
+        layout.camera,
+        columnHalfWidthPx,
+      );
+      const { far: helixFar, near: helixNear } = splitByPredicate(
+        helixPts,
+        (p: HelixPoint) => Math.sin(p.theta) > 0,
+      );
+      const strokeHelixRuns = (runs: readonly HelixPoint[][]) => {
+        for (const run of runs) {
+          strokeShadedPath(liveCtx!, run, BRAND.coral, 4.5, 0.35);
+          strokeShadedPathRgba(liveCtx!, run, [255, 244, 240], 1.2, 0.5);
+        }
+      };
+      strokeHelixRuns(helixFar);
+
       const hotIndex = liveStreaks.length
         ? Math.floor(timeSec / HOT_STREAK_PERIOD_S) % liveStreaks.length
         : -1;
@@ -342,7 +454,7 @@ export default function Tokamak() {
         // within the column's own projected width so they read as passing
         // behind it, not just further away (planner ruling 187 item 3).
         const pts = occludeBehindColumn(
-          projectStreak(advanced, layout.torus, layout.camera, timeSec, true),
+          projectStreak(advanced, layout.torus, layout.camera, timeSec, true, 8),
           advanced.theta0,
           layout.camera,
           columnHalfWidthPx,
@@ -367,12 +479,16 @@ export default function Tokamak() {
         );
       }
 
-      const twistPhase = (timeSec / TWIST_PERIOD_S) * Math.PI * 2;
-      const helixPts = projectHelix(layout.torus, layout.camera, twistPhase);
-      strokeShadedPath(liveCtx!, helixPts, BRAND.coral, 2, 0.24);
-      strokeShadedPathRgba(liveCtx!, helixPts, [255, 244, 240], 1, 0.85);
+      strokeHelixRuns(helixNear);
 
-      const coreR = torusCenter.scale * layout.torus.a * 0.9 * breathe;
+      // Grown from the old 0.9 coefficient (hc-0-wrc.3 review 2, F3: "the
+      // core glow grows 2-3x") -- `torusCenter` itself moved to the band's
+      // near-side point (a materially larger `scale` than the old axis
+      // point), so this coefficient alone reads as noticeably bigger than
+      // 0.9 without needing the full 2.2 the planner measured off the old
+      // (smaller-scale) anchor; 2.2 here over-saturated the whole band into
+      // a solid white disc with no visible column at all.
+      const coreR = torusCenter.scale * layout.torus.a * 1.1 * breathe;
       const core = liveCtx!.createRadialGradient(
         torusCenter.x,
         torusCenter.y,
@@ -381,8 +497,8 @@ export default function Tokamak() {
         torusCenter.y,
         Math.max(1, coreR),
       );
-      core.addColorStop(0, "rgba(255,255,255,0.85)");
-      core.addColorStop(0.5, hexToRgba(BRAND.coral, 0.55 * breathe));
+      core.addColorStop(0, "rgba(255,255,255,0.7)");
+      core.addColorStop(0.5, hexToRgba(BRAND.coral, 0.4 * breathe));
       core.addColorStop(1, hexToRgba(BRAND.coral, 0));
       liveCtx!.fillStyle = core;
       liveCtx!.beginPath();

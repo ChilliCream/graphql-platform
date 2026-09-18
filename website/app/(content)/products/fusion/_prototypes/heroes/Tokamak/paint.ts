@@ -143,7 +143,7 @@ export function paintChamber(
     h * 0.5,
     Math.max(w, h) * 0.75,
   );
-  ambient.addColorStop(0, hexToRgba(BRAND.slate, 0.035));
+  ambient.addColorStop(0, hexToRgba(BRAND.slate, 0.02));
   ambient.addColorStop(1, hexToRgba(BRAND.slate, 0));
   ctx.fillStyle = ambient;
   ctx.fillRect(0, 0, w, h);
@@ -161,21 +161,26 @@ export function paintChamber(
     // the tiles nearest the band tint pink without ever turning pale (fix
     // 1/F1: warmth used to add up to 0.5 alpha on its own, which is what
     // painted the whole column as a pale cylinder).
+    // Warmth's alpha lift and its coral mix fraction were both raised
+    // (hc-0-wrc.3 review 2, F3: "no visible pink on the column between the
+    // streaks") -- still capped well below `tile.shade`'s own contribution,
+    // and still 0 outside the band's falloff, so the chamber's overall
+    // under-20%-outside-the-band luminance budget is untouched.
     const warm = tile.warmth;
-    const hiAlpha = 0.11 + tile.shade * 0.2 + warm * 0.08;
-    const midAlpha = 0.08 + tile.shade * 0.14 + warm * 0.06;
-    const loAlpha = 0.04 + tile.shade * 0.07 + warm * 0.04;
+    const hiAlpha = 0.11 + tile.shade * 0.2 + warm * 0.15;
+    const midAlpha = 0.08 + tile.shade * 0.14 + warm * 0.12;
+    const loAlpha = 0.04 + tile.shade * 0.07 + warm * 0.08;
     grad.addColorStop(
       0,
-      mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.7, hiAlpha),
+      mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.85, hiAlpha),
     );
     grad.addColorStop(
       0.45,
-      mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.55, midAlpha),
+      mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.7, midAlpha),
     );
     grad.addColorStop(
       1,
-      mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.3, loAlpha),
+      mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.45, loAlpha),
     );
     ctx.fillStyle = grad;
     ctx.beginPath();
@@ -233,6 +238,16 @@ export function paintChamber(
   ctx.fillRect(0, 0, w, h);
 }
 
+/** Where the plasma band's own centre projects to, and how big it reads on screen -- passed in by `index.tsx` (computed from the layout/camera, not re-derived here) so the bake-time bloom pass can be sized and placed to match the band it is bloom-ing (hc-0-wrc.3 review 2, F3). */
+export interface BandBloomTarget {
+  readonly x: number;
+  readonly y: number;
+  /** Projected ring width in px, at the band's own depth: the wide blur pass is ~0.15 of this. */
+  readonly ringWidthPx: number;
+  /** Half the band's projected vertical thickness in px: the coral halo behind the column reads about 1.2x this. */
+  readonly bandHalfHeightPx: number;
+}
+
 /**
  * Cached plasma layer: the dense static majority of streaks (hundreds),
  * baked once per `measure()` with `lighter` compositing so their glow adds
@@ -243,6 +258,13 @@ export function paintChamber(
  * small orbiting subset, the helix and the breathing bloom on top of this
  * every frame using a cheaper downscaled bloom pass instead (see
  * `index.tsx`).
+ *
+ * On top of the existing tight per-stroke halo (3.5px, under the sharp
+ * cores) a second, much wider blur pass runs over the WHOLE static band at
+ * once (~0.15 of the projected ring width) plus a soft coral radial halo
+ * behind the column section inside the band -- both still baked once here,
+ * never per frame -- so the picture reads as a lit, glowing ring instead of
+ * a cloud of dashes with "almost no visible halo" (hc-0-wrc.3 review 2, F3).
  *
  * The five service-colour streams (README section 4) were dropped
  * entirely (ticket hc-0-wrc.3 F3/verifier correction): even as dash
@@ -255,21 +277,55 @@ export function paintPlasmaCache(
   w: number,
   h: number,
   staticStreakPaths: readonly ShadedPoint[][],
+  bloomTarget: BandBloomTarget,
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.lineCap = "round";
   ctx.globalCompositeOperation = "lighter";
 
+  const halo = ctx.createRadialGradient(
+    bloomTarget.x,
+    bloomTarget.y,
+    0,
+    bloomTarget.x,
+    bloomTarget.y,
+    Math.max(1, bloomTarget.bandHalfHeightPx * 0.45),
+  );
+  halo.addColorStop(0, hexToRgba(BRAND.coral, 0.18));
+  halo.addColorStop(1, hexToRgba(BRAND.coral, 0));
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(
+    bloomTarget.x,
+    bloomTarget.y,
+    Math.max(1, bloomTarget.bandHalfHeightPx * 0.45),
+    0,
+    Math.PI * 2,
+  );
+  ctx.fill();
+
+  withBlurHalo(
+    ctx,
+    w,
+    h,
+    Math.max(1, bloomTarget.ringWidthPx * 0.022),
+    (haloCtx) => {
+      for (const path of staticStreakPaths) {
+        strokeShadedPath(haloCtx, path, BRAND.coral, 3, 0.18);
+      }
+    },
+  );
+
   withBlurHalo(ctx, w, h, 3.5, (haloCtx) => {
     for (const path of staticStreakPaths) {
-      strokeShadedPath(haloCtx, path, BRAND.coral, 2.6, 0.1);
+      strokeShadedPath(haloCtx, path, BRAND.coral, 2.6, 0.08);
     }
   });
   for (const path of staticStreakPaths) {
-    strokeShadedPath(ctx, path, BRAND.coral, 2.2, 0.24);
+    strokeShadedPath(ctx, path, BRAND.coral, 2.2, 0.15);
   }
   for (const path of staticStreakPaths) {
-    strokeShadedPathRgba(ctx, path, [255, 255, 255], 0.8, 0.55);
+    strokeShadedPathRgba(ctx, path, [255, 255, 255], 0.7, 0.2);
   }
 
   ctx.globalCompositeOperation = "source-over";
