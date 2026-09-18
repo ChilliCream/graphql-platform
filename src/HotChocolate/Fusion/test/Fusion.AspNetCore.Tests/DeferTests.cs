@@ -756,7 +756,9 @@ public class DeferTests : FusionTestBase
             }
             """);
 
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -817,7 +819,9 @@ public class DeferTests : FusionTestBase
             }
             """);
 
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """
@@ -884,7 +888,9 @@ public class DeferTests : FusionTestBase
             }
             """);
 
-        using var gateway = await CreateCompositeSchemaAsync([("A", server)]);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            includeOperationPlan: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
         var request = new OperationRequest(
             """

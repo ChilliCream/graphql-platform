@@ -53,7 +53,8 @@ public ref struct Utf8GraphQLRequestParser
             if (!reader.Read())
             {
                 throw new InvalidGraphQLRequestException(
-                    Utf8GraphQLRequestParser_Parse_EmptyJSONDocument);
+                    Utf8GraphQLRequestParser_Parse_EmptyJSONDocument,
+                    new JsonException(Utf8GraphQLRequestParser_Parse_EmptyJSONDocument));
             }
 
             return reader.TokenType switch
@@ -99,7 +100,8 @@ public ref struct Utf8GraphQLRequestParser
             if (!reader.Read())
             {
                 throw new InvalidGraphQLRequestException(
-                    Utf8GraphQLRequestParser_Parse_EmptyJSONDocument);
+                    Utf8GraphQLRequestParser_Parse_EmptyJSONDocument,
+                    new JsonException(Utf8GraphQLRequestParser_Parse_EmptyJSONDocument));
             }
 
             var request = ParseRequest(ref reader, operationId);

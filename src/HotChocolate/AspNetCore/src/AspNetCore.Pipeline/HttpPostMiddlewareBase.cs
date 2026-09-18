@@ -58,9 +58,8 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
         // with a 400 Bad Request.
         if (headerResult.HasError)
         {
-            // in this case accept headers were specified, and we will
-            // respond with proper error codes
-            acceptMediaTypes = HeaderUtilities.GraphQLResponseContentTypes;
+            // the parse result carries no media types, so the error is written in the media
+            // type the transport serves by default
             statusCode = HttpStatusCode.BadRequest;
 
             var errors = headerResult.ErrorResult.Errors;
@@ -97,17 +96,21 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             catch (GraphQLRequestException ex)
             {
                 // request-interpretation failures (invalid JSON, missing query, etc.) propose
-                // 400 per graphql-over-http §6.4.1.1.1. GraphQL document syntax errors
-                // are document-parsing failures and leave the proposed status unset so the
-                // formatter applies the per-content-type rule (200 for application/json
-                // per §6.4.1.1.3, 400 for application/graphql-response+json).
+                // 400. GraphQL document syntax errors are document-parsing failures and leave
+                // the proposed status unset so the formatter applies the per-content-type rule
+                // (200 for application/json under Legacy and the 2025-05-08 revision, 400
+                // otherwise). the result carries the 400 in its context data, which the
+                // formatter reads only for application/graphql-response+json and, from the
+                // 2026-09-03 revision on, for application/json.
                 //
                 // classification uses the original parser errors: error filters run by
                 // session.Handle can rewrite the error code and would otherwise misclassify
                 // the failure. the handled errors are used only for the response body.
-                statusCode = IsDocumentSyntaxError(ex.Errors) ? null : HttpStatusCode.BadRequest;
+                statusCode = MiddlewareHelper.IsDocumentSyntaxError(ex.Errors)
+                    ? null
+                    : HttpStatusCode.BadRequest;
                 var errors = session.Handle(ex.Errors);
-                result = OperationResult.FromError([.. errors]);
+                result = MiddlewareHelper.CreateRequestErrorResult(ex, errors);
                 session.DiagnosticEvents.ParserErrors(context, errors);
                 goto HANDLE_RESULT;
             }
@@ -128,11 +131,17 @@ public abstract class HttpPostMiddlewareBase : MiddlewareBase
             {
                 // if the HTTP request body contains no GraphQL request structure the
                 // whole request is invalid, and we will create a GraphQL error response.
+                // the body was read, so the result is marked as not well-formed for the
+                // revisions that answer that with 422.
                 case 0:
                 {
                     statusCode = HttpStatusCode.BadRequest;
                     var error = session.Handle(ErrorHelper.RequestHasNoElements());
-                    result = OperationResult.FromError(error);
+                    var errorResult = OperationResult.FromError(error);
+                    errorResult.ContextData = errorResult.ContextData.Add(
+                        HttpResultContextData.RequestNotWellFormed,
+                        null);
+                    result = errorResult;
                     session.DiagnosticEvents.HttpRequestError(context, error);
                     break;
                 }
@@ -274,24 +283,6 @@ HANDLE_RESULT:
         }
 
         return requests;
-    }
-
-    private static bool IsDocumentSyntaxError(IReadOnlyList<IError> errors)
-    {
-        if (errors.Count == 0)
-        {
-            return false;
-        }
-
-        for (var i = 0; i < errors.Count; i++)
-        {
-            if (!string.Equals(errors[i].Code, ErrorCodes.Server.SyntaxError, StringComparison.Ordinal))
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private static bool TryParseOperations(

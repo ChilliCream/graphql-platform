@@ -26,5 +26,10 @@ public enum HttpTransportVersion
     /// <summary>
     /// Represents the GraphQL over HTTP spec version with the commit on 2025-05-08.
     /// </summary>
-    Draft20250508 = 3
+    Draft20250508 = 3,
+
+    /// <summary>
+    /// Represents the GraphQL over HTTP spec version with the commit on 2026-09-03.
+    /// </summary>
+    Draft20260903 = 4
 }

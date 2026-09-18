@@ -1,0 +1,28 @@
+schema {
+  query: Query
+}
+
+type Query {
+  entity(name: String!): Entity!
+  entity2(name: String!): Entity2!
+}
+
+type Entity {
+  id: String!
+  name: String!
+}
+
+type Entity2 {
+  id: String!
+  name: String!
+}
+
+type Entity3 implements Node {
+  message: String
+  id: ID!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}

@@ -249,14 +249,19 @@ public sealed class InputParser
                 var fields = ((ObjectValueNode)resultValue).Fields;
                 var oneOf = type.IsOneOf;
 
-                if (oneOf && fields.Count is 0)
+                if (oneOf)
                 {
-                    throw OneOfNoFieldSet(type, path);
-                }
+                    var setFieldCount = CountOneOfFields(type, fields);
 
-                if (oneOf && fields.Count > 1)
-                {
-                    throw OneOfMoreThanOneFieldSet(type, path);
+                    if (setFieldCount is 0)
+                    {
+                        throw OneOfNoFieldSet(type, path);
+                    }
+
+                    if (setFieldCount > 1)
+                    {
+                        throw OneOfMoreThanOneFieldSet(type, path);
+                    }
                 }
 
                 for (var i = 0; i < fields.Count; i++)
@@ -555,20 +560,20 @@ public sealed class InputParser
         if (inputValue.ValueKind is JsonValueKind.Object)
         {
             var oneOf = type.IsOneOf;
-#if NET9_0_OR_GREATER
-            var propertyCount = inputValue.GetPropertyCount();
-#else
-            var propertyCount = inputValue.EnumerateObject().Count();
-#endif
 
-            if (oneOf && propertyCount is 0)
+            if (oneOf)
             {
-                throw OneOfNoFieldSet(type, path);
-            }
+                var setFieldCount = CountOneOfFields(type, inputValue);
 
-            if (oneOf && propertyCount > 1)
-            {
-                throw OneOfMoreThanOneFieldSet(type, path);
+                if (setFieldCount is 0)
+                {
+                    throw OneOfNoFieldSet(type, path);
+                }
+
+                if (setFieldCount > 1)
+                {
+                    throw OneOfMoreThanOneFieldSet(type, path);
+                }
             }
 
             var processedFields = StringSetPool.Shared.Rent();
@@ -637,6 +642,59 @@ public sealed class InputParser
         }
 
         throw ParseInputObject_InvalidValueKind(type, path);
+    }
+
+    /// <summary>
+    /// Counts the fields that the OneOf check considers: every supplied field, or only
+    /// the fields defined on <paramref name="type"/> when additional fields are ignored.
+    /// </summary>
+    private int CountOneOfFields(
+        InputObjectType type,
+        IReadOnlyList<ObjectFieldNode> fields)
+    {
+        if (!_ignoreAdditionalInputFields)
+        {
+            return fields.Count;
+        }
+
+        var count = 0;
+
+        for (var i = 0; i < fields.Count; i++)
+        {
+            if (type.Fields.ContainsField(fields[i].Name.Value) && ++count > 1)
+            {
+                break;
+            }
+        }
+
+        return count;
+    }
+
+    /// <inheritdoc cref="CountOneOfFields(InputObjectType, IReadOnlyList{ObjectFieldNode})"/>
+    private int CountOneOfFields(
+        InputObjectType type,
+        JsonElement value)
+    {
+        if (!_ignoreAdditionalInputFields)
+        {
+#if NET9_0_OR_GREATER
+            return value.GetPropertyCount();
+#else
+            return value.EnumerateObject().Count();
+#endif
+        }
+
+        var count = 0;
+
+        foreach (var property in value.EnumerateObject())
+        {
+            if (type.Fields.ContainsField(property.Name) && ++count > 1)
+            {
+                break;
+            }
+        }
+
+        return count;
     }
 
     private static object DeserializeLeaf(
