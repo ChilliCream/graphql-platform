@@ -393,13 +393,12 @@ internal static class SpecVersionSchemaRewriter
         string location,
         RewriteContext context)
     {
-        var deprecatedReason = default(string);
         var directivesChanged = RewriteDirectives(
             value.Directives,
             location,
             context,
             out var directives,
-            out deprecatedReason);
+            out var deprecatedReason);
 
         if (deprecatedReason is null)
         {

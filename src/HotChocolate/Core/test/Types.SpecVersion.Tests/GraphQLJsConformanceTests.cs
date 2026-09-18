@@ -16,7 +16,7 @@ public sealed class GraphQLJsConformanceTests(GraphQLJsFixture fixture) : IClass
         var results = new List<ValidationCase>();
 
         // act
-        foreach (var (version, alias) in Editions)
+        foreach (var (version, alias) in s_editions)
         {
             foreach (var (name, schema) in Schemas(fixtureSchema, starWarsSchema))
             {
@@ -49,7 +49,7 @@ public sealed class GraphQLJsConformanceTests(GraphQLJsFixture fixture) : IClass
         var results = new List<ValidationCase>();
 
         // act
-        foreach (var (_, alias) in Editions)
+        foreach (var (_, alias) in s_editions)
         {
             var result = await fixture.ValidateAsync(alias, nativeSchema);
             results.Add(new ValidationCase(alias, "nativeFixture", false, result));
@@ -80,7 +80,7 @@ public sealed class GraphQLJsConformanceTests(GraphQLJsFixture fixture) : IClass
                 StringComparison.Ordinal));
     }
 
-    private static readonly (GraphQLSpecVersion Version, string Alias)[] Editions =
+    private static readonly (GraphQLSpecVersion Version, string Alias)[] s_editions =
     [
         (GraphQLSpecVersion.October2021, "graphql-october-2021"),
         (GraphQLSpecVersion.September2025, "graphql-september-2025")
