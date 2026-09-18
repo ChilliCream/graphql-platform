@@ -12,6 +12,9 @@ internal static class ThrowHelper
     public static InvalidOperationException OperationDocumentNotAvailable()
         => new("The operation document is not available in the context.");
 
+    public static InvalidOperationException OperationIdNotAvailable()
+        => new("The operation id is not available in the context.");
+
     public static InvalidOperationException Selection_NotFullyInitialized()
         => new InvalidOperationException("The selection is not fully initialized.");
 
