@@ -18,6 +18,13 @@ public struct GraphQLCompositionSettings
     public DirectiveMergeBehavior? CacheControlMergeBehavior { get; set; }
 
     /// <summary>
+    /// Gets or sets the default assumed size of a list field that declares no compatible
+    /// <c>@listSize</c> usage, emitted as <c>@fusion__cost_options(defaultListSize:)</c> on the
+    /// composed schema. <see langword="null"/> by default, meaning unbounded.
+    /// </summary>
+    public int? DefaultListSize { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether Global Object Identification should be enabled.
     /// </summary>
     public bool? EnableGlobalObjectIdentification { get; set; }

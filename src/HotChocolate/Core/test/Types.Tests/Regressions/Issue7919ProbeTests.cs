@@ -13,6 +13,7 @@ public class Issue7919ProbeTests
         var executor =
             await new ServiceCollection()
                 .AddGraphQLServer()
+                .ModifyCostOptions(o => o.DefaultListSize = 1)
                 .AddQueryType<Query>()
                 .AddType<MetadataType>()
                 .AddType<MetadataEntryType>()

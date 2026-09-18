@@ -103,5 +103,25 @@ public static class HotChocolateExecutionRequestContextExtensions
             var operationInfo = context.Features.GetOrSet<OperationInfo>();
             operationInfo.Id = operationId;
         }
+
+        /// <summary>
+        /// Gets the operation id, creating and storing it on first access.
+        /// </summary>
+        /// <returns>
+        /// The operation id.
+        /// </returns>
+        internal string GetOperationId()
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            if (context.TryGetOperationId(out var operationId))
+            {
+                return operationId;
+            }
+
+            operationId = context.CreateCacheId();
+            context.SetOperationId(operationId);
+            return operationId;
+        }
     }
 }

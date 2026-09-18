@@ -32,8 +32,12 @@ public static class WellKnownRequestMiddleware
     /// <summary>Gets the key for the OperationExecutionMiddleware.</summary>
     public const string OperationExecutionMiddleware = "OperationExecutionMiddleware";
 
-    /// <summary>Gets the key for the OperationResolverMiddleware.</summary>
-    public const string OperationResolverMiddleware = "OperationResolverMiddleware";
+    /// <summary>Gets the key for the OperationCompilerMiddleware.</summary>
+    public const string OperationCompilerMiddleware = "OperationCompilerMiddleware";
+
+    /// <summary>Gets the key for the OperationCompilerMiddleware.</summary>
+    [Obsolete("Renamed to OperationCompilerMiddleware.")]
+    public const string OperationResolverMiddleware = OperationCompilerMiddleware;
 
     /// <summary>Gets the key for the OperationVariableCoercionMiddleware.</summary>
     public const string OperationVariableCoercionMiddleware = "OperationVariableCoercionMiddleware";

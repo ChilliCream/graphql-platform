@@ -1,0 +1,44 @@
+title: OverCostRequest_Should_BeRejected_BeforePlanning_When_TypeCostExceedsLimit
+request:
+  document: |
+    query OverCost {
+      expensive {
+        value
+      }
+    }
+response:
+  body: |
+    {
+      "errors": [
+        {
+          "message": "The maximum allowed type cost was exceeded.",
+          "extensions": {
+            "code": "HC0047",
+            "typeCost": 2001,
+            "maxTypeCost": 1000
+          }
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        expensive: Expensive
+      }
+
+      type Expensive @cost(weight: "2000") {
+        value: String
+      }
+
+      directive @cost(weight: String!) on
+        | SCALAR
+        | OBJECT
+        | FIELD_DEFINITION
+        | ARGUMENT_DEFINITION
+        | ENUM
+        | INPUT_FIELD_DEFINITION

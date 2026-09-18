@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,17 +26,17 @@ internal sealed class OperationVariableCoercionMiddleware
         RequestContext context,
         RequestDelegate next)
     {
-        var operationExecutionPlan = context.GetOperationPlan();
+        var operation = context.GetNormalizedOperation();
 
-        if (operationExecutionPlan is null)
+        // Warmup requests do not produce coerced values.
+        if (context.IsWarmupRequest())
         {
-            context.Result = ErrorHelper.StateInvalidForVariableCoercion();
-            return default;
+            return next(context);
         }
 
         return TryCoerceVariables(
             context,
-            operationExecutionPlan.VariableDefinitions,
+            operation.VariableDefinitions,
             _diagnosticEvents,
             _ignoreAdditionalInputFields)
             ? next(context)

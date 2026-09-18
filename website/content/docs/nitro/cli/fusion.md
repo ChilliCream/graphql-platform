@@ -383,17 +383,18 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> \
 
 ## Available Settings
 
-| Setting                                  | Values                                 | Description                                                         |
-| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------- |
-| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key.            |
-| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | Choose how `@cacheControl` directives are merged.                   |
-| `enum-values-merge-behavior`             | `auto`, `strict`, `union`              | Choose how enum values are merged across source schemas.            |
-| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields and types by tag.                                    |
-| `global-object-identification`           | `true`, `false`                        | Enable global object identification through `Query.node`.           |
-| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics.                        |
-| `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` identifiers.                       |
-| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields. |
-| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | Choose how `@tag` directives are merged.                            |
+| Setting                                  | Values                                   | Description                                                         |
+| ---------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------- |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                          | Allow Apollo interface objects without a resolvable key.            |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private`   | Choose how `@cacheControl` directives are merged.                   |
+| `default-list-size`                      | Non-negative integer, or `null` to unset | Assumed size for lists without applicable `@listSize` metadata.     |
+| `enum-values-merge-behavior`             | `auto`, `strict`, `union`                | Choose how enum values are merged across source schemas.            |
+| `exclude-by-tag`                         | Comma-separated tags                     | Exclude fields and types by tag.                                    |
+| `global-object-identification`           | `true`, `false`                          | Enable global object identification through `Query.node`.           |
+| `include-satisfiability-paths`           | `true`, `false`                          | Include paths in satisfiability diagnostics.                        |
+| `node-resolution`                        | `gateway`, `source-schema`               | Choose who resolves `Query.node` identifiers.                       |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types`   | Choose routing for type-conditioned selections on shareable fields. |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private`   | Choose how `@tag` directives are merged.                            |
 
 ## Examples
 

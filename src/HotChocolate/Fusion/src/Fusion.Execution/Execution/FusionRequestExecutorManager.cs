@@ -7,16 +7,20 @@ using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Caching.Memory;
 using HotChocolate.Collections.Immutable;
+using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Configuration.Parsers;
 using HotChocolate.Fusion.Diagnostics;
+using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Completion;
@@ -191,6 +195,7 @@ internal sealed class FusionRequestExecutorManager
         var schemaServices = CreateSchemaServices(configuration, setup, options, requestOptions, plannerOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
+        _ = schemaServices.GetRequiredService<CostSchemaIndex>();
         var pipeline = CreatePipeline(setup, schema, schemaServices, requestOptions);
 
         var contextPool = schemaServices.GetRequiredService<ObjectPool<PooledRequestContext>>();
@@ -415,6 +420,35 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(options);
         services.AddSingleton(requestOptions);
         services.AddSingleton(requestOptions.PersistedOperations);
+        services.AddSingleton(
+            static sp =>
+            {
+                var cost = sp.GetRequiredService<FusionRequestOptions>().Cost;
+                var schema = sp.GetRequiredService<FusionSchemaDefinition>();
+                var schemaIndexOptions = new CostSchemaIndexOptions
+                {
+                    DefaultListSize = schema.DefaultListSize is { } defaultListSize
+                        ? defaultListSize
+                        : double.PositiveInfinity
+                };
+
+                if (cost.CaseBudget is { } caseBudget)
+                {
+                    schemaIndexOptions.CaseBudget = caseBudget;
+                }
+
+                if (cost.CaseBudgetExceededBehavior is { } caseBudgetExceededBehavior)
+                {
+                    schemaIndexOptions.CaseBudgetExceededBehavior = caseBudgetExceededBehavior;
+                }
+
+                return CostSchemaIndex.Create(
+                    sp.GetRequiredService<FusionSchemaDefinition>(),
+                    schemaIndexOptions);
+            });
+        services.AddSingleton(
+            static sp => new Cache<CostPlan>(
+                sp.GetRequiredService<FusionRequestOptions>().Cost.CostPlanCacheSize));
 
         if (options.EnableSemanticIntrospection)
         {
@@ -455,6 +489,18 @@ internal sealed class FusionRequestExecutorManager
                     options.OperationExecutionPlanCacheSize,
                     options.OperationExecutionPlanCacheDiagnostics);
             });
+
+        services.AddSingleton(
+            static sp =>
+            {
+                var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
+                return new NormalizedDocumentCache(options.OperationExecutionPlanCacheSize);
+            });
+
+        services.AddSingleton<IOperationDocumentNormalizer>(
+            static sp => new OperationDocumentNormalizer(
+                sp.GetRequiredService<FusionSchemaDefinition>(),
+                sp.GetRequiredService<NormalizedDocumentCache>()));
 
         services.AddSingleton(
             static sp =>

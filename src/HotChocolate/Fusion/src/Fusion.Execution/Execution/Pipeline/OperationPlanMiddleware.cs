@@ -1,9 +1,8 @@
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Execution.Rewriters;
 using HotChocolate.Fusion.Planning;
-using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,17 +11,14 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 internal sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
-    private readonly DocumentRewriter _documentRewriter;
     private readonly IOperationPlannerInterceptor[] _interceptors;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticsEvents;
 
     private OperationPlanMiddleware(
-        FusionSchemaDefinition schema,
         OperationPlanner planner,
         IEnumerable<IOperationPlannerInterceptor>? interceptors,
         IFusionExecutionDiagnosticEvents diagnosticsEvents)
     {
-        _documentRewriter = new DocumentRewriter(schema, removeStaticallyExcludedSelections: true);
         _planner = planner;
         _interceptors = interceptors?.ToArray() ?? [];
         _diagnosticsEvents = diagnosticsEvents;
@@ -43,7 +39,10 @@ internal sealed class OperationPlanMiddleware
             return next(context);
         }
 
-        PlanOperation(context, operationDocumentInfo, operationDocumentInfo.Document);
+        // Normalizing de-fragmentizes the operation and removes statically excluded
+        // selections; this runs at most once per operation, since the normalizer caches
+        // its result for reuse by later requests.
+        PlanOperation(context, operationDocumentInfo, context.GetNormalizedOperation());
 
         return next(context);
     }
@@ -51,7 +50,7 @@ internal sealed class OperationPlanMiddleware
     private void PlanOperation(
         RequestContext context,
         OperationDocumentInfo operationDocumentInfo,
-        DocumentNode operationDocument)
+        OperationDefinitionNode operation)
     {
         var operationId = context.GetOperationId();
         var operationHash = context.OperationDocumentInfo.Hash.Value;
@@ -62,10 +61,6 @@ internal sealed class OperationPlanMiddleware
 
         try
         {
-            // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
-            var rewritten = _documentRewriter.RewriteDocument(operationDocument, context.Request.OperationName);
-            var operation = rewritten.GetOperation(context.Request.OperationName);
-
             // After optimizing the query structure we can begin the planning process.
             var operationPlan =
                 _planner.CreatePlan(
@@ -75,13 +70,25 @@ internal sealed class OperationPlanMiddleware
                     operation,
                     context.RequestAborted);
             OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
+
+            // Setting the plan caches it and releases every coalesced follower right away,
+            // before this (the leader's) request continues into execution, if this context
+            // is the leader of an in-flight entry; see SetOperationPlan. A failure further
+            // downstream then affects only the leader.
             context.SetOperationPlan(operationPlan);
-            inFlightPlan?.TrySetResult(operationPlan);
         }
         catch (Exception ex)
         {
-            inFlightPlan?.TrySetException(ex);
             _diagnosticsEvents.PlanOperationError(context, operationId, ex);
+
+            if (ex is OperationCanceledException cancellationException)
+            {
+                inFlightPlan?.TrySetCanceled(cancellationException.CancellationToken);
+            }
+            else
+            {
+                inFlightPlan?.TrySetException(ex);
+            }
 
             throw;
         }
@@ -115,7 +122,6 @@ internal sealed class OperationPlanMiddleware
                 var interceptors = fc.SchemaServices.GetService<IEnumerable<IOperationPlannerInterceptor>>();
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
                 var middleware = new OperationPlanMiddleware(
-                    (FusionSchemaDefinition)fc.Schema,
                     planner,
                     interceptors,
                     diagnosticEvents);

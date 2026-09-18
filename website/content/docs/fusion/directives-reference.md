@@ -705,6 +705,7 @@ During composition the two `@eventCursor` markers are recorded on the gateway's 
 
 # See Also
 
+- [Cost Analysis](./cost-analysis.md) -- How source `@cost` and `@listSize` metadata is derived and enforced
 - [GraphQL Composite Schemas Specification](https://graphql.github.io/composite-schemas-spec/draft/) -- The specification that defines these directives
 - [Getting Started](./getting-started.md) -- Introduction to Fusion in practice
 - [Entities and Lookups](./entities-and-lookups.md) -- Entity resolution patterns with `@key`, `@lookup`, and `@is`

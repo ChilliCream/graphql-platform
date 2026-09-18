@@ -196,7 +196,24 @@ internal sealed class ActivityExecutionDiagnosticListener(
             return EmptyScope;
         }
 
-        if (!context.TryGetOperation(out var operation))
+        OperationType operationType;
+        string? operationName;
+
+        if (context.TryGetOperation(out var operation))
+        {
+            operationType = operation.Kind;
+            operationName = operation.Name;
+        }
+        else if (context.OperationDocumentInfo.NormalizedDocument
+            is { Definitions: [OperationDefinitionNode normalizedOperation] })
+        {
+            // Variable coercion now runs before the operation is compiled, so the compiled
+            // operation is not available yet; the normalized document carries the same
+            // operation type and name.
+            operationType = normalizedOperation.Operation;
+            operationName = normalizedOperation.Name?.Value;
+        }
+        else
         {
             return EmptyScope;
         }
@@ -204,8 +221,8 @@ internal sealed class ActivityExecutionDiagnosticListener(
         var span = VariableCoercionSpan.Start(
             Source,
             context,
-            operation.Kind,
-            operation.Name,
+            operationType,
+            operationName,
             enricher);
 
         return span ?? EmptyScope;

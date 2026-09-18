@@ -48,6 +48,23 @@ public static partial class CoreFusionGatewayBuilderExtensions
     }
 
     /// <summary>
+    /// Registers a callback to modify the <see cref="FusionCostOptions"/>
+    /// (cost limits, response size limit, cost plan cache size, etc.).
+    /// </summary>
+    /// <param name="builder">The gateway builder.</param>
+    /// <param name="configure">A delegate that configures the cost options.</param>
+    /// <returns>The <see cref="IFusionGatewayBuilder"/> for chaining.</returns>
+    public static IFusionGatewayBuilder ModifyCostOptions(
+        this IFusionGatewayBuilder builder,
+        Action<FusionCostOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        return builder.ModifyRequestOptions(options => configure(options.Cost));
+    }
+
+    /// <summary>
     /// Registers a callback to modify the <see cref="OperationPlannerOptions"/>
     /// (planning guardrails such as max planning time, max expanded nodes, etc.).
     /// </summary>

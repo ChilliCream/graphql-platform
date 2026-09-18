@@ -26,20 +26,20 @@ internal sealed class OperationVariableCoercionMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context)
     {
-        if (context.TryGetOperation(out var operation))
+        var variableDefinitions = context.TryGetOperation(out var operation)
+            ? operation.Definition.VariableDefinitions
+            : context.GetNormalizedOperation().VariableDefinitions;
+
+        if (!context.IsWarmupRequest())
         {
             CoerceVariables(
                 context,
                 _coercionHelper,
-                operation.Definition.VariableDefinitions,
+                variableDefinitions,
                 _diagnosticEvents);
+        }
 
-            await _next(context).ConfigureAwait(false);
-        }
-        else
-        {
-            context.Result = ErrorHelper.StateInvalidForOperationVariableCoercion();
-        }
+        await _next(context).ConfigureAwait(false);
     }
 
     public static RequestMiddlewareConfiguration Create()
@@ -48,7 +48,10 @@ internal sealed class OperationVariableCoercionMiddleware
             {
                 var coercionHelper = core.Services.GetRequiredService<VariableCoercionHelper>();
                 var diagnosticEvents = core.SchemaServices.GetRequiredService<IExecutionDiagnosticEvents>();
-                var middleware = new OperationVariableCoercionMiddleware(next, coercionHelper, diagnosticEvents);
+                var middleware = new OperationVariableCoercionMiddleware(
+                    next,
+                    coercionHelper,
+                    diagnosticEvents);
                 return context => middleware.InvokeAsync(context);
             },
             WellKnownRequestMiddleware.OperationVariableCoercionMiddleware);

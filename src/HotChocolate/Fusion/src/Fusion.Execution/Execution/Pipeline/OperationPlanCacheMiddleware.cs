@@ -22,108 +22,125 @@ internal sealed class OperationPlanCacheMiddleware
 
     public async ValueTask InvokeAsync(RequestContext context, RequestDelegate next)
     {
-        var documentInfo = context.OperationDocumentInfo;
+        var operationId = context.GetOperationId();
 
-        if (documentInfo.Hash.IsEmpty)
-        {
-            context.Result = ErrorHelper.StateInvalidForOperationPlanCache();
-            return;
-        }
+        var retried = false;
+        var resolved = false;
+        Lazy<TaskCompletionSource<OperationPlan>>? leaderEntry = null;
+        OperationPlanInFlightRelease? inFlightRelease = null;
 
-        var operationId = documentInfo.OperationCount == 1
-            ? documentInfo.Hash.Value
-            : $"{documentInfo.Hash.Value}.{context.Request.OperationName ?? "Default"}";
-        context.SetOperationId(operationId);
+        // A follower whose leader is cancelled before it produces a plan evicts the
+        // cancelled leader's entry and gets exactly one opportunity to step up as the new
+        // leader candidate instead of failing outright; any cancellation after that
+        // (including one observed on the retry) propagates. Re-checking the cache on every
+        // iteration also covers the plan having been produced and cached by someone else
+        // while this request was coalesced onto the now-cancelled leader.
+        while (!resolved)
+        {
+            if (_cache.TryGet(operationId, out var plan))
+            {
+                context.SetOperationPlan(plan);
+                _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
+                resolved = true;
+                continue;
+            }
 
-        var isSingleFlightLeader = false;
-        Lazy<TaskCompletionSource<OperationPlan>>? inFlightPlan = null;
-
-        if (_cache.TryGet(operationId, out var plan))
-        {
-            context.SetOperationPlan(plan);
-            _diagnosticEvents.RetrievedOperationPlanFromCache(context, operationId);
-        }
-        else if (_inFlightPlans.TryGetValue(operationId, out inFlightPlan))
-        {
-            // Another request is already planning this operation.
-            // Await the leader's result to avoid redundant planning work.
-            var coalescedPlan = await inFlightPlan.Value.Task
-                .WaitAsync(context.RequestAborted)
-                .ConfigureAwait(false);
-            context.SetOperationPlan(coalescedPlan);
-        }
-        else
-        {
-            // No plan is cached and no planning is in progress.
-            // Use a Lazy<TCS> so that under burst conditions only one TCS is materialized
-            // even if multiple requests race through GetOrAdd concurrently.
-            inFlightPlan = new Lazy<TaskCompletionSource<OperationPlan>>(
+            var candidate = new Lazy<TaskCompletionSource<OperationPlan>>(
                 static () => new TaskCompletionSource<OperationPlan>(
                     TaskCreationOptions.RunContinuationsAsynchronously));
-            var cachedInFlightPlan = _inFlightPlans.GetOrAdd(operationId, inFlightPlan);
+            var current = _inFlightPlans.GetOrAdd(operationId, candidate);
 
-            if (ReferenceEquals(cachedInFlightPlan, inFlightPlan))
+            if (ReferenceEquals(current, candidate))
             {
-                // We won the race! This request is the single-flight leader
-                // responsible for planning and signaling all followers.
-                isSingleFlightLeader = true;
-                context.Features.Set(inFlightPlan.Value);
+                leaderEntry = current;
+                inFlightRelease = new OperationPlanInFlightRelease(
+                    operationId, current.Value, _cache, _diagnosticEvents);
+                context.Features.Set(current.Value);
+                context.Features.Set(inFlightRelease);
+                resolved = true;
+                continue;
             }
-            else
+
+            try
             {
-                // We lost the race! Another request claimed leadership between
-                // TryGetValue and GetOrAdd. So we simply await the leader's result.
-                var coalescedPlan = await cachedInFlightPlan.Value.Task
+                var coalescedPlan = await current.Value.Task
                     .WaitAsync(context.RequestAborted)
                     .ConfigureAwait(false);
                 context.SetOperationPlan(coalescedPlan);
+                resolved = true;
             }
+            catch (OperationCanceledException ex)
+                when (!retried && ex.CancellationToken != context.RequestAborted)
+            {
+                // The leader was cancelled before it produced a plan; this request's own
+                // token was not the cause, so it evicts the cancelled leader's entry and
+                // retries once as a leader candidate.
+                retried = true;
+                _inFlightPlans.TryRemove(
+                    new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(operationId, current));
+            }
+        }
+
+        if (leaderEntry is null)
+        {
+            await next(context).ConfigureAwait(false);
+            return;
         }
 
         try
         {
-            await next(context);
+            await next(context).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            // Propagate the exception to all waiting followers.
-            if (isSingleFlightLeader && inFlightPlan is not null)
+            // Propagate the failure to followers only if nothing has resolved the TCS yet
+            // (SetOperationPlan releases them the moment any middleware sets a plan).
+            if (!leaderEntry.Value.Task.IsCompleted)
             {
-                inFlightPlan.Value.TrySetException(ex);
+                if (ex is OperationCanceledException oce)
+                {
+                    leaderEntry.Value.TrySetCanceled(oce.CancellationToken);
+                }
+                else
+                {
+                    leaderEntry.Value.TrySetException(ex);
+                }
             }
 
             throw;
         }
         finally
         {
-            if (isSingleFlightLeader)
+            // Assigning a plan to the context (SetOperationPlan) already caches it and
+            // releases followers the moment it happens, whichever middleware assigns it;
+            // that is the primary path and this is a no-op then. This is the safety net for
+            // a plan that reached the context some other way, bypassing that hook entirely:
+            // cache whatever plan the context carries when the pipeline returns and release
+            // followers with it. Only when the pipeline returned without producing a plan at
+            // all, and without throwing, does this fault the followers so they do not wait
+            // forever.
+            try
             {
-                // Guard against a faulty diagnostic event handler preventing cleanup.
-                // Without this, a throw from the cache or diagnostics would leak the
-                // in-flight entry, causing _inFlightPlans to grow indefinitely.
-                try
+                // Guard against a faulty diagnostic event handler preventing cleanup: a throw
+                // from the cache or a listener here must not leak the in-flight entry.
+                if (!leaderEntry.Value.Task.IsCompleted)
                 {
                     if (context.GetOperationPlan() is { } operationPlan)
                     {
-                        // Cache the plan before removing the in-flight entry so that
-                        // there is no window where the plan is in neither structure.
-                        _cache.TryAdd(operationId, operationPlan);
-                        _diagnosticEvents.AddedOperationPlanToCache(context, operationId);
-                        inFlightPlan?.Value.TrySetResult(operationPlan);
+                        inFlightRelease!.TryRelease(context, operationPlan);
                     }
-                    else if (inFlightPlan?.Value.Task.IsCompleted == false)
+                    else
                     {
-                        // The pipeline completed without producing a plan and without
-                        // throwing. Signal followers so they do not hang indefinitely.
-                        inFlightPlan.Value.TrySetException(
-                            new InvalidOperationException(
-                                "The operation plan task completed without a result."));
+                        leaderEntry.Value.TrySetException(ThrowHelper.OperationPlanTaskCompletedWithoutResult());
                     }
                 }
-                finally
-                {
-                    _inFlightPlans.TryRemove(operationId, out _);
-                }
+            }
+            finally
+            {
+                // The leader alone owns this entry: added it, and removes it here regardless of
+                // whether planning succeeded, failed, or was cancelled.
+                _inFlightPlans.TryRemove(
+                    new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(operationId, leaderEntry));
             }
         }
     }

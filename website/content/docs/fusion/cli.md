@@ -415,17 +415,18 @@ nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
 
 ## Available Settings
 
-| Setting                                  | Values                                 | Description                                                        |
-| ---------------------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
-| `allow-non-resolvable-interface-objects` | `true`, `false`                        | Allow Apollo interface objects without a resolvable key            |
-| `global-object-identification`           | `true`, `false`                        | Enable Relay-style node queries                                    |
-| `include-satisfiability-paths`           | `true`, `false`                        | Include paths in satisfiability diagnostics                        |
-| `node-resolution`                        | `gateway`, `source-schema`             | Choose who resolves `Query.node` IDs                               |
-| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types` | Choose routing for type-conditioned selections on shareable fields |
-| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private` | How to merge `@cacheControl` directives                            |
-| `enum-values-merge-behavior`             | `auto`, `strict`, `union`              | How to merge enum values across source schemas                     |
-| `tag-merge-behavior`                     | `ignore`, `include`, `include-private` | How to merge `@tag` directives                                     |
-| `exclude-by-tag`                         | Comma-separated tags                   | Exclude fields/types by tag                                        |
+| Setting                                  | Values                                   | Description                                                        |
+| ---------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------ |
+| `allow-non-resolvable-interface-objects` | `true`, `false`                          | Allow Apollo interface objects without a resolvable key            |
+| `global-object-identification`           | `true`, `false`                          | Enable Relay-style node queries                                    |
+| `include-satisfiability-paths`           | `true`, `false`                          | Include paths in satisfiability diagnostics                        |
+| `node-resolution`                        | `gateway`, `source-schema`               | Choose who resolves `Query.node` IDs                               |
+| `shareable-field-runtime-type-routing`   | `source-local`, `common-runtime-types`   | Choose routing for type-conditioned selections on shareable fields |
+| `cache-control-merge-behavior`           | `ignore`, `include`, `include-private`   | How to merge `@cacheControl` directives                            |
+| `enum-values-merge-behavior`             | `auto`, `strict`, `union`                | How to merge enum values across source schemas                     |
+| `tag-merge-behavior`                     | `ignore`, `include`, `include-private`   | How to merge `@tag` directives                                     |
+| `exclude-by-tag`                         | Comma-separated tags                     | Exclude fields/types by tag                                        |
+| `default-list-size`                      | Non-negative integer, or `null` to unset | Assumed size for lists without `@listSize` metadata                |
 
 ## Examples
 

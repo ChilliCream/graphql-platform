@@ -170,9 +170,11 @@ builder
 
 # MaxPageSize and Cost Analysis
 
-The `MaxPageSize` setting works together with [cost analysis](../security/cost-analysis.md) to protect your API. Cost analysis uses the `MaxPageSize` as the assumed list size when calculating the cost of a paginated field. If you increase `MaxPageSize`, the cost of queries against that field increases proportionally.
+The `MaxPageSize` setting supplies the static cost bound for a variable-bound paging argument. Cost analysis evaluates a supplied `first`, `last`, or `take` value at its coerced value. When a paging request omits those arguments, it uses `DefaultPageSize` instead of `MaxPageSize`.
 
-For public APIs, keep `MaxPageSize` conservative and use `RequirePagingBoundaries = true` to force clients to declare how many items they want.
+Hot Chocolate records these values in the generated `@listSize` directive as `assumedSize: MaxPageSize` and `slicingArgumentDefaultValue: DefaultPageSize`. See [Cost Analysis](../security/cost-analysis.md#list-size) for the complete priority order.
+
+Set `RequirePagingBoundaries = true` to require clients to supply a paging boundary. Generated paging metadata writes `requireOneSlicingArgument: false` by default and writes `true` when this option is enabled.
 
 # Connection Naming
 

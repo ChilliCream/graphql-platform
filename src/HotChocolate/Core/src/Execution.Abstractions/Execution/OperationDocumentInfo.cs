@@ -13,6 +13,13 @@ public sealed class OperationDocumentInfo : RequestFeature
     public DocumentNode? Document { get; set; }
 
     /// <summary>
+    /// Gets or sets the normalized operation document, i.e. the document after all fragments
+    /// have been inlined into the selected operation. The normalized document contains
+    /// exactly one definition, the operation, at <c>Definitions[0]</c>.
+    /// </summary>
+    public DocumentNode? NormalizedDocument { get; set; }
+
+    /// <summary>
     /// Gets or sets a unique identifier for an operation document.
     /// </summary>
     public OperationDocumentId Id { get; set; }
@@ -46,6 +53,7 @@ public sealed class OperationDocumentInfo : RequestFeature
     protected internal override void Reset()
     {
         Document = null;
+        NormalizedDocument = null;
         Id = default;
         Hash = default;
         IsCached = false;

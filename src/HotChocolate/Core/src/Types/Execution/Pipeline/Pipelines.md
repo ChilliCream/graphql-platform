@@ -2,6 +2,9 @@
 
 This document shows the various pre-configured pipelines.
 
+Document normalization is a lazy service that the operation compiler asks for
+on a cache miss, not a pipeline stage.
+
 ## Default Pipeline
 
 ```mermaid
@@ -11,13 +14,17 @@ sequenceDiagram
     Cache Document->>Parse Document: Document?
     Parse Document->>Validation: Document?
     Validation->>Cache Operation: Document! and IsValid
-    Cache Operation->>Resolve Operation: IPreparedOperation?
-    Resolve Operation->>Coerce Variables: IPreparedOperation
-    Coerce Variables->>Execute Operation: IVariableCollection
+    Cache Operation->>Compile Operation: IPreparedOperation?
+    Compile Operation->>Coerce Variables: IPreparedOperation
+    Coerce Variables->>Cost Analysis: IVariableCollection
+    Cost Analysis->>Skip Warmup: OperationCost
+    Skip Warmup->>Execute Operation: IPreparedOperation
 
-    Execute Operation-->>Coerce Variables: IExecutionResult
-    Coerce Variables-->>Resolve Operation: IExecutionResult
-    Resolve Operation-->>Cache Operation: IExecutionResult
+    Execute Operation-->>Skip Warmup: IExecutionResult
+    Skip Warmup-->>Cost Analysis: IExecutionResult
+    Cost Analysis-->>Coerce Variables: IExecutionResult
+    Coerce Variables-->>Compile Operation: IExecutionResult
+    Compile Operation-->>Cache Operation: IExecutionResult
     Cache Operation-->>Cache Operation: Cache Operation
     Cache Operation-->>Validation: IExecutionResult
     Validation-->>Parse Document: IExecutionResult
@@ -37,13 +44,17 @@ sequenceDiagram
     Load Persisted Document->>Parse Document: Document?
     Parse Document->>Validation: Document?
     Validation->>Cache Operation: Document! and IsValid
-    Cache Operation->>Resolve Operation: IPreparedOperation?
-    Resolve Operation->>Coerce Variables: IPreparedOperation
-    Coerce Variables->>Execute Operation: IVariableCollection
+    Cache Operation->>Compile Operation: IPreparedOperation?
+    Compile Operation->>Coerce Variables: IPreparedOperation
+    Coerce Variables->>Cost Analysis: IVariableCollection
+    Cost Analysis->>Skip Warmup: OperationCost
+    Skip Warmup->>Execute Operation: IPreparedOperation
 
-    Execute Operation-->>Coerce Variables: IExecutionResult
-    Coerce Variables-->>Resolve Operation: IExecutionResult
-    Resolve Operation-->>Cache Operation: IExecutionResult
+    Execute Operation-->>Skip Warmup: IExecutionResult
+    Skip Warmup-->>Cost Analysis: IExecutionResult
+    Cost Analysis-->>Coerce Variables: IExecutionResult
+    Coerce Variables-->>Compile Operation: IExecutionResult
+    Compile Operation-->>Cache Operation: IExecutionResult
     Cache Operation-->>Cache Operation: Cache Operation
     Cache Operation-->>Validation: IExecutionResult
     Validation-->>Parse Document: IExecutionResult

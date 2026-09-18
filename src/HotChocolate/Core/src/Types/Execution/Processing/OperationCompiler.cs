@@ -3,8 +3,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Features;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -18,7 +18,6 @@ public sealed partial class OperationCompiler
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly OperationCompilerOptimizers _optimizers;
-    private readonly InlineFragmentOperationRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
     private readonly int _maxAllowedIncludeConditions;
     private readonly int _maxAllowedDeferConditions;
@@ -37,10 +36,6 @@ public sealed partial class OperationCompiler
         _schema = schema;
         _inputValueParser = inputValueParser;
         _fieldsPool = fieldsPool;
-        _documentRewriter = new InlineFragmentOperationRewriter(
-            schema,
-            removeStaticallyExcludedSelections: true,
-            includeTypeNameToEmptySelectionSets: false);
         _optimizers = optimizers;
         _maxAllowedIncludeConditions = maxAllowedIncludeConditions;
         _maxAllowedDeferConditions = maxAllowedDeferConditions;
@@ -67,8 +62,19 @@ public sealed partial class OperationCompiler
         string? operationName,
         DocumentNode document,
         Schema schema,
+#pragma warning disable RCS1163 // Unused parameter
         IFeatureProvider? context = null)
-        => new OperationCompiler(
+#pragma warning restore RCS1163 // Unused parameter
+    {
+        ArgumentNullException.ThrowIfNull(schema);
+
+        // The static convenience overloads compile a single, already-known document, so they
+        // rewrite it through the normalizer's uncached static entry point rather than
+        // constructing a normalizer instance and a normalized-document cache that would
+        // never be consulted.
+        var normalizedDocument = OperationDocumentNormalizer.NormalizeDocument(schema, document, operationName);
+
+        return new OperationCompiler(
             schema,
             new InputParser(),
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
@@ -76,25 +82,44 @@ public sealed partial class OperationCompiler
             new OperationCompilerOptimizers(),
             RequestExecutorOptions.DefaultMaxAllowedConditions,
             RequestExecutorOptions.DefaultMaxAllowedConditions)
-            .Compile(id, hash, operationName, document, context ?? EmptyFeatureProvider.Instance);
+            .Compile(id, hash, operationName, normalizedDocument);
+    }
 
+    /// <summary>
+    /// Compiles an operation from a document that has already been de-fragmentized and had
+    /// its static include conditions removed by an <see cref="IOperationDocumentNormalizer"/>.
+    /// </summary>
+    /// <param name="id">A unique identifier for the operation.</param>
+    /// <param name="hash">The document hash.</param>
+    /// <param name="operationName">The name of the operation to compile.</param>
+    /// <param name="document">The already normalized document.</param>
     public Operation Compile(
         string id,
         string hash,
         string? operationName,
-        DocumentNode document,
-#pragma warning disable RCS1163 // Unused parameter
-        IFeatureProvider context)
-#pragma warning restore RCS1163 // Unused parameter
+        DocumentNode document)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(document);
 
-        // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
-        var result = _documentRewriter.RewriteDocument(document, operationName);
-        document = result.Document;
         var operationDefinition = document.GetOperation(operationName);
 
+        // The normalized selection set is the source of truth for whether the operation still
+        // has incremental parts once statically excluded @defer/@stream selections are taken
+        // into account, so we derive the flag from it instead of trusting the normalizer result,
+        // which does not evaluate a literal "if: false" condition on the directive itself.
+        var hasIncrementalParts = ContainsIncrementalDirectives(operationDefinition.SelectionSet);
+
+        return CompileOperation(id, hash, document, operationDefinition, hasIncrementalParts);
+    }
+
+    private Operation CompileOperation(
+        string id,
+        string hash,
+        DocumentNode document,
+        OperationDefinitionNode operationDefinition,
+        bool hasIncrementalParts)
+    {
         var includeConditions = new IncludeConditionCollection(_maxAllowedIncludeConditions);
         var deferConditions = new DeferConditionCollection(_maxAllowedDeferConditions);
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
@@ -151,7 +176,7 @@ public sealed partial class OperationCompiler
                 compilationContext.Features,
                 lastId,
                 compilationContext.ElementsById,
-                hasIncrementalParts: result.HasIncrementalParts);
+                hasIncrementalParts: hasIncrementalParts);
 
             selectionSet.Complete(operation);
 
@@ -690,6 +715,82 @@ public sealed partial class OperationCompiler
         {
             includeFlags.RemoveRange(write, includeFlags.Count - write);
         }
+    }
+
+    // A normalized document only ever contains fields and inline fragments (fragment spreads
+    // are always inlined away by the rewriter), so walking the selection set is sufficient to
+    // determine whether the operation still has incremental parts once statically excluded
+    // @defer/@stream selections are accounted for. Selections removed outright by the rewriter
+    // (a statically skipped field or fragment) never reach this walk; a directive with a
+    // literal "if: false" argument survives the rewrite, so it is checked explicitly.
+    private static bool ContainsIncrementalDirectives(SelectionSetNode selectionSet)
+    {
+        foreach (var selection in selectionSet.Selections)
+        {
+            switch (selection)
+            {
+                case FieldNode field:
+                    if (HasIncrementalDirective(
+                            field.Directives,
+                            DirectiveNames.Stream.Name,
+                            DirectiveNames.Stream.Arguments.If)
+                        || (field.SelectionSet is not null
+                            && ContainsIncrementalDirectives(field.SelectionSet)))
+                    {
+                        return true;
+                    }
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    if (HasIncrementalDirective(
+                            inlineFragment.Directives,
+                            DirectiveNames.Defer.Name,
+                            DirectiveNames.Defer.Arguments.If)
+                        || ContainsIncrementalDirectives(inlineFragment.SelectionSet))
+                    {
+                        return true;
+                    }
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    // Finds the named incremental delivery directive (@defer or @stream) and reports whether
+    // it is still active after static evaluation. A literal "if: false" argument makes the
+    // directive a compile-time no-op, so it must not count towards the operation having
+    // incremental parts; a missing "if" argument, a literal "if: true", or a variable
+    // reference (only resolvable at runtime) all count.
+    private static bool HasIncrementalDirective(
+        IReadOnlyList<DirectiveNode> directives,
+        string directiveName,
+        string ifArgumentName)
+    {
+        for (var i = 0; i < directives.Count; i++)
+        {
+            var directive = directives[i];
+
+            if (!directive.Name.Value.Equals(directiveName, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            for (var j = 0; j < directive.Arguments.Count; j++)
+            {
+                var argument = directive.Arguments[j];
+
+                if (argument.Name.Value.Equals(ifArgumentName, StringComparison.Ordinal)
+                    && argument.Value is BooleanValueNode { Value: false })
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     private bool DoesTypeApply(NamedTypeNode? typeCondition, IObjectTypeDefinition typeContext)

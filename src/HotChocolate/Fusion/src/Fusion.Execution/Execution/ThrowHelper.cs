@@ -53,6 +53,26 @@ internal static class ThrowHelper
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)
         => new($"Expected client configuration of type '{expected.Name}' but received '{actual.Name}'.");
 
+    public static InvalidOperationException CostOptionsAreReadOnly()
+        => new("The cost options are read-only.");
+
+    public static InvalidOperationException OperationDocumentNotAvailable()
+        => new("The operation document is not available in the context.");
+
+    public static InvalidOperationException OperationDocumentHashNotAvailable()
+        => new("The operation document hash is not available in the context.");
+
+    public static InvalidOperationException OperationPlanTaskCompletedWithoutResult()
+        => new("The operation plan task completed without a result.");
+
+    public static ArgumentOutOfRangeException InvalidCostOptionValue(
+        string optionName,
+        double value)
+        => new(
+            optionName,
+            value,
+            "The value must be a non-negative finite number or positive infinity.");
+
     public static InvalidOperationException InvalidTargetValueKind(
         SelectionPath selectionPath,
         Path resultPath,

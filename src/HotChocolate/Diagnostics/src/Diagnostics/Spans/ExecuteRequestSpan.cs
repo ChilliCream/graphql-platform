@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Language;
 
 namespace HotChocolate.Diagnostics;
@@ -41,6 +42,20 @@ internal sealed class ExecuteRequestSpan(
         {
             operationType = operation.Kind;
             operationName = operation.Name;
+            return true;
+        }
+
+        // Cost analysis and other short-circuits can complete the request before the
+        // operation is compiled and, unlike the compiled operation, the source document
+        // is never normalized as a side effect of merely handling the request, so the
+        // fallback reads the operation type and name straight from it. The document must
+        // already be validated, otherwise a request that never reaches a known operation,
+        // such as one that fails document validation, would incorrectly report one.
+        if (Context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
+            && document.TryGetOperationDefinition(Context.Request.OperationName, out var operationDefinition))
+        {
+            operationType = operationDefinition.Operation;
+            operationName = operationDefinition.Name?.Value;
             return true;
         }
 

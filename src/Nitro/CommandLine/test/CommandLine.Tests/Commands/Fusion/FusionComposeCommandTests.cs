@@ -906,6 +906,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
               "merger": {
                 "addFusionDefinitions": null,
                 "cacheControlMergeBehavior": "Ignore",
+                "defaultListSize": null,
                 "enableGlobalObjectIdentification": true,
                 "enumValuesMergeBehavior": "Union",
                 "nodeResolution": "Gateway",
