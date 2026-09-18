@@ -90,4 +90,20 @@ internal static class MiddlewareFactory
             return context => middleware.InvokeAsync(context);
         };
     }
+
+    internal static Func<RequestDelegate, RequestDelegate> CreateHttpUnsupportedRequestMiddleware(
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions,
+        PathString? path)
+    {
+        return next =>
+        {
+            var middleware = new HttpUnsupportedRequestMiddleware(
+                next,
+                executor,
+                serverOptions,
+                path);
+            return context => middleware.InvokeAsync(context);
+        };
+    }
 }

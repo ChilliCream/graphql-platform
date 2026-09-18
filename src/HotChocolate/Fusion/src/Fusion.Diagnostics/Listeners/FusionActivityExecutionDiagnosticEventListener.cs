@@ -28,10 +28,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
                 return EmptyScope;
             }
 
-            // A GraphQL over HTTP request reuses the transport span as the root request
-            // span instead of emitting a second one. A transport that has no span of its
-            // own, like a WebSocket session, falls through to a dedicated request span.
-            if (httpContext.Features.Get<ExecuteHttpRequestSpan>() is { } httpRequestSpan)
+            if (httpContext.Features.Get<ExecuteHttpRequestSpan>() is { IsBatch: false } httpRequestSpan)
             {
                 httpContextActivity = httpRequestSpan.Activity;
             }
