@@ -1019,10 +1019,10 @@ public class OperationCompilerTests
     public async Task Compile_PreNormalized_Document_Reports_Incremental_Parts_Correctly()
     {
         // arrange
-        // The `isDocumentNormalized: true` overload is the one the document normalization
-        // pipeline stage feeds, whether the normalized document was freshly rewritten or came
-        // back from the NormalizedDocumentCache; either way it must derive HasIncrementalParts
-        // from the document it was actually given rather than trust a value carried alongside.
+        // The `isDocumentNormalized: true` overload derives HasIncrementalParts from the
+        // document it is handed rather than trusting a value carried alongside it. Both
+        // documents below are already in normalized shape (no fragment spreads, no static
+        // include conditions left to resolve).
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddStarWarsTypes()

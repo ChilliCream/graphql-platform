@@ -1,5 +1,6 @@
 using HotChocolate.Execution.Caching;
 using HotChocolate.Language;
+using HotChocolate.StarWars;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -259,5 +260,87 @@ public sealed class DocumentNormalizationMiddlewareTests
         // assert
         var error = Assert.Single(result.ExpectOperationResult().Errors);
         Assert.Equal(ErrorHelper.StateInvalidForOperationResolver().Errors[0].Message, error.Message);
+    }
+
+    [Theory]
+    [InlineData(
+        """
+        {
+          hero(episode: EMPIRE) {
+            ... @defer(if: false) {
+              name
+            }
+          }
+        }
+        """,
+        false)]
+    [InlineData(
+        """
+        {
+          hero(episode: EMPIRE) {
+            ... @defer {
+              name
+            }
+          }
+        }
+        """,
+        true)]
+    public async Task Cached_Normalized_Document_Yields_The_Same_Incremental_Parts_Flag(
+        string operationText,
+        bool expectedHasIncrementalParts)
+    {
+        // arrange
+        // This pipeline has no operation cache, so the second execution always recompiles the
+        // operation; only the normalized document comes from the NormalizedDocumentCache. The
+        // recompiled operation's HasIncrementalParts must still agree with the rewriter.
+        var capturedNormalizedDocuments = new List<DocumentNode?>();
+        var capturedHasIncrementalParts = new List<bool?>();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddStarWarsTypes()
+            .AddStarWarsRepositories()
+            .ModifyOptions(o =>
+            {
+                o.EnableDefer = true;
+                o.EnableStream = true;
+            })
+            .UseInstrumentation()
+            .UseExceptions()
+            .UseTimeout()
+            .UseDocumentCache()
+            .UseDocumentParser()
+            .UseDocumentValidation()
+            .UseDocumentNormalization()
+            .UseOperationVariableCoercion()
+            .UseOperationCompiler()
+            .UseRequest(
+                (_, next) => async context =>
+                {
+                    capturedNormalizedDocuments.Add(context.OperationDocumentInfo.NormalizedDocument);
+                    capturedHasIncrementalParts.Add(
+                        context.TryGetOperation(out var operation) ? operation.HasIncrementalParts : null);
+                    await next(context);
+                },
+                key: "CaptureCompiledOperation")
+            .UseOperationExecution()
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        // act
+        await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
+        await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(2, capturedHasIncrementalParts.Count);
+        Assert.All(
+            capturedHasIncrementalParts,
+            actual => Assert.Equal(expectedHasIncrementalParts, actual));
+
+        Assert.Same(capturedNormalizedDocuments[0], capturedNormalizedDocuments[1]);
+
+        var normalizedDocumentCache = executor.Schema.Services.GetRequiredService<NormalizedDocumentCache>();
+        Assert.Equal(1, normalizedDocumentCache.Count);
     }
 }
