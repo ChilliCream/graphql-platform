@@ -93,8 +93,33 @@ internal sealed class OperationPlanCacheMiddleware
         {
             await next(context).ConfigureAwait(false);
         }
+        catch (Exception ex)
+        {
+            // Propagate the failure to followers only if nothing has resolved the TCS yet
+            // (OperationPlanMiddleware already completes it once a plan is produced).
+            if (!leaderEntry.Value.Task.IsCompleted)
+            {
+                if (ex is OperationCanceledException oce)
+                {
+                    leaderEntry.Value.TrySetCanceled(oce.CancellationToken);
+                }
+                else
+                {
+                    leaderEntry.Value.TrySetException(ex);
+                }
+            }
+
+            throw;
+        }
         finally
         {
+            // Guard against a pipeline that returns without producing a plan and without
+            // throwing, which would otherwise leave followers awaiting the TCS forever.
+            if (!leaderEntry.Value.Task.IsCompleted)
+            {
+                leaderEntry.Value.TrySetException(ThrowHelper.OperationPlanTaskCompletedWithoutResult());
+            }
+
             // The leader alone owns this entry: added it, and removes it here regardless of
             // whether planning succeeded, failed, or was cancelled.
             _inFlightPlans.TryRemove(

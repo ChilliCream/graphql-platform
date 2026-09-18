@@ -62,6 +62,9 @@ internal static class ThrowHelper
     public static InvalidOperationException OperationDocumentNotAvailable()
         => new("The operation document is not available in the context.");
 
+    public static InvalidOperationException OperationPlanTaskCompletedWithoutResult()
+        => new("The operation plan task completed without a result.");
+
     public static ArgumentOutOfRangeException InvalidCostOptionValue(
         string optionName,
         double value)
