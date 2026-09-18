@@ -4,7 +4,6 @@ using HotChocolate.Caching.Memory;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Pipeline;
-using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -101,46 +100,36 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Follower_Released_At_Plan_Set_Time_Never_Normalizes()
+    public async Task Follower_And_Cache_Hit_Never_Rewrite_Leader_Rewrites_Once_On_Cold_Id()
     {
         // arrange
-        // Variable coercion and cost analysis run ahead of the plan cache and each ask for
-        // the normalized document on their own, independently of any single-flight
-        // coalescing; leaving both out of this pipeline isolates the one normalizer call
-        // that planning itself needs, so the assertion below is exact: a follower released
-        // at plan-set time - before it would ever reach OperationPlanMiddleware's own
-        // normalization call - must not add a second call of its own.
+        // On the default gateway pipeline, variable coercion asks for the normalized
+        // document, and therefore calls the normalizer, for every request, leader and
+        // follower alike; that call only rewrites the document on a NormalizedDocumentCache
+        // miss. So a wrapper that counts normalizer calls would count 1 for the follower
+        // too, even though it never rewrites. This wraps the production normalizer with one
+        // that instead observes whether a call actually rewrote the document, by comparing
+        // its result against whatever the cache already held for that operation id before
+        // the call.
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var operationIds = new ConcurrentBag<string>();
         var leaderGate = new SingleFlightLeaderGate();
         var secondRequestObserver = new SecondRequestObserver();
-        var normalizeCallCount = 0;
+        var rewriteCount = 0;
 
-        var services = new ServiceCollection();
-        var builder = services.AddGraphQLGateway();
-        FusionSetupUtilities.ClearPipeline(builder);
-
-        var executor = await builder
-            .UseInstrumentation()
-            .UseExceptions()
-            .UseTimeout()
-            .UseDocumentCache()
-            .UseDocumentParser()
-            .UseDocumentValidation()
-            .UseOperationPlanCache()
-            .UseOperationPlan()
-            .UseSkipWarmupExecution()
-            .UseConcurrencyGate()
-            .UseOperationExecution()
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
             .ConfigureSchemaServices((_, schemaServices) =>
             {
                 schemaServices.RemoveAll<IOperationDocumentNormalizer>();
                 schemaServices.AddSingleton<IOperationDocumentNormalizer>(
-                    sp => new CountingOperationDocumentNormalizer(
+                    sp => new RewriteCountingOperationDocumentNormalizer(
                         new OperationDocumentNormalizer(
                             sp.GetRequiredService<FusionSchemaDefinition>(),
                             sp.GetRequiredService<NormalizedDocumentCache>()),
-                        () => Interlocked.Increment(ref normalizeCallCount)));
+                        sp.GetRequiredService<NormalizedDocumentCache>(),
+                        () => Interlocked.Increment(ref rewriteCount)));
             })
             .UseRequest(
                 (_, next) => CreateSecondRequestEnteredDownstreamMiddleware(next, secondRequestObserver),
@@ -171,12 +160,15 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
 
         const string operationText =
             """
-            query FollowerNeverNormalizes {
+            query FollowerAndCacheHitNeverRewrite {
               foo
             }
             """;
 
         // act
+        // the leader gate sits right after the plan-cache lookup, so by the time it lets us
+        // dispatch the follower, the leader has already run its own coercion, cost analysis,
+        // and plan-cache lookup, rewriting the cold operation once and warming the cache.
         var leaderTask = executor.ExecuteAsync(operationText, cts.Token);
         await leaderGate.WaitForEntryAsync(cts.Token);
 
@@ -190,9 +182,16 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.All(results, t => Assert.Empty(t.ExpectOperationResult().Errors));
         Assert.Single(operationIds.Distinct());
 
-        // the leader normalizes once, for its own plan; the follower is released the
-        // moment the leader's plan is set and never calls the normalizer itself.
-        Assert.Equal(1, Volatile.Read(ref normalizeCallCount));
+        // the leader rewrote once, on the cold id; the follower's own coercion call found
+        // the document the leader had already cached and never rewrote it, even though it
+        // called the normalizer just like the leader did.
+        Assert.Equal(1, Volatile.Read(ref rewriteCount));
+
+        // a later, fully independent request for the same operation is a plain cache hit
+        // and likewise never rewrites.
+        var cachedResult = await executor.ExecuteAsync(operationText, cts.Token);
+        Assert.Empty(cachedResult.ExpectOperationResult().Errors);
+        Assert.Equal(1, Volatile.Read(ref rewriteCount));
     }
 
     [Fact]
@@ -1701,13 +1700,25 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
                 : 0;
     }
 
-    private sealed class CountingOperationDocumentNormalizer(IOperationDocumentNormalizer inner, Action onNormalize)
+    private sealed class RewriteCountingOperationDocumentNormalizer(
+        IOperationDocumentNormalizer inner,
+        NormalizedDocumentCache normalizedDocumentCache,
+        Action onRewrite)
         : IOperationDocumentNormalizer
     {
         public DocumentNode NormalizeDocument(RequestContext context)
         {
-            onNormalize();
-            return inner.NormalizeDocument(context);
+            var operationId = context.GetOperationId();
+            var hadCachedDocument = normalizedDocumentCache.TryGet(operationId, out var documentCachedBefore);
+
+            var normalizedDocument = inner.NormalizeDocument(context);
+
+            if (!hadCachedDocument || !ReferenceEquals(documentCachedBefore, normalizedDocument))
+            {
+                onRewrite();
+            }
+
+            return normalizedDocument;
         }
     }
 }
