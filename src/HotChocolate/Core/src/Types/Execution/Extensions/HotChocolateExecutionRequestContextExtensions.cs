@@ -110,7 +110,7 @@ public static class HotChocolateExecutionRequestContextExtensions
         /// <returns>
         /// The operation id.
         /// </returns>
-        public string GetOperationId()
+        internal string GetOperationId()
         {
             ArgumentNullException.ThrowIfNull(context);
 
