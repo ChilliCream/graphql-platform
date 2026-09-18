@@ -99,8 +99,22 @@ function buildTaperedRows(
  *
  * Mobile (w < 768): the whole scene sits in the band below
  * `ButtonRow.bottom + 24`, `artTop = h * 0.77` (about 609 of a 792px
- * section, matching v11's mobile rule). Camera and torus are scaled down so
- * the ring and its bloom fit the remaining band height.
+ * section, matching v11's mobile rule).
+ *
+ * The ring reads small and washed at the old scale (hc-0-wrc.7): `focal`
+ * alone is raised well past the desktop-derived starting point, `dist` and
+ * `tilt` untouched. Raising only `focal` is a pure zoom -- `scale =
+ * focal/depth` grows by the same factor for every projected point (chamber
+ * rows, torus, streaks alike), so the column, the wall and the band all
+ * grow together and keep the exact "inside the vessel" perspective the
+ * `dist`/`tilt` pair already produces (their ratio to the world-space row
+ * radii is what makes the wall wrap past the frame edges and the column
+ * read as a cylinder -- untouched by a focal-only change). `nearFactor`
+ * (`scale / camera.baseScale`) is a ratio of two focal-proportional
+ * quantities, so the near/far dimming envelope is unaffected too. At
+ * `focal = 535` the rendered ring spans ~87% of a 375px viewport (target
+ * 85-90%, measured with `r3-band375.cjs`'s `bandX` extent), up from ~41% at
+ * the old `focal = 250`.
  */
 export function computeLayout(w: number, h: number): TokamakLayout {
   const mobile = w < MOBILE_BREAKPOINT;
@@ -141,7 +155,7 @@ export function computeLayout(w: number, h: number): TokamakLayout {
   const artTop = h * 0.77;
   const bandCenterY = artTop + (h - artTop) / 2;
   const originX = w * 0.5;
-  const camera = makeCamera(originX, bandCenterY, 250, 160, 10);
+  const camera = makeCamera(originX, bandCenterY, 535, 160, 10);
   const columnRows = buildTaperedRows(36, 52, 275, 100, 1.6);
   const wallRows = buildTaperedRows(280, 52, 300, 350, 1.1);
   // Scaled proportionally to the desktop R/a change above (105/26, same
