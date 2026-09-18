@@ -77,6 +77,16 @@ internal interface IMailStore
         => ReplyMessageAsync(inReplyToId, sender, body, MailWakePolicy.Skip, cancellationToken);
 
     /// <summary>
+    /// Transfers mail participation from one agent to another. Recipient
+    /// conflicts preserve the target agent's recipient state.
+    /// </summary>
+    Task<MailTransferResult> TransferParticipationAsync(
+        string from,
+        string to,
+        CancellationToken cancellationToken)
+        => Task.FromException<MailTransferResult>(new NotSupportedException());
+
+    /// <summary>
     /// Returns the message with the given ID, with its recipients embedded,
     /// or null.
     /// </summary>

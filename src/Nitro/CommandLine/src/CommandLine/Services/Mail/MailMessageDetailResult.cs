@@ -1,6 +1,6 @@
-using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
-namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
+namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 
 /// <summary>
 /// A message's full detail, as returned by the structured (JSON) output of
@@ -19,8 +19,12 @@ internal sealed record MailMessageDetailResult
     public required DateTimeOffset CreatedAt { get; init; }
     public required bool Read { get; init; }
     public required bool Archived { get; init; }
+    public required IReadOnlyList<TakeoverReferenceResult> Takeovers { get; init; }
 
-    public static MailMessageDetailResult Create(MailMessage message, string actor)
+    public static MailMessageDetailResult Create(
+        MailMessage message,
+        string actor,
+        IReadOnlyList<TakeoverReferenceResult> takeovers)
     {
         var recipient = message.Recipients.FirstOrDefault(r => r.Name == actor);
 
@@ -44,7 +48,8 @@ internal sealed record MailMessageDetailResult
             Body = message.Body,
             CreatedAt = message.CreatedAt,
             Read = recipient?.ReadAt is not null,
-            Archived = recipient?.ArchivedAt is not null
+            Archived = recipient?.ArchivedAt is not null,
+            Takeovers = takeovers
         };
     }
 }
