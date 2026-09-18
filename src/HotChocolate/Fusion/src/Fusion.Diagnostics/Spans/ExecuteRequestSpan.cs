@@ -44,6 +44,17 @@ internal sealed class ExecuteRequestSpan(
             return true;
         }
 
+        if (Context.OperationDocumentInfo.NormalizedDocument
+            is { Definitions: [OperationDefinitionNode normalizedOperation] })
+        {
+            // Cost analysis and other short-circuits can complete the request before the
+            // operation is planned; the normalized document carries the same operation
+            // type and name.
+            operationType = normalizedOperation.Operation;
+            operationName = normalizedOperation.Name?.Value;
+            return true;
+        }
+
         operationType = default;
         operationName = null;
         return false;

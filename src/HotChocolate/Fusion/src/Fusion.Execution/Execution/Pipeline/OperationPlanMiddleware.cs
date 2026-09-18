@@ -1,3 +1,4 @@
+using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
@@ -10,15 +11,18 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 internal sealed class OperationPlanMiddleware
 {
     private readonly OperationPlanner _planner;
+    private readonly Cache<OperationPlan> _cache;
     private readonly IOperationPlannerInterceptor[] _interceptors;
     private readonly IFusionExecutionDiagnosticEvents _diagnosticsEvents;
 
     private OperationPlanMiddleware(
         OperationPlanner planner,
+        Cache<OperationPlan> cache,
         IEnumerable<IOperationPlannerInterceptor>? interceptors,
         IFusionExecutionDiagnosticEvents diagnosticsEvents)
     {
         _planner = planner;
+        _cache = cache;
         _interceptors = interceptors?.ToArray() ?? [];
         _diagnosticsEvents = diagnosticsEvents;
     }
@@ -61,6 +65,7 @@ internal sealed class OperationPlanMiddleware
         var operationShortHash = operationHash[..8];
 
         using var scope = _diagnosticsEvents.PlanOperation(context, operationId);
+        var inFlightPlan = context.Features.Get<TaskCompletionSource<OperationPlan>>();
 
         try
         {
@@ -74,10 +79,27 @@ internal sealed class OperationPlanMiddleware
                     context.RequestAborted);
             OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
             context.SetOperationPlan(operationPlan);
+
+            // The plan is cached and the followers are released right after planning
+            // succeeds, before this (the leader's) request continues into execution.
+            // A failure further downstream affects only the leader; the plan is already
+            // safely shared with every follower that coalesced onto this operation.
+            _cache.TryAdd(operationId, operationPlan);
+            _diagnosticsEvents.AddedOperationPlanToCache(context, operationId);
+            inFlightPlan?.TrySetResult(operationPlan);
         }
         catch (Exception ex)
         {
             _diagnosticsEvents.PlanOperationError(context, operationId, ex);
+
+            if (ex is OperationCanceledException cancellationException)
+            {
+                inFlightPlan?.TrySetCanceled(cancellationException.CancellationToken);
+            }
+            else
+            {
+                inFlightPlan?.TrySetException(ex);
+            }
 
             throw;
         }
@@ -108,10 +130,12 @@ internal sealed class OperationPlanMiddleware
             (fc, next) =>
             {
                 var planner = fc.SchemaServices.GetRequiredService<OperationPlanner>();
+                var cache = fc.SchemaServices.GetRequiredService<Cache<OperationPlan>>();
                 var interceptors = fc.SchemaServices.GetService<IEnumerable<IOperationPlannerInterceptor>>();
                 var diagnosticEvents = fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
                 var middleware = new OperationPlanMiddleware(
                     planner,
+                    cache,
                     interceptors,
                     diagnosticEvents);
                 return requestContext => middleware.InvokeAsync(requestContext, next);
