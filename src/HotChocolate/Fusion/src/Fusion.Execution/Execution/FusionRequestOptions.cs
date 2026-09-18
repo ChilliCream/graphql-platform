@@ -143,6 +143,27 @@ public sealed class FusionRequestOptions : ICloneable
     } = DefaultMaxAllowedConditions;
 
     /// <summary>
+    /// <para>
+    /// Gets or sets whether input object fields that are not defined on the
+    /// input object type should be ignored while coercing variable values,
+    /// instead of producing a GraphQL request error.
+    /// </para>
+    /// <para>
+    /// The default is <c>false</c>.
+    /// </para>
+    /// </summary>
+    public bool IgnoreAdditionalInputFields
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the persisted operation options.
     /// </summary>
     public PersistedOperationOptions PersistedOperations
@@ -214,6 +235,7 @@ public sealed class FusionRequestOptions : ICloneable
             AllowOperationPlanRequests = AllowOperationPlanRequests,
             MaxAllowedIncludeConditions = MaxAllowedIncludeConditions,
             MaxAllowedDeferConditions = MaxAllowedDeferConditions,
+            IgnoreAdditionalInputFields = IgnoreAdditionalInputFields,
             PersistedOperations = PersistedOperations,
             IncludeExceptionDetails = IncludeExceptionDetails,
             Cost = Cost.Clone()

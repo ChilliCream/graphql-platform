@@ -127,19 +127,19 @@ builder
     });
 ```
 
-| Property                                  | Type                   | Default   | Description                                                                                                                              |
-| ----------------------------------------- | ---------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`   | Controls which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`. |
-| `EnableGetRequests`                       | `bool`                 | `true`    | Allows GraphQL queries over HTTP GET.                                                                                                    |
-| `EnableMultipartRequests`                 | `bool`                 | `true`    | Allows multipart HTTP requests (file uploads).                                                                                           |
-| `EnableSchemaRequests`                    | `bool`                 | `true`    | Allows schema SDL downloads.                                                                                                             |
-| `EnableSchemaFileSupport`                 | `bool`                 | `true`    | Allows the schema SDL to be served as a file download.                                                                                   |
-| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`   | Requires a preflight header on GET requests for CSRF protection.                                                                         |
-| `EnforceMultipartRequestsPreflightHeader` | `bool`                 | `true`    | Requires a preflight header on multipart requests for CSRF protection.                                                                   |
-| `Batching`                                | `AllowedBatching`      | `None`    | Controls which batching modes are allowed. Use `AllowedBatching.All` to enable.                                                          |
-| `MaxBatchSize`                            | `int`                  | `1024`    | Maximum number of operations in a single batch. Set to `0` for unlimited.                                                                |
-| `Sockets`                                 | `GraphQLSocketOptions` | See below | WebSocket transport options. See [WebSocket options](#websocket-options-graphqlsocketoptions) for details.                               |
-| `Tool`                                    | `NitroAppOptions`      | Default   | Nitro IDE tool options.                                                                                                                  |
+| Property                                  | Type                   | Default            | Description                                                                                                                                    |
+| ----------------------------------------- | ---------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AllowedGetOperations`                    | `AllowedGetOperations` | `Query`            | Controls which operation types are allowed via HTTP GET. Values: `None`, `Query`, `Mutation`, `Subscription`, `QueryAndMutation`, `All`.       |
+| `EnableGetRequests`                       | `bool`                 | `true`             | Allows GraphQL queries over HTTP GET.                                                                                                          |
+| `EnableMultipartRequests`                 | `bool`                 | `true`             | Allows multipart HTTP requests (file uploads).                                                                                                 |
+| `EnableSchemaRequests`                    | `bool`                 | `true`             | Allows schema SDL downloads.                                                                                                                   |
+| `EnableSchemaFileSupport`                 | `bool`                 | `true`             | Allows the schema SDL to be served as a file download.                                                                                         |
+| `EnforceGetRequestsPreflightHeader`       | `bool`                 | `false`            | Requires a preflight header on GET requests for CSRF protection.                                                                               |
+| `EnforceMultipartRequestsPreflightHeader` | `bool`                 | `true`             | Requires a preflight header on multipart requests for CSRF protection.                                                                         |
+| `Batching`                                | `AllowedBatching`      | `VariableBatching` | Controls which batching modes are allowed. Variable batching is enabled by default; use `AllowedBatching.All` to also enable request batching. |
+| `MaxBatchSize`                            | `int`                  | `1024`             | Maximum number of operations in a single batch. Set to `0` for unlimited.                                                                      |
+| `Sockets`                                 | `GraphQLSocketOptions` | See below          | WebSocket transport options. See [WebSocket options](#websocket-options-graphqlsocketoptions) for details.                                     |
+| `Tool`                                    | `NitroAppOptions`      | Default            | Nitro IDE tool options.                                                                                                                        |
 
 Per-endpoint overrides are still supported through `WithOptions` on the endpoint builder:
 
@@ -253,12 +253,14 @@ builder
     });
 ```
 
-| Property                      | Type   | Default | Description                                                                                                              |
-| ----------------------------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `RegisterNodeInterface`       | `bool` | `true`  | Registers the `Node` interface and adds the `node(id: ID!): Node` field to the Query type.                               |
-| `AddNodesField`               | `bool` | `true`  | Adds a `nodes(ids: [ID!]!): [Node]!` field to the Query type for batch node fetching.                                    |
-| `EnsureAllNodesCanBeResolved` | `bool` | `true`  | Validates during schema building that every type implementing `Node` has a corresponding node resolver configured.       |
-| `MaxAllowedNodeBatchSize`     | `int`  | `50`    | The maximum number of IDs a client can pass to the `nodes` field in a single request. Prevents excessive batch fetching. |
+| Property                      | Type   | Default | Description                                                                                                                                         |
+| ----------------------------- | ------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `RegisterNodeInterface`       | `bool` | `true`  | Registers the `Node` interface. When `false`, the `node` and `nodes` fields and `[NodeResolver]` inference are disabled as well.                    |
+| `AddNodeField`                | `bool` | `true`  | Adds the `node(id: ID!): Node` field to the Query type.                                                                                             |
+| `AddNodesField`               | `bool` | `true`  | Adds a `nodes(ids: [ID!]!): [Node]!` field to the Query type for batch node fetching.                                                               |
+| `EnsureAllNodesCanBeResolved` | `bool` | `true`  | Validates during schema building that every type implementing `Node` has a corresponding node resolver configured.                                  |
+| `MaxAllowedNodeBatchSize`     | `int`  | `50`    | The maximum number of IDs a client can pass to the `nodes` field in a single request. Prevents excessive batch fetching.                            |
+| `MarkNodeFieldAsLookup`       | `bool` | `false` | Annotates the `Query.node` field with the `@lookup` directive for the composite schema spec, so a Fusion gateway can resolve entities by global ID. |
 
 # Cache Control Options (ModifyCacheControlOptions)
 
