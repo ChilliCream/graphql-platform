@@ -1,5 +1,3 @@
-using HotChocolate.Types;
-
 namespace HotChocolate.Execution.Integration;
 
 public class UpdateUserInput
