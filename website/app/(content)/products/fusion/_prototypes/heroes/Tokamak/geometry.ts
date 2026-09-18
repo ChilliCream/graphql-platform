@@ -108,7 +108,7 @@ export function torusPoint(
 export function nearFactor(
   scale: number,
   cam: Camera,
-  min = 0.32,
+  min = 0.16,
   max = 1.7,
 ): number {
   const f = scale / cam.baseScale;

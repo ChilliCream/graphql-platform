@@ -22,24 +22,28 @@ import {
 import {
   createStreak,
   projectHelix,
-  projectSpiral,
+  projectSpiralDashes,
   projectStreak,
   type ShadedPoint,
+  type SpiralDash,
   type Streak,
 } from "./plasma";
 
 /**
  * Streak counts per viewport size. Most of the "hundreds of thin bright
  * streaks" are the static majority, baked once into the cached plasma layer
- * (ticket hc-0-wrc.3 comment 160: density is the craft bar, hundreds not
- * dozens); a small subset orbits live every frame so the average frame stays
- * well under the 4ms budget.
+ * (ticket hc-0-wrc.3 comment 160 / planner ruling 187 item 3: density is
+ * the craft bar, hundreds not dozens, 300-600 orbiting the band); a small
+ * subset orbits live every frame so the average frame stays well under the
+ * 4ms budget.
  */
 const DESKTOP_STATIC_STREAKS = 420;
 const DESKTOP_LIVE_STREAKS = 48;
 const MOBILE_STATIC_STREAKS = 210;
 const MOBILE_LIVE_STREAKS = 26;
 const SPECTRUM_STREAM_COUNT = 5;
+/** Offscreen glow source for the live streaks/helix, a fraction of the live canvas' CSS size -- a cheap bloom from downscale + upscale instead of a per-stroke blur filter (same technique as `PlasmaFusion`'s `drawBloomSource`). */
+const GLOW_SCALE = 0.25;
 
 const BAND_ORBIT_PERIOD_S = 28;
 const TWIST_PERIOD_S = 20;
@@ -88,12 +92,12 @@ function stratifiedAngles(
 }
 
 /**
- * v12 - Tokamak: a perspective chamber of tiled steel rings around a
- * central column, seen from inside, with a coral/pink plasma torus of
+ * v12 - Tokamak: seen from inside the vessel, a dark tiled steel column and
+ * wall wrapping around the viewer, with a coral/pink plasma torus of
  * hundreds of orbiting streaks and a twisting filament at its centre. See
  * `../README.md` for the shared hero contract (palette, lighting/depth,
  * motion gating, technique) and `../PlasmaFusion` for the static/live split
- * this follows.
+ * and cheap-bloom technique this follows.
  */
 export default function Tokamak() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -114,7 +118,9 @@ export default function Tokamak() {
     const chamberCtx = chamberCanvas.getContext("2d");
     const plasmaCtx = plasmaCacheCanvas.getContext("2d");
     const liveCtx = liveCanvas.getContext("2d");
-    if (!chamberCtx || !plasmaCtx || !liveCtx) {
+    const glow = document.createElement("canvas");
+    const glowCtx = glow.getContext("2d");
+    if (!chamberCtx || !plasmaCtx || !liveCtx || !glowCtx) {
       return;
     }
 
@@ -123,6 +129,8 @@ export default function Tokamak() {
     let dpr = 1;
     let w = 0;
     let h = 0;
+    let glowW = 0;
+    let glowH = 0;
     let liveStreaks: Streak[] = [];
     let spirals: SpiralSeed[] = [];
     let disposed = false;
@@ -169,15 +177,19 @@ export default function Tokamak() {
           ),
       );
 
-      const outerRadius =
-        Math.max(...layout.rows.map((row) => row.radius)) * 0.94;
+      // Starts just outside the column's own flare, not out at the wall's
+      // full bulge radius -- the wall sits mostly out of frame or deep in
+      // z at this camera distance, so a spiral starting there would spend
+      // almost its whole run invisible. Staying close to the ring keeps
+      // every turn of the inward spiral on screen.
+      const outerRadius = layout.torus.R * 2.35;
       spirals = Array.from({ length: SPECTRUM_STREAM_COUNT }, (_, i) => ({
         theta0: (i / SPECTRUM_STREAM_COUNT) * Math.PI * 2 + rand() * 0.4,
         outerRadius,
-        loops: 0.78 + rand() * 0.3,
+        loops: 2.4 + rand() * 1.1,
       }));
-      const spiralPaths = spirals.map((seed) =>
-        projectSpiral(
+      const spiralStreams: SpiralDash[][] = spirals.map((seed) =>
+        projectSpiralDashes(
           layout.torus,
           layout.camera,
           seed.theta0,
@@ -191,20 +203,41 @@ export default function Tokamak() {
         createStreak(rand, theta0, phi),
       );
 
-      const tiles: Tile[] = buildChamberTiles(
-        layout.rows,
-        layout.thetaSegments,
-        layout.camera,
-      );
+      // Column tiles (the near-constant-radius cylinder) and wall tiles
+      // (wide at the plasma's height, narrowing to meet the column above
+      // and below it) are built from two separate row families sharing the
+      // same axis and camera, then concatenated -- planner ruling
+      // hc-0-wrc.3 comment 187 item 1. Wall first, column second: the wall
+      // is the far surface wrapping the viewer, the column stands in front
+      // of it, so painter's-algorithm order paints far-then-near (fix 1/F1:
+      // painting the column first let the far wall's tiles draw back over
+      // it every time, which is what made the column read as a pale,
+      // doubled-up silhouette instead of a dark object in front).
+      const tiles: Tile[] = [
+        ...buildChamberTiles(
+          layout.wallRows,
+          layout.wallThetaSegments,
+          layout.camera,
+          layout.torus,
+          "wall",
+        ),
+        ...buildChamberTiles(
+          layout.columnRows,
+          layout.columnThetaSegments,
+          layout.camera,
+          layout.torus,
+          "column",
+        ),
+      ];
       const lights: InstrumentLight[] = buildInstrumentLights(
-        layout.rows,
+        layout.wallRows,
         layout.camera,
         rand,
         6,
       );
       paintChamber(chamberCtx!, w, h, tiles, lights);
 
-      paintPlasmaCache(plasmaCtx!, w, h, staticStreakPaths, spiralPaths);
+      paintPlasmaCache(plasmaCtx!, w, h, staticStreakPaths, spiralStreams);
       featherEdge(plasmaCtx!);
     }
 
@@ -219,8 +252,41 @@ export default function Tokamak() {
         canvas!.height = Math.max(1, Math.round(h * dpr));
         canvas!.getContext("2d")!.setTransform(dpr, 0, 0, dpr, 0, 0);
       }
+      glowW = Math.max(1, Math.round(w * GLOW_SCALE));
+      glowH = Math.max(1, Math.round(h * GLOW_SCALE));
+      glow.width = glowW;
+      glow.height = glowH;
       layout = computeLayout(w, h);
       buildScene();
+    }
+
+    // A downscaled offscreen pass of the live streaks + helix, composited
+    // back at full size with "lighter": a cheap glow halo under their sharp
+    // cores without a per-stroke blur filter on every live frame (README
+    // section 3, planner ruling 187 item 3; same technique as
+    // `PlasmaFusion`'s `drawBloomSource`).
+    function drawGlowSource(timeSec: number, orbitPhase: number) {
+      glowCtx!.setTransform(GLOW_SCALE, 0, 0, GLOW_SCALE, 0, 0);
+      glowCtx!.clearRect(0, 0, w, h);
+      glowCtx!.globalCompositeOperation = "lighter";
+      glowCtx!.lineCap = "round";
+      for (const streak of liveStreaks) {
+        const advanced: Streak = {
+          ...streak,
+          theta0: streak.theta0 + orbitPhase,
+        };
+        const pts = projectStreak(
+          advanced,
+          layout.torus,
+          layout.camera,
+          timeSec,
+          true,
+        );
+        strokeShadedPath(glowCtx!, pts, BRAND.coral, 5.5, streak.alpha * 0.5);
+      }
+      const twistPhase = (timeSec / TWIST_PERIOD_S) * Math.PI * 2;
+      const helixPts = projectHelix(layout.torus, layout.camera, twistPhase);
+      strokeShadedPath(glowCtx!, helixPts, BRAND.coral, 4.5, 0.28);
     }
 
     function drawLive(timeSec: number) {
@@ -236,7 +302,7 @@ export default function Tokamak() {
       const breathe =
         0.86 + 0.14 * Math.sin((timeSec / BREATHE_PERIOD_S) * Math.PI * 2);
       const bloomR =
-        (layout.torus.R + layout.torus.a) * torusCenter.scale * 1.7;
+        (layout.torus.R + layout.torus.a) * torusCenter.scale * 0.62;
 
       liveCtx!.globalCompositeOperation = "lighter";
       const bloom = liveCtx!.createRadialGradient(
@@ -247,8 +313,8 @@ export default function Tokamak() {
         torusCenter.y,
         bloomR,
       );
-      bloom.addColorStop(0, hexToRgba(BRAND.coral, 0.34 * breathe));
-      bloom.addColorStop(0.4, hexToRgba(BRAND.coral, 0.16 * breathe));
+      bloom.addColorStop(0, hexToRgba(BRAND.coral, 0.26 * breathe));
+      bloom.addColorStop(0.45, hexToRgba(BRAND.coral, 0.11 * breathe));
       bloom.addColorStop(1, hexToRgba(BRAND.coral, 0));
       liveCtx!.fillStyle = bloom;
       liveCtx!.beginPath();
@@ -262,6 +328,14 @@ export default function Tokamak() {
       liveCtx!.fill();
 
       const orbitPhase = (timeSec / BAND_ORBIT_PERIOD_S) * Math.PI * 2;
+
+      // Glow halo first (downscaled, blurred by the upscale), sharp cores
+      // on top -- every luminous element on this layer carries a halo.
+      drawGlowSource(timeSec, orbitPhase);
+      liveCtx!.globalAlpha = 0.9;
+      liveCtx!.drawImage(glow, 0, 0, glowW, glowH, 0, 0, w, h);
+      liveCtx!.globalAlpha = 1;
+
       const hotIndex = liveStreaks.length
         ? Math.floor(timeSec / HOT_STREAK_PERIOD_S) % liveStreaks.length
         : -1;
@@ -271,6 +345,11 @@ export default function Tokamak() {
           ...streak,
           theta0: streak.theta0 + orbitPhase,
         };
+        // Streaks on the torus' far side (opposite the camera) project at
+        // greater depth, so `near` (from `nearFactor`) is already small --
+        // they draw dimmer and thinner purely from the projection, the same
+        // stand-in for "occluded by the column" every other shaded path in
+        // this hero uses, never a hand-set 2D fade.
         const pts = projectStreak(
           advanced,
           layout.torus,
@@ -300,8 +379,8 @@ export default function Tokamak() {
 
       const twistPhase = (timeSec / TWIST_PERIOD_S) * Math.PI * 2;
       const helixPts = projectHelix(layout.torus, layout.camera, twistPhase);
-      strokeShadedPath(liveCtx!, helixPts, BRAND.coral, 5, 0.22);
-      strokeShadedPathRgba(liveCtx!, helixPts, [255, 244, 240], 1.6, 0.9);
+      strokeShadedPath(liveCtx!, helixPts, BRAND.coral, 2, 0.24);
+      strokeShadedPathRgba(liveCtx!, helixPts, [255, 244, 240], 1, 0.85);
 
       const coreR = torusCenter.scale * layout.torus.a * 0.9 * breathe;
       const core = liveCtx!.createRadialGradient(
