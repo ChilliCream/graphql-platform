@@ -55,17 +55,17 @@ Update positional construction as follows:
 
 `ICostMetricsCache` and `DefaultCostMetricsCache` have been removed. Compiled cost plans are cached internally, so no replacement cache service registration is required.
 
-## Cost analyzer pipeline placement changed
+## Document normalization is no longer a pipeline stage
 
 Document normalization, i.e. flattening the selected operation's fragments into its own selection set, is no longer a pipeline stage. It is a lazy `IOperationDocumentNormalizer` service instead: a middleware that needs the normalized document calls `context.GetNormalizedDocument()`, which normalizes once per request on first access and stores the result on the document info, so an operation cache hit never triggers normalization work. The default, persisted-operation, and automatic-persisted-operation pipelines use this order:
 
 ```text
-DocumentValidation -> OperationCache -> OperationCompiler -> OperationVariableCoercion -> CostAnalyzer
+DocumentValidation -> OperationCache -> OperationCompiler -> OperationVariableCoercion -> SkipWarmupExecution
 ```
 
 `OperationResolverMiddleware`/`UseOperationResolver()` are renamed to `OperationCompilerMiddleware`/`UseOperationCompiler()`; the compiler now asks the normalizer service for the normalized document itself on an operation cache miss, instead of relying on a prior pipeline stage. The old names remain available as `[Obsolete]` forwarders that resolve to the same middleware key, so an existing `before:`/`after:` insertion that references `WellKnownRequestMiddleware.OperationResolverMiddleware` keeps working.
 
-`AddCostAnalyzer()` still inserts the analyzer after the keyed variable-coercion middleware, which now lands it after the operation cache and the operation compiler: a request that fails cost enforcement has already compiled and cached its operation by the time it is rejected, so a burst of identical, over-budget requests still coalesces into a single compilation instead of skipping the compiler's single-flight coalescing. A custom pipeline no longer needs a document normalization stage; it moves variable coercion behind the operation cache and the operation compiler:
+In 16.6, `OperationVariableCoercion` already ran after the operation cache and the resolver, but it also ran after `SkipWarmupExecution`. In 16.7 it moves ahead of `SkipWarmupExecution`, directly after `OperationCompiler`. `AddCostAnalyzer()` inserts the analyzer after the keyed variable-coercion middleware, so it moves together with coercion and now also runs ahead of `SkipWarmupExecution`. A custom pipeline applies this delta:
 
 ```diff
  builder
@@ -74,10 +74,11 @@ DocumentValidation -> OperationCache -> OperationCompiler -> OperationVariableCo
      // ... parsing, validation ...
      .UseOperationCache()
 -    .UseOperationResolver()
+-    .UseSkipWarmupExecution()
 -    .UseOperationVariableCoercion()
 +    .UseOperationCompiler()
 +    .UseOperationVariableCoercion()
-     .UseSkipWarmupExecution()
++    .UseSkipWarmupExecution()
      .UseConcurrencyGate()
      .UseOperationExecution();
 ```
