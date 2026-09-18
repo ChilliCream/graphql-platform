@@ -94,7 +94,7 @@ internal sealed class OperationPlanCacheMiddleware
         catch (Exception ex)
         {
             // Propagate the failure to followers only if nothing has resolved the TCS yet
-            // (OperationPlanMiddleware already completes it once a plan is produced).
+            // (SetOperationPlan releases them the moment any middleware sets a plan).
             if (!leaderEntry.Value.Task.IsCompleted)
             {
                 if (ex is OperationCanceledException oce)

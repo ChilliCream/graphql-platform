@@ -813,8 +813,8 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
 
         // the leader never reaches OperationPlanMiddleware's own CreatePlan path: the plan
-        // was already set on its context by the middleware above. Releasing it lets the
-        // pipeline return, which must cache that plan and release the follower with it.
+        // was already set on its context by the middleware above, which cached it and
+        // released the follower at that moment. Releasing the gate only lets the leader finish.
         leaderGate.Release();
         var results = await Task.WhenAll(leaderTask, followerTask);
 
