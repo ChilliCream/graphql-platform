@@ -444,10 +444,13 @@ internal static class SpecVersionSchemaRewriter
                 continue;
             }
 
-            rewritten ??= new List<DirectiveNode>(directives.Count - 1);
-            for (var j = 0; j < i; j++)
+            if (rewritten is null)
             {
-                rewritten.Add(directives[j]);
+                rewritten = new List<DirectiveNode>(directives.Count - 1);
+                for (var j = 0; j < i; j++)
+                {
+                    rewritten.Add(directives[j]);
+                }
             }
 
             if (directive.Name.Value == DirectiveNames.Deprecated.Name

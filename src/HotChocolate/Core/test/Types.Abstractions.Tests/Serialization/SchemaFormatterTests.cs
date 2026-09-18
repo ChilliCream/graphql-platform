@@ -81,6 +81,42 @@ public class SchemaFormatterTests
     }
 
     [Fact]
+    public void Format_Should_Preserve_SemanticNonNull_When_Combined_With_October2021()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              value: String!
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(
+            schema,
+            new SchemaFormatterOptions
+            {
+                RewriteToSemanticNonNull = true,
+                SpecVersion = GraphQLSpecVersion.October2021
+            });
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              value: String @semanticNonNull
+            }
+
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
+            """);
+    }
+
+    [Fact]
     public void Format_Single_InputObject_Type()
     {
         // arrange

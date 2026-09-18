@@ -121,6 +121,45 @@ public class SpecVersionSchemaRewriterTests
     }
 
     [Fact]
+    public void Rewrite_Should_Remove_Multiple_Unsupported_Directives_When_October2021()
+    {
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            """
+            directive @keptBefore on ARGUMENT_DEFINITION
+            directive @keptBetween on ARGUMENT_DEFINITION
+            directive @onlyOnDirective on DIRECTIVE_DEFINITION
+            directive @keptAfter on ARGUMENT_DEFINITION
+
+            type Query {
+              value(
+                argument: String @keptBefore @deprecated(reason: "Use another argument") @keptBetween @onlyOnDirective @keptAfter
+              ): String
+            }
+            """);
+
+        // act
+        var result = SpecVersionSchemaRewriter.Rewrite(schema, GraphQLSpecVersion.October2021);
+
+        // assert
+        result.ToString().MatchInlineSnapshot(
+            """
+            directive @keptBefore on ARGUMENT_DEFINITION
+
+            directive @keptBetween on ARGUMENT_DEFINITION
+
+            directive @keptAfter on ARGUMENT_DEFINITION
+
+            type Query {
+              value(
+                "Deprecated: Use another argument"
+                argument: String @keptBefore @keptBetween @keptAfter
+              ): String
+            }
+            """);
+    }
+
+    [Fact]
     public void Rewrite_Should_Preserve_OneOf_And_Deprecation_When_September2025()
     {
         // arrange
