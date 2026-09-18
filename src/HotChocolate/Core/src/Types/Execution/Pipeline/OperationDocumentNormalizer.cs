@@ -31,10 +31,7 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
         var document = documentInfo.Document
             ?? throw HotChocolate.Execution.ThrowHelper.OperationDocumentNotAvailable();
 
-        if (!context.TryGetOperationId(out var operationId))
-        {
-            throw HotChocolate.Execution.ThrowHelper.OperationIdNotAvailable();
-        }
+        var operationId = context.GetOperationId();
 
         if (_normalizedDocumentCache.TryGet(operationId, out var normalizedDocument))
         {

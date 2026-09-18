@@ -37,11 +37,7 @@ internal sealed class OperationCacheMiddleware
             return;
         }
 
-        if (!context.TryGetOperationId(out var operationId))
-        {
-            operationId = context.CreateCacheId();
-            context.SetOperationId(operationId);
-        }
+        var operationId = context.GetOperationId();
 
         var isSingleFlightLeader = false;
         Lazy<TaskCompletionSource<Operation>>? inFlightOperation = null;
