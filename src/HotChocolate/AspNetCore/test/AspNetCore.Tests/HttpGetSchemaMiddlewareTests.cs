@@ -1,8 +1,10 @@
 using System.Net;
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -415,6 +417,64 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
+    [Fact]
+    public async Task CustomFormatter_Should_WriteNativeSchema_When_SpecVersionIsRequested()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services =>
+                services
+                    .AddGraphQLServer()
+                    .ConfigureSchemaServices(schemaServices =>
+                        schemaServices
+                            .RemoveAll<ITimeProvider>()
+                            .AddSingleton<ITimeProvider, StaticTimeProvider>())
+                    .AddTypeExtension<TaggedQueryExtension>()
+                    .AddHttpResponseFormatter<OriginalSchemaMethodsResponseFormatter>());
+        var client = server.CreateClient();
+        var nativeUrl = TestServerExtensions.CreateUrl("/graphql/schema.graphql");
+        var versionedUrl = TestServerExtensions.CreateUrl("/graphql/schema.graphql?spec-version=october-2021");
+
+        // act
+        var nativeResponse = await client.GetAsync(nativeUrl, TestContext.Current.CancellationToken);
+        var versionedResponse = await client.GetAsync(versionedUrl, TestContext.Current.CancellationToken);
+        var nativeSchema = await nativeResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+        var versionedSchema = await versionedResponse.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, nativeResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, versionedResponse.StatusCode);
+        Assert.Contains("DIRECTIVE_DEFINITION", nativeSchema, StringComparison.Ordinal);
+        Assert.Equal(nativeSchema, versionedSchema);
+    }
+
+    [Fact]
+    public async Task DefaultFormatter_Should_WriteNativeSchema_When_OriginalFormatMethodIsCalled()
+    {
+        // arrange
+        var server = CreateTaggedStarWarsServer();
+        var executorProvider = server.Services.GetRequiredService<IRequestExecutorProvider>();
+        var executor = await executorProvider.GetExecutorAsync(
+            cancellationToken: TestContext.Current.CancellationToken);
+        var context = new DefaultHttpContext();
+        await using var body = new MemoryStream();
+        context.Response.Body = body;
+        var formatter = new DefaultHttpResponseFormatter();
+
+        // act
+        await formatter.FormatAsync(
+            context.Response,
+            executor.Schema,
+            version: 1,
+            cancellationToken: TestContext.Current.CancellationToken);
+        body.Position = 0;
+        using var reader = new StreamReader(body);
+        var schema = await reader.ReadToEndAsync(TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Contains("DIRECTIVE_DEFINITION", schema, StringComparison.Ordinal);
+    }
+
     // Content suppression for HEAD is the HTTP server's responsibility and TestServer,
     // unlike Kestrel, does not emulate it, so only the status and headers are compared.
     [Theory]
@@ -471,6 +531,41 @@ public class HttpGetSchemaMiddlewareTests(TestServerFactory serverFactory) : Ser
     private sealed class StaticTimeProvider : ITimeProvider
     {
         public DateTimeOffset UtcNow { get; } = new(2021, 1, 1, 0, 0, 0, TimeSpan.Zero);
+    }
+
+    private sealed class OriginalSchemaMethodsResponseFormatter : IHttpResponseFormatter
+    {
+        private readonly DefaultHttpResponseFormatter _inner = new();
+
+        public RequestFlags CreateRequestFlags(AcceptMediaType[] acceptMediaTypes)
+            => _inner.CreateRequestFlags(acceptMediaTypes);
+
+        public ValueTask FormatAsync(
+            HttpResponse response,
+            IExecutionResult result,
+            AcceptMediaType[] acceptMediaTypes,
+            HttpStatusCode? proposedStatusCode,
+            CancellationToken cancellationToken)
+            => _inner.FormatAsync(
+                response,
+                result,
+                acceptMediaTypes,
+                proposedStatusCode,
+                cancellationToken);
+
+        public ValueTask FormatAsync(
+            HttpResponse response,
+            ISchemaDefinition schema,
+            ulong version,
+            CancellationToken cancellationToken)
+            => _inner.FormatAsync(response, schema, version, cancellationToken);
+
+        public ValueTask FormatSemanticNonNullSchemaAsync(
+            HttpResponse response,
+            ISchemaDefinition schema,
+            ulong version,
+            CancellationToken cancellationToken)
+            => _inner.FormatSemanticNonNullSchemaAsync(response, schema, version, cancellationToken);
     }
 
     public class DirectiveQueryType : ObjectType

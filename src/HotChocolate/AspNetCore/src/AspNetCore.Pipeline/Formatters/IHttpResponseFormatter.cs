@@ -60,6 +60,33 @@ public interface IHttpResponseFormatter
     /// <param name="version">
     /// The schema version.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The request cancellation token.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation.
+    /// </returns>
+    ValueTask FormatAsync(
+        HttpResponse response,
+        ISchemaDefinition schema,
+        ulong version,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Formats the given <paramref name="schema"/> into a GraphQL schema SDL response using the
+    /// requested GraphQL specification edition. The default implementation ignores the requested
+    /// specification edition and writes the native schema; implementers override this member to
+    /// honor the requested specification edition.
+    /// </summary>
+    /// <param name="response">
+    /// The HTTP response.
+    /// </param>
+    /// <param name="schema">
+    /// The GraphQL schema.
+    /// </param>
+    /// <param name="version">
+    /// The schema version.
+    /// </param>
     /// <param name="specVersion">
     /// The GraphQL specification edition to use when formatting the schema.
     /// </param>
@@ -74,11 +101,40 @@ public interface IHttpResponseFormatter
         ISchemaDefinition schema,
         ulong version,
         GraphQLSpecVersion? specVersion,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+        => FormatAsync(response, schema, version, cancellationToken);
 
     /// <summary>
     /// Formats the given <paramref name="schema"/> into a GraphQL schema SDL response that has
     /// non-null wrappers replaced with the @semanticNonNull directive.
+    /// </summary>
+    /// <param name="response">
+    /// The HTTP response.
+    /// </param>
+    /// <param name="schema">
+    /// The GraphQL schema.
+    /// </param>
+    /// <param name="version">
+    /// The schema version.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// The request cancellation token.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation.
+    /// </returns>
+    ValueTask FormatSemanticNonNullSchemaAsync(
+        HttpResponse response,
+        ISchemaDefinition schema,
+        ulong version,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Formats the given <paramref name="schema"/> into a GraphQL schema SDL response that has
+    /// non-null wrappers replaced with the @semanticNonNull directive using the requested GraphQL
+    /// specification edition. The default implementation ignores the requested specification
+    /// edition and writes the native schema; implementers override this member to honor the
+    /// requested specification edition.
     /// </summary>
     /// <param name="response">
     /// The HTTP response.
@@ -103,5 +159,6 @@ public interface IHttpResponseFormatter
         ISchemaDefinition schema,
         ulong version,
         GraphQLSpecVersion? specVersion,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken)
+        => FormatSemanticNonNullSchemaAsync(response, schema, version, cancellationToken);
 }

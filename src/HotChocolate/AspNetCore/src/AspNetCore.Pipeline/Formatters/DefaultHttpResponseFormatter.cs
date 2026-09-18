@@ -469,6 +469,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         return format.ContentType;
     }
 
+    public ValueTask FormatAsync(
+        HttpResponse response,
+        ISchemaDefinition schema,
+        ulong version,
+        CancellationToken cancellationToken)
+        => FormatAsync(response, schema, version, specVersion: null, cancellationToken);
+
     public async ValueTask FormatAsync(
         HttpResponse response,
         ISchemaDefinition schema,
@@ -504,6 +511,13 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         CachedSchemaOutput Update(SchemaCacheKey _)
             => new(schema, version, specVersion, _timeProvider.UtcNow);
     }
+
+    public ValueTask FormatSemanticNonNullSchemaAsync(
+        HttpResponse response,
+        ISchemaDefinition schema,
+        ulong version,
+        CancellationToken cancellationToken)
+        => FormatSemanticNonNullSchemaAsync(response, schema, version, specVersion: null, cancellationToken);
 
     public async ValueTask FormatSemanticNonNullSchemaAsync(
         HttpResponse response,
