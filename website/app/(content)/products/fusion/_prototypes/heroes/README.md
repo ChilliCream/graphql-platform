@@ -95,6 +95,13 @@ source on a dark ground, not a rainbow:
   fading out toward the art), bottom (dark at the bottom edge), top (dark at
   the top edge). Nothing bright renders under the copy column at any
   viewport width from 375px to 1440px.
+- "Dark" describes the scrim, not the art underneath it: the copy column
+  reads as legible text over low-alpha structure (slate tiles, a faint
+  circuit trace, whatever the concept's structure layer is), never as a
+  blacked-out panel with a hard edge where the art starts (hc-0-g8l). A
+  scrim that erases or hides the structure layer under the copy instead of
+  dimming it is not this rule; bright elements (a glow, a hot core, a light
+  source) still never render under the copy at any width.
 
 ## 4. Detail at three scales
 
@@ -206,7 +213,12 @@ still apply, but passing them is not acceptance on its own.
 - Canvas 2D is the house technique (see **Technique** above). No new npm
   dependencies.
 - The concept owns making its copy readable over the art - any scrim lives
-  inside the hero's own root, behind the copy's `z-10` stacking.
+  inside the hero's own root, behind the copy's `z-10` stacking. A scrim
+  dims; it does not erase or clip the art underneath it. The art may extend
+  the hero's full width and sit at low alpha under the copy column (see
+  **3. Lighting and depth** above) - only bright elements (a glow, a hot
+  core, a light source) are excluded from that column, never the structure
+  itself.
 - Every label renders at 11px or more on a 375px-wide viewport.
 - Decorative only: `aria-hidden`, no focusable content, no page meaning. All
   page meaning lives in `../../../content.ts`.
