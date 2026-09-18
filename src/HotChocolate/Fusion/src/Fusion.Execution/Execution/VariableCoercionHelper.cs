@@ -14,6 +14,7 @@ internal static class VariableCoercionHelper
         ISchemaDefinition schema,
         IReadOnlyList<VariableDefinitionNode> variableDefinitions,
         JsonElement variableValues,
+        bool ignoreAdditionalInputFields,
         [NotNullWhen(true)] out Dictionary<string, VariableValue>? coercedVariableValues,
         [NotNullWhen(false)] out IError? error)
     {
@@ -74,6 +75,7 @@ internal static class VariableCoercionHelper
                     variableDefinition,
                     variableType,
                     propertyValue,
+                    ignoreAdditionalInputFields,
                     ref memory,
                     out var variableValue,
                     out error))
@@ -97,11 +99,12 @@ internal static class VariableCoercionHelper
         VariableDefinitionNode variableDefinition,
         IInputType variableType,
         JsonElement value,
+        bool ignoreAdditionalInputFields,
         ref Utf8MemoryBuilder? memory,
         [NotNullWhen(true)] out VariableValue? variableValue,
         [NotNullWhen(false)] out IError? error)
     {
-        var coercion = new JsonVariableCoercion(context, ref memory);
+        var coercion = new JsonVariableCoercion(context, ref memory, ignoreAdditionalInputFields);
         return coercion.TryCoerceVariableValue(
             variableDefinition.Variable.Name.Value,
             variableType,
