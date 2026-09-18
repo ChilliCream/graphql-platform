@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -193,8 +194,9 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             operationType = plan.Operation.Definition.Operation;
             operationName = plan.OperationName;
         }
-        else if (context.TryGetNormalizedOperation(out var operation))
+        else if (context.TryGetNormalizedDocument(out _))
         {
+            var operation = context.GetNormalizedOperation();
             operationType = operation.Operation;
             operationName = operation.Name?.Value ?? context.Request.OperationName;
         }

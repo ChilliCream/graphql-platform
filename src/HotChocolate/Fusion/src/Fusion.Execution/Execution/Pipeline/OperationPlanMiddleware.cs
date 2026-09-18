@@ -1,5 +1,6 @@
 using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
@@ -44,13 +45,13 @@ internal sealed class OperationPlanMiddleware
 
         // The document has already been de-fragmentized and had its statically excluded
         // selections removed by the DocumentNormalizationMiddleware.
-        if (!context.TryGetNormalizedOperation(out var operation))
+        if (!context.TryGetNormalizedDocument(out _))
         {
             context.Result = ErrorHelper.StateInvalidForOperationPlanning();
             return default;
         }
 
-        PlanOperation(context, operationDocumentInfo, operation);
+        PlanOperation(context, operationDocumentInfo, context.GetNormalizedOperation());
 
         return next(context);
     }
