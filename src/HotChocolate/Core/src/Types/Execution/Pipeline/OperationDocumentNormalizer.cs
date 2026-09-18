@@ -31,10 +31,7 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
         var document = documentInfo.Document
             ?? throw HotChocolate.Execution.ThrowHelper.OperationDocumentNotAvailable();
 
-        if (!context.TryGetOperationId(out var operationId))
-        {
-            throw HotChocolate.Execution.ThrowHelper.OperationIdNotAvailable();
-        }
+        var operationId = context.GetOperationId();
 
         if (_normalizedDocumentCache.TryGet(operationId, out var normalizedDocument))
         {
@@ -51,14 +48,23 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
     }
 
     /// <summary>
-    /// Normalizes a document directly, for callers that do not have a
-    /// <see cref="RequestContext"/> at hand, such as the
+    /// Normalizes a document directly, bypassing the normalized-document cache, for callers
+    /// that do not have a <see cref="RequestContext"/> at hand, such as the
     /// <see cref="HotChocolate.Execution.Processing.OperationCompiler"/> convenience overloads.
     /// </summary>
-    public DocumentNode NormalizeDocument(DocumentNode document, string? operationName)
+    public static DocumentNode NormalizeDocument(
+        ISchemaDefinition schema,
+        DocumentNode document,
+        string? operationName)
     {
+        ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(document);
 
-        return _documentRewriter.RewriteDocument(document, operationName).Document;
+        var documentRewriter = new InlineFragmentOperationRewriter(
+            schema,
+            removeStaticallyExcludedSelections: true,
+            includeTypeNameToEmptySelectionSets: false);
+
+        return documentRewriter.RewriteDocument(document, operationName).Document;
     }
 }
