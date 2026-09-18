@@ -3,8 +3,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution.Options;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Features;
-using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
@@ -18,7 +18,6 @@ public sealed partial class OperationCompiler
     private readonly Schema _schema;
     private readonly ObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>> _fieldsPool;
     private readonly OperationCompilerOptimizers _optimizers;
-    private readonly InlineFragmentOperationRewriter _documentRewriter;
     private readonly InputParser _inputValueParser;
     private readonly int _maxAllowedIncludeConditions;
     private readonly int _maxAllowedDeferConditions;
@@ -37,10 +36,6 @@ public sealed partial class OperationCompiler
         _schema = schema;
         _inputValueParser = inputValueParser;
         _fieldsPool = fieldsPool;
-        _documentRewriter = new InlineFragmentOperationRewriter(
-            schema,
-            removeStaticallyExcludedSelections: true,
-            includeTypeNameToEmptySelectionSets: false);
         _optimizers = optimizers;
         _maxAllowedIncludeConditions = maxAllowedIncludeConditions;
         _maxAllowedDeferConditions = maxAllowedDeferConditions;
@@ -67,8 +62,16 @@ public sealed partial class OperationCompiler
         string? operationName,
         DocumentNode document,
         Schema schema,
+#pragma warning disable RCS1163 // Unused parameter
         IFeatureProvider? context = null)
-        => new OperationCompiler(
+#pragma warning restore RCS1163 // Unused parameter
+    {
+        ArgumentNullException.ThrowIfNull(schema);
+
+        var normalizedDocument = new OperationDocumentNormalizer(schema)
+            .NormalizeDocument(document, operationName);
+
+        return new OperationCompiler(
             schema,
             new InputParser(),
             new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
@@ -76,67 +79,32 @@ public sealed partial class OperationCompiler
             new OperationCompilerOptimizers(),
             RequestExecutorOptions.DefaultMaxAllowedConditions,
             RequestExecutorOptions.DefaultMaxAllowedConditions)
-            .Compile(id, hash, operationName, document, context ?? EmptyFeatureProvider.Instance);
-
-    public Operation Compile(
-        string id,
-        string hash,
-        string? operationName,
-        DocumentNode document,
-#pragma warning disable RCS1163 // Unused parameter
-        IFeatureProvider context)
-#pragma warning restore RCS1163 // Unused parameter
-    {
-        ArgumentException.ThrowIfNullOrWhiteSpace(id);
-        ArgumentNullException.ThrowIfNull(document);
-
-        // Before we can plan an operation, we must de-fragmentize it and remove static include conditions.
-        var result = _documentRewriter.RewriteDocument(document, operationName);
-        document = result.Document;
-        var operationDefinition = document.GetOperation(operationName);
-
-        // The normalized selection set is the source of truth for whether the operation still
-        // has incremental parts once statically excluded @defer/@stream selections are taken
-        // into account, so we derive the flag from it instead of trusting the rewriter result,
-        // which does not evaluate a literal "if: false" condition on the directive itself.
-        var hasIncrementalParts = ContainsIncrementalDirectives(operationDefinition.SelectionSet);
-
-        return CompileOperation(id, hash, document, operationDefinition, hasIncrementalParts);
+            .Compile(id, hash, operationName, normalizedDocument);
     }
 
     /// <summary>
-    /// Compiles an operation from a document that was already de-fragmentized and had its
-    /// static include conditions removed by a document normalization pipeline stage, skipping
-    /// that step here.
+    /// Compiles an operation from a document that has already been de-fragmentized and had
+    /// its static include conditions removed by an <see cref="IOperationDocumentNormalizer"/>.
     /// </summary>
     /// <param name="id">A unique identifier for the operation.</param>
     /// <param name="hash">The document hash.</param>
     /// <param name="operationName">The name of the operation to compile.</param>
     /// <param name="document">The already normalized document.</param>
-    /// <param name="context">Reserved for future use.</param>
-    /// <param name="isDocumentNormalized">
-    /// Must be <c>true</c>; distinguishes this overload from the overload that compiles a
-    /// document which still needs to be de-fragmentized.
-    /// </param>
     public Operation Compile(
         string id,
         string hash,
         string? operationName,
-        DocumentNode document,
-#pragma warning disable RCS1163 // Unused parameter
-        IFeatureProvider context,
-#pragma warning restore RCS1163 // Unused parameter
-        bool isDocumentNormalized)
+        DocumentNode document)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(document);
 
-        if (!isDocumentNormalized)
-        {
-            return Compile(id, hash, operationName, document, context);
-        }
-
         var operationDefinition = document.GetOperation(operationName);
+
+        // The normalized selection set is the source of truth for whether the operation still
+        // has incremental parts once statically excluded @defer/@stream selections are taken
+        // into account, so we derive the flag from it instead of trusting the normalizer result,
+        // which does not evaluate a literal "if: false" condition on the directive itself.
         var hasIncrementalParts = ContainsIncrementalDirectives(operationDefinition.SelectionSet);
 
         return CompileOperation(id, hash, document, operationDefinition, hasIncrementalParts);

@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Text;
-using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
@@ -1019,10 +1018,10 @@ public class OperationCompilerTests
     public async Task Compile_PreNormalized_Document_Reports_Incremental_Parts_Correctly()
     {
         // arrange
-        // The `isDocumentNormalized: true` overload derives HasIncrementalParts from the
-        // document it is handed rather than trusting a value carried alongside it. Both
-        // documents below are already in normalized shape (no fragment spreads, no static
-        // include conditions left to resolve).
+        // The instance overload only ever receives an already normalized document and
+        // derives HasIncrementalParts from it rather than trusting a value carried
+        // alongside it. Both documents below are already in normalized shape (no
+        // fragment spreads, no static include conditions left to resolve).
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddStarWarsTypes()
@@ -1033,7 +1032,6 @@ public class OperationCompilerTests
             .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
-        var context = new Mock<IFeatureProvider>().Object;
 
         var deferIfFalseDocument = Utf8GraphQLParser.Parse(
             """
@@ -1062,17 +1060,13 @@ public class OperationCompilerTests
             "opid-1",
             "opid-1",
             operationName: null,
-            deferIfFalseDocument,
-            context,
-            isDocumentNormalized: true);
+            deferIfFalseDocument);
 
         var incremental = operationCompiler.Compile(
             "opid-2",
             "opid-2",
             operationName: null,
-            deferDocument,
-            context,
-            isDocumentNormalized: true);
+            deferDocument);
 
         // assert
         Assert.False(notIncremental.HasIncrementalParts);
@@ -1080,12 +1074,13 @@ public class OperationCompilerTests
     }
 
     [Fact]
-    public void Compile_ExposesOriginalPublicSignatures_PlusATrueNormalizedDocumentOverload()
+    public void Compile_TakesOnlyNormalizedDocuments_OnTheInstanceOverload()
     {
         // arrange
-        // Pins the pre-branch public API shape (origin/main) so a pre-normalized document path
-        // is added as a true overload rather than an optional parameter bolted onto an existing
-        // public method, which would be binary-breaking for already-compiled callers.
+        // The static entry points keep accepting a raw document and an optional, unused
+        // context for source compatibility with existing callers, normalizing the document
+        // themselves before delegating to the single instance overload, which only ever
+        // accepts an already normalized document.
         var actualSignatures = typeof(OperationCompiler)
             .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.Name == nameof(OperationCompiler.Compile))
@@ -1094,16 +1089,13 @@ public class OperationCompilerTests
 
         var expectedSignatures = new HashSet<string>
         {
-            // the three pre-branch static entry points, unchanged.
+            // the three static entry points, unchanged.
             "static(String, DocumentNode, Schema, IFeatureProvider)",
             "static(String, String, DocumentNode, Schema, IFeatureProvider)",
             "static(String, String, String, DocumentNode, Schema, IFeatureProvider)",
 
-            // the pre-branch instance signature, unchanged.
-            "instance(String, String, String, DocumentNode, IFeatureProvider)",
-
-            // the new, true overload for a document already normalized upstream.
-            "instance(String, String, String, DocumentNode, IFeatureProvider, Boolean)"
+            // the single instance overload, which only accepts a normalized document.
+            "instance(String, String, String, DocumentNode)"
         };
 
         // act & assert
