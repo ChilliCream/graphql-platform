@@ -155,7 +155,7 @@ export function computeLayout(w: number, h: number): TokamakLayout {
   const artTop = h * 0.77;
   const bandCenterY = artTop + (h - artTop) / 2;
   const originX = w * 0.5;
-  const camera = makeCamera(originX, bandCenterY, 535, 160, 10);
+  const camera = makeCamera(originX, bandCenterY, 480, 160, 10);
   const columnRows = buildTaperedRows(36, 52, 275, 100, 1.6);
   const wallRows = buildTaperedRows(280, 52, 300, 350, 1.1);
   // Scaled proportionally to the desktop R/a change above (105/26, same
