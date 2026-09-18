@@ -28,7 +28,27 @@ export interface InstrumentLight {
 }
 
 const SEAM_INSET = 0.09;
+/**
+ * The column's own seam gap is narrower than the wall's (hc-0-wrc.3 review
+ * 2, F1 residual): its own floor alpha is already lower than the wall's, so
+ * a full-width seam gap lets a disproportionate amount of the (comparably
+ * brighter) wall show through behind it, pulling the column's measured
+ * mean luminance up above the wall's own instead of below it. Seams still
+ * read as gaps, never strokes -- just narrower ones on the column.
+ */
+const COLUMN_SEAM_INSET = SEAM_INSET * 0.55;
 const LIGHT_DIR = normalize3({ x: 0.4, y: 0.7, z: -0.6 });
+/**
+ * The column's near half happens to face `LIGHT_DIR` almost head-on (its
+ * outward normal has `z < 0`, matching `LIGHT_DIR.z`), so the raw dot-based
+ * shade below would make the column the single brightest surface in the
+ * chamber -- the "pale glass cylinder" the reviewer measured at 0.153 mean
+ * luminance against the wall's 0.113-0.137 (hc-0-wrc.3 review 2, F1/F4).
+ * Scaling the column's shade down to this ceiling (relative to the wall's
+ * own 0..1 range) keeps its directional specular variation while landing at
+ * or below the wall's own achieved brightness.
+ */
+const COLUMN_SHADE_CEILING = 0.15;
 
 function normalize3(v: { x: number; y: number; z: number }) {
   const len = Math.hypot(v.x, v.y, v.z) || 1;
@@ -53,6 +73,7 @@ function lerpPt(a: Pt, b: Pt, t: number): Pt {
 function insetQuad(
   p: readonly [Pt, Pt, Pt, Pt],
   sizePx: number,
+  baseInset: number,
 ): readonly [Pt, Pt, Pt, Pt] {
   const cx = (p[0].x + p[1].x + p[2].x + p[3].x) / 4;
   const cy = (p[0].y + p[1].y + p[2].y + p[3].y) / 4;
@@ -60,7 +81,7 @@ function insetQuad(
   // Small, far-away tiles get a much smaller fractional inset so the seam
   // gap never swallows the tile; the seam still reads as a hairline gap,
   // never a stroke.
-  const inset = sizePx < 10 ? SEAM_INSET * 0.35 : SEAM_INSET;
+  const inset = sizePx < 10 ? baseInset * 0.35 : baseInset;
   return [
     lerpPt(p[0], center, inset),
     lerpPt(p[1], center, inset),
@@ -142,9 +163,17 @@ export function buildChamberTiles(
       (rowA.radius + rowB.radius) / 2,
       torus,
     );
+    // Stagger alternate column rows by half a theta segment (a brick-style
+    // offset) so each row's seam gaps land between the row above/below's
+    // tile faces instead of stacking into one continuous vertical line the
+    // full height of the column (hc-0-wrc.3 review 2, F1: "seams stack into
+    // full-height vertical lines"). Wall rows are unaffected -- their seams
+    // were never the reported issue.
+    const rowStagger =
+      kind === "column" && r % 2 === 1 ? 0.5 / thetaSegments : 0;
     for (let s = 0; s < thetaSegments; s++) {
-      const t0 = (s / thetaSegments) * Math.PI * 2;
-      const t1 = ((s + 1) / thetaSegments) * Math.PI * 2;
+      const t0 = (s / thetaSegments + rowStagger) * Math.PI * 2;
+      const t1 = ((s + 1) / thetaSegments + rowStagger) * Math.PI * 2;
       const midTheta = (t0 + t1) / 2;
       const away = facingAway(midTheta, camera);
       if (kind === "column" ? away : !away) {
@@ -164,9 +193,15 @@ export function buildChamberTiles(
       const wPx = Math.hypot(c1.x - c0.x, c1.y - c0.y);
       const hPx = Math.hypot(c3.x - c0.x, c3.y - c0.y);
       const size = Math.min(wPx, hPx);
-      const poly = insetQuad([c0, c1, c2, c3], size);
+      const poly = insetQuad(
+        [c0, c1, c2, c3],
+        size,
+        kind === "column" ? COLUMN_SEAM_INSET : SEAM_INSET,
+      );
       const normal = { x: Math.cos(midTheta), y: 0, z: Math.sin(midTheta) };
-      const shade = clamp(dot3(normal, LIGHT_DIR) * 0.5 + 0.5, 0.16, 1);
+      const rawShade = clamp(dot3(normal, LIGHT_DIR) * 0.5 + 0.5, 0.16, 1);
+      const shade =
+        kind === "column" ? rawShade * COLUMN_SHADE_CEILING : rawShade;
       tiles.push({
         poly,
         hi: poly[0],
