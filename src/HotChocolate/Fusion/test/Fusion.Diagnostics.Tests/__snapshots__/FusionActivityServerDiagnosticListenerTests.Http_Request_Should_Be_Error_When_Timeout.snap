@@ -118,6 +118,10 @@
               ],
               "event": [
                 {
+                  "Name": "AddedOperationPlanToCache",
+                  "Tags": []
+                },
+                {
                   "Name": "graphql.error",
                   "Tags": [
                     {
