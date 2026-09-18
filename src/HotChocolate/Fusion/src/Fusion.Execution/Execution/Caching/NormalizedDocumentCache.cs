@@ -6,7 +6,7 @@ namespace HotChocolate.Fusion.Execution.Caching;
 
 /// <summary>
 /// Caches normalized operation documents keyed by the operation id so that the
-/// <see cref="Pipeline.DocumentNormalizationMiddleware"/> does not have to re-inline
+/// <see cref="Pipeline.OperationDocumentNormalizer"/> does not have to re-inline
 /// fragments for an operation that has already been normalized.
 /// </summary>
 internal sealed class NormalizedDocumentCache(int capacity = 256)

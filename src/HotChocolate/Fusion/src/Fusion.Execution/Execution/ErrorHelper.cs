@@ -31,19 +31,6 @@ internal static class ErrorHelper
         return result;
     }
 
-    public static OperationResult StateInvalidForOperationPlanCache()
-        => OperationResult.FromError(
-            ErrorBuilder.New()
-                .SetMessage("The operation plan cache requires a operation document hash.")
-                .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
-                .Build());
-
-    public static OperationResult StateInvalidForVariableCoercion()
-        => OperationResult.FromError(
-            ErrorBuilder.New()
-                .SetMessage("The variable coercion requires a normalized operation document.")
-                .Build());
-
     public static OperationResult StateInvalidForCostAnalysis()
         => RequestError(
             ErrorBuilder.New()
@@ -56,13 +43,6 @@ internal static class ErrorHelper
             ErrorBuilder.New()
                 .SetMessage("The cost analysis requires at least one coerced variable value set.")
                 .SetCode(ErrorCodes.Execution.CostStateInvalid)
-                .Build());
-
-    public static OperationResult StateInvalidForOperationPlanning()
-        => RequestError(
-            ErrorBuilder.New()
-                .SetMessage("The operation planner requires a normalized operation document.")
-                .SetCode(ErrorCodes.Execution.OperationDocumentNotFound)
                 .Build());
 
     public static OperationResult MaxFieldCostReached(

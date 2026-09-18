@@ -22,12 +22,6 @@ internal sealed class OperationVariableCoercionMiddleware
         RequestContext context,
         RequestDelegate next)
     {
-        if (!context.TryGetNormalizedDocument(out _))
-        {
-            context.Result = ErrorHelper.StateInvalidForVariableCoercion();
-            return default;
-        }
-
         var operation = context.GetNormalizedOperation();
 
         // Warmup requests do not produce coerced values.

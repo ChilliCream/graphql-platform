@@ -11,6 +11,7 @@ using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Configuration.Parsers;
@@ -19,6 +20,7 @@ using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Fusion.Types.Completion;
@@ -494,6 +496,11 @@ internal sealed class FusionRequestExecutorManager
                 var options = sp.GetRequiredService<ISchemaDefinition>().GetOptions();
                 return new NormalizedDocumentCache(options.OperationExecutionPlanCacheSize);
             });
+
+        services.AddSingleton<IOperationDocumentNormalizer>(
+            static sp => new OperationDocumentNormalizer(
+                sp.GetRequiredService<FusionSchemaDefinition>(),
+                sp.GetRequiredService<NormalizedDocumentCache>()));
 
         services.AddSingleton(
             static sp =>

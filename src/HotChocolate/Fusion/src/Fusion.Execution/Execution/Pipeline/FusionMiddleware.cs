@@ -20,9 +20,6 @@ public static class FusionMiddleware
     public static RequestMiddlewareConfiguration OperationPlan
         => OperationPlanMiddleware.Create();
 
-    public static RequestMiddlewareConfiguration DocumentNormalization
-        => DocumentNormalizationMiddleware.Create();
-
     public static RequestMiddlewareConfiguration OperationVariableCoercion
         => OperationVariableCoercionMiddleware.Create();
 

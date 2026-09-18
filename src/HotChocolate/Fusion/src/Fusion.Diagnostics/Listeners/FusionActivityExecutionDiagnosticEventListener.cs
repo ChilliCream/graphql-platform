@@ -191,15 +191,11 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             operationType = plan.Operation.Definition.Operation;
             operationName = plan.OperationName;
         }
-        else if (context.TryGetNormalizedDocument(out _))
+        else
         {
             var operation = context.GetNormalizedOperation();
             operationType = operation.Operation;
             operationName = operation.Name?.Value ?? context.Request.OperationName;
-        }
-        else
-        {
-            return EmptyScope;
         }
 
         var span = VariableCoercionSpan.Start(
