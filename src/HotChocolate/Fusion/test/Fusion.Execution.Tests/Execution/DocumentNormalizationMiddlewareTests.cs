@@ -1,6 +1,7 @@
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -69,18 +70,19 @@ public class DocumentNormalizationMiddlewareTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Normalized_Body_Should_Be_Cached_And_Reused_On_The_Next_Document_Cache_Hit()
+    public async Task Normalized_Document_Should_Be_Cached_And_Reused_Across_Requests()
     {
         // arrange
         var normalizedDocuments = new List<DocumentNode>();
+        var operationIds = new List<string>();
 
         var executor = await new ServiceCollection()
-            .AddHttpClient()
             .AddGraphQLGateway()
             .UseDefaultPipeline()
             .UseRequest(
                 (_, next) => context =>
                 {
+                    operationIds.Add(context.GetOperationId());
                     normalizedDocuments.Add(context.GetNormalizedDocument());
                     return next(context);
                 },
@@ -97,34 +99,35 @@ public class DocumentNormalizationMiddlewareTests : FusionTestBase
             .BuildServiceProvider()
             .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        var documentHash = new OperationDocumentHash("normalize-me-hash", "test", HashFormat.Hex);
-
-        IOperationRequest CreateRequest()
-            => OperationRequestBuilder.New()
-                .SetDocument("query NormalizeMe { foo }")
-                .SetDocumentHash(documentHash)
-                .Build();
+        const string operationText =
+            """
+            query NormalizeMe {
+              foo
+            }
+            """;
 
         // act
-        // the first request parses and normalizes the document; the second normalizes it again
-        // and persists the normalized body onto the now-existing document cache entry; the third
-        // must reuse that persisted normalized body instead of rewriting the document again.
-        await executor.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
-        await executor.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
-        await executor.ExecuteAsync(CreateRequest(), TestContext.Current.CancellationToken);
+        // the first request rewrites the document and caches it under the operation id; every
+        // later request for the same operation must reuse that cached instance instead of
+        // rewriting the document again.
+        await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
+        await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
+        await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
 
-        var documentCache = executor.Schema.Services.GetRequiredService<IDocumentCache>();
-        var found = documentCache.TryGetDocument(documentHash.Value, out var cachedDocument);
+        var operationId = Assert.Single(operationIds.Distinct());
+        var normalizedDocumentCache = executor.Schema.Services.GetRequiredService<NormalizedDocumentCache>();
+        var found = normalizedDocumentCache.TryGet(operationId, out var cachedDocument);
 
         // assert
         Assert.True(found);
-        Assert.NotNull(cachedDocument!.NormalizedBody);
+        Assert.NotNull(cachedDocument);
         Assert.Equal(3, normalizedDocuments.Count);
+        Assert.Same(normalizedDocuments[0], normalizedDocuments[1]);
         Assert.Same(normalizedDocuments[1], normalizedDocuments[2]);
     }
 
     [Fact]
-    public async Task Normalized_Body_Should_Be_Rewritten_When_Document_Has_Multiple_Operations()
+    public async Task Normalized_Document_Should_Be_Rewritten_When_Document_Has_Multiple_Operations()
     {
         // arrange
         var normalizedDocuments = new List<DocumentNode>();

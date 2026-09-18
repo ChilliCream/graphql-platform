@@ -220,15 +220,13 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
     }
 
     [Fact]
-    public async Task RejectedLeader_Should_TransferLeadershipAndCacheAcceptedPlan_When_FollowersAreAffordable()
+    public async Task RejectedRequest_Should_Not_Create_An_InFlight_Entry()
     {
         // arrange
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var listener = new PlanningCountDiagnosticListener();
         var operationIds = new ConcurrentBag<string>();
-        var acceptedPlans = new ConcurrentBag<OperationPlan>();
-        var arrivals = new RequestArrivalObserver(expectedRequests: 3);
-        var leaderGate = new SingleFlightLeaderGate();
+        const int rejectedRequestCount = 4;
 
         var executor = await new ServiceCollection()
             .AddGraphQLGateway()
@@ -240,19 +238,11 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             })
             .AddDiagnosticEventListener(_ => listener)
             .UseRequest(
-                (_, next) => CreateRequestArrivalMiddleware(next, arrivals),
-                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
-                allowMultiple: true)
-            .UseRequest(
-                (_, next) => CreateSingleFlightLeaderBlockMiddleware(next, leaderGate),
-                before: WellKnownRequestMiddleware.CostAnalyzerMiddleware,
-                allowMultiple: true)
-            .UseRequest(
                 (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
                 before: WellKnownRequestMiddleware.OperationPlanMiddleware,
                 allowMultiple: true)
             .UseRequest(
-                (_, _) => CreatePlanCaptureMiddleware(acceptedPlans),
+                (_, _) => CreatePlanCaptureMiddleware(),
                 before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                 allowMultiple: true)
             .AddInMemoryConfiguration(ComposeSchemaDocument(1, VariableCostSchema))
@@ -260,54 +250,257 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             .BuildServiceProvider()
             .GetRequestExecutorAsync(cancellationToken: cts.Token);
         using var costlyRequest = CreateVariableCostRequest(1000);
-        using var affordableRequest1 = CreateVariableCostRequest(1);
-        using var affordableRequest2 = CreateVariableCostRequest(2);
 
         // act
-        var leaderTask = executor.ExecuteAsync(costlyRequest, cts.Token);
-        await leaderGate.WaitForEntryAsync(cts.Token);
+        // cost analysis now runs before the plan cache, so a burst of concurrent, identical,
+        // over-cost requests can never reach OperationPlanCacheMiddleware and therefore can
+        // never register an in-flight entry that a later, affordable request for the same
+        // operation would incorrectly coalesce onto.
+        var rejectedResults = await Task.WhenAll(
+            Enumerable.Range(0, rejectedRequestCount)
+                .Select(_ => executor.ExecuteAsync(costlyRequest, cts.Token)));
 
-        var followerTask1 = executor.ExecuteAsync(affordableRequest1, cts.Token);
-        var followerTask2 = executor.ExecuteAsync(affordableRequest2, cts.Token);
-        await arrivals.WaitForAllAsync(cts.Token);
-        var followersCompletedBeforeRelease = followerTask1.IsCompleted || followerTask2.IsCompleted;
-        var generationsBeforeRelease = leaderGate.EntryCount;
-
-        leaderGate.Release();
-        var leaderResult = await leaderTask;
-        var followerResults = await Task.WhenAll(followerTask1, followerTask2);
+        using var affordableRequest = CreateVariableCostRequest(1);
+        var affordableResult = await executor.ExecuteAsync(affordableRequest, cts.Token);
 
         // assert
-        var operationId = operationIds.Distinct().Single();
-        var plans = acceptedPlans.ToArray();
+        Assert.All(rejectedResults, t => Assert.NotEmpty(t.ExpectOperationResult().Errors));
+        Assert.Empty(affordableResult.ExpectOperationResult().Errors);
+
+        // none of the rejected requests ever reached the plan cache / plan middleware
+        var operationId = Assert.Single(operationIds);
+        Assert.Equal(1, listener.PlanStartCount(operationId));
+
         var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
-        var cacheHit = operationPlanCache.TryGet(operationId, out var cachedPlan);
-        $"""
-        Leader error: {leaderResult.ExpectOperationResult().Errors.Single().Code}
-        Follower error counts: {string.Join(", ", followerResults.Select(t => t.ExpectOperationResult().Errors.Count))}
-        Followers completed before release: {followersCompletedBeforeRelease}
-        Generations before release: {generationsBeforeRelease}
-        Generations total: {leaderGate.EntryCount}
-        Planning runs: {listener.PlanStartCount(operationId)}
-        Accepted plan observations: {plans.Length}
-        Accepted plans are identical: {ReferenceEquals(plans[0], plans[1])}
-        Cache entries: {operationPlanCache.Count}
-        Cache hit: {cacheHit}
-        Cached plan is accepted plan: {ReferenceEquals(cachedPlan, plans[0])}
-        """.MatchInlineSnapshot(
+        Assert.Equal(1, operationPlanCache.Count);
+    }
+
+    [Fact]
+    public async Task Followers_Should_Execute_While_Leader_Is_Still_Blocked_In_Execution()
+    {
+        // arrange
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var listener = new PlanningCountDiagnosticListener();
+        var operationIds = new ConcurrentBag<string>();
+        var executionGate = new SingleFlightLeaderGate();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .AddDiagnosticEventListener(_ => listener)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSingleFlightLeaderBlockMiddleware(next, executionGate),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      foo: String
+                    }
+                    """))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: cts.Token);
+
+        const string operationText =
             """
-            Leader error: HC0047
-            Follower error counts: 0, 0
-            Followers completed before release: False
-            Generations before release: 1
-            Generations total: 2
-            Planning runs: 1
-            Accepted plan observations: 2
-            Accepted plans are identical: True
-            Cache entries: 1
-            Cache hit: True
-            Cached plan is accepted plan: True
-            """);
+            query FollowerRunsWhileLeaderExecutes {
+              foo
+            }
+            """;
+
+        // act
+        var leaderTask = executor.ExecuteAsync(operationText, cts.Token);
+        await executionGate.WaitForEntryAsync(cts.Token);
+
+        // the leader has already planned - its plan is cached and every follower's shared
+        // task is already resolved - but is still blocked before its own execution; a
+        // follower for the same operation must not wait on that block.
+        var followerResult = await executor.ExecuteAsync(operationText, cts.Token);
+        var leaderStillBlocked = !leaderTask.IsCompleted;
+
+        executionGate.Release();
+        var leaderResult = await leaderTask;
+
+        // assert
+        Assert.True(leaderStillBlocked);
+        Assert.Empty(followerResult.ExpectOperationResult().Errors);
+        Assert.Empty(leaderResult.ExpectOperationResult().Errors);
+
+        var operationId = Assert.Single(operationIds.Distinct());
+        Assert.Equal(1, listener.PlanStartCount(operationId));
+    }
+
+    [Fact]
+    public async Task Leader_Cancellation_After_Planning_Should_Cache_Plan_Once_And_Release_Followers()
+    {
+        // arrange
+        using var leaderCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var testCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var listener = new PlanningCountDiagnosticListener();
+        var operationIds = new ConcurrentBag<string>();
+        var planningGate = new SingleFlightLeaderGate();
+        var executionGate = new SingleFlightLeaderGate();
+        var secondRequestObserver = new SecondRequestObserver();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .AddDiagnosticEventListener(_ => listener)
+            .UseRequest(
+                (_, next) => CreateSecondRequestEnteredDownstreamMiddleware(next, secondRequestObserver),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSingleFlightLeaderBlockMiddleware(next, planningGate),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateSingleFlightLeaderBlockMiddleware(next, executionGate),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      foo: String
+                    }
+                    """))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: testCts.Token);
+
+        const string operationText =
+            """
+            query LeaderCancelledAfterPlanning {
+              foo
+            }
+            """;
+
+        // act
+        var leaderTask = executor.ExecuteAsync(operationText, leaderCts.Token);
+        await planningGate.WaitForEntryAsync(testCts.Token);
+
+        var followerTask = executor.ExecuteAsync(operationText, testCts.Token);
+        await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
+
+        // release planning: the leader plans, caches the plan, raises the cache event, and
+        // resolves the follower's task, all before it is cancelled deep in its own,
+        // still-blocked, post-planning execution.
+        planningGate.Release();
+        var followerResult = await followerTask;
+
+        await executionGate.WaitForEntryAsync(testCts.Token);
+        await leaderCts.CancelAsync();
+        var leaderResult = await leaderTask;
+
+        // assert
+        Assert.Empty(followerResult.ExpectOperationResult().Errors);
+        Assert.NotEmpty(leaderResult.ExpectOperationResult().Errors);
+        Assert.Contains(
+            leaderResult.ExpectOperationResult().Errors,
+            e => e.Message.Contains("cancel", StringComparison.OrdinalIgnoreCase));
+
+        var operationId = Assert.Single(operationIds.Distinct());
+        Assert.Equal(1, listener.PlanStartCount(operationId));
+        Assert.Equal(1, listener.AddedToCacheCount(operationId));
+
+        var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
+        Assert.Equal(1, operationPlanCache.Count);
+        Assert.True(operationPlanCache.TryGet(operationId, out _));
+    }
+
+    [Fact]
+    public async Task Leader_Cancellation_Before_Planning_Should_Not_Be_Observed_By_Followers()
+    {
+        // arrange
+        using var leaderCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var testCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var listener = new PlanningCountDiagnosticListener();
+        var operationIds = new ConcurrentBag<string>();
+        var planningGate = new SingleFlightLeaderGate();
+        var secondRequestObserver = new SecondRequestObserver();
+
+        var executor = await new ServiceCollection()
+            .AddGraphQLGateway()
+            .UseDefaultPipeline()
+            .AddDiagnosticEventListener(_ => listener)
+            .UseRequest(
+                (_, next) => CreateSecondRequestEnteredDownstreamMiddleware(next, secondRequestObserver),
+                before: WellKnownRequestMiddleware.OperationPlanCacheMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateLeaderPlanningBlockMiddleware(next, planningGate),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, next) => CreateOperationIdCaptureMiddleware(next, operationIds),
+                before: WellKnownRequestMiddleware.OperationPlanMiddleware,
+                allowMultiple: true)
+            .UseRequest(
+                (_, _) => CreatePlanCaptureMiddleware(),
+                before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
+                allowMultiple: true)
+            .AddInMemoryConfiguration(
+                ComposeSchemaDocument(
+                    """
+                    type Query {
+                      foo: String
+                    }
+                    """))
+            .Services
+            .BuildServiceProvider()
+            .GetRequestExecutorAsync(cancellationToken: testCts.Token);
+
+        const string operationText =
+            """
+            query LeaderCancelledBeforePlanning {
+              foo
+            }
+            """;
+
+        // act
+        var leaderTask = executor.ExecuteAsync(operationText, leaderCts.Token);
+        await planningGate.WaitForEntryAsync(testCts.Token);
+
+        var followerTask = executor.ExecuteAsync(operationText, testCts.Token);
+        await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
+
+        // the leader is cancelled before it plans. Releasing it afterward makes the planner
+        // observe an already-cancelled token, so the leader fails without ever producing a
+        // plan. The follower must not observe that cancellation - it becomes the new leader
+        // candidate and plans the operation itself.
+        await leaderCts.CancelAsync();
+        planningGate.Release();
+
+        var leaderResult = await leaderTask;
+        var followerResult = await followerTask;
+
+        // assert
+        Assert.NotEmpty(leaderResult.ExpectOperationResult().Errors);
+        Assert.Empty(followerResult.ExpectOperationResult().Errors);
+
+        var operationId = Assert.Single(operationIds.Distinct());
+        Assert.Equal(2, listener.PlanStartCount(operationId));
+        Assert.Equal(1, listener.PlanErrorCount(operationId));
+        Assert.Equal(1, listener.AddedToCacheCount(operationId));
     }
 
     [Fact]
@@ -400,21 +593,12 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             await next(context);
         };
 
-    private static RequestDelegate CreateRequestArrivalMiddleware(
-        RequestDelegate next,
-        RequestArrivalObserver observer)
-        => async context =>
-        {
-            observer.Signal();
-            await next(context);
-        };
-
     private static RequestDelegate CreateSingleFlightLeaderDelayMiddleware(
         RequestDelegate next,
         TimeSpan delay)
         => async context =>
         {
-            if (context.Features.Get<TaskCompletionSource<OperationPlan?>>() is not null)
+            if (context.Features.Get<TaskCompletionSource<OperationPlan>>() is not null)
             {
                 await Task.Delay(delay, context.RequestAborted);
             }
@@ -427,10 +611,29 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         SingleFlightLeaderGate gate)
         => async context =>
         {
-            if (context.Features.Get<TaskCompletionSource<OperationPlan?>>() is not null)
+            if (context.Features.Get<TaskCompletionSource<OperationPlan>>() is not null)
             {
                 gate.SignalEntry();
                 await gate.WaitForReleaseAsync(context.RequestAborted);
+            }
+
+            await next(context);
+        };
+
+    private static RequestDelegate CreateLeaderPlanningBlockMiddleware(
+        RequestDelegate next,
+        SingleFlightLeaderGate gate)
+        => async context =>
+        {
+            if (context.Features.Get<TaskCompletionSource<OperationPlan>>() is not null)
+            {
+                gate.SignalEntry();
+
+                // Deliberately does not observe this request's own cancellation: the test
+                // cancels the leader's token before releasing this gate, so the leader's
+                // cancellation is instead observed by the planner itself, right where the
+                // production TCS-resolution logic lives.
+                await gate.WaitForReleaseAsync(CancellationToken.None);
             }
 
             await next(context);
@@ -546,24 +749,6 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             => new(_release.Task.WaitAsync(cancellationToken));
     }
 
-    private sealed class RequestArrivalObserver(int expectedRequests)
-    {
-        private readonly TaskCompletionSource _allArrived =
-            new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private int _arrived;
-
-        public void Signal()
-        {
-            if (Interlocked.Increment(ref _arrived) == expectedRequests)
-            {
-                _allArrived.TrySetResult();
-            }
-        }
-
-        public ValueTask WaitForAllAsync(CancellationToken cancellationToken)
-            => new(_allArrived.Task.WaitAsync(cancellationToken));
-    }
-
     private sealed class SecondRequestObserver
     {
         private readonly TaskCompletionSource _secondRequestEnteredDownstream =
@@ -584,6 +769,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
     {
         private readonly ConcurrentDictionary<string, int> _planStarts = new(StringComparer.Ordinal);
         private readonly ConcurrentDictionary<string, int> _planErrors = new(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, int> _addedToCache = new(StringComparer.Ordinal);
 
         public override IDisposable PlanOperation(RequestContext context, string operationPlanId)
         {
@@ -599,6 +785,11 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             _planErrors.AddOrUpdate(operationId, 1, static (_, count) => count + 1);
         }
 
+        public override void AddedOperationPlanToCache(RequestContext context, string operationPlanId)
+        {
+            _addedToCache.AddOrUpdate(operationPlanId, 1, static (_, count) => count + 1);
+        }
+
         public int PlanStartCount(string operationId)
             => _planStarts.TryGetValue(operationId, out var count)
                 ? count
@@ -606,6 +797,11 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
 
         public int PlanErrorCount(string operationId)
             => _planErrors.TryGetValue(operationId, out var count)
+                ? count
+                : 0;
+
+        public int AddedToCacheCount(string operationId)
+            => _addedToCache.TryGetValue(operationId, out var count)
                 ? count
                 : 0;
     }
