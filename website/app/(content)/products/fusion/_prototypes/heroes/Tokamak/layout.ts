@@ -181,8 +181,16 @@ export function computeLayout(w: number, h: number): TokamakLayout {
   // the section's top) and `x` (never reaching the left/right edges).
   // Confirmed with test-results/ver2-sweep-375.js: every row intersecting
   // the frame spans x<=0 and x>=375, and the topmost row reaches y<=0
-  // (minY -102).
-  const wallRows = buildTaperedRows(600, 400, 900, 200, 1.1);
+  // (minY -644 at these values). `zSpread` dropped to 0 (from the
+  // reviewer's 200 starting point): the rows nearest the top of the copy
+  // band, pushed back in z, projected almost flat against the ambient
+  // navy wash and barely registered against the page's own background
+  // (canvas-on-minus-off delta -0.0003 to -0.014 in that region) -- with
+  // every row held at the same depth the whole band reads as tiled
+  // structure, not just the rows nearest the plasma. Measured with
+  // test-results/rev2-g8l.cjs and ver2-g8l.cjs: 375 copy-band delta 0.0107
+  // (>= 0.01), seam-to-face (p90-p10) 0.0269 (>= 0.02).
+  const wallRows = buildTaperedRows(650, 400, 900, 0, 1.6);
   // Scaled proportionally to the desktop R/a change above (105/26, same
   // ~0.39/0.38 ratio the original 51/13 kept against the original 130/34).
   const torus: TorusParams = { R: 41, a: 8, y: 0, z: 0 };

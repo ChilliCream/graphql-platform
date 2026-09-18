@@ -760,10 +760,21 @@ export default function Tokamak() {
     <div ref={rootRef} className="absolute inset-0" aria-hidden="true">
       <canvas ref={wallRef} className="absolute inset-0 h-full w-full" />
       <canvas ref={liveRef} className="absolute inset-0 h-full w-full" />
+      {/*
+        Desktop copy-column scrim, tuned back toward the ticket's starting
+        point (navy 0.55 -> 0.35 at 40% -> 0 at 60%) as far as the h1/
+        paragraph 7:1 contrast floor allows (planner ruling, F3): at the
+        ticket's own stops the paragraph (which extends to x 758, 52.6% of
+        1440) sits inside the fade-out tail and measured under 7:1, so the
+        stops move right until the paragraph clears the floor.
+        test-results/ver2-g8l.cjs SCRIM-CANDIDATE sweep, 1440: h1 15.89,
+        para 7.04 at these stops (0.7/0.5@54%/0@74% measured para 7.00,
+        just short).
+      */}
       <div
         className="absolute inset-0 hidden md:block"
         style={{
-          background: `linear-gradient(90deg, ${hexToRgba(BRAND.navy, 0.76)} 0%, ${hexToRgba(BRAND.navy, 0.6)} 54%, ${hexToRgba(BRAND.navy, 0)} 74%)`,
+          background: `linear-gradient(90deg, ${hexToRgba(BRAND.navy, 0.72)} 0%, ${hexToRgba(BRAND.navy, 0.52)} 54%, ${hexToRgba(BRAND.navy, 0)} 74%)`,
         }}
       />
       <div
@@ -778,10 +789,17 @@ export default function Tokamak() {
           background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.55)} 0%, ${hexToRgba(BRAND.navy, 0)} 16%)`,
         }}
       />
+      {/*
+        Mobile copy-band scrim, raised from 0.45 (hc-0-g8l): now that the
+        wall paints behind the mobile copy band too (F1), the flat 0.45
+        the previous fixer landed no longer held the h1/paragraph 7:1
+        contrast floor (measured 6.85 for the paragraph). Raised until both
+        held 7:1: test-results/ver2-g8l.cjs, 375: h1 15.93, para 7.09.
+      */}
       <div
         className="absolute inset-0 md:hidden"
         style={{
-          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.45)} 0%, ${hexToRgba(BRAND.navy, 0.45)} 72%, ${hexToRgba(BRAND.navy, 0)} 78%)`,
+          background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.6)} 0%, ${hexToRgba(BRAND.navy, 0.6)} 72%, ${hexToRgba(BRAND.navy, 0)} 78%)`,
         }}
       />
       <div
