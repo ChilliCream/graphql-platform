@@ -161,16 +161,7 @@ export function computeLayout(w: number, h: number): TokamakLayout {
       // offset.
       columnThetaSegments: 18,
       wallRows,
-      // Raised 56 -> 200 (hc-0-g8l): at the wider `waistRadius` above, each
-      // theta segment sweeps a much bigger span of world `x`, so the same
-      // 56-way split produced a few large, high-contrast tiles right where
-      // the wall now shows under the copy -- a seam-to-specular-highlight
-      // jump big enough to still read as a faint "start line" in the
-      // no-luminance-step measure even after the coverage gap itself was
-      // closed. Finer segments (smaller tiles, more seams) spread that
-      // contrast out; the per-frame cost is unaffected (the wall paints
-      // once per `measure()`/resize, never per frame).
-      wallThetaSegments: 200,
+      wallThetaSegments: 56,
       torus,
       artLeft,
       artTop: 0,
