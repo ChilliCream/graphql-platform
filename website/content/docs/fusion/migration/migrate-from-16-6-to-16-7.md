@@ -27,13 +27,12 @@ The payload of `connectionInitMessage` is only valid for the duration of the cal
 
 ## Custom request pipelines must add the cost stages
 
-All three predefined Fusion pipelines now normalize the document, coerce variables, check cost, and only then look up or plan the operation. Update custom pipelines to use the same relative order:
+All three predefined Fusion pipelines now coerce variables, check cost, and only then look up or plan the operation. Update custom pipelines to use the same relative order:
 
 ```diff
  builder
      // ... document cache and parser ...
      .UseDocumentValidation()
-+    .UseDocumentNormalization()
 +    .UseOperationVariableCoercion()
 +    .UseCostAnalysis()
      .UseOperationPlanCache()
@@ -46,7 +45,7 @@ All three predefined Fusion pipelines now normalize the document, coerce variabl
      .UseOperationExecution();
 ```
 
-`DocumentNormalization` is new. `OperationVariableCoercion` and `CostAnalysis` now both run before `OperationPlanCache`. Coercion errors therefore precede cost and planning errors, and a cost rejection precedes the operation-plan cache lookup: a rejected request never creates an operation-plan cache entry or an in-flight planning entry. Only warmup requests skip coercion and use the assumed-bound path; `GraphQL-Cost: validate` requests coerce variables exactly like `execute` and `report`, and fail with the ordinary coercion error when required variables are missing.
+Document normalization, i.e. inlining fragments into the selected operation, is a lazy service, not a pipeline stage; `OperationVariableCoercion` asks for it on every non-warmup request and `CostAnalysis` asks for it on a cost-plan cache miss, so nothing needs to be added for it. `OperationVariableCoercion` and `CostAnalysis` now both run before `OperationPlanCache`. Coercion errors therefore precede cost and planning errors, and a cost rejection precedes the operation-plan cache lookup: a rejected request never creates an operation-plan cache entry or an in-flight planning entry. Only warmup requests skip coercion and use the assumed-bound path; `GraphQL-Cost: validate` requests coerce variables exactly like `execute` and `report`, and fail with the ordinary coercion error when required variables are missing.
 
 ## Fusion diagnostic event interface expanded
 

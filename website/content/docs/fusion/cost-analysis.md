@@ -102,18 +102,17 @@ The predefined Fusion pipelines run these stages in order:
 1. Document Cache
 2. Document Parser
 3. Document Validation
-4. Document Normalization
-5. Operation Variable Coercion
-6. Cost Analysis
-7. Operation Plan Cache
-8. Operation Plan
-9. Skip Warmup Execution
-10. Concurrency Gate
-11. Operation Execution
+4. Operation Variable Coercion
+5. Cost Analysis
+6. Operation Plan Cache
+7. Operation Plan
+8. Skip Warmup Execution
+9. Concurrency Gate
+10. Operation Execution
 
-Cost enforcement runs before the operation-plan cache and before operation planning. A rejected request never enters the planner's single-flight coalescing and does not create an operation-plan cache entry or an in-flight planning entry, so an attacker cannot pin planner resources with an operation that is expensive enough to be rejected. `DocumentNormalization` expands fragments and removes statically excluded selections before variable coercion and cost analysis. Cost enforcement is per request and reflects the coerced variable values; limits on operation structure, such as maximum depth, node count, and parser limits, remain the protection against operations that are expensive to plan regardless of their variables.
+Cost enforcement runs before the operation-plan cache and before operation planning. A rejected request never enters the planner's single-flight coalescing and does not create an operation-plan cache entry or an in-flight planning entry, so an attacker cannot pin planner resources with an operation that is expensive enough to be rejected. Document normalization, i.e. expanding fragments and removing statically excluded selections, is not a pipeline stage; it is a lazy service that variable coercion and cost analysis ask for on first access, so a later stage that already has the normalized document, such as a cost-plan cache hit, never re-normalizes it. Cost enforcement is per request and reflects the coerced variable values; limits on operation structure, such as maximum depth, node count, and parser limits, remain the protection against operations that are expensive to plan regardless of their variables.
 
-A custom pipeline must include `UseDocumentNormalization()`, place `UseOperationVariableCoercion()` before `UseCostAnalysis()`, and place `UseCostAnalysis()` before `UseOperationPlanCache()`.
+A custom pipeline must place `UseOperationVariableCoercion()` before `UseCostAnalysis()`, and place `UseCostAnalysis()` before `UseOperationPlanCache()`.
 
 # Options Reference
 
