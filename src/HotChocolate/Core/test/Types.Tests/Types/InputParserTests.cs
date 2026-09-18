@@ -702,6 +702,157 @@ public class InputParserTests
     }
 
     [Fact]
+    public void ParseLiteral_Should_ThrowOneOfNoFieldSet_When_OnlyIgnoredFieldsAreSupplied()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser(
+            new DefaultTypeConverter(),
+            new InputParserOptions { IgnoreAdditionalInputFields = true });
+
+        var data = new ObjectValueNode(
+            new ObjectFieldNode("unknown", "abc"));
+
+        // act
+        void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Fail).Errors.MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseLiteral_Should_UseTheDefinedField_When_AdditionalFieldsAreIgnored()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser(
+            new DefaultTypeConverter(),
+            new InputParserOptions { IgnoreAdditionalInputFields = true });
+
+        var data = new ObjectValueNode(
+            new ObjectFieldNode("unknown", "abc"),
+            new ObjectFieldNode("b", 123));
+
+        // act
+        var runtimeValue = parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+
+        // assert
+        runtimeValue.MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseLiteral_Should_ThrowOneOfMoreThanOneFieldSet_When_AdditionalFieldsAreIgnored()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser(
+            new DefaultTypeConverter(),
+            new InputParserOptions { IgnoreAdditionalInputFields = true });
+
+        var data = new ObjectValueNode(
+            new ObjectFieldNode("unknown", "abc"),
+            new ObjectFieldNode("a", "abc"),
+            new ObjectFieldNode("b", 123));
+
+        // act
+        void Fail() => parser.ParseLiteral(data, oneOfInput, Path.Root.Append("root"));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Fail).Errors.MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseInputValue_Should_ThrowOneOfNoFieldSet_When_OnlyIgnoredFieldsAreSupplied()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser(
+            new DefaultTypeConverter(),
+            new InputParserOptions { IgnoreAdditionalInputFields = true });
+
+        var data = JsonDocument.Parse("""{ "unknown": "abc" }""");
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
+
+        // act
+        void Fail()
+            => parser.ParseInputValue(
+                data.RootElement,
+                oneOfInput,
+                context.Object,
+                Path.Root.Append("root"));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Fail).Errors.MatchSnapshot();
+    }
+
+    [Fact]
+    public void ParseInputValue_Should_UseTheDefinedField_When_AdditionalFieldsAreIgnored()
+    {
+        // arrange
+        var schema =
+            SchemaBuilder.New()
+                .AddInputObjectType<OneOfInput>()
+                .AddDirectiveType<OneOfDirectiveType>()
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+        var oneOfInput = schema.Types.GetType<InputObjectType>(nameof(OneOfInput));
+
+        var parser = new InputParser(
+            new DefaultTypeConverter(),
+            new InputParserOptions { IgnoreAdditionalInputFields = true });
+
+        var data = JsonDocument.Parse("""{ "unknown": "abc", "b": 123 }""");
+
+        var context = new Mock<IFeatureProvider>();
+        context.Setup(t => t.Features).Returns(FeatureCollection.Empty);
+
+        // act
+        var runtimeValue = parser.ParseInputValue(
+            data.RootElement,
+            oneOfInput,
+            context.Object,
+            Path.Root.Append("root"));
+
+        // assert
+        runtimeValue.MatchSnapshot();
+    }
+
+    [Fact]
     public void Force_NonNull_Struct_To_Be_Optional()
     {
         // arrange
