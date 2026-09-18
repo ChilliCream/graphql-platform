@@ -8,21 +8,20 @@ import {
   buildChamberTiles,
   buildInstrumentLights,
   type InstrumentLight,
-  type Tile,
 } from "./chamber";
 import { hexToRgba } from "./colors";
 import { project, torusPoint } from "./geometry";
 import { computeLayout, type TokamakLayout } from "./layout";
 import {
-  paintChamber,
-  paintPlasmaCache,
+  paintColumnLayer,
+  paintPlasmaLayer,
+  paintWall,
   strokeShadedPath,
   strokeShadedPathRgba,
-  type BandBloomTarget,
 } from "./paint";
 import {
   createStreak,
-  occludeBehindColumn,
+  isFarSide,
   occludeHelixBehindColumn,
   projectHelix,
   projectStreak,
@@ -47,8 +46,21 @@ import {
 // band under `lighter` compositing.
 const DESKTOP_STATIC_STREAKS = 900;
 const DESKTOP_LIVE_STREAKS = 72;
-const MOBILE_STATIC_STREAKS = 450;
+// Cut from 450 (hc-0-wrc.3 review 3, F1): at full density and alpha the 375
+// band (roughly 170x68 px) blew out to a solid pink lozenge; paired with
+// `MOBILE_DENSITY_SCALE` below.
+const MOBILE_STATIC_STREAKS = 260;
 const MOBILE_LIVE_STREAKS = 39;
+/** ~10% of the static majority, added on top as loose, further-dimmed streaks off the tube's own radius -- the reference's sparse strays thinning out above/below the band (review 3, F2). */
+const STRAY_FRACTION = 0.1;
+/** Scales every plasma stroke alpha on mobile, on top of the lower static count above (review 3, F1: the 375 band's own small projected area needs both). */
+const MOBILE_DENSITY_SCALE = 0.69;
+/** Extra dampening on the white-hot core specifically, on top of `plasmaDensityScale`, since the mobile band's tiny projected area (review 3, F1: ~170x68 px) concentrates the core gradient into a much larger share of the band than at desktop scale. */
+const MOBILE_CORE_SCALE = 0.55;
+/** Alpha multiplier for the far half of the band (its own streaks, glow and helix run) on top of `BRAND.coralSoft`'s own desaturation -- "reduced alpha and desaturation" (hc-0-wrc.3 comment 206). */
+const FAR_ALPHA_MUL = 0.5;
+/** Alpha multiplier for the near half (on top of the base per-pass alphas in `paintPlasmaLayer`/`strokeGroup`) -- the outer-limb weight bias above (review 3, F3) trimmed the band's own mean luminance under the planner's 0.45 floor (review 3, F1), so the near half's own exposure is nudged back up rather than raising bloom to compensate. */
+const NEAR_ALPHA_MUL = 1.35;
 /** Offscreen glow source for the live streaks/helix, a fraction of the live canvas' CSS size -- a cheap bloom from downscale + upscale instead of a per-stroke blur filter (same technique as `PlasmaFusion`'s `drawBloomSource`). */
 const GLOW_SCALE = 0.25;
 
@@ -93,6 +105,24 @@ function stratifiedAngles(
 }
 
 /**
+ * The sparse "stray" population: fully random (not stratified/weighted)
+ * theta/phi so they scatter loosely across the whole band instead of
+ * filling out its grid -- `createStreak`'s `stray` option then pushes them
+ * off the tube's own radius and further dims them (review 3, F2: "sparse
+ * stray streaks thinning out above and below the band").
+ */
+function strayAngles(
+  count: number,
+  rand: () => number,
+): Array<readonly [number, number]> {
+  const pairs: Array<readonly [number, number]> = [];
+  for (let i = 0; i < count; i++) {
+    pairs.push([rand() * Math.PI * 2, rand() * Math.PI * 2]);
+  }
+  return pairs;
+}
+
+/**
  * v12 - Tokamak: seen from inside the vessel, a dark tiled steel column and
  * wall wrapping around the viewer, with a coral/pink plasma torus of
  * hundreds of orbiting streaks and a twisting filament at its centre. See
@@ -102,26 +132,35 @@ function stratifiedAngles(
  */
 export default function Tokamak() {
   const rootRef = useRef<HTMLDivElement>(null);
-  const chamberRef = useRef<HTMLCanvasElement>(null);
-  const plasmaCacheRef = useRef<HTMLCanvasElement>(null);
+  const wallRef = useRef<HTMLCanvasElement>(null);
   const liveRef = useRef<HTMLCanvasElement>(null);
   const running = useElementMotion(rootRef);
   const drawLiveRef = useRef<((timeSec: number) => void) | null>(null);
 
   useEffect(() => {
     const root = rootRef.current;
-    const chamberCanvas = chamberRef.current;
-    const plasmaCacheCanvas = plasmaCacheRef.current;
+    const wallCanvas = wallRef.current;
     const liveCanvas = liveRef.current;
-    if (!root || !chamberCanvas || !plasmaCacheCanvas || !liveCanvas) {
+    if (!root || !wallCanvas || !liveCanvas) {
       return;
     }
-    const chamberCtx = chamberCanvas.getContext("2d");
-    const plasmaCtx = plasmaCacheCanvas.getContext("2d");
+    const wallCtx = wallCanvas.getContext("2d");
     const liveCtx = liveCanvas.getContext("2d");
+    // The column and the plasma's far/near static caches are never added to
+    // the DOM: they exist only as `drawImage` sources the live canvas
+    // stamps every frame, in the order wall -> far arc -> column -> near
+    // arc, so the column's own tiles can sit BETWEEN the two halves of the
+    // orbiting band -- real occlusion from draw order, not a fourth
+    // stacked canvas or a destination-out mask (hc-0-wrc.3 comment 206/207).
+    const columnCanvas = document.createElement("canvas");
+    const farCanvas = document.createElement("canvas");
+    const nearCanvas = document.createElement("canvas");
+    const columnCtx = columnCanvas.getContext("2d");
+    const farCtx = farCanvas.getContext("2d");
+    const nearCtx = nearCanvas.getContext("2d");
     const glow = document.createElement("canvas");
     const glowCtx = glow.getContext("2d");
-    if (!chamberCtx || !plasmaCtx || !liveCtx || !glowCtx) {
+    if (!wallCtx || !liveCtx || !columnCtx || !farCtx || !nearCtx || !glowCtx) {
       return;
     }
 
@@ -133,8 +172,10 @@ export default function Tokamak() {
     let glowW = 0;
     let glowH = 0;
     let liveStreaks: Streak[] = [];
-    /** The column's own projected half-width at the plasma's height, in px -- see `occludeBehindColumn`. Recomputed in `buildScene` whenever the layout changes. */
+    /** The column's own projected half-width at the plasma's height, in px -- see `occludeHelixBehindColumn`. Recomputed in `buildScene` whenever the layout changes. */
     let columnHalfWidthPx = 0;
+    /** `MOBILE_DENSITY_SCALE` on mobile, 1 on desktop -- also scales the live core/bloom/tint gradients in `drawLive`, not just the two cached plasma layers, so the mobile band's small projected area (review 3, F1) does not blow out under the same absolute coefficients desktop uses. */
+    let plasmaDensityScale = 1;
     let disposed = false;
 
     function featherEdge(ctx: CanvasRenderingContext2D) {
@@ -159,9 +200,22 @@ export default function Tokamak() {
       ctx.globalCompositeOperation = "source-over";
     }
 
+    // Blits an already-dpr-scaled offscreen cache (the column, or a plasma
+    // half) onto the live canvas 1:1 in raw pixels -- `liveCtx`'s transform
+    // is the CSS-unit dpr scale the path draws around it use, so this
+    // briefly swaps to the identity transform (matching the cache's own raw
+    // pixel buffer) and restores it, without touching the caller's current
+    // `globalCompositeOperation`.
+    function blit(ctx: CanvasRenderingContext2D, img: CanvasImageSource) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(img, 0, 0);
+      ctx.restore();
+    }
+
     // The band's own visual centre: the near-side point of the torus tube
-    // (theta = -PI/2, the "front-facing" convention `occludeBehindColumn`
-    // and `chamber.ts`'s column back-face cull both use, phi = 0 for the
+    // (theta = -PI/2, the "front-facing" convention `isFarSide` and
+    // `chamber.ts`'s column back-face cull both use, phi = 0 for the
     // tube's own mid-line), NOT the axis point `{x:0,y:torus.y,z:torus.z}`
     // the core/bloom used to project through. The axis point and the band's
     // actual near-side centre project to different screen y (the axis
@@ -187,7 +241,8 @@ export default function Tokamak() {
      * actual top/bottom points at the near side (`theta = -PI/2`, `phi =
      * +-PI/2`) rather than a flat `a * scale` guess -- the tilt changes
      * each phi's own depth/scale slightly, so projecting the real extremes
-     * keeps the coral halo sized to what the band actually renders as.
+     * keeps the coral tint/bloom sized to what the band actually renders
+     * as.
      */
     function bandHalfHeightPx() {
       const top = project(
@@ -222,13 +277,16 @@ export default function Tokamak() {
       const totalLive = layout.mobile
         ? MOBILE_LIVE_STREAKS
         : DESKTOP_LIVE_STREAKS;
+      const totalStray = Math.round(totalStatic * STRAY_FRACTION);
+      const densityScale = layout.mobile ? MOBILE_DENSITY_SCALE : 1;
+      plasmaDensityScale = densityScale;
 
       // The column's projected half-width at the plasma's height: the
       // middle column row sits at the torus' own y (see `layout.ts`'s
       // `buildTaperedRows`, t=0), so projecting its edge (world x = radius)
       // and comparing to the on-axis centre (`camera.originX`) gives the
-      // span a far-side streak has to fall inside to read as behind the
-      // column -- planner ruling 187 item 3.
+      // span the helix's far-side points have to fall inside to read as
+      // behind the column (`occludeHelixBehindColumn`).
       const midColumnRow =
         layout.columnRows[Math.floor(layout.columnRows.length / 2)];
       const columnEdge = project(
@@ -237,78 +295,79 @@ export default function Tokamak() {
       );
       columnHalfWidthPx = Math.abs(columnEdge.x - layout.camera.originX);
 
-      const staticAngles = stratifiedAngles(totalStatic, rand);
-      const staticStreakPaths: ShadedPoint[][] = staticAngles.map(
-        ([theta0, phi]) =>
-          occludeBehindColumn(
-            projectStreak(
-              createStreak(rand, theta0, phi),
-              layout.torus,
-              layout.camera,
-              0,
-              false,
-            ),
-            theta0,
-            layout.camera,
-            columnHalfWidthPx,
-          ),
-      );
+      // Static streaks are frozen (never orbit), so their far/near split is
+      // fixed once here -- `isFarSide` on each streak's own `theta0` -- and
+      // baked straight into two separate cached layers (hc-0-wrc.3 comment
+      // 206), the far layer desaturated and dimmed.
+      const farPaths: ShadedPoint[][] = [];
+      const nearPaths: ShadedPoint[][] = [];
+      const pushStatic = (theta0: number, phi: number, stray: boolean) => {
+        const pts = projectStreak(
+          createStreak(rand, theta0, phi, { stray }),
+          layout.torus,
+          layout.camera,
+          0,
+          false,
+        );
+        (isFarSide(theta0) ? farPaths : nearPaths).push(pts);
+      };
+      for (const [theta0, phi] of stratifiedAngles(totalStatic, rand)) {
+        pushStatic(theta0, phi, false);
+      }
+      for (const [theta0, phi] of strayAngles(totalStray, rand)) {
+        pushStatic(theta0, phi, true);
+      }
 
       const liveAngles = stratifiedAngles(totalLive, rand);
       liveStreaks = liveAngles.map(([theta0, phi]) =>
         createStreak(rand, theta0, phi),
       );
 
-      // Column tiles (the near-constant-radius cylinder) and wall tiles
-      // (wide at the plasma's height, narrowing to meet the column above
-      // and below it) are built from two separate row families sharing the
-      // same axis and camera, then concatenated -- planner ruling
-      // hc-0-wrc.3 comment 187 item 1. Wall first, column second: the wall
-      // is the far surface wrapping the viewer, the column stands in front
-      // of it, so painter's-algorithm order paints far-then-near (fix 1/F1:
-      // painting the column first let the far wall's tiles draw back over
-      // it every time, which is what made the column read as a pale,
-      // doubled-up silhouette instead of a dark object in front).
-      const tiles: Tile[] = [
-        ...buildChamberTiles(
-          layout.wallRows,
-          layout.wallThetaSegments,
-          layout.camera,
-          layout.torus,
-          "wall",
-        ),
-        ...buildChamberTiles(
-          layout.columnRows,
-          layout.columnThetaSegments,
-          layout.camera,
-          layout.torus,
-          "column",
-        ),
-      ];
+      // Wall tiles (wide at the plasma's height, narrowing to meet the
+      // column above and below it) and column tiles (the near-constant-
+      // radius cylinder) are built from two separate row families sharing
+      // the same axis and camera, then painted into their own layers --
+      // planner ruling hc-0-wrc.3 comment 187 item 1 for the geometry,
+      // comment 206 for the split into two cached canvases so the plasma
+      // can be stamped between them every frame.
+      const wallTiles = buildChamberTiles(
+        layout.wallRows,
+        layout.wallThetaSegments,
+        layout.camera,
+        layout.torus,
+        "wall",
+      );
+      const columnTiles = buildChamberTiles(
+        layout.columnRows,
+        layout.columnThetaSegments,
+        layout.camera,
+        layout.torus,
+        "column",
+      );
       const lights: InstrumentLight[] = buildInstrumentLights(
         layout.wallRows,
         layout.camera,
         rand,
         6,
       );
-      paintChamber(chamberCtx!, w, h, tiles, lights);
+      paintWall(wallCtx!, w, h, wallTiles, lights);
+      featherEdge(wallCtx!);
+      paintColumnLayer(columnCtx!, w, h, columnTiles);
 
-      const bc = bandCenter();
-      const bloomTarget: BandBloomTarget = {
-        x: bc.x,
-        y: bc.y,
-        // The ring's projected width uses the camera's own base scale (the
-        // scale at its aim depth), the same basis the ring's actual
-        // left/right on-screen extent falls out of -- not the band
-        // centre's own much-larger near-side scale, which previously
-        // ~doubled this and produced a blur wide enough to wash out the
-        // whole frame instead of just the band (hc-0-wrc.3 review 2, F3).
-        ringWidthPx:
-          (layout.torus.R + layout.torus.a) * layout.camera.baseScale * 2,
-        bandHalfHeightPx: bandHalfHeightPx(),
-      };
-      paintPlasmaCache(plasmaCtx!, w, h, staticStreakPaths, bloomTarget);
-      featherEdge(plasmaCtx!);
+      // The ring's projected width uses the camera's own base scale (the
+      // scale at its aim depth), the same basis the ring's actual
+      // left/right on-screen extent falls out of -- not the band centre's
+      // own much-larger near-side scale (hc-0-wrc.3 review 2, F3).
+      const ringWidthPx =
+        (layout.torus.R + layout.torus.a) * layout.camera.baseScale * 2;
+      paintPlasmaLayer(farCtx!, w, h, farPaths, ringWidthPx, {
+        colorHex: BRAND.coralSoft,
+        alphaMul: FAR_ALPHA_MUL * densityScale,
+      });
+      paintPlasmaLayer(nearCtx!, w, h, nearPaths, ringWidthPx, {
+        colorHex: BRAND.coral,
+        alphaMul: NEAR_ALPHA_MUL * densityScale,
+      });
     }
 
     function measure() {
@@ -317,7 +376,13 @@ export default function Tokamak() {
       const base = Math.min(window.devicePixelRatio || 1, 2);
       const cap = Math.sqrt(4_000_000 / Math.max(1, w * h));
       dpr = Math.max(0.75, Math.min(base, cap));
-      for (const canvas of [chamberCanvas, plasmaCacheCanvas, liveCanvas]) {
+      for (const canvas of [
+        wallCanvas,
+        liveCanvas,
+        columnCanvas,
+        farCanvas,
+        nearCanvas,
+      ]) {
         canvas!.width = Math.max(1, Math.round(w * dpr));
         canvas!.height = Math.max(1, Math.round(h * dpr));
         canvas!.getContext("2d")!.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -330,66 +395,201 @@ export default function Tokamak() {
       buildScene();
     }
 
-    // A downscaled offscreen pass of the live streaks + helix, composited
-    // back at full size with "lighter": a cheap glow halo under their sharp
-    // cores without a per-stroke blur filter on every live frame (README
-    // section 3, planner ruling 187 item 3; same technique as
-    // `PlasmaFusion`'s `drawBloomSource`).
-    function drawGlowSource(timeSec: number, orbitPhase: number) {
-      glowCtx!.setTransform(GLOW_SCALE, 0, 0, GLOW_SCALE, 0, 0);
-      glowCtx!.clearRect(0, 0, w, h);
-      glowCtx!.globalCompositeOperation = "lighter";
-      glowCtx!.lineCap = "round";
-      // 8 samples here (vs the default 16 the static cache bakes once with)
-      // -- these `liveStreaks` re-project every frame, so halving their
-      // per-streak sample count keeps the longer 0.35-0.7 rad arcs (F2)
-      // affordable at the raised live count (72) within the 4ms budget; the
-      // cached majority (the visual bulk) still gets the full 16.
-      for (const streak of liveStreaks) {
-        const advanced: Streak = {
-          ...streak,
-          theta0: streak.theta0 + orbitPhase,
-        };
-        const pts = occludeBehindColumn(
-          projectStreak(
-            advanced,
-            layout.torus,
-            layout.camera,
-            timeSec,
-            true,
-            8,
-          ),
-          advanced.theta0,
-          layout.camera,
-          columnHalfWidthPx,
-        );
-        strokeShadedPath(glowCtx!, pts, BRAND.coral, 5.5, streak.alpha * 0.5);
-      }
-      const twistPhase = (timeSec / TWIST_PERIOD_S) * Math.PI * 2;
-      const helixPts = occludeHelixBehindColumn(
-        projectHelix(layout.torus, layout.camera, twistPhase),
-        layout.camera,
-        columnHalfWidthPx,
-      );
-      strokeShadedPath(glowCtx!, helixPts, BRAND.coral, 4.5, 0.28);
-    }
-
     function drawLive(timeSec: number) {
       liveCtx!.setTransform(1, 0, 0, 1, 0, 0);
       liveCtx!.clearRect(0, 0, liveCanvas!.width, liveCanvas!.height);
       liveCtx!.setTransform(dpr, 0, 0, dpr, 0, 0);
       liveCtx!.lineCap = "round";
 
-      // The near-side band centre (see `bandCenter`), not the axis point:
-      // the axis point projects the bloom/core ~70px above where the band
-      // actually renders (hc-0-wrc.3 review 2, F2).
+      const orbitPhase = (timeSec / BAND_ORBIT_PERIOD_S) * Math.PI * 2;
+      const twistPhase = (timeSec / TWIST_PERIOD_S) * Math.PI * 2;
+      const helixPts = occludeHelixBehindColumn(
+        projectHelix(layout.torus, layout.camera, twistPhase),
+        layout.camera,
+        columnHalfWidthPx,
+      );
+      const { far: helixFar, near: helixNear } = splitByPredicate(
+        helixPts,
+        (p: HelixPoint) => isFarSide(p.theta),
+      );
+
+      const hotIndex = liveStreaks.length
+        ? Math.floor(timeSec / HOT_STREAK_PERIOD_S) % liveStreaks.length
+        : -1;
+      const advanced = liveStreaks.map((streak, index) => ({
+        streak,
+        index,
+        theta0: streak.theta0 + orbitPhase,
+      }));
+      const farLive = advanced.filter((a) => isFarSide(a.theta0));
+      const nearLive = advanced.filter((a) => !isFarSide(a.theta0));
+
+      // Streaks on the torus' far side (opposite the camera) already
+      // project at greater depth (`near` is small from `nearFactor`) and,
+      // since fix 3, carry a lower `weight`/dimmer colour of their own
+      // (see `createStreak`); the far/near split below additionally draws
+      // them BEFORE the column layer and the near group AFTER it, so the
+      // column's own tiles occlude whichever far streaks actually fall
+      // behind it -- real occlusion from draw order (hc-0-wrc.3 comment
+      // 206/207), not a hand-set dimming factor.
+      const strokeGroup = (
+        group: readonly { streak: Streak; index: number; theta0: number }[],
+        colorHex: string,
+        alphaMul: number,
+      ) => {
+        for (const { streak, index, theta0 } of group) {
+          const pts = projectStreak(
+            { ...streak, theta0 },
+            layout.torus,
+            layout.camera,
+            timeSec,
+            true,
+            8,
+          );
+          const flicker =
+            0.65 +
+            0.35 *
+              Math.sin(timeSec * streak.flickerSpeed + streak.flickerPhase);
+          const hot = index === hotIndex ? 1.4 : 1;
+          strokeShadedPath(
+            liveCtx!,
+            pts,
+            colorHex,
+            2.4 * hot,
+            streak.alpha * flicker * 0.4 * alphaMul * hot,
+          );
+          strokeShadedPathRgba(
+            liveCtx!,
+            pts,
+            [255, 255, 255],
+            0.9 * hot,
+            flicker * 0.3 * alphaMul * hot,
+          );
+        }
+      };
+
+      const strokeHelixRuns = (
+        runs: readonly HelixPoint[][],
+        colorHex: string,
+        alphaMul: number,
+      ) => {
+        for (const run of runs) {
+          strokeShadedPath(liveCtx!, run, colorHex, 4.5, 0.35 * alphaMul);
+          strokeShadedPathRgba(
+            liveCtx!,
+            run,
+            [255, 244, 240],
+            1.2,
+            0.5 * alphaMul,
+          );
+        }
+      };
+
+      // Glow halo first (downscaled, blurred by the upscale), sharp cores
+      // on top -- every luminous element on this layer carries a halo. Run
+      // once per half (its own streaks + its own helix run) so the far
+      // half's bloom is dimmed and desaturated along with its streaks
+      // (hc-0-wrc.3 comment 206: "far-arc streaks and their bloom").
+      const drawGlowGroup = (
+        group: readonly { streak: Streak; theta0: number }[],
+        helixRuns: readonly HelixPoint[][],
+        colorHex: string,
+        alphaMul: number,
+      ) => {
+        glowCtx!.setTransform(GLOW_SCALE, 0, 0, GLOW_SCALE, 0, 0);
+        glowCtx!.clearRect(0, 0, w, h);
+        glowCtx!.globalCompositeOperation = "lighter";
+        glowCtx!.lineCap = "round";
+        // 8 samples here (vs the default 16 the static cache bakes once
+        // with) -- these `liveStreaks` re-project every frame, so halving
+        // their per-streak sample count keeps the longer 0.35-0.7 rad arcs
+        // affordable within the 4ms budget; the cached majority (the
+        // visual bulk) still gets the full 16.
+        for (const { streak, theta0 } of group) {
+          const pts = projectStreak(
+            { ...streak, theta0 },
+            layout.torus,
+            layout.camera,
+            timeSec,
+            true,
+            8,
+          );
+          strokeShadedPath(
+            glowCtx!,
+            pts,
+            colorHex,
+            5.5,
+            streak.alpha * 0.5 * alphaMul,
+          );
+        }
+        for (const run of helixRuns) {
+          strokeShadedPath(glowCtx!, run, colorHex, 4.5, 0.28 * alphaMul);
+        }
+        liveCtx!.globalCompositeOperation = "lighter";
+        liveCtx!.globalAlpha = 0.9;
+        liveCtx!.drawImage(glow, 0, 0, glowW, glowH, 0, 0, w, h);
+        liveCtx!.globalAlpha = 1;
+      };
+
+      // ----- FAR step: the far half of the band (its cached static
+      // majority, its live subset, its own glow and the filament's far
+      // run) draws first, desaturated and dimmer, so the column layer
+      // (stamped next) reads as standing in front of it.
+      liveCtx!.globalCompositeOperation = "lighter";
+      blit(liveCtx!, farCanvas);
+      drawGlowGroup(
+        farLive,
+        helixFar,
+        BRAND.coralSoft,
+        FAR_ALPHA_MUL * plasmaDensityScale,
+      );
+      strokeGroup(farLive, BRAND.coralSoft, FAR_ALPHA_MUL * plasmaDensityScale);
+      strokeHelixRuns(
+        helixFar,
+        BRAND.coralSoft,
+        FAR_ALPHA_MUL * plasmaDensityScale,
+      );
+
+      // ----- COLUMN: the dark tiled column, cached once per `measure()`,
+      // stamped fresh every frame so it always paints over the far arc and
+      // under the near arc -- real occlusion from draw order (hc-0-wrc.3
+      // comment 206), not a dimming factor.
+      liveCtx!.globalCompositeOperation = "source-over";
+      blit(liveCtx!, columnCanvas);
+
+      // The column's own coral tint: a `'lighter'` radial pass drawn right
+      // after the column layer so it visibly lands on the column and the
+      // nearest wall tiles (hc-0-wrc.3 comment 206), not baked into the
+      // cache underneath it.
       const torusCenter = bandCenter();
       const breathe =
         0.86 + 0.14 * Math.sin((timeSec / BREATHE_PERIOD_S) * Math.PI * 2);
+      liveCtx!.globalCompositeOperation = "lighter";
+      const tintR = Math.max(1, bandHalfHeightPx() * 0.9);
+      const tint = liveCtx!.createRadialGradient(
+        torusCenter.x,
+        torusCenter.y,
+        0,
+        torusCenter.x,
+        torusCenter.y,
+        tintR,
+      );
+      tint.addColorStop(
+        0,
+        hexToRgba(BRAND.coral, 0.14 * breathe * plasmaDensityScale),
+      );
+      tint.addColorStop(1, hexToRgba(BRAND.coral, 0));
+      liveCtx!.fillStyle = tint;
+      liveCtx!.beginPath();
+      liveCtx!.arc(torusCenter.x, torusCenter.y, tintR, 0, Math.PI * 2);
+      liveCtx!.fill();
+
+      // ----- NEAR step: the breathing bloom, the near half of the band
+      // (cached majority + live subset + glow), the filament's near run
+      // and the white-hot core all draw on top of the column, full
+      // brightness.
       const bloomR =
         (layout.torus.R + layout.torus.a) * torusCenter.scale * 0.4;
-
-      liveCtx!.globalCompositeOperation = "lighter";
       const bloom = liveCtx!.createRadialGradient(
         torusCenter.x,
         torusCenter.y,
@@ -398,8 +598,14 @@ export default function Tokamak() {
         torusCenter.y,
         bloomR,
       );
-      bloom.addColorStop(0, hexToRgba(BRAND.coral, 0.16 * breathe));
-      bloom.addColorStop(0.45, hexToRgba(BRAND.coral, 0.06 * breathe));
+      bloom.addColorStop(
+        0,
+        hexToRgba(BRAND.coral, 0.16 * breathe * plasmaDensityScale),
+      );
+      bloom.addColorStop(
+        0.45,
+        hexToRgba(BRAND.coral, 0.06 * breathe * plasmaDensityScale),
+      );
       bloom.addColorStop(1, hexToRgba(BRAND.coral, 0));
       liveCtx!.fillStyle = bloom;
       liveCtx!.beginPath();
@@ -412,97 +618,29 @@ export default function Tokamak() {
       );
       liveCtx!.fill();
 
-      const orbitPhase = (timeSec / BAND_ORBIT_PERIOD_S) * Math.PI * 2;
-
-      // Glow halo first (downscaled, blurred by the upscale), sharp cores
-      // on top -- every luminous element on this layer carries a halo.
-      drawGlowSource(timeSec, orbitPhase);
-      liveCtx!.globalAlpha = 0.9;
-      liveCtx!.drawImage(glow, 0, 0, glowW, glowH, 0, 0, w, h);
-      liveCtx!.globalAlpha = 1;
-
-      // The helix's far half (behind the column, per-point occluded) draws
-      // BEFORE the front streaks below so they visually cross over it; its
-      // near half draws AFTER, on top of the streaks -- "thread partly
-      // hidden by the column and crossed by front streaks" (hc-0-wrc.3
-      // review 2, F4). A thin, low-contrast core (not the old 1px/alpha
-      // 0.85 hard white wire) plus a wider, low-alpha coral pass under it.
-      const twistPhase = (timeSec / TWIST_PERIOD_S) * Math.PI * 2;
-      const helixPts = occludeHelixBehindColumn(
-        projectHelix(layout.torus, layout.camera, twistPhase),
-        layout.camera,
-        columnHalfWidthPx,
+      blit(liveCtx!, nearCanvas);
+      drawGlowGroup(
+        nearLive,
+        helixNear,
+        BRAND.coral,
+        NEAR_ALPHA_MUL * plasmaDensityScale,
       );
-      const { far: helixFar, near: helixNear } = splitByPredicate(
-        helixPts,
-        (p: HelixPoint) => Math.sin(p.theta) > 0,
+      strokeGroup(nearLive, BRAND.coral, NEAR_ALPHA_MUL * plasmaDensityScale);
+      strokeHelixRuns(
+        helixNear,
+        BRAND.coral,
+        NEAR_ALPHA_MUL * plasmaDensityScale,
       );
-      const strokeHelixRuns = (runs: readonly HelixPoint[][]) => {
-        for (const run of runs) {
-          strokeShadedPath(liveCtx!, run, BRAND.coral, 4.5, 0.35);
-          strokeShadedPathRgba(liveCtx!, run, [255, 244, 240], 1.2, 0.5);
-        }
-      };
-      strokeHelixRuns(helixFar);
 
-      const hotIndex = liveStreaks.length
-        ? Math.floor(timeSec / HOT_STREAK_PERIOD_S) % liveStreaks.length
-        : -1;
-      for (let i = 0; i < liveStreaks.length; i++) {
-        const streak = liveStreaks[i];
-        const advanced: Streak = {
-          ...streak,
-          theta0: streak.theta0 + orbitPhase,
-        };
-        // Streaks on the torus' far side (opposite the camera) project at
-        // greater depth, so `near` (from `nearFactor`) is already small,
-        // drawing them dimmer and thinner purely from the projection; on
-        // top of that, `occludeBehindColumn` dims the ones that fall
-        // within the column's own projected width so they read as passing
-        // behind it, not just further away (planner ruling 187 item 3).
-        const pts = occludeBehindColumn(
-          projectStreak(
-            advanced,
-            layout.torus,
-            layout.camera,
-            timeSec,
-            true,
-            8,
-          ),
-          advanced.theta0,
-          layout.camera,
-          columnHalfWidthPx,
-        );
-        const flicker =
-          0.65 +
-          0.35 * Math.sin(timeSec * streak.flickerSpeed + streak.flickerPhase);
-        const hot = i === hotIndex ? 1.8 : 1;
-        strokeShadedPath(
-          liveCtx!,
-          pts,
-          BRAND.coral,
-          2.8 * hot,
-          streak.alpha * flicker * 0.55 * hot,
-        );
-        strokeShadedPathRgba(
-          liveCtx!,
-          pts,
-          [255, 255, 255],
-          1 * hot,
-          flicker * 0.8 * hot,
-        );
-      }
-
-      strokeHelixRuns(helixNear);
-
-      // Grown from the old 0.9 coefficient (hc-0-wrc.3 review 2, F3: "the
-      // core glow grows 2-3x") -- `torusCenter` itself moved to the band's
-      // near-side point (a materially larger `scale` than the old axis
-      // point), so this coefficient alone reads as noticeably bigger than
-      // 0.9 without needing the full 2.2 the planner measured off the old
-      // (smaller-scale) anchor; 2.2 here over-saturated the whole band into
-      // a solid white disc with no visible column at all.
-      const coreR = torusCenter.scale * layout.torus.a * 1.1 * breathe;
+      // Grown from the old 0.9 coefficient (hc-0-wrc.3 review 2, F3), then
+      // cut back from 1.1 (review 3, F1: the core over-saturated the band)
+      // -- `torusCenter` sits at the band's near-side point (a materially
+      // larger `scale` than the old axis point), so even 0.8 reads bigger
+      // than the original 0.9 without needing the full coefficient.
+      const coreR = torusCenter.scale * layout.torus.a * 0.8 * breathe;
+      const coreDensityScale = layout.mobile
+        ? plasmaDensityScale * MOBILE_CORE_SCALE
+        : plasmaDensityScale;
       const core = liveCtx!.createRadialGradient(
         torusCenter.x,
         torusCenter.y,
@@ -511,8 +649,11 @@ export default function Tokamak() {
         torusCenter.y,
         Math.max(1, coreR),
       );
-      core.addColorStop(0, "rgba(255,255,255,0.7)");
-      core.addColorStop(0.5, hexToRgba(BRAND.coral, 0.4 * breathe));
+      core.addColorStop(0, `rgba(255,255,255,${0.35 * coreDensityScale})`);
+      core.addColorStop(
+        0.5,
+        hexToRgba(BRAND.coral, 0.25 * breathe * coreDensityScale),
+      );
       core.addColorStop(1, hexToRgba(BRAND.coral, 0));
       liveCtx!.fillStyle = core;
       liveCtx!.beginPath();
@@ -577,8 +718,7 @@ export default function Tokamak() {
 
   return (
     <div ref={rootRef} className="absolute inset-0" aria-hidden="true">
-      <canvas ref={chamberRef} className="absolute inset-0 h-full w-full" />
-      <canvas ref={plasmaCacheRef} className="absolute inset-0 h-full w-full" />
+      <canvas ref={wallRef} className="absolute inset-0 h-full w-full" />
       <canvas ref={liveRef} className="absolute inset-0 h-full w-full" />
       <div
         className="absolute inset-0"

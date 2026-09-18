@@ -104,11 +104,89 @@ function withBlurHalo(
 }
 
 /**
- * Static chamber layer: the tiled walls (specular-gradient trapezoids, dark
- * inset seams, fastener dots on large-enough tiles), the instrument lights
- * and the vignette. Painted once on mount and again on resize; the plasma
- * cache and the live layer draw on top of it every frame without ever
- * repainting this canvas.
+ * One tile's specular-gradient face, inset seam gap and (on large tiles)
+ * fastener dots -- the shared paint code for both the wall layer and the
+ * column layer (hc-0-wrc.3 comment 206: the column is now its own cached
+ * layer, stamped over the far arc and under the near arc every frame, so it
+ * needs the exact same tile rendering the wall always had, just painted
+ * into a separate, transparent-background canvas).
+ */
+function paintTile(ctx: CanvasRenderingContext2D, tile: Tile): void {
+  const grad = ctx.createLinearGradient(
+    tile.hi.x,
+    tile.hi.y,
+    tile.lo.x,
+    tile.lo.y,
+  );
+  // Warmth is only allowed to nudge the fill alpha a little (~0.08 at
+  // most) -- it must not be what makes a tile read as lit; that is
+  // `tile.shade`'s job. Warmth's real effect is the coral mix below, so
+  // the tiles nearest the band tint pink without ever turning pale (fix
+  // 1/F1: warmth used to add up to 0.5 alpha on its own, which is what
+  // painted the whole column as a pale cylinder).
+  // Warmth's alpha lift and its coral mix fraction were both raised
+  // (hc-0-wrc.3 review 2, F3: "no visible pink on the column between the
+  // streaks") -- still capped well below `tile.shade`'s own contribution,
+  // and still 0 outside the band's falloff, so the chamber's overall
+  // under-20%-outside-the-band luminance budget is untouched.
+  const warm = tile.warmth;
+  const hiAlpha = 0.11 + tile.shade * 0.2 + warm * 0.15;
+  const midAlpha = 0.08 + tile.shade * 0.14 + warm * 0.12;
+  const loAlpha = 0.04 + tile.shade * 0.07 + warm * 0.08;
+  grad.addColorStop(
+    0,
+    mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.85, hiAlpha),
+  );
+  grad.addColorStop(
+    0.45,
+    mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.7, midAlpha),
+  );
+  grad.addColorStop(
+    1,
+    mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.45, loAlpha),
+  );
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(tile.poly[0].x, tile.poly[0].y);
+  ctx.lineTo(tile.poly[1].x, tile.poly[1].y);
+  ctx.lineTo(tile.poly[2].x, tile.poly[2].y);
+  ctx.lineTo(tile.poly[3].x, tile.poly[3].y);
+  ctx.closePath();
+  ctx.fill();
+
+  if (tile.fastener) {
+    const d0 = {
+      x: (tile.poly[0].x + tile.poly[1].x) / 2,
+      y: (tile.poly[0].y + tile.poly[1].y) / 2,
+    };
+    const d1 = {
+      x: (tile.poly[2].x + tile.poly[3].x) / 2,
+      y: (tile.poly[2].y + tile.poly[3].y) / 2,
+    };
+    const r = Math.max(1.2, tile.size * 0.06);
+    for (const d of [d0, d1]) {
+      ctx.fillStyle = hexToRgba(BRAND.navy, 0.6);
+      ctx.beginPath();
+      ctx.arc(d.x, d.y + r * 0.3, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = `rgba(255,255,255,${0.3 * tile.shade + 0.06})`;
+      ctx.beginPath();
+      ctx.arc(d.x - r * 0.2, d.y - r * 0.2, r * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+/**
+ * Static WALL layer: the outer vessel's tiled walls (specular-gradient
+ * trapezoids, dark inset seams, fastener dots), the instrument lights and
+ * the vignette. Painted once on mount and again on resize into its own
+ * bottom-most canvas -- nothing ever needs to draw behind it, so unlike the
+ * column it is never re-stamped per frame (hc-0-wrc.3 comment 206: the
+ * column moved to its own cached layer so the plasma's far arc can draw
+ * between the wall and the column and the near arc on top of the column;
+ * baking both into one "chamber" canvas, as before, could never let the
+ * far arc's orbiting streaks sit behind a static image).
  *
  * Tiles are dark slate at low alpha (mean luminance well under the
  * planner's 20% ceiling outside the plasma band): `tile.shade` gives each
@@ -119,11 +197,11 @@ function withBlurHalo(
  * item 2). Seams are never stroked: they are the gap `insetQuad` already
  * left between neighbouring tile faces.
  */
-export function paintChamber(
+export function paintWall(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  tiles: readonly Tile[],
+  wallTiles: readonly Tile[],
   lights: readonly InstrumentLight[],
 ): void {
   ctx.clearRect(0, 0, w, h);
@@ -148,70 +226,8 @@ export function paintChamber(
   ctx.fillStyle = ambient;
   ctx.fillRect(0, 0, w, h);
 
-  for (const tile of tiles) {
-    const grad = ctx.createLinearGradient(
-      tile.hi.x,
-      tile.hi.y,
-      tile.lo.x,
-      tile.lo.y,
-    );
-    // Warmth is only allowed to nudge the fill alpha a little (~0.08 at
-    // most) -- it must not be what makes a tile read as lit; that is
-    // `tile.shade`'s job. Warmth's real effect is the coral mix below, so
-    // the tiles nearest the band tint pink without ever turning pale (fix
-    // 1/F1: warmth used to add up to 0.5 alpha on its own, which is what
-    // painted the whole column as a pale cylinder).
-    // Warmth's alpha lift and its coral mix fraction were both raised
-    // (hc-0-wrc.3 review 2, F3: "no visible pink on the column between the
-    // streaks") -- still capped well below `tile.shade`'s own contribution,
-    // and still 0 outside the band's falloff, so the chamber's overall
-    // under-20%-outside-the-band luminance budget is untouched.
-    const warm = tile.warmth;
-    const hiAlpha = 0.11 + tile.shade * 0.2 + warm * 0.15;
-    const midAlpha = 0.08 + tile.shade * 0.14 + warm * 0.12;
-    const loAlpha = 0.04 + tile.shade * 0.07 + warm * 0.08;
-    grad.addColorStop(
-      0,
-      mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.85, hiAlpha),
-    );
-    grad.addColorStop(
-      0.45,
-      mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.7, midAlpha),
-    );
-    grad.addColorStop(
-      1,
-      mixHexToRgba(BRAND.slate, BRAND.coral, warm * 0.45, loAlpha),
-    );
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.moveTo(tile.poly[0].x, tile.poly[0].y);
-    ctx.lineTo(tile.poly[1].x, tile.poly[1].y);
-    ctx.lineTo(tile.poly[2].x, tile.poly[2].y);
-    ctx.lineTo(tile.poly[3].x, tile.poly[3].y);
-    ctx.closePath();
-    ctx.fill();
-
-    if (tile.fastener) {
-      const d0 = {
-        x: (tile.poly[0].x + tile.poly[1].x) / 2,
-        y: (tile.poly[0].y + tile.poly[1].y) / 2,
-      };
-      const d1 = {
-        x: (tile.poly[2].x + tile.poly[3].x) / 2,
-        y: (tile.poly[2].y + tile.poly[3].y) / 2,
-      };
-      const r = Math.max(1.2, tile.size * 0.06);
-      for (const d of [d0, d1]) {
-        ctx.fillStyle = hexToRgba(BRAND.navy, 0.6);
-        ctx.beginPath();
-        ctx.arc(d.x, d.y + r * 0.3, r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = `rgba(255,255,255,${0.3 * tile.shade + 0.06})`;
-        ctx.beginPath();
-        ctx.arc(d.x - r * 0.2, d.y - r * 0.2, r * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
+  for (const tile of wallTiles) {
+    paintTile(ctx, tile);
   }
 
   ctx.shadowBlur = 7;
@@ -238,19 +254,69 @@ export function paintChamber(
   ctx.fillRect(0, 0, w, h);
 }
 
-/** Where the plasma band's own centre projects to, and how big it reads on screen -- passed in by `index.tsx` (computed from the layout/camera, not re-derived here) so the bake-time bloom pass can be sized and placed to match the band it is bloom-ing (hc-0-wrc.3 review 2, F3). */
-export interface BandBloomTarget {
-  readonly x: number;
-  readonly y: number;
-  /** Projected ring width in px, at the band's own depth: the wide blur pass is ~0.15 of this. */
-  readonly ringWidthPx: number;
-  /** Half the band's projected vertical thickness in px: the coral halo behind the column reads about 1.2x this. */
-  readonly bandHalfHeightPx: number;
+/**
+ * Static COLUMN layer: the central column's own tiles, painted into a
+ * transparent-background canvas (never touching navy, ambient wash,
+ * instrument lights or the vignette, which are the wall's job) so it can be
+ * stamped with `drawImage` on top of the far arc and under the near arc
+ * every live frame (hc-0-wrc.3 comment 206) -- real occlusion from actual
+ * tile geometry and draw order, not a destination-out mask or a dimming
+ * factor. Painted once on mount and again on resize, same as the wall; the
+ * per-frame cost is one cheap `drawImage`, not a re-paint of the tiles.
+ *
+ * Each tile gets an opaque navy backing, in its own polygon, BEFORE its
+ * usual low-alpha specular gradient: the wall gets its opaque backing once,
+ * for the whole canvas, from the navy `fillRect` under all its tiles, but
+ * the column has no such backdrop of its own on this transparent canvas --
+ * without it, `tile.poly`'s low-alpha gradient blended `'source-over'`
+ * straight onto the bright far-arc streaks underneath (stamped into the
+ * live canvas first) reads as a pale translucent veil, not a solid tile
+ * standing in front of them. The seam gaps between tiles (`insetQuad`'s own
+ * inset) get no backing, so they stay genuinely transparent -- the far arc
+ * still shows faintly through the seams, exactly as "seams are gaps".
+ */
+export function paintColumnLayer(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  columnTiles: readonly Tile[],
+): void {
+  ctx.clearRect(0, 0, w, h);
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = hexToRgba(BRAND.navy, 0.94);
+  for (const tile of columnTiles) {
+    ctx.beginPath();
+    ctx.moveTo(tile.poly[0].x, tile.poly[0].y);
+    ctx.lineTo(tile.poly[1].x, tile.poly[1].y);
+    ctx.lineTo(tile.poly[2].x, tile.poly[2].y);
+    ctx.lineTo(tile.poly[3].x, tile.poly[3].y);
+    ctx.closePath();
+    ctx.fill();
+  }
+  for (const tile of columnTiles) {
+    paintTile(ctx, tile);
+  }
 }
 
 /**
- * Cached plasma layer: the dense static majority of streaks (hundreds),
- * baked once per `measure()` with `lighter` compositing so their glow adds
+ * Style for one cached plasma layer (the far half or the near half of the
+ * band, see `paintPlasmaLayer`). `alphaMul` scales every alpha in the pass
+ * -- the coral core, the white-hot centre and both halo passes together --
+ * so the far half's "reduced alpha and desaturation" (hc-0-wrc.3 comment
+ * 206) and the mobile density scale (review 3, F1: the 375 band is dense
+ * enough at full alpha to blow out) both fall out of one number, and a
+ * separate `colorHex` (`BRAND.coral` for the near half, `BRAND.coralSoft`
+ * for the far half) carries the desaturation itself.
+ */
+export interface PlasmaLayerStyle {
+  readonly colorHex: string;
+  readonly alphaMul: number;
+}
+
+/**
+ * One cached plasma layer: the dense static majority of streaks on one half
+ * of the band (far or near, see `index.tsx`'s split by `isFarSide`), baked
+ * once per `measure()` with `lighter` compositing so their glow adds
  * instead of covering. Every luminous element gets a wide, low-alpha,
  * canvas-blurred halo pass underneath its sharp core (README section 3,
  * planner ruling 187 item 3) -- affordable here because this canvas is
@@ -259,12 +325,17 @@ export interface BandBloomTarget {
  * every frame using a cheaper downscaled bloom pass instead (see
  * `index.tsx`).
  *
- * On top of the existing tight per-stroke halo (3.5px, under the sharp
- * cores) a second, much wider blur pass runs over the WHOLE static band at
- * once (~0.15 of the projected ring width) plus a soft coral radial halo
- * behind the column section inside the band -- both still baked once here,
- * never per frame -- so the picture reads as a lit, glowing ring instead of
- * a cloud of dashes with "almost no visible halo" (hc-0-wrc.3 review 2, F3).
+ * The two layers (far, near) are `drawImage`-d into the live canvas on
+ * either side of the column layer every frame (hc-0-wrc.3 comment 206),
+ * real occlusion from draw order rather than a destination-out mask or a
+ * dimming factor; the column's own coral tint is a separate `'lighter'`
+ * pass `index.tsx` draws right after the column so it visibly lands on the
+ * tiles, not baked in here.
+ *
+ * Base alphas cut from 2.2px@0.15/0.7px@0.2 (hc-0-wrc.3 review 3, F1: the
+ * band blew out to white-salmon over 27-29% of its own area, ceiling 15%)
+ * -- individual streaks now stay readable and the halo passes carry the
+ * glow instead, per the planner's ruling not to raise bloom to compensate.
  *
  * The five service-colour streams (README section 4) were dropped
  * entirely (ticket hc-0-wrc.3 F3/verifier correction): even as dash
@@ -272,60 +343,35 @@ export interface BandBloomTarget {
  * camera distance, and the planner's own ruling permits dropping them --
  * "the picture is slate plus coral."
  */
-export function paintPlasmaCache(
+export function paintPlasmaLayer(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  staticStreakPaths: readonly ShadedPoint[][],
-  bloomTarget: BandBloomTarget,
+  paths: readonly ShadedPoint[][],
+  ringWidthPx: number,
+  style: PlasmaLayerStyle,
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.lineCap = "round";
   ctx.globalCompositeOperation = "lighter";
+  const { colorHex, alphaMul } = style;
 
-  const halo = ctx.createRadialGradient(
-    bloomTarget.x,
-    bloomTarget.y,
-    0,
-    bloomTarget.x,
-    bloomTarget.y,
-    Math.max(1, bloomTarget.bandHalfHeightPx * 0.45),
-  );
-  halo.addColorStop(0, hexToRgba(BRAND.coral, 0.18));
-  halo.addColorStop(1, hexToRgba(BRAND.coral, 0));
-  ctx.fillStyle = halo;
-  ctx.beginPath();
-  ctx.arc(
-    bloomTarget.x,
-    bloomTarget.y,
-    Math.max(1, bloomTarget.bandHalfHeightPx * 0.45),
-    0,
-    Math.PI * 2,
-  );
-  ctx.fill();
-
-  withBlurHalo(
-    ctx,
-    w,
-    h,
-    Math.max(1, bloomTarget.ringWidthPx * 0.022),
-    (haloCtx) => {
-      for (const path of staticStreakPaths) {
-        strokeShadedPath(haloCtx, path, BRAND.coral, 3, 0.18);
-      }
-    },
-  );
-
-  withBlurHalo(ctx, w, h, 3.5, (haloCtx) => {
-    for (const path of staticStreakPaths) {
-      strokeShadedPath(haloCtx, path, BRAND.coral, 2.6, 0.08);
+  withBlurHalo(ctx, w, h, Math.max(1, ringWidthPx * 0.022), (haloCtx) => {
+    for (const path of paths) {
+      strokeShadedPath(haloCtx, path, colorHex, 3, 0.18 * alphaMul);
     }
   });
-  for (const path of staticStreakPaths) {
-    strokeShadedPath(ctx, path, BRAND.coral, 2.2, 0.15);
+
+  withBlurHalo(ctx, w, h, 3.5, (haloCtx) => {
+    for (const path of paths) {
+      strokeShadedPath(haloCtx, path, colorHex, 2.6, 0.08 * alphaMul);
+    }
+  });
+  for (const path of paths) {
+    strokeShadedPath(ctx, path, colorHex, 2, 0.12 * alphaMul);
   }
-  for (const path of staticStreakPaths) {
-    strokeShadedPathRgba(ctx, path, [255, 255, 255], 0.7, 0.2);
+  for (const path of paths) {
+    strokeShadedPathRgba(ctx, path, [255, 255, 255], 0.6, 0.07 * alphaMul);
   }
 
   ctx.globalCompositeOperation = "source-over";

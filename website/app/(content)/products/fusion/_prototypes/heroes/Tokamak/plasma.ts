@@ -11,6 +11,19 @@ export interface ShadedPoint extends Pt {
   readonly near: number;
 }
 
+/**
+ * Whether a torus orbit angle sits on the far side of the column, the same
+ * convention `chamber.ts` back-face-culls the column by: `sin(theta) > 0`.
+ * Used to split streaks (by their own `theta0`, short arcs barely move it)
+ * and the helix (by its own per-point `theta`, see `HelixPoint`) into a far
+ * group drawn before the column layer and a near group drawn after it --
+ * real occlusion from actual draw order, not a dimming factor (hc-0-wrc.3
+ * comment 206/207).
+ */
+export function isFarSide(theta: number): boolean {
+  return Math.sin(theta) > 0;
+}
+
 export interface Streak {
   readonly theta0: number;
   readonly arc: number;
@@ -22,6 +35,29 @@ export interface Streak {
   readonly alpha: number;
   readonly flickerSpeed: number;
   readonly flickerPhase: number;
+  /**
+   * 0..1 envelope over `phi`, peaking at the tube's own OUTER mid-line
+   * (`phi` 0, where the torus' `y` offset is 0 and the tube faces the
+   * camera), falling to near zero at the top/bottom silhouette (`phi`
+   * +-PI/2, review 3 F2's feather) and dimmed (not silenced) at the INNER
+   * mid-line (`phi` PI): the inner limb sits at the tube's smallest radius,
+   * closest to the column's own radius, and a full population there filled
+   * in the exact screen area the column's tiles are meant to occlude,
+   * regardless of `theta0` (review 3 F3: the near arc alone already
+   * covered the column). Folded into every projected point's `near` factor
+   * (see `projectStreak`) so the band's own density -- not a hand-set 2D
+   * fade or a column-width check -- gives it both a feathered edge and a
+   * visible gap for the column, without hollowing out the ring's own
+   * density.
+   */
+  readonly weight: number;
+  /** Multiplies the torus' tube radius `a` for this streak only; 1 for the band body, 1.3-2.2 for the sparse "stray" population that reads as the reference's loose outer streaks. */
+  readonly tubeScale: number;
+}
+
+export interface CreateStreakOptions {
+  /** A sparse outer streak, well off the tube's own radius, at a further-dampened weight -- the reference's loose streaks thinning out above/below the band (hc-0-wrc.3 review 3, F2). */
+  readonly stray?: boolean;
 }
 
 /**
@@ -36,7 +72,16 @@ export function createStreak(
   rand: () => number,
   theta0: number,
   phi: number,
+  opts: CreateStreakOptions = {},
 ): Streak {
+  // Peaks at 1 at the outer mid-line (phi 0); the silhouette term alone
+  // falls to 0.12 at top/bottom (+-PI/2) AND at the inner mid-line (phi
+  // PI), the outer-limb term then dims the inner mid-line further (floor
+  // 0.12, same as the silhouette) while leaving the outer mid-line at full
+  // strength -- see the `weight` doc.
+  const silhouetteEnvelope = 0.12 + 0.88 * Math.cos(phi) ** 2;
+  const outerLimbEnvelope = 0.4 + 0.6 * (0.5 + 0.5 * Math.cos(phi));
+  const envelope = silhouetteEnvelope * outerLimbEnvelope;
   return {
     theta0,
     // 0.35-0.7 rad (20-40deg): long enough, at this density and with
@@ -51,6 +96,8 @@ export function createStreak(
     alpha: 0.4 + rand() * 0.45,
     flickerSpeed: 0.3 + rand() * 0.6,
     flickerPhase: rand() * Math.PI * 2,
+    weight: opts.stray ? envelope * 0.25 : envelope,
+    tubeScale: opts.stray ? 1.3 + rand() * 0.9 : 1,
   };
 }
 
@@ -69,14 +116,18 @@ export function projectStreak(
     const tt = theta + (i / (samples - 1) - 0.5) * streak.arc;
     const world = torusPoint(
       torus.R,
-      torus.a,
+      torus.a * streak.tubeScale,
       tt,
       streak.phi,
       torus.y,
       torus.z,
     );
     const proj = project(world, camera);
-    pts.push({ x: proj.x, y: proj.y, near: nearFactor(proj.scale, camera) });
+    pts.push({
+      x: proj.x,
+      y: proj.y,
+      near: nearFactor(proj.scale, camera) * streak.weight,
+    });
   }
   return pts;
 }
@@ -129,11 +180,14 @@ export function projectHelix(
 }
 
 /**
- * Per-point far-side dimming for the helix (hc-0-wrc.3 review 2, F4): unlike
- * `occludeBehindColumn`, which treats a whole short streak as one `theta0`,
- * the helix's `theta` moves across its own length, so each point is tested
- * against the same "behind the column" convention (`sin(theta) > 0` and
- * within the column's projected half-width) individually.
+ * Per-point far-side dimming for the helix (hc-0-wrc.3 review 2, F4): the
+ * filament's own far/near split (see `splitByPredicate` below) already
+ * draws its far run before the column layer and its near run after, but the
+ * filament's far points falling OUTSIDE the column's own projected width
+ * still need this extra dimming (nothing there to occlude them), so each
+ * point is tested against `isFarSide` and the column's projected half-width
+ * individually, unlike `paint.ts`'s streak-group split which treats a whole
+ * short arc as one `theta0`.
  */
 export function occludeHelixBehindColumn(
   pts: readonly HelixPoint[],
@@ -142,7 +196,7 @@ export function occludeHelixBehindColumn(
   factor = 0.3,
 ): HelixPoint[] {
   return pts.map((p) =>
-    Math.sin(p.theta) > 0 && Math.abs(p.x - camera.originX) < columnHalfWidthPx
+    isFarSide(p.theta) && Math.abs(p.x - camera.originX) < columnHalfWidthPx
       ? { ...p, near: p.near * factor }
       : p,
   );
@@ -181,32 +235,4 @@ export function splitByPredicate<T>(
   }
   (currentFar ? far : near).push(current);
   return { far, near };
-}
-
-/**
- * Extra dimming for streak points on the torus' far side, behind the
- * column, on top of the existing near/far `nearFactor` (planner ruling 187
- * item 3: "back streaks pass behind [the column] dimmer or occluded").
- * `theta0` is the streak's own orbit angle (short arcs barely move `theta`,
- * so one value stands in for the whole streak); far-side is `sin(theta0) >
- * 0`, the same convention `chamber.ts` back-face-culls the column by.
- * `columnHalfWidthPx` is the column's own projected half-width at the
- * plasma's height (see `index.tsx`) -- a far-side point within that span of
- * the column's screen-space centre (`camera.originX`) reads as behind it.
- */
-export function occludeBehindColumn(
-  pts: readonly ShadedPoint[],
-  theta0: number,
-  camera: Camera,
-  columnHalfWidthPx: number,
-  factor = 0.35,
-): ShadedPoint[] {
-  if (Math.sin(theta0) <= 0) {
-    return pts as ShadedPoint[];
-  }
-  return pts.map((p) =>
-    Math.abs(p.x - camera.originX) < columnHalfWidthPx
-      ? { ...p, near: p.near * factor }
-      : p,
-  );
 }
