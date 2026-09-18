@@ -1,17 +1,9 @@
 import { BRAND } from "../../../tokens";
-import { hexToRgba, mixHexToRgba } from "./colors";
+import { hexToRgba, mixHexToRgba, WARM_TINT_MAX, whiteRgba } from "./colors";
 import type { FilamentPath } from "./filaments";
 import type { PlasmaLayout } from "./layout";
 
 const SPHERES = ["sphereA", "sphereB"] as const;
-
-/**
- * Caps how far a run's warm tint (`FilamentPath.warm`) can pull its glow
- * colour from cyan toward coral, so the seam-facing hemisphere bleeds warm
- * without the shell losing its one dominant cyan/teal light (README craft
- * bar's restrained palette).
- */
-const WARM_TINT_MAX = 0.3;
 
 function strokeFilament(
   ctx: CanvasRenderingContext2D,
@@ -123,12 +115,7 @@ export function paintStatic(
   }
   ctx.globalCompositeOperation = "source-over";
   for (const path of allStaticPaths) {
-    strokeFilament(
-      ctx,
-      path,
-      `rgba(255,255,255,${path.alpha * 0.8})`,
-      path.width,
-    );
+    strokeFilament(ctx, path, whiteRgba(path.alpha * 0.8), path.width);
   }
 
   // Feather the shells/web out of the copy-clear zone: this only cleans up

@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { BRAND } from "../../../tokens";
 import { useElementMotion } from "../../../visuals/hooks";
-import { hexToRgba, mixHexToRgba } from "./colors";
+import { hexToRgba, mixHexToRgba, WARM_TINT_MAX, whiteRgba } from "./colors";
 import {
   createStrand,
   reseedStrand,
@@ -36,13 +36,6 @@ const CORE_PULSE_PERIOD_MS = 4800;
 const BEAM_SHIMMER_PERIOD_MS = 3200;
 const MOTE_COUNT = 20;
 const MOTE_LIFE_MS = 2600;
-/**
- * Caps how far a run's warm tint (`FilamentPath.warm`) can pull its glow
- * colour from cyan toward coral, so the seam-facing hemisphere bleeds warm
- * without the shell losing its one dominant cyan/teal light (README craft
- * bar's restrained palette). Matches `paint.ts`'s static-layer cap.
- */
-const WARM_TINT_MAX = 0.3;
 
 interface Mote {
   readonly angle: number;
@@ -99,7 +92,7 @@ function strokeWhitePath(
   for (let i = 1; i < path.points.length; i++) {
     ctx.lineTo(path.points[i].x, path.points[i].y);
   }
-  ctx.strokeStyle = `rgba(255,255,255,${path.alpha * alphaMul})`;
+  ctx.strokeStyle = whiteRgba(path.alpha * alphaMul);
   ctx.lineWidth = path.width;
   ctx.stroke();
 }

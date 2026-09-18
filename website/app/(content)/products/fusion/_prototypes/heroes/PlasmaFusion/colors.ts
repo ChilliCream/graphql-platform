@@ -47,3 +47,26 @@ export function mixHexToRgba(
   const b = Math.round(ab + (bb - ab) * t);
   return `rgba(${r},${g},${b},${alpha})`;
 }
+
+/**
+ * White for filament centrelines and hot cores, as an `rgba(...)` string --
+ * the single place this hero builds a white colour (ticket hc-0-wrc.6 /
+ * v12 review minor: "no inline rgba(255,255,255,a) strings or raw
+ * triples"). This is a sibling to `hexToRgba` rather than a call through it:
+ * white has no `#rrggbb` source to parse (`BRAND`/`SERVICE_SPECTRUM` carry
+ * no white, and the folder's "no hex literals" rule forbids adding one just
+ * to feed the parser), so the RGB triple is written directly here, once.
+ */
+export function whiteRgba(alpha: number): string {
+  return `rgba(255,255,255,${alpha})`;
+}
+
+/**
+ * Caps how far a run's warm tint (`FilamentPath.warm`) can pull its glow
+ * colour from cyan toward coral, so the seam-facing hemisphere bleeds warm
+ * without the shell losing its one dominant cyan/teal light (README craft
+ * bar's restrained palette). Shared by `index.tsx` (live layer) and
+ * `paint.ts` (static layer) -- ticket hc-0-wrc.6 review minor: was
+ * duplicated in both files.
+ */
+export const WARM_TINT_MAX = 0.3;
