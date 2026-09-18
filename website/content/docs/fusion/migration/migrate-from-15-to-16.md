@@ -650,16 +650,16 @@ Per-endpoint overrides are still supported but now use a delegate pattern instea
 app.MapGraphQL().WithOptions(o => o.EnableGetRequests = false);
 ```
 
-### Batching is now disabled by default
+### Request batching is now disabled by default
 
-In v15, request batching was enabled by default (`EnableBatching = true`). In v16, batching is **disabled by default** as a security measure. The `EnableBatching` property has been replaced by `Batching`, which uses the `AllowedBatching` flags enum for fine-grained control:
+In v15, request batching was enabled by default (`EnableBatching = true`). In v16, **variable batching is enabled by default** and **request batching is disabled by default**. The `EnableBatching` property has been replaced by `Batching`, which uses the `AllowedBatching` flags enum for fine-grained control:
 
 ```diff
 -options.EnableBatching = true;
 +options.Batching = AllowedBatching.All;
 ```
 
-If you were relying on the previous default, you need to explicitly enable batching:
+If you were relying on request batching, you need to explicitly enable it:
 
 ```csharp
 gatewayBuilder.ModifyServerOptions(o => o.Batching = AllowedBatching.All);

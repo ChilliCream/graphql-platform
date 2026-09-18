@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion;
 public class VariableBatchingTests : FusionTestBase
 {
     [Fact]
-    public async Task Execute_With_Multiple_Variable_Sets_Produces_A_Result_Per_Set()
+    public async Task Execute_Should_ProduceAResultPerVariableSet_When_ServerOptionsAreDefault()
     {
         // arrange
         // Several variable sets run as parallel plan executions over the one shared request arena.
@@ -22,8 +22,7 @@ public class VariableBatchingTests : FusionTestBase
         using var gateway = await CreateCompositeSchemaAsync(
             [
                 ("A", serverA)
-            ],
-            configureGatewayBuilder: b => b.ModifyServerOptions(o => o.Batching = AllowedBatching.All));
+            ]);
 
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
 
