@@ -1,4 +1,5 @@
 using System.Net;
+using HotChocolate.Serialization;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Formatters;
@@ -59,6 +60,9 @@ public interface IHttpResponseFormatter
     /// <param name="version">
     /// The schema version.
     /// </param>
+    /// <param name="specVersion">
+    /// The GraphQL specification edition to use when formatting the schema.
+    /// </param>
     /// <param name="cancellationToken">
     /// The request cancellation token.
     /// </param>
@@ -69,6 +73,7 @@ public interface IHttpResponseFormatter
         HttpResponse response,
         ISchemaDefinition schema,
         ulong version,
+        GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -84,6 +89,9 @@ public interface IHttpResponseFormatter
     /// <param name="version">
     /// The schema version.
     /// </param>
+    /// <param name="specVersion">
+    /// The GraphQL specification edition to use when formatting the schema.
+    /// </param>
     /// <param name="cancellationToken">
     /// The request cancellation token.
     /// </param>
@@ -94,5 +102,6 @@ public interface IHttpResponseFormatter
         HttpResponse response,
         ISchemaDefinition schema,
         ulong version,
+        GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken);
 }

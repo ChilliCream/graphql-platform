@@ -24,8 +24,8 @@ namespace HotChocolate.AspNetCore.Formatters;
 /// </summary>
 public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 {
-    private readonly ConcurrentDictionary<string, CachedSchemaOutput> _schemaCache = new(StringComparer.Ordinal);
-    private readonly ConcurrentDictionary<string, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<SchemaCacheKey, CachedSchemaOutput> _schemaCache = [];
+    private readonly ConcurrentDictionary<SchemaCacheKey, CachedSemanticNonNullSchemaOutput> _semanticNonNullSchemaCache = [];
     private readonly ITimeProvider _timeProvider;
     private readonly FormatInfo _defaultFormat;
     private readonly FormatInfo _graphqlResponseFormat;
@@ -230,69 +230,69 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         switch (result)
         {
             case OperationResult operationResult:
-            {
-                var statusCode = (int)OnDetermineStatusCode(operationResult, format, proposedStatusCode);
-
-                response.ContentType = format.ContentType;
-                response.StatusCode = statusCode;
-
-                if (result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
-                    && value is CacheControlHeaderValue cacheControlHeaderValue)
                 {
-                    response.GetTypedHeaders().CacheControl = cacheControlHeaderValue;
+                    var statusCode = (int)OnDetermineStatusCode(operationResult, format, proposedStatusCode);
+
+                    response.ContentType = format.ContentType;
+                    response.StatusCode = statusCode;
+
+                    if (result.ContextData.TryGetValue(ExecutionContextData.CacheControlHeaderValue, out var value)
+                        && value is CacheControlHeaderValue cacheControlHeaderValue)
+                    {
+                        response.GetTypedHeaders().CacheControl = cacheControlHeaderValue;
+                    }
+
+                    if (result.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
+                        && varyValue is string varyHeaderValue)
+                    {
+                        response.Headers.Vary = varyHeaderValue;
+                    }
+
+                    OnWriteResponseHeaders(operationResult, format, response.Headers);
+
+                    await format.Formatter.FormatAsync(
+                        result,
+                        response.BodyWriter,
+                        formatFlags,
+                        cancellationToken: cancellationToken);
+                    break;
                 }
-
-                if (result.ContextData.TryGetValue(ExecutionContextData.VaryHeaderValue, out var varyValue)
-                    && varyValue is string varyHeaderValue)
-                {
-                    response.Headers.Vary = varyHeaderValue;
-                }
-
-                OnWriteResponseHeaders(operationResult, format, response.Headers);
-
-                await format.Formatter.FormatAsync(
-                    result,
-                    response.BodyWriter,
-                    formatFlags,
-                    cancellationToken: cancellationToken);
-                break;
-            }
 
             case OperationResultBatch resultBatch:
-            {
-                var statusCode = (int)OnDetermineStatusCode(resultBatch, format, proposedStatusCode);
+                {
+                    var statusCode = (int)OnDetermineStatusCode(resultBatch, format, proposedStatusCode);
 
-                response.ContentType = format.ContentType;
-                response.StatusCode = statusCode;
-                response.Headers.CacheControl = HttpHeaderValues.NoCache;
-                OnWriteResponseHeaders(resultBatch, format, response.Headers);
-                await response.Body.FlushAsync(cancellationToken);
+                    response.ContentType = format.ContentType;
+                    response.StatusCode = statusCode;
+                    response.Headers.CacheControl = HttpHeaderValues.NoCache;
+                    OnWriteResponseHeaders(resultBatch, format, response.Headers);
+                    await response.Body.FlushAsync(cancellationToken);
 
-                await format.Formatter.FormatAsync(
-                    result,
-                    response.BodyWriter,
-                    formatFlags,
-                    cancellationToken: cancellationToken);
-                break;
-            }
+                    await format.Formatter.FormatAsync(
+                        result,
+                        response.BodyWriter,
+                        formatFlags,
+                        cancellationToken: cancellationToken);
+                    break;
+                }
 
             case IResponseStream responseStream:
-            {
-                var statusCode = (int)OnDetermineStatusCode(responseStream, format, proposedStatusCode);
+                {
+                    var statusCode = (int)OnDetermineStatusCode(responseStream, format, proposedStatusCode);
 
-                response.ContentType = format.ContentType;
-                response.StatusCode = statusCode;
-                response.Headers.CacheControl = HttpHeaderValues.NoCache;
-                OnWriteResponseHeaders(responseStream, format, response.Headers);
-                await response.Body.FlushAsync(cancellationToken);
+                    response.ContentType = format.ContentType;
+                    response.StatusCode = statusCode;
+                    response.Headers.CacheControl = HttpHeaderValues.NoCache;
+                    OnWriteResponseHeaders(responseStream, format, response.Headers);
+                    await response.Body.FlushAsync(cancellationToken);
 
-                await format.Formatter.FormatAsync(
-                    result,
-                    response.BodyWriter,
-                    formatFlags,
-                    cancellationToken: cancellationToken);
-                break;
-            }
+                    await format.Formatter.FormatAsync(
+                        result,
+                        response.BodyWriter,
+                        formatFlags,
+                        cancellationToken: cancellationToken);
+                    break;
+                }
 
             default:
                 // we should not hit this point except in the case that we introduce a new
@@ -318,18 +318,20 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         HttpResponse response,
         ISchemaDefinition schema,
         ulong version,
+        GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken)
     {
-        var output = _schemaCache.GetOrAdd(schema.Name, Update);
+        var key = new SchemaCacheKey(schema.Name, specVersion);
+        var output = _schemaCache.GetOrAdd(key, Update);
 
         if (output.Version < version)
         {
             lock (_schemaCache)
             {
-                if (!_schemaCache.TryGetValue(schema.Name, out output)
+                if (!_schemaCache.TryGetValue(key, out output)
                     || output.Version < version)
                 {
-                    _schemaCache[schema.Name] = output = Update(schema.Name);
+                    _schemaCache[key] = output = Update(key);
                 }
             }
         }
@@ -344,26 +346,28 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         await response.Body.WriteAsync(memory, cancellationToken);
         return;
 
-        CachedSchemaOutput Update(string _)
-            => new(schema, version, _timeProvider.UtcNow);
+        CachedSchemaOutput Update(SchemaCacheKey _)
+            => new(schema, version, specVersion, _timeProvider.UtcNow);
     }
 
     public async ValueTask FormatSemanticNonNullSchemaAsync(
         HttpResponse response,
         ISchemaDefinition schema,
         ulong version,
+        GraphQLSpecVersion? specVersion,
         CancellationToken cancellationToken)
     {
-        var output = _semanticNonNullSchemaCache.GetOrAdd(schema.Name, Update);
+        var key = new SchemaCacheKey(schema.Name, specVersion);
+        var output = _semanticNonNullSchemaCache.GetOrAdd(key, Update);
 
         if (output.Version < version)
         {
             lock (_semanticNonNullSchemaCache)
             {
-                if (!_semanticNonNullSchemaCache.TryGetValue(schema.Name, out output)
+                if (!_semanticNonNullSchemaCache.TryGetValue(key, out output)
                     || output.Version < version)
                 {
-                    _semanticNonNullSchemaCache[schema.Name] = output = Update(schema.Name);
+                    _semanticNonNullSchemaCache[key] = output = Update(key);
                 }
             }
         }
@@ -378,8 +382,8 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         await response.Body.WriteAsync(memory, cancellationToken);
         return;
 
-        CachedSemanticNonNullSchemaOutput Update(string _)
-            => new(schema, version, _timeProvider.UtcNow);
+        CachedSemanticNonNullSchemaOutput Update(SchemaCacheKey _)
+            => new(schema, version, specVersion, _timeProvider.UtcNow);
     }
 
     /// <summary>
@@ -883,14 +887,19 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         private readonly byte[] _schema;
 
-        public CachedSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
+        public CachedSchemaOutput(
+            ISchemaDefinition schema,
+            ulong version,
+            GraphQLSpecVersion? specVersion,
+            DateTimeOffset lastModifiedTime)
         {
             _schema = Encoding.UTF8.GetBytes(
                 SchemaFormatter.FormatAsString(
                     schema,
                     new SchemaFormatterOptions
                     {
-                        IncludeInternalDirectives = false
+                        IncludeInternalDirectives = false,
+                        SpecVersion = specVersion
                     }));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
@@ -926,7 +935,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
     {
         private readonly byte[] _schema;
 
-        public CachedSemanticNonNullSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
+        public CachedSemanticNonNullSchemaOutput(
+            ISchemaDefinition schema,
+            ulong version,
+            GraphQLSpecVersion? specVersion,
+            DateTimeOffset lastModifiedTime)
         {
             _schema = Encoding.UTF8.GetBytes(
                 SchemaFormatter.FormatAsString(
@@ -934,6 +947,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                     new SchemaFormatterOptions
                     {
                         IncludeInternalDirectives = false,
+                        SpecVersion = specVersion,
                         RewriteToSemanticNonNull = true
                     }));
             FileName = GetSchemaFileName(schema);
@@ -965,4 +979,6 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
                 ? "schema.graphql"
                 : schema.Name + ".schema.graphql";
     }
+
+    private readonly record struct SchemaCacheKey(string SchemaName, GraphQLSpecVersion? SpecVersion);
 }
