@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Language;
 using HotChocolate.Types.Mutable;
 using HotChocolate.Types.Mutable.Serialization;
 
@@ -24,6 +25,59 @@ public class SchemaFormatterTests
 
         // assert
         Assert.Throws<ArgumentNullException>(Act);
+    }
+
+    [Fact]
+    public void Format_Should_Run_SpecVersion_Rewriter_After_Document_Formatter()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              hello: String
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        schema.Features.Set<ISchemaDocumentFormatter>(new AppendDirectiveFormatter());
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(
+            schema,
+            new SchemaFormatterOptions { SpecVersion = GraphQLSpecVersion.October2021 });
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              hello: String
+            }
+            """);
+    }
+
+    [Fact]
+    public void Format_Should_Preserve_PostProcessed_Document_Instance_When_SpecVersion_IsNull()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              hello: String
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+        DocumentNode? postProcessedDocument = null;
+        schema.Features.Set<ISchemaDocumentFormatter>(
+            new CaptureDocumentFormatter(document => postProcessedDocument = document));
+
+        // act
+        var result = SchemaFormatter.FormatAsDocument(schema, new SchemaFormatterOptions { SpecVersion = null });
+
+        // assert
+        Assert.Same(postProcessedDocument, result);
     }
 
     [Fact]
@@ -667,5 +721,32 @@ public class SchemaFormatterTests
               foo: String
             }
             """);
+    }
+
+    private sealed class AppendDirectiveFormatter : ISchemaDocumentFormatter
+    {
+        public DocumentNode Format(ISchemaDefinition schema, DocumentNode schemaDocument)
+        {
+            var definitions = schemaDocument.Definitions.ToList();
+            definitions.Add(
+                new DirectiveDefinitionNode(
+                    null,
+                    new NameNode("onlyOnDirective"),
+                    null,
+                    false,
+                    [],
+                    new[] { new NameNode("DIRECTIVE_DEFINITION") }));
+            return new DocumentNode(null, definitions);
+        }
+    }
+
+    private sealed class CaptureDocumentFormatter(Action<DocumentNode> capture)
+        : ISchemaDocumentFormatter
+    {
+        public DocumentNode Format(ISchemaDefinition schema, DocumentNode schemaDocument)
+        {
+            capture(schemaDocument);
+            return schemaDocument;
+        }
     }
 }
