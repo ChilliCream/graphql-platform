@@ -23,7 +23,6 @@ internal static class ThrowHelper
                 .SetCode(ErrorCodes.Execution.MustBeInputType)
                 .SetExtension("variable", variableDefinition.Variable.Name.Value)
                 .SetExtension("type", variableDefinition.Type.ToString())
-                .AddLocation(variableDefinition)
                 .Build());
     }
 
@@ -37,7 +36,6 @@ internal static class ThrowHelper
                     variableDefinition.Variable.Name.Value)
                 .SetCode(ErrorCodes.Execution.NonNullViolation)
                 .SetExtension("variable", variableDefinition.Variable.Name.Value)
-                .AddLocation(variableDefinition)
                 .Build());
     }
 
@@ -54,8 +52,7 @@ internal static class ThrowHelper
                 ThrowHelper_VariableValueInvalidType_Message,
                 variableDefinition.Variable.Name.Value)
             .SetCode(ErrorCodes.Execution.InvalidType)
-            .SetExtension("variable", variableDefinition.Variable.Name.Value)
-            .AddLocation(variableDefinition);
+            .SetExtension("variable", variableDefinition.Variable.Name.Value);
 
         if (exception is not null)
         {
@@ -79,7 +76,6 @@ internal static class ThrowHelper
                     ThrowHelper_FieldDoesNotExistOnType,
                     selection.Name.Value,
                     typeName)
-                .AddLocation(selection)
                 .Build());
     }
 
@@ -127,7 +123,6 @@ internal static class ThrowHelper
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_ResolverContext_LiteralsNotSupported_Message)
             .SetPath(path)
-            .AddLocation(field)
             .SetExtension("fieldName", field.Name)
             .SetExtension("argumentName", argumentName)
             .SetExtension("requestedType", requestedType.FullName)
@@ -141,7 +136,6 @@ internal static class ThrowHelper
                 argumentName,
                 requestedType.FullName ?? requestedType.Name)
             .SetPath(path)
-            .AddLocation(field)
             .SetExtension("fieldName", field.Name)
             .SetExtension("argumentName", argumentName)
             .SetExtension("requestedType", requestedType.FullName)
@@ -157,7 +151,6 @@ internal static class ThrowHelper
                 actualType.FullName ?? actualType.Name,
                 requestedType.FullName ?? actualType.Name)
             .SetPath(path)
-            .AddLocation(field)
             .SetExtension("fieldName", field.Name)
             .SetExtension("argumentName", argumentName)
             .SetExtension("requestedType", requestedType.FullName)
@@ -172,7 +165,6 @@ internal static class ThrowHelper
                 argumentName,
                 field.Name.Value)
             .SetPath(path)
-            .AddLocation(field)
             .SetExtension("fieldName", field.Name)
             .SetExtension("argumentName", argumentName)
             .Build());
@@ -228,10 +220,9 @@ internal static class ThrowHelper
             .AddLocation(node)
             .Build());
 
-    public static GraphQLException FieldVisibility_ValueNotSupported(IValueNode value) =>
+    public static GraphQLException FieldVisibility_ValueNotSupported() =>
         new(ErrorBuilder.New()
             .SetMessage(ThrowHelper_FieldVisibility_ValueNotSupported_Message)
-            .AddLocation(value)
             .Build());
 
     public static GraphQLException QueryCompiler_CompositeTypeSelectionSet(
