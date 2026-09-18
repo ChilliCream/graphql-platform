@@ -115,12 +115,6 @@ internal static class ErrorHelper
                 .SetMessage(ErrorHelper_StateInvalidForOperationResolver_Message)
                 .Build());
 
-    public static OperationResult StateInvalidForOperationVariableCoercion()
-        => OperationResult.FromError(
-            ErrorBuilder.New()
-                .SetMessage(ErrorHelper_StateInvalidForOperationVariableCoercion_Message)
-                .Build());
-
     public static OperationResult StateInvalidForOperationExecution()
         => OperationResult.FromError(
             ErrorBuilder.New()
