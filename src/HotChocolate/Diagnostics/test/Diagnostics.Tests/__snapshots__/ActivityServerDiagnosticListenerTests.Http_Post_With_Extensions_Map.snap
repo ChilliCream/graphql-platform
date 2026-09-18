@@ -141,6 +141,27 @@
                   "event": []
                 },
                 {
+                  "OperationName": "GraphQL Operation Planning",
+                  "DisplayName": "GraphQL Operation Planning",
+                  "Kind": "Internal",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "plan"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    }
+                  ],
+                  "event": []
+                },
+                {
                   "OperationName": "GraphQL Variable Coercion",
                   "DisplayName": "GraphQL Variable Coercion",
                   "Kind": "Internal",
@@ -178,27 +199,6 @@
                     {
                       "Key": "graphql.operation.typeCost",
                       "Value": 2.0
-                    }
-                  ],
-                  "event": []
-                },
-                {
-                  "OperationName": "GraphQL Operation Planning",
-                  "DisplayName": "GraphQL Operation Planning",
-                  "Kind": "Internal",
-                  "Status": "Ok",
-                  "tags": [
-                    {
-                      "Key": "graphql.processing.type",
-                      "Value": "plan"
-                    },
-                    {
-                      "Key": "graphql.document.hash",
-                      "Value": "md5:cc68dfd8c0c54a586a03c35296c5d1f9"
-                    },
-                    {
-                      "Key": "graphql.operation.type",
-                      "Value": "query"
                     }
                   ],
                   "event": []
