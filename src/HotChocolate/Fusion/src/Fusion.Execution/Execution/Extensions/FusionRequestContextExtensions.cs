@@ -1,11 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 // ReSharper disable once CheckNamespace
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -95,54 +93,6 @@ public static class FusionRequestContextExtensions
 
         context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
         context.Features.Set<IOperation>(plan.Operation);
-    }
-
-    /// <summary>
-    /// Gets the normalized operation document from the request context. The normalized
-    /// document is produced by the document normalization pipeline stage and holds exactly
-    /// one definition, the operation, at <c>Definitions[0]</c>.
-    /// </summary>
-    /// <param name="context">
-    /// The request context.
-    /// </param>
-    /// <returns>
-    /// The normalized operation document.
-    /// </returns>
-    internal static DocumentNode GetNormalizedDocument(
-        this RequestContext context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        return context.OperationDocumentInfo.NormalizedDocument
-            ?? throw ThrowHelper.NormalizedDocumentNotSet();
-    }
-
-    /// <summary>
-    /// Tries to get the normalized operation definition from the request context.
-    /// </summary>
-    /// <param name="context">
-    /// The request context.
-    /// </param>
-    /// <param name="operation">
-    /// The normalized operation definition, if one is available.
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if a normalized operation definition is available, otherwise <c>false</c>.
-    /// </returns>
-    internal static bool TryGetNormalizedOperation(
-        this RequestContext context,
-        [NotNullWhen(true)] out OperationDefinitionNode? operation)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        if (context.OperationDocumentInfo.NormalizedDocument is { Definitions: [OperationDefinitionNode op] })
-        {
-            operation = op;
-            return true;
-        }
-
-        operation = null;
-        return false;
     }
 
     internal static bool CollectOperationPlanTelemetry(

@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Caching.Memory;
 using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Execution.CostAnalysis;
 using HotChocolate.Fusion.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,11 +37,13 @@ internal sealed class CostAnalysisMiddleware
             return next(context);
         }
 
-        if (!context.TryGetNormalizedOperation(out var operation))
+        if (!context.TryGetNormalizedDocument(out _))
         {
             context.Result = ErrorHelper.StateInvalidForCostAnalysis();
             return default;
         }
+
+        var operation = context.GetNormalizedOperation();
 
         var isWarmup = context.IsWarmupRequest();
 

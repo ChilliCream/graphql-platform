@@ -1,5 +1,6 @@
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Fusion.Configuration;
 using HotChocolate.Fusion.Execution.Caching;
 using HotChocolate.Language;
