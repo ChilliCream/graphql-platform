@@ -1,6 +1,6 @@
 import { BRAND } from "../../../tokens";
 import type { InstrumentLight, Tile } from "./chamber";
-import { hexToRgba, mixHexToRgba } from "./colors";
+import { hexToRgba, mixHexToRgba, whiteToRgba } from "./colors";
 import type { ShadedPoint } from "./plasma";
 
 /**
@@ -33,11 +33,16 @@ export function strokeShadedPath(
   }
 }
 
-/** Same as `strokeShadedPath` but with a fixed `rgba(...)` colour string (white-hot centres). */
+/**
+ * Same as `strokeShadedPath` but for a colour `hexToRgba`/`mixHexToRgba`
+ * cannot build (white has no `BRAND` hex): `toRgba` is `whiteToRgba` or
+ * `warmWhiteToRgba` from `./colors` (white-hot centres), called with the
+ * same per-segment alpha `strokeShadedPath` computes from `hexToRgba`.
+ */
 export function strokeShadedPathRgba(
   ctx: CanvasRenderingContext2D,
   pts: readonly ShadedPoint[],
-  rgb: readonly [number, number, number],
+  toRgba: (alpha: number) => string,
   baseWidth: number,
   baseAlpha: number,
 ): void {
@@ -51,7 +56,7 @@ export function strokeShadedPathRgba(
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(b.x, b.y);
-    ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${Math.min(1, baseAlpha * near)})`;
+    ctx.strokeStyle = toRgba(Math.min(1, baseAlpha * near));
     ctx.lineWidth = Math.max(0.4, baseWidth * near);
     ctx.stroke();
   }
@@ -169,7 +174,7 @@ function paintTile(ctx: CanvasRenderingContext2D, tile: Tile): void {
       ctx.beginPath();
       ctx.arc(d.x, d.y + r * 0.3, r, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = `rgba(255,255,255,${0.3 * tile.shade + 0.06})`;
+      ctx.fillStyle = whiteToRgba(0.3 * tile.shade + 0.06);
       ctx.beginPath();
       ctx.arc(d.x - r * 0.2, d.y - r * 0.2, r * 0.5, 0, Math.PI * 2);
       ctx.fill();
@@ -371,7 +376,7 @@ export function paintPlasmaLayer(
     strokeShadedPath(ctx, path, colorHex, 2, 0.12 * alphaMul);
   }
   for (const path of paths) {
-    strokeShadedPathRgba(ctx, path, [255, 255, 255], 0.6, 0.07 * alphaMul);
+    strokeShadedPathRgba(ctx, path, whiteToRgba, 0.6, 0.07 * alphaMul);
   }
 
   ctx.globalCompositeOperation = "source-over";

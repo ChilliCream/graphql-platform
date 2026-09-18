@@ -9,7 +9,7 @@ import {
   buildInstrumentLights,
   type InstrumentLight,
 } from "./chamber";
-import { hexToRgba } from "./colors";
+import { hexToRgba, warmWhiteToRgba, whiteToRgba } from "./colors";
 import { project, torusPoint } from "./geometry";
 import { computeLayout, type TokamakLayout } from "./layout";
 import {
@@ -461,7 +461,7 @@ export default function Tokamak() {
           strokeShadedPathRgba(
             liveCtx!,
             pts,
-            [255, 255, 255],
+            whiteToRgba,
             0.9 * hot,
             flicker * 0.3 * alphaMul * hot,
           );
@@ -478,7 +478,7 @@ export default function Tokamak() {
           strokeShadedPathRgba(
             liveCtx!,
             run,
-            [255, 244, 240],
+            warmWhiteToRgba,
             1.2,
             0.5 * alphaMul,
           );
@@ -649,7 +649,7 @@ export default function Tokamak() {
         torusCenter.y,
         Math.max(1, coreR),
       );
-      core.addColorStop(0, `rgba(255,255,255,${0.35 * coreDensityScale})`);
+      core.addColorStop(0, whiteToRgba(0.35 * coreDensityScale));
       core.addColorStop(
         0.5,
         hexToRgba(BRAND.coral, 0.25 * breathe * coreDensityScale),
