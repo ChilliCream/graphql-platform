@@ -1,28 +1,19 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Implements the Claude Code turn-boundary event state machine: presence
-/// upsert on <c>SessionStart</c>, the unread-mail digest on
-/// <c>UserPromptSubmit</c>, the Stop gate, and presence teardown on
-/// <c>SessionEnd</c>. Every member is fail-open by contract: it never
-/// throws for a condition the command layer's caller cannot act on
-/// (unresolvable workspace, unclaimed session, contended database), instead
-/// returning <see cref="ClaudeHookOutcome.Neutral"/>. The command layer
-/// wraps every call in an additional catch-all and timeout regardless, so
-/// this type does not have to be exhaustive about it.
+/// Implements the Claude Code turn-boundary event state machine: presence upsert on
+/// <c>SessionStart</c>, the unread-mail digest on <c>UserPromptSubmit</c>, the Stop
+/// gate, and presence teardown on <c>SessionEnd</c>. Every member is fail-open by
+/// contract, returning <see cref="ClaudeHookOutcome.Neutral"/> instead of throwing.
 /// </summary>
 internal interface IClaudeHookHandler
 {
     /// <summary>
-    /// Upserts the session's presence row. <paramref name="dryRun"/> pins the
-    /// row's generation to a fixed sentinel identity instead of walking this
-    /// process's ancestors for a live Claude Code parent, so a fixture-driven
-    /// test (or a human replaying a captured payload) can drive the full
-    /// adapter without a real Claude Code process above it, and so the same
-    /// generation resolves consistently across separate process invocations.
-    /// Dry-run still writes presence/ledger/budget rows to the real
-    /// workspace database; a caller must not replay it with a live
-    /// session's session_id.
+    /// Upserts the session's presence row. <paramref name="dryRun"/> pins the row's
+    /// generation to a fixed sentinel identity instead of walking this process's
+    /// ancestors for a live Claude Code parent. Dry-run still writes to the real
+    /// workspace database; a caller must not replay it with a live session's
+    /// session_id.
     /// </summary>
     Task<ClaudeHookOutcome> HandleSessionStartAsync(
         ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);

@@ -25,9 +25,7 @@ internal sealed class OpencodeHookHandler(
     public async Task<OpencodeHookOutcome> HandleSessionCreatedAsync(
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
-        // dryRun has no effect here: unlike ClaudeHookHandler, opencode has
-        // no session-file side channel to skip in a dry run. Retained for
-        // interface parity with the Claude and Codex hook handlers.
+        // dryRun has no effect here: opencode has no session-file side channel to skip.
         _ = dryRun;
 
         var resolved = await ResolveAsync(payload, cancellationToken);
@@ -37,20 +35,9 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        // A plain `opencode` TUI never binds an HTTP server - it reaches
-        // its own server inside a Worker over postMessage RPC - and its
-        // serverUrl then falls back to a hardcoded http://localhost:4096
-        // placeholder that looks like a healthy endpoint. Trusting it is
-        // worse than a dead port: 4096 is also opencode's own
-        // `opencode serve` default, so a push aimed at this session could
-        // land in an unrelated process's session instead. Only register it
-        // as endpoint_kind='opencode-server' when the shim proved, by
-        // reading the plugin input's serverUrl getter twice and comparing
-        // by reference, that this process actually bound a server: an
-        // unbound opencode builds a fresh placeholder URL object on every
-        // read, so only a genuinely bound server returns the SAME object
-        // both times (see EndpointAddress.IsTrustedOpencodeServerUrl and
-        // hc-10-w61.1).
+        // Register the endpoint only when EndpointAddress.IsTrustedOpencodeServerUrl
+        // confirms this process actually bound a server. An unproven serverUrl is
+        // treated as unregistered instead of trusted.
         var trusted = EndpointAddress.IsTrustedOpencodeServerUrl(payload.ServerUrl!, payload.ServerBound);
         var (endpointKind, endpointAddr, endpointSecret) = trusted
             ? (AgentSessionEndpointKind.OpencodeServer, payload.ServerUrl!, payload.ServerPassword)
@@ -72,20 +59,14 @@ internal sealed class OpencodeHookHandler(
                 resolved.Generation, payload.HarnessVersion, cancellationToken);
         }
 
-        // Arms the first-prompt announcement so a session that goes idle
-        // before its first chat message still announces once, exactly as a
-        // session with prior chat activity would. This rides the
-        // chat.message hook's own response, never HTTP, so it works even
-        // when nothing is proven to be listening.
+        // Arms the first-prompt announcement so a session that goes idle before its
+        // first chat message still announces once.
         await sessionRegistry.ArmAnnouncementAsync(resolved.Generation, cancellationToken);
 
         if (trusted)
         {
-            // The idle-push gate spends real HTTP pushes, so it is only
-            // armed for an endpoint proven to belong to this process. An
-            // untrusted endpoint stays endpoint_kind='none', which the
-            // dispatcher already treats as "no-endpoint" before it would
-            // ever consult this gate (see ActorWakeDispatcher).
+            // The idle-push gate is armed only for an endpoint proven to belong to
+            // this process.
             await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
         }
 
@@ -111,35 +92,17 @@ internal sealed class OpencodeHookHandler(
 
         var row = await sessionRegistry.FindByGenerationAsync(resolved.Generation, cancellationToken);
 
-        // The announcement claims on emission, not on the attempt: it clears
-        // the instant this turn actually shows it, but re-arms whenever the
-        // shim reports (payload.Delivered - see
-        // OpencodeHooksTemplate.appendParts/appendOutcomes) that the PREVIOUS
-        // turn's response never made it onto output.parts. false means
-        // exactly that: the marker is re-armed (idempotent if it was never
-        // cleared) and that turn's still-unread digest-channel reservations
-        // are released so the same mail is re-offered rather than lost. This
-        // can arrive on a Nitro-pushed payload too (the shim reports the
-        // outcome of the last genuine turn regardless of what pushed the
-        // next one), so it is handled here, above the NitroPushed early
-        // return below, rather than being dropped with it. true, or an
-        // absent field from a shim too old to report at all, needs no
-        // action: an absent field still degrades an older shim to the same
-        // at-most-once behaviour it has today, since nothing here re-arms on
-        // it and the marker stays wherever the last claim left it.
+        // payload.Delivered == false means the previous turn's response never reached
+        // output.parts: re-arm the announcement and release that turn's still-unread
+        // digest reservations so the same mail is re-offered.
         if (payload.Delivered == false)
         {
             await sessionRegistry.ArmAnnouncementAsync(resolved.Generation, cancellationToken);
 
             if (row?.AgentName is { } releaseActor)
             {
-                // Not a compensation for a caught exception (see the
-                // ClaimAnnouncementAsync catch below): this is the ordinary,
-                // non-exceptional path for a turn the shim reports as
-                // undelivered, with no prior-turn reservation list on hand
-                // to release exactly, so it re-queries what is still unread
-                // and keeps the turn's own token rather than swallowing a
-                // genuine failure here.
+                // Re-queries what is still unread, since the previous turn's exact
+                // reservation list is not available here.
                 var stillUnread = await mailStore.QueryInboxAsync(
                     new MailInboxFilter { Actor = releaseActor, UnreadOnly = true, Limit = MaxDigestMessages },
                     cancellationToken);
@@ -157,23 +120,16 @@ internal sealed class OpencodeHookHandler(
 
         if (payload.NitroPushed)
         {
-            // A marked, Nitro-pushed turn never rearms the idle-push gate
-            // and never receives the announcement or digest injection this
-            // method exists to add: it is Nitro's own delivery, not a
-            // genuine prompt from the user.
+            // A Nitro-pushed turn is Nitro's own delivery, not a genuine prompt from
+            // the user, so it never rearms the idle-push gate or receives an
+            // announcement or digest.
             return OpencodeHookOutcome.Neutral;
         }
 
         if (row?.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
         {
-            // The idle-push gate spends real HTTP pushes, so it is only
-            // armed for a session whose endpoint was proven to belong to
-            // this process (see HandleSessionCreatedAsync and
-            // EndpointAddress.IsTrustedOpencodeServerUrl). A session
-            // demoted to endpoint_kind='none' would otherwise still arm
-            // the gate here on every genuine chat message, even though the
-            // dispatcher can never spend it - the row never has a URL to
-            // push into.
+            // The idle-push gate is rearmed only for a session whose endpoint was
+            // proven to belong to this process.
             await sessionRegistry.RearmIdlePushAsync(resolved.Generation, cancellationToken);
         }
 
@@ -184,15 +140,8 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        // Build the digest before claiming the announcement: BuildDigestAsync
-        // is the fallible half of this turn (mail-store or ledger failures
-        // that OpencodeHookExecutor's fail-open catch-all turns into a
-        // neutral response with nothing delivered), so a failure here never
-        // burns a claim for a response this turn never returns. The claim
-        // itself can still fail after the digest reservation already
-        // committed, so it is wrapped rather than left as the assumed last
-        // write: a failure here would otherwise burn the reservation for a
-        // response this turn also never returns.
+        // Build the digest before claiming the announcement, so a failure here never
+        // burns an announcement claim for a response this turn never returns.
         var digest = await BuildDigestAsync(
             resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
         bool announce;
@@ -203,11 +152,8 @@ internal sealed class OpencodeHookHandler(
         }
         catch
         {
-            // Release exactly the ids this turn reserved (digest.ReservedIds),
-            // never a re-query of the whole unread inbox: an id another
-            // consumer holds must stay held, or that mail gets delivered
-            // twice. See ReleaseCompensatingReservationAsync for why the
-            // release itself uses neither cancellationToken nor a rethrow.
+            // Releases exactly the ids this turn reserved, never a re-query of the
+            // whole unread inbox, so an id another consumer holds stays held.
             await ReleaseCompensatingReservationAsync(
                 resolved.Generation, digest.ReservedIds, AgentSessionChannel.Digest);
 
@@ -246,14 +192,9 @@ internal sealed class OpencodeHookHandler(
             return OpencodeHookOutcome.Neutral;
         }
 
-        // Heartbeat/presence only: ActorWakeDispatcher is the idle-push
-        // gate's sole claimant (see IAgentSessionRegistry.ClaimIdlePushAsync).
-        // This event's own response is discarded by the shim (opencode's
-        // session-idle hook has no output channel;
-        // OpencodeHookExecutor.ToResponse never reads anything beyond
-        // Parts), so claiming the gate or reserving a delivery here would
-        // only race the dispatcher for the same one-shot push with nothing
-        // to show for it - see the hc-10-5n6.2 planner ruling.
+        // Heartbeat/presence only: this event's response carries no output channel,
+        // so claiming the idle-push gate or reserving a delivery here would only
+        // race ActorWakeDispatcher for the same one-shot push.
         await sessionRegistry.TouchAsync(resolved.Generation, cancellationToken);
 
         return OpencodeHookOutcome.Neutral;
@@ -289,13 +230,9 @@ internal sealed class OpencodeHookHandler(
             return DigestBuildResult.Empty;
         }
 
-        // The reserving INSERT itself is conditioned on the session row
-        // still existing (see SessionDeliveryLedger.ReserveAsync), so a
-        // session deleted concurrently reserves nothing here rather than
-        // raising a foreign-key violation: an empty result reads exactly
-        // like every other already-reserved case below. ReserveAsync also
-        // excludes any id another consumer already holds, so ReservedIds
-        // below is exactly this turn's own claim, never a superset of it.
+        // A session deleted concurrently reserves nothing here, rather than raising a
+        // foreign-key violation, so an empty result reads like any other
+        // already-reserved case below.
         var reserved = await ledger.ReserveAsync(
             generation,
             unread.Select(static message => message.Id).ToList(),
@@ -316,26 +253,16 @@ internal sealed class OpencodeHookHandler(
         }
         catch
         {
-            // The reservation above already committed even though the
-            // count that would have turned it into a delivered nudge never
-            // did: release it rather than leave it spent for a digest this
-            // response never returns, so the next chat message reserves and
-            // delivers the same messages again instead of losing them. See
-            // ReleaseCompensatingReservationAsync for why the release
-            // itself uses neither cancellationToken nor a rethrow.
+            // Releases the reservation so the next chat message reserves and delivers
+            // the same messages again instead of losing them.
             await ReleaseCompensatingReservationAsync(generation, reserved, channel);
             throw;
         }
     }
 
     /// <summary>
-    /// Releases a reservation this turn made but can no longer use, as
-    /// compensation for an exception the caller is about to rethrow.
-    /// Compensation runs with <see cref="CancellationToken.None"/>, never
-    /// the token whose cancellation may be the very reason the caller is
-    /// compensating, so a cancelled turn still releases what it reserved.
-    /// A failure here is swallowed rather than rethrown, so it can never
-    /// replace the original exception the caller is propagating.
+    /// Releases a reservation this turn made but can no longer use, as compensation
+    /// for an exception the caller is about to rethrow.
     /// </summary>
     private async Task ReleaseCompensatingReservationAsync(
         AgentSessionGeneration generation, IReadOnlyList<string> messageIds, string channel)
@@ -346,9 +273,8 @@ internal sealed class OpencodeHookHandler(
         }
         catch
         {
-            // Losing the compensation is bad; losing the diagnosis of why
-            // the primary operation failed, by letting this exception
-            // replace it, is worse.
+            // A failure here is swallowed so it cannot replace the original exception
+            // the caller is propagating.
         }
     }
 

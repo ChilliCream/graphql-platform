@@ -1,20 +1,16 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The desired Codex CLI <c>hooks.json</c> hook entry for each turn-boundary
-/// event this CLI adapts, built from a <see cref="LaunchDescriptor"/>. The
-/// Codex analog of <see cref="ClaudeHooksTemplate"/>: the same command-line
-/// group, command, and timeout structure, with three events instead of
-/// four (Codex has no <c>Stop</c>-equivalent hooks.json event - its idle-turn
-/// gate is the separate <c>notify</c> mechanism, see
-/// <see cref="CodexNotifyTemplate"/>).
+/// The desired Codex CLI <c>hooks.json</c> hook entry for each turn-boundary event
+/// this CLI adapts, built from a <see cref="LaunchDescriptor"/>. Codex has no
+/// <c>Stop</c>-equivalent event; its idle-turn gate is the separate <c>notify</c>
+/// mechanism (see <see cref="CodexNotifyTemplate"/>).
 /// </summary>
 internal static class CodexHooksTemplate
 {
     /// <summary>
-    /// Every hooks.json entry this CLI ever writes contains this literal
-    /// substring in its command text - the Codex analog of
-    /// <see cref="ClaudeHooksTemplate.CommandMarker"/>.
+    /// Every hooks.json entry this CLI ever writes contains this literal substring
+    /// in its command text.
     /// </summary>
     public const string CommandMarker = "agent hook codex ";
 

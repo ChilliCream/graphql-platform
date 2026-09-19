@@ -53,9 +53,8 @@ internal sealed class CodexHookHandler(
             return CodexHookOutcome.Neutral;
         }
 
-        // The Codex endpoint address is the thread id itself, which equals
-        // the session id. Unlike Claude's session file, Codex publishes no
-        // separate peer name to address.
+        // The Codex endpoint address is the thread id itself, which equals the
+        // session id.
         var (endpointKind, endpointAddr) = EndpointAddress.IsValid(resolved.Generation.SessionId)
             ? (AgentSessionEndpointKind.CodexThread, resolved.Generation.SessionId)
             : (AgentSessionEndpointKind.None, string.Empty);
@@ -121,10 +120,8 @@ internal sealed class CodexHookHandler(
             return CodexHookOutcome.Neutral;
         }
 
-        // The actor name is not repeated here, the same as the Claude
-        // adapter: session-start already announces it whenever a session
-        // begins or resumes. This event only speaks up when there is unread
-        // mail to announce.
+        // The actor name is not repeated here; session-start already announces it.
+        // This event only speaks up when there is unread mail to announce.
         var digest = await BuildDigestAsync(
             resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
 
@@ -184,12 +181,9 @@ internal sealed class CodexHookHandler(
             return CodexNotifyOutcome.Neutral;
         }
 
-        // Reserve-then-emit (the plan's documented crash policy): the ledger
-        // claim above already stands regardless of whether this call
-        // actually succeeds, so a `codex queue` failure here suppresses this
-        // digest on the gate channel from then on rather than retrying or
-        // duplicating it - the message stays visible to a direct inbox read
-        // and to the digest channel either way.
+        // The ledger claim above stands regardless of whether this call succeeds, so
+        // a queue failure suppresses this digest on the gate channel rather than
+        // retrying or duplicating it.
         var queueResult = await queueClient.QueueAsync(payload.ThreadId, digest.Text, cancellationToken);
 
         return new CodexNotifyOutcome { Queued = queueResult == CodexQueueResult.Ok };
@@ -242,12 +236,9 @@ internal sealed class CodexHookHandler(
     }
 
     /// <summary>
-    /// Resolves the generation identity and workspace an event's payload
-    /// addresses, or null when any fail-open condition applies: a missing
-    /// or unresolvable cwd, a missing session/thread id, no agent workspace
-    /// at that cwd, or this process's own cwd resolving to a different
-    /// workspace than the payload's cwd does. Mirrors
-    /// <c>ClaudeHookHandler.ResolveAsync</c>.
+    /// Resolves the generation identity and workspace an event's payload addresses,
+    /// or null when the cwd or session/thread id is missing or unresolvable, or when
+    /// this process's own cwd resolves to a different workspace.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
         CodexHookPayload payload, CancellationToken cancellationToken)
@@ -273,8 +264,6 @@ internal sealed class CodexHookHandler(
             return null;
         }
 
-        // The event names its own session and delivery addresses the thread
-        // id, so no process is involved in identifying the row.
         var generation = new AgentSessionGeneration(
             AgentSessionHarness.Codex, payload.SessionId, host);
 

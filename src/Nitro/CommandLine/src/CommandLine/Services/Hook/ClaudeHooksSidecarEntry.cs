@@ -5,13 +5,9 @@ using System.Text.Json.Serialization;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// One event's recorded installation: the exact command and timeout this
-/// CLI wrote, and their hash. Provenance, not just detection - unlike
-/// <see cref="ClaudeHooksTemplate.CommandMarker"/> matching (which any
-/// Nitro-owned entry satisfies, on any machine, from any version), a
-/// sidecar record is proof THIS install wrote THIS exact entry, which is
-/// what makes uninstall able to remove precisely what it installed instead
-/// of falling back to marker matching.
+/// One event's recorded installation: the exact command and timeout this CLI
+/// wrote, and their hash. Proof that this install wrote this exact entry, which
+/// lets uninstall remove precisely what it installed.
 /// </summary>
 internal sealed record ClaudeHooksSidecarEntry(
     [property: JsonPropertyName("command")] string Command,

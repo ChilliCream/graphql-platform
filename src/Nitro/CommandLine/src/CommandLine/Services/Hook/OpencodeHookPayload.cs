@@ -33,16 +33,10 @@ internal sealed class OpencodeHookPayload
     }
 
     /// <summary>
-    /// Whether the shim proved, by reading its plugin input's
-    /// <c>serverUrl</c> getter twice and comparing the results by
-    /// reference, that opencode actually bound an HTTP server in this
-    /// process: opencode returns the same URL object on every read once a
-    /// server is bound, and a fresh placeholder URL on every read
-    /// otherwise. Missing (an older shim that predates this field) defaults
-    /// to <c>false</c>, the safe reading: it demotes an unproven
-    /// <see cref="ServerUrl"/> to <c>endpoint_kind = 'none'</c> rather than
-    /// trusting a placeholder. See
-    /// <see cref="ChilliCream.Nitro.CommandLine.Services.Workspace.EndpointAddress.IsTrustedOpencodeServerUrl"/>.
+    /// Whether the shim proved that opencode actually bound an HTTP server in this
+    /// process. Missing defaults to <c>false</c>, demoting an unproven
+    /// <see cref="ServerUrl"/> to <c>endpoint_kind = 'none'</c> rather than trusting
+    /// it.
     /// </summary>
     [JsonPropertyName("serverBound")]
     public bool ServerBound { get; set; }

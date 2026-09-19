@@ -4,15 +4,9 @@ using System.Text.Json.Nodes;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Pure JSON-text editing for a Codex CLI <c>hooks.json</c>: no file I/O, no
-/// sidecar persistence, matching <see cref="ClaudeHooksEditor"/>'s
-/// no-side-effects contract. The one structural difference from
-/// <c>settings.json</c>: both files use a top-level <c>"hooks"</c> map.
-/// Foreign structure (other
-/// events, other hook groups under our three managed events, e.g. the
-/// pre-existing <c>herdr</c> <c>SessionStart</c> entry S1 observed
-/// live) round-trips through <see cref="JsonNode"/> untouched; only the
-/// group(s) this installer owns are added, replaced, or removed.
+/// Pure JSON-text editing for a Codex CLI <c>hooks.json</c>. Foreign structure
+/// round-trips through <see cref="JsonNode"/> untouched; only the group(s) this
+/// installer owns are added, replaced, or removed.
 /// </summary>
 internal static class CodexHooksEditor
 {

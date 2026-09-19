@@ -107,10 +107,8 @@ internal sealed class ClaudeHookHandler(
 
         await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
 
-        // The actor name is not repeated here: SessionStart already announces
-        // it on startup, resume, clear, compact, and fork, which covers every
-        // point the session could have lost it. This event only speaks up
-        // when there is unread mail to announce.
+        // The actor name is not repeated here; SessionStart already announces it.
+        // This event only speaks up when there is unread mail to announce.
         var digest = await BuildDigestAsync(
             resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
 
@@ -146,9 +144,7 @@ internal sealed class ClaudeHookHandler(
         if (row.BlockBudgetUsed >= MaxBlocksPerTurn)
         {
             // Over budget: candidates are left unreserved so a fresh
-            // UserPromptSubmit budget reset can still gate them later,
-            // instead of permanently marking them delivered on the gate
-            // channel while never actually blocking for them.
+            // UserPromptSubmit budget reset can still gate them later.
             return ClaudeHookOutcome.Neutral;
         }
 
@@ -238,12 +234,10 @@ internal sealed class ClaudeHookHandler(
     }
 
     /// <summary>
-    /// Resolves the generation identity and workspace an event's payload
-    /// addresses, or null when any fail-open condition applies: a missing
-    /// or unresolvable cwd, a missing session id, no agent workspace at that
-    /// cwd, or this process's own cwd resolving to a different workspace
-    /// than the payload's cwd does. In a dry run the session file is not
-    /// consulted at all, so a fixture payload resolves without one.
+    /// Resolves the generation identity and workspace an event's payload addresses,
+    /// or null when the cwd or session id is missing or unresolvable, or when this
+    /// process's own cwd resolves to a different workspace. A dry run does not
+    /// consult the session file.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
         ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
@@ -261,10 +255,8 @@ internal sealed class ClaudeHookHandler(
             return null;
         }
 
-        // The event names its own session, so the session file that carries
-        // that id describes it exactly. Nothing is inferred from the process
-        // tree, and a session with no file still resolves: the file only
-        // supplies the peer address and the harness version.
+        // A session with no file still resolves; the file only supplies the peer
+        // address and the harness version.
         var session = dryRun ? null : sessionFileReader.Find(payload.SessionId);
 
         var host = await instanceIdProvider.GetIdAsync(

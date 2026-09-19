@@ -3,14 +3,10 @@ using System.Text.Json;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The fail-open envelope <c>nitro agent hook codex notify</c> runs through:
-/// argv-based (not stdin, unlike every other member of this namespace, spike
-/// S2), and its exit code IS part of the contract rather than always
-/// success, because the install-flow's foreign-wrapping guarantee
-/// ("preserving argv/stdin/cwd/exit code") requires this process to finish
-/// with the WRAPPED foreign program's own exit code when one is configured.
-/// Our own work never blocks the foreign program from running: a malformed
-/// payload, a handler exception, or the entry timeout all still fall through
+/// The fail-open envelope <c>nitro agent hook codex notify</c> runs through.
+/// The exit code is part of the contract, not always success: this process finishes
+/// with the wrapped foreign program's own exit code when one is configured. A
+/// malformed payload, a handler exception, or the entry timeout still fall through
 /// to attempting the foreign exec.
 /// </summary>
 internal static class CodexNotifyExecutor
@@ -21,9 +17,7 @@ internal static class CodexNotifyExecutor
     public static readonly TimeSpan EntryTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// The exit code when no foreign program is configured (nothing to
-    /// preserve an exit code FROM): success, the same fail-open contract
-    /// every other adapter in this namespace uses.
+    /// The exit code when no foreign program is configured: success.
     /// </summary>
     private const int NoForeignExitCode = 0;
 
@@ -37,9 +31,8 @@ internal static class CodexNotifyExecutor
             environmentVariables, handleOurWork, execForeign, payloadJson, EntryTimeout, cancellationToken);
 
     /// <summary>
-    /// Overload taking an explicit <paramref name="timeout"/> so a test can
-    /// prove the timeout path still reaches the foreign exec without waiting
-    /// out the real entry timeout.
+    /// Overload taking an explicit <paramref name="timeout"/> instead of
+    /// <see cref="EntryTimeout"/>.
     /// </summary>
     internal static async Task<int> RunAsync(
         IEnvironmentVariableProvider environmentVariables,
@@ -54,10 +47,8 @@ internal static class CodexNotifyExecutor
             await RunOurWorkAsync(handleOurWork, payloadJson, timeout, cancellationToken);
         }
 
-        // Suppressed or not, our own no-loop reentrancy guard
-        // (NITRO_HOOK_SUPPRESS) is only about OUR mail work re-entering
-        // through a spawned relay - it must never suppress the foreign
-        // program the operator originally configured.
+        // NITRO_HOOK_SUPPRESS only suppresses our own mail work; it must never
+        // suppress the foreign program the operator configured.
         var foreignExitCode = await TryExecForeignAsync(execForeign, cancellationToken);
 
         return foreignExitCode ?? NoForeignExitCode;
@@ -87,18 +78,14 @@ internal static class CodexNotifyExecutor
 
             await Task.WhenAny(runTask, timeoutTask);
 
-            // Either the handler finished (its outcome is not otherwise
-            // consumed here - the foreign exec below is unconditional) or
-            // the entry timeout won the race, in which case `runTask` is
-            // deliberately abandoned rather than awaited, same reasoning as
-            // CodexHookExecutor: a handler ignoring cancellation must not be
-            // allowed to keep this call past the deadline.
+            // Either the handler finished, or the entry timeout won the race and
+            // runTask is abandoned rather than awaited. The foreign exec below is
+            // unconditional either way.
         }
         catch
         {
-            // Fail-open on EVERYTHING: malformed payload JSON or a handler
-            // exception (database contention, a schema version mismatch).
-            // The foreign exec below still runs regardless.
+            // Fail-open on everything: malformed payload JSON or a handler
+            // exception. The foreign exec below still runs regardless.
         }
     }
 

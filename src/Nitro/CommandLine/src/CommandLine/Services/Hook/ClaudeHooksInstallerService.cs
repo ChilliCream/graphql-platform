@@ -63,13 +63,10 @@ internal sealed class ClaudeHooksInstallerService(
     }
 
     /// <summary>
-    /// The concurrency guard named in the plan: re-reads the destination
-    /// immediately before writing and compares its hash against the one
-    /// captured when this call's caller first read it. A mismatch means
-    /// something else wrote to the file in between - this aborts rather
-    /// than clobbering that edit. Only writes at all when the new content
-    /// actually differs, so a no-op install/uninstall never touches the
-    /// file's mtime.
+    /// Re-reads the destination immediately before writing and compares its hash
+    /// against the one captured when the caller first read it, aborting rather than
+    /// clobbering a concurrent edit. Only writes when the new content actually
+    /// differs.
     /// </summary>
     private async Task WriteIfUnchangedSinceReadAsync(
         string path, string hashAtRead, string newText, CancellationToken cancellationToken)

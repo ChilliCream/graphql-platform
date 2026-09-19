@@ -6,22 +6,17 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
 /// The fail-open envelope every <c>nitro agent hook codex &lt;event&gt;</c>
-/// stdin-based subcommand (<c>session-start</c>, <c>user-prompt-submit</c>,
-/// <c>session-end</c>) runs its handler through - the Codex analog of
-/// <see cref="ClaudeHookExecutor"/>, same contract: malformed payload,
-/// database contention, a schema version mismatch, a missing workspace, any
-/// exception a handler raises, and the timeout itself all resolve to the
-/// same neutral <c>{}</c> response. The separate <c>notify</c> command is
-/// NOT run through this: it reads its payload from argv, not stdin, and its
-/// exit code (not just its stdout) has to carry the foreign-wrapping
-/// contract, see <c>CodexNotifyHookCommand</c>.
+/// stdin-based subcommand runs its handler through. A malformed payload, database
+/// contention, a schema version mismatch, a missing workspace, any exception a
+/// handler raises, and the timeout itself all resolve to the same neutral <c>{}</c>
+/// response. The separate <c>notify</c> command does not run through this; see
+/// <c>CodexNotifyHookCommand</c>.
 /// </summary>
 internal static class CodexHookExecutor
 {
     /// <summary>
-    /// Same failure ceiling as <see cref="ClaudeHookExecutor.EntryTimeout"/>:
-    /// not a latency target, the point past which a hung handler must not be
-    /// allowed to wedge Codex's turn any longer.
+    /// The point past which a hung handler must not be allowed to wedge Codex's
+    /// turn any longer.
     /// </summary>
     public static readonly TimeSpan EntryTimeout = TimeSpan.FromSeconds(10);
 
@@ -38,8 +33,7 @@ internal static class CodexHookExecutor
 
     /// <summary>
     /// Overload taking an explicit <paramref name="timeout"/> instead of
-    /// <see cref="EntryTimeout"/>, so a test can prove the timeout path
-    /// fails open without waiting out the real entry timeout.
+    /// <see cref="EntryTimeout"/>.
     /// </summary>
     internal static async Task<int> RunAsync(
         IEnvironmentVariableProvider environmentVariables,
@@ -75,17 +69,13 @@ internal static class CodexHookExecutor
                 outcome = await runTask;
             }
 
-            // Else: the entry timeout won the race. `outcome` stays
-            // CodexHookOutcome.Neutral without awaiting `runTask` - a handler
-            // ignoring cancellation must not be allowed to keep this call,
-            // and Codex, waiting past the timeout.
+            // Else: the entry timeout won the race, and outcome stays neutral without
+            // awaiting runTask.
         }
         catch (AgentWorkspaceSchemaMismatchException exception)
         {
-            // Reported rather than swallowed, the same as the Claude
-            // adapter: a stale schema keeps every hook of every session
-            // inert until someone migrates it, and nothing else ever says
-            // so.
+            // Reported rather than swallowed: a stale schema keeps every hook of
+            // every session inert until someone migrates it.
             await error.WriteLineAsync(exception.Message.AsMemory(), cancellationToken);
             await WriteAsync(output, CodexHookOutcome.Neutral, hookEventName, cancellationToken);
 
@@ -93,10 +83,8 @@ internal static class CodexHookExecutor
         }
         catch
         {
-            // Fail-open on EVERYTHING else: an empty or malformed payload or
-            // a handler exception (database contention, for example).
-            // `outcome` is still CodexHookOutcome.Neutral, so Codex always
-            // gets a valid neutral response, never an error.
+            // Fail-open on everything else: an empty or malformed payload, or a
+            // handler exception.
             outcome = CodexHookOutcome.Neutral;
         }
 
@@ -117,14 +105,12 @@ internal static class CodexHookExecutor
         return payload is null ? CodexHookOutcome.Neutral : await handle(payload, cancellationToken);
     }
 
-    // Always success: a hook adapter reports failure to Codex through its
-    // own JSON protocol (or silently, via the neutral response), never
-    // through the process exit code.
+    // Always success: a hook adapter reports failure to Codex through its own JSON
+    // protocol, never through the process exit code.
     private const int ExitCode = 0;
 
     /// <summary>
-    /// The nonzero exit a hook uses to report a condition the user has to
-    /// act on, mirroring <see cref="ClaudeHookExecutor"/>.
+    /// The nonzero exit a hook uses to report a condition the user has to act on.
     /// </summary>
     private const int FailureExitCode = 1;
 

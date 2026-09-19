@@ -4,22 +4,12 @@ using System.Text.RegularExpressions;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Narrow, line-based editing for a single top-level key in a Codex CLI
-/// <c>config.toml</c>: <c>notify = [...]</c>. Deliberately NOT a general
-/// TOML parser/writer (no such library is available to this project, and
-/// hand-rolling one is out of scope): every OTHER line, including every
-/// other top-level key and every table, round-trips completely untouched -
-/// only the exact line(s) holding a TOP-LEVEL <c>notify</c> assignment are
-/// read or replaced. "Top-level" means before the file's first
-/// <c>[table]</c>/<c>[[array-of-tables]]</c> header line; a <c>notify</c> key
-/// inside some other table is a different, unrelated key and is never
-/// touched. Only the single-line, double-quoted-basic-string-array form this
-/// installer itself always writes is understood - anything else found under
-/// a top-level <c>notify</c> key (a multi-line array, single-quoted literal
-/// strings, an inline table, a trailing comment) is refused with an
-/// <see cref="ExitException"/> rather than risked: the safe failure mode is
-/// "ask the operator to resolve it by hand", never "silently write something
-/// that might not mean what the original author intended".
+/// Narrow, line-based editing for the top-level <c>notify = [...]</c> key in a Codex
+/// CLI <c>config.toml</c>. Every other line, including other top-level keys and
+/// tables, is left untouched; a <c>notify</c> key inside a table is unrelated and
+/// never touched. Only the single-line, double-quoted string array form this
+/// installer writes is understood; anything else under a top-level <c>notify</c>
+/// key throws <see cref="ExitException"/>.
 /// </summary>
 internal static partial class CodexConfigTomlNotifyEditor
 {
@@ -35,18 +25,12 @@ internal static partial class CodexConfigTomlNotifyEditor
     public sealed record UninstallResult(string ConfigToml, HookUninstallOutcome Outcome);
 
     /// <summary>
-    /// Installs <paramref name="ourArgv"/> as the top-level <c>notify</c>
-    /// value. <paramref name="recordedOurArgv"/> is what THIS sidecar
-    /// recorded as our own last-installed argv (null on a first-ever
-    /// install); <paramref name="recordedPriorForeign"/> is what the sidecar
-    /// already has recorded as the foreign value from before we ever wrapped
-    /// it. Returns the <c>NewPriorForeign</c> the caller should persist:
-    /// null when there was and is nothing foreign, unchanged
-    /// (<paramref name="recordedPriorForeign"/> carried forward) when the
-    /// on-disk value was our OWN stale entry (a reinstall after the launch
-    /// descriptor changed), or freshly captured when the on-disk value was
-    /// something else entirely (a genuine foreign program being wrapped for
-    /// the first time).
+    /// Installs <paramref name="ourArgv"/> as the top-level <c>notify</c> value.
+    /// <paramref name="recordedOurArgv"/> is the sidecar's own last-installed argv,
+    /// or null on a first install. Returns the <c>NewPriorForeign</c> the caller
+    /// should persist: null when nothing foreign exists, <paramref name="recordedPriorForeign"/>
+    /// carried forward when the on-disk value was our own stale entry, or the
+    /// freshly captured value when the on-disk value belongs to a different program.
     /// </summary>
     public static InstallResult Install(
         string? existingConfigToml,
@@ -82,12 +66,9 @@ internal static partial class CodexConfigTomlNotifyEditor
     }
 
     /// <summary>
-    /// Missing (no top-level <c>notify</c> key at all), Installed (matches
-    /// <paramref name="ourArgv"/> exactly), or Outdated (a top-level
-    /// <c>notify</c> key exists with some other value - a stale launch
-    /// descriptor and an unrelated foreign program look identical here by
-    /// design, same as <see cref="ClaudeHooksEditor.Status"/>). Never
-    /// mutates.
+    /// Returns Missing when no top-level <c>notify</c> key exists, Installed when it
+    /// matches <paramref name="ourArgv"/> exactly, or Outdated when it holds a
+    /// different value. Never mutates.
     /// </summary>
     public static HookStatusOutcome Status(string? existingConfigToml, IReadOnlyList<string> ourArgv)
     {
@@ -105,12 +86,9 @@ internal static partial class CodexConfigTomlNotifyEditor
     }
 
     /// <summary>
-    /// Restores <paramref name="recordedPriorForeign"/> verbatim (or removes
-    /// the key entirely when it is null - nothing was there before us), but
-    /// ONLY when the on-disk value is still exactly <paramref name="ourArgv"/>:
-    /// a foreign edit since our install (the value is neither ours nor a
-    /// value we ever recorded) is left completely untouched, same
-    /// non-clobbering principle as <see cref="ClaudeHooksEditor.Uninstall"/>.
+    /// Restores <paramref name="recordedPriorForeign"/> verbatim, or removes the key
+    /// when it is null, but only when the on-disk value is still exactly
+    /// <paramref name="ourArgv"/>. A foreign edit since install is left untouched.
     /// </summary>
     public static UninstallResult Uninstall(
         string? existingConfigToml,
@@ -147,13 +125,10 @@ internal static partial class CodexConfigTomlNotifyEditor
     }
 
     /// <summary>
-    /// Finds the line index of a top-level <c>notify = ...</c> assignment
-    /// (searched only among lines before the first section header), or -1
-    /// when none exists. The second tuple element is always where a NEW
-    /// <c>notify</c> line should be inserted when none is found: immediately
-    /// before the first section header, or at the end of the file when there
-    /// is none - either way, guaranteed to land before any table and
-    /// therefore at the top level.
+    /// Finds the line index of a top-level <c>notify = ...</c> assignment among
+    /// lines before the first section header, or -1 when none exists. The second
+    /// tuple element is where a new <c>notify</c> line should be inserted when none
+    /// is found.
     /// </summary>
     private static (int LineIndex, int InsertBeforeIndex) FindTopLevelNotifyLine(List<string> lines)
     {
@@ -174,13 +149,10 @@ internal static partial class CodexConfigTomlNotifyEditor
     }
 
     /// <summary>
-    /// Parses a line already known to match <see cref="NotifyKeyPresence"/>
-    /// into its array-of-strings value. Throws <see cref="ExitException"/>
-    /// for anything other than a single-line <c>["...", "...", ...]</c> array
-    /// of double-quoted basic strings with nothing trailing after the
-    /// closing bracket (no inline comment, no multi-line continuation) -
-    /// the only form this installer itself ever writes, and the only form it
-    /// can confidently interpret.
+    /// Parses a line already known to match <see cref="NotifyKeyPresence"/> into its
+    /// array-of-strings value. Throws <see cref="ExitException"/> for anything other
+    /// than a single-line, double-quoted string array with nothing trailing the
+    /// closing bracket.
     /// </summary>
     private static IReadOnlyList<string> ParseNotifyArray(string line)
     {
@@ -311,12 +283,8 @@ internal static partial class CodexConfigTomlNotifyEditor
         => a.SequenceEqual(b, StringComparer.Ordinal);
 
     /// <summary>
-    /// Normalizes CRLF to LF on read. Known, accepted limitation: a
-    /// CRLF-authored config.toml round-trips as LF even through a no-op
-    /// Status/Unchanged-Install call, which the installer service's
-    /// hash-compare guard sees as a real change. Every config this installer
-    /// targets lives under a Linux-first tool's own home directory, where
-    /// LF is already the norm.
+    /// Normalizes CRLF to LF on read. A CRLF-authored config.toml round-trips as LF
+    /// even through a no-op call.
     /// </summary>
     private static List<string> SplitLines(string? text)
         => string.IsNullOrEmpty(text)
