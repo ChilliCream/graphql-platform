@@ -6,15 +6,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises <see cref="AgentSessionRegistry"/>'s lifecycle: SessionStart
-/// binding rules and same/different-generation handling, the v5
-/// role/harness_version columns defaulting on creation,
-/// surviving a same-generation duplicate SessionStart, and resetting on a
-/// different-generation rebind, the claim state machine's five transitions
-/// plus force-rebind, conditional SessionEnd, reaping (current-instance dead
-/// rows only, remote rows untouched), the one-row-per-session participant
-/// read model joining durable agent identity when bound, and TOCTOU safety
-/// when a generation changes between a reader's observation and its
-/// mutation.
+/// binding and generation handling, the claim state machine, conditional
+/// SessionEnd, reaping, and the one-row-per-session participant read model.
 /// </summary>
 public sealed class AgentSessionRegistryTests : IDisposable
 {
@@ -231,7 +224,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
 
-        // assert: role and harness_version are not captured yet (a later
+        // assert: role and harness_version default to blank until a later call sets them.
         Assert.Equal("", record.Role);
         Assert.Equal("", record.HarnessVersion);
     }
@@ -293,13 +286,12 @@ public sealed class AgentSessionRegistryTests : IDisposable
 
         var restartedGeneration = firstGeneration with { Host = OtherHost };
 
-        // act: a new process replaced the one the row remembered - metadata
-        // observed under the OLD generation must not leak into the new one.
+        // act: a new process replaces the one the row remembered, under a different generation.
         var record = await _sessions.StartAsync(
             restartedGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
 
-        // assert: role and harness_version reset to blank (not re-captured
+        // assert: role and harness_version reset to blank for the new generation.
         Assert.Equal("", record.Role);
         Assert.Equal("", record.HarnessVersion);
     }
@@ -318,9 +310,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         Assert.Equal(AgentSessionBindingKind.Explicit, claimed.Session.BindingKind);
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
-        // act: a duplicate SessionStart for the exact same generation, this
-        // time carrying a DIFFERENT env actor - it must not overwrite the
-        // explicit claim already in place.
+        // act: a duplicate SessionStart for the same generation, carrying a different env actor.
         var record = await _sessions.StartAsync(
             generation, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: "someone-else", cancellationToken);
@@ -346,8 +336,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
 
         var restartedGeneration = firstGeneration with { Host = OtherHost };
 
-        // act: a new process replaced the one the row remembered, under the
-        // SAME (harness, session_id).
+        // act: a new process replaces the one the row remembered, under the same (harness, session_id).
         var record = await _sessions.StartAsync(
             restartedGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: "someone-else", cancellationToken);
@@ -418,9 +407,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
             envActor: "pascal", cancellationToken);
         await InsertDeliveryAsync(generation, "msg-1", cancellationToken);
 
-        // act: the explicit act wins even though it targets a different
-        // actor than the env binding, no --force-rebind needed here because
-        // env provenance is not a protected explicit claim.
+        // act: an explicit claim to a different actor, with no --force-rebind.
         var result = await _sessions.ClaimAsync(generation, "codex", forceRebind: false, cancellationToken);
 
         // assert
@@ -539,8 +526,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task RegisterAsync_Should_NormalizeRole_When_Written()
     {
-        // arrange: the first writer of agent_sessions.role - proves
-        // AgentRole.Normalize applies on the write path, not just reads.
+        // arrange: the first write to agent_sessions.role.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
@@ -573,8 +559,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
             generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken);
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
-        // act: repeating the same actor and role is a no-op success that
-        // only refreshes last-heard.
+        // act: repeat the same actor and role.
         var result = await _sessions.RegisterAsync(
             generation, "pascal", "orchestrator", "", forceRebind: false, cancellationToken);
 
@@ -655,11 +640,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task RegisterAsync_Should_RollBackTheIdentityUpsert_When_TheClaimTransitionThrows()
     {
-        // arrange: the transaction rollback guarantee - a failed register
-        // call (a conflicting actor without --force-rebind) must not leave
-        // the durable identity's role changed either, even though the
-        // identity upsert runs BEFORE the throwing claim transition inside
-        // the same transaction.
+        // arrange: a register call with a conflicting actor and no --force-rebind.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _agentRegistry.EnsureImplicitAsync("codex", cancellationToken);
@@ -677,8 +658,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
             () => _sessions.RegisterAsync(
                 generation, "codex", "new-role", "", forceRebind: false, cancellationToken));
 
-        // assert: codex's identity role is unchanged, and the session is
-        // still bound to pascal, not codex.
+        // assert: codex's identity role is unchanged, and the session is still bound to pascal.
         var codex = await _agentRegistry.GetAsync("codex", cancellationToken);
         Assert.Equal("original-role", codex!.Role);
         var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
@@ -715,8 +695,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task RegisterAsync_Should_Throw_When_NoRowMatchesTheGeneration()
     {
-        // arrange: the missing-row case - no SessionStart hook has fired
-        // for this generation yet.
+        // arrange: no SessionStart hook has fired for this generation yet.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _agentRegistry.EnsureImplicitAsync("pascal", cancellationToken);
@@ -735,9 +714,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task FindBySessionIdAsync_Should_ReturnTheRow_When_ItExists()
     {
-        // arrange: the authoritative-session-id lookup a sandboxed caller
-        // with no live process identity to walk to relies on - it must find
-        // the row by (harness, host, session_id) alone.
+        // arrange: a lookup by (harness, host, session_id) alone, with no live process identity to walk to.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = Generation("session-1") with { Harness = AgentSessionHarness.Codex };
@@ -772,8 +749,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task FindBySessionIdAsync_Should_ReturnNull_When_TheRowBelongsToADifferentHost()
     {
-        // arrange: a session id recorded on a different Nitro instance must
-        // never be resolved as if it belonged to this one.
+        // arrange: a session id recorded on a different Nitro instance.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var remoteGeneration = Generation("session-1")
@@ -818,9 +794,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task EndAsync_Should_BeNoOp_When_LateSessionEndTargetsASupersededGeneration()
     {
-        // arrange: a TOCTOU-shaped reordering - a session restarts (new
-        // generation), and only afterward does a stale SessionEnd for the
-        // ORIGINAL generation arrive.
+        // arrange: a session restarts under a new generation, then a stale SessionEnd for the original arrives.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var originalGeneration = Generation("session-1");
@@ -831,7 +805,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
             originalGeneration with { Host = OtherHost }, "/work", "/work/.nitro/agents",
             AgentSessionEndpointKind.None, "", envActor: "pascal", cancellationToken);
 
-        // act: the late end targets a generation the row no longer carries.
+        // act: the late SessionEnd targets a generation the row no longer carries.
         var deleted = await _sessions.EndAsync(originalGeneration, cancellationToken);
 
         // assert
@@ -844,9 +818,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task ReapAsync_Should_DeleteStaleCurrentInstanceRow()
     {
-        // arrange: a row that has not beaten since well before the stale
-        // window, which is what a harness that ended without its SessionEnd
-        // hook running leaves behind.
+        // arrange: a row that has not beaten since well before the stale window.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var deadGeneration = Generation("session-dead");
@@ -886,8 +858,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task ReapAsync_Should_NotTouchStaleRemoteRow()
     {
-        // arrange: stale, but recorded by a different Nitro instance, which
-        // this reader never reaps on that instance's behalf.
+        // arrange: stale, but recorded by a different Nitro instance.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var remoteDeadGeneration = Generation("session-remote") with { Host = RemoteHost };
@@ -907,11 +878,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task ReapAsync_Should_NotDeleteRow_When_ItWasSupersededByANewerAliveGenerationFirst()
     {
-        // arrange: the row started dead (as though the owning process had
-        // already exited), but before the reaper runs a fresh SessionStart
-        // for the SAME (harness, session_id) replaces it with a live
-        // generation. The reaper must never delete the row a newer
-        // generation now owns.
+        // arrange: a fresh SessionStart replaces the dead row with a live generation before the reaper runs.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var deadGeneration = Generation("session-1");
@@ -934,8 +901,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task ListAsync_Should_ComputeStates_When_MixOfOnlineUnreachableAndRemoteRows()
     {
-        // arrange: the stale row is started first and left behind by the
-        // clock, so only it falls outside the reaper's window.
+        // arrange: the stale row is started first and left behind by the clock.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
@@ -1002,8 +968,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task TouchAsync_Should_ReturnFalse_When_SessionHasAlreadyEnded()
     {
-        // arrange: heartbeat-after-end - a late touch for a generation whose
-        // row SessionEnd already deleted.
+        // arrange: a late touch for a generation whose row SessionEnd already deleted.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = Generation("session-1");
@@ -1022,9 +987,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task TouchAsync_Should_ReturnFalse_When_GenerationIsStale()
     {
-        // arrange: a generation change superseded the row; a late touch for
-        // the OLD generation must not affect the row a newer generation now
-        // owns.
+        // arrange: a generation change superseded the row, and a late touch targets the old generation.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var originalGeneration = Generation("session-1");
@@ -1234,9 +1197,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         // act
         var live = await _sessions.FindLiveClaimedByAgentNameAsync("pascal", cancellationToken);
 
-        // assert: the remote row (never pinged from here) and the dead
-        // current-host row (reaped on read) are both excluded, as is
-        // codex's own session.
+        // assert: the remote row, the dead current-host row, and codex's own session are all excluded.
         var row = Assert.Single(live);
         Assert.Equal("session-mine", row.SessionId);
     }
@@ -1285,7 +1246,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         var claimed = await _sessions.TryClaimPingCooldownAsync(
             session, "attempt-2", _timeProvider.GetUtcNow(), TimeSpan.FromSeconds(60), cancellationToken);
 
-        // assert: coalesced - the row still carries the first attempt.
+        // assert: the row still carries the first attempt.
         Assert.False(claimed);
         var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
         Assert.Equal("attempt-1", row!.LastPingAttempt);
@@ -1318,8 +1279,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task TryClaimPingCooldownAsync_Should_ReturnFalse_When_GenerationNoLongerMatches()
     {
-        // arrange: the session ended (or rebound to a new generation)
-        // between resolution and the cooldown claim.
+        // arrange: the session ended between resolution and the cooldown claim.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = Generation("session-1");
@@ -1339,9 +1299,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task TryClaimPingCooldownAsync_Should_HaveExactlyOneWinner_When_ConcurrentClaimsRaceTheSameSession()
     {
-        // arrange: separate connections racing the same session row - the
-        // notifier's required "cooldown holds across concurrent processes"
-        // test.
+        // arrange: separate connections racing the same session row.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = Generation("session-1");
@@ -1386,8 +1344,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
     [Fact]
     public async Task WritePingResultAsync_Should_BeANoOp_When_AttemptIdIsStale()
     {
-        // arrange: an out-of-order completion from an older attempt must
-        // never overwrite a newer attempt's result.
+        // arrange: two attempts claim the cooldown in succession.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = Generation("session-1");
@@ -1400,8 +1357,7 @@ public sealed class AgentSessionRegistryTests : IDisposable
         await _sessions.TryClaimPingCooldownAsync(
             session, "attempt-2", _timeProvider.GetUtcNow(), TimeSpan.Zero, cancellationToken);
 
-        // act: attempt-1's late completion arrives after attempt-2 already
-        // claimed the row.
+        // act: attempt-1's late completion arrives after attempt-2 already claimed the row.
         await _sessions.WritePingResultAsync(
             Harness, "session-1", "attempt-1", AgentPingResult.Timeout, null, cancellationToken);
 
