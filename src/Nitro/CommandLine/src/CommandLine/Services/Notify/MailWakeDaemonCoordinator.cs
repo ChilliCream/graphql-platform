@@ -379,11 +379,9 @@ internal sealed class MailWakeDaemonCoordinator(
                     SelfDeniedUntil = timeProvider.GetUtcNow() + MailWakeDaemonRetryPolicy.MaxDelay;
                     UpdateStatus(s => s with { State = MailWakeDaemonState.Degraded, LastError = "access-denied" });
 
-                    // Cancel siblings first so they unwind before the lease
-                    // they were fenced under disappears, then release the
-                    // lease in a finally (busy-retried) so a SQLITE_BUSY here
-                    // can never leave this instance wedged as leader while
-                    // reporting Degraded.
+                    // Cancels siblings first so they unwind before the lease
+                    // they were fenced under disappears, then releases the
+                    // lease.
                     try
                     {
                         await degradedSource.CancelAsync();
@@ -536,8 +534,8 @@ internal sealed class MailWakeDaemonCoordinator(
 
     private sealed record LeaseSnapshot(string OwnerId, long Epoch, DateTimeOffset ExpiresAt);
 
-    // Internal, not private: Dapper.AOT's generated interceptors live
-    // outside this class and cannot reference a private nested type.
+    // Internal, not private: Dapper.AOT requires this type to be visible
+    // outside the class.
     internal sealed class LeaseRow
     {
         public required string OwnerId { get; init; }

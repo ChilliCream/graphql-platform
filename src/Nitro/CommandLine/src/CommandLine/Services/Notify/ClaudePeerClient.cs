@@ -44,12 +44,9 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
     {
         try
         {
-            // Always read fresh: the registry and key files are re-read on
-            // every call rather than cached, so an attempt always sees the
-            // endpoint's current metadata instead of a stale prior read.
-            // The registry is keyed by pid on disk, so the row carrying this
-            // session id is found by scanning; the pid it names is only ever
-            // used to locate that row's key files.
+            // Registry and key files are always read fresh, never cached.
+            // The registry is keyed by pid on disk, so the row for this
+            // session id is found by scanning.
             var registryJson = await FindRegistryAsync(sessionId, cancellationToken);
 
             if (registryJson is null)
@@ -181,8 +178,7 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
             catch (JsonException exception)
             {
                 // Remembered, not thrown: another file may still carry this
-                // session. Only when none does is a row this reader could not
-                // parse worth reporting, since it may have been the one.
+                // session. Reported only when none does.
                 malformed ??= exception;
             }
         }

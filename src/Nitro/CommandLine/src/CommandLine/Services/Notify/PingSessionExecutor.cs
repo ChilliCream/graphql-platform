@@ -124,9 +124,7 @@ internal sealed class PingSessionExecutor(
         if (remaining <= TimeSpan.Zero)
         {
             // The deadline was already behind us by the time this attempt
-            // started running (startup latency across the process
-            // boundary counted against it): no digest or transport work
-            // may start.
+            // started running: no digest or transport work may start.
             try
             {
                 return await WriteResultAsync(
@@ -174,9 +172,8 @@ internal sealed class PingSessionExecutor(
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // A failed ping is a non-event (the plan's failure policy): no
-            // exception from this method may ever propagate to a caller
-            // whose own exit code or output must stay unaffected.
+            // A failed ping is a non-event: no exception from this method may
+            // ever propagate to the caller.
             return await WriteResultAsync(
                 harness, sessionId, attemptId, PingAttemptReason.TransportError, Truncate(exception.Message));
         }
@@ -321,10 +318,9 @@ internal sealed class PingSessionExecutor(
     /// Maps one <see cref="IOpencodeServerClient"/> result string (the
     /// <c>agent_sessions.last_ping_result</c> vocabulary it reuses) to a
     /// <see cref="TransportOutcome"/>: <see cref="AgentPingResult.Ok"/> and
-    /// <see cref="AgentPingResult.Timeout"/> map directly, everything else
-    /// (including <see cref="AgentPingResult.EndpointGone"/>) collapses to
-    /// <see cref="PingAttemptReason.EndpointGone"/>, since that is the only
-    /// failure shape the client itself ever returns.
+    /// <see cref="AgentPingResult.Timeout"/> map directly, everything else,
+    /// including <see cref="AgentPingResult.EndpointGone"/>, collapses to
+    /// <see cref="PingAttemptReason.EndpointGone"/>.
     /// </summary>
     private static TransportOutcome MapOpencodeResult(string result) => result switch
     {
@@ -347,9 +343,7 @@ internal sealed class PingSessionExecutor(
 
     /// <summary>
     /// The time left until <paramref name="deadline"/>, clamped to
-    /// <c>[TimeSpan.Zero, PingPolicy.HardTimeout]</c> so a caller's own
-    /// clock skew or an unexpectedly distant deadline can never grant an
-    /// attempt more than its policy budget.
+    /// <c>[TimeSpan.Zero, PingPolicy.HardTimeout]</c>.
     /// </summary>
     private TimeSpan ClampRemaining(DateTimeOffset deadline)
     {

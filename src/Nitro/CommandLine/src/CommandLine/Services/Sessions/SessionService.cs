@@ -42,7 +42,7 @@ internal class SessionService : ISessionService
         }
         catch
         {
-            // even if the logout fails, we need to clear the session
+            // The session is cleared below even when logout fails.
         }
 
         await _configurationService.ResetAsync<Session>(cancellationToken);
@@ -128,7 +128,8 @@ internal class SessionService : ISessionService
         }
         catch
         {
-            // If the refresh token fails, we need to clear the session
+            // A failed refresh leaves result null; the check below clears
+            // the session.
         }
 
         if (result is not { IsError: false })
@@ -172,8 +173,8 @@ internal class SessionService : ISessionService
 }
 
 /// <summary>
-/// This client allows to challenge a different IDP when there was a redirect on the authorize
-/// endpoint
+/// Challenges a different identity provider when the authorize endpoint
+/// redirected to one.
 /// </summary>
 file sealed class DynamicAuthorityOidcClient : OidcClient
 {

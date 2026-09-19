@@ -8,9 +8,8 @@ internal interface IMailNudge
 {
     /// <summary>
     /// Nudges every given actor that has a live session with a reachable
-    /// endpoint. Actors without one are skipped: they see the mail when they
-    /// pull. Never throws; a transport failure is ignored, since the next
-    /// turn reports the unread mail anyway.
+    /// endpoint. Actors without one are skipped. Never throws; a transport
+    /// failure is ignored.
     /// </summary>
     Task NudgeAsync(IReadOnlyList<string> actors, CancellationToken cancellationToken);
 }

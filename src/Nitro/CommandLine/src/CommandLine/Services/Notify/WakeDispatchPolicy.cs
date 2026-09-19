@@ -4,20 +4,16 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// The timing and concurrency constants the actor-batch foreground
 /// dispatcher fixes for one <see cref="ActorWakeDispatcher.DispatchAsync"/>
 /// call: the post-commit budget every recipient/target of one claimed batch
-/// shares, how long the batch's own lease
-/// and a per-target session gate are held, and how often the batch lease is
-/// renewed while dispatch is in flight. <see cref="BatchLeaseDuration"/> is
-/// strictly longer than <see cref="BatchDeadline"/>, so a batch dispatched
-/// without contention never has its own lease expire out from under it
-/// before the deadline it is itself bounded by.
+/// shares, how long the batch's own lease and a per-target session gate are
+/// held, and how often the batch lease is renewed while dispatch is in
+/// flight. <see cref="BatchLeaseDuration"/> is strictly longer than
+/// <see cref="BatchDeadline"/>.
 /// </summary>
 internal static class WakeDispatchPolicy
 {
     /// <summary>
     /// The absolute budget one <see cref="ActorWakeDispatcher.DispatchAsync"/>
-    /// call fixes once for the one actor and target that call claims, so
-    /// that actor's attempt is bounded by this value on its own, regardless
-    /// of how many other actors are dispatched alongside it.
+    /// call fixes once for the one actor and target that call claims.
     /// </summary>
     public static readonly TimeSpan BatchDeadline = TimeSpan.FromSeconds(21);
 
@@ -32,9 +28,7 @@ internal static class WakeDispatchPolicy
 
     /// <summary>
     /// How often the dispatcher renews its batch lease while targets are
-    /// still in flight. Comfortably shorter than <see cref="BatchLeaseDuration"/>,
-    /// so an owner still alive always renews well before its own lease could
-    /// expire.
+    /// still in flight. Comfortably shorter than <see cref="BatchLeaseDuration"/>.
     /// </summary>
     public static readonly TimeSpan BatchRenewInterval = TimeSpan.FromSeconds(7);
 
@@ -48,8 +42,7 @@ internal static class WakeDispatchPolicy
     /// <summary>
     /// How far out a batch left with durable offered work (busy, cooldown,
     /// capacity, or an access-denied handoff) reschedules its outbox row's
-    /// <c>due_at</c>, so a later trigger for the same actor retries it
-    /// instead of the offer going stale forever.
+    /// <c>due_at</c>.
     /// </summary>
     public static readonly TimeSpan OfferedRetryDelay = TimeSpan.FromSeconds(30);
 }

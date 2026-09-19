@@ -21,8 +21,7 @@ internal static class MailAgentName
             throw new ExitException("An agent name must not be empty.");
         }
 
-        // A leading hyphen or underscore is rejected so a mistyped option
-        // reaching a recipient list is an error rather than a new agent.
+        // A leading hyphen or underscore is rejected.
         if (lowered[0] is not (>= 'a' and <= 'z' or >= '0' and <= '9'))
         {
             throw new ExitException(

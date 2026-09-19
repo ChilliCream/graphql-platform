@@ -2,8 +2,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 
 /// <summary>
 /// Backend-agnostic mail store used by every mail command. No member exposes
-/// ADO.NET or SQLite types, so the backend can change without touching a
-/// command and the interface can be mocked for the TUI.
+/// ADO.NET or SQLite types.
 /// </summary>
 internal interface IMailStore
 {

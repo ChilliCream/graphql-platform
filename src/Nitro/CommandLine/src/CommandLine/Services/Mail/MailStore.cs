@@ -73,22 +73,16 @@ internal sealed class MailStore(
         var seed = $"{sender}|{subject}|{now:O}";
 
         // Auto-registers the sender through the shared registry before the
-        // message write transaction opens; the registry manages its own
-        // connection, so this upsert is not part of that transaction.
+        // message write transaction opens.
         await agentRegistry.TouchAsync(sender, cancellationToken);
 
         // Ensures every recipient has an agent row, implicit-created when
         // they have never registered or acted, before the write transaction
-        // opens: the registry manages its own connection, and an open
-        // transaction on the write connection would block it from starting
-        // one of its own against the same file, mirroring the sender touch
-        // above.
+        // opens.
         var unregistered = await EnsureRecipientsAsync(recipients, cancellationToken);
 
-        // Resolved before the write transaction opens, mirroring the sender
-        // touch and recipient registration above: reading the machine's
-        // instance id can hit the filesystem, and an open transaction on the
-        // write connection would block a nested connection to the same file.
+        // Resolved before the write transaction opens, for the same reason as
+        // the sender touch and recipient registration above.
         var nitroInstanceId = creation.WakePolicy == MailWakePolicy.Enqueue
             ? await ResolveNitroInstanceIdAsync(cancellationToken)
             : null;
@@ -176,10 +170,8 @@ internal sealed class MailStore(
             await ResolveReplyAsync(inReplyToId, actor, cancellationToken);
 
         // Auto-registers the replying actor through the shared registry, now
-        // that eligibility is confirmed, before opening the write
-        // connection below; the registry manages its own connection, and an
-        // open transaction on another connection to the same file blocks it
-        // from starting one of its own.
+        // that eligibility is confirmed, before opening the write connection
+        // below.
         await agentRegistry.TouchAsync(actor, cancellationToken);
 
         // Resolved before the write transaction opens, for the same reason
@@ -560,11 +552,8 @@ internal sealed class MailStore(
         return messages;
     }
 
-    // The WHERE/LIMIT clauses here are assembled at runtime from the filter,
-    // so the SQL text is never a call-site literal; Dapper.AOT can only
-    // intercept calls whose SQL it can read at compile time. This is
-    // executed through plain ADO.NET rather than Dapper's reflection
-    // fallback, mirroring TaskStore.BuildTaskFilterClause.
+    // The WHERE/LIMIT clauses are assembled at runtime, so this executes
+    // through plain ADO.NET rather than Dapper.
     private static (string Sql, Dictionary<string, object?> Parameters) BuildInboxQuery(
         MailInboxFilter filter)
     {
@@ -640,12 +629,10 @@ internal sealed class MailStore(
         return messages;
     }
 
-    // Only joins message_recipients when Agent is set, since matching an
-    // agent requires checking both the sender and recipient columns; the
-    // join can then surface a message more than once (for example the
-    // agent sent it to several recipients), so DISTINCT dedupes ids back to
-    // one row per message. The WHERE/LIMIT clauses are assembled at runtime
-    // for the same reason as BuildInboxQuery.
+    // Only joins message_recipients when Agent is set. The join can then
+    // surface a message more than once, so DISTINCT dedupes ids back to one
+    // row per message. The WHERE/LIMIT clauses are assembled at runtime, so
+    // this uses plain ADO.NET rather than Dapper.
     private static (string Sql, Dictionary<string, object?> Parameters) BuildWorkspaceQuery(
         MailWorkspaceFilter filter)
     {
@@ -813,8 +800,7 @@ internal sealed class MailStore(
     }
 
     // Every id is validated as addressed to the actor before any write
-    // happens, giving the bulk mutations their all-or-nothing behavior,
-    // mirroring TaskStore.CloseTaskAsync.
+    // happens, giving the bulk mutations their all-or-nothing behavior.
     private static async Task ValidateRecipientOwnershipAsync(
         SqliteConnection connection,
         IReadOnlyList<string> messageIds,
@@ -879,10 +865,7 @@ internal sealed class MailStore(
 
     // The two branches keep separate compile-time-literal SQL strings, one
     // per value of includeArchived, rather than splicing the archived
-    // predicate into one interpolated string: Dapper.AOT can only intercept
-    // a QueryAsync call whose SQL text it can read at compile time, and a
-    // runtime-conditional fragment would defeat that the same way
-    // BuildInboxQuery's runtime-assembled SQL forced it onto plain ADO.NET.
+    // predicate into one interpolated string.
     public async Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
         string actor,
         bool includeArchived,
@@ -994,8 +977,7 @@ internal sealed class MailStore(
                 new { agent = normalizedAgent, cancellationToken });
 
         // Never actor-scoped, even when narrowed to one agent: a workspace
-        // rollup must not expose that (or any) agent's read state (epic wi3
-        // convention 8).
+        // rollup must not expose that (or any) agent's read state.
         return await BuildThreadSummariesAsync(connection, rollups, unreadActor: null, cancellationToken);
     }
 
@@ -1003,9 +985,7 @@ internal sealed class MailStore(
     /// Fills in each rollup's subject, last message details, body preview,
     /// and (when <paramref name="unreadActor"/> is given) unread and
     /// archived counts, against the same connection the rollups were read
-    /// from. Shared by every thread query so each keeps its own
-    /// compile-time-literal SQL for the thread id source while the
-    /// per-thread follow-up reads and the ordering stay in one place.
+    /// from.
     /// </summary>
     private static async Task<IReadOnlyList<MailThreadSummary>> BuildThreadSummariesAsync(
         SqliteConnection connection,
@@ -1163,9 +1143,7 @@ internal sealed class MailStore(
         var normalizedSender = MailAgentName.Normalize(sender);
 
         // The LIMIT clause is assembled at runtime from the optional limit,
-        // so the SQL text is never a call-site literal; executed through
-        // plain ADO.NET rather than Dapper's reflection fallback, mirroring
-        // BuildInboxQuery/ExecuteIdQueryAsync above.
+        // executed through plain ADO.NET rather than Dapper.
         var sql =
             """
             SELECT id FROM messages
@@ -1355,10 +1333,8 @@ internal sealed class MailStore(
     private static string EscapeLikeText(string value)
         => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
 
-    // These nested row types are internal, not private: Dapper.AOT's
-    // generated interceptors live outside MailStore and cannot reference a
-    // private nested type, so a private row type would silently fall back to
-    // Dapper's reflection-emit deserializer.
+    // Internal, not private: Dapper.AOT requires these types to be visible
+    // outside the class.
     internal sealed class MailMessageRow
     {
         public required string Id { get; init; }

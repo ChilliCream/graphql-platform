@@ -2,17 +2,14 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
 /// Derives one multi-recipient command's status from its individual actor
-/// wake results. Each actor has at most one coding-session target. The successful
-/// terminal statuses (<see cref="MailWakeTargetStatus.Delivered"/>,
+/// wake results. Each actor has at most one coding-session target. The
+/// successful terminal statuses (<see cref="MailWakeTargetStatus.Delivered"/>,
 /// <see cref="MailWakeTargetStatus.Satisfied"/>,
 /// <see cref="MailWakeTargetStatus.Delegated"/>,
 /// <see cref="MailWakeTargetStatus.Skipped"/>) need nothing further from the
 /// caller; <see cref="MailWakeTargetStatus.Pending"/>
 /// and <see cref="MailWakeTargetStatus.Failed"/> are not successful. A batch
-/// with no targets at all (no live connection to address)
-/// aggregates to <see cref="MailWakeTargetStatus.Failed"/>: nobody was, or
-/// could be, notified. This is not used to roll up multiple connections for
-/// one actor; that state no longer exists.
+/// with no targets at all aggregates to <see cref="MailWakeTargetStatus.Skipped"/>.
 /// </summary>
 internal static class WakeReceiptAggregator
 {
@@ -32,9 +29,7 @@ internal static class WakeReceiptAggregator
     /// <summary>
     /// Combines every recipient's status into one command-level verdict.
     /// <list type="bullet">
-    /// <item>No targets at all: <see cref="MailWakeTargetStatus.Skipped"/>,
-    /// since an actor with no live session takes no push and pulls its own
-    /// mail instead.</item>
+    /// <item>No targets at all: <see cref="MailWakeTargetStatus.Skipped"/>.</item>
     /// <item>At least one unresolved target:
     /// <see cref="MailWakeTargetStatus.Pending"/>.</item>
     /// <item>Every target failed: <see cref="MailWakeTargetStatus.Failed"/>.</item>

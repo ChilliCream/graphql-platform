@@ -37,8 +37,7 @@ internal sealed class MailNudge(
 
         foreach (var actor in actors.Distinct(StringComparer.Ordinal))
         {
-            // No liveness check: the nudge is best effort, so trying and
-            // failing costs the same as asking first and is never stale.
+            // No liveness check: the nudge is best effort.
             var targets = participants
                 .Where(participant => participant.Session.AgentName == actor)
                 .ToArray();

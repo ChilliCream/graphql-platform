@@ -4,8 +4,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 
 /// <summary>
 /// Resolves role-targeted mail recipients from live orchestration
-/// participants, so a role broadcast only reaches an actor with a session
-/// currently claiming that role.
+/// participants.
 /// </summary>
 internal static class MailRoleRecipients
 {

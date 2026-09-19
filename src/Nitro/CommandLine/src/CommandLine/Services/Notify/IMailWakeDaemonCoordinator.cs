@@ -20,10 +20,7 @@ internal interface IMailWakeDaemonCoordinator : IAsyncDisposable
     /// Starts the background run loop: standby lease observation, leader
     /// election, heartbeat renewal, admission, and execution, until
     /// <see cref="StopAsync"/> is called or <paramref name="cancellationToken"/>
-    /// fires. Resolves this process's own Nitro instance id itself, from the
-    /// same provider <see cref="ActorWakeDispatcher"/> uses, so admission
-    /// always targets the actors this process can actually dispatch to.
-    /// Returns once the loop has been launched, not once leadership is
+    /// fires. Returns once the loop has been launched, not once leadership is
     /// acquired. Throws <see cref="InvalidOperationException"/> if already
     /// started.
     /// </summary>

@@ -8,9 +8,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 /// </summary>
 internal enum ClaudePeerSendReason
 {
-    // Claude Code's raw peer endpoint closes with EOF and no inline
-    // delivery receipt. Ok means the complete protocol payload was written
-    // to the validated local endpoint.
+    // The complete protocol payload was written to the validated local
+    // endpoint.
     Ok,
     Unsupported,
     EndpointGone,
