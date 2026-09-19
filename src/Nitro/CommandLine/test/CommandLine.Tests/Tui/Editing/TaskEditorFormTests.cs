@@ -101,8 +101,8 @@ public sealed class TaskEditorFormTests
     [Fact]
     public void Constructor_Should_RoundTripCustomStatus_When_NotAmongWellKnownOptions()
     {
-        // arrange: a closed task opened for editing keeps its own status
-        // selected instead of silently defaulting to "open".
+        // arrange
+        // a closed task opened for editing keeps its own status selected instead of silently defaulting to "open"
         var task = TaskItemBuilder.Create("a1", status: TaskStates.Closed);
 
         // act
@@ -153,7 +153,8 @@ public sealed class TaskEditorFormTests
         // act
         var result = form.HandleKey(Key(ConsoleKey.Enter));
 
-        // assert: the form stays open because the required title is empty.
+        // assert
+        // the form stays open because the required title is empty
         Assert.Null(result);
     }
 
@@ -170,15 +171,16 @@ public sealed class TaskEditorFormTests
         // act
         var result = form.HandleKey(Key(ConsoleKey.Enter));
 
-        // assert: the form stays open because a whitespace-only title is
-        // rejected, matching TaskCreateForm's title validator.
+        // assert
+        // the form stays open because a whitespace-only title is rejected, matching TaskCreateForm's title validator
         Assert.Null(result);
     }
 
     [Fact]
     public void HandleKey_Should_Submit_When_CtrlEnterFromTitleField()
     {
-        // arrange: focus never leaves the title field, no Tab to Save.
+        // arrange
+        // focus never leaves the title field, no Tab to Save
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, []);
         Type(form, "!");
@@ -194,8 +196,8 @@ public sealed class TaskEditorFormTests
     [Fact]
     public void HandleKey_Should_Submit_When_CtrlSFromTitleField()
     {
-        // arrange: Ctrl+S is the fallback save chord for terminals that
-        // deliver Ctrl+Enter identically to a plain Enter.
+        // arrange
+        // Ctrl+S is the fallback save chord for terminals that deliver Ctrl+Enter identically to a plain Enter
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, []);
         Type(form, "!");
@@ -219,8 +221,8 @@ public sealed class TaskEditorFormTests
         // act
         var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
 
-        // assert: the form stays open and focus moves to the invalid title
-        // field instead of closing.
+        // assert
+        // the form stays open and focus moves to the invalid title field instead of closing
         Assert.Null(result);
         Assert.Equal(TaskEditorForm.TitleFieldId, form.FocusedField?.Id);
     }
@@ -294,7 +296,8 @@ public sealed class TaskEditorFormTests
     [Fact]
     public async Task SubmitAsync_Should_AddAndRemoveLabels_When_LabelsEdited()
     {
-        // arrange: remove "b", add "c", keep "a".
+        // arrange
+        // remove "b", add "c", keep "a"
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, ["a", "b"]);
         TabTo(form, 4);
@@ -366,16 +369,15 @@ public sealed class TaskEditorFormTests
     [Fact]
     public void HandleKey_Should_ReachEveryFieldAndSave_When_FrameIsMinimumViableSize()
     {
-        // arrange: the 80x24 frame (23 content rows once the status row is
-        // reserved) the UX spec requires to stay fully operable, with the
-        // default seven-field set.
+        // arrange
+        // the 80x24 frame (23 content rows once the status row is reserved) must stay fully operable
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, ["alpha"]);
         var console = new TestConsole().Width(80).Height(23);
         var fieldLabels = new[] { "Title", "Status", "Priority", "Type", "Labels", "Description", "Notes" };
 
-        // act & assert: every field is reachable by Tab and, once focused,
-        // scrolled fully into view.
+        // act & assert
+        // every field is reachable by Tab and, once focused, scrolled fully into view
         foreach (var label in fieldLabels)
         {
             console.Write(form.Render(80, 23));
@@ -383,14 +385,16 @@ public sealed class TaskEditorFormTests
             form.HandleKey(Key(ConsoleKey.Tab));
         }
 
-        // act: the button row is the next and final stop.
+        // act
+        // the button row is the next and final stop
         console.Write(form.Render(80, 23));
         Assert.Contains("Save", console.Output);
 
         // act
         var result = form.HandleKey(Key(ConsoleKey.Enter));
 
-        // assert: save works from the fully-scrolled button row.
+        // assert
+        // save works from the fully-scrolled button row
         Assert.IsType<FormResult.Submitted>(result);
     }
 }
