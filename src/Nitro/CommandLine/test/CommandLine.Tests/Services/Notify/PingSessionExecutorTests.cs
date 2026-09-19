@@ -12,8 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// Exercises <see cref="PingSessionExecutor"/> end to end against a real
 /// workspace database and mail store: digest construction from unread mail,
 /// the codex-thread transport call, the hard-timeout path, result-write
-/// conditioning, and lease release on every exit - the notifier's required
-/// "a codex-thread ping wakes a live thread end to end" test.
+/// conditioning, and lease release on every exit.
 /// </summary>
 public sealed class PingSessionExecutorTests : IDisposable
 {
@@ -144,8 +143,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     [Fact]
     public async Task ExecuteCodexThreadAsync_Should_RecordEndpointGone_When_TheTransportSignalsGoneThread()
     {
-        // arrange: fixture-evidenced signature for a dead/unknown codex
-        // thread.
+        // arrange: fixture-evidenced signature for a dead/unknown codex thread.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeSessionAsync(cancellationToken);
         await _mail.SendMessageAsync(
@@ -340,8 +338,8 @@ public sealed class PingSessionExecutorTests : IDisposable
     [Fact]
     public async Task ExecuteCodexThreadAsync_Should_RecordOkWithoutCallingTheTransport_When_NoUnreadMailExists()
     {
-        // arrange: the message that triggered this ping was already read by
-        // the time the attempt ran - a benign race, not a failure.
+        // arrange: the message that triggered this ping was already read by the time the attempt
+        // ran, a benign race, not a failure.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeSessionAsync(cancellationToken);
         var attemptId = await ClaimAttemptAsync(cancellationToken);
@@ -568,8 +566,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     [Fact]
     public async Task ExecuteOpencodeServerAsync_Should_RecordEndpointGone_When_ThePingSignalsAMissingOrStaleEndpoint()
     {
-        // arrange: no unread mail, and the stored endpoint no longer answers
-        // - the missing/stale endpoint row case.
+        // arrange: no unread mail, and the stored endpoint no longer answers.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeOpencodeSessionAsync(secret: null, cancellationToken);
         var attemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
