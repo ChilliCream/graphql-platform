@@ -91,8 +91,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points the Nitro instance id resolution at a fixed value instead of
-    /// hashing the real machine's id.
+    /// Configures Nitro instance id resolution to return <paramref name="id"/>.
     /// </summary>
     private protected void SetupInstanceId(string id)
     {
@@ -100,8 +99,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points the global config directory at a fixed directory instead of
-    /// the real machine's application data directory.
+    /// Configures global configuration lookup to use <paramref name="directory"/>.
     /// </summary>
     private protected void SetupGlobalConfigDirectory(string directory)
     {
@@ -109,8 +107,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Feeds <paramref name="payload"/> to a command that reads standard
-    /// input.
+    /// Sets standard input to a reader over <paramref name="payload"/>.
+    /// Command invocations share the reader until this method is called again.
     /// </summary>
     protected void SetupStandardInput(string payload)
     {
@@ -118,8 +116,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points Claude Code <c>settings.json</c> resolution at fixed paths
-    /// instead of the real machine's home directory.
+    /// Configures Claude Code settings lookup to use the supplied user and project paths.
     /// </summary>
     private protected void SetupClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
     {
@@ -127,8 +124,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points Codex CLI config resolution at fixed paths instead of the
-    /// real machine's <c>CODEX_HOME</c>.
+    /// Configures Codex CLI hooks and configuration lookup to use the supplied paths.
     /// </summary>
     private protected void SetupCodexPathResolver(string hooksJsonPath, string configTomlPath)
     {
@@ -136,8 +132,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Replaces the real subprocess-spawning <c>codex queue</c> client with
-    /// the given fake.
+    /// Configures commands to use the supplied <c>codex queue</c> client.
     /// </summary>
     private protected void SetupCodexQueueClient(Services.Hook.ICodexQueueClient client)
     {
@@ -145,7 +140,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Replaces the real Claude peer-socket client with a fake.
+    /// Configures commands to use the supplied Claude peer client.
     /// </summary>
     private protected void SetupClaudePeerClient(Services.Notify.IClaudePeerClient client)
     {
@@ -153,8 +148,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Resolves the acting actor to <paramref name="actor"/> when a command
-    /// omits <c>--actor</c>.
+    /// Configures actor resolution to return <paramref name="actor"/> when the option value is null.
+    /// Explicit values are normalized without checking whether the actor was allocated.
     /// </summary>
     protected void SetupActingActor(string actor)
     {
@@ -162,8 +157,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Drops the fixed <see cref="IActingActorResolver"/> so the real one
-    /// runs, including its guard that the actor was actually allocated.
+    /// Restores the production <see cref="IActingActorResolver"/> for subsequent command invocations.
     /// </summary>
     protected void SetupRealActingActor()
     {
@@ -262,9 +256,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Appends <c>--actor <see cref="DefaultActor"/></c> when the command the
-    /// arguments resolve to declares a required <c>--actor</c> option and the
-    /// caller did not pass one.
+    /// Appends <c>--actor</c> with <see cref="DefaultActor"/> when the resolved command requires it
+    /// and the arguments omit it. Leaves arguments unchanged when <see cref="DefaultActor"/> is null.
     /// </summary>
     private void AddDefaultActorIfRequired(List<string> arguments)
     {
@@ -273,9 +266,7 @@ public abstract class CommandTestBase
             return;
         }
 
-        // Walked by name rather than parsed: parsing here would run the
-        // options' own default factories, which need command services this
-        // invocation has not built yet.
+        // Resolve the subcommand from leading command-name arguments.
         Command command = _fixture.RootCommand;
 
         foreach (var token in arguments)
@@ -519,8 +510,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Returns an in-memory stream that receives whatever is written to
-    /// <paramref name="path"/> through the mocked file system.
+    /// Configures mocked <c>CreateFile</c> calls for <paramref name="path"/>, resolved against
+    /// the test working directory, to return the same in-memory stream. Returns that stream.
     /// </summary>
     protected MemoryStream SetupCreateFile(string path)
     {
@@ -561,9 +552,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Stubs <paramref name="variableName"/> exactly as given, without the
-    /// <c>NITRO_</c> prefix <see cref="SetupEnvironmentVariable"/> always
-    /// adds.
+    /// Configures environment lookup for the exact <paramref name="variableName"/>
+    /// to return <paramref name="value"/>.
     /// </summary>
     protected void SetupRawEnvironmentVariable(string variableName, string? value)
     {
