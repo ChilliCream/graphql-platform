@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands;
 /// <summary>
 /// Resolves an explicitly passed actor exactly as the real resolver does,
 /// and falls back to a fixed actor instead of inspecting the harness
-/// session, which no command test has.
+/// session.
 /// </summary>
 internal sealed class FixedActingActorResolver(string actor) : IActingActorResolver
 {

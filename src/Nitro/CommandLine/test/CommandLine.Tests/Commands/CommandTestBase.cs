@@ -83,8 +83,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Replaces the mocked file system with the given implementation, for
-    /// tests that run commands against real files in a temp directory.
+    /// Replaces the mocked file system with the given implementation.
     /// </summary>
     private protected void SetupFileSystem(IFileSystem fileSystem)
     {
@@ -93,8 +92,7 @@ public abstract class CommandTestBase
 
     /// <summary>
     /// Points the Nitro instance id resolution at a fixed value instead of
-    /// hashing the real machine's id, so tests that seed rows by host stay
-    /// isolated from the machine running them.
+    /// hashing the real machine's id.
     /// </summary>
     private protected void SetupInstanceId(string id)
     {
@@ -102,9 +100,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points the global config directory at a fixed directory instead of the
-    /// real machine's application data directory, so tests stay isolated to
-    /// their own temp directory.
+    /// Points the global config directory at a fixed directory instead of
+    /// the real machine's application data directory.
     /// </summary>
     private protected void SetupGlobalConfigDirectory(string directory)
     {
@@ -112,15 +109,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Points the Claude Code, Codex, and Copilot ancestor-session walk at
-    /// fixed results instead of the real process tree the test host runs
-    /// under, which (running nested inside a live Claude Code session) it
-    /// cannot control or predict deterministically. All three default to no
-    /// ancestor found when not given.
-    /// </summary>
-    /// <summary>
     /// Feeds <paramref name="payload"/> to a command that reads standard
-    /// input, such as a hook adapter.
+    /// input.
     /// </summary>
     protected void SetupStandardInput(string payload)
     {
@@ -129,9 +119,7 @@ public abstract class CommandTestBase
 
     /// <summary>
     /// Points Claude Code <c>settings.json</c> resolution at fixed paths
-    /// instead of the real machine's home directory, so hook command tests
-    /// never read whatever happens to be installed on the machine running
-    /// the test.
+    /// instead of the real machine's home directory.
     /// </summary>
     private protected void SetupClaudeSettingsPathResolver(string userScopePath, string projectScopePath)
     {
@@ -140,8 +128,7 @@ public abstract class CommandTestBase
 
     /// <summary>
     /// Points Codex CLI config resolution at fixed paths instead of the
-    /// real machine's <c>CODEX_HOME</c>, so hook command tests never read
-    /// whatever happens to be installed on the machine running the test.
+    /// real machine's <c>CODEX_HOME</c>.
     /// </summary>
     private protected void SetupCodexPathResolver(string hooksJsonPath, string configTomlPath)
     {
@@ -150,8 +137,7 @@ public abstract class CommandTestBase
 
     /// <summary>
     /// Replaces the real subprocess-spawning <c>codex queue</c> client with
-    /// the given fake, so tests exercising a codex-thread ping through the
-    /// CLI never shell out to a real <c>codex</c> binary.
+    /// the given fake.
     /// </summary>
     private protected void SetupCodexQueueClient(Services.Hook.ICodexQueueClient client)
     {
@@ -159,8 +145,7 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Replaces the real Claude peer-socket client with a fake, so command
-    /// tests never connect to a live Claude Code session.
+    /// Replaces the real Claude peer-socket client with a fake.
     /// </summary>
     private protected void SetupClaudePeerClient(Services.Notify.IClaudePeerClient client)
     {
@@ -169,8 +154,7 @@ public abstract class CommandTestBase
 
     /// <summary>
     /// Resolves the acting actor to <paramref name="actor"/> when a command
-    /// omits <c>--actor</c>. Commands under test run without a detectable
-    /// harness session, which is the only other identity source.
+    /// omits <c>--actor</c>.
     /// </summary>
     protected void SetupActingActor(string actor)
     {
@@ -178,9 +162,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Drops the fixed <see cref="IActingActorResolver"/> so the real one runs, including its guard
-    /// that the actor was actually allocated. For tests about that guard itself; every other test
-    /// keeps the fixed resolver so it does not have to seed an actor first.
+    /// Drops the fixed <see cref="IActingActorResolver"/> so the real one
+    /// runs, including its guard that the actor was actually allocated.
     /// </summary>
     protected void SetupRealActingActor()
     {
@@ -214,8 +197,7 @@ public abstract class CommandTestBase
     /// <summary>
     /// The actor <see cref="ExecuteCommandAsync"/> supplies to any command
     /// that declares a required <c>--actor</c> option and was not given one
-    /// explicitly. Null leaves the arguments untouched, so a test that
-    /// asserts the requirement itself still sees the parse failure.
+    /// explicitly. Null leaves the arguments untouched.
     /// </summary>
     private protected string? DefaultActor { get; set; }
 
@@ -282,8 +264,7 @@ public abstract class CommandTestBase
     /// <summary>
     /// Appends <c>--actor <see cref="DefaultActor"/></c> when the command the
     /// arguments resolve to declares a required <c>--actor</c> option and the
-    /// caller did not pass one, so a test only spells the actor out when the
-    /// actor itself is what it is about.
+    /// caller did not pass one.
     /// </summary>
     private void AddDefaultActorIfRequired(List<string> arguments)
     {
@@ -538,8 +519,8 @@ public abstract class CommandTestBase
     }
 
     /// <summary>
-    /// Sets up the mock to intercept <c>CreateFile</c> for the given path.
-    /// Returns an in-memory stream that receives the written content.
+    /// Returns an in-memory stream that receives whatever is written to
+    /// <paramref name="path"/> through the mocked file system.
     /// </summary>
     protected MemoryStream SetupCreateFile(string path)
     {
@@ -582,8 +563,7 @@ public abstract class CommandTestBase
     /// <summary>
     /// Stubs <paramref name="variableName"/> exactly as given, without the
     /// <c>NITRO_</c> prefix <see cref="SetupEnvironmentVariable"/> always
-    /// adds: for the small set of authoritative harness-launch variables a
-    /// harness itself sets unprefixed, e.g. <c>CODEX_SESSION_ID</c>.
+    /// adds.
     /// </summary>
     protected void SetupRawEnvironmentVariable(string variableName, string? value)
     {
