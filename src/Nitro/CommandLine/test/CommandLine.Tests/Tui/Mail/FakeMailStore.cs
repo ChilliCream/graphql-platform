@@ -4,21 +4,8 @@ using ChilliCream.Nitro.CommandLine.Tui.Mail;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
 /// <summary>
-/// An in-memory <see cref="IMailStore"/> exercising the query and write
-/// surface the mail board model consumes: <see cref="QueryInboxAsync"/>,
-/// <see cref="QuerySentAsync"/>, <see cref="QueryWorkspaceMessagesAsync"/>,
-/// <see cref="GetThreadMessagesAsync"/>, the four thread-rollup queries
-/// (<see cref="QueryThreadsAsync"/>, <see cref="QueryInboxThreadsAsync"/>,
-/// <see cref="QuerySentThreadsAsync"/>, <see cref="QueryWorkspaceThreadsAsync"/>,
-/// built by the shared <see cref="BuildThreadSummaries"/>), <see cref="MarkReadAsync"/>,
-/// <see cref="MarkUnreadAsync"/>, <see cref="ArchiveAsync"/>,
-/// <see cref="SendMessageAsync"/>, and <see cref="ReplyMessageAsync"/>.
-/// The recipient-matching writes reuse the production
-/// <see cref="MailRecipientView"/> helper the same way the query surface
-/// does, so mode-level tests against this fake do not independently prove
-/// the real store's SQL-level recipient, reply-recipient, and thread-rollup
-/// semantics; <c>MailModeRealStoreTests</c> covers those against a real
-/// <see cref="MailStore"/>. Every other member throws <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="IMailStore"/> implementing the query and write surface the mail
+/// board model uses. Every other member throws <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeMailStore : IMailStore
 {
@@ -28,24 +15,17 @@ internal sealed class FakeMailStore : IMailStore
 
     /// <summary>
     /// When set, every <see cref="SendMessageAsync"/> and <see cref="ReplyMessageAsync"/>
-    /// call awaits this before committing, for exercising the write while it
-    /// is still in flight.
+    /// call awaits this before committing.
     /// </summary>
     public TaskCompletionSource? SendGate { get; set; }
 
     /// <summary>
-    /// True once a send or reply has reached <see cref="SendGate"/> and is
-    /// waiting on it, so a test can hold a write in flight deterministically
-    /// instead of racing the effect queue.
+    /// True once a send or reply has reached <see cref="SendGate"/> and is waiting on it.
     /// </summary>
     public bool SendGateEntered { get; private set; }
 
     /// <summary>
-    /// When set, every <see cref="SendMessageAsync"/> call throws this
-    /// instead of writing, for exercising a failure that is not an
-    /// <see cref="ExitException"/>: the same way a genuine bug in the real
-    /// store would, this reaches <see cref="MailMode"/>'s send effect as a
-    /// faulted completion rather than <see cref="MailSendOutcome.Failed"/>.
+    /// When set, every <see cref="SendMessageAsync"/> call throws this instead of writing.
     /// </summary>
     public Exception? SendFault { get; set; }
 
@@ -110,12 +90,10 @@ internal sealed class FakeMailStore : IMailStore
         => throw new NotSupportedException();
 
     /// <summary>
-    /// Sends a message: every given recipient becomes a "to" recipient. Unlike the real store, no
-    /// unknown-recipient validation happens here; that store-owned behavior is covered against a
-    /// real <see cref="MailStore"/> instead. When <see cref="MailMessageCreation.WakePolicy"/> is
+    /// Sends a message: every given recipient becomes a "to" recipient, and no unknown-recipient
+    /// validation happens. When <see cref="MailMessageCreation.WakePolicy"/> is
     /// <see cref="MailWakePolicy.Enqueue"/>, every recipient gets a <see cref="MailWakeReceipt"/>
-    /// (an incrementing generation, mirroring the real store's own per-recipient counter), matching
-    /// the shape <see cref="MailMessage.WakeReceipts"/> carries.
+    /// with an incrementing generation.
     /// </summary>
     public async Task<MailMessage> SendMessageAsync(MailMessageCreation creation, CancellationToken cancellationToken)
     {
@@ -157,9 +135,8 @@ internal sealed class FakeMailStore : IMailStore
     }
 
     /// <summary>
-    /// Replies to a message: the reply's only recipient is the original message's sender. Unlike
-    /// the real store, cc recipients and the actor-exclusion rule are not reproduced here; that
-    /// store-owned behavior is covered against a real <see cref="MailStore"/> instead. See
+    /// Replies to a message: the reply's only recipient is the original message's sender, and cc
+    /// recipients and the actor-exclusion rule are not reproduced. See
     /// <see cref="SendMessageAsync"/> for <paramref name="wakePolicy"/>.
     /// </summary>
     public async Task<MailMessage> ReplyMessageAsync(
@@ -217,10 +194,9 @@ internal sealed class FakeMailStore : IMailStore
         => ApplyToRecipients(messageIds, actor, recipient => recipient with { ArchivedAt = DateTimeOffset.UtcNow });
 
     /// <summary>
-    /// Applies <paramref name="update"/> to <paramref name="actor"/>'s
-    /// recipient row on every message in <paramref name="messageIds"/>,
-    /// validating every id is addressed to the actor before any write, the
-    /// same all-or-nothing shape the real store's batch writes use.
+    /// Applies <paramref name="update"/> to <paramref name="actor"/>'s recipient row on every
+    /// message in <paramref name="messageIds"/>, validating every id is addressed to the actor
+    /// before any write.
     /// </summary>
     private Task ApplyToRecipients(
         IReadOnlyList<string> messageIds, string actor, Func<MailRecipient, MailRecipient> update)
@@ -272,16 +248,10 @@ internal sealed class FakeMailStore : IMailStore
             unreadActor: null));
 
     /// <summary>
-    /// Mirrors <c>MailStore.BuildThreadSummariesAsync</c> in-memory: groups
-    /// every message matching <paramref name="threadFilter"/> by thread,
-    /// takes the thread's last message for <see cref="MailThreadSummary.LastSender"/>,
-    /// <see cref="MailThreadSummary.LastRecipients"/>, and
-    /// <see cref="MailThreadSummary.BodyPreview"/>, the root message
-    /// (oldest) for <see cref="MailThreadSummary.Subject"/>, and computes
-    /// <see cref="MailThreadSummary.UnreadCount"/> and
-    /// <see cref="MailThreadSummary.ArchivedCount"/> only when
-    /// <paramref name="unreadActor"/> is given - never for another agent's
-    /// actor, matching the real store's Workspace-never-actor-scoped rule.
+    /// Mirrors <c>MailStore.BuildThreadSummariesAsync</c> in-memory, grouping messages matching
+    /// <paramref name="threadFilter"/> by thread. <see cref="MailThreadSummary.UnreadCount"/> and
+    /// <see cref="MailThreadSummary.ArchivedCount"/> are computed only when
+    /// <paramref name="unreadActor"/> is given.
     /// </summary>
     private IReadOnlyList<MailThreadSummary> BuildThreadSummaries(Func<MailMessage, bool> threadFilter, string? unreadActor)
     {
