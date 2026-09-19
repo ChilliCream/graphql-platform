@@ -8,15 +8,12 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
 /// <summary>
-/// The full-screen task detail <see cref="ITuiMode"/> the shell switches to
-/// when Enter is pressed on the board: renders one task through
-/// <see cref="TaskDetailModel"/> and <see cref="TaskDetailView"/>, the same
-/// pair <c>SearchMode</c>'s detail pane uses, with the body scrollable via
-/// the global cursor and edge gestures.
+/// The full-screen task detail <see cref="ITuiMode"/> the shell switches to when Enter is pressed on
+/// the board: renders one task through <see cref="TaskDetailModel"/> and <see cref="TaskDetailView"/>,
+/// with the body scrollable via the global cursor and edge gestures.
 /// </summary>
 /// <remarks>
-/// Opening the mode on a task, driven directly by the shell the same way
-/// <c>DependencyTreeView.EnterOnTask</c> is, is not reachable through
+/// Opening the mode on a task is driven directly by the shell and is not reachable through
 /// <see cref="ITuiMode.Handle"/>.
 /// </remarks>
 internal sealed class BoardDetailMode : ITuiMode
@@ -33,9 +30,8 @@ internal sealed class BoardDetailMode : ITuiMode
     }
 
     /// <summary>
-    /// Escape's binding mirrors the global table's (leave the mode) and
-    /// exists only to carry a footer hint: detail has no other bindings of
-    /// its own, scroll and edit come from the global table.
+    /// Escape leaves the mode; the binding exists to carry a footer hint. Scroll and edit come from the
+    /// global table.
     /// </summary>
     public KeyMap? KeyMap { get; } = new KeyMap(
     [

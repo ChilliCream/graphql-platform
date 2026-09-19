@@ -3,18 +3,14 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tui.Details;
 
 /// <summary>
-/// Builds the plain-text, word-wrapped lines of a task detail body's
-/// long-text sections and comments. Lines are unescaped: rendering escapes
-/// them via <c>Markup.Escape</c> before display, matching the plain-text
-/// (not markdown) v1 body decision.
+/// Builds the plain-text, word-wrapped lines of a task detail body's long-text sections and comments.
+/// Lines are unescaped: rendering escapes them via <c>Markup.Escape</c> before display.
 /// </summary>
 internal static class TaskDetailSections
 {
     /// <summary>
-    /// Builds a header line followed by <paramref name="text"/> word-wrapped
-    /// to <paramref name="width"/>, one entry per display line. Returns an
-    /// empty list when <paramref name="text"/> is empty, so the caller omits
-    /// the section entirely.
+    /// Builds a header line followed by <paramref name="text"/> word-wrapped to <paramref name="width"/>,
+    /// one entry per display line. Returns an empty list when <paramref name="text"/> is empty.
     /// </summary>
     public static IReadOnlyList<string> BuildTextSection(string header, string text, int width)
     {
@@ -46,10 +42,9 @@ internal static class TaskDetailSections
     }
 
     /// <summary>
-    /// Builds the "Comments:" section: each comment's author and timestamp
-    /// followed by its text word-wrapped to <paramref name="width"/>, with a
-    /// blank line between comments. Returns an empty list when there are no
-    /// comments, so the caller omits the section entirely.
+    /// Builds the "Comments" section: each comment's author and timestamp followed by its text
+    /// word-wrapped to <paramref name="width"/>, with a blank line between comments. Returns an empty
+    /// list when there are no comments.
     /// </summary>
     public static IReadOnlyList<string> BuildCommentsSection(IReadOnlyList<TaskComment> comments, int width)
     {

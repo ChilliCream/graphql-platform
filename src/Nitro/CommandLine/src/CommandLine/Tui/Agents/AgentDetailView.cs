@@ -6,10 +6,9 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// Renders an <see cref="AgentDetailModel"/> as a scrollable body of its
-/// Session, Identity, Tasks, and Sent mail sections inside a bordered panel,
-/// the same single-panel shape <c>MailDetailView</c> uses. Owns the body's
-/// scroll position; the model owns everything else.
+/// Renders an <see cref="AgentDetailModel"/> as a scrollable body of its Session, Identity, Tasks, and
+/// Sent mail sections inside a bordered panel. Owns the body's scroll position; the model owns
+/// everything else.
 /// </summary>
 internal sealed class AgentDetailView
 {
@@ -104,10 +103,9 @@ internal sealed class AgentDetailView
             : "Session detail";
 
     /// <summary>
-    /// Slices the body's visible window, reserving rows for "N more
-    /// above/below" indicators once the lines no longer fit
-    /// <paramref name="interiorHeight"/>, and padding the result with blank
-    /// lines so the panel's border reaches the bottom.
+    /// Slices the body's visible window, reserving rows for "N more above/below" indicators once the
+    /// lines no longer fit <paramref name="interiorHeight"/>, and pads the result with blank lines to
+    /// that height.
     /// </summary>
     private IReadOnlyList<string> RenderVisibleLines(IReadOnlyList<TaskDetailBodyLine> lines, int interiorHeight)
     {
@@ -151,9 +149,7 @@ internal sealed class AgentDetailView
     }
 
     /// <summary>
-    /// Wraps one already-escaped display line as markup. A blank line is
-    /// rendered as a single space: <see cref="Panel"/> silently drops a
-    /// literal empty content row instead of showing it blank.
+    /// Wraps one already-escaped display line as markup. A blank line is rendered as a single space.
     /// </summary>
     private static IRenderable Row(string line) => new Markup(line.Length == 0 ? " " : line);
 

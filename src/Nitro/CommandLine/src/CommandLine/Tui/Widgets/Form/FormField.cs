@@ -42,10 +42,8 @@ internal abstract class FormField
     public bool Required { get; }
 
     /// <summary>
-    /// Whether <see cref="Render"/> should surface this field's validation
-    /// error, if any. The hosting <see cref="Form"/> sets this once the field
-    /// has been touched or a submit was attempted, so a required field stays
-    /// quiet until the user has had a chance to fill it in.
+    /// Whether <see cref="Render"/> should surface this field's validation error, if any. The hosting
+    /// <see cref="Form"/> sets this once the field has been touched or a submit was attempted.
     /// </summary>
     public bool ShowErrors { get; set; }
 
@@ -75,9 +73,8 @@ internal abstract class FormField
     public string? Validate() => _validator?.Invoke(GetValue());
 
     /// <summary>
-    /// Renders <paramref name="text"/> as the dim placeholder line a field body
-    /// shows in place of a blank line, so an empty field never collapses to a
-    /// border pair with no interior line.
+    /// Renders <paramref name="text"/> as the dim placeholder line a field body shows in place of a
+    /// blank line.
     /// </summary>
     protected static string RenderPlaceholder(string text) => $"[grey italic]{Markup.Escape(text)}[/]";
 

@@ -63,10 +63,8 @@ internal sealed class BoardDataLoader(ITaskStore store, TimeProvider timeProvide
     }
 
     /// <summary>
-    /// Whether a task belongs to the Deferred column: its status is deferred,
-    /// or a future defer date hides it while nobody is actively working it.
-    /// The Blocked column defers to this test so a task waiting on both a
-    /// dependency and a date lands in one column, not two.
+    /// Whether a task belongs to the Deferred column: its status is deferred, or a future defer date
+    /// hides it while nobody is actively working it. The Blocked column defers to this test.
     /// </summary>
     private static bool IsDeferred(TaskItem task, DateTimeOffset now)
         => task.Status == TaskStates.Deferred

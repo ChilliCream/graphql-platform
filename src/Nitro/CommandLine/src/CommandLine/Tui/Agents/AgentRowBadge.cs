@@ -5,17 +5,10 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// Renders one live participant row for the agents list pane as a single
-/// Spectre markup line: selection prefix, implicit marker, actor (or
-/// <see cref="AgentParticipantRow.UnboundLabel"/>), presence badge, harness,
-/// mutable role, and both the started and last-heard timestamps formatted as
-/// relative ages via <see cref="MailAges"/>, which is general enough to
-/// reuse as-is. Each field lands in a fixed-width column, computed across
-/// the currently visible rows by <see cref="ComputeWidths"/>, so
-/// actor/presence/harness/role/age line up vertically instead of being
-/// clubbed into one run-on line. Actor, presence, harness, role, and age
-/// each carry their own <see cref="ThemeTokens"/> color; a row bound to an
-/// implicit durable identity renders its whole line dimmed on top of that.
+/// Renders one live participant row for the agents list pane as a single Spectre markup line:
+/// selection prefix, implicit marker, actor, presence badge, harness, role, and started/last-heard
+/// ages, each padded to the column widths from <see cref="ComputeWidths"/>. A row bound to an implicit
+/// durable identity renders dimmed.
 /// </summary>
 internal static class AgentRowBadge
 {
@@ -34,10 +27,7 @@ internal static class AgentRowBadge
         int Actor, int Presence, int Harness, int Role, int StartedAge, int LastHeardAge);
 
     /// <summary>
-    /// Computes <see cref="Widths"/> across <paramref name="rows"/> (the
-    /// rows about to be rendered, typically just the visible slice), so
-    /// every row's columns are padded to the widest value actually on
-    /// screen rather than to every participant in the list.
+    /// Computes <see cref="Widths"/> across <paramref name="rows"/>.
     /// </summary>
     public static Widths ComputeWidths(IReadOnlyList<AgentParticipantRow> rows, DateTimeOffset now)
     {
@@ -63,12 +53,10 @@ internal static class AgentRowBadge
     }
 
     /// <summary>
-    /// Builds the markup line for one participant row, padding
-    /// actor/presence/role/ages to <paramref name="widths"/> and then
-    /// truncating the role with an ellipsis so the whole line still fits
-    /// within <paramref name="maxWidth"/> display columns on narrow
-    /// terminals. A <paramref name="maxWidth"/> of 0 or less produces an
-    /// empty line.
+    /// Builds the markup line for one participant row, padding actor/presence/role/ages to
+    /// <paramref name="widths"/> and truncating the role with an ellipsis so the line fits within
+    /// <paramref name="maxWidth"/> display columns. A <paramref name="maxWidth"/> of 0 or less produces
+    /// an empty line.
     /// </summary>
     public static string Render(
         AgentParticipantRow row, DateTimeOffset now, bool selected, int maxWidth, Widths widths)
@@ -88,8 +76,7 @@ internal static class AgentRowBadge
         var startedAge = MailAges.Format(session.StartedAt, now).PadRight(widths.StartedAge);
         var lastHeardAge = MailAges.Format(session.LastBeatAt, now).PadRight(widths.LastHeardAge);
 
-        // Plain-text length of everything but the role, so the role can be
-        // truncated to make the whole line fit maxWidth.
+        // Plain-text length of everything but the role.
         var fixedPlainLength = prefix.Length + marker.Length + 1
             + actor.Length + 1
             + presenceBadge.Length + 1
@@ -135,10 +122,7 @@ internal static class AgentRowBadge
         => session.AgentName is { Length: > 0 } actor ? actor : AgentParticipantRow.UnboundLabel;
 
     /// <summary>
-    /// The presence badge text: a single glyph for the state (kept to one
-    /// or two characters so the badge does not crowd out the role column on
-    /// a narrow terminal - full state names are what <c>agent list</c>'s
-    /// plain-text output is for), plus the Claude activity read-through's
+    /// The presence badge text: a single glyph for the state, plus the Claude activity read-through's
     /// first letter in parentheses when known.
     /// </summary>
     private static string PresenceText(AgentParticipantRow row)
@@ -173,11 +157,9 @@ internal static class AgentRowBadge
 
     /// <summary>
     /// Resolves the theme style for <paramref name="role"/>: a per-role
-    /// <c>agents.list.role.&lt;role&gt;</c> token keyed by the lowercased
-    /// role text, falling back to the base <c>agents.list.role</c> token
-    /// when no dedicated color is registered (including for the empty
-    /// role). Shared with <see cref="AgentDetailBody"/> so the list and the
-    /// Session section agree on a role's color.
+    /// <c>agents.list.role.&lt;role&gt;</c> token keyed by the lowercased role text, falling back to
+    /// the base <c>agents.list.role</c> token when no dedicated color is registered, including for the
+    /// empty role.
     /// </summary>
     public static Style RoleStyle(string role)
     {

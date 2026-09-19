@@ -4,10 +4,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Widgets;
 
 /// <summary>
-/// Maps task status and type codes to their display glyph, independent of
-/// any specific row layout, so the search results list, detail sidebar and
-/// dependency sections, and tree explorer render the same glyphs as
-/// <see cref="TaskBadge"/> without composing a full badge line.
+/// Maps task status and type codes to their display glyph, independent of any specific row layout.
 /// </summary>
 internal static class TaskGlyphs
 {

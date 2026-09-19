@@ -136,7 +136,7 @@ internal sealed class EditableListField : FormField
 
             case ConsoleKey.UpArrow:
             case ConsoleKey.DownArrow:
-                // Swallowed so browsing the list cannot happen mid-edit.
+                // Swallowed during editing.
                 return true;
 
             default:

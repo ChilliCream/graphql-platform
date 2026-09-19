@@ -11,9 +11,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 internal sealed record AgentParticipantRow(AgentSessionParticipant Participant, string? Activity)
 {
     /// <summary>
-    /// The label shown in place of an actor name for a session with no
-    /// bound identity, shared by the list row and the detail pane's Session
-    /// section.
+    /// The label shown in place of an actor name for a session with no bound identity.
     /// </summary>
     public const string UnboundLabel = "(unbound)";
 

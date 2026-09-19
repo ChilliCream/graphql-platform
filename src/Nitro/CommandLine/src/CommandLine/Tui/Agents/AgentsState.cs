@@ -36,12 +36,8 @@ internal sealed class AgentsState(IAgentSessionRegistry sessionRegistry, IClaude
         => SelectedRow >= 0 && SelectedRow < Rows.Count ? Rows[SelectedRow] : null;
 
     /// <summary>
-    /// Reloads every live participant from the registry. The selected row
-    /// stays selected by its <see cref="AgentSessionKey"/> (harness plus
-    /// session id), never by actor name, so two sessions sharing one actor
-    /// and a bound session's role being promoted both leave the selection
-    /// untouched. Otherwise the selected row is clamped to the new list's
-    /// bounds.
+    /// Reloads every live participant from the registry. The selected row stays selected by its
+    /// <see cref="AgentSessionKey"/>; otherwise it is clamped to the new list's bounds.
     /// </summary>
     public async Task RefreshAsync(CancellationToken cancellationToken)
     {
@@ -58,10 +54,8 @@ internal sealed class AgentsState(IAgentSessionRegistry sessionRegistry, IClaude
     }
 
     /// <summary>
-    /// Reads the Claude activity read-through for a single online
-    /// claude-code session; every other row carries no activity, since the
-    /// read-through only means anything against a session a caller could
-    /// plausibly find a live status file for.
+    /// Reads the Claude activity read-through for a single online claude-code session; every other row
+    /// carries no activity.
     /// </summary>
     private AgentParticipantRow ToRow(AgentSessionParticipant participant)
     {

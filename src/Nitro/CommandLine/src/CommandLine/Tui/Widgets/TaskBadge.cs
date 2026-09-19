@@ -39,8 +39,7 @@ internal static class TaskBadge
         var priorityText = TaskPriorities.Format(priority);
         var priorityStyle = ThemeTokens.GetStyle($"badge.priority.p{priority}").ToMarkup();
 
-        // Plain-text length of everything but the title, so the title can be
-        // truncated to make the whole line fit maxWidth.
+        // Plain-text length of everything but the title.
         var fixedPlainLength = prefix.Length + glyph.Length + 1
             + typeCode.Length + 2 + 1
             + priorityText.Length + 1

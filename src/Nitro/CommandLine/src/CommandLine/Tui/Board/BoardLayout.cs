@@ -26,9 +26,7 @@ internal static class BoardLayout
     private const int StackedPanelChromeHeight = 2;
 
     /// <summary>
-    /// The fewest content rows an equally-shared stacked column needs to be
-    /// usable, below which every column sharing the height equally would be
-    /// too cramped to read.
+    /// The fewest content rows an equally-shared stacked column needs to be usable.
     /// </summary>
     private const int MinStackedInteriorHeight = 3;
 

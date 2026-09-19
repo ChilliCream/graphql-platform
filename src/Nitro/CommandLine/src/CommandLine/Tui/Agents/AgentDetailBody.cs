@@ -7,15 +7,9 @@ using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// Composes an <see cref="AgentDetailModel"/>'s body lines, in the order
-/// Session, Identity, Tasks, Sent mail, with a blank line between
-/// consecutive non-empty sections. Every section is a styled header line
-/// followed by a blank line and its rows, reusing <see cref="TaskDetailBodyLine"/>
-/// the same way <c>TaskDetailBody</c> does. Session is the only section that
-/// always renders once a participant is loaded; Identity, Tasks, and Sent
-/// mail are omitted entirely, including their header, for an unbound
-/// session (no durable actor to join them against). All sections render
-/// read-only: there is no per-row selection or drill-in.
+/// Composes an <see cref="AgentDetailModel"/>'s body lines in Session, Identity, Tasks, and Sent mail
+/// order, with a blank separator line between non-empty sections. Identity, Tasks, and Sent mail are
+/// omitted for an unbound session.
 /// </summary>
 internal static class AgentDetailBody
 {
@@ -116,9 +110,7 @@ internal static class AgentDetailBody
     }
 
     /// <summary>
-    /// Wraps an escaped <paramref name="value"/> in <paramref name="styleMarkup"/>,
-    /// mirroring the field-value styling <see cref="AgentRowBadge"/> applies to
-    /// list rows so the Session and Identity sections agree with it.
+    /// Wraps an escaped <paramref name="value"/> in <paramref name="styleMarkup"/> markup.
     /// </summary>
     private static string StyledValue(string styleMarkup, string value)
     {
@@ -160,9 +152,8 @@ internal static class AgentDetailBody
     }
 
     /// <summary>
-    /// Prefixes non-empty section content with a bold header line and a
-    /// blank separator line. Empty content stays empty, so the caller omits
-    /// the section entirely, header included.
+    /// Prefixes non-empty section content with a bold header line and a blank separator line. Empty
+    /// content is returned unchanged.
     /// </summary>
     private static IReadOnlyList<TaskDetailBodyLine> WithStyledHeader(
         string header, IReadOnlyList<TaskDetailBodyLine> body)

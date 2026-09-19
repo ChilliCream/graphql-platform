@@ -177,15 +177,12 @@ internal sealed class Form
 
         var chrome = PanelBorderHeight + SeparatorHeight + buttonsHeight;
         var totalFieldsHeight = fieldHeights.Sum();
-        // Guarantees room for the chrome plus at least one field row, even if
-        // the frame barely clears MinViableHeight.
+        // Reserves room for the chrome plus at least one field row.
         var maxPanelHeight = Math.Max(chrome + 1, height - FrameMargin);
         var availableFieldsHeight = Math.Max(0, maxPanelHeight - chrome);
         var needsScrolling = totalFieldsHeight > availableFieldsHeight;
 
-        // Reserve room for the scroll indicators only when scrolling is
-        // actually happening, so a form that fits entirely never loses a row
-        // to indicators it doesn't show.
+        // Reserve room for the scroll indicators only when scrolling is actually happening.
         var windowBudget = needsScrolling
             ? Math.Max(0, availableFieldsHeight - 2)
             : availableFieldsHeight;
@@ -212,8 +209,7 @@ internal sealed class Form
             sections.Add(new Markup("[grey italic]▼ more fields below[/]"));
         }
 
-        // A blank line separates the fields from the button row so the buttons
-        // don't read as crowded against the last field.
+        // A blank line separates the fields from the button row.
         sections.Add(new Markup(" "));
         sections.Add(buttonsRenderable);
 
@@ -303,21 +299,16 @@ internal sealed class Form
     }
 
     /// <summary>
-    /// Whether <paramref name="info"/> is the save chord that submits the form
-    /// from any focus position, as if the primary button were activated:
-    /// Ctrl+Enter, or Ctrl+S as a fallback for terminals whose legacy input
-    /// mode reports Ctrl+Enter identically to a plain Enter.
+    /// Whether <paramref name="info"/> is the save chord that submits the form from any focus position,
+    /// as if the primary button were activated: Ctrl+Enter, or Ctrl+S.
     /// </summary>
     private static bool IsSaveChord(ConsoleKeyInfo info)
         => info.Modifiers.HasFlag(ConsoleModifiers.Control)
         && info.Key is ConsoleKey.Enter or ConsoleKey.S;
 
     /// <summary>
-    /// Submits the form as if the primary button were activated, regardless of
-    /// which field or button currently has focus. On validation failure,
-    /// moves focus to the first invalid field instead of leaving focus
-    /// wherever the chord was pressed, so the surfaced error is immediately
-    /// visible.
+    /// Submits the form as if the primary button were activated, regardless of which field or button
+    /// currently has focus. On validation failure, moves focus to the first invalid field.
     /// </summary>
     private FormResult? TrySave()
     {
@@ -332,10 +323,8 @@ internal sealed class Form
     }
 
     /// <summary>
-    /// Validates every field, marking the form as having attempted a submit so
-    /// every field's error becomes visible; returns the submitted values when
-    /// all fields are valid, or <see langword="null"/> to keep the form open
-    /// otherwise.
+    /// Validates every field, marking the form as having attempted a submit; returns the submitted
+    /// values when all fields are valid, or <see langword="null"/> to keep the form open otherwise.
     /// </summary>
     private FormResult? TryValidateAndSubmit()
     {

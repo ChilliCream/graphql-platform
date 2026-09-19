@@ -4,11 +4,9 @@ using ChilliCream.Nitro.CommandLine.Tui.Widgets;
 namespace ChilliCream.Nitro.CommandLine.Tui.Details;
 
 /// <summary>
-/// Renders one dependency or blocks row as a single Spectre markup line:
-/// selection prefix, status glyph, dependency type, direction arrow, target
-/// id, and title, mirroring <see cref="TaskBadge"/>'s row conventions.
-/// Blocking dependency types are rendered bold to distinguish them from
-/// non-blocking ones.
+/// Renders one dependency or blocks row as a single Spectre markup line: selection prefix, status
+/// glyph, dependency type, direction arrow, target id, and title. Blocking dependency types render
+/// bold.
 /// </summary>
 internal static class TaskDetailRowRenderer
 {

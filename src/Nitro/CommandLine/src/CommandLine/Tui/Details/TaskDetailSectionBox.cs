@@ -3,12 +3,9 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Details;
 
 /// <summary>
-/// Renders one long-text detail section, Description, Design, Acceptance
-/// criteria, or Notes, as a rounded-border box with the section name as the
-/// border title and a padded interior, matching the bordered field sections
-/// the task edit form renders. Produces a flat list of plain-text display
-/// rows, one per line, so the body's viewport can scroll over the box the
-/// same way it scrolls over any other section.
+/// Renders one long-text detail section, Description, Design, Acceptance criteria, or Notes, as a
+/// rounded-border box with the section name as the border title. Produces a flat list of plain-text
+/// display rows, one per line.
 /// </summary>
 internal static class TaskDetailSectionBox
 {
@@ -19,10 +16,9 @@ internal static class TaskDetailSectionBox
     private const int ChromeWidth = 4;
 
     /// <summary>
-    /// Builds the box for <paramref name="text"/> under <paramref name="title"/>,
-    /// at most <paramref name="width"/> display columns wide. Returns an empty
-    /// list when <paramref name="text"/> is empty, so the caller omits the
-    /// section entirely.
+    /// Builds the box for <paramref name="text"/> under <paramref name="title"/>, at most
+    /// <paramref name="width"/> display columns wide. Returns an empty list when
+    /// <paramref name="text"/> is empty.
     /// </summary>
     public static IReadOnlyList<TaskDetailBodyLine> Render(string title, string text, int width)
     {

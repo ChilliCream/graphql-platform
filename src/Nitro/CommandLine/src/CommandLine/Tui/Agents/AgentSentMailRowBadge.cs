@@ -4,11 +4,8 @@ using ChilliCream.Nitro.CommandLine.Tui.Mail;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// Renders one sent-message row for the agent detail view's sent mail
-/// section as a single Spectre markup line: age, subject, and recipients.
-/// Read-only: unlike the mail board's own row rendering (<see cref="MailTable"/>)
-/// there is no selection prefix or unread marker, since this section has no
-/// drill-in.
+/// Renders one sent-message row for the agent detail view's sent mail section as a single Spectre
+/// markup line: age, subject, and recipients. Carries no selection prefix or unread marker.
 /// </summary>
 internal static class AgentSentMailRowBadge
 {
@@ -17,9 +14,7 @@ internal static class AgentSentMailRowBadge
     private const string Arrow = "-> ";
 
     /// <summary>
-    /// The largest share of the available width the recipients list may
-    /// claim, so a long recipient list cannot crowd the subject out
-    /// entirely.
+    /// The largest share of the available width the recipients list may claim.
     /// </summary>
     private const int MaxRecipientsBudget = 24;
 
@@ -40,8 +35,7 @@ internal static class AgentSentMailRowBadge
         var recipients = string.Join(", ", message.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name));
         var recipientsText = recipients.Length == 0 ? NoRecipients : recipients;
 
-        // Plain-text length of everything but the subject and recipients, so
-        // the remaining width can be split between them.
+        // Plain-text length of everything but the subject and recipients.
         var fixedPlainLength = age.Length + 1 + Arrow.Length;
         var remaining = Math.Max(0, maxWidth - fixedPlainLength);
         var recipientsBudget = Math.Min(MaxRecipientsBudget, remaining / 2);

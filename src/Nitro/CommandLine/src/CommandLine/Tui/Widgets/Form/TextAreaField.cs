@@ -15,9 +15,8 @@ internal sealed class TextAreaField : FormField
     private const string CursorStyle = "black on white";
 
     /// <summary>
-    /// The fewest interior lines a text area ever renders, even when its
-    /// content is empty or shorter than its configured visible-lines count:
-    /// keeps the field from collapsing to a cramped one-line box.
+    /// The fewest interior lines a text area ever renders, even when its content is empty or shorter
+    /// than its configured visible-lines count.
     /// </summary>
     private const int MinVisibleLines = 3;
 
@@ -134,8 +133,7 @@ internal sealed class TextAreaField : FormField
             rows.Add(new Markup(markup));
         }
 
-        // Pads short content up to the configured visible-lines height so the
-        // field always renders as a fixed-size box instead of shrinking to fit.
+        // Pads short content up to the configured visible-lines height.
         while (rows.Count < _visibleLines)
         {
             rows.Add(new Markup(" "));
