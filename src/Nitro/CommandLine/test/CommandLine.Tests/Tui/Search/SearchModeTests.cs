@@ -130,15 +130,18 @@ public sealed class SearchModeTests
         var mode = new SearchMode(new FakeTaskStore());
         Assert.Equal(SearchFocus.Input, mode.Focus);
 
-        // act & assert: Input -> List
+        // act & assert
+        // Input -> List
         mode.Handle(new TuiMessage.OpenSelected());
         Assert.Equal(SearchFocus.List, mode.Focus);
 
-        // act & assert: List -> Detail
+        // act & assert
+        // List -> Detail
         mode.Handle(new TuiMessage.OpenSelected());
         Assert.Equal(SearchFocus.Detail, mode.Focus);
 
-        // act & assert: Detail stays put
+        // act & assert
+        // Detail stays put
         mode.Handle(new TuiMessage.OpenSelected());
         Assert.Equal(SearchFocus.Detail, mode.Focus);
     }
@@ -152,15 +155,18 @@ public sealed class SearchModeTests
         mode.Handle(new TuiMessage.OpenSelected());
         Assert.Equal(SearchFocus.Detail, mode.Focus);
 
-        // act & assert: Detail -> List
+        // act & assert
+        // Detail -> List
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
         Assert.Equal(SearchFocus.List, mode.Focus);
 
-        // act & assert: List -> Input
+        // act & assert
+        // List -> Input
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
         Assert.Equal(SearchFocus.Input, mode.Focus);
 
-        // act & assert: Input stays put
+        // act & assert
+        // Input stays put
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
         Assert.Equal(SearchFocus.Input, mode.Focus);
     }
@@ -281,13 +287,14 @@ public sealed class SearchModeTests
         TypeText(mode, "Beta", s_now);
         Assert.Null(mode.ParseError);
 
-        // act: an external write refreshes before the debounce is due
+        // act
+        // an external write refreshes before the debounce is due
         mode.Handle(new TuiMessage.RefreshRequested());
         var refreshedAt = s_now + SearchMode.DebounceWindow - TimeSpan.FromMilliseconds(1);
         var refreshRan = await mode.TickAsync(refreshedAt, CancellationToken.None);
 
-        // assert: the refresh re-ran the last applied (empty) query, the
-        // in-flight typed text and its debounce timer are untouched
+        // assert
+        // refresh reran the last applied (empty) query without touching the in-flight text or its debounce timer.
         Assert.True(refreshRan);
         Assert.Equal(2, store.QueryCount);
         Assert.Null(store.LastFilter!.Text);
@@ -309,10 +316,12 @@ public sealed class SearchModeTests
         mode.Handle(new TuiMessage.RefreshRequested());
         await mode.TickAsync(s_now + SearchMode.DebounceWindow - TimeSpan.FromMilliseconds(1), CancellationToken.None);
 
-        // act: the original debounce timer, unaffected by the refresh, comes due
+        // act
+        // the original debounce timer, unaffected by the refresh, comes due
         var ran = await mode.TickAsync(s_now + SearchMode.DebounceWindow, CancellationToken.None);
 
-        // assert: the typed query is the one that ends up applied
+        // assert
+        // the typed query is the one that ends up applied
         Assert.True(ran);
         Assert.Equal("Beta", store.LastFilter!.Text);
         Assert.Equal(["t-2"], mode.Results.Select(t => t.Id));

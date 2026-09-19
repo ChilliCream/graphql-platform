@@ -256,7 +256,7 @@ public sealed class TaskCreateFormTests
     public async Task SubmitAsync_Should_CreateTopLevelTask_When_ParentFieldSwitchedToNoParent()
     {
         // arrange
-        // the board always has a selection once a column is populated, so this is the only gesture that creates a root task while a row is selected
+        // RightArrow switches the parent field to no-parent, producing a root task.
         var form = new TaskCreateForm(TaskTypes.Task, parentId: "app-1a2");
         Type(form, "Root task");
         TabTo(form, 2);
