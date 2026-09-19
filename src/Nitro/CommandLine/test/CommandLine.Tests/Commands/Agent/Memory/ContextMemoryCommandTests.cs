@@ -69,8 +69,7 @@ public sealed class ContextMemoryCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task NeverIncludesJournal()
     {
-        // arrange: journal capture does not exist yet in this slice, so this
-        // just pins that context stays curated-only once it does.
+        // arrange: pins that context stays curated-only, never including journal entries.
         await InitWorkspaceAsync();
         await SeedMemoryAsync("Curated note.");
 
@@ -138,12 +137,11 @@ public sealed class ContextMemoryCommandTests(NitroCommandFixture fixture)
         var newest = await SeedMemoryAsync("Newer note.");
         SetupInteractionMode(InteractionMode.JsonOutput);
 
-        // A budget that fits the newest (rank-first) entry exactly, with no
-        // room for a second.
+        // A budget that fits the newest (rank-first) entry exactly, with no room for a second.
         var maxChars = MemoryContextRenderer.RenderEntry(newest).Length;
 
-        // act: the budget admits exactly the first-ranked entry and stops
-        // rather than truncating it or skipping ahead to a smaller one.
+        // act: the budget admits exactly the first-ranked entry and stops rather than
+        // truncating it or skipping ahead to a smaller one.
         var result = await ExecuteCommandAsync(
             "agent", "memory", "context", "--max-chars", maxChars.ToString());
 

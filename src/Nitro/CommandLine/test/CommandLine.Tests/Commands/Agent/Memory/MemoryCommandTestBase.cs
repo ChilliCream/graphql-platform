@@ -42,9 +42,7 @@ public abstract class MemoryCommandTestBase : CommandTestBase
         => AgentWorkspace.GetMemoryLocalDirectory(MemoryDirectory);
 
     /// <summary>
-    /// Every curated memory in the workspace, newest first, read back
-    /// through the store: the database is the source of truth, so this is
-    /// what a test asserts a write against.
+    /// Every curated memory in the workspace, newest first, read back through the store.
     /// </summary>
     internal Task<IReadOnlyList<MemoryRecord>> ReadCuratedAsync()
         => CreateStore().GetRecentCuratedAsync(limit: null, TestContext.Current.CancellationToken);

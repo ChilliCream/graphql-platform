@@ -99,9 +99,8 @@ public sealed class ForgetMemoryCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task NoWorkspace_ReturnsError()
     {
-        // The default scope is "project"; with no project workspace this
-        // must give the same missing-workspace error `save` gives, not
-        // "does not exist".
+        // arrange: no workspace, so this must give the same missing-workspace error `save`
+        // gives, not "does not exist".
 
         // act
         var result = await ExecuteCommandAsync(
