@@ -12,8 +12,7 @@ internal sealed class ClaudeSettingsPathResolver(IFileSystem fileSystem) : IClau
     /// The checkout root that contains the current directory (the directory
     /// whose <c>.nitro</c> or <c>.git</c> entry resolved the workspace), not
     /// the workspace directory itself: Claude Code's project-scope config
-    /// lives at <c>&lt;checkout-root&gt;/.claude/settings.json</c>, so a
-    /// linked worktree gets its own settings, not the main checkout's.
+    /// lives at <c>&lt;checkout-root&gt;/.claude/settings.json</c>.
     /// </summary>
     private string ResolveProjectRoot()
         => Workspace.AgentWorkspace.FindLocation(fileSystem, fileSystem.GetCurrentDirectory())

@@ -56,9 +56,7 @@ internal sealed class CodexQueueClient : ICodexQueueClient
     }
 
     /// <summary>
-    /// Classifies a completed <c>codex queue</c> invocation. Internal, not
-    /// private: <c>CodexQueueClientTests</c> exercises this directly against
-    /// stderr fixtures without shelling out to a real <c>codex</c> binary.
+    /// Classifies a completed <c>codex queue</c> invocation.
     /// </summary>
     internal static CodexQueueResult MapResult(int exitCode, string stderr)
     {
@@ -88,8 +86,6 @@ internal sealed class CodexQueueClient : ICodexQueueClient
         }
     }
 
-    // Internal, not private: CodexQueueClientTests asserts the built
-    // ProcessStartInfo's environment countermeasures directly.
     internal static ProcessStartInfo BuildStartInfo(string threadId, string message)
     {
         var startInfo = new ProcessStartInfo("codex")

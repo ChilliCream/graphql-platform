@@ -110,7 +110,6 @@ internal static class ClaudeHookExecutor
 
     /// <summary>
     /// The nonzero exit a hook uses to report a condition the user has to act on.
-    /// Not 2, which Claude Code treats as a blocking error.
     /// </summary>
     private const int FailureExitCode = 1;
 

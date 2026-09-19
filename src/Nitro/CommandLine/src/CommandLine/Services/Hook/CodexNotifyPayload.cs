@@ -4,13 +4,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
 /// The fields this adapter reads from a Codex CLI <c>notify</c> program's
-/// single JSON argument: kebab-case field names and argv[1], not stdin. This
-/// is a materially different wire shape from
-/// <see cref="CodexHookPayload"/>'s <c>hooks.json</c> events. Only
-/// <c>type</c>, <c>thread-id</c>, and <c>cwd</c> are read; <c>turn-id</c>,
-/// <c>client</c>, <c>input-messages</c>, and <c>last-assistant-message</c>
-/// are left unparsed by design, same rationale as
-/// <see cref="CodexHookPayload"/>.
+/// single JSON argument, argv[1] rather than stdin: <c>type</c>,
+/// <c>thread-id</c>, and <c>cwd</c>. Other fields are left unparsed.
 /// </summary>
 internal sealed record CodexNotifyPayload
 {

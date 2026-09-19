@@ -19,7 +19,7 @@ internal interface IOpencodeHookHandler
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Refreshes the session heartbeat; any idle push is claimed out of band by ActorWakeDispatcher.
+    /// Refreshes the session heartbeat.
     /// </summary>
     Task<OpencodeHookOutcome> HandleSessionIdleAsync(
         OpencodeHookPayload payload, bool dryRun, CancellationToken cancellationToken);

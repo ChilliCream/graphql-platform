@@ -1,10 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// What a Claude hook event handler decided to tell the harness, harness-
-/// agnostic: the command layer is the only place that knows the wire shape
-/// (<c>hookSpecificOutput.additionalContext</c> or
-/// <c>{decision, reason}</c>) this maps to.
+/// What a Claude hook event handler decided to tell the harness,
+/// harness-agnostic.
 /// </summary>
 internal sealed record ClaudeHookOutcome
 {
@@ -21,7 +19,7 @@ internal sealed record ClaudeHookOutcome
     public string? AdditionalContext { get; init; }
 
     /// <summary>
-    /// True to block the harness's Stop event (Claude: <c>decision: block</c>).
+    /// True to block the harness's Stop event.
     /// </summary>
     public bool Block { get; init; }
 

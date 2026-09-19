@@ -3,9 +3,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <summary>
 /// Reads and writes the Claude hooks sidecar file under the global config
 /// directory. Read failures (missing file, corrupt JSON) resolve to
-/// <see cref="ClaudeHooksSidecarFile.Empty"/> rather than throwing: a lost
-/// or corrupted sidecar degrades install/uninstall to marker-based
-/// detection, it does not fail the command.
+/// <see cref="ClaudeHooksSidecarFile.Empty"/> rather than throwing.
 /// </summary>
 internal interface IClaudeHooksSidecarStore
 {

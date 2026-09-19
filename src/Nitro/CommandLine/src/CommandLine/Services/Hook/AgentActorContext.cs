@@ -2,9 +2,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
 /// The one line a session-start hook injects to tell an agent which actor it
-/// acts as. Only session start announces it: Claude Code fires that event on
-/// startup, resume, clear, compact, and fork, so every point a session could
-/// have lost the name re-announces it, and no other event has to repeat it.
+/// acts as.
 /// </summary>
 internal static class AgentActorContext
 {
