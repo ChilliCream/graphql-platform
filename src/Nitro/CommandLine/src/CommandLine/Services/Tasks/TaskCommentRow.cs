@@ -3,8 +3,8 @@ using System.Globalization;
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// An all-primitives projection of a comment row; the intercepted read path
-/// cannot convert the TEXT-stored timestamp column to DateTimeOffset.
+/// An all-primitives projection of a comment row; the timestamp column is
+/// stored as TEXT and parsed by <see cref="ToTaskComment"/>.
 /// </summary>
 internal sealed class TaskCommentRow
 {
