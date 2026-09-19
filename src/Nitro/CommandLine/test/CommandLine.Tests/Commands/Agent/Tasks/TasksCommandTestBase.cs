@@ -4,8 +4,7 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
 
 /// <summary>
-/// Runs task commands against a real SQLite workspace in a per-test temp
-/// directory named "acme", so the derived task ID prefix is deterministic.
+/// Runs task commands against a real SQLite workspace in a per-test temp directory named "acme".
 /// </summary>
 public abstract class TasksCommandTestBase : CommandTestBase
 {
@@ -85,10 +84,8 @@ public abstract class TasksCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Inserts a dependency edge directly into the workspace database,
-    /// bypassing ITaskStore's cycle rejection. Used to seed a cycle that
-    /// reached the database some other way (a legacy import, a manual
-    /// edit) so cycle-detection commands have something to find.
+    /// Inserts a dependency edge directly into the workspace database, bypassing
+    /// ITaskStore's cycle rejection.
     /// </summary>
     protected async Task InsertDependencyAsync(string taskId, string dependsOnId, string type = "blocks")
     {
@@ -112,8 +109,7 @@ public abstract class TasksCommandTestBase : CommandTestBase
 
     /// <summary>
     /// Sets a task's status directly in the workspace database, bypassing
-    /// ITaskStore's transition rules. Used to seed a task in a status the
-    /// normal command surface cannot reach directly, such as archived.
+    /// ITaskStore's transition rules.
     /// </summary>
     protected async Task SetTaskStatusAsync(string taskId, string status)
     {
