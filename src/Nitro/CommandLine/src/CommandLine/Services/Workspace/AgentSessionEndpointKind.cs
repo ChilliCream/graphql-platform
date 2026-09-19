@@ -9,6 +9,7 @@ internal static class AgentSessionEndpointKind
     public const string ClaudePeer = "claude-peer";
     public const string CodexThread = "codex-thread";
     public const string CopilotExtension = "copilot-extension";
+    public const string OpencodeServer = "opencode-server";
 
     /// <summary>
     /// A Nitro board session's endpoint: the shared workspace SQLite file

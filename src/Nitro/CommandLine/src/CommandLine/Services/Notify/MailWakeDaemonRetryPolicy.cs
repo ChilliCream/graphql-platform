@@ -41,8 +41,9 @@ internal static class MailWakeDaemonRetryPolicy
 
     /// <summary>
     /// Whether <paramref name="lastError"/> is a busy session gate, exhausted
-    /// transport capacity, or an accepted Claude access-denied handoff.
+    /// transport capacity, an accepted Claude access-denied handoff, or an
+    /// opencode session offered because its idle-push gate was not armed.
     /// </summary>
     public static bool IsTransientOffer(string? lastError) =>
-        lastError is "busy" or "capacity-dropped" or "access-denied";
+        lastError is "busy" or "capacity-dropped" or "access-denied" or "idle-not-armed";
 }

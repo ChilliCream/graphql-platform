@@ -27,6 +27,7 @@ internal sealed class InitAgentCommand : Command
         Options.Add(Opt<AgentPrefixOption>.Instance);
         Options.Add(Opt<ForceReinitializeAgentOption>.Instance);
         Options.Add(Opt<MigrateAgentOption>.Instance);
+        Options.Add(Opt<AgentDatabasePathOption>.Instance);
         Options.Add(Opt<OptionalOutputFormatOption>.Instance);
 
         Validators.Add(result =>
@@ -37,9 +38,19 @@ internal sealed class InitAgentCommand : Command
             {
                 result.AddError("'--migrate' cannot be combined with '--force' or '--prefix'.");
             }
+
+            if (result.GetValue(Opt<MigrateAgentOption>.Instance)
+                && result.GetValue(Opt<AgentDatabasePathOption>.Instance) is not null)
+            {
+                result.AddError("'--migrate' cannot be combined with '--database-path'.");
+            }
         });
 
-        this.AddExamples("agent init", "agent init --prefix \"app\"", "agent init --migrate");
+        this.AddExamples(
+            "agent init",
+            "agent init --prefix \"app\"",
+            "agent init --migrate",
+            "agent init --database-path \"./.nitro\"");
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
@@ -63,20 +74,42 @@ internal sealed class InitAgentCommand : Command
                 console, fileSystem, resultHolder, database, currentDirectory, cancellationToken);
         }
 
-        // Location resolution: an initialized workspace anywhere above wins
-        // (a .nitro/agents database before the repository's .git/nitro at
-        // each level); else, per level, an existing bare .nitro/agents
-        // directory (a fresh clone may carry committed memory markdown with
-        // no database yet) or the repository's .git/nitro; else a fresh
-        // .nitro/agents under the current directory.
-        var location = AgentWorkspace.ResolveForInit(fileSystem, currentDirectory);
+        var databasePathOption = parseResult.GetValue(Opt<AgentDatabasePathOption>.Instance);
+
+        WorkspaceLocation location;
+
+        if (databasePathOption is not null)
+        {
+            // --database-path names a .nitro directory explicitly, so
+            // resolution never walks up looking for a nearer board: the
+            // workspace is created right there, at <path>/agents, the
+            // standard fallback layout later commands find with no flag.
+            location = ResolveForDatabasePathOption(databasePathOption, currentDirectory);
+        }
+        else
+        {
+            // Location resolution: an initialized workspace anywhere above
+            // wins (a .nitro/agents database before the repository's
+            // .git/nitro at each level); else, per level, an existing bare
+            // .nitro/agents directory (a fresh clone may carry committed
+            // memory markdown with no database yet) or the repository's
+            // .git/nitro; else a fresh .nitro/agents under the current
+            // directory.
+            location = AgentWorkspace.ResolveForInit(fileSystem, currentDirectory);
+        }
 
         var workspaceDirectory = location.WorkspaceDirectory;
         var projectDirectory = location.ProjectDirectory;
         var displayPath = AgentWorkspace.GetDisplayPath(workspaceDirectory);
         var isFallbackLayout = AgentWorkspace.IsFallbackLayout(workspaceDirectory);
 
-        var gitWorkspace = AgentWorkspace.FindGitWorkspace(fileSystem, currentDirectory);
+        // A board placed with --database-path was put there on purpose; the
+        // migrate hint (which would move it into .git/nitro) never applies
+        // to it, even when a git repository is present, so the lookup is
+        // skipped entirely for it.
+        var gitWorkspace = databasePathOption is null
+            ? AgentWorkspace.FindGitWorkspace(fileSystem, currentDirectory)
+            : null;
         var migrateAvailable = isFallbackLayout && gitWorkspace is not null;
 
         var databasePath = AgentWorkspace.GetDatabasePath(workspaceDirectory);
@@ -114,7 +147,9 @@ internal sealed class InitAgentCommand : Command
             {
             }
 
-            var upgradedPrefix = await store.GetPrefixAsync(cancellationToken);
+            var upgradedPrefix =
+                await ReadPrefixConfigAsync(database, workspaceDirectory, cancellationToken)
+                    ?? AgentWorkspace.FallbackPrefix;
 
             return WriteUpgradeResult(
                 console,
@@ -159,21 +194,24 @@ internal sealed class InitAgentCommand : Command
             await store.EnsureWorkspaceAsync(workspaceDirectory, cancellationToken);
             createdDatabase = true;
 
+            // Read/write the prefix against workspaceDirectory directly
+            // rather than through ITaskStore's cwd-resolved config methods:
+            // --database-path may name a directory the current directory
+            // does not resolve to via AgentWorkspace.Find (e.g. a nested
+            // board below a parent board), and the store's own config API
+            // would silently read and write the wrong board in that case.
             if (explicitPrefix is not null)
             {
                 prefix = AgentWorkspace.NormalizePrefix(explicitPrefix);
-                await store.SetConfigAsync("prefix", prefix, cancellationToken);
             }
             else
             {
-                var migratedPrefix = await store.GetConfigAsync("prefix", cancellationToken);
+                var migratedPrefix =
+                    await ReadPrefixConfigAsync(database, workspaceDirectory, cancellationToken);
                 prefix = migratedPrefix ?? directoryDefaultPrefix;
-
-                if (migratedPrefix is null)
-                {
-                    await store.SetConfigAsync("prefix", prefix, cancellationToken);
-                }
             }
+
+            await store.InitializeWorkspaceAsync(workspaceDirectory, prefix, cancellationToken);
         }
         catch
         {
@@ -207,6 +245,57 @@ internal sealed class InitAgentCommand : Command
     }
 
     /// <summary>
+    /// Resolves the workspace location for <c>--database-path</c>: the value
+    /// names a <c>.nitro</c> directory, relative to <paramref
+    /// name="currentDirectory"/> or absolute, and the workspace is created at
+    /// <c>&lt;value&gt;/agents</c> (the standard fallback layout), with the
+    /// project directory set to the parent of the named <c>.nitro</c>
+    /// directory. Rejects a value whose last path segment is not
+    /// <c>.nitro</c>.
+    /// </summary>
+    private static WorkspaceLocation ResolveForDatabasePathOption(
+        string databasePathOptionValue,
+        string currentDirectory)
+    {
+        var nitroDirectory = Path.TrimEndingDirectorySeparator(
+            Path.GetFullPath(databasePathOptionValue, currentDirectory));
+
+        if (Path.GetFileName(nitroDirectory) != AgentWorkspace.RootDirectoryName)
+        {
+            throw new ExitException(
+                "'--database-path' must name a "
+                    + $"'{AgentWorkspace.RootDirectoryName}' directory, got '{databasePathOptionValue}'.");
+        }
+
+        var projectDirectory = Path.GetDirectoryName(nitroDirectory) ?? nitroDirectory;
+        var workspaceDirectory = Path.Combine(nitroDirectory, AgentWorkspace.AgentsDirectoryName);
+
+        return new WorkspaceLocation(projectDirectory, projectDirectory, workspaceDirectory);
+    }
+
+    /// <summary>
+    /// Reads the 'prefix' config row directly from the database at
+    /// <paramref name="workspaceDirectory"/>, bypassing <see
+    /// cref="ITaskStore"/>'s config methods, which connect via the
+    /// cwd-resolved nearest board (<see cref="AgentWorkspace.Find"/>) rather
+    /// than the workspace directory this command just resolved. That
+    /// distinction only matters for <c>--database-path</c>, whose value need
+    /// not be the current directory or above it. Returns <see langword="null"/>
+    /// when no prefix row exists yet.
+    /// </summary>
+    private static async Task<string?> ReadPrefixConfigAsync(
+        AgentDatabase database,
+        string workspaceDirectory,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
+
+        return await connection.QueryFirstOrDefaultAsync<string>(
+            "SELECT value FROM config WHERE key = @key",
+            new { key = "prefix", cancellationToken });
+    }
+
+    /// <summary>
     /// Moves an existing <c>.nitro/agents</c> workspace into the
     /// repository's <c>.git/nitro</c> directory, then applies the schema
     /// upgrade.
@@ -234,10 +323,37 @@ internal sealed class InitAgentCommand : Command
 
         // Only a .nitro/agents workspace migrates; a workspace already
         // inside a git common directory (this repository's, or an outer
-        // repository's in a nested-repo setup) stays where it is.
+        // repository's in a nested-repo setup) stays where it is. It may
+        // still be on a stale schema though: the connect error tells the
+        // user to run `nitro agent init` "to migrate it", so --migrate must
+        // upgrade an in-place workspace rather than just reporting nothing
+        // to do, or that instruction is a dead end.
         if (!AgentWorkspace.IsFallbackLayout(sourceDirectory))
         {
-            console.OkLine($"Workspace already at '{sourceDisplay}'; nothing to migrate.");
+            var existingVersion = await database.ReadVersionAsync(sourceDirectory, cancellationToken);
+
+            if (existingVersion == AgentDatabase.CurrentVersion)
+            {
+                console.OkLine($"Workspace already at '{sourceDisplay}'; nothing to migrate.");
+
+                return WriteMigrateResult(
+                    console, resultHolder, sourceDirectory, sourceDirectory);
+            }
+
+            // Let InitializeAsync validate the version itself: it rejects a
+            // newer or otherwise unsupported version by throwing, so this
+            // never reports success for a database it did not actually
+            // upgrade.
+            await using (await database.InitializeAsync(sourceDirectory, cancellationToken))
+            {
+            }
+
+            if (console.IsHumanReadable)
+            {
+                console.OkLine(
+                    "Upgraded agent workspace schema at "
+                    + $"'{sourceDisplay}' to v{AgentDatabase.CurrentVersion}.");
+            }
 
             return WriteMigrateResult(
                 console, resultHolder, sourceDirectory, sourceDirectory);

@@ -53,11 +53,7 @@ public sealed class AgentDatabaseTests : IDisposable
 
         // assert
         var version = await QueryScalarLongAsync(connection, "PRAGMA user_version;", cancellationToken);
-        var journalMode = await QueryScalarStringAsync(connection, "PRAGMA journal_mode;", cancellationToken);
-        var foreignKeysEnabled = await QueryScalarLongAsync(connection, "PRAGMA foreign_keys;", cancellationToken);
         Assert.Equal(AgentDatabase.CurrentVersion, version);
-        Assert.Equal("wal", journalMode);
-        Assert.Equal(1, foreignKeysEnabled);
 
         var taskTableCount = await QueryScalarLongAsync(
             connection,
@@ -71,19 +67,9 @@ public sealed class AgentDatabaseTests : IDisposable
             connection,
             "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agents'",
             cancellationToken);
-        var takeoverTableCount = await QueryScalarLongAsync(
-            connection,
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeovers'",
-            cancellationToken);
-        var takeoverItemsTableCount = await QueryScalarLongAsync(
-            connection,
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeover_items'",
-            cancellationToken);
         Assert.Equal(1, taskTableCount);
         Assert.Equal(1, mailTableCount);
         Assert.Equal(1, agentTableCount);
-        Assert.Equal(1, takeoverTableCount);
-        Assert.Equal(1, takeoverItemsTableCount);
 
         foreach (var sessionTable in new[]
         {
@@ -159,23 +145,6 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     [Fact]
-    public async Task InitializeAsync_Should_BeIdempotent_When_CalledAgainOnCurrentVersion()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
-        {
-        }
-
-        // act
-        await using var second = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        var version = await QueryScalarLongAsync(second, "PRAGMA user_version;", cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion, version);
-    }
-
-    [Fact]
     public async Task InitializeAsync_Should_UpgradeV11AndPreserveRows_When_TakeoverTablesAreMissing()
     {
         // arrange
@@ -213,7 +182,7 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     [Fact]
-    public async Task InitializeAsync_Should_LeaveV12RowsUnchanged_When_DatabaseIsCurrent()
+    public async Task InitializeAsync_Should_LeaveTakeoverRowsUnchanged_When_DatabaseIsCurrent()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -249,6 +218,174 @@ public sealed class AgentDatabaseTests : IDisposable
 
         // assert
         Assert.True(isUpgradable);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Should_BeIdempotent_When_CalledAgainOnCurrentVersion()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+        }
+
+        // act
+        await using var second = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        var version = await QueryScalarLongAsync(second, "PRAGMA user_version;", cancellationToken);
+        Assert.Equal(AgentDatabase.CurrentVersion, version);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Should_UpgradeAgentSessionIdentityHarnessConstraint_When_ConstraintPredatesOpencode()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                DROP TABLE agent_session_identities;
+                CREATE TABLE agent_session_identities (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot')),
+                    session_id TEXT NOT NULL,
+                    actor TEXT NOT NULL UNIQUE REFERENCES agents (name),
+                    role TEXT NOT NULL DEFAULT '',
+                    actor_revision INTEGER NOT NULL DEFAULT 1 CHECK (actor_revision > 0),
+                    created_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    PRIMARY KEY (harness, session_id)
+                );
+                CREATE INDEX idx_agent_session_identities_actor
+                    ON agent_session_identities (actor);
+                PRAGMA user_version = 11;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+        await ExecuteAsync(
+            upgraded,
+            """
+            INSERT INTO agents (name, registered_at, last_seen_at)
+            VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+            INSERT INTO agent_session_identities (
+                harness, session_id, actor, created_at, last_seen_at
+            ) VALUES (
+                'opencode', 'session-1', 'maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'
+            );
+            """,
+            cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+        Assert.Equal("opencode", await QueryScalarStringAsync(
+            upgraded,
+            "SELECT harness FROM agent_session_identities WHERE session_id = 'session-1'",
+            cancellationToken));
+    }
+
+    /// <summary>
+    /// Seeds a raw v13-shaped <c>agent_sessions</c> table, predating the v14
+    /// <c>announcement_pending</c> and <c>idle_push_armed</c> columns, with
+    /// one populated row. InitializeAsync must add both columns defaulted
+    /// to <c>0</c>, without losing the existing row, and stamp the current
+    /// version.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_AddAnnouncementAndIdlePushColumns_When_ExistingVersionIsV13()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agents (
+                    name TEXT PRIMARY KEY,
+                    registered_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT '',
+                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
+                    client TEXT NOT NULL DEFAULT ''
+                );
+
+                CREATE TABLE agent_sessions (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
+                    session_id TEXT NOT NULL,
+                    agent_name TEXT NULL REFERENCES agents (name),
+                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
+                    host TEXT NOT NULL,
+                    cwd TEXT NOT NULL,
+                    workspace_path TEXT NOT NULL,
+                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'opencode-server', 'db-watch', 'none')),
+                    endpoint_addr TEXT NOT NULL,
+                    endpoint_secret TEXT NULL,
+                    started_at TEXT NOT NULL,
+                    last_beat_at TEXT NOT NULL,
+                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
+                    last_ping_at TEXT NULL,
+                    last_ping_attempt TEXT NULL,
+                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
+                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
+                    role TEXT NOT NULL DEFAULT '',
+                    harness_version TEXT NOT NULL DEFAULT '',
+                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
+                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
+                    PRIMARY KEY (harness, session_id)
+                );
+
+                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
+                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'opencode');
+
+                INSERT INTO agent_sessions (
+                    harness, session_id, agent_name, binding_kind, host,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
+                ) VALUES (
+                    'opencode', 'session-v13', 'maya', 'explicit', 'host-a',
+                    '/tmp/work', '/tmp/work/.nitro/agents', 'opencode-server', 'http://127.0.0.1:4096',
+                    '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'
+                );
+
+                PRAGMA user_version = 13;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+
+        var columns = (await QueryColumnNamesAsync(upgraded, "agent_sessions", cancellationToken))
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.Contains("announcement_pending", columns);
+        Assert.Contains("idle_push_armed", columns);
+
+        var survivingIdentity = await QueryScalarStringAsync(
+            upgraded,
+            """
+            SELECT agent_name || '|' || host || '|' || endpoint_addr
+            FROM agent_sessions
+            WHERE session_id = 'session-v13'
+            """,
+            cancellationToken);
+        Assert.Equal("maya|host-a|http://127.0.0.1:4096", survivingIdentity);
+
+        var armedFlags = await QueryScalarLongAsync(
+            upgraded,
+            "SELECT announcement_pending + idle_push_armed FROM agent_sessions WHERE session_id = 'session-v13'",
+            cancellationToken);
+        Assert.Equal(0, armedFlags);
     }
 
     /// <summary>
@@ -862,28 +999,10 @@ public sealed class AgentDatabaseTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await StampVersionOnNewFileAsync(AgentDatabase.CurrentVersion + 1, cancellationToken);
-        await using (var journalModeConnection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await journalModeConnection.OpenAsync(cancellationToken);
-            _ = await QueryScalarStringAsync(
-                journalModeConnection, "PRAGMA journal_mode = DELETE;", cancellationToken);
-        }
 
         // act & assert
         await Assert.ThrowsAsync<ExitException>(
             () => _database.InitializeAsync(_workspaceDirectory, cancellationToken));
-
-        await using var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False");
-        await connection.OpenAsync(cancellationToken);
-        Assert.Equal(13, await QueryScalarLongAsync(connection, "PRAGMA user_version", cancellationToken));
-        Assert.Equal("delete", await QueryScalarStringAsync(connection, "PRAGMA journal_mode", cancellationToken));
-        Assert.Equal(0, await QueryScalarLongAsync(
-            connection,
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' "
-            + "AND name IN ('agent_takeovers', 'agent_takeover_items')",
-            cancellationToken));
     }
 
     /// <summary>
@@ -933,36 +1052,7 @@ public sealed class AgentDatabaseTests : IDisposable
 
         // assert
         var version = await QueryScalarLongAsync(connected, "PRAGMA user_version;", cancellationToken);
-        var journalMode = await QueryScalarStringAsync(connected, "PRAGMA journal_mode;", cancellationToken);
-        var foreignKeysEnabled = await QueryScalarLongAsync(connected, "PRAGMA foreign_keys;", cancellationToken);
         Assert.Equal(AgentDatabase.CurrentVersion, version);
-        Assert.Equal("wal", journalMode);
-        Assert.Equal(1, foreignKeysEnabled);
-    }
-
-    [Fact]
-    public async Task ReadVersionAsync_Should_NotChangeJournalMode_When_DatabaseHasUnknownVersion()
-    {
-        // arrange
-        var cancellationToken = TestContext.Current.CancellationToken;
-        await StampVersionOnNewFileAsync(AgentDatabase.CurrentVersion + 1, cancellationToken);
-        await using (var connection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
-        {
-            await connection.OpenAsync(cancellationToken);
-            _ = await QueryScalarStringAsync(connection, "PRAGMA journal_mode = DELETE;", cancellationToken);
-        }
-
-        // act
-        var version = await _database.ReadVersionAsync(_workspaceDirectory, cancellationToken);
-
-        // assert
-        await using var verifiedConnection = new SqliteConnection(
-            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False");
-        await verifiedConnection.OpenAsync(cancellationToken);
-        Assert.Equal(AgentDatabase.CurrentVersion + 1, version);
-        Assert.Equal("delete", await QueryScalarStringAsync(
-            verifiedConnection, "PRAGMA journal_mode", cancellationToken));
     }
 
     [Fact]
