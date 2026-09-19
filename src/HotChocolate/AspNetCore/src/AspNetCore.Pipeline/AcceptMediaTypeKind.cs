@@ -53,5 +53,10 @@ public enum AcceptMediaTypeKind
     /// <summary>
     /// text/event-stream
     /// </summary>
-    EventStream
+    EventStream,
+
+    /// <summary>
+    /// text/*
+    /// </summary>
+    AllText
 }

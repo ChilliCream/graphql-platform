@@ -61,9 +61,9 @@ public sealed class GraphQLServerOptions
     public bool EnableSchemaRequests { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets which types of batching are allowed.
+    /// Gets or sets which types of batching are allowed. Defaults to variable batching only.
     /// </summary>
-    public AllowedBatching Batching { get; set; } = AllowedBatching.None;
+    public AllowedBatching Batching { get; set; } = AllowedBatching.VariableBatching;
 
     /// <summary>
     /// Gets or sets the maximum number of operations allowed in a single batch.

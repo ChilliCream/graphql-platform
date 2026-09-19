@@ -23,7 +23,7 @@
         },
         {
           "Key": "graphql.error.count",
-          "Value": 1
+          "Value": 2
         },
         {
           "Key": "error.type",
@@ -45,6 +45,23 @@
             {
               "Key": "graphql.error.message",
               "Value": "Mood cannot coerce the given value JSON element of type `String` to a runtime value."
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:6e78386576e454e4780875a7606e0d16"
+            }
+          ]
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "Unexpected Execution Error"
             },
             {
               "Key": "graphql.field.path",

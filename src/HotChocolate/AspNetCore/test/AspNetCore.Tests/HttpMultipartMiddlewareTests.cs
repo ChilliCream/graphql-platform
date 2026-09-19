@@ -1,4 +1,6 @@
+using System.Net;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore;
@@ -32,6 +34,28 @@ public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : Ser
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Preflight_Should_ReturnBadRequest_When_EveryAcceptMediaTypeIsRejected()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+        var client = server.CreateClient();
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            new Uri("http://localhost:5000/graphql"))
+        {
+            Content = new MultipartFormDataContent()
+        };
+        request.Headers.Add(HeaderNames.Accept, "application/graphql-response+json;q=0");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]

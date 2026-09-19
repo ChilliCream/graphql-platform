@@ -46,7 +46,7 @@ public class QueryableSortInterceptor : IProjectionFieldInterceptor<QueryablePro
             else
             {
                 context.PushInstance(Expression.Constant(Array.CreateInstance(sortInputType.EntityType.Source, 0)));
-                context.ReportError(ProjectionProvider_CouldNotProjectSorting(valueNode));
+                context.ReportError(ProjectionProvider_CouldNotProjectSorting());
             }
         }
     }

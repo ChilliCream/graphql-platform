@@ -250,6 +250,82 @@ internal sealed class MailStore(
         };
     }
 
+    public async Task<MailTransferResult> TransferParticipationAsync(
+        string from,
+        string to,
+        CancellationToken cancellationToken)
+    {
+        var source = MailAgentName.Normalize(from);
+        var target = MailAgentName.Normalize(to);
+
+        if (source == target)
+        {
+            throw new ExitException("The source and target agents must be different.");
+        }
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+
+        var targetExists = await connection.ExecuteScalarAsync<long>(
+            "SELECT COUNT(*) FROM agents WHERE name = @target",
+            new { target, cancellationToken },
+            transaction);
+
+        if (targetExists == 0)
+        {
+            throw new ExitException($"Target agent '{target}' does not exist.");
+        }
+
+        var senderMessageIds = (await connection.QueryAsync<string>(
+            "SELECT id FROM messages WHERE sender = @source ORDER BY id",
+            new { source, cancellationToken },
+            transaction)).ToArray();
+
+        var dropped = await connection.ExecuteAsync(
+            """
+            DELETE FROM message_recipients AS source
+            WHERE source.recipient = @source
+                AND EXISTS (
+                    SELECT 1
+                    FROM message_recipients AS target
+                    WHERE target.message_id = source.message_id
+                        AND target.recipient = @target)
+            """,
+            new { source, target, cancellationToken },
+            transaction);
+
+        var recipientMessageIds = (await connection.QueryAsync<string>(
+            "SELECT message_id FROM message_recipients WHERE recipient = @source ORDER BY message_id",
+            new { source, cancellationToken },
+            transaction)).ToArray();
+
+        var recipientsMoved = await connection.ExecuteAsync(
+            """
+            UPDATE message_recipients
+            SET recipient = @target
+            WHERE recipient = @source
+            """,
+            new { source, target, cancellationToken },
+            transaction);
+
+        var sendersMoved = await connection.ExecuteAsync(
+            """
+            UPDATE messages
+            SET sender = @target
+            WHERE sender = @source
+            """,
+            new { source, target, cancellationToken },
+            transaction);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return new MailTransferResult(recipientsMoved, sendersMoved, dropped)
+        {
+            SenderMessageIds = senderMessageIds,
+            RecipientMessageIds = recipientMessageIds
+        };
+    }
+
     /// <summary>
     /// Resolves this machine's Nitro instance id for a
     /// <see cref="MailWakePolicy.Enqueue"/> send or reply. Throws

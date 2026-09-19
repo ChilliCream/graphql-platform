@@ -178,12 +178,18 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
             "agent", "mail", "send", "--body", "All good.", "--to", "maya", "--subject", "Status", "--actor", "ada");
         SetupHookPayload();
 
+        // Whatever the send's own wake push already reserved is not this
+        // command's doing; only a reservation added by session-idle itself
+        // would be.
+        var deliveriesBefore = await QueryScalarAsync("SELECT COUNT(*) FROM session_deliveries");
+
         // act
         var result = await ExecuteCommandAsync("agent", "hook", "opencode", "session-idle");
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Equal("0", await QueryScalarAsync("SELECT COUNT(*) FROM session_deliveries"));
+        Assert.Equal(
+            deliveriesBefore, await QueryScalarAsync("SELECT COUNT(*) FROM session_deliveries"));
         result.StdOut.Trim().MatchInlineSnapshot("{}");
     }
 

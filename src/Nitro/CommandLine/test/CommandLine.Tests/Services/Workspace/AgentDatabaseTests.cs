@@ -145,6 +145,82 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     [Fact]
+    public async Task InitializeAsync_Should_UpgradeV11AndPreserveRows_When_TakeoverTablesAreMissing()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO tasks (id, title, created_at, updated_at)
+                VALUES ('task-v11', 'Preserve me', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00');
+                DROP TABLE agent_takeover_items;
+                DROP TABLE agent_takeovers;
+                PRAGMA user_version = 11;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+        Assert.Equal("Preserve me", await QueryScalarStringAsync(
+            upgraded, "SELECT title FROM tasks WHERE id = 'task-v11'", cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeovers'",
+            cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeover_items'",
+            cancellationToken));
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Should_LeaveTakeoverRowsUnchanged_When_DatabaseIsCurrent()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await ExecuteAsync(
+                connection,
+                """
+                INSERT INTO agent_takeovers (
+                    id, from_actor, to_actor, actor, created_at, forced, role, reason
+                ) VALUES (
+                    'to-current', 'maya', 'nora', 'maya', '2026-01-10T12:00:00+00:00', 1, NULL, NULL
+                );
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var reopened = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(reopened, "PRAGMA user_version", cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            reopened, "SELECT COUNT(*) FROM agent_takeovers WHERE id = 'to-current'", cancellationToken));
+    }
+
+    [Fact]
+    public void IsUpgradableVersion_Should_ReturnTrue_When_VersionIs11()
+    {
+        // act
+        var isUpgradable = AgentDatabase.IsUpgradableVersion(11);
+
+        // assert
+        Assert.True(isUpgradable);
+    }
+
+    [Fact]
     public async Task InitializeAsync_Should_BeIdempotent_When_CalledAgainOnCurrentVersion()
     {
         // arrange
@@ -162,7 +238,7 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     [Fact]
-    public async Task InitializeAsync_Should_UpgradeAgentSessionIdentityHarnessConstraint_When_ExistingVersionIsV11()
+    public async Task InitializeAsync_Should_UpgradeAgentSessionIdentityHarnessConstraint_When_ConstraintPredatesOpencode()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -214,14 +290,14 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// Seeds a raw v12-shaped <c>agent_sessions</c> table, predating the v13
+    /// Seeds a raw v13-shaped <c>agent_sessions</c> table, predating the v14
     /// <c>announcement_pending</c> and <c>idle_push_armed</c> columns, with
     /// one populated row. InitializeAsync must add both columns defaulted
     /// to <c>0</c>, without losing the existing row, and stamp the current
     /// version.
     /// </summary>
     [Fact]
-    public async Task InitializeAsync_Should_AddAnnouncementAndIdlePushColumns_When_ExistingVersionIsV12()
+    public async Task InitializeAsync_Should_AddAnnouncementAndIdlePushColumns_When_ExistingVersionIsV13()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -273,12 +349,12 @@ public sealed class AgentDatabaseTests : IDisposable
                     harness, session_id, agent_name, binding_kind, host,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at
                 ) VALUES (
-                    'opencode', 'session-v12', 'maya', 'explicit', 'host-a',
+                    'opencode', 'session-v13', 'maya', 'explicit', 'host-a',
                     '/tmp/work', '/tmp/work/.nitro/agents', 'opencode-server', 'http://127.0.0.1:4096',
                     '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00'
                 );
 
-                PRAGMA user_version = 12;
+                PRAGMA user_version = 13;
                 """,
                 cancellationToken);
         }
@@ -300,14 +376,14 @@ public sealed class AgentDatabaseTests : IDisposable
             """
             SELECT agent_name || '|' || host || '|' || endpoint_addr
             FROM agent_sessions
-            WHERE session_id = 'session-v12'
+            WHERE session_id = 'session-v13'
             """,
             cancellationToken);
         Assert.Equal("maya|host-a|http://127.0.0.1:4096", survivingIdentity);
 
         var armedFlags = await QueryScalarLongAsync(
             upgraded,
-            "SELECT announcement_pending + idle_push_armed FROM agent_sessions WHERE session_id = 'session-v12'",
+            "SELECT announcement_pending + idle_push_armed FROM agent_sessions WHERE session_id = 'session-v13'",
             cancellationToken);
         Assert.Equal(0, armedFlags);
     }

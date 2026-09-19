@@ -20,7 +20,7 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 13;
+    public const int CurrentVersion = 14;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
@@ -34,11 +34,11 @@ internal sealed class AgentDatabase
     /// and <c>session_ping_gates</c>' <c>harness</c> CHECK constraints, and
     /// <c>agent_sessions</c>' <c>endpoint_kind</c> CHECK constraint, accepted
     /// the v8 <c>nitro-board</c> and <c>db-watch</c> values), v8, v9, v10,
-    /// v11 (before the v12 <c>opencode</c> harness, its endpoint kind, and
-    /// the endpoint credential column), and v12 (before the v13
+    /// v11 (before the v12 takeover audit ledger tables), v12 (before the
+    /// v13 <c>opencode</c> harness, its endpoint kind, and the endpoint
+    /// credential column), and v13 (before the v14
     /// <c>announcement_pending</c> and <c>idle_push_armed</c> columns). A v3
-    /// database's
-    /// agents table already carries every column
+    /// database's agents table already carries every column
     /// <see cref="UpgradeAgentsTableAsync"/> adds, so upgrading it only
     /// means applying the new v4 tables and bumping the stamped version. A
     /// v4 database's <c>agent_sessions</c> table already carries every
@@ -62,9 +62,11 @@ internal sealed class AgentDatabase
     /// v10-to-v11 upgrade adds the memory tables and carries any markdown
     /// memory store found beside the workspace into them; see
     /// <see cref="MemoryMarkdownImport"/>. The v11-to-v12 upgrade adds the
-    /// opencode harness and endpoint constraints and the nullable endpoint
-    /// credential. The v12-to-v13 upgrade adds the <c>announcement_pending</c>
-    /// and <c>idle_push_armed</c> columns
+    /// takeover audit ledger tables without changing existing workspace
+    /// state. The v12-to-v13 upgrade adds the opencode harness and endpoint
+    /// constraints and the nullable endpoint credential. The v13-to-v14
+    /// upgrade adds the <c>announcement_pending</c> and
+    /// <c>idle_push_armed</c> columns
     /// <see cref="UpgradeAgentSessionsMetadataColumnsAsync"/> also carries
     /// forward for a database that predates them. The
     /// v9-to-v10 upgrade drops the <c>pid</c> and <c>proc_start</c> columns
@@ -76,7 +78,7 @@ internal sealed class AgentDatabase
     /// constraint also triggers on a surviving <c>pid</c> column and copies
     /// every row across without it.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -114,14 +116,26 @@ internal sealed class AgentDatabase
             AgentWorkspace.GetDatabasePath(workspaceDirectory),
             cancellationToken);
 
-        // Validated before anything else touches the file, including the
-        // constraint rebuild below: a database newer than this CLI
-        // understands must be rejected untouched, not partially rewritten
-        // by a rebuild built against this CLI's own idea of the table's
-        // shape.
-        var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
+        long version;
 
-        ValidateVersionForInitialize(version);
+        try
+        {
+            // Validated before anything else touches the file, including the
+            // constraint rebuild below: a database newer than this CLI
+            // understands must be rejected untouched, not partially rewritten
+            // by a rebuild built against this CLI's own idea of the table's
+            // shape.
+            version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
+
+            ValidateVersionForInitialize(version);
+
+            await ConfigureAcceptedConnectionAsync(connection, cancellationToken);
+        }
+        catch
+        {
+            await connection.DisposeAsync();
+            throw;
+        }
 
         // Must run before the main transaction below starts, and manages its
         // own: PRAGMA foreign_keys can only be toggled when there is no
@@ -167,6 +181,11 @@ internal sealed class AgentDatabase
         // CREATE TABLE IF NOT EXISTS shape covers a fresh database and every
         // upgradable version alike.
         await connection.ExecuteAsync(MemoryStoreSchema.Create, transaction: transaction);
+
+        // v12: the takeover audit ledger has no foreign keys to mutable
+        // agent, mail, or task state, so adding both tables is safe for a
+        // fresh database and every upgradable version.
+        await connection.ExecuteAsync(TakeoverLedgerSchema.Create, transaction: transaction);
 
         // Runs against every version, not just v10: the markdown store is
         // detected by its own presence on disk, and the import skips ids the
@@ -683,11 +702,21 @@ internal sealed class AgentDatabase
             AgentWorkspace.GetDatabasePath(workspaceDirectory),
             cancellationToken);
 
-        var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
+        try
+        {
+            var version = await connection.ExecuteScalarAsync<long>("PRAGMA user_version;");
 
-        ValidateVersionForConnect(version);
+            ValidateVersionForConnect(version);
 
-        return connection;
+            await ConfigureAcceptedConnectionAsync(connection, cancellationToken);
+
+            return connection;
+        }
+        catch
+        {
+            await connection.DisposeAsync();
+            throw;
+        }
     }
 
     /// <summary>
@@ -755,9 +784,14 @@ internal sealed class AgentDatabase
         var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
 
         await connection.OpenAsync(cancellationToken);
-        await connection.ExecuteAsync(
-            "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
-
         return connection;
     }
+
+    private static Task ConfigureAcceptedConnectionAsync(
+        SqliteConnection connection,
+        CancellationToken cancellationToken)
+        => connection.ExecuteAsync(
+            new CommandDefinition(
+                "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;",
+                cancellationToken: cancellationToken));
 }

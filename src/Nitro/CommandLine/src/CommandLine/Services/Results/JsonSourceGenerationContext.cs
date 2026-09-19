@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.CommandLine.Commands.Agent;
+using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
@@ -8,7 +9,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.Publish;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Opencode;
-using ChilliCream.Nitro.CommandLine.Commands.Agent.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Config;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Dependency;
 using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks.Label;
@@ -22,6 +23,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Agent.Tasks;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Tasks;
+using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Results;
 
@@ -83,6 +85,9 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(ListResult<ListAgentCommand.AgentListRowResult>))]
 [JsonSerializable(typeof(InstallOpencodeHooksCommand.OpencodeHooksInstallResult))]
 [JsonSerializable(typeof(StatusOpencodeHooksCommand.OpencodeHooksStatusResult))]
+[JsonSerializable(typeof(TakeoverAgentCommand.AgentTakeoverResult))]
+[JsonSerializable(typeof(ListResult<TakeoverHistoryAgentCommand.AgentTakeoverHistoryResult>))]
+[JsonSerializable(typeof(TakeoverReferenceResult))]
 [JsonSerializable(typeof(MailMessageResult))]
 [JsonSerializable(typeof(MailSendResult))]
 [JsonSerializable(typeof(ListResult<MailInboxRowResult>))]

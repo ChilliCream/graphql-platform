@@ -71,7 +71,7 @@ public sealed class DefaultHttpRequestParserTests
 
         // assert
         var ex = await Assert.ThrowsAsync<GraphQLRequestException>(Parse);
-        Assert.Equal("The operation id has an invalid format.", ex.Message);
+        Assert.Equal("The operation ID has an invalid format.", ex.Message);
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public sealed class DefaultHttpRequestParserTests
 
         // assert
         var ex = Assert.Throws<GraphQLRequestException>(Parse);
-        Assert.Equal("The operation id has an invalid format.", ex.Message);
+        Assert.Equal("The operation ID has an invalid format.", ex.Message);
     }
 
     [Fact]
@@ -169,7 +169,7 @@ public sealed class DefaultHttpRequestParserTests
 
         // assert
         var ex = Assert.Throws<GraphQLRequestException>(Parse);
-        Assert.Equal("The operation id has an invalid format.", ex.Message);
+        Assert.Equal("The operation ID has an invalid format.", ex.Message);
     }
 
     [Fact]

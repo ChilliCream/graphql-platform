@@ -504,7 +504,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             codexGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
             envActor: "pascal", cancellationToken);
 
-        await _mail.SendMessageAsync(
+        var message = await _mail.SendMessageAsync(
             new MailMessageCreation
             {
                 Sender = "codex-worker",
@@ -516,8 +516,9 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             cancellationToken);
 
         var queueClient = new FakeCodexQueueClient();
+        var ledger = new SessionDeliveryLedger(_fileSystem, _database);
         var executor = new PingSessionExecutor(
-            _mail, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider,
+            _mail, ledger, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider,
             new NoopOpencodeServerClient());
         var dispatcher = new ActorWakeDispatcher(
             _batches,
@@ -539,8 +540,12 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Equal(MailWakeTargetStatus.Delivered, codexTarget.Status);
 
         var call = Assert.Single(queueClient.Calls);
-        Assert.Equal("thread-1", call.ThreadId);
-        Assert.Contains("1 unread nitro message.", call.Message);
+        using var document = System.Text.Json.JsonDocument.Parse(
+            call.Message[(call.Message.IndexOf('\n') + 1)..]);
+        var item = document.RootElement.GetProperty("items")[0];
+        Assert.Equal(
+            ("thread-1", message.Id, "check"),
+            (call.ThreadId, item.GetProperty("id").GetString(), item.GetProperty("body").GetString()));
     }
 
     [Fact]
@@ -556,8 +561,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         await SendEnqueuedMailAsync(cancellationToken);
         var queueClient = new FakeCodexQueueClient();
         var executor = new PingSessionExecutor(
-            _mail, queueClient, new NoopClaudePeerClient(), _sessions, _leases, _timeProvider,
-            new NoopOpencodeServerClient());
+            _mail, new SessionDeliveryLedger(_fileSystem, _database), queueClient, new NoopClaudePeerClient(),
+            _sessions, _leases, _timeProvider, new NoopOpencodeServerClient());
         var dispatcher = new ActorWakeDispatcher(
             _batches,
             _sessions,
@@ -600,8 +605,9 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         await _sessions.RearmIdlePushAsync(generation, cancellationToken);
         await SendEnqueuedMailAsync(cancellationToken);
         var executor = new PingSessionExecutor(
-            new NoUnreadMailStoreDecorator(_mail), new FakeCodexQueueClient(), new NoopClaudePeerClient(),
-            _sessions, _leases, _timeProvider, new NoopOpencodeServerClient());
+            new NoUnreadMailStoreDecorator(_mail), new SessionDeliveryLedger(_fileSystem, _database),
+            new FakeCodexQueueClient(), new NoopClaudePeerClient(), _sessions, _leases, _timeProvider,
+            new NoopOpencodeServerClient());
         var dispatcher = new ActorWakeDispatcher(
             _batches,
             _sessions,

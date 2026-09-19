@@ -1,7 +1,10 @@
 using ChilliCream.Nitro.CommandLine.Services.Mail;
+using ChilliCream.Nitro.CommandLine.Services.Notify;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.Agents;
 using ChilliCream.Nitro.CommandLine.Tests.Hook;
 using Microsoft.Data.Sqlite;
+using TestFileSystem = ChilliCream.Nitro.CommandLine.Tests.Hook.TestFileSystem;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Mail;
 
@@ -125,10 +128,13 @@ public abstract class MailCommandTestBase : CommandTestBase
     /// Use this in command tests whose primary concern requires a successful
     /// send but is unrelated to the wake transport itself.
     /// </summary>
-    private protected async Task SetupSuccessfulWakeAsync(string host, params string[] agentNames)
+    private protected async Task<FakeCodexQueueClient> SetupSuccessfulWakeAsync(
+        string host,
+        params string[] agentNames)
     {
         SetupInstanceId(host);
-        SetupCodexQueueClient(new FakeCodexQueueClient());
+        var queueClient = new FakeCodexQueueClient();
+        SetupCodexQueueClient(queueClient);
 
         foreach (var agentName in agentNames)
         {
@@ -137,6 +143,43 @@ public abstract class MailCommandTestBase : CommandTestBase
                 endpointKind: AgentSessionEndpointKind.CodexThread,
                 endpointAddr: $"thread-{agentName}");
         }
+
+        return queueClient;
+    }
+
+    private protected MailNudge CreateMailNudge(string host, FakeCodexQueueClient queueClient)
+    {
+        var fileSystem = new TestFileSystem(WorkingDirectory);
+        var database = new AgentDatabase();
+
+        return new MailNudge(
+            CreateSessions(host),
+            CreateStore(),
+            new SessionDeliveryLedger(fileSystem, database),
+            new FakeClaudePeerClient(),
+            queueClient,
+            FakeTime);
+    }
+
+    private protected static (string ThreadId, string Id, string Body) ReadDigestCall(
+        (string ThreadId, string Message) call)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(
+            call.Message[(call.Message.IndexOf('\n') + 1)..]);
+        var item = document.RootElement.GetProperty("items")[0];
+
+        return (
+            call.ThreadId,
+            item.GetProperty("id").GetString()!,
+            item.GetProperty("body").GetString()!);
+    }
+
+    private protected static bool ReadDigestReadFlag((string ThreadId, string Message) call)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(
+            call.Message[(call.Message.IndexOf('\n') + 1)..]);
+
+        return document.RootElement.GetProperty("items")[0].GetProperty("read").GetBoolean();
     }
 
     /// <summary>

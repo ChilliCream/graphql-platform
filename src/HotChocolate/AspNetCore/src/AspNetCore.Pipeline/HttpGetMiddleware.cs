@@ -19,7 +19,9 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (HttpMethods.IsGet(context.Request.Method))
+        // RFC 9110, section 9.3.2 defines HEAD as GET without the response content, so a
+        // GraphQL request carried over HEAD is answered on the same terms as over GET.
+        if (context.Request.IsGetOrHeadMethod())
         {
             var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
             var options = GetOptions(context);
@@ -81,7 +83,7 @@ public sealed class HttpGetMiddleware : MiddlewareBase
 
         if (!parserResult.IsValid)
         {
-            statusCode = parserResult.StatusCode.Value;
+            statusCode = parserResult.StatusCode;
             result = parserResult.Error;
             goto HANDLE_RESULT;
         }

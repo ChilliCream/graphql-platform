@@ -58,7 +58,7 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
                     Expression.Constant(
                         Array.CreateInstance(filterInputType.EntityType.Source, 0)));
                 context.ReportError(
-                    ProjectionProvider_CouldNotProjectFiltering(valueNode));
+                    ProjectionProvider_CouldNotProjectFiltering());
             }
         }
     }

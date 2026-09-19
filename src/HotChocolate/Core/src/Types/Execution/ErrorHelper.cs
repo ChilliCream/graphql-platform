@@ -16,18 +16,15 @@ internal static class ErrorHelper
             .SetMessage(
                 ErrorHelper_ArgumentNonNullError_Message,
                 argument.Name.Value)
-            .AddLocation(argument)
             .SetInputPath(validationResult.Path)
             .Build();
     }
 
     public static IError InvalidLeafValue(
         GraphQLException exception,
-        Selection selection,
         Path path)
     {
         return ErrorBuilder.FromError(exception.Errors[0])
-            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -35,12 +32,10 @@ internal static class ErrorHelper
 
     public static IError UnexpectedLeafValueSerializationError(
         Exception exception,
-        Selection selection,
         Path path)
     {
         return ErrorBuilder
             .FromException(exception)
-            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotSerializeLeafValue)
             .Build();
@@ -48,12 +43,10 @@ internal static class ErrorHelper
 
     public static IError UnableToResolveTheAbstractType(
         string typeName,
-        Selection selection,
         Path path)
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .Build();
@@ -62,12 +55,10 @@ internal static class ErrorHelper
     public static IError UnexpectedErrorWhileResolvingAbstractType(
         Exception exception,
         string typeName,
-        Selection selection,
         Path path)
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnableToResolveTheAbstractType_Message, typeName)
-            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.CannotResolveAbstractType)
             .SetException(exception)
@@ -76,24 +67,20 @@ internal static class ErrorHelper
 
     public static IError ListValueIsNotSupported(
         Type listType,
-        Selection selection,
         Path path)
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_ListValueIsNotSupported_Message, listType.FullName)
-            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
             .Build();
     }
 
     public static IError UnexpectedValueCompletionError(
-        Selection selection,
         Path path)
     {
         return ErrorBuilder.New()
             .SetMessage(ErrorHelper_UnexpectedValueCompletionError_Message)
-            .AddLocations(selection)
             .SetPath(path)
             .SetCode(ErrorCodes.Execution.ListTypeNotSupported)
             .Build();
@@ -137,17 +124,34 @@ internal static class ErrorHelper
                 result.GetType().FullName ?? result.GetType().Name,
                 selection.ResponseName)
             .SetPath(path)
-            .AddLocations(selection)
             .Build();
 
-    public static OperationResult OperationKindNotAllowed()
+    public static OperationResult OperationKindNotAllowed(RequestFlags requiredFlag)
     {
         var result = OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage("The specified operation kind is not allowed.")
                 .Build());
 
-        result.ContextData = result.ContextData.Add(ExecutionContextData.OperationNotAllowed, null);
+        // The flag the operation kind required lets the transport tell a refusal the request
+        // method can resolve from one it cannot, which is the difference between 405 and 406.
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.OperationNotAllowed,
+            requiredFlag);
+
+        return result;
+    }
+
+    public static OperationResult IncrementalDeliveryNotAcceptable()
+    {
+        var result = OperationResult.FromError(
+            ErrorBuilder.New()
+                .SetMessage(ErrorHelper_IncrementalDeliveryNotAcceptable)
+                .Build());
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.NotAcceptable);
 
         return result;
     }
