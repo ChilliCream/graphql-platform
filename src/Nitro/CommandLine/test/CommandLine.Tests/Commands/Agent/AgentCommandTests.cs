@@ -3,13 +3,9 @@ using ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent;
 
 /// <summary>
-/// Covers the bare <c>nitro agent</c> entry point: the group command now
-/// carries its own action (launching the unified tabbed TUI) alongside its
-/// subcommands, so this locks in that the group's help and its subcommand
-/// dispatch stay exactly as they were before the action was added, and that
-/// the paths which do not launch the TUI (non-interactive, or interactive
-/// with no workspace) fall back to the same guidance a bare group with no
-/// action prints.
+/// Covers the bare <c>nitro agent</c> entry point: its help output, its
+/// subcommand dispatch, and the guidance it falls back to when the TUI does
+/// not launch (non-interactive, or interactive with no workspace).
 /// </summary>
 public sealed class AgentCommandTests(NitroCommandFixture fixture)
     : TasksCommandTestBase(fixture)
