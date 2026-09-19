@@ -135,9 +135,7 @@ public sealed class AgentsModeTests
         mode.Handle(new TuiMessage.MoveToEdge(EdgeTarget.Bottom));
         Assert.Equal("s-charlie", mode.State.SelectedParticipant?.Participant.Session.SessionId);
 
-        // act: a new, earlier-sorted session pushes charlie to a different
-        // row on refresh; the selection must follow (harness, session id),
-        // not the row index or the actor name.
+        // act: a new, earlier-sorted session pushes charlie to a different row; selection follows by session id.
         sessions.Participants.Insert(
             0, AgentSessionParticipantBuilder.Participant(sessionId: "s-alpha", agentName: "alpha"));
         mode.Handle(new TuiMessage.RefreshRequested());
@@ -157,8 +155,7 @@ public sealed class AgentsModeTests
         mode.OnEnter();
         Assert.Single(mode.State.Rows);
 
-        // act: SessionEnd/reap means the next ListParticipantsAsync call no
-        // longer returns the row at all.
+        // act: the session ends, so the next refresh no longer returns the row.
         sessions.Participants.Clear();
         mode.Handle(new TuiMessage.RefreshRequested());
 
@@ -170,9 +167,7 @@ public sealed class AgentsModeTests
     [Fact]
     public void Rows_Should_ShowTwoSeparateRows_When_TwoSessionsShareOneActor()
     {
-        // arrange: a same-actor restart (or a second harness) leaves two
-        // live sessions bound to the same actor. The live-participant model
-        // never aggregates these into one row.
+        // arrange: two live sessions bound to the same actor stay as separate rows.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
             sessionId: "s-1", agentName: "bravo", harness: "claude-code"));
@@ -202,9 +197,7 @@ public sealed class AgentsModeTests
         mode.OnEnter();
         Assert.Single(mode.State.Rows);
 
-        // act: RegisterAsync promotes the role on the SAME (harness, session
-        // id) row; ListParticipantsAsync still returns exactly one row for
-        // it, just with the new role.
+        // act: the same (harness, session id) row is promoted to a new role.
         sessions.Participants[0] = AgentSessionParticipantBuilder.Participant(
             sessionId: "s-1", agentName: "alpha", role: "orchestrator");
         mode.Handle(new TuiMessage.RefreshRequested());
@@ -226,8 +219,7 @@ public sealed class AgentsModeTests
         // act
         var messages = mode.Handle(new TuiMessage.OpenSelected());
 
-        // assert: focus moves to the detail pane (no separate pushed mode
-        // to open; the detail pane is always visible next to the list).
+        // assert: focus moves to the detail pane, which is always visible next to the list.
         Assert.Empty(messages);
         Assert.Equal(AgentsFocus.Detail, mode.State.Focus);
     }
@@ -244,8 +236,7 @@ public sealed class AgentsModeTests
         // act
         var messages = mode.Handle(new TuiMessage.CopySelectedId());
 
-        // assert: the full session id, not the actor name, since selection
-        // and identity are session-keyed now.
+        // assert: the toast shows the full session id, not the actor name.
         var toast = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(messages));
         Assert.Equal("s-a", toast.Text);
     }
@@ -304,8 +295,7 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ShowDash_When_RoleEmpty()
     {
-        // arrange: a wide console so the harness column doesn't eat the
-        // role column's truncation budget down to nothing.
+        // arrange: a wide console so the harness column doesn't eat the role column's truncation budget.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
             sessionId: "s-a", agentName: "agent-a", harness: "claude-code"));
@@ -316,8 +306,7 @@ public sealed class AgentsModeTests
         var text = RenderToText(mode, 120, 20);
         var row = Assert.Single(text.Split('\n'), l => l.Contains("agent-a") && l.Contains("started "));
 
-        // assert: the harness column shows its own value, followed by a
-        // dash for the empty role column.
+        // assert: the harness column shows its own value, followed by a dash for the empty role column.
         Assert.Contains("claude-code -", row);
     }
 
@@ -335,9 +324,7 @@ public sealed class AgentsModeTests
         var text = RenderToText(mode, 100, 20);
         var row = Assert.Single(text.Split('\n'), l => l.Contains("agent-a") && l.Contains("started "));
 
-        // assert: the harness shows in the list row itself, not just the
-        // detail pane's Session section (which would also satisfy a
-        // whole-frame Contains).
+        // assert: the harness shows in the list row itself, not just the detail pane's Session section.
         Assert.Contains("codex", row);
     }
 
@@ -380,8 +367,7 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ShowUnobservableGlyph_When_TheSessionCannotBeVerified()
     {
-        // arrange: current-instance row this reader cannot prove alive or
-        // dead (e.g. a different PID namespace than the writer recorded).
+        // arrange: a row this reader cannot prove alive or dead.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
             sessionId: "s-a", agentName: "agent-a", state: AgentSessionState.Unobservable));
@@ -417,8 +403,7 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ShowActivityLetter_When_TheOnlineClaudeSessionHasKnownActivity()
     {
-        // arrange: activity is read through by session id for an online
-        // claude-code session (see AgentsState.RefreshAsync).
+        // arrange: activity is read through by session id for an online claude-code session.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
             sessionId: "s-a", agentName: "agent-a", state: AgentSessionState.Online));
@@ -466,9 +451,7 @@ public sealed class AgentsModeTests
         // act
         var text = RenderToText(mode);
 
-        // assert: the Session section still renders (session metadata is
-        // never withheld), but there is no identity, no tasks, and no mail
-        // to invent for an actor that does not exist.
+        // assert: the Session section still renders, but there is no identity, tasks, or mail for an unbound actor.
         Assert.Contains("Session", text);
         Assert.Contains(AgentParticipantRow.UnboundLabel, text);
         Assert.DoesNotContain("Identity", text);
@@ -511,8 +494,7 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_TruncateRoleAndNotThrow_When_TerminalIsNarrow()
     {
-        // arrange: a role text long enough that a narrow terminal must
-        // truncate it to keep the whole row within maxWidth.
+        // arrange: a role text long enough that a narrow terminal must truncate it.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
             sessionId: "s-a", agentName: "agent-a", role: "a-very-long-mutable-role-value"));
@@ -576,8 +558,7 @@ public sealed class AgentsModeTests
     [Fact]
     public void OnEnter_Should_LoadEveryParticipant_ThroughTheRegistry_InItsOwnOrder()
     {
-        // arrange: the registry's own order (harness, session id), not
-        // re-sorted by actor name.
+        // arrange: the registry's own order (harness, session id), not re-sorted by actor name.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(sessionId: "s-z", agentName: "zeta"));
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(sessionId: "s-a", agentName: "alpha"));
@@ -593,8 +574,7 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ShowListAndDetailPanesSideBySide_When_ParticipantSelected()
     {
-        // arrange: the detail pane is always visible next to the list, with
-        // no Enter press needed to see the selected session's identity.
+        // arrange: the detail pane is always visible next to the list; no Enter press needed.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
             sessionId: "s-a", agentName: "agent-a", role: "backend"));
@@ -604,8 +584,7 @@ public sealed class AgentsModeTests
         // act
         var text = RenderToText(mode);
 
-        // assert: the list pane's row and the detail pane's Session section
-        // both render in the same frame.
+        // assert: the list pane's row and the detail pane's Session section both render in the same frame.
         Assert.Contains("Agents (1)", text);
         Assert.Contains("agent-a", text);
         Assert.Contains("Session", text);
@@ -625,8 +604,7 @@ public sealed class AgentsModeTests
         mode.OnEnter();
         Assert.DoesNotContain("b-1", RenderToText(mode));
 
-        // act: moving onto agent-b's session reloads the detail pane with
-        // its tasks.
+        // act: moving onto agent-b's session reloads the detail pane with its tasks.
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Down));
 
         // assert
@@ -667,9 +645,7 @@ public sealed class AgentsModeTests
         mode.OnEnter();
         Assert.DoesNotContain("a-1", RenderToText(mode));
 
-        // act: a task assigned to the still-selected participant's actor
-        // shows up only once RefreshRequested re-loads the detail pane, not
-        // just the list.
+        // act: a task assigned to the still-selected participant's actor shows up only after refresh reloads the detail pane.
         taskStore.Tasks.Add(TaskItemBuilder.Create("a-1", assignee: "agent-a"));
         mode.Handle(new TuiMessage.RefreshRequested());
 
@@ -693,8 +669,7 @@ public sealed class AgentsModeTests
         mode.Handle(new TuiMessage.RefreshRequested());
         var text = RenderToText(mode);
 
-        // assert: the detail pane falls back to its empty state instead of
-        // continuing to show the vanished session's stale diagnostics.
+        // assert: the detail pane falls back to its empty state instead of showing the vanished session's data.
         Assert.Contains("Agents (0)", text);
         Assert.DoesNotContain("Role: backend", text);
     }
@@ -702,9 +677,7 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_AlignColumns_Across_Rows()
     {
-        // arrange: actor names of different lengths so the role and age
-        // columns only line up if they're padded to a shared width rather
-        // than following each actor immediately.
+        // arrange: actor names of different lengths so the columns only line up if padded to a shared width.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
             sessionId: "s-1", agentName: "a", role: "backend"));
@@ -713,15 +686,13 @@ public sealed class AgentsModeTests
         var mode = CreateMode(sessions);
         mode.OnEnter();
 
-        // act: a wide console so the harness column doesn't eat the role
-        // column's truncation budget down to nothing.
+        // act: a wide console so the harness column doesn't eat the role column's truncation budget.
         var text = RenderToText(mode, 140, 24);
         var rows = text.Split('\n').Where(l => l.Contains("started ") && l.Contains("heard ")).ToList();
         var shortNameRow = Assert.Single(rows, l => l.Contains("backend"));
         var longNameRow = Assert.Single(rows, l => l.Contains("qa"));
 
-        // assert: the role column and the started-age column start at the
-        // same character offset on both rows.
+        // assert: the role column and the started-age column start at the same character offset on both rows.
         Assert.Equal(
             shortNameRow.IndexOf("backend", StringComparison.Ordinal),
             longNameRow.IndexOf("qa", StringComparison.Ordinal));
@@ -733,9 +704,7 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ApplyAnsiStyling_ToActorAndHarnessTokens_InTheListRow()
     {
-        // arrange: agent-a stays unstyled at the selected row (row 0); the
-        // attribute under test lives on agent-b's unselected row instead, so
-        // the assertion can be pinned to a single line.
+        // arrange: agent-a stays unstyled at the selected row; the attribute under test lives on agent-b's row.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(sessionId: "s-a", agentName: "agent-a"));
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
@@ -747,12 +716,7 @@ public sealed class AgentsModeTests
         // act
         console.Write(mode.Render(80, 20));
 
-        // assert: agents.list.name's token is board.column.border.focused's
-        // exact Aqua sequence, and that border sits on every row line (not
-        // just agent-b's), so a row-pinned Contains would stay vacuous; the
-        // assertion must be positional: the actor text immediately follows
-        // the style open in AgentRowBadge's markup, so match the escape
-        // sequence right in front of "agent-b" instead.
+        // assert: match the style escape sequence directly in front of "agent-b", since a row-pinned Contains alone would also match the row border.
         var row = Assert.Single(console.Output.Split('\n'), l => l.Contains("agent-b"));
         var style = ThemeTokens.GetStyle("agents.list.name");
         var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
@@ -765,28 +729,19 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ApplyAnsiStyling_ToPerRoleToken_When_RoleHasADedicatedColor()
     {
-        // arrange: "orchestrator" is one of the roles with its own token
-        // (agents.list.role.orchestrator); no existing test exercises that
-        // per-role branch of AgentRowBadge.RoleStyle end to end, only the
-        // plain fallback. agent-a stays plain at the selected row; the role
-        // under test lives on agent-b's unselected row.
+        // arrange: agent-b's role has its own token ("orchestrator"); agent-a stays plain at the selected row.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(sessionId: "s-a", agentName: "agent-a"));
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
             sessionId: "s-b", agentName: "agent-b", role: "orchestrator"));
         var mode = CreateMode(sessions);
         mode.OnEnter();
-
-        // A wide console so the harness column doesn't eat the role
-        // column's truncation budget down to nothing.
         var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(140).Height(20);
 
         // act
         console.Write(mode.Render(140, 20));
 
-        // assert: pin to agent-b's row rather than the whole frame, since
-        // agents.list.role.orchestrator's token could otherwise be satisfied
-        // by an unrelated part of the render.
+        // assert: pin to agent-b's row, since the token could otherwise be satisfied elsewhere in the render.
         Assert.NotEqual(
             ThemeTokens.GetStyle("agents.list.role"),
             ThemeTokens.GetStyle("agents.list.role.orchestrator"));
@@ -797,17 +752,13 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ApplyAnsiStyling_ToPerRoleToken_When_RoleIsResearcher()
     {
-        // arrange: agent-a stays plain at the selected row; the researcher
-        // role under test lives on agent-b's unselected row.
+        // arrange: agent-a stays plain at the selected row; the researcher role under test lives on agent-b's row.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(sessionId: "s-a", agentName: "agent-a"));
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
             sessionId: "s-b", agentName: "agent-b", role: "researcher"));
         var mode = CreateMode(sessions);
         mode.OnEnter();
-
-        // A wide console so the harness column doesn't eat the role
-        // column's truncation budget down to nothing.
         var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(140).Height(20);
 
         // act
@@ -824,19 +775,13 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ApplyAnsiStyling_ToBaseRoleToken_When_RoleHasNoDedicatedColor()
     {
-        // arrange: "backend" has no per-role token, so RoleStyle must fall
-        // back to the plain agents.list.role token rather than rendering
-        // unstyled. agent-a stays plain at the selected row; the role under
-        // test lives on agent-b's unselected row.
+        // arrange: "backend" has no per-role token, so it falls back to the plain role token; agent-a stays plain at the selected row.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(sessionId: "s-a", agentName: "agent-a"));
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
             sessionId: "s-b", agentName: "agent-b", role: "backend"));
         var mode = CreateMode(sessions);
         mode.OnEnter();
-
-        // A wide console so the harness column doesn't eat the role
-        // column's truncation budget down to nothing.
         var console = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(140).Height(20);
 
         // act

@@ -25,9 +25,7 @@ public sealed class AgentDetailModelTests
     [Fact]
     public async Task LoadAsync_Should_LoadBoundIdentity_FromTheParticipant()
     {
-        // arrange: the durable identity already travels with the
-        // participant (IAgentSessionRegistry.ListParticipantsAsync joins
-        // it), so the model never queries a separate registry for it.
+        // arrange
         var participant = AgentSessionParticipantBuilder.Participant(
             sessionId: "s-a", agentName: "agent-a", agent: Agent("agent-a", role: "backend"));
         var model = CreateModel(new FakeTaskStore(), new FakeMailStore());
@@ -154,8 +152,7 @@ public sealed class AgentDetailModelTests
     [Fact]
     public async Task LoadAsync_Should_LoadNoTasksOrMail_When_TheSessionIsUnbound()
     {
-        // arrange: an unbound session has no actor to query tasks or mail
-        // by, and the model must not invent history for it.
+        // arrange
         var taskStore = new FakeTaskStore();
         taskStore.Tasks.Add(TaskItemBuilder.Create("a-1", assignee: "agent-a"));
         var mailStore = new FakeMailStore();
