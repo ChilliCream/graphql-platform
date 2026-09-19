@@ -175,9 +175,8 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     [Fact]
     public async Task RunningLeader_Should_DispatchOutstandingActorWork_Through_TheAdmissionAndExecutionLoops()
     {
-        // arrange: mail enqueued for an actor with a live claimed session,
-        // but no direct-first dispatch was ever attempted for it - only the
-        // coordinator's own admission/execution loops can find and drain it.
+        // arrange: mail enqueued for an actor with a live claimed session, with no direct-first
+        // dispatch ever attempted for it, so only the admission/execution loops can drain it.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -454,15 +453,8 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         // guard throwing for this instance.
         await Assert.ThrowsAsync<InvalidOperationException>(() => coordinator.StartAsync(cancellationToken));
 
-        // release the hung dispatch and wait for the orphaned run loop to
-        // actually finish releasing leadership before disposing: the timed
-        // out StopAsync above already disposed the run loop's linked
-        // CancellationTokenSource, so this DisposeAsync's own CancelAsync
-        // call throws ObjectDisposedException before it ever awaits the run
-        // task, and its exception handler only snapshots IsCompleted once
-        // rather than waiting for it. Waiting on the leader row here instead
-        // means the run loop's SQLite connection is closed before the
-        // fixture's Dispose deletes the temp workspace.
+        // release the hung dispatch and wait for the leader row to actually change before disposing,
+        // since DisposeAsync after a timed-out StopAsync can race the orphaned run loop's own cleanup.
         var leaseExpiresBeforeRelease = await ReadLeaderExpiresAtAsync(cancellationToken);
         dispatcher.Release();
         await WaitUntilAsync(
