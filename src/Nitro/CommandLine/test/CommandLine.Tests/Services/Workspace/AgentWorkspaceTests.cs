@@ -192,7 +192,7 @@ public sealed class AgentWorkspaceTests : IDisposable
         // act
         var location = AgentWorkspace.FindLocation(fileSystem, worktreeRoot);
 
-        // assert: the worktree resolves to the shared workspace, project root, and checkout root.
+        // assert
         Assert.Equal(Path.GetFullPath(workspaceDirectory), location?.WorkspaceDirectory);
         Assert.Equal(Path.GetFullPath(mainRoot), location?.ProjectDirectory);
         Assert.Equal(worktreeRoot, location?.CheckoutDirectory);

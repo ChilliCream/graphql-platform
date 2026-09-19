@@ -63,7 +63,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
     [Fact]
     public async Task TryAcquireAsync_Should_IncrementEpoch_When_StealingAnExpiredLease()
     {
-        // arrange: successive owners of one leader epoch.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
