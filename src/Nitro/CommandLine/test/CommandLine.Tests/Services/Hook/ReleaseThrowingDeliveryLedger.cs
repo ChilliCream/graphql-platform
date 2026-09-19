@@ -5,9 +5,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// <summary>
 /// Wraps a real <see cref="ISessionDeliveryLedger"/>, delegating
 /// <see cref="ReserveAsync(AgentSessionGeneration, IReadOnlyList{string}, string, DateTimeOffset, CancellationToken)"/>
-/// while <see cref="ReleaseAsync"/> always throws - standing in for a
-/// compensating release that itself fails, so the primary exception it was
-/// meant to accompany can be told apart from it.
+/// while <see cref="ReleaseAsync"/> always throws, standing in for a compensating release that
+/// itself fails.
 /// </summary>
 internal sealed class ReleaseThrowingDeliveryLedger(ISessionDeliveryLedger inner) : ISessionDeliveryLedger
 {

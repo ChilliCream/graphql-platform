@@ -3,11 +3,11 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Wraps a real <see cref="IAgentSessionRegistry"/>, delegating every member
-/// except <see cref="ClaimAnnouncementAsync"/>, which cancels <paramref
-/// name="cancellationTokenSource"/> and then throws - standing in for a
-/// registry failure that lands after the calling turn's own token has
-/// already moved to the cancelled state.
+/// Wraps a real <see cref="IAgentSessionRegistry"/>, delegating every member except
+/// <see cref="ClaimAnnouncementAsync"/>, which cancels
+/// <paramref name="cancellationTokenSource"/> and then throws, standing in for a registry
+/// failure that lands after the calling turn's own token has already moved to the cancelled
+/// state.
 /// </summary>
 internal sealed class CancellingAnnouncementSessionRegistry(
     IAgentSessionRegistry inner, CancellationTokenSource cancellationTokenSource) : IAgentSessionRegistry
