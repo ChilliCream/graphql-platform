@@ -218,9 +218,7 @@ public sealed class BoardModeTests
     [Fact]
     public void OpenSelected_Should_ReturnEmpty()
     {
-        // arrange: TuiShell intercepts OpenSelected for the board before it
-        // ever reaches BoardMode.Handle, switching to BoardDetailMode itself
-        // (see TuiShellTests). BoardMode's own handling is a no-op.
+        // arrange: TuiShell intercepts OpenSelected before BoardMode.Handle runs; here it is a no-op
         var store = new FakeTaskStore();
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
@@ -529,8 +527,7 @@ public sealed class BoardModeTests
         // act
         console.Write(mode.Render(80, 24));
 
-        // assert: every column's bottom border reaches the last requested row,
-        // with no blank gap left below the panels.
+        // assert: every column's bottom border reaches the last requested row, no blank gap below it
         var lines = TrimTrailingNewline(console.Output.Split('\n'));
         Assert.Equal(24, lines.Length);
         Assert.Contains('╰', lines[^1]);
@@ -558,9 +555,7 @@ public sealed class BoardModeTests
     [Fact]
     public void Render_Should_FillRequestedHeight_When_Stacked()
     {
-        // arrange: width/columnCount below the stacked threshold forces the
-        // stacked layout kind, and 24 rows over 2 columns clears the
-        // equal-share minimum, so both columns render expanded.
+        // arrange: width/columnCount below the stacked threshold forces stacked layout
         var store = new FakeTaskStore();
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
@@ -569,11 +564,7 @@ public sealed class BoardModeTests
         // act
         console.Write(mode.Render(40, 24));
 
-        // assert: the 1 separator row between the 2 columns leaves 23 rows to
-        // share, an uneven split of 12 and 11, so the first column's bottom
-        // border sits at row 11, row 12 is the blank separator, and the
-        // second column's bottom border reaches the last requested row, no
-        // blank gap left over below it.
+        // assert: 23 distributable rows split 12/11, so row 11 closes the first column and row 12 is the separator
         var lines = TrimTrailingNewline(console.Output.Split('\n'));
         Assert.Equal(24, lines.Length);
         Assert.Contains('╰', lines[11]);
@@ -582,10 +573,8 @@ public sealed class BoardModeTests
     }
 
     /// <summary>
-    /// Spectre appends a trailing line break to some renderables (a bare
-    /// panel, a stacked rows list) but not others (a grid layout), so
-    /// splitting console output on '\n' can leave one extra empty entry at
-    /// the end. Strips it so line counts are comparable across layout kinds.
+    /// Strips the trailing empty entry that splitting console output on '\n' can leave,
+    /// so line counts are comparable across layout kinds.
     /// </summary>
     private static string[] TrimTrailingNewline(string[] lines) =>
         lines.Length > 0 && lines[^1].Length == 0 ? lines[..^1] : lines;
