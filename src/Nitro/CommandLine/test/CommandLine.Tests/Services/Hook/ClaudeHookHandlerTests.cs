@@ -432,8 +432,6 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     public async Task HandleUserPromptSubmitAsync_Should_NotRedeliver_When_AMessageIsMarkedUnreadAfterItsDigest()
     {
         // arrange
-        // suppression is about notification, not read state, so marking a delivered message unread again
-        // must not show it in the digest a second time
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -592,8 +590,6 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     public async Task HandleStopAsync_Should_ReturnNeutral_When_CalledAgainForTheSameUnreadMail()
     {
         // arrange
-        // the gate channel's ledger reservation is at-most-once per message, so a second Stop for the
-        // same still-unread mail does not block again
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -638,8 +634,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     public async Task HandleStopAsync_Should_LeaveTheMessageEligibleForAFutureBudgetCycle_When_OverBudget()
     {
         // arrange
-        // exhaust the budget on unrelated mail, leaving one message never gated because every Stop call
-        // was over budget by the time it was considered
+        // exhaust the budget on unrelated mail so one message is never gated
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -654,8 +649,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken); // over budget, no-op
 
         // act
-        // a fresh turn resets the budget, so the message the previous turn never got to gate must
-        // still be eligible
+        // a fresh turn resets the budget
         await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
         var afterReset = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
@@ -668,8 +662,6 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     public async Task HandleStopAsync_Should_ReturnNeutral_When_TheRowIsDeletedBetweenResolveAndIncrement()
     {
         // arrange
-        // the increment reports no row matched (e.g. a concurrent SessionEnd deleted it first), so this
-        // must not be reported as a block the caller never recorded a budget spend for
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -697,8 +689,6 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     public async Task HandleStopAsync_Should_ReserveAtMostMaxDigestMessages_When_ManyMessagesAreUnread()
     {
         // arrange
-        // the Stop path's unbounded inbox query would otherwise reserve every unread message for the
-        // gate channel, even though only one block is emitted
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -733,8 +723,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     public async Task HandleStopAsync_Should_ResolveTheSameGeneration_When_ReplayedFromADifferentHandlerInstance()
     {
         // arrange
-        // dry-run pins a fixed sentinel identity, so a session-start captured by one handler instance and
-        // replayed against a second still resolves the same generation instead of minting a new row
+        // dry-run pins a fixed sentinel identity
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var sessionStartHandler = CreateHandler();
