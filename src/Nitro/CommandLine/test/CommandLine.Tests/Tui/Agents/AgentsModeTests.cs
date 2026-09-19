@@ -645,7 +645,7 @@ public sealed class AgentsModeTests
         mode.OnEnter();
         Assert.DoesNotContain("a-1", RenderToText(mode));
 
-        // act: a task assigned to the still-selected participant's actor shows up only after refresh reloads the detail pane.
+        // act: add a task for the still-selected participant's actor, then refresh.
         taskStore.Tasks.Add(TaskItemBuilder.Create("a-1", assignee: "agent-a"));
         mode.Handle(new TuiMessage.RefreshRequested());
 
@@ -686,7 +686,7 @@ public sealed class AgentsModeTests
         var mode = CreateMode(sessions);
         mode.OnEnter();
 
-        // act: a wide console so the harness column doesn't eat the role column's truncation budget.
+        // act: render at a wide width so the harness column doesn't eat the role column's truncation budget.
         var text = RenderToText(mode, 140, 24);
         var rows = text.Split('\n').Where(l => l.Contains("started ") && l.Contains("heard ")).ToList();
         var shortNameRow = Assert.Single(rows, l => l.Contains("backend"));
@@ -716,7 +716,7 @@ public sealed class AgentsModeTests
         // act
         console.Write(mode.Render(80, 20));
 
-        // assert: match the style escape sequence directly in front of "agent-b", since a row-pinned Contains alone would also match the row border.
+        // assert: match the style escape sequence directly in front of "agent-b".
         var row = Assert.Single(console.Output.Split('\n'), l => l.Contains("agent-b"));
         var style = ThemeTokens.GetStyle("agents.list.name");
         var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
@@ -741,7 +741,7 @@ public sealed class AgentsModeTests
         // act
         console.Write(mode.Render(140, 20));
 
-        // assert: pin to agent-b's row, since the token could otherwise be satisfied elsewhere in the render.
+        // assert: pin to agent-b's row.
         Assert.NotEqual(
             ThemeTokens.GetStyle("agents.list.role"),
             ThemeTokens.GetStyle("agents.list.role.orchestrator"));
@@ -775,7 +775,7 @@ public sealed class AgentsModeTests
     [Fact]
     public void Render_Should_ApplyAnsiStyling_ToBaseRoleToken_When_RoleHasNoDedicatedColor()
     {
-        // arrange: "backend" has no per-role token, so it falls back to the plain role token; agent-a stays plain at the selected row.
+        // arrange: "backend" has no per-role token, so it falls back to the plain token; agent-a stays plain.
         var sessions = new FakeAgentSessionRegistry();
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(sessionId: "s-a", agentName: "agent-a"));
         sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
