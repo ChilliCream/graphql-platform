@@ -103,8 +103,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_SendsOnlyToLiveAgentsWithThatRole()
     {
-        // arrange: durable registration alone is not enough - each candidate
-        // needs a live session bound with that role, per the fix direction.
+        // arrange: durable registration alone is not enough, broadcast also requires
+        // a live session bound with that role.
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-role-test");
         SetupCodexQueueClient(new FakeCodexQueueClient());
@@ -154,9 +154,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_ExcludesClosedHistoricalIdentity_ReturnsNoLiveRecipientError()
     {
-        // arrange: zeta once registered as orchestrator, but has no live
-        // session at all now (the session ended, its row was reaped or
-        // deleted) - a planner-style role lookup must not find it.
+        // arrange: zeta registered as orchestrator but its session row is already
+        // gone, so the role lookup must not find it.
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
         await SeedAgentAsync("zeta", "orchestrator");
@@ -176,10 +175,9 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_FallsBackToTheDurableRole_When_TheLiveSessionsOwnRoleIsBlank()
     {
-        // arrange: a session bound before role-aware registration (xy9.5)
-        // never had its own role written, so discovery falls back to the
-        // durable identity's role for it - but a closed identity with the
-        // same durable role and no live session at all still is not found.
+        // arrange: a session bound before role-aware registration never had its own
+        // role written, so discovery falls back to the durable identity's role for it;
+        // a closed identity with the same role and no live session is still not found.
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-fallback-test");
         SetupCodexQueueClient(new FakeCodexQueueClient());
@@ -206,9 +204,9 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_ExcludesAnImplicitIdentity_EvenWhenItsLiveSessionHasTheRole()
     {
-        // arrange: an implicit identity (never registered itself) whose live
-        // session was directly given a matching role - still excluded,
-        // mirroring the plain broadcast's exclusion of implicit rows.
+        // arrange: an implicit identity, never registered itself, whose live session
+        // was directly given a matching role; still excluded, like the plain
+        // broadcast excludes implicit rows.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-implicit-test");
@@ -231,8 +229,8 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_DedupesMultipleLiveSessionsForTheSameActor()
     {
-        // arrange: zeta has two live sessions both claiming orchestrator -
-        // the broadcast must reach the actor once, not twice.
+        // arrange: zeta has two live sessions both claiming orchestrator; the
+        // broadcast must reach the actor once, not twice.
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-dedup-test");
         SetupCodexQueueClient(new FakeCodexQueueClient());
@@ -264,9 +262,9 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_ReflectsTheCurrentRole_AfterTheLiveSessionsRoleChanges()
     {
-        // arrange: zeta's live session starts as backend, then its role
-        // changes to orchestrator - discovery must follow the session's
-        // current role, not the role it had when the row was created.
+        // arrange: zeta's live session starts as backend, then its role changes to
+        // orchestrator; discovery must follow the session's current role, not the
+        // role it had when the row was created.
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-rolechange-test");
         SetupCodexQueueClient(new FakeCodexQueueClient());
@@ -300,9 +298,9 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task RoleFilter_ExcludesAnUnboundSession()
     {
-        // arrange: a role can only end up on a session together with a
-        // binding through RegisterAsync, but discovery must not trust the
-        // role column alone - it must also require the session be bound.
+        // arrange: a role can only end up on a session together with a binding
+        // through RegisterAsync, but discovery must not trust the role column alone;
+        // it must also require the session be bound.
         await InitWorkspaceAsync();
         SetupInstanceId("host-broadcast-unbound-test");
         await ExecuteCommandAsync("agent", "register", "--actor", "test-agent");
@@ -324,13 +322,9 @@ public sealed class BroadcastMailCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task MailRoleRecipients_ResolvedRecipient_StillDeliversDurably_When_TheSessionEndsBeforeSend()
     {
-        // arrange: this pins MailRoleRecipients composed directly with
-        // IMailStore.SendMessageAsync, not BroadcastMailCommand's own wiring
-        // (its resolve-then-send has no interleaving point to race). Resolve
-        // the role-targeted recipient, then end the session before the
-        // durable send actually runs - discovery only feeds durable actor
-        // names into the same async send path every mail command uses, so
-        // the send must not depend on the row still existing.
+        // arrange: resolve the role-targeted recipient, then delete its session
+        // before the durable send runs; the send must not depend on the row
+        // still existing.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync();
         await SeedAgentAsync("test-agent");
