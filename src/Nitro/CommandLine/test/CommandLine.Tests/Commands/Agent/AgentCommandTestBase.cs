@@ -66,9 +66,9 @@ public abstract class AgentCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Inserts a live <c>agent_sessions</c> row on <paramref name="host"/> using the
-    /// current test process's pid and start time. The registry's liveness check reports
-    /// it alive only when <paramref name="host"/> is the workspace's current instance id.
+    /// Inserts an <c>agent_sessions</c> row for <paramref name="host"/>. A row whose host is
+    /// the workspace's current instance id is reported online, or unreachable when
+    /// <paramref name="endpointKind"/> is <c>none</c>; any other host is reported remote.
     /// </summary>
     protected async Task InsertAliveSessionRowAsync(
         string host,
