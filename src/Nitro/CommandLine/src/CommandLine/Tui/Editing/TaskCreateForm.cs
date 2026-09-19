@@ -8,17 +8,9 @@ using Form = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 namespace ChilliCream.Nitro.CommandLine.Tui.Editing;
 
 /// <summary>
-/// The task create form: title, type, priority, labels, and description.
-/// Status is always open on create and is not a field; due, defer, and
-/// estimate are not fields either. Built with an optional parent task id: when
-/// given, the form gains a parent field defaulted to that parent, letting the
-/// user switch it to create a root task instead. Submitting passes the
-/// resulting parent id (or <see langword="null"/>) through to
-/// <see cref="ITaskStore.CreateTaskAsync"/>, the same as the CLI's
-/// <c>task create --parent</c> when a parent is kept. The host is expected to
-/// feed it raw key input via <see cref="HandleKey"/> and call
-/// <see cref="SubmitAsync"/> once it returns <see cref="FormResult.Submitted"/>
-/// on the primary button.
+/// Collects a task title, type, priority, labels, and description for creation.
+/// When supplied a parent id, includes a selector to retain that parent or
+/// create a root task.
 /// </summary>
 internal sealed class TaskCreateForm
 {
@@ -45,8 +37,7 @@ internal sealed class TaskCreateForm
     public const string NoParentOptionId = "none";
 
     /// <summary>
-    /// The footer hints for the task create form: its keys are consumed
-    /// entirely while it is active, so no global hints follow.
+    /// The footer hints shown while the create form captures input.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [
@@ -106,8 +97,7 @@ internal sealed class TaskCreateForm
             s_wellKnownTypes,
             initialSelectedId: typePreset);
 
-        // A selected board row becomes the new task's parent by default, but
-        // this field lets the user clear it and create a root task instead.
+        // A supplied parent can be retained or cleared by the parent selector.
         _parentField = parentId is null
             ? null
             : new SelectField(
@@ -142,8 +132,8 @@ internal sealed class TaskCreateForm
     }
 
     /// <summary>
-    /// Whether any field's current value differs from its blank default: gates
-    /// whether Esc should ask for discard confirmation before cancelling.
+    /// Whether any field differs from its initial value, including the supplied
+    /// type and parent defaults.
     /// </summary>
     public bool IsDirty
         => Text(_titleField).Length != 0
@@ -173,9 +163,9 @@ internal sealed class TaskCreateForm
     public IRenderable Render(int width, int height) => _form.Render(width, height);
 
     /// <summary>
-    /// Creates the task from the submitted <paramref name="values"/> through
-    /// the task store, carrying the parent id this form was built with, if
-    /// any.
+    /// Creates a task from submitted values, retaining or clearing the supplied
+    /// parent according to the parent selector. Returns a failed outcome for a
+    /// store rejection represented by <see cref="ExitException"/>.
     /// </summary>
     public async Task<TaskCreateOutcome> SubmitAsync(
         ITaskStore store,

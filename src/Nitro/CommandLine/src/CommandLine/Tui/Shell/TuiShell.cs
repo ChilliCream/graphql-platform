@@ -15,10 +15,7 @@ using EditingConfirmDialog = ChilliCream.Nitro.CommandLine.Tui.Editing.ConfirmDi
 namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 
 /// <summary>
-/// The root handler and renderer for <see cref="TuiApplication"/>. Owns the mode
-/// stack and composites the shell-level overlays (the quit confirmation, the task
-/// editor, the close/reopen/delete confirmation, the status and priority quick
-/// pickers, the task create form, and the toast row) over whichever mode is active.
+/// Handles TUI events and renders the active tab, shell overlays, and status row.
 /// </summary>
 internal sealed class TuiShell
 {
@@ -93,20 +90,25 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Builds a tabbed shell hosting <paramref name="tabs"/> in order, starting on
-    /// the first. Each tab keeps its own mode stack and key dispatcher.
-    /// <paramref name="tasksTabIndex"/> identifies which tab owns the shell-level task
-    /// overlay machinery (the task editor, the close/reopen/delete confirmation, the
-    /// status and priority quick pickers, and the task create form).
-    /// <paramref name="quitGates"/> runs before a confirmed normal quit is allowed to
-    /// raise <see cref="QuitConfirmed"/>: each stops its own feature's new submissions
-    /// and bounded-drains what is already in flight, and a nonzero pending or
-    /// outcome-unknown count reported back turns the confirmation into a second
-    /// prompt naming those counts. Omitted, quitting behaves exactly as before.
-    /// <paramref name="mailWakeDaemonState"/>, when given, is polled once per render
-    /// and shown as a short badge in the footer's trailing segment, to the left of
-    /// the actor identity.
+    /// Creates a shell with independent tab navigation and key dispatch, initially
+    /// showing the first tab. Initializes every tab's current mode.
     /// </summary>
+    /// <param name="tabs">The non-empty list of hosted tabs in display order.</param>
+    /// <param name="initialWidth">The initial frame width.</param>
+    /// <param name="initialHeight">The initial frame height.</param>
+    /// <param name="searchMode">The task search mode, or null to disable shell search entry.</param>
+    /// <param name="treeView">The dependency tree mode, or null to disable shell tree entry.</param>
+    /// <param name="store">The task store, or null to disable shell task writes and detail entry.</param>
+    /// <param name="actor">The acting agent for task writes, or null to refuse those writes.</param>
+    /// <param name="tasksTabIndex">The tab that supports shell-level task editing overlays.</param>
+    /// <param name="quitGates">
+    /// Gates run before confirmed quit; unresolved work requires a second confirmation.
+    /// Null registers no gates.
+    /// </param>
+    /// <param name="quitGateDrainBound">The per-gate drain bound, or the default when null.</param>
+    /// <param name="mailWakeDaemonState">
+    /// Supplies the daemon state for the footer when no toast is shown; null omits the badge.
+    /// </param>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
     /// </exception>
@@ -149,8 +151,7 @@ internal sealed class TuiShell
         _width = initialWidth;
         _height = initialHeight;
 
-        // Every tab's root mode initializes its own data on shell startup,
-        // not only the active tab's.
+        // Initialize the current mode of every hosted tab.
         foreach (var tab in _tabs)
         {
             tab.ActiveMode.OnEnter();
@@ -201,10 +202,8 @@ internal sealed class TuiShell
     };
 
     /// <summary>
-    /// Renders the current frame: whichever overlay is active, or the active mode,
-    /// filling the content region, with a reserved bottom row for the current
-    /// toast. Matches the <see cref="TuiFrameRenderer"/> shape expected by
-    /// <see cref="TuiApplication.RunAsync"/>.
+    /// Renders the active overlay or mode, a tab strip when needed, and a bottom row
+    /// showing the current toast or footer hints.
     /// </summary>
     public IRenderable Render()
     {
@@ -241,9 +240,8 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Renders the one-row tab strip: every hosted tab's title with its
-    /// <see cref="TuiTab.Mnemonic"/> bracketed and styled in the footer's own
-    /// key token, the active tab highlighted in the footer's selection style.
+    /// Renders tab titles with their mnemonic highlighted and the active tab styled
+    /// with the selection theme.
     /// </summary>
     private IRenderable RenderTabStrip()
     {
@@ -263,13 +261,8 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Formats <paramref name="title"/> with its <paramref name="mnemonic"/>
-    /// letter bracketed and styled in <paramref name="keyStyle"/> (for
-    /// example <c>[A]gents</c>), matched case-insensitively against
-    /// <paramref name="title"/> so a title's natural capitalization (for
-    /// example <c>Agents</c>) survives untouched. Falls back to the plain
-    /// escaped title when <paramref name="mnemonic"/> does not occur in
-    /// <paramref name="title"/> at all.
+    /// Brackets and styles the first case-insensitive mnemonic match, preserving
+    /// the title's original case. Returns the escaped title when no match exists.
     /// </summary>
     private static string FormatMnemonicTitle(string title, char mnemonic, string keyStyle)
     {
@@ -312,18 +305,14 @@ internal sealed class TuiShell
     private bool HandleDataChanged() => BroadcastToTabs(new TuiMessage.RefreshRequested());
 
     /// <summary>
-    /// Drains every hosted tab's own effect queue, not only the active
-    /// tab's. A mode that owns no effect queue ignores this message (see
-    /// <see cref="TuiMessage.EffectCompleted"/>).
+    /// Sends an effect-completion message to every tab's current mode to drain
+    /// its queued outcomes.
     /// </summary>
     private bool HandleEffectCompleted() => BroadcastToTabs(new TuiMessage.EffectCompleted());
 
     /// <summary>
-    /// Sends <paramref name="message"/> to every hosted tab's currently
-    /// active mode. The active tab's own follow-ups are routed through the
-    /// shell's normal <see cref="HandleMessage"/> dispatch; an inactive
-    /// tab's follow-ups are scoped to <see cref="TuiMessage.ShowToast"/>
-    /// only, and every other follow-up kind stays dropped.
+    /// Sends the message to every tab's current mode. Dispatches all active-tab
+    /// follow-ups, but only toast follow-ups from inactive tabs.
     /// </summary>
     private bool BroadcastToTabs(TuiMessage message)
     {
@@ -346,10 +335,7 @@ internal sealed class TuiShell
 
     private bool HandleKey(ConsoleKeyInfo info)
     {
-        // The quit confirmation, the task editor, the close/reopen/delete
-        // confirmation, and the task create form are modal: while one is
-        // active it consumes every key itself, and unresolved keys are
-        // swallowed.
+        // Shell overlays consume input before mode or global dispatch.
         if (_confirmDialog is { } quitDialog)
         {
             var chord = KeyChord.From(info);
@@ -390,9 +376,7 @@ internal sealed class TuiShell
             return true;
         }
 
-        // A mode that owns its own overlays needs raw key input for its
-        // text fields while one is active, the same way the search mode's
-        // query input does above.
+        // A capturing mode receives raw keys before tab or semantic dispatch.
         if (ActiveMode is IRawKeyCapturingMode { IsInputCapturing: true } capturingMode)
         {
             foreach (var followUp in capturingMode.HandleRawKey(info))
@@ -776,13 +760,9 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Runs the pre-cancellation quit gate: on the first confirmation, every
-    /// registered <see cref="TuiQuitGate"/> stops its feature's new submissions and
-    /// bounded-drains what is already in flight. With nothing left unresolved,
-    /// <see cref="QuitConfirmed"/> fires immediately. Otherwise a second
-    /// confirmation naming the pending and outcome-unknown counts is shown,
-    /// and only confirming that fires <see cref="QuitConfirmed"/>; gates are
-    /// not re-run for that second confirmation.
+    /// Runs registered gates on the first quit confirmation and raises
+    /// <see cref="QuitConfirmed"/> if no work remains unresolved. Otherwise,
+    /// requires a second confirmation without rerunning the gates.
     /// </summary>
     private bool HandleConfirmQuit()
     {
@@ -851,10 +831,8 @@ internal sealed class TuiShell
         $"Exit with {report.PendingCount} stored-but-pending, {report.OutcomeUnknownCount} outcome-unknown? (y/n)";
 
     /// <summary>
-    /// Switches to the board's task detail mode, rooted on the board's
-    /// currently selected task. Reuses the same mode-stack semantics as
-    /// <see cref="TryOpenTree"/>: Back returns to the board with its
-    /// selection untouched.
+    /// Opens the selected board task in a detail mode on the active tab's
+    /// navigation stack.
     /// </summary>
     private bool TryOpenDetail()
     {
@@ -1049,20 +1027,15 @@ internal sealed class TuiShell
     private void SwitchTo(ITuiMode mode) => ActiveTab.SwitchTo(mode, _width, ContentHeight);
 
     /// <summary>
-    /// Pops the active tab's own navigation stack back to its previous mode,
-    /// so <see cref="TuiMessage.Back"/> never crosses tabs.
+    /// Returns to the previous mode on the active tab's navigation stack,
+    /// or does nothing when that stack is empty.
     /// </summary>
     private void PopMode() => ActiveTab.PopMode(_width, ContentHeight);
 
     /// <summary>
-    /// Builds the footer's hint list for whichever context currently owns
-    /// key input, mirroring <see cref="HandleKey"/>'s own priority order.
-    /// The fully modal overlays (the quit confirmation, the discard
-    /// confirmation, the task editor, the lifecycle confirmation, the quick
-    /// pickers, and the task create form) show only their own hints; the
-    /// search mode's query input is treated the same way while it has
-    /// focus. Every other context's hints are followed by the global
-    /// table's, with quit last.
+    /// Returns hints for the current input context. Capturing contexts show only
+    /// their own hints; other modes add unsuppressed global hints and, when
+    /// multiple tabs are hosted, the tab-switch hint.
     /// </summary>
     private IReadOnlyList<KeyHint> BuildFooterHints()
     {
@@ -1105,15 +1078,13 @@ internal sealed class TuiShell
             return [SearchMode.TypingHint, .. contextHints, SearchMode.EnterHint];
         }
 
-        // A mode capturing raw key input (see HandleKey) shows only its own
-        // hints, the same way the search query input does above.
+        // Capturing modes supply their own footer hints.
         if (ActiveMode is IRawKeyCapturingMode { IsInputCapturing: true } capturingMode)
         {
             return capturingMode.CapturingHints;
         }
 
-        // Without an identity every task write is refused, so the edit
-        // chord is hidden.
+        // Hide the task-edit hint when no acting identity is available.
         var suppressed = _actor is null
             ? [.. ActiveMode.SuppressedGlobalHints, new KeyHint("e", "edit")]
             : ActiveMode.SuppressedGlobalHints;
@@ -1122,15 +1093,9 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// Formats <paramref name="hints"/>, the mail-wake daemon badge (when
-    /// <paramref name="mailWakeDaemonState"/> is given), and the current agent
-    /// identity (when <paramref name="actor"/> is given) as the footer's single
-    /// status-row line: the hints on the left as <see cref="FormatFooterHints"/>
-    /// lays them out, the badge and identity right-aligned to the row's right
-    /// edge, badge first. This trailing segment is fit into whatever room is
-    /// left over after the hints are laid out. The badge is fixed-width and
-    /// shown whole or not at all; the identity is truncated with a trailing
-    /// ellipsis, or omitted entirely on widths too narrow for even that.
+    /// Formats footer hints on the left and the optional daemon badge and acting
+    /// identity on the right. The badge is shown whole when space remains after
+    /// hints; the identity is truncated with an ellipsis or omitted when it cannot fit.
     /// </summary>
     private static string FormatFooter(
         IReadOnlyList<KeyHint> hints, int width, string? actor, MailWakeDaemonState? mailWakeDaemonState)
@@ -1198,8 +1163,7 @@ internal sealed class TuiShell
     }
 
     /// <summary>
-    /// The mail-wake daemon coordinator's current state as a short, fixed-width
-    /// footer badge label.
+    /// The daemon state as a short footer badge label.
     /// </summary>
     private static string FormatMailWakeDaemonBadge(MailWakeDaemonState state) => state switch
     {

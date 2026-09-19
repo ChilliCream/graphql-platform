@@ -4,8 +4,8 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 
 /// <summary>
-/// A full-screen mode hosted by <see cref="TuiShell"/>. Mode instances live for the
-/// application lifetime so their state survives the shell switching away and back.
+/// A mode hosted by <see cref="TuiShell"/> with key bindings, message handling,
+/// and rendering.
 /// </summary>
 internal interface ITuiMode
 {
@@ -15,7 +15,7 @@ internal interface ITuiMode
     KeyMap? KeyMap { get; }
 
     /// <summary>
-    /// Called when the mode becomes the active mode.
+    /// Called when the shell initializes the mode or activates it.
     /// </summary>
     void OnEnter();
 
@@ -36,27 +36,22 @@ internal interface ITuiMode
     IRenderable Render(int width, int height);
 
     /// <summary>
-    /// The id of the mode's currently selected task, or null when nothing is
-    /// selected or the mode has no notion of a single selected task. Drives
-    /// the shell's cross-mode gestures (open the dependency tree, edit,
-    /// close/reopen, delete) for whichever mode is active.
+    /// The selected task id, or null when the mode has no selected task.
+    /// The shell uses this id for task-specific actions.
     /// </summary>
     string? SelectedTaskId => null;
 
     /// <summary>
-    /// Asks the mode to move its selection onto the task with the given id,
-    /// when it tracks one. The default no-op leaves modes that do not (or do
-    /// not yet) support moving their selection unaffected.
+    /// Requests selection of the task with the given id.
+    /// The default implementation does nothing.
     /// </summary>
     void SelectTask(string id)
     {
     }
 
     /// <summary>
-    /// Hints from the active tab's <see cref="KeyDispatcher.GlobalKeyMap"/>
-    /// that this mode wants hidden from the footer. Matched by value against
-    /// <see cref="KeyHint"/> equality in <see cref="KeyDispatcher.CombineHints"/>.
-    /// The default suppresses nothing.
+    /// Global footer hints to suppress, compared by <see cref="KeyHint"/> value
+    /// equality. The default suppresses no hints.
     /// </summary>
     IReadOnlyCollection<KeyHint> SuppressedGlobalHints => [];
 }

@@ -3,21 +3,18 @@ using ChilliCream.Nitro.CommandLine.Tui.Input;
 namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 
 /// <summary>
-/// An <see cref="ITuiMode"/> that owns modal overlays needing raw key input
-/// (text fields, for example) rather than the semantic <see cref="TuiMessage"/>
-/// dispatch every other gesture goes through.
+/// A mode that can capture raw key input before semantic message dispatch.
 /// </summary>
 internal interface IRawKeyCapturingMode
 {
     /// <summary>
-    /// Whether this mode currently owns an active overlay that must consume
-    /// raw key input directly.
+    /// Whether the mode currently captures raw key input.
     /// </summary>
     bool IsInputCapturing { get; }
 
     /// <summary>
-    /// The footer hints for whichever overlay is currently capturing input.
-    /// Read only while <see cref="IsInputCapturing"/> is true.
+    /// The hints for the current input capture, read only while
+    /// <see cref="IsInputCapturing"/> is true.
     /// </summary>
     IReadOnlyList<KeyHint> CapturingHints { get; }
 

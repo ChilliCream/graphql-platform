@@ -29,16 +29,12 @@ internal sealed class TuiTab
     }
 
     /// <summary>
-    /// The tab's current display title, evaluated fresh on every access so a
-    /// live badge (for example an unread count) stays current.
+    /// The display title, evaluated on each access.
     /// </summary>
     public string Title => _titleFactory();
 
     /// <summary>
-    /// The letter this tab jumps to on <c>Shift+&lt;letter&gt;</c> (see
-    /// <see cref="TuiShell"/>'s mnemonic resolution), and the letter
-    /// bracketed in the tab strip's rendering of <see cref="Title"/>. Given
-    /// explicitly rather than derived from <see cref="Title"/>.
+    /// The explicit mnemonic used for Shift-key tab selection and title highlighting.
     /// </summary>
     public char Mnemonic { get; }
 
@@ -96,8 +92,7 @@ internal sealed class TuiTab
     }
 
     /// <summary>
-    /// Re-enters this tab's currently active mode after the shell switches
-    /// tabs onto it, refreshing its layout and data.
+    /// Calls the active mode's resize and entry handlers with the supplied content size.
     /// </summary>
     public void Activate(int width, int height)
     {

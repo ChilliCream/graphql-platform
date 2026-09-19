@@ -35,10 +35,8 @@ internal sealed class KeyDispatcher
     }
 
     /// <summary>
-    /// Combines <paramref name="contextHints"/> with <see cref="GlobalKeyMap"/>'s own hints
-    /// appended after. A global hint already present among <paramref name="contextHints"/>
-    /// is not repeated, and one present in <paramref name="suppressedGlobalHints"/> is
-    /// dropped entirely.
+    /// Returns context hints followed by global hints that are neither suppressed
+    /// nor already included. Context hints retain their original order and duplicates.
     /// </summary>
     public IReadOnlyList<KeyHint> CombineHints(
         IReadOnlyList<KeyHint> contextHints, IReadOnlyCollection<KeyHint> suppressedGlobalHints)
