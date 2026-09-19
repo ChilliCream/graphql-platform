@@ -693,8 +693,7 @@ public sealed class FusionSourceSchemaInitCommandTests(NitroCommandFixture fixtu
     public async Task Init_ExistingApolloFederationSupportWithExtraProperties_WritesOnlyVersion()
     {
         // arrange
-        // the settings reader rejects an 'apolloFederationSupport' that carries anything but
-        // 'version', so a stale extra property must not survive.
+        // A stale 'apolloFederationSupport' property other than 'version' must not survive the settings reader.
         SetupNoAuthentication();
         SetupFile(
             "schema-settings.json",
