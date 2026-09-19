@@ -41,11 +41,8 @@ public sealed class MailStoreTests : IAsyncDisposable
     /// <summary>
     /// Creates a new <see cref="MailStore"/> bound to this test's file
     /// system, clock, database, and registry, with a fixed instance id and
-    /// global config directory so <see cref="MailWakePolicy.Enqueue"/> can
-    /// resolve without touching the real machine. Concurrency tests create
-    /// one of these per racing caller, mirroring
-    /// <c>MailWakeBatchStoreTests</c>' "separate connections racing the same
-    /// file" shape.
+    /// global config directory. Concurrency tests create one of these per
+    /// racing caller.
     /// </summary>
     private MailStore CreateStore()
         => new(
@@ -370,8 +367,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         // act
         var message = await SendAsync("claude", "hello", ["bob"], null, cancellationToken);
 
-        // assert: the default policy is Skip, matching every other test in
-        // this file that does not pass wakePolicy explicitly.
+        // assert: WakePolicy defaults to Skip when not passed explicitly.
         Assert.Empty(message.WakeReceipts);
         Assert.Null(await ReadOutboxRowAsync("bob", cancellationToken));
     }
@@ -425,8 +421,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var earliestDueAt = _timeProvider.GetUtcNow();
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
-        // act: settled_generation is still 0 (no batch has completed), so
-        // this second enqueue must not push due_at later than the first.
+        // act: due_at must not move later while settled_generation is still 0.
         await SendAsync("claude", "second", ["bob"], null, cancellationToken, wakePolicy: MailWakePolicy.Enqueue);
 
         // assert
@@ -438,9 +433,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_AdvanceGenerationsWithoutLoss_When_ConcurrentSendsRaceTheSameRecipient()
     {
-        // arrange: separate MailStore instances (Pooling=False, matching
-        // production) racing the same file for the same recipient, mirroring
-        // MailWakeBatchStoreTests' concurrency shape.
+        // arrange: separate MailStore instances race the same recipient, matching production's non-pooled connections.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -459,9 +452,7 @@ public sealed class MailStoreTests : IAsyncDisposable
                 },
                 cancellationToken)));
 
-        // assert: every generation from 1 through concurrentSends was
-        // handed out exactly once - no lost update collapsed two sends onto
-        // the same generation.
+        // assert: every generation from 1 through concurrentSends was handed out exactly once.
         var generations = messages.Select(m => Assert.Single(m.WakeReceipts).Generation).Order().ToArray();
         Assert.Equal(Enumerable.Range(1, concurrentSends).Select(i => (long)i), generations);
         var row = await ReadOutboxRowAsync("bob", cancellationToken);
@@ -471,10 +462,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_RollBackMessageAndRecipients_When_WakeOutboxWriteFailsMidTransaction()
     {
-        // arrange: an injected constraint failure - a trigger that aborts
-        // the wake-outbox write for one specific actor - proves the message,
-        // its recipient row, and the wake increment commit as a single unit:
-        // none of them exist afterward, not just the outbox row.
+        // arrange: a trigger aborts the wake-outbox write for one actor to force a mid-transaction failure.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using (var connection = await SeedAsync(cancellationToken))
         {
@@ -506,9 +494,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_PersistNothing_When_CancelledBeforeAnyWriteObservesIt()
     {
-        // arrange: an already-cancelled token proves the "cancel before
-        // rollback" case - nothing about this send, including the wake
-        // increment, is observable afterward.
+        // arrange: the token is already cancelled before any write can observe it.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -527,11 +513,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_BeReconcilableByItsReturnedId_When_CommitSucceeds()
     {
-        // arrange: proves the mechanism a caller uses to reconcile an
-        // ambiguous outcome (a cancellation or transport failure observed
-        // only after the commit already landed) - re-querying by the id the
-        // store handed back always reflects the true committed state,
-        // message, recipients, and wake generation alike.
+        // arrange: re-querying by the returned id must reflect the fully committed state.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -1129,9 +1111,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task QueryInboxThreadsAsync_Should_ExcludeThread_When_OnlyMessageToActorIsArchived()
     {
-        // arrange: bob's only message in this thread is archived for him, so
-        // the default (includeArchived: false) query excludes the thread,
-        // matching BuildInboxQuery's message-level semantics.
+        // arrange: bob's only message in this thread is archived for him.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -1167,11 +1147,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task QueryInboxThreadsAsync_Should_IncludeThread_When_SomeButNotAllMessagesToActorAreArchived()
     {
-        // arrange: bob is addressed by two separate messages in the same
-        // thread (claude replying into his own first message, still to
-        // bob), only one archived - the default query keeps the thread (it
-        // is not the case that "only" his messages are archived) and
-        // ArchivedCount reports 1.
+        // arrange: bob is addressed by two messages in the thread, only one archived.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -1214,12 +1190,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task QuerySentThreadsAsync_Should_ReportNonZeroUnreadCount_When_OtherAgentRepliedInThread()
     {
-        // arrange: bob's unread count on his own Sent thread is normally 0
-        // (see QuerySentThreadsAsync_Should_ReturnOnlyThreadsActorSentInto),
-        // but the doc contract on IMailStore.QuerySentThreadsAsync says it
-        // "can be non-zero when other agents replied in a thread the actor
-        // started" - carol's reply addresses bob, so bob has an unread
-        // recipient row on the thread he sent into.
+        // arrange: carol's reply addresses bob, giving him an unread recipient row on his own sent thread.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
