@@ -181,8 +181,7 @@ public sealed class OpencodeHookExecutorTests
     public async Task RunAsync_Should_WriteNeutral_When_TheDatabaseIsContended()
     {
         // arrange
-        // a second connection holds an open write transaction, so the session-idle handler's heartbeat touch
-        // blocks on the lock
+        // a second connection holds an open write transaction, so the heartbeat touch blocks on the lock
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-opencode-hook-executor-contention-tests");
 
@@ -269,8 +268,7 @@ public sealed class OpencodeHookExecutorTests
     public async Task RunAsync_Should_WriteNeutral_When_SchemaVersionIsNewerThanSupported()
     {
         // arrange
-        // a schema version newer than the handler supports throws the generic ExitException, not the
-        // migratable AgentWorkspaceSchemaMismatchException, and must still resolve to neutral
+        // a newer schema version throws the generic ExitException, not AgentWorkspaceSchemaMismatchException
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-opencode-hook-executor-version-tests");
 
