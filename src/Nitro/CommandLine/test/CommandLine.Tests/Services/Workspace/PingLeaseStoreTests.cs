@@ -6,9 +6,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 /// Exercises <see cref="PingLeaseStore"/>'s atomic insert-or-steal-expired
 /// claim directly against a real workspace database: the fixed four-slot
 /// cap, stealing an expired lease's slot, release by (slot, attempt_id),
-/// and the cap holding across genuinely concurrent processes (separate
-/// connections racing the same database file), one of the notifier's
-/// required tests.
+/// and the cap holding across separate connections racing the same
+/// database file.
 /// </summary>
 public sealed class PingLeaseStoreTests : IDisposable
 {
@@ -107,9 +106,7 @@ public sealed class PingLeaseStoreTests : IDisposable
     [Fact]
     public async Task ReleaseAsync_Should_BeANoOp_When_AttemptIdDoesNotMatch()
     {
-        // arrange: a late release from an attempt whose lease was already
-        // stolen as expired (or already released) must never free a
-        // DIFFERENT attempt's currently-held slot.
+        // arrange: a late release must never free a different attempt's held slot.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -119,17 +116,14 @@ public sealed class PingLeaseStoreTests : IDisposable
         await _leases.ReleaseAsync(slot!.Value, "attempt-stale", cancellationToken);
         var stillHeld = await _leases.TryAcquireAsync("attempt-2", now, TimeSpan.FromSeconds(30), cancellationToken);
 
-        // assert: slot 1 is still held by attempt-1, so the next acquire
-        // (with 3 free slots remaining) lands on slot 2.
+        // assert: slot 1 is still held, so the next acquire lands on slot 2.
         Assert.Equal(2, stillHeld);
     }
 
     [Fact]
     public async Task TryAcquireAsync_Should_CapAtExactlyFour_When_SixConcurrentProcessesRaceTheSameDatabase()
     {
-        // arrange: separate connections (Pooling=False, matching production)
-        // racing the same file - the notifier's required "cap holds across
-        // concurrent processes" test.
+        // arrange: separate connections racing the same file, Pooling=False as in production.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -139,8 +133,7 @@ public sealed class PingLeaseStoreTests : IDisposable
             new PingLeaseStore(_fileSystem, _database)
                 .TryAcquireAsync($"attempt-{i}", now, TimeSpan.FromSeconds(30), cancellationToken)));
 
-        // assert: exactly four callers claimed a distinct slot, the other
-        // two were capacity-dropped.
+        // assert: exactly four callers claimed a distinct slot, two were capacity-dropped.
         var claimed = results.Where(slot => slot is not null).Select(slot => slot!.Value).ToArray();
         Assert.Equal(4, claimed.Length);
         Assert.Equal([1, 2, 3, 4], claimed.OrderBy(s => s).ToArray());

@@ -6,9 +6,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises <see cref="NitroInstanceIdProvider"/>'s two paths: the hashed
-/// machine identifier (via an injected reader, so this does not depend on
-/// what the test machine actually reports) and the generated-uuid fallback,
-/// including its atomic create-or-read-winner semantics.
+/// machine identifier from an injected reader, and the generated-uuid
+/// fallback, including its atomic create-or-read-winner semantics.
 /// </summary>
 public sealed class NitroInstanceIdProviderTests : IDisposable
 {
@@ -88,11 +87,10 @@ public sealed class NitroInstanceIdProviderTests : IDisposable
     }
 
     /// <summary>
-    /// Mirrors what a concurrent first use looks like: another process (or
-    /// call) already won the create race and left its own id file behind
-    /// before this call's atomic create runs. The create-or-read-winner
-    /// contract means this call must return the winner's id, not the
-    /// candidate it generated for itself.
+    /// Mirrors a concurrent first use: another process already won the
+    /// create race and left its id file behind before this call's atomic
+    /// create runs. The winner's id must be returned, not the candidate
+    /// this call generated for itself.
     /// </summary>
     [Fact]
     public async Task GetIdAsync_Should_ReturnTheExistingId_When_FallbackFileAlreadyExists()
