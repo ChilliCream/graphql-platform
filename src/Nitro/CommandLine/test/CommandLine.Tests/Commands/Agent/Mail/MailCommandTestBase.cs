@@ -111,10 +111,9 @@ public abstract class MailCommandTestBase : CommandTestBase
             TestContext.Current.CancellationToken);
 
     /// <summary>
-    /// Seeds an alive, explicitly-claimed <c>codex-thread</c> session for
-    /// <paramref name="agentName"/> against the workspace database, on the host id
-    /// <see cref="CommandTestBase.SetupInstanceId"/> was pointed at. A test calling this
-    /// must call that first, so the notifier's own host resolution matches this row.
+    /// Seeds a fresh <c>codex-thread</c> session explicitly bound to <paramref name="agentName"/>
+    /// on <paramref name="host"/>. Configure <see cref="CommandTestBase.SetupInstanceId"/>
+    /// with the same host when the command must discover this session.
     /// </summary>
     private protected Task SeedAliveCodexThreadSessionAsync(string agentName, string threadId, string host)
         => SeedAliveSessionAsync(
@@ -179,10 +178,10 @@ public abstract class MailCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Seeds an alive <c>agent_sessions</c> row against the workspace database, on the host
-    /// id <see cref="CommandTestBase.SetupInstanceId"/> was pointed at; a test calling this
-    /// must call that first, so the notifier's own host resolution matches this row.
-    /// A null <paramref name="agentName"/> seeds an unbound row.
+    /// Seeds a fresh session on <paramref name="host"/>, explicitly bound to
+    /// <paramref name="agentName"/> or unbound when it is <see langword="null"/>.
+    /// Configure <see cref="CommandTestBase.SetupInstanceId"/> with the same host
+    /// when the command must discover this session.
     /// </summary>
     private protected async Task SeedAliveSessionAsync(
         string sessionId,
@@ -251,8 +250,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Runs a non-query statement against the workspace database, for mutating a seeded
-    /// row mid-test.
+    /// Runs a non-query SQL statement against the workspace database.
     /// </summary>
     protected async Task ExecuteAsync(string sql)
     {

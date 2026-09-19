@@ -87,8 +87,8 @@ public sealed class WatchMailCommandTests(NitroCommandFixture fixture)
         var watchCommand = StartInteractiveCommand("agent", "mail", "watch");
         var runTask = watchCommand.RunToCompletionAsync(cancellationTokenSource.Token);
 
-        // act: both messages are seeded before the first poll fires, so they arrive
-        // together on that poll and must print oldest first.
+        // act
+        // Seed both messages before advancing the fake clock to the first poll.
         await Task.Delay(50, cancellationTokenSource.Token);
         var first = await SeedMessageAsync("bob", "First", ["test-agent"]);
         FakeTime.Advance(TimeSpan.FromMilliseconds(100));
@@ -297,13 +297,12 @@ public sealed class WatchMailCommandTests(NitroCommandFixture fixture)
             body
             """);
 
-        // A message sent after the watcher exits and before the next one starts must
-        // still be delivered, not treated as pre-existing at the new baseline.
+        // Seed a message between watcher runs; the next run resumes from the previous cursor.
         var duringGap = await SeedMessageAsync(
             "bob", "Sent during the gap", ["test-agent"], body: "still here");
 
-        // act: the respawned watcher passes the last-delivered message as
-        // its cursor, so it never loses mail sent during the gap.
+        // act
+        // Resume after the last delivered message id.
         var secondResult = await AdvanceUntilCompleteAsync(
             StartInteractiveCommand("agent", "mail", "watch", "--after", delivered.Id)
                 .RunToCompletionAsync(TestContext.Current.CancellationToken),
@@ -424,9 +423,8 @@ public sealed class WatchMailCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Advances the fake clock by one second at a time until the watch command's task
-    /// completes. The real delay only paces test synchronization; poll cadence and any
-    /// --timeout are driven by <see cref="CommandTestBase.FakeTime"/>.
+    /// Advances <see cref="CommandTestBase.FakeTime"/> in one-second steps, up to 200 times,
+    /// while awaiting the command. Then waits up to five real seconds for completion.
     /// </summary>
     private async Task<CommandResult> AdvanceUntilCompleteAsync(
         Task<CommandResult> runTask,

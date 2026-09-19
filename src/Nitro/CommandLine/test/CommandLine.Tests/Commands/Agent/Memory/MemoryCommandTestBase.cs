@@ -5,8 +5,8 @@ using ChilliCream.Nitro.CommandLine.Tests.Memory;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Memory;
 
 /// <summary>
-/// Runs memory commands against a real file system workspace in a per-test
-/// temp directory named "acme", mirroring <c>MailCommandTestBase</c>.
+/// Runs memory commands against a real file system in a temporary workspace.
+/// Deletes the temporary directory on disposal.
 /// </summary>
 public abstract class MemoryCommandTestBase : CommandTestBase
 {
@@ -42,13 +42,13 @@ public abstract class MemoryCommandTestBase : CommandTestBase
         => AgentWorkspace.GetMemoryLocalDirectory(MemoryDirectory);
 
     /// <summary>
-    /// Every curated memory in the workspace, newest first, read back through the store.
+    /// Returns all curated memories in the workspace, newest first.
     /// </summary>
     internal Task<IReadOnlyList<MemoryRecord>> ReadCuratedAsync()
         => CreateStore().GetRecentCuratedAsync(limit: null, TestContext.Current.CancellationToken);
 
     /// <summary>
-    /// Every journal entry in the workspace, newest first.
+    /// Returns all journal entries in the workspace, newest first.
     /// </summary>
     internal Task<IReadOnlyList<MemoryJournalEntry>> ReadJournalAsync()
         => CreateStore().GetRecentJournalAsync(limit: null, TestContext.Current.CancellationToken);
@@ -60,8 +60,7 @@ public abstract class MemoryCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Creates an <see cref="IMemoryStore"/> bound to this test's workspace
-    /// database and clock, for seeding data without going through the CLI.
+    /// Creates an <see cref="IMemoryStore"/> bound to the test's workspace database and clock.
     /// </summary>
     internal MemoryStore CreateStore()
         => new(new TestFileSystem(WorkingDirectory), FakeTime, new AgentDatabase());
