@@ -421,12 +421,12 @@ A uniquely named temporary queue binds to its publish topic or exchange the same
 
 Each transport maps `Temporary()` to a different native mechanism:
 
-| Transport         | Mapping                                                                                           |
-| ----------------- | ------------------------------------------------------------------------------------------------- |
-| Azure Service Bus | `AutoDeleteOnIdle` on the queue (24-hour default, `Temporary(TimeSpan)` for a custom idle window) |
-| RabbitMQ          | A non-durable, auto-delete queue                                                                  |
-| PostgreSQL        | `AutoDelete` on the queue row, cascaded from the owning consumer's heartbeat and expiry           |
-| InMemory          | API parity only - a temporary queue's lifetime is the hosting process's own runtime disposal      |
+| Transport         | Mapping                                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| Azure Service Bus | `AutoDeleteOnIdle` on the queue (24-hour default, `Temporary(TimeSpan)` for a custom idle window)               |
+| RabbitMQ          | A durable, auto-delete queue with a queue expiry (30-minute default, `Temporary(TimeSpan)` for a custom expiry) |
+| PostgreSQL        | `AutoDelete` on the queue row, cascaded from the owning consumer's heartbeat and expiry                         |
+| InMemory          | API parity only - a temporary queue's lifetime is the hosting process's own runtime disposal                    |
 
 See the transport pages under [Transports](./transports/index.md) for the full mapping, defaults, and conflict-detection behavior for each transport.
 

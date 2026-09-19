@@ -62,6 +62,12 @@ public sealed class RabbitMQQueueDescriptorConfiguration : MessagingConfiguratio
     public bool IsTemporary { get; set; }
 
     /// <summary>
+    /// Gets or sets the queue expiry applied when this queue's receive endpoint is temporary. When
+    /// <see langword="null"/>, <see cref="RabbitMQReceiveEndpointConfiguration.TemporaryDefaults.Expiry"/> applies.
+    /// </summary>
+    public TimeSpan? TemporaryExpiry { get; set; }
+
+    /// <summary>
     /// Gets the receive middleware configurations applied when this queue materializes an endpoint.
     /// </summary>
     public List<ReceiveMiddlewareConfiguration> ReceiveMiddlewares { get; } = [];

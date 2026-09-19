@@ -105,6 +105,20 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public IRabbitMQReceiveEndpointDescriptor Temporary(TimeSpan expiry)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(expiry, TimeSpan.Zero);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(
+            expiry,
+            RabbitMQReceiveEndpointConfiguration.TemporaryDefaults.MaximumExpiry);
+
+        base.Temporary();
+        Configuration.TemporaryExpiry = expiry;
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public IRabbitMQReceiveEndpointDescriptor FaultEndpoint(Uri address)
     {
         ArgumentNullException.ThrowIfNull(address);
