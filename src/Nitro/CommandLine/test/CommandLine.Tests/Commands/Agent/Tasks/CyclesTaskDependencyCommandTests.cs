@@ -48,9 +48,6 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         await InitWorkspaceAsync();
         var a = await CreateTaskAsync("Task A");
         var b = await CreateTaskAsync("Task B");
-
-        // task dep add now rejects a cycle before commit, so the edges are
-        // seeded directly, as if they reached the database another way.
         await InsertDependencyAsync(a, b);
         await InsertDependencyAsync(b, a);
 
@@ -106,9 +103,6 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         await InitWorkspaceAsync();
         var a = await CreateTaskAsync("Task A");
         var b = await CreateTaskAsync("Task B");
-
-        // task dep add now rejects a cycle before commit, so the edges are
-        // seeded directly, as if they reached the database another way.
         await InsertDependencyAsync(a, b);
         await InsertDependencyAsync(b, a);
         SetupInteractionMode(InteractionMode.JsonOutput);
@@ -142,9 +136,6 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         var a = await CreateTaskAsync("Task A");
         var b = await CreateTaskAsync("Task B");
         var c = await CreateTaskAsync("Task C");
-
-        // task dep add now rejects a cycle before commit, so the edges are
-        // seeded directly, as if they reached the database another way.
         await InsertDependencyAsync(a, b);
         await InsertDependencyAsync(b, c);
         await InsertDependencyAsync(c, a);
@@ -152,10 +143,7 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         // act
         var result = await ExecuteCommandAsync("agent", "tasks", "dep", "cycles");
 
-        // assert
-        // The cycle is the fixed chain a -> b -> c -> a; rotate that circular
-        // sequence to start at whichever ID sorts smallest, matching how the
-        // command always starts a cycle at its smallest member.
+        // assert: rotate the fixed chain a -> b -> c -> a to start at the smallest ID.
         var cycle = new List<string> { a, b, c };
         var startIndex = cycle.IndexOf(cycle.OrderBy(x => x, StringComparer.Ordinal).First());
         var rotated = cycle.Skip(startIndex).Concat(cycle.Take(startIndex)).ToList();

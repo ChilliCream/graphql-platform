@@ -62,9 +62,6 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
         var a = await CreateTaskAsync("Task A");
         var b = await CreateTaskAsync("Task B");
-
-        // task dep add now rejects a cycle before commit, so the edges are
-        // seeded directly, as if they reached the database another way.
         await InsertDependencyAsync(a, b);
         await InsertDependencyAsync(b, a);
 
