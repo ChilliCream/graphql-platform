@@ -9,14 +9,9 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// <summary>
 /// The compose form: recipients, subject, and body. Recipients are parsed
 /// as a comma-separated list and validated by
-/// <see cref="IMailStore.SendMessageAsync"/>, the same store member the
-/// CLI's send command calls, so an unknown recipient surfaces as its
-/// <see cref="ExitException"/> message rather than a client-side check. The
-/// host is expected to feed it raw key input via <see cref="HandleKey"/>
-/// and call <see cref="BuildCreation"/> once it returns
-/// <see cref="FormResult.Submitted"/> on the primary button; the actual
-/// store write and actor-wake dispatch run off the input thread through
-/// <see cref="MailMode"/>'s own send effect, not synchronously from here.
+/// <see cref="IMailStore.SendMessageAsync"/>, so an unknown recipient
+/// surfaces as its <see cref="ExitException"/> message rather than a
+/// client-side check.
 /// </summary>
 internal sealed class MailComposeForm
 {
@@ -85,11 +80,9 @@ internal sealed class MailComposeForm
     /// Snapshots the submitted <paramref name="values"/> into a
     /// <see cref="MailMessageCreation"/> ready for <see cref="IMailStore.SendMessageAsync"/>,
     /// with <see cref="MailMessageCreation.WakePolicy"/> set to
-    /// <see cref="MailWakePolicy.Enqueue"/> so a board send behaves like the
-    /// CLI's own send command: a live recipient is woken, not merely stored.
-    /// Pure and synchronous; every field is already validated by the time a
-    /// <see cref="FormResult.Submitted"/> carries these values, so this does
-    /// no I/O and cannot fail.
+    /// <see cref="MailWakePolicy.Enqueue"/>. Pure and synchronous; every
+    /// field is already validated by the time a
+    /// <see cref="FormResult.Submitted"/> carries these values.
     /// </summary>
     public static MailMessageCreation BuildCreation(IReadOnlyDictionary<string, FormValue> values, string actor)
     {

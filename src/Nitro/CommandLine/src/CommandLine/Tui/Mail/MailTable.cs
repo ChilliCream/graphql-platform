@@ -8,11 +8,9 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// Renders the mail board's list pane as a table: a heading row (From, To,
 /// Subject, Preview, Age, and a message-count column in
 /// <see cref="MailListMode.Threads"/>) above rows for each
-/// <see cref="MailListRow"/>, replacing the old single-line
-/// <c>MailMessageBadge</c>. Column widths are computed from the pane width
-/// once per render via <see cref="ComputeColumns"/>, with Subject and
-/// Preview splitting whatever remains after the fixed-width columns (the
-/// epic's "elastic remainder" layout).
+/// <see cref="MailListRow"/>. Column widths are computed from the pane
+/// width once per render via <see cref="ComputeColumns"/>, with Subject and
+/// Preview splitting whatever remains after the fixed-width columns.
 /// </summary>
 internal static class MailTable
 {
@@ -28,9 +26,7 @@ internal static class MailTable
 
     /// <summary>
     /// Thread-membership indicator for an indented, expanded-thread child
-    /// row - a separate vocabulary from the from-me/direct/broadcast
-    /// relationship glyph (TUI research conv. 7), so a reader never confuses
-    /// "this is a reply inside an open thread" with "this one is from me".
+    /// row, distinct from the from-me/direct/broadcast relationship glyph.
     /// </summary>
     private const string ThreadChildGlyph = "└";
 
@@ -120,8 +116,7 @@ internal static class MailTable
     /// <summary>
     /// Renders a collapsed or expanded thread rollup row.
     /// <paramref name="unreadToMe"/> comes from <see cref="MailState.IsThreadUnreadToMe"/>,
-    /// never computed here, so this renderer never has to reason about
-    /// Workspace's unscoped rollups itself.
+    /// never computed here.
     /// </summary>
     public static string RenderThreadRow(
         MailThreadSummary summary,
@@ -168,13 +163,9 @@ internal static class MailTable
     /// Renders a message row: a flat-mode row (<paramref name="threadChild"/>
     /// false, the count column blank when <see cref="Columns.ShowCount"/>)
     /// or an expanded thread's indented child (true, the relationship glyph
-    /// replaced by <see cref="ThreadChildGlyph"/> per TUI research conv. 7).
+    /// replaced by <see cref="ThreadChildGlyph"/>).
     /// <paramref name="unreadToMe"/> is <see cref="MailRecipientView.IsUnread"/>
-    /// on <paramref name="message"/> for <paramref name="actor"/> - already
-    /// correct in every mailbox including Workspace, since a message's
-    /// embedded recipients carry the actor's own read state wherever the
-    /// message is queried from (never another agent's, since this only ever
-    /// asks about <paramref name="actor"/>).
+    /// on <paramref name="message"/> for <paramref name="actor"/>.
     /// </summary>
     public static string RenderMessageRow(
         MailMessage message,
@@ -291,8 +282,7 @@ internal static class MailTable
 
     /// <summary>
     /// The first name plus a <c>+N</c> overflow count for the rest, rather
-    /// than a truncated comma list - the same convention the pre-epic Peer
-    /// column used for multi-recipient messages.
+    /// than a truncated comma list.
     /// </summary>
     private static string FormatOverflowList(IReadOnlyList<string> names)
     {
@@ -308,11 +298,7 @@ internal static class MailTable
     /// <summary>
     /// A short, whitespace-collapsed preview of a single message's body, for
     /// the Preview column of a flat-mode or expanded-child message row.
-    /// Mirrors <c>MailStore.CreateBodyPreview</c>'s whitespace collapsing
-    /// (thread rollups get their preview from the store directly); final
-    /// truncation to the column width happens in <see cref="Truncate"/>, so
-    /// this only needs to collapse whitespace, not truncate to any
-    /// particular length itself.
+    /// Final truncation to the column width happens in <see cref="Truncate"/>.
     /// </summary>
     private static string CreatePreview(string body)
         => string.Join(' ', body.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
@@ -322,16 +308,8 @@ internal static class MailTable
 
     /// <summary>
     /// The lowest code point of every contiguous run of terminal-wide code
-    /// points this table measures at 2 cells wide: Unicode's East Asian
-    /// Wide/Fullwidth ranges (Hangul Jamo and syllables, the CJK
-    /// radicals/symbols/unified-ideograph/compatibility blocks, Yi, and
-    /// fullwidth forms - the same double-width table terminal emulators
-    /// derive from Markus Kuhn's reference <c>wcwidth()</c>) plus the
-    /// emoji-presentation blocks (regional indicators/flags, pictographs,
-    /// emoticons, transport, and the supplemental symbol blocks). Paired
-    /// with <see cref="s_wideRangeEnds"/> at the same index. There is no
-    /// project-referenceable Unicode width table to defer to instead (see
-    /// <see cref="Truncate(string, int)"/>'s remark).
+    /// points this table measures at 2 cells wide. Paired with
+    /// <see cref="s_wideRangeEnds"/> at the same index.
     /// </summary>
     private static readonly int[] s_wideRangeStarts =
     [
@@ -349,12 +327,7 @@ internal static class MailTable
 
     /// <summary>
     /// A single Unicode scalar's terminal cell width: 2 for a code point in
-    /// <see cref="s_wideRangeStarts"/>/<see cref="s_wideRangeEnds"/> (East Asian
-    /// Wide/Fullwidth or emoji-presentation), 1 for everything else,
-    /// including combining marks, which most terminals render zero-width but
-    /// this table still budgets a cell for - an acceptable, rare
-    /// over-truncation rather than a width table this project has no
-    /// dependency on.
+    /// <see cref="s_wideRangeStarts"/>/<see cref="s_wideRangeEnds"/>, 1 for everything else.
     /// </summary>
     private static int GetRuneWidth(Rune rune)
     {
@@ -384,10 +357,7 @@ internal static class MailTable
     /// <summary>
     /// The terminal cell width of <paramref name="value"/>: the sum of every
     /// <see cref="Rune"/>'s <see cref="GetRuneWidth"/>, never the UTF-16
-    /// <see cref="string.Length"/>, which overcounts a surrogate-pair
-    /// astral-plane character (for example most emoji) as 2 chars for what
-    /// is really one wide rune worth 2 cells - the pre-fix bug this table's
-    /// UTF-16-length-based Pad/Truncate carried.
+    /// <see cref="string.Length"/>.
     /// </summary>
     private static int MeasureWidth(string value)
     {
@@ -429,12 +399,8 @@ internal static class MailTable
     /// Truncates <paramref name="value"/> to at most <paramref name="width"/>
     /// terminal cells, appending <see cref="Ellipsis"/> when it does not
     /// already fit. Walks whole <see cref="Rune"/>s, never a raw UTF-16
-    /// index, so the cut point always falls on a scalar boundary - the
-    /// ellipsis can never end up appended after a lone surrogate half of a
-    /// split astral-plane character. A rune whose <see cref="GetRuneWidth"/>
-    /// would overflow the remaining budget is dropped rather than emitted
-    /// oversized, so the result is never wider than requested even when the
-    /// last cell available is claimed by a narrow rune ahead of a wide one.
+    /// index. A rune whose <see cref="GetRuneWidth"/> would overflow the
+    /// remaining budget is dropped rather than emitted oversized.
     /// </summary>
     private static string Truncate(string value, int width)
     {

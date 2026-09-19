@@ -7,16 +7,12 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// <summary>
 /// The forget (hard delete) action for the selected curated memory: builds
 /// the forget confirmation dialog and applies the delete to the memory
-/// store, the same store member the CLI's <c>forget</c> command calls. No
-/// equivalent action exists for a journal entry: the only write a journal
-/// entry supports from the tab is <see cref="MemoryPromoteForm"/>.
+/// store. No equivalent action exists for a journal entry.
 /// </summary>
 internal static class MemoryLifecycleActions
 {
     /// <summary>
-    /// Builds the confirmation dialog for permanently deleting
-    /// <paramref name="record"/>, carrying the same not-a-privacy-erasure
-    /// wording the CLI's confirmation prompt gives.
+    /// Builds the confirmation dialog for permanently deleting <paramref name="record"/>.
     /// </summary>
     public static ConfirmDialog CreateForgetDialog(MemoryRecord record)
         => new(

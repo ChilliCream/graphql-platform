@@ -18,9 +18,7 @@ internal delegate IRenderable TuiFrameRenderer();
 /// Runs until <paramref name="cancellationToken"/> is cancelled, writing
 /// <see cref="TuiEvent"/>s into <paramref name="writer"/> as they occur.
 /// Merged into the event loop alongside key input and ticks; a source that
-/// cannot start (for example an unsupported file system) should return
-/// without writing anything rather than throwing, so the loop degrades to
-/// its other event sources instead of failing to start.
+/// cannot start should return without writing anything rather than throwing.
 /// </summary>
 internal delegate Task TuiEventSource(ChannelWriter<TuiEvent> writer, CancellationToken cancellationToken);
 
@@ -38,8 +36,7 @@ internal sealed class TuiApplication
 
     /// <summary>
     /// The fixed bound the shutdown path waits for the key-reader, tick, and
-    /// additional event-source tasks before giving up on them. Matches the
-    /// coordinator/effect shutdown wait used elsewhere in the TUI runtime.
+    /// additional event-source tasks before giving up on them.
     /// </summary>
     private static readonly TimeSpan s_defaultShutdownDrainBound = TimeSpan.FromSeconds(5);
 
@@ -68,10 +65,10 @@ internal sealed class TuiApplication
     /// <param name="rootRenderer">Produces the renderable for the current frame.</param>
     /// <param name="cancellationToken">Stops the loop and restores the terminal when cancelled.</param>
     /// <param name="eventSources">
-    /// Additional event sources (for example a data-change watcher) merged into the
-    /// same channel as key input and ticks. Each runs for the lifetime of the loop
-    /// and is cancelled and awaited alongside the built-in sources on every exit
-    /// path, including when <paramref name="rootHandler"/> throws.
+    /// Additional event sources merged into the same channel as key input and ticks.
+    /// Each runs for the lifetime of the loop and is cancelled and awaited alongside
+    /// the built-in sources on every exit path, including when
+    /// <paramref name="rootHandler"/> throws.
     /// </param>
     public async Task RunAsync(
         TuiEventHandler rootHandler,
@@ -93,8 +90,7 @@ internal sealed class TuiApplication
 
         ConsoleCancelEventHandler onCancelKeyPress = (_, e) =>
         {
-            // Prevent the default behavior (immediate process termination) so the
-            // session below still gets to restore the terminal.
+            // Prevent the default behavior (immediate process termination).
             e.Cancel = true;
             loopCts.Cancel();
         };
@@ -122,9 +118,7 @@ internal sealed class TuiApplication
                     await _console.Live(rootRenderer())
                         .StartAsync(async ctx =>
                         {
-                            // Spectre's Live display only paints once something calls
-                            // Refresh/UpdateTarget; without this, the initial frame stays
-                            // blank until the root handler first reports a dirty event.
+                            // Paint the initial frame.
                             ctx.Refresh();
 
                             await foreach (var tuiEvent in channel.Reader.ReadAllAsync(loopCts.Token))
@@ -144,18 +138,14 @@ internal sealed class TuiApplication
             }
             finally
             {
-                // Ensure the background key-reader, tick, and additional event-source
-                // tasks are always stopped and awaited, even if the handler or
-                // renderer throws, so stdin is never left being consumed and no
-                // watcher outlives this loop after the method returns.
+                // Always stop and await the background key-reader, tick, and
+                // additional event-source tasks, even if the handler or renderer throws.
                 loopCts.Cancel();
                 channel.Writer.TryComplete();
 
                 try
                 {
-                    // Bounded so a noncooperative task (one that does not observe
-                    // cancellation) cannot block terminal restoration indefinitely;
-                    // it is abandoned once the fixed shutdown bound elapses.
+                    // Bounded so a noncooperative task cannot block terminal restoration indefinitely.
                     await Task.WhenAll([keyReaderTask, tickTask, .. additionalTasks])
                         .WaitAsync(_shutdownDrainBound, CancellationToken.None)
                         .ConfigureAwait(false);
@@ -166,8 +156,7 @@ internal sealed class TuiApplication
                 }
                 catch (TimeoutException)
                 {
-                    // The shutdown bound elapsed with a task still running; abandon it
-                    // rather than block the terminal from being restored.
+                    // The shutdown bound elapsed with a task still running; abandon it.
                 }
             }
         }

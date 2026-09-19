@@ -12,20 +12,11 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
 /// The memory board <see cref="ITuiMode"/>: a list pane of curated memories
-/// or journal entries next to a detail pane for the selected item, modeled
-/// on the mail board's list/detail split (see <see cref="MemoryFocus"/> and
-/// <c>MailMode</c>/<c>MailFocus</c>). f cycles between the curated and
-/// journal collections, s cycles the scope filter, and / opens the search
-/// box; every list read goes through <see cref="MemoryDataLoader"/>, which
-/// wraps the same <see cref="IMemoryStore"/> reads the CLI's <c>recent</c>
-/// and <c>search</c> commands use, so no second query path exists. Beyond
-/// browsing, the tab supports exactly two writes: p promotes the selected
-/// journal entry and d forgets (hard-deletes) the selected curated memory,
-/// both going through the same store members the CLI's own commands call;
-/// there is no inline editing. This mode owns its own modal overlays (the
-/// search box, the promote form, the forget confirmation, and their shared
-/// discard confirmation) rather than routing through <see cref="TuiShell"/>'s
-/// task-specific overlay fields.
+/// or journal entries next to a detail pane for the selected item. f cycles
+/// between the curated and journal collections, s cycles the scope filter,
+/// and / opens the search box. Beyond browsing, the tab supports exactly two
+/// writes: p promotes the selected journal entry and d forgets
+/// (hard-deletes) the selected curated memory; there is no inline editing.
 /// </summary>
 internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 {
@@ -85,17 +76,14 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     /// <remarks>
     /// Defers the blocking store read: it only marks a refresh pending,
     /// performed lazily on the first <see cref="Render"/> or
-    /// <see cref="Handle"/> call. Memory's tab title is static, so nothing
-    /// in the tab strip needs the data eagerly at tab-construction time.
+    /// <see cref="Handle"/> call.
     /// </remarks>
     public void OnEnter() => _pendingRefresh = true;
 
     /// <inheritdoc />
     public void OnResize(int width, int height)
     {
-        // Render(width, height) recomputes the layout and every pane's
-        // viewport window from its parameters on every frame, so there is
-        // no per-resize state to update ahead of time.
+        // Render recomputes layout from its parameters every frame; no per-resize state to update.
     }
 
     /// <inheritdoc />
@@ -122,10 +110,8 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Handles one raw key while <see cref="IsInputCapturing"/> is true:
-    /// routed here by the host instead of through the semantic
-    /// <see cref="TuiMessage"/> dispatch, since the active overlay's text
-    /// fields need raw characters, not key-bound intents.
+    /// Handles one raw key while <see cref="IsInputCapturing"/> is true, routed
+    /// here by the host instead of through the semantic <see cref="TuiMessage"/> dispatch.
     /// </summary>
     public IReadOnlyList<TuiMessage> HandleRawKey(ConsoleKeyInfo info)
     {

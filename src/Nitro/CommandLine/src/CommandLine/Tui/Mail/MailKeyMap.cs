@@ -13,35 +13,10 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// agent filter picker, t to toggle the detail pane's thread view, Shift+V
 /// to toggle the list pane between threaded and flat rows, z as a fold
 /// prefix (za/zo/zc toggle/open/close a thread, zR/zM unfold/fold every
-/// thread - the vim binding docs/research-mail-clients-tui.md's "concrete
-/// suggestion" section names directly), Shift+I/Shift+S/Shift+L/Shift+W to
-/// jump directly to the Inbox/Sent/All/Workspace mailbox, q and Ctrl+C to
-/// request quit, and Escape to leave the mode.
+/// thread), Shift+I/Shift+S/Shift+L/Shift+W to jump directly to the
+/// Inbox/Sent/All/Workspace mailbox, q and Ctrl+C to request quit, and
+/// Escape to leave the mode.
 /// </summary>
-/// <remarks>
-/// This is a standalone table rather than an extension of the task
-/// board's global table: most of that table's bindings (edit, close,
-/// delete, the status and priority pickers, search, the dependency tree,
-/// task creation) have no meaning for a mail board, and refresh moves off
-/// the bare r chord (the global table's binding) to make room for reply.
-/// The mailbox jump keys are a direct selection, not a cycle, matching the
-/// convention of Gmail's g i/g t/g a and mu4e's j+letter; <see cref="KeyDispatcher"/>
-/// resolves only single key chords with no concept of a chord prefix, so
-/// each mailbox gets its own Shift+letter chord instead of a two-key "g"
-/// prefix table. Shift+I carries its own dedicated <see cref="KeyHint"/>,
-/// separate from Shift+S/L/W's, so it reads as the footer's persistent,
-/// fixed-position exit affordance back to Inbox from
-/// <see cref="MailMailbox.Workspace"/>'s read-only mode (see
-/// <see cref="MailMode"/>'s class doc), rather than being buried in one
-/// combined "jump to a mailbox" hint. This table's bindings are static and
-/// carried once into the tabbed shell's per-tab <see cref="KeyDispatcher"/>
-/// at startup (see <c>AgentTuiLauncher.BuildMailTab</c>); the four hints
-/// <see cref="MailMailbox.Workspace"/> makes inert (u, a, r, c) are exposed
-/// here as named constants so <see cref="MailMode.SuppressedGlobalHints"/>
-/// can hide exactly them, by <see cref="KeyHint"/> value equality, from the
-/// footer while that mailbox is active, without this table itself needing
-/// to vary.
-/// </remarks>
 internal static class MailKeyMap
 {
     /// <summary>

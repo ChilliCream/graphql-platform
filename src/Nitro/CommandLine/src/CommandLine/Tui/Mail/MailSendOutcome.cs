@@ -19,10 +19,7 @@ internal abstract record MailSendOutcome
     /// <summary>
     /// The message committed, but the actor-wake dispatch-and-observe step
     /// has not started resolving it yet: an intermediate signal posted right
-    /// after the store commit, so <see cref="MailMode"/> can show a truthful
-    /// "Stored" toast before that step even begins, rather than leaving the
-    /// transient "Sending" toast the only visible state until the terminal
-    /// <see cref="Succeeded"/> outcome arrives.
+    /// after the store commit.
     /// </summary>
     public sealed record Stored(MailMessage Message) : MailSendOutcome;
 
@@ -70,10 +67,7 @@ internal abstract record MailSendOutcome
         var id = stored.Message.Id;
         var recipients = string.Join(", ", stored.Message.Recipients.Select(r => r.Name));
 
-        // Info, matching the transient "Sending…" toast this one replaces:
-        // the commit is a fact, but this is not yet a terminal outcome, so
-        // it must never read as green, amber, or red the way Succeeded,
-        // Reconciled, and Failed do.
+        // Info: not yet a terminal outcome.
         return new TuiMessage.ShowToast($"Stored '{id}' to {recipients}.", ToastStyle.Info);
     }
 

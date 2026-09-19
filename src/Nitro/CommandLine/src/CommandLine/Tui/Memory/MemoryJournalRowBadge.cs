@@ -7,9 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// <summary>
 /// Renders one journal entry row for the memory list pane when
 /// <see cref="MemoryCollectionFilter.Journal"/> is shown: selection prefix,
-/// scope, and the UTC capture day and time, so entries already ordered
-/// newest first (see <see cref="IMemoryStore.GetRecentJournalAsync"/>) read
-/// as a day-grouped log without a separate day-header row per item.
+/// scope, and the UTC capture day and time.
 /// </summary>
 internal static class MemoryJournalRowBadge
 {
@@ -20,10 +18,7 @@ internal static class MemoryJournalRowBadge
     public readonly record struct Widths(int Day);
 
     /// <summary>
-    /// Computes <see cref="Widths"/> across <paramref name="rows"/> (the
-    /// rows about to be rendered, typically just the visible slice), so
-    /// every row's columns are padded to the widest value actually on
-    /// screen rather than to every entry in the list.
+    /// Computes <see cref="Widths"/> across <paramref name="rows"/>, the rows about to be rendered.
     /// </summary>
     public static Widths ComputeWidths(IReadOnlyList<MemoryJournalEntry> rows)
     {

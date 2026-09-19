@@ -53,9 +53,7 @@ internal static class MailRecipientView
     /// <summary>
     /// The other party or parties in the message, from the actor's point of
     /// view: the message's recipients when the actor sent it, or just its
-    /// sender otherwise. Computed per message rather than per mailbox, so
-    /// the mail board's PEER column renders identically wherever the
-    /// message appears.
+    /// sender otherwise.
     /// </summary>
     public static IReadOnlyList<string> GetPeers(MailMessage message, string actor)
         => IsFromActor(message, actor)
@@ -64,13 +62,10 @@ internal static class MailRecipientView
 
     /// <summary>
     /// A one-character glyph summarizing the actor's relationship to the
-    /// message, in the spirit of mutt's <c>$to_chars</c> reduced to what
-    /// agents need: <see cref="FromActorGlyph"/> when the actor sent it,
+    /// message: <see cref="FromActorGlyph"/> when the actor sent it,
     /// <see cref="DirectGlyph"/> when the actor is its sole recipient,
     /// <see cref="BroadcastGlyph"/> when the actor is one of several
-    /// recipients, and <see cref="BlankGlyph"/> when the actor is neither
-    /// party (foreign mail, for example between two other agents in the
-    /// Workspace mailbox).
+    /// recipients, and <see cref="BlankGlyph"/> when the actor is neither party.
     /// </summary>
     public static char GetRelationshipGlyph(MailMessage message, string actor)
     {

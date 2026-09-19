@@ -8,13 +8,9 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
 /// Renders the memory tab's detail pane: the selected curated memory's
-/// frontmatter (id, scope, type, tags, timestamps, promoted-from) followed
-/// by its markdown body word-wrapped as plain text, or the selected journal
-/// entry's frontmatter (id, scope, created at/by) followed by its body, as a
-/// scrollable body inside a bordered panel. Owns the body's scroll position;
-/// <see cref="MemoryState"/> owns everything else. The body is rendered as
-/// wrapped plain text, the same v1 decision <c>TaskDetailSections</c> makes
-/// for task bodies, not as formatted markdown.
+/// frontmatter and body, or the selected journal entry's frontmatter and
+/// body, word-wrapped as plain text inside a scrollable bordered panel.
+/// Owns the body's scroll position; <see cref="MemoryState"/> owns everything else.
 /// </summary>
 internal sealed class MemoryDetailView
 {

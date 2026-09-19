@@ -13,13 +13,6 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// selected curated memory, Shift+R to refresh, y to copy the selected id,
 /// q and Ctrl+C to request quit, and Escape to leave the mode.
 /// </summary>
-/// <remarks>
-/// A standalone table rather than an extension of the task board's global
-/// table, the same reasoning <c>MailKeyMap</c> gives: most of that table's
-/// bindings have no meaning for a memory list, and refresh moves off the
-/// bare r chord to make room for nothing here, but stays consistent with
-/// the mail and agents tabs' own Shift+R convention.
-/// </remarks>
 internal static class MemoryKeyMap
 {
     public static KeyMap CreateDefault() => new(

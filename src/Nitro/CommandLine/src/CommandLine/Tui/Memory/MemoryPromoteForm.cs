@@ -7,14 +7,10 @@ using Form = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// The promote form: type (required) and tags. Mechanical copy only, no
-/// summarization: submitting calls <see cref="IMemoryStore.PromoteAsync"/>,
-/// the same store member the CLI's <c>promote</c> command calls, in the
-/// journal entry's own scope. A repeat promotion of the same journal entry
-/// is idempotent, surfaced as <see cref="MemoryPromoteOutcome.Succeeded.AlreadyPromoted"/>
-/// rather than an error. The host is expected to feed it raw key input via
-/// <see cref="HandleKey"/> and call <see cref="SubmitAsync"/> once it
-/// returns <see cref="FormResult.Submitted"/> on the primary button.
+/// The promote form: type (required) and tags. Submitting calls
+/// <see cref="IMemoryStore.PromoteAsync"/> in the journal entry's own scope;
+/// a repeat promotion of the same journal entry is idempotent, surfaced as
+/// <see cref="MemoryPromoteOutcome.Succeeded.AlreadyPromoted"/> rather than an error.
 /// </summary>
 internal sealed class MemoryPromoteForm
 {

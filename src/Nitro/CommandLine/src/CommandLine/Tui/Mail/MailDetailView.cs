@@ -76,10 +76,8 @@ internal sealed class MailDetailView
     /// <see cref="MailViewMode.Message"/>, or the whole thread when it is
     /// <see cref="MailViewMode.Thread"/>. <paramref name="clientsByName"/>
     /// attributes each party's <see cref="AgentRecord.Client"/> next to its
-    /// name (sender, and each recipient's own state line); a name absent
-    /// from it, or mapped to an empty client, renders with no attribution
-    /// at all. Null is treated as empty, so every existing caller keeps
-    /// working unchanged.
+    /// name; a name absent from it, or mapped to an empty client, renders
+    /// with no attribution. Null is treated as empty.
     /// </summary>
     public IRenderable Render(
         MailState state,
@@ -150,13 +148,7 @@ internal sealed class MailDetailView
     {
         if (state.ViewMode == MailViewMode.Thread)
         {
-            // ThreadMessages, not SelectedMessage: a collapsed thread row's
-            // ViewMode defaults to Thread the moment it is selected (see
-            // MailState's class remarks), and every message in a thread
-            // shares one subject (ReplyMessageAsync inherits it from the
-            // root), so this is equivalent to the old SelectedMessage-based
-            // header whenever a message row set it, and correct for a
-            // thread-row selection too.
+            // ThreadMessages, not SelectedMessage: every message in a thread shares one subject.
             return state.ThreadMessages.Count > 0
                 ? $"Thread: {Markup.Escape(state.ThreadMessages[0].Subject)}"
                 : "Thread";
@@ -202,16 +194,9 @@ internal sealed class MailDetailView
     /// <summary>
     /// <paramref name="name"/> suffixed with its <see cref="AgentRecord.Client"/>
     /// in parentheses when <paramref name="clientsByName"/> has a non-empty
-    /// entry for it, or <paramref name="name"/> unchanged otherwise - an
-    /// unknown name and a known name with an empty client render identically,
-    /// per the epic's "empty means nothing shown, not a placeholder" rule.
-    /// Deliberately returns raw text, not markup: both values are
-    /// agent-supplied and may contain <c>[...]</c>. Every caller building a
-    /// <see cref="TaskDetailBodyLine"/> from this text escapes it with
-    /// <see cref="Markup.Escape(string)"/> itself before wrapping it in
-    /// style markup, since it lands inside a line already carrying markup
-    /// and can no longer rely on <see cref="RenderVisibleLines"/>'s
-    /// plain-line escaping.
+    /// entry for it, or <paramref name="name"/> unchanged otherwise. Returns
+    /// raw, unescaped text; the caller must escape it with
+    /// <see cref="Markup.Escape(string)"/> before wrapping it in style markup.
     /// </summary>
     private static string AttributeClient(string name, IReadOnlyDictionary<string, string> clientsByName)
         => clientsByName.TryGetValue(name, out var client) && client.Length > 0
@@ -222,15 +207,7 @@ internal sealed class MailDetailView
     /// One line per recipient, stating that recipient's own read/archived
     /// state and attributed by name: <c>"alice: read 2026-01-01 00:00"</c>
     /// or <c>"bob: unread"</c>, with <c>", archived"</c> appended where set.
-    /// Styled via <c>mail.detail.recipient.unread</c> or
-    /// <c>mail.detail.recipient.read</c> so a still-unread recipient stands
-    /// out from one who has read it. The attribution is the point - a
-    /// reader must never mistake another agent's state for their own, so
-    /// every row, including the actor's own when the actor is a recipient,
-    /// renders through this same line with no second affordance. Empty for
-    /// a message the actor sent, since <c>MailStore.BuildRecipients</c>
-    /// never adds the sender to <see cref="MailMessage.Recipients"/> -
-    /// there is no sender-side state to show and none is invented here.
+    /// Empty for a message the actor sent.
     /// </summary>
     private static IReadOnlyList<TaskDetailBodyLine> BuildRecipientStateLines(
         MailMessage message, IReadOnlyDictionary<string, string> clientsByName)

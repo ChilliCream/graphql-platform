@@ -5,11 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Runtime;
 
 /// <summary>
 /// Runs asynchronous effects off the TUI event-loop thread and reports their outcome
-/// back onto it. A submission's <see cref="TuiEffectCompletion{TResult}"/> is persisted
-/// to a concurrent queue before any wake event reaches the input channel, so a wake
-/// event dropped by the channel's bounded <c>DropOldest</c> policy can never lose the
-/// result itself: <see cref="DrainCompletions"/> called from any later tick or key
-/// event still observes it.
+/// back onto it through <see cref="DrainCompletions"/>.
 /// </summary>
 /// <typeparam name="TResult">The value one effect produces on success.</typeparam>
 internal sealed class TuiEffectQueue<TResult>
@@ -35,9 +31,7 @@ internal sealed class TuiEffectQueue<TResult>
     /// <param name="effect">
     /// The work to run, receiving its own assigned <see cref="TuiOperationId"/> and the
     /// cancellation token passed in <paramref name="cancellationToken"/>. The queue
-    /// never cancels an effect on its own initiative, so a feature that must shield a
-    /// commit boundary from a bounded drain is free to ignore or scope that token as it
-    /// needs to; the generic runtime never guesses at that decision.
+    /// never cancels an effect on its own initiative.
     /// </param>
     /// <param name="cancellationToken">
     /// Passed through to <paramref name="effect"/> unchanged.
@@ -65,9 +59,7 @@ internal sealed class TuiEffectQueue<TResult>
         var runTask = Task.Run(
             () => RunEffectAsync(assignedId, dedupeKey, effect, cancellationToken), CancellationToken.None);
 
-        // The in-flight entry is inserted here, strictly before the continuation
-        // below is attached, and removed only by that continuation, regardless of
-        // how fast the Task.Run body above finishes.
+        // Inserted before the continuation below is attached, removed only by that continuation.
         _inFlight[assignedId] = runTask;
         runTask.ContinueWith(
             delegate
@@ -98,14 +90,10 @@ internal sealed class TuiEffectQueue<TResult>
         }
         catch (Exception exception)
         {
-            // Supervised: a faulting effect becomes a deterministic completion result
-            // here rather than an unobserved background-task exception.
             completion = new TuiEffectCompletion<TResult>.Faulted(operationId, exception);
         }
 
-        // Persisted before the dedupe key is freed and the wake signal is released,
-        // so a concurrent quit-gate drain and DrainCompletions always agree on what
-        // has and has not resolved.
+        // Persisted before the dedupe key is freed and the wake signal is released.
         _completions.Enqueue(completion);
         _inFlightKeys.TryRemove(dedupeKey, out _);
         _wakeSignal.Release();
@@ -113,9 +101,7 @@ internal sealed class TuiEffectQueue<TResult>
 
     /// <summary>
     /// Drains and returns every completion persisted since the last call. Safe to call
-    /// from any event handler, not only in response to <see cref="TuiEvent.EffectCompletedEvent"/>:
-    /// a wake event dropped by the input channel never loses a completion, since it was
-    /// queued here first.
+    /// from any event handler, not only in response to <see cref="TuiEvent.EffectCompletedEvent"/>.
     /// </summary>
     public IReadOnlyList<TuiEffectCompletion<TResult>> DrainCompletions()
     {
@@ -135,18 +121,14 @@ internal sealed class TuiEffectQueue<TResult>
     }
 
     /// <summary>
-    /// Releases one pending wake signal without enqueuing a completion, so
-    /// <see cref="RunAsync"/> relays a <see cref="TuiEvent.EffectCompletedEvent"/>
-    /// for a state change an in-flight effect wants observed before it
-    /// reaches its own terminal completion.
+    /// Releases one pending wake signal without enqueuing a completion, causing
+    /// <see cref="RunAsync"/> to relay one <see cref="TuiEvent.EffectCompletedEvent"/>.
     /// </summary>
     public void SignalWake() => _wakeSignal.Release();
 
     /// <summary>
     /// Relays one wake event per completed effect, and per <see cref="SignalWake"/>
-    /// call, onto <paramref name="writer"/>. Matches <see cref="TuiEventSource"/>,
-    /// so it merges into <see cref="TuiApplication.RunAsync"/> the same way a
-    /// data watcher does.
+    /// call, onto <paramref name="writer"/>.
     /// </summary>
     public async Task RunAsync(ChannelWriter<TuiEvent> writer, CancellationToken cancellationToken)
     {
@@ -182,19 +164,14 @@ internal sealed class TuiEffectQueue<TResult>
     public int PendingCount => _inFlight.Count;
 
     /// <summary>
-    /// The operation IDs of every effect submitted but not yet completed, so a caller
-    /// can surface them once this queue's owner has stopped observing completions
-    /// itself, for example after Ctrl+C shutdown.
+    /// The operation IDs of every effect submitted but not yet completed.
     /// </summary>
     public IReadOnlyList<TuiOperationId> PendingOperationIds => [.. _inFlight.Keys];
 
     /// <summary>
     /// Waits for every effect in flight at the time of the call to complete, bounded by
-    /// <paramref name="bound"/>. Returns once nothing is left in flight or the bound
-    /// elapses, whichever comes first; <see cref="PendingCount"/> reports what, if
-    /// anything, is still running afterward. Never cancels the effects themselves: this
-    /// runtime does not guess whether an effect still running past the bound is safe to
-    /// abandon, that judgment belongs to the feature shielding its own commit boundary.
+    /// <paramref name="bound"/>; <see cref="PendingCount"/> reports what is left
+    /// afterward. Never cancels the effects themselves.
     /// </summary>
     public async Task DrainPendingAsync(TimeSpan bound, CancellationToken cancellationToken)
     {

@@ -6,19 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Runtime;
 /// <summary>
 /// A <see cref="TuiEventSource"/> that watches an agent workspace's SQLite database
 /// file and publishes a debounced <see cref="TuiEvent.DataChangedEvent"/> whenever
-/// the on-disk data may have changed. The parent directory is watched rather than
-/// the file itself so that a full file replacement (not just an in-place write) is
-/// also caught. The <c>-shm</c> sibling is deliberately excluded: every store
-/// connection in this codebase opens without pooling and is disposed again after a
-/// single query, so even a plain read makes SQLite create, checkpoint, and delete
-/// it as that connection closes, the same file churn a real write produces. The
-/// main database file's own mtime does not move for that checkpoint-of-nothing,
-/// only when a write actually lands, so that alone distinguishes a real data
-/// change from a store read triggering this watcher on itself. The <c>-wal</c>
-/// sibling is watched as well, but only a size increase counts: a plain read also
-/// creates and deletes it, but never grows it past its own prior size, while a
-/// write that cannot checkpoint yet (a concurrent reader holds a lock) leaves it
-/// grown, which is otherwise invisible to the main file's own mtime.
+/// the on-disk data changes, ignoring churn from this process's own reads.
 /// </summary>
 internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = null)
 {
@@ -34,29 +22,15 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     internal Action? OnBaselineCaptured { get; init; }
 
     /// <summary>
-    /// Invoked synchronously as the first statement of <c>OnTick</c>, before
-    /// any <see cref="ChannelWriter{T}.TryWrite"/> the debounce cycle may go
-    /// on to make. Test-only seam: it fires once per debounce cycle
-    /// regardless of whether that cycle ends up publishing, so a test can
-    /// count debounce cycles and compare that count against the number of
-    /// events actually published, distinguishing a legitimate extra cycle
-    /// (caused by file system notification delivery splitting one burst
-    /// apart) from a real coalescing defect (an event published without a
-    /// matching cycle). Production behaviour is unchanged; the hook is a
-    /// no-op unless a caller sets it.
+    /// Invoked synchronously as the first statement of <c>OnTick</c>, once per
+    /// debounce cycle. Test-only seam, a no-op unless a caller sets it.
     /// </summary>
     internal Action? OnDebounceTick { get; init; }
 
     /// <summary>
     /// Invoked synchronously in <c>OnEvent</c>, immediately after the debounce
     /// timer is (re)armed for a raw file system notification on the database
-    /// or <c>-wal</c> file. Test-only seam: together with
-    /// <see cref="OnDebounceTick"/> it lets a test tell a notification that
-    /// arrived after the previous debounce cycle already fired (legitimate
-    /// split delivery, which still produces a matching cycle for its own
-    /// event) from a coalescing defect (an event published with no
-    /// notification to account for it). Production behaviour is unchanged;
-    /// the hook is a no-op unless a caller sets it.
+    /// or <c>-wal</c> file. Test-only seam, a no-op unless a caller sets it.
     /// </summary>
     internal Action? OnNotificationObserved { get; init; }
 
@@ -95,18 +69,10 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
         var walFileName = databaseFileName + "-wal";
         var walPath = _databasePath + "-wal";
 
-        // A write's appended frames only count as a real change once they exceed
-        // whatever the -wal file already held, so a plain read's own create and
-        // delete of it (which never grows past that baseline) stays silent. See
-        // the type-level remarks.
         var lastWalSize = GetFileSize(walPath);
 
-        // The main file's own reconciliation baseline: a write landing in the
-        // enable gap advances its SQLite file change counter (or, for a file
-        // that is not a SQLite database, its mtime/length) the same way an
-        // ordinary post-enable write does, per the type-level remarks. Captured
-        // alongside lastWalSize, before OnBaselineCaptured fires, so a test can
-        // land a write deterministically inside the gap.
+        // Reconciliation baseline, captured before OnBaselineCaptured fires so a
+        // test can land a write deterministically inside the enable gap.
         var lastMainState = GetMainFileState(_databasePath);
         var mainDatabaseChanged = false;
         var walChanged = false;
@@ -173,14 +139,8 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
                 return;
             }
 
-            // A write landing between the pre-enable baseline above and the
-            // watcher actually raising events would otherwise fire no event
-            // while the baseline already contains its growth, losing it for
-            // good. Re-reading the main file's state and the -wal size now and
-            // comparing them to that same pre-enable baseline closes the
-            // window for both files. Whichever path notices first wins, and a
-            // duplicate DataChangedEvent is harmless since consumers treat it
-            // as "re-read", not as a delta.
+            // Closes the gap between the pre-enable baseline and the watcher
+            // actually raising events. A duplicate DataChangedEvent is harmless.
             var reconciledMainState = GetMainFileState(_databasePath);
             var reconciledWalSize = GetFileSize(walPath);
 
@@ -246,23 +206,7 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     /// <summary>
     /// A comparable snapshot of the main database file, used to detect a write
     /// that lands after <see cref="RunAsync"/> captures its baseline but before
-    /// the underlying watcher starts raising events. When the file carries a
-    /// readable SQLite header, <see cref="ChangeCounter"/> is exact and
-    /// unaffected by file system timestamp granularity: some Linux file
-    /// systems only tick mtime coarsely enough for two same-length writes
-    /// landing in one tick to compare mtime-equal, silently losing the second.
-    /// For a file that is absent, shorter than the header, or not a SQLite
-    /// database, <see cref="LastWriteTimeUtc"/> and <see cref="Length"/> are
-    /// compared instead, which carries that same limit rather than fixing it:
-    /// a same-length rewrite of a non-SQLite file landing within one coarse
-    /// timestamp tick compares equal on both mtime and length and is not
-    /// detectable. <see cref="DiffersFrom"/> ORs the change-counter
-    /// comparison with the mtime/length comparison instead of choosing
-    /// between them, so an equal change counter never suppresses a
-    /// difference mtime or length can still see, such as a whole-file
-    /// replacement (a restore from a backup, a copy over the file, a
-    /// truncation by an external tool) that happens to keep the prior
-    /// counter value.
+    /// the underlying watcher starts raising events.
     /// </summary>
     private readonly record struct MainFileState(
         bool HasChangeCounter,

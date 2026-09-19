@@ -9,15 +9,10 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// <summary>
 /// The reply form: body only. Recipient computation (reply-all, minus the
 /// acting agent) is entirely owned by
-/// <see cref="IMailStore.ReplyMessageAsync(string, string, string, CancellationToken)"/>,
-/// the same store member the
-/// CLI's reply command calls, so the recipient set for a given message is
-/// identical whether the reply was sent from the CLI or here. The host is
-/// expected to feed it raw key input via <see cref="HandleKey"/> and call
-/// <see cref="BuildRequest"/> once it returns <see cref="FormResult.Submitted"/>
-/// on the primary button; the actual store write and actor-wake dispatch run
-/// off the input thread through <see cref="MailMode"/>'s own send effect,
-/// not synchronously from here.
+/// <see cref="IMailStore.ReplyMessageAsync(string, string, string, CancellationToken)"/>.
+/// The host is expected to feed it raw key input via <see cref="HandleKey"/>
+/// and call <see cref="BuildRequest"/> once it returns
+/// <see cref="FormResult.Submitted"/> on the primary button.
 /// </summary>
 internal sealed class MailReplyForm
 {
@@ -81,8 +76,7 @@ internal sealed class MailReplyForm
     /// message id this form was built with, into a <see cref="MailReplyRequest"/>
     /// ready for <see cref="IMailStore.ReplyMessageAsync(string, string, string, MailWakePolicy, CancellationToken)"/>.
     /// Pure and synchronous; the body is already validated by the time a
-    /// <see cref="FormResult.Submitted"/> carries these values, so this does
-    /// no I/O and cannot fail.
+    /// <see cref="FormResult.Submitted"/> carries these values.
     /// </summary>
     public MailReplyRequest BuildRequest(IReadOnlyDictionary<string, FormValue> values, string actor)
     {

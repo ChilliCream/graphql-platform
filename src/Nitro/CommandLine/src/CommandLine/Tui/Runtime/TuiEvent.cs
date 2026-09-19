@@ -32,10 +32,7 @@ internal abstract record TuiEvent
     /// <summary>
     /// An asynchronous effect submitted through a <see cref="TuiEffectQueue{TResult}"/>
     /// completed and persisted its result. The handler is expected to drain whichever
-    /// effect queues it owns; because a completion is persisted before this event is
-    /// posted, losing this specific event to the event channel's bounded
-    /// <c>DropOldest</c> policy never loses the completion itself, only the prompt
-    /// wake-up (the next tick or key event still observes it).
+    /// effect queues it owns.
     /// </summary>
     public sealed record EffectCompletedEvent : TuiEvent;
 }

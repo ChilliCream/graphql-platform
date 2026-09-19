@@ -51,14 +51,8 @@ internal sealed class MemoryState(MemoryDataLoader loader)
     public int ItemCount => Collection == MemoryCollectionFilter.Curated ? CuratedRecords.Count : JournalEntries.Count;
 
     /// <summary>
-    /// A diagnostic message from the last <see cref="RefreshAsync"/>, set
-    /// when the read hit invalid data:
-    /// the merged read invalid data (per the store's own contract, no
-    /// partial result is served), or the store rejected a file it read with
-    /// an <see cref="ExitException"/> such as malformed frontmatter; null
-    /// otherwise. A hard read failure is shown in the detail pane when
-    /// nothing is selected instead of replacing the whole mode because it
-    /// can recur on every refresh.
+    /// A diagnostic message from the last <see cref="RefreshAsync"/> when the store
+    /// rejected the read with an <see cref="ExitException"/>, or null otherwise.
     /// </summary>
     public string? LoadError { get; private set; }
 
@@ -119,8 +113,8 @@ internal sealed class MemoryState(MemoryDataLoader loader)
     }
 
     /// <summary>
-    /// Switches <see cref="Collection"/> to the other value (the only two
-    /// values, so any nonzero delta flips it) and reloads.
+    /// Switches <see cref="Collection"/> to the other value when
+    /// <paramref name="delta"/> is nonzero, and reloads.
     /// </summary>
     public async Task CycleCollectionAsync(int delta, CancellationToken cancellationToken)
     {

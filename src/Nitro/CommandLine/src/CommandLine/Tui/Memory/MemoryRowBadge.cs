@@ -7,12 +7,10 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// <summary>
 /// Renders one curated memory row for the memory list pane as a single
 /// Spectre markup line: selection prefix, scope, type, tags, and the
-/// updated-at age formatted relative to now via <see cref="MailAges"/>,
-/// reused as-is the same way <c>AgentRowBadge</c> reuses it. Each field
-/// lands in a fixed-width column, computed across the currently visible
-/// rows by <see cref="ComputeWidths"/>, so scope/type/age line up
-/// vertically; tags take the remaining width and are truncated with an
-/// ellipsis when they don't fit.
+/// updated-at age formatted relative to now via <see cref="MailAges"/>. Each
+/// field lands in a fixed-width column, computed across the currently
+/// visible rows by <see cref="ComputeWidths"/>; tags take the remaining
+/// width and are truncated with an ellipsis when they don't fit.
 /// </summary>
 internal static class MemoryRowBadge
 {
@@ -24,10 +22,7 @@ internal static class MemoryRowBadge
     public readonly record struct Widths(int Type, int Age);
 
     /// <summary>
-    /// Computes <see cref="Widths"/> across <paramref name="rows"/> (the
-    /// rows about to be rendered, typically just the visible slice), so
-    /// every row's columns are padded to the widest value actually on
-    /// screen rather than to every record in the list.
+    /// Computes <see cref="Widths"/> across <paramref name="rows"/>, the rows about to be rendered.
     /// </summary>
     public static Widths ComputeWidths(IReadOnlyList<MemoryRecord> rows, DateTimeOffset now)
     {

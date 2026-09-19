@@ -3,9 +3,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Runtime;
 /// <summary>
 /// The result of running a <see cref="TuiQuitGate"/>: how many operations were still
 /// pending after its bounded drain, how many resolved to an outcome the feature itself
-/// could not classify (a judgment the generic runtime never makes on its own), and
-/// which operation IDs remain discoverable for a later view such as a dashboard or
-/// doctor command.
+/// could not classify, and which operation IDs remain discoverable afterward.
 /// </summary>
 internal readonly record struct TuiQuitGateReport(
     int PendingCount,
@@ -26,15 +24,10 @@ internal readonly record struct TuiQuitGateReport(
 
 /// <summary>
 /// Stops a feature's own effect submissions and bounded-drains whatever is already in
-/// flight, reporting what remained unresolved afterward. A normal confirmed quit runs
-/// every registered gate before it is allowed to fire the shell's own quit-confirmed
-/// notification, so the event loop is never cancelled out from under an effect that
-/// could still resolve into a lost result. Ctrl+C and host cancellation bypass this
-/// gate entirely and stay noninteractive: whatever remains in flight stays
-/// discoverable through the owning <see cref="TuiEffectQueue{TResult}"/>'s own
-/// <c>PendingOperationIds</c> instead. A feature that registers a gate must subscribe
-/// to <c>TuiShell.QuitCancelled</c> and call its queue's <c>ResumeAccepting</c>, since a
-/// cancelled second confirmation returns the user to a live TUI.
+/// flight, reporting what remained unresolved afterward. Every registered gate runs
+/// before a normal confirmed quit is allowed to fire. Ctrl+C and host cancellation
+/// bypass this gate entirely. A feature that registers a gate must subscribe to
+/// <c>TuiShell.QuitCancelled</c> and call its queue's <c>ResumeAccepting</c>.
 /// </summary>
 /// <param name="drainBound">The bounded wait for in-flight effects to resolve.</param>
 /// <param name="cancellationToken">Cancels the wait early; the drain itself is best-effort.</param>
