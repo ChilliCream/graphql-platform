@@ -736,12 +736,11 @@ public sealed class AgentDatabaseTests : IDisposable
 
     /// <summary>
     /// Seeds a fully v5-shaped database (role, harness_version, and
-    /// process_scope already present), predating the v6
-    /// <c>proc_start_legacy</c> column, with a populated
-    /// <c>agent_sessions</c> row whose <c>proc_start</c> carries the pre-v6
-    /// DateTimeOffset text. InitializeAsync must add the column, mark that
-    /// existing row legacy, and leave its <c>proc_start</c> value
-    /// untouched.
+    /// process_scope present) whose <c>agent_sessions</c> row still carries
+    /// the process columns. InitializeAsync must upgrade it to the current
+    /// schema with no <c>proc_start</c> or <c>proc_start_legacy</c> column
+    /// left on <c>agent_sessions</c>, and without losing the session row,
+    /// its role, or the cascading delivery row.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_DropTheProcessColumns_When_ExistingVersionIsV5()
@@ -1634,9 +1633,8 @@ public sealed class AgentDatabaseTests : IDisposable
     /// <c>nitro-board</c>/<c>db-watch</c>, with a populated, claimed
     /// session row and a cascading delivery row. InitializeAsync must
     /// rebuild <c>agent_sessions</c> to accept the new values without
-    /// losing the existing row's role, harness_version, process_scope, or
-    /// proc_start_legacy, and without losing the delivery row or its
-    /// foreign key enforcement.
+    /// losing the existing row's role or harness_version, and without
+    /// losing the delivery row or its foreign key enforcement.
     /// </summary>
     [Fact]
     public async Task InitializeAsync_Should_UpgradeAgentSessionsHarnessCheckConstraint_When_ExistingVersionIsV7()
