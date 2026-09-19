@@ -16,8 +16,7 @@ internal static class TaskDates
             DateTimeStyles.AssumeUniversal,
             out var result))
         {
-            // Stored timestamps must all carry the +00:00 offset so SQLite's
-            // lexicographic TEXT comparison stays chronologically correct.
+            // Stored timestamps must all carry the +00:00 offset.
             return result.ToUniversalTime();
         }
 

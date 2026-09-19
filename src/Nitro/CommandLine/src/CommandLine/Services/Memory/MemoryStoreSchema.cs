@@ -2,12 +2,9 @@ namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
 /// Schema v11: curated memories and the journal, in the same workspace
-/// database as tasks and mail. Memory used to live as markdown files under
-/// the workspace directory with a disposable FTS index beside them; the
-/// database is the source of truth now, so a memory is a row and search
-/// runs against <c>memory_curated_fts</c> instead of a rebuilt sidecar.
-/// Statements are idempotent so applying them to an existing database is
-/// non-destructive.
+/// database as tasks and mail. A memory is a row, and search runs against
+/// <c>memory_curated_fts</c>. Statements are idempotent, so applying them to
+/// an existing database is non-destructive.
 /// </summary>
 internal static class MemoryStoreSchema
 {

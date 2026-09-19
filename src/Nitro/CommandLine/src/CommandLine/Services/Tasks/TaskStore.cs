@@ -170,8 +170,6 @@ internal sealed class TaskStore(
         CancellationToken cancellationToken,
         DbTransaction? transaction = null)
     {
-        // Materializes an all-primitives row and parses the timestamps
-        // itself, since the DateTimeOffset columns are stored as TEXT.
         var row = await connection.QueryFirstOrDefaultAsync<TaskRow>(
             $"SELECT {TaskItem.Columns} FROM tasks WHERE id = @id",
             new { id, cancellationToken },
@@ -202,10 +200,6 @@ internal sealed class TaskStore(
         SqliteConnection connection,
         CancellationToken cancellationToken)
     {
-        // Both queries below run against the whole table and take no filter
-        // parameters, so there is nothing for @-placeholder analysis to key
-        // on; cancellation is checked up front instead of plumbed through a
-        // parameter object.
         cancellationToken.ThrowIfCancellationRequested();
 
         var taskRows = await connection.QueryAsync<TaskGraphNode>(
@@ -339,11 +333,6 @@ internal sealed class TaskStore(
         return tasks.ToList();
     }
 
-    // The WHERE/ORDER/LIMIT clauses here are assembled at runtime from the
-    // filter, so the SQL text is never a call-site literal; Dapper.AOT can
-    // only intercept calls whose SQL it can read at compile time. Reading
-    // through plain ADO.NET instead of Dapper's reflection fallback keeps
-    // this path free of runtime code generation.
     private static async Task<List<TaskItem>> ExecuteTaskQueryAsync(
         SqliteConnection connection,
         string sql,
@@ -407,9 +396,6 @@ internal sealed class TaskStore(
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // A row class, not the TaskLabelCount record, receives the COUNT(*)
-        // column: SQLite's COUNT(*) always reads back as Int64, not Int32. A
-        // settable property tolerates the narrowing.
         var rows = await connection.QueryAsync<LabelCountRow>(
             """
             SELECT l.label AS Label, COUNT(*) AS Count
@@ -430,9 +416,6 @@ internal sealed class TaskStore(
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // The intercepted read path cannot convert the TEXT-stored timestamp
-        // column to DateTimeOffset, so this materializes an all-primitives
-        // row and parses the timestamp itself.
         var rows = await connection.QueryAsync<TaskCommentRow>(
             $"""
             SELECT {TaskComment.Columns} FROM comments WHERE task_id = @taskId
@@ -488,10 +471,6 @@ internal sealed class TaskStore(
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // Materializes an all-primitives row and parses the timestamp
-        // itself, since the created_at column is stored as TEXT. The query
-        // takes no filter parameters, so cancellation here is best-effort
-        // rather than plumbed through a parameter object.
         var rows = await connection.QueryAsync<TaskDependencyRow>(
             $"""
             SELECT {TaskDependencyRow.Columns} FROM dependencies
@@ -566,9 +545,6 @@ internal sealed class TaskStore(
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // A row class, not the TaskCount record, receives the COUNT(*)
-        // column in every branch: SQLite's COUNT(*) always reads back as
-        // Int64, not Int32. A settable property tolerates the narrowing.
         switch (dimension)
         {
             case TaskCountDimension.Status:
@@ -648,9 +624,6 @@ internal sealed class TaskStore(
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // A row class, not the TaskCount record, receives the COUNT(*)
-        // column: SQLite's COUNT(*) always reads back as Int64, not Int32. A
-        // settable property tolerates the narrowing.
         var statusCountRows = await connection.QueryAsync<CountRow>(
             """
             SELECT status AS Value, COUNT(*) AS Count FROM tasks
@@ -671,9 +644,8 @@ internal sealed class TaskStore(
 
         var readyCount = readyIds.Count(id => !blocked.ContainsKey(id));
 
-        // Reuses the full task set ComputeBlockedAsync already loaded instead
-        // of a second "id IN (...)" query, whose parameter count varies with
-        // the blocked set and so is never a fixed, interceptable shape.
+        // Reuses the full task set ComputeBlockedAsync already loaded, instead
+        // of a second query.
         var blockedTaskStatuses = new Dictionary<string, string>();
 
         foreach (var id in blocked.Keys)
@@ -1765,8 +1737,7 @@ internal sealed class TaskStore(
     // Enforces TaskStates.ClosedTaskCap: when the closed count exceeds the
     // cap, moves the oldest closed tasks (by closed_at, tie-break id) to
     // Archived until exactly the cap remains. Runs in its own transaction,
-    // after the caller's close transaction has already committed, so a
-    // failure here never rolls back the close itself.
+    // after the caller's close transaction has already committed.
     private async Task ArchiveExcessClosedTasksAsync(
         SqliteConnection connection,
         string actor,
@@ -2330,11 +2301,6 @@ internal sealed class TaskStore(
     public async Task<TaskIntegrityReport> CheckIntegrityAsync(
         CancellationToken cancellationToken)
     {
-        // Every query below except the tombstoned-parent-edge check runs
-        // against a whole table and takes no filter parameters, so there is
-        // nothing for @-placeholder analysis to key on; cancellation is
-        // checked up front instead of plumbed through a parameter object
-        // (see ComputeBlockedAsync).
         cancellationToken.ThrowIfCancellationRequested();
 
         await using var connection = await ConnectAsync(cancellationToken);
@@ -2408,7 +2374,7 @@ internal sealed class TaskStore(
     // Searches the blocking-dependency graph for a path from dependsOnId
     // back to id. Combined with the edge just inserted (id -> dependsOnId),
     // such a path closes a cycle. Runs inside the same transaction as the
-    // insert so the check sees a consistent snapshot.
+    // insert.
     private static async Task<List<string>?> FindBlockingCycleAsync(
         SqliteConnection connection,
         DbTransaction transaction,
@@ -2480,11 +2446,7 @@ internal sealed class TaskStore(
     // starts and ends at the dependent task.
     private static string FormatCycle(IReadOnlyList<string> cycle) => string.Join(" -> ", cycle);
 
-    // Builds a plain ADO.NET-ready SQL fragment and parameter map. The
-    // "statuses" filter expands its own IN-list placeholders (rather than
-    // relying on Dapper's array-parameter rewriting) because the resulting
-    // query executes through plain ADO.NET, not Dapper: see the comment on
-    // ExecuteTaskQueryAsync.
+    // Builds a plain ADO.NET-ready SQL fragment and parameter map.
     private static (string WhereClause, Dictionary<string, object?> Parameters) BuildTaskFilterClause(
         TaskFilter filter)
     {
@@ -2658,10 +2620,8 @@ internal sealed class TaskStore(
         return new string(suffix);
     }
 
-    // These nested row types are internal, not private: Dapper.AOT's
-    // generated interceptors live outside TaskStore and cannot reference a
-    // private nested type, so a private row type would silently fall back to
-    // Dapper's reflection-emit deserializer.
+    // These nested row types must stay internal, not private, for
+    // Dapper.AOT to intercept the queries that use them.
     internal sealed class TaskRow
     {
         public required string Id { get; init; }

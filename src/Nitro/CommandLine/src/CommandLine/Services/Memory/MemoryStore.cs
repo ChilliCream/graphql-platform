@@ -276,9 +276,7 @@ internal sealed class MemoryStore(
             + "ORDER BY created_at DESC, id;",
             new { since });
 
-        // Matched in memory rather than in SQL: the journal has no FTS
-        // index, and the match is every word as a literal substring, which
-        // LIKE cannot express without escaping the caller's text itself.
+        // Matched in memory: the journal has no FTS index.
         var matched = entries.Where(row => MatchesAllWords(row.Body, words));
 
         return (limit is { } max ? matched.Take(max) : matched).Select(row => row.ToEntry()).ToList();

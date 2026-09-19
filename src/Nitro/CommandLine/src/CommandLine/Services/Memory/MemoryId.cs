@@ -6,9 +6,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 /// Generates and validates globally collision-resistant memory and journal
 /// entry ids. Each id is a ULID: a 48-bit UTC millisecond timestamp
 /// followed by 80 bits of cryptographic randomness, Crockford base32
-/// encoded to 26 lowercase characters, so ids sort lexicographically by
-/// creation time without a central allocator or a uniqueness check against
-/// existing records.
+/// encoded to 26 lowercase characters. Ids sort lexicographically by
+/// creation time.
 /// </summary>
 internal static class MemoryId
 {
@@ -47,19 +46,18 @@ internal static class MemoryId
     public static string FromHash(ReadOnlySpan<byte> hash) => Encode(hash[..16]);
 
     /// <summary>
-    /// True when the value is a well-formed id: exactly <see cref="Length"/>
-    /// lowercase Crockford base32 characters. Does not check that the id is
-    /// actually in use anywhere.
-    /// </summary>
-    /// <summary>
     /// Returns the id unchanged, or throws when it is not a well-formed
     /// memory id. Guards the one place an id is inlined into SQL rather than
-    /// parameterized (see <c>MemoryStore.LoadCuratedAsync</c>), so an id
-    /// that never came from this store cannot reach the statement text.
+    /// parameterized.
     /// </summary>
     public static string Require(string value)
         => IsValid(value) ? value : throw new ExitException($"Invalid memory id '{value}'.");
 
+    /// <summary>
+    /// True when the value is a well-formed id: exactly <see cref="Length"/>
+    /// lowercase Crockford base32 characters. Does not check that the id is
+    /// actually in use anywhere.
+    /// </summary>
     public static bool IsValid(string value)
     {
         if (value.Length != Length)

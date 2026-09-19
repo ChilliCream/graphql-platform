@@ -7,12 +7,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
 /// The v10-to-v11 one-way carry of a markdown memory store into the
-/// workspace database. Memory used to be markdown files under the workspace
-/// directory; the database is the source of truth now, so an upgrade reads
-/// whatever is on disk once and inserts it, then leaves the files alone.
-/// The files are never deleted: this import is the only thing that reads
-/// them again, and leaving them in place means an upgrade can be undone by
-/// checking out the older CLI without having lost anything.
+/// workspace database: reads whatever is on disk once, inserts it, and
+/// leaves the source files in place, untouched.
 /// </summary>
 internal static class MemoryMarkdownImport
 {
@@ -21,9 +17,7 @@ internal static class MemoryMarkdownImport
     /// <paramref name="workspaceDirectory"/>'s memory directory into the
     /// given connection, skipping ids the database already carries so a
     /// re-run cannot duplicate. A file whose frontmatter does not parse is
-    /// skipped rather than failing the upgrade: refusing to open a
-    /// workspace over one unreadable memory would be a far worse outcome
-    /// than carrying the rest across.
+    /// skipped rather than failing the upgrade.
     /// </summary>
     public static async Task<int> ImportAsync(
         SqliteConnection connection,
