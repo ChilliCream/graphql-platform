@@ -210,7 +210,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_RecordFailed_When_TheFrozenTargetDisappearedBeforeDispatch()
     {
-        // arrange: the session is gone by the time the target loop re-resolves it.
+        // arrange
+        // The session is gone by the time the target loop re-resolves it.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -241,7 +242,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_RecordFailed_And_LeaveTheReboundGenerationUntouched_When_TheFrozenTargetFullyRebounds()
     {
-        // arrange: a new process rebounds the same session under a new pid/proc_start.
+        // arrange
+        // The decorator replaces the frozen session with the same session id on another host.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var frozen = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -261,7 +263,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // act
         var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
 
-        // assert: the frozen generation fails as session-gone; the rebound generation's row stays untouched.
+        // assert
         Assert.NotNull(receipt);
         Assert.Equal(MailWakeTargetStatus.Failed, receipt.Status);
         var target = Assert.Single(receipt.Targets);
@@ -279,7 +281,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_ClampTheAttemptDeadline_When_TheSharedDeadlineIsAlreadyWithinTheHandoffReserve()
     {
-        // arrange: a deadline 200ms out, inside WakeDispatchPolicy.HandoffObservationReserve (500ms).
+        // arrange
+        // A deadline 200ms out, inside WakeDispatchPolicy.HandoffObservationReserve (500ms).
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -303,7 +306,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_AbandonInFlightTargets_When_TheBatchLeaseRenewalIsLost_And_AllowReclaimOnTheNextDispatch()
     {
-        // arrange: a single live session whose transport call hangs until cancelled.
+        // arrange
+        // A single live session whose transport call hangs until cancelled.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -311,21 +315,20 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var hangingExecutor = new FakePingSessionExecutor { HangUntilCancelled = true };
         var dispatcher = CreateDispatcher(hangingExecutor);
 
-        // act: start the dispatch, then advance the clock past the lease and renew interval.
+        // act
+        // Wait for transport entry, then advance past the batch lease expiry.
         var dispatchTask = dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
         await hangingExecutor.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.BatchLeaseDuration + TimeSpan.FromSeconds(5));
 
         var receipt = await dispatchTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
-        // assert: neither delivered nor failed; the target stays pending.
+        // assert
         Assert.NotNull(receipt);
         var target = Assert.Single(receipt.Targets);
         Assert.Equal(MailWakeTargetStatus.Pending, target.Status);
 
-        // the abandoned batch's row is left exactly as an expired active
-        // batch: a fresh dispatch reclaims it (a new batch id) rather than
-        // finding it still held.
+        // An expired batch can be reclaimed by a fresh dispatch.
         var freshExecutor = new FakePingSessionExecutor();
         var freshDispatcher = CreateDispatcher(freshExecutor);
         var reclaimed = await freshDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
@@ -338,7 +341,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_AbandonInFlightTargets_When_TheBatchRenewalThrows_And_AllowReclaimOnceTheLeaseExpires()
     {
-        // arrange: TryRenewAsync throws instead of returning false.
+        // arrange
+        // TryRenewAsync throws instead of returning false.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -354,21 +358,20 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             _globalConfigDirectoryProvider,
             _timeProvider);
 
-        // act: start the dispatch, then advance the clock just past the renew interval.
+        // act
+        // Wait for transport entry, then advance past the renew interval but not the lease expiry.
         var dispatchTask = dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
         await hangingExecutor.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.BatchRenewInterval + TimeSpan.FromSeconds(1));
 
         var receipt = await dispatchTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
-        // assert: neither delivered nor failed; the target stays pending.
+        // assert
         Assert.NotNull(receipt);
         var target = Assert.Single(receipt.Targets);
         Assert.Equal(MailWakeTargetStatus.Pending, target.Status);
 
-        // the abandoned batch's row was never renewed, so once its original
-        // lease fully expires a fresh dispatch (through the real store)
-        // reclaims it.
+        // Advance past the unrenewed lease before attempting a new dispatch.
         _timeProvider.Advance(WakeDispatchPolicy.BatchLeaseDuration);
         var freshExecutor = new FakePingSessionExecutor();
         var freshDispatcher = CreateDispatcher(freshExecutor);
@@ -382,7 +385,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_ReturnNull_And_LeaveTheOtherInstancesWorkUntouched_When_TheNitroInstanceIdDiffers()
     {
-        // arrange: outstanding wake work claimed under this instance id ("host-1").
+        // arrange
+        // Enqueue wake work for this instance ("host-1").
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -400,7 +404,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // act
         var receipt = await otherInstanceDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
 
-        // assert: nothing claimed for host-2; host-1's own dispatcher still claims it normally afterward.
+        // assert
         Assert.Null(receipt);
 
         var hostOneDispatcher = CreateDispatcher(new FakePingSessionExecutor());
@@ -412,7 +416,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_ReportFailed_When_ATerminalFailureRacesAConcurrentlyRecordedAcceptance()
     {
-        // arrange: a decorator races a synthetic Delivered acceptance just before the terminal write commits.
+        // arrange
+        // The decorator records Delivered immediately before forwarding the failure write.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -539,7 +544,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // act
         var receipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
 
-        // assert: delivered, and the session row durably carries the attempt id and the ping result.
+        // assert
         Assert.NotNull(receipt);
         Assert.Equal(MailWakeTargetStatus.Delivered, receipt.Status);
         var row = await _sessions.FindByGenerationAsync(generation, cancellationToken);
@@ -571,8 +576,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             _globalConfigDirectoryProvider,
             _timeProvider);
 
-        // act: first wake. Unread mail exists, so the dispatcher reaches the
-        // executor, whose digest lookup finds nothing to push.
+        // act
+        // The dispatcher sees unread mail; the executor's digest lookup returns none.
         var firstReceipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
         var firstRow = await _sessions.FindByGenerationAsync(generation, cancellationToken);
 
@@ -582,14 +587,15 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             (MailWakeTargetStatus.Delivered, AgentPingResult.Ok, PingSessionExecutor.HealthOnlyDetail),
             (firstReceipt?.Status, firstRow.LastPingResult, firstRow.LastPingDetail));
 
-        // act: second wake, once the gate's cooldown passes and fresh unread mail arrives.
+        // act
+        // Rearm the idle-push gate, advance past cooldown, and enqueue another message.
         await _sessions.RearmIdlePushAsync(generation, cancellationToken);
         _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
         await SendEnqueuedMailAsync(cancellationToken);
         var secondReceipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
         var secondRow = await _sessions.FindByGenerationAsync(generation, cancellationToken);
 
-        // assert: the row still carries the attempt id and the health-only outcome, not null.
+        // assert
         Assert.NotNull(secondRow!.LastPingAttempt);
         Assert.Equal(
             (MailWakeTargetStatus.Delivered, AgentPingResult.Ok, PingSessionExecutor.HealthOnlyDetail),
@@ -599,7 +605,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_PushTheDigestOnce_When_TheOpencodeSessionIsIdleArmed()
     {
-        // arrange: RearmIdlePushAsync arms the idle-push gate.
+        // arrange
+        // RearmIdlePushAsync arms the idle-push gate.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(
@@ -632,7 +639,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         await SendEnqueuedMailAsync(cancellationToken);
         await CreateDispatcher(new FakePingSessionExecutor()).DispatchAsync(Actor, Deadline(), cancellationToken);
 
-        // act: advance past the gate's cooldown, then dispatch a second wake with no fresh rearm.
+        // act
+        // Advance past the gate's cooldown, then dispatch a second wake with no fresh rearm.
         _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
         await SendEnqueuedMailAsync(cancellationToken);
         var suppressedExecutor = new FakePingSessionExecutor();
@@ -650,7 +658,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_OfferTheTarget_When_TheOpencodeSessionIsNotIdleArmed()
     {
-        // arrange: a session whose idle-push gate was never armed.
+        // arrange
+        // A session whose idle-push gate was never armed.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await SeedLiveSessionAsync(
@@ -673,7 +682,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_DeliverTheOfferedTarget_When_TheIdleTransitionIsLaterRearmed()
     {
-        // arrange: a first dispatch already offered the target as idle-not-armed.
+        // arrange
+        // A first dispatch already offered the target as idle-not-armed.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(
@@ -698,7 +708,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_LeaveTheIdlePushClaimArmed_When_TheOpencodeSessionGateWasBusy()
     {
-        // arrange: the session ping gate is held by an unrelated attempt.
+        // arrange
+        // The session ping gate is held by an unrelated attempt.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(
@@ -717,7 +728,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Equal("busy", Assert.Single(busyReceipt!.Targets).LastError);
         Assert.Empty(busyExecutor.Calls);
 
-        // act: release the gate and let the offered retry become due.
+        // act
+        // Release the gate and let the offered retry become due.
         await _gates.ReleaseAsync(generation, "external-holder", cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.OfferedRetryDelay + TimeSpan.FromSeconds(1));
         var deliveredExecutor = new FakePingSessionExecutor();
@@ -747,7 +759,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // assert
         Assert.Equal(MailWakeTargetStatus.Failed, failedReceipt?.Status);
 
-        // act: new mail arrives after the failed attempt already rearmed the claim.
+        // act
+        // New mail arrives after the failed attempt already rearmed the claim.
         await SendEnqueuedMailAsync(cancellationToken);
         var deliveredExecutor = new FakePingSessionExecutor();
         var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
@@ -761,7 +774,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_RearmTheIdlePushClaim_When_TheOpencodeAttemptWasHealthOnly()
     {
-        // arrange: the executor reports a successful ping that pushed nothing (PingSessionExecutor.HealthOnlyDetail).
+        // arrange
+        // The executor reports a successful ping that pushed nothing (PingSessionExecutor.HealthOnlyDetail).
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(
@@ -777,7 +791,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // assert
         Assert.Equal(MailWakeTargetStatus.Delivered, healthOnlyReceipt?.Status);
 
-        // act: advance past the gate's cooldown, then dispatch again with the rearmed claim.
+        // act
+        // Advance past the gate's cooldown, then dispatch again with the rearmed claim.
         _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
         await SendEnqueuedMailAsync(cancellationToken);
         var pushExecutor = new FakePingSessionExecutor();
@@ -791,7 +806,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_RearmTheIdlePushClaim_When_TheOpencodeDispatchIsCancelledMidTransport()
     {
-        // arrange: the idle-push claim is spent, then the transport call hangs.
+        // arrange
+        // The idle-push claim is spent, then the transport call hangs.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(
@@ -801,18 +817,20 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var hangingExecutor = new FakePingSessionExecutor { HangUntilCancelled = true };
         var dispatcher = CreateDispatcher(hangingExecutor);
 
-        // act: start the dispatch, then advance the clock past the lease and renew interval.
+        // act
+        // Wait for transport entry, then advance past the batch lease expiry.
         var dispatchTask = dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
         await hangingExecutor.Entered.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
         _timeProvider.Advance(WakeDispatchPolicy.BatchLeaseDuration + TimeSpan.FromSeconds(5));
         var receipt = await dispatchTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
-        // assert: pending, and the spent idle-push claim was handed back rather than stranded.
+        // assert
         Assert.NotNull(receipt);
         var target = Assert.Single(receipt.Targets);
         Assert.Equal(MailWakeTargetStatus.Pending, target.Status);
 
-        // act: new mail arrives after the aborted attempt already rearmed the claim.
+        // act
+        // New mail arrives after the aborted attempt already rearmed the claim.
         await SendEnqueuedMailAsync(cancellationToken);
         var deliveredExecutor = new FakePingSessionExecutor();
         var deliveredReceipt = await CreateDispatcher(deliveredExecutor)
@@ -864,9 +882,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         CancellationToken cancellationToken,
         string sessionId = "session-1")
     {
-        // A genuinely alive pid/proc_start: dispatch resolves live sessions
-        // through FindLiveClaimedByAgentNameAsync, which reaps dead sessions
-        // before it looks.
+        // Start a fresh session on the current Nitro instance.
         var harness = endpointKind switch
         {
             AgentSessionEndpointKind.ClaudePeer => AgentSessionHarness.ClaudeCode,

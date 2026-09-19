@@ -5,11 +5,10 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// A scriptable <see cref="IPingSessionExecutor"/> that returns
-/// <see cref="PingAttemptReason.Ok"/> unless <see cref="NextReason"/> or a
-/// per-session <see cref="ReasonBySessionId"/> entry overrides it. With
-/// <see cref="HangUntilCancelled"/> it signals <see cref="Entered"/> and
-/// blocks until its cancellation token fires.
+/// A scriptable <see cref="IPingSessionExecutor"/> whose per-session
+/// <see cref="ReasonBySessionId"/> entries override <see cref="NextReason"/>, which defaults to
+/// <see cref="PingAttemptReason.Ok"/>. Signals <see cref="Entered"/> on entry and waits
+/// for cancellation when <see cref="HangUntilCancelled"/> is set.
 /// </summary>
 internal sealed class FakePingSessionExecutor : IPingSessionExecutor
 {

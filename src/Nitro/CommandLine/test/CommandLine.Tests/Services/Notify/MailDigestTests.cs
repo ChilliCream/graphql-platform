@@ -339,7 +339,7 @@ public sealed class MailDigestTests
         // act
         var digest = MailDigest.Render("maya", [message], 1);
 
-        // assert: rendering reports the message unread and leaves the recipient's read state untouched.
+        // assert
         Assert.Contains("\"read\": false", digest);
         Assert.Null(Assert.Single(message.Recipients).ReadAt);
     }

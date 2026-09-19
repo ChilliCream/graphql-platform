@@ -3,11 +3,9 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Delegates every <see cref="IAgentSessionRegistry"/> member to <paramref name="inner"/> except
-/// <see cref="FindByGenerationAsync"/>, whose first call for <paramref name="frozen"/> performs a genuine
-/// end-then-start-then-claim rebind through <paramref name="inner"/> onto <paramref name="rebound"/> (same
-/// harness/session id, new pid/proc_start) before delegating, simulating a session rebound racing the
-/// caller's own re-resolution of its frozen generation.
+/// On the first lookup of <paramref name="frozen"/>, ends that session and starts
+/// and claims <paramref name="rebound"/> before forwarding the lookup.
+/// Delegates all other <see cref="IAgentSessionRegistry"/> calls to <paramref name="inner"/>.
 /// </summary>
 internal sealed class ReboundOnFindSessionRegistryDecorator(
     IAgentSessionRegistry inner, AgentSessionGeneration frozen, AgentSessionGeneration rebound, string actor)

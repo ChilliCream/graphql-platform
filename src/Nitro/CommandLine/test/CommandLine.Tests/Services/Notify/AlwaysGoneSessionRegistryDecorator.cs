@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Delegates every <see cref="IAgentSessionRegistry"/> member to <paramref name="inner"/> except
-/// <see cref="FindByGenerationAsync"/>, which always reports the generation gone, simulating a frozen target
-/// that disappeared between batch claim and target dispatch.
+/// Returns <see langword="null"/> from <see cref="FindByGenerationAsync"/>.
+/// Delegates all other <see cref="IAgentSessionRegistry"/> members to <paramref name="inner"/>.
 /// </summary>
 internal sealed class AlwaysGoneSessionRegistryDecorator(IAgentSessionRegistry inner) : IAgentSessionRegistry
 {

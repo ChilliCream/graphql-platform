@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Delegates every <see cref="IMailWakeBatchStore"/> member to <paramref name="inner"/> except
-/// <see cref="TryRenewAsync"/>, which always throws to simulate the store call itself failing,
-/// distinct from it merely returning false.
+/// Throws <see cref="InvalidOperationException"/> from <see cref="TryRenewAsync"/>.
+/// Delegates all other <see cref="IMailWakeBatchStore"/> members to <paramref name="inner"/>.
 /// </summary>
 internal sealed class ThrowingRenewMailWakeBatchStore(IMailWakeBatchStore inner) : IMailWakeBatchStore
 {

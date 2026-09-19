@@ -4,8 +4,8 @@ using ChilliCream.Nitro.CommandLine.Services.Notify;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Delegates every <see cref="IMailStore"/> member to <paramref name="inner"/> except
-/// <see cref="QueryInboxAsync"/> and <see cref="CountUnreadAsync"/>, which always report no unread mail.
+/// An <see cref="IMailStore"/> decorator for <see cref="PingSessionExecutor"/> that
+/// returns an empty inbox and zero unread count. Delegates all other calls to <paramref name="inner"/>.
 /// </summary>
 internal sealed class NoUnreadMailStoreDecorator(IMailStore inner) : IMailStore
 {

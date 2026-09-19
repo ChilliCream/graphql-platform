@@ -12,7 +12,8 @@ public sealed class OpencodeServerClientTests
     [Fact]
     public async Task PushMessageAsync_Should_PreserveTextAndMarkTheTextPart_When_ServerAcceptsTheMessage()
     {
-        // arrange: this client sends text verbatim, without prepending OpencodeHookProtocol.PushedPromptPrefix.
+        // arrange
+        // Supply text that already contains the Nitro prompt prefix.
         HttpRequestMessage? capturedRequest = null;
         string? capturedBody = null;
         var client = CreateClient(async (request, _) =>
@@ -39,7 +40,7 @@ public sealed class OpencodeServerClientTests
     [Fact]
     public async Task PushMessageAsync_Should_WriteCompactJsonBody_When_TextIsSent()
     {
-        // arrange: pins the exact compact wire format the opencode server expects.
+        // arrange
         string? capturedBody = null;
         var client = CreateClient(async (request, _) =>
         {
@@ -58,7 +59,8 @@ public sealed class OpencodeServerClientTests
     [Fact]
     public async Task PushMessageAsync_Should_ReturnOk_When_ServerRespondsWithNoContent()
     {
-        // arrange: prompt_async returns 204 with no body.
+        // arrange
+        // Prompt_async returns 204 with no body.
         var client = CreateClient((_, _) =>
             Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent)));
 

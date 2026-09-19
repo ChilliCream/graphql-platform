@@ -139,7 +139,8 @@ public sealed class ClaudePeerClientTests : IDisposable
     [Fact]
     public async Task SendAsync_Should_ReturnAccessDenied_When_ConnectFailsWithSocketAccessDenied()
     {
-        // arrange: a real EACCES-shaped SocketException from an unsearchable parent directory.
+        // arrange
+        // A real EACCES-shaped SocketException from an unsearchable parent directory.
         if (OperatingSystem.IsWindows())
         {
             Assert.Skip("Unix directory-permission denial has no Windows equivalent.");
@@ -180,7 +181,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         // act
         var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
 
-        // assert: JsonDocument.Parse's derived JsonReaderException type name ends up in Detail.
+        // assert
         Assert.Equal(ClaudePeerSendOutcome.TransportError("JsonReaderException"), outcome);
     }
 
@@ -215,8 +216,8 @@ public sealed class ClaudePeerClientTests : IDisposable
     }
 
     /// <summary>
-    /// Strips the execute bit from <paramref name="socketPath"/>'s parent directory, which turns a
-    /// Unix-domain <c>connect(2)</c> beneath it into a real <see cref="SocketError.AccessDenied"/>.
+    /// Removes search permission from <paramref name="socketPath"/>'s parent directory
+    /// on Unix systems. Does nothing on Windows.
     /// </summary>
     private static void MakeParentUnsearchable(string socketPath)
     {

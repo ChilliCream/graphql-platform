@@ -9,10 +9,9 @@ using Microsoft.Extensions.Time.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Exercises <see cref="PingSessionExecutor"/> end to end against a real
-/// workspace database and mail store: digest construction from unread mail,
-/// the codex-thread transport call, the hard-timeout path, result-write
-/// conditioning, and lease release on every exit.
+/// Tests <see cref="PingSessionExecutor"/> with a real workspace database
+/// and mail store, including digest construction, transport outcomes,
+/// conditional result writes, and lease release.
 /// </summary>
 public sealed class PingSessionExecutorTests : IDisposable
 {
@@ -143,7 +142,8 @@ public sealed class PingSessionExecutorTests : IDisposable
     [Fact]
     public async Task ExecuteCodexThreadAsync_Should_RecordEndpointGone_When_TheTransportSignalsGoneThread()
     {
-        // arrange: fixture-evidenced signature for a dead/unknown codex thread.
+        // arrange
+        // Fixture-evidenced signature for a dead/unknown codex thread.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeSessionAsync(cancellationToken);
         await _mail.SendMessageAsync(
@@ -299,7 +299,8 @@ public sealed class PingSessionExecutorTests : IDisposable
     [Fact]
     public async Task ExecuteClaudePeerAsync_Should_NotOverwriteTheRow_When_TheAttemptIsStale()
     {
-        // arrange: a stale attempt races a newer one that already reclaimed the row's cooldown.
+        // arrange
+        // A newer attempt claims the cooldown before the stale attempt executes.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeSessionAsync(cancellationToken);
         await _mail.SendMessageAsync(
@@ -318,7 +319,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             cancellationToken);
         var executor = CreateExecutor();
 
-        // act: the stale attempt's transport work still completes, though the row moved on to the newer attempt.
+        // act
         var outcome = await executor.ExecuteClaudePeerAsync(
             Harness, SessionId, Actor, staleAttemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
@@ -332,8 +333,8 @@ public sealed class PingSessionExecutorTests : IDisposable
     [Fact]
     public async Task ExecuteCodexThreadAsync_Should_RecordOkWithoutCallingTheTransport_When_NoUnreadMailExists()
     {
-        // arrange: the message that triggered this ping was already read by the time the attempt
-        // ran, a benign race, not a failure.
+        // arrange
+        // The inbox is empty.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeSessionAsync(cancellationToken);
         var attemptId = await ClaimAttemptAsync(cancellationToken);
@@ -560,7 +561,8 @@ public sealed class PingSessionExecutorTests : IDisposable
     [Fact]
     public async Task ExecuteOpencodeServerAsync_Should_RecordEndpointGone_When_ThePingSignalsAMissingOrStaleEndpoint()
     {
-        // arrange: no unread mail, and the stored endpoint no longer answers.
+        // arrange
+        // The inbox is empty and the fake client reports EndpointGone.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeOpencodeSessionAsync(secret: null, cancellationToken);
         var attemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
@@ -645,7 +647,8 @@ public sealed class PingSessionExecutorTests : IDisposable
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
             firstAttemptId, firstSlot!.Value, FarFutureDeadline(), cancellationToken);
 
-        // act: a fresh claim, then a health-only ping that reports the same outcome as before.
+        // act
+        // A fresh claim, then a health-only ping that reports the same outcome as before.
         _timeProvider.Advance(TimeSpan.FromSeconds(61));
         var secondAttemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
         var secondSlot = await _leases.TryAcquireAsync(
@@ -654,7 +657,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
             secondAttemptId, secondSlot!.Value, FarFutureDeadline(), cancellationToken);
 
-        // assert: the outcome reports the repeated result, and the row is rewritten rather than left nulled.
+        // assert
         Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var row = await _sessions.FindByGenerationAsync(_opencodeGeneration, cancellationToken);
         Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
