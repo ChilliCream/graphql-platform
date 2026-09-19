@@ -4,11 +4,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// A row of <c>session_deliveries</c>: an at-most-once claim that a given
 /// message was delivered to a given session over a given channel
 /// (<c>digest</c>, <c>gate</c>, or <c>ping</c>). The composite primary key
-/// includes the channel deliberately, so a digest lost to a crash between
-/// reserve and emit does not suppress the gate or a ping for the same
-/// message. No command reads or writes this type yet; it exists so the hook
-/// adapters and ping notifier landing in a later bead have a column-matched
-/// row type to build on.
+/// includes the channel, so a digest lost to a crash between reserve and
+/// emit does not suppress the gate or a ping for the same message.
 /// </summary>
 internal sealed record SessionDeliveryRecord
 {

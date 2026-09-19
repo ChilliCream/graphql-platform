@@ -27,10 +27,7 @@ internal sealed partial class NitroInstanceIdProvider(
 
     /// <summary>
     /// Dispatches to the platform-specific machine identifier reader. Any
-    /// failure (missing file, denied registry access, no <c>ioreg</c> on a
-    /// stripped-down macOS build) is swallowed here: it just means this
-    /// method falls through to the generated-id fallback, which is the
-    /// documented, always-available path.
+    /// failure is swallowed, falling through to the generated-id fallback.
     /// </summary>
     private static string? ReadPlatformMachineId()
     {
@@ -136,14 +133,9 @@ internal sealed partial class NitroInstanceIdProvider(
     private static partial Regex MacPlatformUuidPattern();
 
     /// <summary>
-    /// Reads a child process's standard output within a 2-second bound.
-    /// Reading to end of stream BEFORE waiting for exit would make that
-    /// bound unreachable if the child never closes its stdout: the read
-    /// itself carries no timeout, so this drains stdout asynchronously
-    /// (avoiding the classic redirect deadlock for a child that blocks
-    /// writing to a full pipe) while enforcing the bound on the read, then
-    /// confirms exit. A child still running past the bound is killed rather
-    /// than left behind.
+    /// Reads a child process's standard output within a 2-second bound. A
+    /// child still running past the bound is killed rather than left
+    /// behind.
     /// </summary>
     private static string? ReadWithTimeout(Process process)
     {

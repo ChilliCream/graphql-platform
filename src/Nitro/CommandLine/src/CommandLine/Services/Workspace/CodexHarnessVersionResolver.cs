@@ -10,10 +10,9 @@ internal sealed class CodexHarnessVersionResolver(
     public string Resolve(string sessionId) => _rolloutVersionReader(sessionId) ?? "";
 
     /// <summary>
-    /// Finds the session's rollout file under <c>~/.codex/sessions/</c> (the
-    /// date-bucketed directory is not otherwise known, so every subdirectory
-    /// is searched by filename) and reads <c>payload.cli_version</c> from
-    /// its first line's <c>session_meta</c> record.
+    /// Finds the session's rollout file under <c>~/.codex/sessions/</c> and
+    /// reads <c>payload.cli_version</c> from its first line's
+    /// <c>session_meta</c> record.
     /// </summary>
     private static string? ReadRolloutVersion(string sessionId)
     {

@@ -15,9 +15,7 @@ internal interface IAgentSessionRegistry
     /// <list type="bullet">
     /// <item>No existing coding-session row: creates or reuses its durable
     /// identity, allocating an actor when <paramref name="envActor"/> is not
-    /// supplied. Production coding hooks do not supply it; the parameter is
-    /// retained for non-coding board sessions and low-level lifecycle
-    /// callers.</item>
+    /// supplied.</item>
     /// <item>An existing row at the SAME generation: a duplicate delivery,
     /// preserves binding, ledger, and counters, only refreshing the
     /// heartbeat.</item>
@@ -268,7 +266,7 @@ internal interface IAgentSessionRegistry
     /// any previous result, only when no prior attempt was claimed within
     /// <paramref name="cooldown"/> of <paramref name="now"/>. Returns false
     /// (a no-op) when the cooldown is still active or the generation no
-    /// longer matches a row - both cases mean the caller must not act.
+    /// longer matches a row: either way, the caller must not act.
     /// </summary>
     Task<bool> TryClaimPingCooldownAsync(
         AgentSessionRecord session,

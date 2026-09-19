@@ -1,46 +1,27 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Schema v5: agent presence and mail delivery/ping bookkeeping, added
-/// alongside the identity table in <see cref="AgentRegistrySchema"/>. Three
-/// tables: <c>agent_sessions</c> (the canonical active-membership table, one
-/// row per live harness session, claimed or not, keyed by
-/// (harness, session_id)); <c>session_deliveries</c> (the at-most-once-per-
-/// channel notification ledger, cascading with its owning session); and
-/// <c>ping_leases</c> (the fixed four-slot concurrency cap on outstanding
-/// ping children). Statements are idempotent so applying them to an
-/// existing database is non-destructive. <c>last_ping_result</c> carries
-/// <c>unsupported</c> for an endpoint kind the notifier has no transport
-/// for (<c>claude-peer</c>, currently): a distinct diagnostic from
-/// <c>endpoint_kind = 'none'</c>, which means the session simply has no
-/// endpoint to attempt at all. <c>agent_sessions</c> also carries the
-/// mutable participant <c>role</c> and the exact <c>harness_version</c>.
-/// v8 adds <c>nitro-board</c> to the <c>harness</c> CHECK constraint (a
-/// running board process, bound to the durable human mail actor as an
-/// operator participant instead of a coding-harness hook) and
-/// <c>db-watch</c> to the <c>endpoint_kind</c> CHECK constraint (the shared
-/// workspace database file itself as the delivery endpoint, with no
-/// routable address and no transport ever fired against it). v10 drops the
-/// <c>pid</c>, <c>proc_start</c>, <c>process_scope</c> and
-/// <c>proc_start_legacy</c> columns: a hook event names its own session, so
-/// (harness, session_id, host) identifies a row exactly and no process
-/// identity is recorded or compared. v13 adds <c>announcement_pending</c>
-/// and <c>idle_push_armed</c>: the opencode hook handler's durable,
-/// atomically claimed markers for the first-prompt actor announcement and
-/// the one-push-per-idle-transition gate, replacing an earlier
-/// <c>session_deliveries</c> sentinel-based approach for both.
+/// Agent presence and mail delivery/ping bookkeeping. Three tables:
+/// <c>agent_sessions</c> (the canonical active-membership table, one row per
+/// live harness session, claimed or not, keyed by (harness, session_id));
+/// <c>session_deliveries</c> (the at-most-once-per-channel notification
+/// ledger, cascading with its owning session); and <c>ping_leases</c> (the
+/// fixed four-slot concurrency cap on outstanding ping children). Statements
+/// are idempotent so applying them to an existing database is
+/// non-destructive. <c>last_ping_result</c> carries <c>unsupported</c> for
+/// an endpoint kind the notifier has no transport for: a distinct
+/// diagnostic from <c>endpoint_kind = 'none'</c>, which means the session
+/// simply has no endpoint to attempt at all. <c>agent_sessions</c> also
+/// carries the mutable participant <c>role</c> and the exact
+/// <c>harness_version</c>.
 /// </summary>
 internal static class AgentSessionSchema
 {
     /// <summary>
     /// The <c>agent_sessions</c> column and constraint list, shared between
-    /// <see cref="Create"/> (which applies it under the live table name) and
-    /// <see cref="CreateAgentSessionsTable"/> (which <see cref="AgentDatabase"/>
-    /// applies under a temporary name to rebuild the table for a database
-    /// whose <c>last_ping_result</c> CHECK constraint predates
-    /// <c>unsupported</c>: SQLite cannot ALTER a CHECK constraint in place,
-    /// so the rebuild recreates the table under a fresh name, copies every
-    /// row across, then swaps it in for the live one).
+    /// <see cref="Create"/> (applied under the live table name) and
+    /// <see cref="CreateAgentSessionsTable"/> (applied under a temporary
+    /// name to rebuild the table).
     /// </summary>
     private const string AgentSessionsColumns =
         """
@@ -107,11 +88,7 @@ internal static class AgentSessionSchema
     /// <summary>
     /// The same <c>agent_sessions</c> column and constraint list as
     /// <see cref="Create"/>, applied under <paramref name="tableName"/>
-    /// instead of the live table name. <see cref="AgentDatabase"/> uses this
-    /// to build a replacement table carrying the current CHECK constraint,
-    /// copy every row from the live table into it, then swap it in under the
-    /// live name, the standard SQLite rebuild for a CHECK constraint change
-    /// no in-place ALTER can express.
+    /// instead of the live table name.
     /// </summary>
     public static string CreateAgentSessionsTable(string tableName) =>
         $"""

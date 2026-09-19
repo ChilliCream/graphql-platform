@@ -4,10 +4,6 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 /// A row of <c>agent_sessions</c>: one live harness session, claimed by an
 /// agent or not. Presence has a lifetime of minutes, distinct from the
 /// 30-day staleness semantics <see cref="AgentRecord"/> identity carries.
-/// No command reads or writes this type yet - session claim/list/status and
-/// the hook adapters land in a later bead; this shape exists so that work
-/// has a column-matched row type to build on instead of ad hoc Dapper
-/// projections.
 /// </summary>
 internal sealed record AgentSessionRecord
 {
@@ -35,8 +31,7 @@ internal sealed record AgentSessionRecord
     public required string BindingKind { get; init; }
 
     /// <summary>
-    /// This Nitro instance's id (see the schema v4 migration notes), not the
-    /// OS hostname.
+    /// This Nitro instance's id, not the OS hostname.
     /// </summary>
     public required string Host { get; init; }
 

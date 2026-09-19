@@ -237,10 +237,8 @@ internal sealed class AgentRegistry(
         return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
-    // Internal, not private: Dapper.AOT's generated interceptors live
-    // outside AgentRegistry and cannot reference a private nested type, so a
-    // private row type would silently fall back to Dapper's reflection-emit
-    // deserializer.
+    // Internal, not private: Dapper.AOT cannot generate against a private
+    // nested type.
     internal sealed class AgentRegistryRow
     {
         public required string Name { get; init; }

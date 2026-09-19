@@ -126,10 +126,10 @@ internal sealed class AgentSessionRegistry(
         }
         else if (IsSameGeneration(existing, generation))
         {
-            // Normal duplicate SessionStart only refreshes the heartbeat.
-            // A pre-v9 row can have no durable identity yet, however. When
-            // EnsureCodingIdentity created one above, reconcile the copied
-            // live-row actor and clear its old delivery ledger atomically.
+            // A duplicate SessionStart only refreshes the heartbeat, unless
+            // EnsureCodingIdentity created a new durable identity above, in
+            // which case the live row's actor is reconciled and its old
+            // delivery ledger cleared atomically.
             if (existing.AgentName == boundAgentName)
             {
                 await connection.ExecuteAsync(
@@ -179,20 +179,13 @@ internal sealed class AgentSessionRegistry(
         else
         {
             // A generation change on the same (harness, session_id): a new
-            // process replaced the one the row remembered. Treat it as a
+            // process replaced the one the row remembered. Treated as a
             // fresh SessionStart, rebinding exactly as the missing-row case
-            // above does, and reset the delivery ledger and counters.
-            //
+            // above does, and resetting the delivery ledger and counters.
             // Both statements below predicate on the OLD generation
-            // (`existing`), not just (harness, session_id): a reader that
-            // observed this same old generation is the only writer allowed
-            // to act on it. Without the full predicate, two processes
-            // racing to rebind the same stale row could both read the same
-            // `existing` snapshot, and the second writer would blindly
-            // overwrite whatever the first writer already committed instead
-            // of affecting zero rows (the plan's "full-generation predicates
-            // on all lifecycle mutations" rule, carried forward from the
-            // .6 review as a hardening item for this bead).
+            // (`existing`), not just (harness, session_id), so a racing
+            // writer that observed a now-stale generation affects zero rows
+            // instead of overwriting a newer commit.
             var rowsAffected = await connection.ExecuteAsync(
                 """
                 UPDATE agent_sessions SET
@@ -339,11 +332,10 @@ internal sealed class AgentSessionRegistry(
     {
         var normalizedActor = MailAgentName.Normalize(actor);
 
-        // Resolved BEFORE opening this method's own connection and
-        // transaction: EnsureImplicitAsync opens a separate connection to
-        // the same database file, and starting a second writer transaction
-        // while this one is already open self-deadlocks SQLite ("database
-        // is locked") instead of merely serializing.
+        // Resolved before opening this method's own connection and
+        // transaction: EnsureImplicitAsync opens its own connection, and a
+        // second writer transaction on this connection while that one is
+        // open self-deadlocks SQLite.
         await agentRegistry.EnsureImplicitAsync(normalizedActor, cancellationToken);
 
         await using var connection = await ConnectAsync(cancellationToken);
@@ -1365,10 +1357,8 @@ internal sealed class AgentSessionRegistry(
         return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
-    // Internal, not private: Dapper.AOT's generated interceptors live
-    // outside AgentSessionRegistry and cannot reference a private nested
-    // type, so a private row type would silently fall back to Dapper's
-    // reflection-emit deserializer. Mirrors AgentRegistry.AgentRegistryRow.
+    // Internal, not private: Dapper.AOT cannot generate against a private
+    // nested type.
     internal sealed class AgentSessionRow
     {
         public required string Harness { get; init; }

@@ -14,9 +14,8 @@ internal static class AgentSessionEndpointKind
     /// <summary>
     /// A Nitro board session's endpoint: the shared workspace SQLite file
     /// itself. A message addressed to this endpoint's actor is already
-    /// delivered the moment it commits - the board's own db-file watcher
-    /// observes the change and refreshes - so it carries no routable peer
-    /// or thread id and no transport ever fires against it.
+    /// delivered the moment it commits, so it carries no routable peer or
+    /// thread id and no transport ever fires against it.
     /// </summary>
     public const string DbWatch = "db-watch";
 

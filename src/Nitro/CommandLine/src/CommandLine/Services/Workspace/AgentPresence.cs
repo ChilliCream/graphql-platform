@@ -34,22 +34,17 @@ internal sealed record AgentPresence(
     public static readonly AgentPresence Offline = new(AgentPresenceState.Offline, false, 0, null, null, null);
 
     /// <summary>
-    /// Aggregates <paramref name="sessions"/> - already filtered to the one
-    /// agent's rows - into a single display presence.
+    /// Aggregates <paramref name="sessions"/> (already filtered to the one
+    /// agent's rows) into a single display presence.
     /// <para/>
-    /// A same-actor restart can leave more than one live session. When those
-    /// sessions disagree on <see cref="AgentSessionView.State"/>, every
-    /// distinct state is joined (in <see cref="s_statePriority"/> order)
-    /// rather than one being silently picked, and <see cref="Conflicted"/> is
-    /// set so a caller can flag it: the plan's "same-actor multi-session
-    /// conflicts surfaced, not hidden".
+    /// When the sessions disagree on <see cref="AgentSessionView.State"/>,
+    /// every distinct state is joined (in <see cref="s_statePriority"/>
+    /// order) and <see cref="Conflicted"/> is set.
     /// <para/>
     /// The endpoint columns and the Claude activity read-through (via
-    /// <paramref name="activityReader"/>, never stored - see
+    /// <paramref name="activityReader"/>, see
     /// <see cref="IClaudeSessionActivityReader"/>) are only reported when
-    /// exactly one session is live: with more than one, which session's
-    /// endpoint or activity to show is itself ambiguous, and guessing would
-    /// re-hide the exact conflict this method exists to surface.
+    /// exactly one session is live.
     /// </summary>
     public static AgentPresence Compute(
         IReadOnlyList<AgentSessionView> sessions, IClaudeSessionActivityReader activityReader)

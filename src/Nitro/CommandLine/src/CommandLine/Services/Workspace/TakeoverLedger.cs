@@ -193,11 +193,8 @@ internal sealed class TakeoverLedger(
         }).ToArray();
     }
 
-    // The WHERE and IN clauses here are assembled at runtime from the filter,
-    // so the SQL text is never a call-site literal; Dapper.AOT can only
-    // intercept calls whose SQL it can read at compile time. Reading through
-    // plain ADO.NET instead of Dapper's reflection fallback keeps this path
-    // free of runtime code generation.
+    // The SQL text here is assembled at runtime, not a call-site literal,
+    // so Dapper.AOT cannot intercept it; read through plain ADO.NET instead.
     private static async Task<List<TakeoverRecordRow>> ExecuteRecordQueryAsync(
         SqliteConnection connection,
         string sql,
