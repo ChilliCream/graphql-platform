@@ -303,7 +303,7 @@ export default function Tokamak() {
       const totalStray = Math.round(totalStatic * STRAY_FRACTION);
 
       // The column's projected half-width at the plasma's height: the
-      // middle column row sits at the torus' own y (see `layout.ts`'s
+      // middle column row sits at the torus' own y (see `sceneLayout.ts`'s
       // `buildTaperedRows`, t=0), so projecting its edge (world x = radius)
       // and comparing to the on-axis centre (`camera.originX`) gives the
       // span the helix's far-side points have to fall inside to read as
