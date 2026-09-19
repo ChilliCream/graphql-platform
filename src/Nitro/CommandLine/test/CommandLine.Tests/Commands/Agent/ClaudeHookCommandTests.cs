@@ -51,9 +51,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     [Fact]
     public async Task UserPromptSubmit_Should_WriteNeutralResponse_When_NoMailIsUnread()
     {
-        // arrange: an identity already bound to this session id, and an
-        // empty inbox. The actor name is announced by session-start alone,
-        // so with no mail to report this event has nothing to say.
+        // arrange: an identity bound to the session, and an empty inbox, so this event has nothing to report.
         await InitWorkspaceAsync();
         await InsertSessionIdentityAsync("maya", "session-1");
         SetupStandardInput(

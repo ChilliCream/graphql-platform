@@ -163,12 +163,10 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
     [Fact]
     public async Task SessionIdle_Should_NotReserveTheUnreadMail_And_WriteNeutralResponse()
     {
-        // arrange: a presence row bound to the actor, and one unread message
-        // sent after the session started. ActorWakeDispatcher is the sole
-        // claimant of the idle-push gate and its own gate-channel reservation
-        // (see the hc-10-5n6.2 planner ruling); this command's own response
-        // never carries a digest either way - opencode's idle push is
-        // delivered out of band, not through this command's stdout.
+        // arrange: a presence row bound to the actor, and one unread message sent after the
+        // session started. ActorWakeDispatcher is the sole claimant of the idle-push gate and its
+        // own gate-channel reservation; this command's response never carries a digest either way,
+        // since opencode's idle push is delivered out of band, not through this command's stdout.
         await InitWorkspaceAsync();
         await InsertOpencodeIdentityAsync("maya");
         await SeedAgentAsync("ada");
@@ -178,9 +176,7 @@ public sealed class OpencodeHookCommandTests(NitroCommandFixture fixture) : Agen
             "agent", "mail", "send", "--body", "All good.", "--to", "maya", "--subject", "Status", "--actor", "ada");
         SetupHookPayload();
 
-        // Whatever the send's own wake push already reserved is not this
-        // command's doing; only a reservation added by session-idle itself
-        // would be.
+        // only a reservation added by session-idle itself should change this count
         var deliveriesBefore = await QueryScalarAsync("SELECT COUNT(*) FROM session_deliveries");
 
         // act

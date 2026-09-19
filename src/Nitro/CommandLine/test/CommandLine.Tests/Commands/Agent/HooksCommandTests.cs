@@ -1,22 +1,12 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Command wiring (help text) for <c>agent hooks claude install/status/uninstall</c>,
-/// plus one full functional round trip run with <c>--scope project</c>
-/// through each surface: the deep
-/// install/status/uninstall behavior (golden fixtures: missing,
-/// foreign-only, mixed, already-installed, outdated, manually-edited,
-/// concurrently-edited) is exercised directly against
-/// <c>ClaudeHooksEditor</c>/<c>ClaudeHooksInstallerService</c> in
-/// <c>ClaudeHooksEditorTests</c>/<c>ClaudeHooksInstallerServiceTests</c>.
-/// <c>--scope user</c> is never exercised at this layer: its path resolves
-/// through the REAL OS home directory
-/// (<see cref="Environment.SpecialFolder.UserProfile"/>), which this test
-/// process must never write to - only <c>--scope project</c>, which resolves
-/// under this test's own temp workspace, is safe to run for real here. The
-/// sidecar's global config directory is also redirected into the temp
-/// workspace, so no run in this class ever touches the real platform
-/// application-data directory either.
+/// Covers command wiring (help text) for <c>agent hooks claude install/status/uninstall</c>, plus
+/// one <c>--scope project</c> round trip through the real command pipeline. The deep
+/// install/status/uninstall behavior is covered by <c>ClaudeHooksEditorTests</c> and
+/// <c>ClaudeHooksInstallerServiceTests</c>; only <c>--scope project</c> runs here, since
+/// <c>--scope user</c> resolves through the real OS home directory
+/// (<see cref="Environment.SpecialFolder.UserProfile"/>).
 /// </summary>
 public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
@@ -140,10 +130,9 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
     [Fact]
     public async Task InstallStatusUninstall_ClaudeGroup_ProjectScope_RoundTripsThroughTheRealCommandPipeline()
     {
-        // arrange: redirect the sidecar's global config directory into this
-        // test's own temp tree - the only override this scope needs, since
-        // --scope project already resolves its settings path under
-        // AgentCommandTestBase's own TestFileSystem-rooted WorkingDirectory.
+        // arrange: redirect the sidecar's global config directory into this test's own temp tree,
+        // since --scope project already resolves its settings path under AgentCommandTestBase's
+        // TestFileSystem-rooted WorkingDirectory.
         var sidecarDirectory = Path.Combine(WorkingDirectory, "..", "app-data");
         SetupGlobalConfigDirectory(sidecarDirectory);
         await InitWorkspaceAsync();
@@ -177,9 +166,8 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
         var statusAfterUninstall =
             await ExecuteCommandAsync("agent", "hooks", "claude", "status", "--scope", "project");
 
-        // assert: status after uninstall - back to missing for every event,
-        // which is why this exits non-zero (mirrors `doctor`'s "unhealthy"
-        // exit code): status is a check, not just a report.
+        // assert: uninstalling returns every event to missing, so status exits non-zero like
+        // `doctor`'s unhealthy exit code, since status is a check, not just a report.
         Assert.Equal(1, statusAfterUninstall.ExitCode);
         Assert.DoesNotContain("outdated", statusAfterUninstall.StdOut, StringComparison.Ordinal);
         Assert.DoesNotContain("installed", statusAfterUninstall.StdOut, StringComparison.Ordinal);
