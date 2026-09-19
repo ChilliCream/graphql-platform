@@ -4,8 +4,8 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Exercises the <see cref="ProcessStartInfo"/> built for the <c>codex queue</c> subprocess:
-/// it strips the actor identity and suppresses the child process's own hook re-entry.
+/// Tests hook suppression in the queue subprocess
+/// <see cref="ProcessStartInfo"/> and classification of queue exit results.
 /// </summary>
 public sealed class CodexQueueClientTests
 {
@@ -46,8 +46,8 @@ public sealed class CodexQueueClientTests
     }
 
     /// <summary>
-    /// Signature for a malformed (non-UUID) thread id, matched defensively as an equally
-    /// unambiguous "no such session" report.
+    /// Classifies the captured no-active-session error for a malformed thread id
+    /// as an unavailable endpoint.
     /// </summary>
     [Fact]
     public void MapResult_Should_ReturnEndpointGone_When_StderrIsTheNoActiveSessionSignature()

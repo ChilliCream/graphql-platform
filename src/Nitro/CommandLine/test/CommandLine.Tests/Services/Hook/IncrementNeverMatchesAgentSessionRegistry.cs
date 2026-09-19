@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Wraps a real <see cref="IAgentSessionRegistry"/>, delegating every member except
-/// <see cref="IncrementBlockBudgetAsync"/>, which always reports no row matched, simulating a
-/// row deleted between an earlier <see cref="FindByGenerationAsync"/> and the increment.
+/// Delegates to <see cref="IAgentSessionRegistry"/> except for
+/// <see cref="IncrementBlockBudgetAsync"/>, which returns null without updating the session.
 /// </summary>
 internal sealed class IncrementNeverMatchesAgentSessionRegistry(IAgentSessionRegistry inner) : IAgentSessionRegistry
 {

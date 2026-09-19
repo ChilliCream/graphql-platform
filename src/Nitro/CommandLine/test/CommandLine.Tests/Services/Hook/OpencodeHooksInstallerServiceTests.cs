@@ -144,10 +144,9 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// The pushed-prompt prefix must be stripped from <c>output.parts</c> (the message opencode
-    /// delivers to the model), not <c>input.parts</c>. Runs the generated shim under Node with
-    /// <c>Bun.spawn</c> stubbed to capture the payload it sends to the hook process. Fails when
-    /// <c>CI_BUILD</c> is set and node is not found; skips when node is not found and it is not set.
+    /// Tests prefix removal from <c>output.parts</c> and appending hook response
+    /// parts under Node. Missing Node fails the test when <c>CI_BUILD</c> is nonempty
+    /// and skips it otherwise.
     /// </summary>
     [Fact]
     public async Task Build_Should_StripThePrefixFromOutputPartsOnly_When_TheGeneratedShimRunsAChatMessage()
@@ -464,9 +463,8 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Reports <c>serverBound: true</c> only for a <c>serverUrl</c> getter that returns the same URL
-    /// object on every read, discriminating it in one run from a getter that returns a fresh placeholder
-    /// on every read.
+    /// Tests that a stable <c>serverUrl</c> object reports <c>serverBound: true</c>
+    /// and a fresh object on each read reports false.
     /// </summary>
     [Fact]
     public async Task Build_Should_ReportServerBoundOnlyForTheStableUrlFake_When_DiscriminatingByServerUrlGetterIdentity()
@@ -493,12 +491,10 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
 
         // assert
-        // the fresh-URL fake proves the placeholder is rejected
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
         var result = JsonDocument.Parse(stdOut).RootElement;
         Assert.False(result.GetProperty("freshServerBound").GetBoolean());
 
-        // the stable-URL fake, run through the same template, proves the identity check itself works
         Assert.True(result.GetProperty("stableServerBound").GetBoolean());
     }
 
@@ -538,12 +534,9 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// A driver appended to the generated shim module: stubs
-    /// <c>Bun.spawn</c> so <c>chat.message</c> can run under plain Node,
-    /// then feeds it an <c>input.parts</c> WITHOUT the pushed prefix and an
-    /// <c>output.parts</c> WITH it, printing the stripped output text, the
-    /// <c>nitroPushed</c> flag the shim sent to the hook process, and the
-    /// parts <c>appendParts</c> appended to <c>output.parts</c>.
+    /// Builds a Node driver that runs <c>chat.message</c> with a pushed prefix only
+    /// in <c>output.parts</c> and a stubbed hook-process response. Prints the resulting
+    /// text, push flag, and appended-part diagnostics.
     /// </summary>
     private static string BuildChatMessageDriverScript(int exitCode, string stdout, bool includeMessage)
         => """
@@ -591,15 +584,8 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             .Replace("__MESSAGE__", includeMessage ? """{ "sessionID": "ses_1", "id": "msg_1" }""" : "undefined", StringComparison.Ordinal);
 
     /// <summary>
-    /// A driver appended to the generated shim module: stubs
-    /// <c>Bun.spawn</c> to capture the <c>session-created</c> payload, then
-    /// instantiates the plugin with an input whose <c>serverUrl</c> getter
-    /// returns the same stable <c>URL</c> object on every read, mimicking a
-    /// genuinely bound opencode server, and fires a <c>session.created</c>
-    /// event, so the payload's forwarded <c>serverUrl</c> can be checked
-    /// verbatim. The fresh-URL (unbound) side of the identity comparison is
-    /// covered separately by
-    /// <see cref="BuildServerBoundDiscriminationDriverScript"/>.
+    /// Builds a Node driver with a stable <c>serverUrl</c> object and a stubbed hook
+    /// process. Prints the bound flag and URL from the captured session-created payload.
     /// </summary>
     private static string BuildServerBoundDriverScript()
         => """
@@ -634,12 +620,8 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         """;
 
     /// <summary>
-    /// A driver appended to the generated shim module: stubs
-    /// <c>Bun.spawn</c> to capture each <c>session-created</c> payload,
-    /// then instantiates the plugin twice against the same template, once
-    /// with a fresh-<c>URL</c>-every-read fake and once with a stable-<c>URL</c>
-    /// fake, so a single run proves both directions of the
-    /// getter-identity probe.
+    /// Builds a Node driver that captures session-created payloads for fresh and
+    /// stable <c>serverUrl</c> objects. Prints the bound flag from each payload.
     /// </summary>
     private static string BuildServerBoundDiscriminationDriverScript()
         => """

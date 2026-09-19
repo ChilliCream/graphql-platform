@@ -3,13 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Exercises <see cref="CodexConfigTomlNotifyEditor"/> against golden
-/// "before" <c>config.toml</c> fixtures under
-/// <c>test/fixtures/hooks/codex/config-toml/</c>: the wrap-a-foreign-program
-/// cycle, the restore-on-uninstall cycle, idempotent reinstall, a
-/// <c>notify</c> key living inside an unrelated table (must not be touched),
-/// and the safe-refusal path for a shape this narrow editor cannot confidently
-/// parse.
+/// Tests <see cref="CodexConfigTomlNotifyEditor"/> installation, status, removal,
+/// and foreign-program preservation against TOML fixtures.
 /// </summary>
 public sealed class CodexConfigTomlNotifyEditorTests
 {
@@ -61,8 +56,7 @@ public sealed class CodexConfigTomlNotifyEditorTests
     [Fact]
     public void Install_OurOwnStaleEntry_ReplacesItAndCarriesThePriorForeignRecordForward()
     {
-        // What's on disk is our own previous argv, not a foreign program, so the sidecar's earlier
-        // foreign record must carry forward untouched instead of being overwritten with our stale entry.
+        // The existing argv identifies an older Nitro installation with a recorded foreign program.
         var staleArgv = new List<string> { "/opt/old/nitro", "agent", "hook", "codex", "notify" };
         var before = $"notify = [{string.Join(", ", staleArgv.Select(a => $"\"{a}\""))}]\n";
         var recordedPriorForeign = new List<string> { "/usr/local/bin/herdr-notify" };
@@ -143,7 +137,6 @@ public sealed class CodexConfigTomlNotifyEditorTests
     [Fact]
     public void Uninstall_ForeignEditSinceInstall_LeavesItUntouched()
     {
-        // A foreign edit landed since install, so the value on disk no longer matches and must not be clobbered.
         const string edited = "notify = [\"/something/else\"]\n";
 
         var result = CodexConfigTomlNotifyEditor.Uninstall(edited, s_ourArgv, ["/usr/local/bin/herdr-notify"]);

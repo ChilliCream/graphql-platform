@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Wraps a real <see cref="IAgentSessionRegistry"/>, delegating every member except
-/// <see cref="ClaimAnnouncementAsync"/>, which always throws, standing in for a registry
-/// failure that lands after a digest reservation has already committed.
+/// Delegates to <see cref="IAgentSessionRegistry"/> except for
+/// <see cref="ClaimAnnouncementAsync"/>, which throws <see cref="InvalidOperationException"/>.
 /// </summary>
 internal sealed class ThrowingAnnouncementSessionRegistry(IAgentSessionRegistry inner) : IAgentSessionRegistry
 {

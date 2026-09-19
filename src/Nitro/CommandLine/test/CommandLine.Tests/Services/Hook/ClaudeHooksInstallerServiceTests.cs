@@ -149,8 +149,7 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
-        // The injected file system runs serviceB's install to completion on the sidecar's second read,
-        // so the retry then observes a stable sidecar and succeeds.
+        // Complete serviceB's install before the second sidecar read returns.
         var injectingFileSystem = new RunOnSecondReadFileSystem(
             _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
 
@@ -192,8 +191,7 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
-        // The injected file system runs serviceB's install to completion on the sidecar's second read,
-        // so this uninstall's own re-read observes the sidecar B's install left behind.
+        // Complete serviceB's install before the second sidecar read returns.
         var injectingFileSystem = new RunOnSecondReadFileSystem(
             _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
 
@@ -238,8 +236,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Writes <paramref name="editedContent"/> to the watched path on its second
-    /// <see cref="ReadAllTextAsync"/> call, then returns it, so the installer's own re-read observes it.
+    /// Replaces the watched file with <paramref name="editedContent"/> before its
+    /// second <see cref="ReadAllTextAsync"/> call reads the content. Delegates all other operations.
     /// </summary>
     private sealed class InjectEditOnSecondReadFileSystem(
         IFileSystem inner, string watchedPath, string editedContent) : IFileSystem
@@ -299,11 +297,9 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Simulates a second, fully concurrent install landing in the window
-    /// between an in-flight install's own read of <paramref name="watchedPath"/>
-    /// and its pre-write re-check: the SECOND <see cref="ReadAllTextAsync"/>
-    /// call for that path runs <paramref name="onSecondRead"/> to completion
-    /// first, then reads whatever it left behind.
+    /// Runs <paramref name="onSecondRead"/> before the second
+    /// <see cref="ReadAllTextAsync"/> call for <paramref name="watchedPath"/> reads
+    /// the content. Delegates all other operations.
     /// </summary>
     private sealed class RunOnSecondReadFileSystem(
         IFileSystem inner, string watchedPath, Func<Task> onSecondRead) : IFileSystem

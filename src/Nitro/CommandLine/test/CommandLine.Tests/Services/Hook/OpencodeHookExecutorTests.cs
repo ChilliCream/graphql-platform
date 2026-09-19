@@ -99,7 +99,6 @@ public sealed class OpencodeHookExecutorTests
     public async Task RunAsync_Should_WriteNeutralAndExitWithFailure_When_HandlerThrowsSchemaMismatch()
     {
         // arrange
-        // a schema mismatch must surface on stderr with a nonzero exit, unlike every other failure
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(OpencodeHookFixtures.Read("session-idle.json"));
         var output = new StringWriter();
@@ -125,7 +124,6 @@ public sealed class OpencodeHookExecutorTests
     public async Task RunAsync_Should_WriteNeutral_When_TheEntryTimeoutElapses()
     {
         // arrange
-        // a short timeout stands in for the real entry ceiling so the test does not wait it out
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(OpencodeHookFixtures.Read("session-idle.json"));
         var output = new StringWriter();
@@ -150,7 +148,6 @@ public sealed class OpencodeHookExecutorTests
     public async Task RunAsync_Should_WriteNeutral_When_TheHandlerIgnoresCancellation()
     {
         // arrange
-        // the handler ignores the linked token, so racing it against the entry timeout is the only way out
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(OpencodeHookFixtures.Read("session-idle.json"));
         var output = new StringWriter();
@@ -181,7 +178,7 @@ public sealed class OpencodeHookExecutorTests
     public async Task RunAsync_Should_WriteNeutral_When_TheDatabaseIsContended()
     {
         // arrange
-        // a second connection holds an open write transaction, so the heartbeat touch blocks on the lock
+        // A separate connection holds the write lock when the idle handler touches the heartbeat.
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-opencode-hook-executor-contention-tests");
 

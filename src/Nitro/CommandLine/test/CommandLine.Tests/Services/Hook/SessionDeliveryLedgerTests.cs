@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Exercises <see cref="SessionDeliveryLedger"/>'s reserve-then-emit contract against a real
-/// workspace database: at-most-once reservation per (session, message, channel), channel
-/// independence, and the crash-between-reserve-and-emit and simultaneous-handler scenarios.
+/// Tests <see cref="SessionDeliveryLedger"/> reservation uniqueness, channel
+/// independence, delivery lookup, and session ownership against a real workspace database.
 /// </summary>
 public sealed class SessionDeliveryLedgerTests : IDisposable
 {
@@ -38,7 +37,7 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
 
         // act
-        // no workspace was initialized, proving the empty case short-circuits before opening a connection
+        // The workspace directory has no initialized database.
         var reserved = await _ledger.ReserveAsync(
             s_generation, [], "digest", DateTimeOffset.UtcNow, cancellationToken);
 
@@ -119,7 +118,6 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
     public async Task ReserveAsync_Should_ExcludeAlreadyReservedMessageId_When_CalledAgain()
     {
         // arrange
-        // reserving the same message on the same channel twice must not reserve it again
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
         await _ledger.ReserveAsync(
@@ -137,7 +135,6 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
     public async Task ReserveAsync_Should_ReserveIndependently_When_ChannelDiffers()
     {
         // arrange
-        // a digest reservation must never suppress the same message on the gate or ping channel
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
         await _ledger.ReserveAsync(
@@ -158,7 +155,6 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
     public async Task ReserveAsync_Should_SplitReservationExactlyOnce_When_TwoSimultaneousHandlersRaceTheSameMessage()
     {
         // arrange
-        // two handlers race to reserve the same message on the same channel
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
 
@@ -168,7 +164,6 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
             _ledger.ReserveAsync(s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken));
 
         // assert
-        // exactly one of the two calls won the reservation, never both and never neither
         var totalReserved = results.Sum(r => r.Count);
         Assert.Equal(1, totalReserved);
     }
@@ -177,7 +172,6 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
     public async Task ReserveAsync_Should_ExcludeAStaleGeneration_When_TheSessionHostWasReplaced()
     {
         // arrange
-        // a stale generation must never reserve against a session whose host has been replaced
         var cancellationToken = TestContext.Current.CancellationToken;
         var replacement = new AgentSessionGeneration(Harness, SessionId, "host-2");
         await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);

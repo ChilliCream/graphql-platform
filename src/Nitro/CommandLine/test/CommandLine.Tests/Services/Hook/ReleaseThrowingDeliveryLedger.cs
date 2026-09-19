@@ -3,10 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Wraps a real <see cref="ISessionDeliveryLedger"/>, delegating
-/// <see cref="ReserveAsync(AgentSessionGeneration, IReadOnlyList{string}, string, DateTimeOffset, CancellationToken)"/>
-/// while <see cref="ReleaseAsync"/> always throws, standing in for a compensating release that
-/// itself fails.
+/// Delegates both reservation overloads to <see cref="ISessionDeliveryLedger"/>.
+/// <see cref="ReleaseAsync"/> throws <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class ReleaseThrowingDeliveryLedger(ISessionDeliveryLedger inner) : ISessionDeliveryLedger
 {

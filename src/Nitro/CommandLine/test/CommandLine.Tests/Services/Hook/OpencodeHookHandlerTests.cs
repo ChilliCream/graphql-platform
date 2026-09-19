@@ -80,8 +80,8 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     }
 
     /// <summary>
-    /// A session whose <c>serverUrl</c> reports the unbound placeholder must be demoted to
-    /// <c>endpoint_kind = 'none'</c> with the idle-push gate left unarmed.
+    /// A session reporting <c>serverBound: false</c> registers no push endpoint
+    /// and leaves the idle-push gate unarmed.
     /// </summary>
     [Fact]
     public async Task HandleSessionCreatedAsync_Should_RejectThePlaceholderServerUrl_When_ServerBoundIsFalse()
@@ -96,7 +96,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         // act
         await _handler.HandleSessionCreatedAsync(payload, dryRun: true, cancellationToken);
 
-        // assert: no endpoint is trusted enough to push into.
+        // assert
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
         Assert.Equal(AgentSessionEndpointKind.None, row.EndpointKind);
@@ -104,11 +104,9 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         Assert.Null(row.EndpointSecret);
 
         // assert
-        // the idle-push gate never armed, so the dispatcher's sole claimant finds nothing to claim
         Assert.False(await _sessions.ClaimIdlePushAsync(CurrentGeneration(), cancellationToken));
 
         // assert
-        // the announcement still arms, since it rides chat.message, not HTTP, unaffected by endpoint trust
         Assert.True(await _sessions.IsAnnouncementPendingAsync(CurrentGeneration(), cancellationToken));
     }
 
@@ -128,11 +126,9 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         await _handler.HandleSessionCreatedAsync(untrustedPayload, dryRun: true, cancellationToken);
 
         // act
-        // a genuine, non-Nitro-pushed chat message on that same, still-untrusted session
         await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        // the idle-push gate was never armed, so the dispatcher's sole claimant finds nothing to claim
         Assert.False(await _sessions.ClaimIdlePushAsync(CurrentGeneration(), cancellationToken));
     }
 
@@ -193,18 +189,17 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleSessionIdleAsync_Should_NotSpendTheIdlePushArmedFlag_When_ItArrivesBeforeTheDaemon()
     {
         // arrange
-        // HandleSessionCreatedAsync already armed the idle-push gate; ActorWakeDispatcher is its sole claimant
+        // Session creation arms the idle-push gate before the idle event.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
 
         // act
-        // the opencode-generated idle event reaches this hook before ActorWakeDispatcher's own poll does
+        // Handle the idle event before claiming the push gate.
         var outcome = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        // a neutral response, and the one-shot claim is still there for the dispatcher to spend
         Assert.Equal(OpencodeHookOutcome.Neutral, outcome);
         Assert.True(await _sessions.ClaimIdlePushAsync(CurrentGeneration(), cancellationToken));
     }
@@ -248,11 +243,11 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         // act
         var suppressed = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        // assert: the suppressed call never reaches the heartbeat touch.
+        // assert
         Assert.Equal(OpencodeHookOutcome.Neutral, suppressed);
         Assert.Equal(beforeSuppressed, (await FindRowAsync(cancellationToken))!.LastBeatAt);
 
-        // act: unsuppressed, the same event does touch the heartbeat.
+        // act
         _environmentVariables.Set("NITRO_HOOK_SUPPRESS", "0");
         var resumed = await _handler.HandleSessionIdleAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
@@ -265,7 +260,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_RemainNeutral_When_TheSessionIsDeletedBeforeReservation()
     {
         // arrange
-        // the first chat message already claimed the announcement, so only the digest reservation races deletion
+        // Claim the announcement before injecting deletion during digest reservation.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -333,7 +328,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_LeaveTheAnnouncementArmed_When_DigestReservationFails()
     {
         // arrange
-        // the digest step runs before the announcement is claimed, so the ledger is made to throw there
+        // Inject a reservation failure before the pending announcement is claimed.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -341,16 +336,13 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         var handler = CreateHandler(new ThrowingDeliveryLedger());
 
         // act
-        // the digest step throws before the claim is attempted, so nothing has committed and no compensation is needed
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken));
 
         // assert
-        // read directly off the registry row, not merely inferred from what the next message carries
         Assert.True(await _sessions.IsAnnouncementPendingAsync(CurrentGeneration(), cancellationToken));
 
         // assert
-        // the next message still announces exactly once, and the still-unread mail rides along in its digest
         var retry = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
         Assert.Contains("Your Nitro actor name is", retry.Parts[0]);
         var again = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
@@ -361,7 +353,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_RestoreTheDigestReservation_When_ClaimAnnouncementAsyncFails()
     {
         // arrange
-        // the digest reservation commits, then the registry write that follows it, ClaimAnnouncementAsync, throws
+        // Inject an announcement-claim failure after the digest reservation commits.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -373,7 +365,6 @@ public sealed class OpencodeHookHandlerTests : IDisposable
             () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken));
 
         // assert
-        // the reservation was released, so the retry still delivers the same digest and the still-armed announcement
         var retry = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
         Assert.Equal(2, retry.Parts.Count);
         Assert.Contains("Your Nitro actor name is", retry.Parts[0]);
@@ -384,7 +375,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_ReleaseOnlyThisTurnsReservations_When_ClaimAnnouncementAsyncFails()
     {
         // arrange
-        // a and b are unread for this turn to reserve, while c is still held by an earlier turn of the session
+        // Reserve c before the failing turn; a and b remain available to that turn.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -400,7 +391,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
             () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken));
 
         // assert
-        // a and b, this turn's own reservations, were released back to the ledger and can be reserved again
+        // This turn's reservations can be acquired again.
         var reReservedAb = await _ledger.ReserveAsync(
             CurrentGeneration(),
             [a.Id, b.Id],
@@ -410,7 +401,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         Assert.Equal(2, reReservedAb.Count);
 
         // assert
-        // c, held by an earlier turn of the same session, is untouched and still reserved
+        // The earlier reservation remains held.
         var reReservedC = await _ledger.ReserveAsync(
             CurrentGeneration(), [c.Id], AgentSessionChannel.Digest, _timeProvider.GetUtcNow(), cancellationToken);
         Assert.Empty(reReservedC);
@@ -420,7 +411,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_StillReleaseTheDigestReservation_When_TheTurnsTokenIsAlreadyCancelled()
     {
         // arrange
-        // the claim fails while this turn's own token is already cancelled
+        // The injected claim cancels the turn token before throwing.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -433,7 +424,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
             () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cts.Token));
 
         // assert
-        // the reservation was released despite the cancelled token, so a retry on a fresh token still delivers
+        // Retry with an uncancelled token.
         var retry = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
         Assert.Equal(2, retry.Parts.Count);
         Assert.Contains("Your Nitro actor name is", retry.Parts[0]);
@@ -444,7 +435,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_PropagateTheOriginalException_When_TheCompensatingReleaseThrows()
     {
         // arrange
-        // ClaimAnnouncementAsync fails, then the compensating release itself throws a distinct exception
+        // Inject distinct exceptions for the announcement claim and compensating release.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -457,7 +448,6 @@ public sealed class OpencodeHookHandlerTests : IDisposable
             () => handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken));
 
         // assert
-        // the propagated exception is the announcement-claim failure, not the release's NotSupportedException
         Assert.Equal("Simulated announcement-claim failure.", exception.Message);
     }
 
@@ -465,7 +455,6 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_AnnounceOnce_When_ThePreviousAppendWasReportedUndelivered()
     {
         // arrange
-        // the first chat message shows the announcement and claims the marker optimistically on emission
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await StartAndGetActorAsync(cancellationToken);
@@ -474,28 +463,26 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         undeliveredPayload.Delivered = false;
 
         // act
-        // the shim reports the first announcement never landed, so this turn re-arms and immediately reclaims it
+        // Report the previous announcement as undelivered.
         var undelivered = await _handler.HandleChatMessageAsync(undeliveredPayload, dryRun: true, cancellationToken);
 
         // assert
-        // the reporting turn announces exactly once
         Assert.Contains("Your Nitro actor name is", Assert.Single(undelivered.Parts));
 
         // act
-        // the message after that, once the retry is confirmed delivered
+        // Confirm delivery on the following turn.
         var confirmedPayload = Payload(SessionId);
         confirmedPayload.Delivered = true;
         var again = await _handler.HandleChatMessageAsync(confirmedPayload, dryRun: true, cancellationToken);
 
         // assert
-        // the confirming message stays neutral rather than repeating it
         Assert.Equal(OpencodeHookOutcome.Neutral, again);
     }
 
     [Fact]
     public async Task HandleChatMessageAsync_Should_AnnounceOnce_When_UndeliveredArrivesOnANitroPushedPayload()
     {
-        // arrange: the first chat message shows and claims the announcement.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await StartAndGetActorAsync(cancellationToken);
@@ -505,26 +492,24 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         pushedUndeliveredPayload.Delivered = false;
 
         // act
-        // the re-arm runs above the NitroPushed early return
+        // Report failed delivery on a Nitro-pushed turn.
         var pushed = await _handler.HandleChatMessageAsync(pushedUndeliveredPayload, dryRun: true, cancellationToken);
 
         // assert
-        // the pushed turn itself stays neutral
         Assert.Equal(OpencodeHookOutcome.Neutral, pushed);
 
         // act
-        // the next genuine chat message
+        // Submit a genuine chat message after the Nitro-pushed turn.
         var next = await _handler.HandleChatMessageAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
-        // it announces exactly once
         Assert.Contains("Your Nitro actor name is", Assert.Single(next.Parts));
     }
 
     [Fact]
     public async Task HandleChatMessageAsync_Should_NotAnnounceAgain_When_ADeliveredAnnouncementIsFollowedByANeutralTurn()
     {
-        // arrange: the first chat message shows and claims the announcement.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await StartAndGetActorAsync(cancellationToken);
@@ -533,19 +518,18 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         deliveredPayload.Delivered = true;
 
         // act
-        // the next turn confirms delivery but, like an ordinary steady-state turn, carries nothing to append
+        // Confirm delivery without adding new mail.
         var neutral = await _handler.HandleChatMessageAsync(deliveredPayload, dryRun: true, cancellationToken);
 
-        // assert: that turn stays neutral rather than re-announcing.
+        // assert
         Assert.Equal(OpencodeHookOutcome.Neutral, neutral);
 
-        // act: a further turn, still reporting delivery.
+        // act
         var stillDeliveredPayload = Payload(SessionId);
         stillDeliveredPayload.Delivered = true;
         var again = await _handler.HandleChatMessageAsync(stillDeliveredPayload, dryRun: true, cancellationToken);
 
         // assert
-        // it also stays neutral, and the registry row confirms the marker was never re-armed
         Assert.Equal(OpencodeHookOutcome.Neutral, again);
         Assert.False(await _sessions.IsAnnouncementPendingAsync(CurrentGeneration(), cancellationToken));
     }
@@ -554,7 +538,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_ReleaseTheDigestReservation_When_ThePreviousAppendWasReportedUndelivered()
     {
         // arrange
-        // the first chat message reserves and delivers the unread mail digest alongside the announcement
+        // Obtain the first response before reporting its append as undelivered.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -567,7 +551,6 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         var undelivered = await _handler.HandleChatMessageAsync(undeliveredPayload, dryRun: true, cancellationToken);
 
         // assert
-        // the still-unread message is reserved and delivered again, and the announcement rides along too
         Assert.Equal(2, first.Parts.Count);
         Assert.Equal(2, undelivered.Parts.Count);
         Assert.Contains("Your Nitro actor name is", undelivered.Parts[0]);
