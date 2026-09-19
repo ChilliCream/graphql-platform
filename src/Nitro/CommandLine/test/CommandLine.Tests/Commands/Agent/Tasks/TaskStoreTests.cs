@@ -6,11 +6,9 @@ using Microsoft.Extensions.Time.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
 
 /// <summary>
-/// Exercises the backend-agnostic read surface of <see cref="TaskStore"/>
-/// directly against a real SQLite workspace, seeded with raw SQL since the
-/// write surface is not implemented yet. Covers the DapperAOT-sensitive
-/// paths: TEXT timestamp columns, IN-array expansion, and record
-/// materialization.
+/// Exercises the backend-agnostic read surface of <see cref="TaskStore"/> directly against a
+/// real SQLite workspace, seeded with raw SQL. Covers the DapperAOT-sensitive paths: TEXT
+/// timestamp columns, IN-array expansion, and record materialization.
 /// </summary>
 public sealed class TaskStoreTests : IAsyncDisposable
 {
@@ -1132,9 +1130,8 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     /// <summary>
-    /// Returns the event_type column for every audit-log row on a task,
-    /// ordered by id, via plain ADO.NET so the test does not need its own
-    /// Dapper.AOT-compatible call shape.
+    /// Returns the event_type column for every audit-log row on a task, ordered by id, via
+    /// plain ADO.NET.
     /// </summary>
     private static async Task<List<string>> QueryEventTypesAsync(SqliteConnection connection, string taskId)
     {
@@ -1266,9 +1263,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     /// <summary>
-    /// Runs a parameterized statement via plain ADO.NET, sidestepping
-    /// Dapper.AOT's interceptor so the test project does not need its own
-    /// AOT-compatible call shapes.
+    /// Runs a parameterized statement via plain ADO.NET, sidestepping Dapper.AOT's interceptor.
     /// </summary>
     private static async Task ExecuteAsync(
         SqliteConnection connection,

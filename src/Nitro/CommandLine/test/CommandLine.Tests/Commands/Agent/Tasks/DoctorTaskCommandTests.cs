@@ -207,8 +207,7 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Removes a task row directly, bypassing tombstoning, so its labels and
-    /// comments become orphans for the doctor checks to find.
+    /// Removes a task row directly, bypassing tombstoning, which orphans its labels and comments.
     /// </summary>
     private async Task DeleteTaskRowAsync(string taskId, CancellationToken cancellationToken)
     {

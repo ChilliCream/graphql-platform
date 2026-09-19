@@ -332,7 +332,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Inserts a comment directly so the test controls created_at.
+    /// Inserts a comment directly, using the current fake time as <c>created_at</c>.
     /// </summary>
     private async Task InsertCommentAsync(
         string taskId, string author, string text, CancellationToken cancellationToken)

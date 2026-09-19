@@ -824,10 +824,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         => SeedV3WorkspaceAsync(prefix, WorkspaceDirectory);
 
     /// <summary>
-    /// Same as <see cref="SeedV3WorkspaceAsync(string)"/>, but at the given
-    /// workspace directory instead of the fallback <c>.nitro/agents</c>
-    /// path, so a test can seed a stale schema directly inside
-    /// <c>.git/nitro</c>.
+    /// Same as <see cref="SeedV3WorkspaceAsync(string)"/>, but at the given workspace directory
+    /// instead of the fallback <c>.nitro/agents</c> path.
     /// </summary>
     private async Task SeedV3WorkspaceAsync(string prefix, string workspaceDirectory)
     {
