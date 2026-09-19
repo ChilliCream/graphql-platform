@@ -1,4 +1,4 @@
-import { BRAND } from "../../../tokens";
+import { BRAND } from "../../tokens";
 import type { InstrumentLight, Tile } from "./chamber";
 import { hexToRgba, mixHexToRgba, whiteToRgba } from "./colors";
 import type { ShadedPoint } from "./plasma";

@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
-import { BRAND } from "../../../tokens";
-import { useElementMotion } from "../../../visuals/hooks";
+import { BRAND } from "../../tokens";
+import { useElementMotion } from "../../visuals/hooks";
 import {
   buildChamberTiles,
   buildInstrumentLights,
@@ -11,7 +11,7 @@ import {
 } from "./chamber";
 import { hexToRgba, warmWhiteToRgba, whiteToRgba } from "./colors";
 import { project, torusPoint } from "./geometry";
-import { computeLayout, type TokamakLayout } from "./layout";
+import { computeLayout, type TokamakLayout } from "./sceneLayout";
 import {
   paintColumnLayer,
   paintPlasmaLayer,

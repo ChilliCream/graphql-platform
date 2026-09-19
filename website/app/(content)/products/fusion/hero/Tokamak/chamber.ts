@@ -1,5 +1,5 @@
 import { project, ringPoint, type Camera } from "./geometry";
-import type { ChamberRow, TorusParams } from "./layout";
+import type { ChamberRow, TorusParams } from "./sceneLayout";
 
 interface Pt {
   readonly x: number;

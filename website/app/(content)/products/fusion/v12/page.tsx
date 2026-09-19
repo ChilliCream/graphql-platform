@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { FusionPage } from "../FusionPage";
 import { HeroShell } from "../_prototypes/HeroShell";
 import { PrototypeShell } from "../_prototypes/PrototypeShell";
-import Tokamak from "../_prototypes/heroes/Tokamak";
+import Tokamak from "../hero/Tokamak";
 
 export const metadata: Metadata = {
   title: "Prototype v12 - Tokamak",

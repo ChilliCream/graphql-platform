@@ -1,5 +1,5 @@
 import { nearFactor, project, torusPoint, type Camera } from "./geometry";
-import type { TorusParams } from "./layout";
+import type { TorusParams } from "./sceneLayout";
 
 interface Pt {
   readonly x: number;
