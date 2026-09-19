@@ -33,10 +33,8 @@ internal sealed class OpencodeHookPayload
     }
 
     /// <summary>
-    /// Whether the shim proved that opencode actually bound an HTTP server in this
-    /// process. Missing defaults to <c>false</c>, demoting an unproven
-    /// <see cref="ServerUrl"/> to <c>endpoint_kind = 'none'</c> rather than trusting
-    /// it.
+    /// Whether the shim reports a bound HTTP server. Missing or false prevents
+    /// <see cref="ServerUrl"/> from being registered as a push endpoint.
     /// </summary>
     [JsonPropertyName("serverBound")]
     public bool ServerBound { get; set; }
@@ -48,10 +46,8 @@ internal sealed class OpencodeHookPayload
     public bool NitroPushed { get; set; }
 
     /// <summary>
-    /// Whether the shim's PREVIOUS chat-message response actually reached
-    /// the model: true when it pushed at least one part, false when
-    /// appending threw, and null when the previous turn had no parts to
-    /// append or when this is the shim's first-ever report for the session.
+    /// Whether the shim confirmed the previous response, including a response with no parts.
+    /// False requests a delivery retry; null means no delivery report was supplied.
     /// </summary>
     [JsonPropertyName("nitroDelivered")]
     public bool? Delivered { get; set; }

@@ -1,8 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Handles opencode hook events without allowing hook failures to interrupt
-/// the harness.
+/// Handles opencode session lifecycle and prompt-context events.
+/// Exceptions propagate to the hook executor.
 /// </summary>
 internal interface IOpencodeHookHandler
 {

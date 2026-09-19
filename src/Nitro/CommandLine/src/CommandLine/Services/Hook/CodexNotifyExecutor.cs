@@ -3,21 +3,19 @@ using System.Text.Json;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The fail-open envelope <c>nitro agent hook codex notify</c> runs through.
-/// The exit code is part of the contract, not always success: this process finishes
-/// with the wrapped foreign program's own exit code when one is configured. A
-/// malformed payload, a handler exception, or the entry timeout still fall through
-/// to attempting the foreign exec.
+/// Runs Nitro notify handling, then attempts the configured foreign notify command
+/// even if Nitro handling fails or times out. Returns the foreign exit code when
+/// available, or zero when no exit code is obtained.
 /// </summary>
 internal static class CodexNotifyExecutor
 {
     /// <summary>
-    /// Same failure ceiling as <see cref="CodexHookExecutor.EntryTimeout"/>.
+    /// The default timeout for Nitro notify handling, excluding the foreign command.
     /// </summary>
     public static readonly TimeSpan EntryTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
-    /// The exit code when no foreign program is configured: success.
+    /// The exit code when no foreign exit code is available.
     /// </summary>
     private const int NoForeignExitCode = 0;
 
@@ -30,10 +28,6 @@ internal static class CodexNotifyExecutor
         => RunAsync(
             environmentVariables, handleOurWork, execForeign, payloadJson, EntryTimeout, cancellationToken);
 
-    /// <summary>
-    /// Overload taking an explicit <paramref name="timeout"/> instead of
-    /// <see cref="EntryTimeout"/>.
-    /// </summary>
     internal static async Task<int> RunAsync(
         IEnvironmentVariableProvider environmentVariables,
         Func<CodexNotifyPayload, CancellationToken, Task<CodexNotifyOutcome>> handleOurWork,
@@ -47,8 +41,7 @@ internal static class CodexNotifyExecutor
             await RunOurWorkAsync(handleOurWork, payloadJson, timeout, cancellationToken);
         }
 
-        // NITRO_HOOK_SUPPRESS only suppresses our own mail work; it must never
-        // suppress the foreign program the operator configured.
+        // NITRO_HOOK_SUPPRESS does not suppress the foreign notify command.
         var foreignExitCode = await TryExecForeignAsync(execForeign, cancellationToken);
 
         return foreignExitCode ?? NoForeignExitCode;
@@ -78,14 +71,11 @@ internal static class CodexNotifyExecutor
 
             await Task.WhenAny(runTask, timeoutTask);
 
-            // Either the handler finished, or the entry timeout won the race and
-            // runTask is abandoned rather than awaited. The foreign exec below is
-            // unconditional either way.
+            // The foreign command is attempted after the handler completes or the timeout elapses.
         }
         catch
         {
-            // Fail-open on everything: malformed payload JSON or a handler
-            // exception. The foreign exec below still runs regardless.
+            // Nitro handling failures do not prevent the foreign command from being attempted.
         }
     }
 
@@ -98,8 +88,7 @@ internal static class CodexNotifyExecutor
         }
         catch
         {
-            // Fail-open: a spawn-time failure in the caller's own foreign-exec
-            // delegate must not crash this process either.
+            // A failed foreign invocation supplies no exit code.
             return null;
         }
     }

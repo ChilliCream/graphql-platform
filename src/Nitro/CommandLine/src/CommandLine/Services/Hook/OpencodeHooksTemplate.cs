@@ -19,18 +19,15 @@ internal static class OpencodeHooksTemplate
             const timeoutMilliseconds = 10_000;
             const nitroPushedPrefix = "{{EscapeJavaScriptString(OpencodeHookProtocol.PushedPromptPrefix)}}";
             const activeSessions = new Map();
-            // sessionId -> whether the last chat-message response's parts landed on
-            // output.parts. Reported to the hook process on the next chat-message
-            // payload as nitroDelivered.
+            // Records whether each session's previous response was confirmed, including
+            // a response with no parts; the next payload reports this as nitroDelivered.
             const appendOutcomes = new Map();
 
             function sessionId(properties) {
               return properties.sessionID ?? properties.sessionId ?? properties.session?.id ?? properties.info?.id;
             }
 
-            // Reading pluginInput.serverUrl twice and comparing by reference
-            // distinguishes a bound server (same object) from an unbound one (a fresh
-            // placeholder on every read).
+            // Reports the server URL and whether consecutive reads return the same URL object.
             function payload(properties, pluginInput) {
               const first = pluginInput.serverUrl;
               const second = pluginInput.serverUrl;
@@ -95,9 +92,8 @@ internal static class OpencodeHooksTemplate
               return undefined;
             }
 
-            // Appends response parts onto output.parts as synthetic text parts.
-            // Returns the number of parts pushed, 0 when there was nothing to push, or
-            // false when there were candidate parts but none made it onto output.parts.
+            // Appends synthetic text parts and returns the count added, including zero for
+            // no candidates, or false when no candidate can be appended or an exception occurs.
             function appendParts(output, response) {
               try {
                 const parts = response.parts ?? response.additionalContext ?? [];
@@ -132,8 +128,6 @@ internal static class OpencodeHooksTemplate
 
                 return parts.length > 0 && pushed === 0 ? false : pushed;
               } catch {
-                // Missing or malformed context is an acceptable degradation; a
-                // rejected prompt is not.
                 return false;
               }
             }
@@ -183,23 +177,19 @@ internal static class OpencodeHooksTemplate
                   }
                 },
                 "chat.message": async (input, output) => {
-                  // OpenCode exposes the message actually delivered to the
-                  // model on output.parts, not input.parts, so the pushed
-                  // prefix must be read and stripped there.
+                  // Reads and removes the push marker from the prompt parts in output.parts.
                   const nitroPushed = stripNitroPushedPrefix(output.parts);
                   const chatSessionId = input.sessionID ?? input.sessionId;
                   const body = {
                     ...payload({ sessionID: chatSessionId }, pluginInput),
                     nitroPushed,
                   };
-                  // An absent map entry (first turn, or the server restarted) reports
-                  // as false rather than being guessed as harmless.
+                  // No recorded result, including after a restart, is reported as unconfirmed.
                   const previousDelivered = appendOutcomes.get(chatSessionId) ?? false;
                   body.nitroDelivered = previousDelivered;
 
                   const response = await invoke("chat-message", body);
-                  // response is undefined when the round trip to the hook process was
-                  // lost entirely; treat it as undelivered rather than a neutral response.
+                  // A missing hook response is reported as unconfirmed.
                   const pushed = response === undefined ? false : appendParts(output, response);
 
                   if (pushed === false) {
@@ -207,13 +197,12 @@ internal static class OpencodeHooksTemplate
                   } else if (pushed > 0) {
                     appendOutcomes.set(chatSessionId, true);
                   } else {
-                    // Nothing to deliver is not a delivery failure: record true so an
-                    // absent entry never means "had nothing to say".
+                    // A response with no parts counts as confirmed.
                     appendOutcomes.set(chatSessionId, true);
                   }
                 },
                 dispose: async () => {
-                  // Session deletion is the authoritative cleanup path. This is best effort only.
+                  // Cleanup is handled by session-deleted events and the process exit handler.
                 },
               };
             }

@@ -63,10 +63,8 @@ internal sealed class ClaudeHooksInstallerService(
     }
 
     /// <summary>
-    /// Re-reads the destination immediately before writing and compares its hash
-    /// against the one captured when the caller first read it, aborting rather than
-    /// clobbering a concurrent edit. Only writes when the new content actually
-    /// differs.
+    /// Writes changed content only when the destination hash, re-read immediately
+    /// before writing, matches the hash captured by the caller.
     /// </summary>
     private async Task WriteIfUnchangedSinceReadAsync(
         string path, string hashAtRead, string newText, CancellationToken cancellationToken)
@@ -107,10 +105,8 @@ internal sealed class ClaudeHooksInstallerService(
         => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text ?? string.Empty)));
 
     /// <summary>
-    /// Applies <paramref name="mutate"/> to the sidecar and writes it back,
-    /// retrying the read-modify-write cycle when a concurrent install or
-    /// uninstall changed the sidecar between this call's read and its
-    /// write. Gives up after a bounded number of attempts.
+    /// Applies <paramref name="mutate"/> and writes the sidecar, retrying reported hash
+    /// mismatches up to five times before throwing <see cref="ExitException"/>.
     /// </summary>
     private async Task UpdateSidecarAsync(
         Action<ClaudeHooksSidecarFile> mutate, CancellationToken cancellationToken)

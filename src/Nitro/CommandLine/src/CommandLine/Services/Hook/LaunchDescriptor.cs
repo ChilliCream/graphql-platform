@@ -10,11 +10,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal sealed record LaunchDescriptor(string Executable, IReadOnlyList<string> ArgumentPrefix)
 {
     /// <summary>
-    /// Builds a shell command line invoking this descriptor followed by
-    /// <paramref name="argv"/>, each token quoted only where needed so the
-    /// literal words (in particular the ownership marker
-    /// <see cref="ClaudeHooksTemplate.CommandMarker"/>) stay recognizable as
-    /// plain substrings of the result.
+    /// Builds a POSIX shell command from the executable, argument prefix, and
+    /// <paramref name="argv"/>, quoting tokens that require escaping.
     /// </summary>
     public string BuildCommandLine(IReadOnlyList<string> argv)
     {
@@ -26,8 +23,7 @@ internal sealed record LaunchDescriptor(string Executable, IReadOnlyList<string>
     }
 
     /// <summary>
-    /// POSIX-shell single-quote escaping, applied only to tokens containing
-    /// a character a shell would otherwise treat specially.
+    /// Quotes a token for use as one POSIX shell argument, including an empty token.
     /// </summary>
     internal static string ShellQuote(string token)
     {
@@ -43,9 +39,7 @@ internal sealed record LaunchDescriptor(string Executable, IReadOnlyList<string>
         {
             if (ch == '\'')
             {
-                // Close the quote, emit an escaped single quote outside it,
-                // then reopen: POSIX shells have no escape character inside
-                // single quotes.
+                // Close the quoted segment, emit an escaped quote, then reopen the segment.
                 builder.Append("'\\''");
             }
             else

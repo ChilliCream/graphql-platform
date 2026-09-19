@@ -4,12 +4,9 @@ using System.Text.RegularExpressions;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Narrow, line-based editing for the top-level <c>notify = [...]</c> key in a Codex
-/// CLI <c>config.toml</c>. Every other line, including other top-level keys and
-/// tables, is left untouched; a <c>notify</c> key inside a table is unrelated and
-/// never touched. Only the single-line, double-quoted string array form this
-/// installer writes is understood; anything else under a top-level <c>notify</c>
-/// key throws <see cref="ExitException"/>.
+/// Edits the top-level <c>notify</c> string array in Codex configuration while
+/// preserving other lines except for CRLF-to-LF normalization. Unsupported
+/// <c>notify</c> value forms throw <see cref="ExitException"/>.
 /// </summary>
 internal static partial class CodexConfigTomlNotifyEditor
 {
@@ -25,12 +22,11 @@ internal static partial class CodexConfigTomlNotifyEditor
     public sealed record UninstallResult(string ConfigToml, HookUninstallOutcome Outcome);
 
     /// <summary>
-    /// Installs <paramref name="ourArgv"/> as the top-level <c>notify</c> value.
-    /// <paramref name="recordedOurArgv"/> is the sidecar's own last-installed argv,
-    /// or null on a first install. Returns the <c>NewPriorForeign</c> the caller
-    /// should persist: null when nothing foreign exists, <paramref name="recordedPriorForeign"/>
-    /// carried forward when the on-disk value was our own stale entry, or the
-    /// freshly captured value when the on-disk value belongs to a different program.
+    /// Installs <paramref name="ourArgv"/> as the top-level <c>notify</c> value, using
+    /// <paramref name="recordedOurArgv"/> to recognize a prior installation when present.
+    /// Returns the prior foreign arguments to retain: null for a missing key,
+    /// <paramref name="recordedPriorForeign"/> for a current or recorded Nitro entry,
+    /// or the replaced arguments for another entry.
     /// </summary>
     public static InstallResult Install(
         string? existingConfigToml,
@@ -86,9 +82,9 @@ internal static partial class CodexConfigTomlNotifyEditor
     }
 
     /// <summary>
-    /// Restores <paramref name="recordedPriorForeign"/> verbatim, or removes the key
-    /// when it is null, but only when the on-disk value is still exactly
-    /// <paramref name="ourArgv"/>. A foreign edit since install is left untouched.
+    /// Restores <paramref name="recordedPriorForeign"/> as the argument array, or removes
+    /// the key when it is null, only if the current arguments match <paramref name="ourArgv"/>.
+    /// Other argument values are preserved.
     /// </summary>
     public static UninstallResult Uninstall(
         string? existingConfigToml,
@@ -107,8 +103,6 @@ internal static partial class CodexConfigTomlNotifyEditor
 
         if (!ArgvEquals(existingArgv, ourArgv))
         {
-            // Not ours (never installed, or edited since): leave it exactly
-            // as found.
             return new UninstallResult(JoinLines(lines), HookUninstallOutcome.NotPresent);
         }
 
@@ -283,8 +277,7 @@ internal static partial class CodexConfigTomlNotifyEditor
         => a.SequenceEqual(b, StringComparer.Ordinal);
 
     /// <summary>
-    /// Normalizes CRLF to LF on read. A CRLF-authored config.toml round-trips as LF
-    /// even through a no-op call.
+    /// Splits text into lines with CRLF normalized to LF; null or empty text yields no lines.
     /// </summary>
     private static List<string> SplitLines(string? text)
         => string.IsNullOrEmpty(text)

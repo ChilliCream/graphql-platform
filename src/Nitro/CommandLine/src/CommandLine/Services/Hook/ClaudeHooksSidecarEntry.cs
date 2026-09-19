@@ -5,9 +5,7 @@ using System.Text.Json.Serialization;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// One event's recorded installation: the exact command and timeout this CLI
-/// wrote, and their hash. Proof that this install wrote this exact entry, which
-/// lets uninstall remove precisely what it installed.
+/// The command, timeout, hash, and installation time recorded for one Claude hook event.
 /// </summary>
 internal sealed record ClaudeHooksSidecarEntry(
     [property: JsonPropertyName("command")] string Command,

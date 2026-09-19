@@ -1,9 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Reads and writes the Claude hooks sidecar file under the global config
-/// directory. Read failures (missing file, corrupt JSON) resolve to
-/// <see cref="ClaudeHooksSidecarFile.Empty"/> rather than throwing.
+/// Reads and writes the Claude hooks sidecar in the global configuration directory.
+/// A missing file, JSON null, or invalid JSON yields <see cref="ClaudeHooksSidecarFile.Empty"/>.
 /// </summary>
 internal interface IClaudeHooksSidecarStore
 {
@@ -16,13 +15,8 @@ internal interface IClaudeHooksSidecarStore
     Task<(ClaudeHooksSidecarFile File, string Hash)> ReadWithHashAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    /// The concurrency guard for the sidecar's read-modify-write cycle:
-    /// re-reads the sidecar file immediately before writing and compares its
-    /// hash against <paramref name="hashAtRead"/>, the one captured by the
-    /// caller's earlier <see cref="ReadWithHashAsync"/>. A mismatch means a
-    /// concurrent install or uninstall wrote to the sidecar in between; this
-    /// reports the mismatch to the caller instead of writing, returning
-    /// <see langword="false"/>.
+    /// Writes the sidecar when its current text hash matches <paramref name="hashAtRead"/>.
+    /// Returns false without writing when the hashes differ.
     /// </summary>
     Task<bool> WriteIfUnchangedAsync(ClaudeHooksSidecarFile file, string hashAtRead, CancellationToken cancellationToken);
 }

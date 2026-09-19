@@ -1,23 +1,21 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Implements the Codex turn-boundary event state machine: presence upsert on
-/// <c>SessionStart</c>, the unread-mail digest on <c>UserPromptSubmit</c>, presence
-/// teardown on <c>SessionEnd</c>, and the idle-turn gate on the separate
-/// <c>notify</c> mechanism. Every member is fail-open by contract.
+/// Handles Codex session registration, unread-mail context, session removal, and
+/// notify delivery. Exceptions propagate to the hook executor.
 /// </summary>
 internal interface ICodexHookHandler
 {
     /// <summary>
-    /// Upserts the session's presence row. <paramref name="dryRun"/> skips every
-    /// side effect outside the workspace database.
+    /// Registers the session and returns its actor context.
     /// </summary>
     Task<CodexHookOutcome> HandleSessionStartAsync(
         CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns the unread-mail digest for messages not yet delivered on the digest
-    /// channel, or <see cref="CodexHookOutcome.Neutral"/> when there is nothing new.
+    /// Returns an unread-mail digest or count reminder for
+    /// newly reserved messages in the current inbox batch, or a neutral outcome when
+    /// no context is available.
     /// </summary>
     Task<CodexHookOutcome> HandleUserPromptSubmitAsync(
         CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken);

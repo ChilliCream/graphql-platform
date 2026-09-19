@@ -1,10 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The desired Codex CLI <c>config.toml</c> <c>notify</c> program this installer
-/// writes: an argv array, always exactly this CLI's launch descriptor followed by
-/// <c>agent hook codex notify</c>. Wrapping a foreign notify value never changes
-/// this array; the wrapping happens inside the installed <c>notify</c> command.
+/// Builds the notify command arguments from the launch descriptor followed by
+/// <c>agent hook codex notify</c>.
 /// </summary>
 internal static class CodexNotifyTemplate
 {

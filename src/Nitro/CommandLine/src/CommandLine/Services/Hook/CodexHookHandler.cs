@@ -120,8 +120,6 @@ internal sealed class CodexHookHandler(
             return CodexHookOutcome.Neutral;
         }
 
-        // The actor name is not repeated here; session-start already announces it.
-        // This event only speaks up when there is unread mail to announce.
         var digest = await BuildDigestAsync(
             resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
 
@@ -181,18 +179,15 @@ internal sealed class CodexHookHandler(
             return CodexNotifyOutcome.Neutral;
         }
 
-        // The ledger claim above stands regardless of whether this call succeeds, so
-        // a queue failure suppresses this digest on the gate channel rather than
-        // retrying or duplicating it.
+        // Gate reservations remain claimed even if queueing fails.
         var queueResult = await queueClient.QueueAsync(payload.ThreadId, digest.Text, cancellationToken);
 
         return new CodexNotifyOutcome { Queued = queueResult == CodexQueueResult.Ok };
     }
 
     /// <summary>
-    /// The unread-mail digest for this session on <paramref name="channel"/>,
-    /// or null when nothing is unread or every message is already reserved on
-    /// that channel.
+    /// Returns a digest or unread-count reminder for newly reserved messages in the
+    /// current inbox batch, or null when that batch yields no reservations.
     /// </summary>
     private async Task<MailDigestResult?> BuildDigestAsync(
         AgentSessionGeneration generation,
@@ -236,9 +231,8 @@ internal sealed class CodexHookHandler(
     }
 
     /// <summary>
-    /// Resolves the generation identity and workspace an event's payload addresses,
-    /// or null when the cwd or session/thread id is missing or unresolvable, or when
-    /// this process's own cwd resolves to a different workspace.
+    /// Resolves the session identity and workspace, or null when the session id or cwd
+    /// is missing, no workspace is found, or the payload and process workspaces differ.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
         CodexHookPayload payload, CancellationToken cancellationToken)

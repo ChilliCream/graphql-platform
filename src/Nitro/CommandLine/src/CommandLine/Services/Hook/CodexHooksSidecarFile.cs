@@ -3,8 +3,8 @@ using System.Text.Json.Serialization;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The sidecar file recording only the <c>config.toml</c> <c>notify</c>
-/// value Nitro replaced, keyed by the absolute config path.
+/// The installed notify arguments and prior foreign arguments, keyed by absolute
+/// configuration path.
 /// </summary>
 internal sealed record CodexHooksSidecarFile(
     [property: JsonPropertyName("version")] int Version,

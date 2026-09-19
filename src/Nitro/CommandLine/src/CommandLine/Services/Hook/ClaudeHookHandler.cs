@@ -16,9 +16,7 @@ internal sealed class ClaudeHookHandler(
     IGlobalConfigDirectoryProvider globalConfigDirectoryProvider) : IClaudeHookHandler
 {
     /// <summary>
-    /// The per-turn Stop gate block budget, reset on <c>UserPromptSubmit</c>
-    /// so normal mail volume can never silently disable the gate for the
-    /// rest of the conversation.
+    /// The maximum number of Stop blocks per turn, reset on <c>UserPromptSubmit</c>.
     /// </summary>
     public const int MaxBlocksPerTurn = 3;
 
@@ -107,8 +105,6 @@ internal sealed class ClaudeHookHandler(
 
         await sessionRegistry.ResetBlockBudgetAsync(resolved.Generation, cancellationToken);
 
-        // The actor name is not repeated here; SessionStart already announces it.
-        // This event only speaks up when there is unread mail to announce.
         var digest = await BuildDigestAsync(
             resolved.Generation, row.AgentName, AgentSessionChannel.Digest, cancellationToken);
 
@@ -143,8 +139,7 @@ internal sealed class ClaudeHookHandler(
 
         if (row.BlockBudgetUsed >= MaxBlocksPerTurn)
         {
-            // Over budget: candidates are left unreserved so a fresh
-            // UserPromptSubmit budget reset can still gate them later.
+            // The exhausted budget leaves candidates unreserved for a later turn.
             return ClaudeHookOutcome.Neutral;
         }
 
@@ -160,8 +155,7 @@ internal sealed class ClaudeHookHandler(
 
         if (incremented is null)
         {
-            // The row was deleted (SessionEnd) between the FindByGenerationAsync
-            // above and this increment: nothing left to gate on behalf of.
+            // The session ended before the budget could be incremented.
             return ClaudeHookOutcome.Neutral;
         }
 
@@ -188,8 +182,8 @@ internal sealed class ClaudeHookHandler(
     }
 
     /// <summary>
-    /// The unread-mail digest for this session and channel, or null when
-    /// nothing is unread or every message is already reserved on the channel.
+    /// Returns a digest or unread-count reminder for newly reserved messages in the
+    /// current inbox batch, or null when that batch yields no reservations.
     /// </summary>
     private async Task<MailDigestResult?> BuildDigestAsync(
         AgentSessionGeneration generation,
@@ -234,10 +228,9 @@ internal sealed class ClaudeHookHandler(
     }
 
     /// <summary>
-    /// Resolves the generation identity and workspace an event's payload addresses,
-    /// or null when the cwd or session id is missing or unresolvable, or when this
-    /// process's own cwd resolves to a different workspace. A dry run does not
-    /// consult the session file.
+    /// Resolves the session identity and workspace, or null when the session id or cwd
+    /// is missing, no workspace is found, or the payload and process workspaces differ.
+    /// A dry run skips reading the session file.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
         ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)

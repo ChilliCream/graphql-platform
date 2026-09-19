@@ -3,10 +3,8 @@ using System.Text.Json.Serialization;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Source-generated (de)serialization for the Codex hook and notify wire types.
-/// <see cref="CodexHookPayload"/>/<see cref="CodexNotifyPayload"/> deserialize
-/// Codex's own field-name casing, and <see cref="CodexHookResponse"/> must omit
-/// null properties so the neutral response is exactly <c>{}</c>.
+/// Serializes Codex hook responses and deserializes hook and notify payloads using their wire
+/// field names. Null response properties are omitted.
 /// </summary>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

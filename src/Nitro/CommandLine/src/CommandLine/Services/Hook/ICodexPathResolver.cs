@@ -1,9 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Resolves the Codex CLI config paths this installer writes:
-/// <c>~/.codex/hooks.json</c> and <c>~/.codex/config.toml</c>. <c>CODEX_HOME</c> is
-/// a per-user, not per-repo, concept, so there is no project-scope variant.
+/// Resolves <c>hooks.json</c> and <c>config.toml</c> under a nonempty
+/// <c>CODEX_HOME</c>, or under <c>~/.codex</c> when it is unset or empty.
 /// </summary>
 internal interface ICodexPathResolver
 {

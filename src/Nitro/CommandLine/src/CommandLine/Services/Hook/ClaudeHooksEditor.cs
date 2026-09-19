@@ -4,9 +4,7 @@ using System.Text.Json.Nodes;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Pure JSON-text editing for a Claude Code <c>settings.json</c>'s <c>hooks</c>
-/// section. Foreign structure round-trips through <see cref="JsonNode"/> untouched;
-/// only the group(s) this installer owns are added, replaced, or removed.
+/// Edits Nitro-owned hook groups in Claude settings JSON.
 /// </summary>
 internal static class ClaudeHooksEditor
 {
@@ -28,10 +26,9 @@ internal static class ClaudeHooksEditor
         IReadOnlyList<HookUninstallEventResult> Outcomes);
 
     /// <summary>
-    /// Adds or replaces the single Nitro-owned hook group under each managed event.
-    /// A group counts as Nitro-owned when every hook entry inside it carries
-    /// <see cref="ClaudeHooksTemplate.CommandMarker"/>; any group failing that test
-    /// is left alone as foreign.
+    /// Adds a Nitro hook group for each managed event or updates the first existing
+    /// Nitro-owned group. A nonempty group is Nitro-owned when every hook command
+    /// contains the ownership marker.
     /// </summary>
     public static InstallResult Install(
         string? existingSettingsJson,
@@ -83,9 +80,9 @@ internal static class ClaudeHooksEditor
     }
 
     /// <summary>
-    /// Reports, per managed event, whether an installed entry matches the current
-    /// template exactly (Installed), a Nitro-owned entry exists but its text differs
-    /// (Outdated), or no Nitro-owned entry exists (Missing). Never mutates.
+    /// Reports Installed when the first hook in the first Nitro-owned group has the
+    /// expected command and timeout, Outdated when either differs, or Missing when
+    /// no owned group exists.
     /// </summary>
     public static IReadOnlyList<HookStatusEventResult> Status(
         string? existingSettingsJson, LaunchDescriptor descriptor)
@@ -120,11 +117,8 @@ internal static class ClaudeHooksEditor
     }
 
     /// <summary>
-    /// Removes only this installer's own entries. For each event, prefers removing
-    /// the group whose command exactly matches <paramref name="priorSidecar"/>'s
-    /// recorded text, falling back to marker-based group removal when the sidecar
-    /// has no record or the recorded text no longer matches anything on disk. A
-    /// foreign entry sharing the same event is never touched.
+    /// Removes one matching group per managed event, preferring the recorded command
+    /// and falling back to the ownership marker. Other groups are preserved.
     /// </summary>
     public static UninstallResult Uninstall(
         string? existingSettingsJson,
@@ -172,7 +166,6 @@ internal static class ClaudeHooksEditor
             root.Remove(HooksKey);
         }
 
-        // The caller persists an empty entry set for this installer after uninstall.
         return new UninstallResult(
             Serialize(root), new Dictionary<string, ClaudeHooksSidecarEntry>(), outcomes);
     }
@@ -231,11 +224,6 @@ internal static class ClaudeHooksEditor
         return created;
     }
 
-    /// <summary>
-    /// Appends a <see cref="JsonObject"/> group through <see cref="JsonArray"/>'s
-    /// <see cref="IList{T}"/> implementation, avoiding the trim/AOT warning of the
-    /// generic <c>Add&lt;T&gt;</c> overload.
-    /// </summary>
     private static void AppendGroup(JsonArray array, JsonObject group)
         => ((IList<JsonNode?>)array).Add(group);
 

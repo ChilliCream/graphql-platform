@@ -1,8 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The one line a session-start hook injects to tell an agent which actor it
-/// acts as.
+/// Formats the actor name and optional role announced to an agent.
 /// </summary>
 internal static class AgentActorContext
 {

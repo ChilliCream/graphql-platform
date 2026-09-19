@@ -19,9 +19,7 @@ internal sealed class LaunchDescriptorResolver : ILaunchDescriptorResolver
     {
         var processName = Path.GetFileNameWithoutExtension(processPath);
 
-        // A .NET global tool's argv[0] points at the package's internal .store DLL;
-        // appending it would pass it to Nitro as a user argument. Store the stable
-        // command name instead.
+        // A Nitro tool invocation resolves to the command name without its internal DLL path.
         if (string.Equals(processName, "nitro", StringComparison.OrdinalIgnoreCase)
             && arg0?.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) == true)
         {

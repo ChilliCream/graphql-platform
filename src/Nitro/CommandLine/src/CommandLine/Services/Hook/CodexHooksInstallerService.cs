@@ -101,12 +101,8 @@ internal sealed class CodexHooksInstallerService(
     }
 
     /// <summary>
-    /// Same concurrency guard as
-    /// <c>ClaudeHooksInstallerService.WriteIfUnchangedSinceReadAsync</c>:
-    /// re-reads immediately before writing and aborts on a hash mismatch
-    /// instead of clobbering a concurrent edit. Writes nothing when the new
-    /// content is identical, so a no-op install/uninstall never touches the
-    /// file's mtime.
+    /// Writes changed content only when the destination hash, re-read immediately
+    /// before writing, matches the hash captured by the caller.
     /// </summary>
     private async Task WriteIfUnchangedSinceReadAsync(
         string path, string hashAtRead, string newText, CancellationToken cancellationToken)

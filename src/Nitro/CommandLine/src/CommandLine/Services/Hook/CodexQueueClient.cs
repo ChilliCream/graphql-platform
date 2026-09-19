@@ -5,8 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal sealed class CodexQueueClient : ICodexQueueClient
 {
     /// <summary>
-    /// Bounds the subprocess well inside the hook/notify entry timeout
-    /// enforced by the caller.
+    /// The timeout for waiting for queue completion and reading its error output.
     /// </summary>
     private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(5);
 
@@ -31,10 +30,6 @@ internal sealed class CodexQueueClient : ICodexQueueClient
 
             try
             {
-                // Read stderr concurrently with waiting for exit: the pipe's
-                // buffer is bounded, so a caller that waits for exit first
-                // and reads after can deadlock against a child that blocks
-                // writing a large enough error message.
                 var stderrTask = process.StandardError.ReadToEndAsync(linkedSource.Token);
                 await process.WaitForExitAsync(linkedSource.Token);
                 stderr = await stderrTask;
@@ -49,8 +44,6 @@ internal sealed class CodexQueueClient : ICodexQueueClient
         }
         catch
         {
-            // Fail-open: no "codex" on PATH, permission denied, or any other
-            // spawn-time failure.
             return CodexQueueResult.Error;
         }
     }
@@ -82,7 +75,7 @@ internal sealed class CodexQueueClient : ICodexQueueClient
         }
         catch
         {
-            // Already exited between the timeout and this call.
+            // Process termination is best effort.
         }
     }
 

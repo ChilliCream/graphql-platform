@@ -1,7 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The text parts an opencode hook appends to a chat response.
+/// The context parts an opencode hook returns for the current prompt.
 /// </summary>
 internal sealed record OpencodeHookOutcome
 {
@@ -11,7 +11,7 @@ internal sealed record OpencodeHookOutcome
     public static readonly OpencodeHookOutcome Neutral = new();
 
     /// <summary>
-    /// Text parts for the shim to append to the current chat response.
+    /// Text parts for the shim to append to the current prompt; an empty list adds no context.
     /// </summary>
     public IReadOnlyList<string> Parts { get; init; } = [];
 }

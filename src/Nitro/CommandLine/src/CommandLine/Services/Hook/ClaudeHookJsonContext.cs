@@ -3,10 +3,8 @@ using System.Text.Json.Serialization;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// Source-generated (de)serialization for the Claude hook wire types.
-/// <see cref="ClaudeHookPayload"/> deserializes Claude's own snake_case field
-/// names, and <see cref="ClaudeHookResponse"/> must omit null properties so the
-/// neutral response is exactly <c>{}</c>.
+/// Serializes Claude hook responses and deserializes hook payloads using their wire
+/// field names. Null response properties are omitted.
 /// </summary>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

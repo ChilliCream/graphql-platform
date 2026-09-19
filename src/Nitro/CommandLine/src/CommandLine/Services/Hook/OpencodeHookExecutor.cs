@@ -5,17 +5,14 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 
 /// <summary>
-/// The fail-open envelope every <c>nitro agent hook opencode &lt;event&gt;</c>
-/// subcommand runs its handler through. A malformed payload, database
-/// contention, a schema version mismatch, a missing workspace, any exception a
-/// handler raises, and the timeout itself all resolve to the same neutral
-/// <c>{}</c> response.
+/// Executes Opencode hook handlers with a timeout and writes their JSON responses.
+/// Malformed input, handler failures, and timeouts produce a neutral response; a
+/// schema mismatch also writes a diagnostic to stderr and returns exit code 1.
 /// </summary>
 internal static class OpencodeHookExecutor
 {
     /// <summary>
-    /// The point past which a hung handler must not be allowed to wedge opencode's
-    /// turn any longer.
+    /// The default timeout for reading the payload and running the handler.
     /// </summary>
     public static readonly TimeSpan EntryTimeout = TimeSpan.FromSeconds(10);
 
@@ -28,10 +25,6 @@ internal static class OpencodeHookExecutor
         CancellationToken cancellationToken)
         => RunAsync(environmentVariables, input, output, error, handle, EntryTimeout, cancellationToken);
 
-    /// <summary>
-    /// Overload taking an explicit <paramref name="timeout"/> instead of
-    /// <see cref="EntryTimeout"/>.
-    /// </summary>
     internal static async Task<int> RunAsync(
         IEnvironmentVariableProvider environmentVariables,
         TextReader input,
@@ -65,13 +58,10 @@ internal static class OpencodeHookExecutor
                 outcome = await runTask;
             }
 
-            // Else: the entry timeout won the race, and outcome stays neutral without
-            // awaiting runTask.
+            // A timeout leaves the outcome neutral without waiting for the handler to finish.
         }
         catch (AgentWorkspaceSchemaMismatchException exception)
         {
-            // Reported rather than swallowed: a stale schema keeps every hook of
-            // every session inert until someone migrates it.
             await error.WriteLineAsync(exception.Message.AsMemory(), cancellationToken);
             await WriteAsync(output, OpencodeHookOutcome.Neutral, cancellationToken);
 
@@ -79,8 +69,6 @@ internal static class OpencodeHookExecutor
         }
         catch
         {
-            // Fail-open on everything else: an empty or malformed payload, or a
-            // handler exception.
             outcome = OpencodeHookOutcome.Neutral;
         }
 
@@ -101,12 +89,10 @@ internal static class OpencodeHookExecutor
         return payload is null ? OpencodeHookOutcome.Neutral : await handle(payload, cancellationToken);
     }
 
-    // Always success: a hook adapter reports failure through its own JSON protocol,
-    // never through the process exit code.
     private const int ExitCode = 0;
 
     /// <summary>
-    /// The nonzero exit a hook uses to report a condition the user has to act on.
+    /// The exit code returned for a workspace schema mismatch.
     /// </summary>
     private const int FailureExitCode = 1;
 

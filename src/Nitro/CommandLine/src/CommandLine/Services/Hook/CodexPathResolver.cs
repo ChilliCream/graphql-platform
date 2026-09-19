@@ -8,7 +8,7 @@ internal sealed class CodexPathResolver(IEnvironmentVariableProvider environment
     public string ResolveConfigToml() => Path.Combine(ResolveCodexHome(), "config.toml");
 
     /// <summary>
-    /// <c>CODEX_HOME</c> when set, otherwise <c>~/.codex</c>.
+    /// Returns nonempty <c>CODEX_HOME</c>, or <c>~/.codex</c> when it is unset or empty.
     /// </summary>
     private string ResolveCodexHome()
     {
