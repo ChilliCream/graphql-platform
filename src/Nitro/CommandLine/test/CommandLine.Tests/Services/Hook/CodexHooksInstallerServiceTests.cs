@@ -10,7 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// Exercises <see cref="CodexHooksInstallerService"/> against a real
 /// temp-directory file system (never <c>~/.codex</c>): the hooks.json AND
 /// config.toml round trip together, the notify sidecar round trip, and the
-/// install-flow's headline scenario - wrapping a foreign
+/// install-flow's headline scenario: wrapping a foreign
 /// <c>notify</c> program on install and restoring it verbatim on uninstall.
 /// </summary>
 public sealed class CodexHooksInstallerServiceTests : IDisposable
