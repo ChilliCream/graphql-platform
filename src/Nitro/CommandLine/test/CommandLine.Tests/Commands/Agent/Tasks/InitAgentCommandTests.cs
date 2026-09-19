@@ -57,8 +57,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // act
         var result = await ExecuteCommandAsync("agent", "init");
 
-        // assert: the workspace lives inside .git, no .nitro directory and
-        // no .gitignore are created.
+        // assert: no .nitro directory or .gitignore is created.
         result.AssertSuccess(
             """
             ✓ Initialized agent workspace at '.git/nitro'.
@@ -72,8 +71,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task GitRepository_FreshInitFromLinkedWorktree_UsesCommonGitDirectory()
     {
-        // arrange: a .git pointer file as a linked worktree has, naming a
-        // gitdir under the main checkout's .git with a commondir redirect.
+        // arrange: a linked-worktree .git pointer file naming the main checkout.
         var mainGitDirectory = Path.Combine(WorkingDirectory, "main", ".git");
         var worktreeGitDirectory = Path.Combine(mainGitDirectory, "worktrees", "wt");
         Directory.CreateDirectory(worktreeGitDirectory);
@@ -89,8 +87,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // act
         var result = await ExecuteCommandAsync("agent", "init");
 
-        // assert: the workspace lands in the main checkout's .git and the
-        // prefix derives from the main checkout's directory name.
+        // assert: the workspace lands in the main checkout's .git.
         result.AssertSuccess(
             """
             ✓ Initialized agent workspace at '.git/nitro'.
@@ -102,9 +99,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task GitRepository_BareNitroDirectoryAboveRepo_DoesNotHijackInit()
     {
-        // arrange: an empty leftover .nitro/agents in an ancestor directory
-        // outside the repository, plus a git repository at the current
-        // directory.
+        // arrange: an empty leftover .nitro/agents above the repository.
         var ancestorFallback = Path.Combine(
             Path.GetDirectoryName(WorkingDirectory)!, ".nitro", "agents");
         Directory.CreateDirectory(ancestorFallback);
@@ -126,8 +121,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task GitRepository_ExistingNitroWorkspace_TakesPrecedence_AndHintsMigrate()
     {
-        // arrange: a .nitro/agents workspace initialized before the
-        // directory became a git repository.
+        // arrange: a .nitro/agents workspace predating the git repository.
         await InitWorkspaceAsync();
         Directory.CreateDirectory(Path.Combine(WorkingDirectory, ".git"));
 
@@ -154,8 +148,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // act
         var result = await ExecuteCommandAsync("agent", "init", "--migrate");
 
-        // assert: the database moved with its data, the old .nitro tree and
-        // the fallback .gitignore are gone.
+        // assert: the old .nitro tree and its .gitignore are gone.
         result.AssertSuccess(
             """
             ✓ Moved agent workspace from '.nitro/agents' to '.git/nitro'.
@@ -209,8 +202,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task Migrate_RewritesSessionWorkspacePaths()
     {
-        // arrange: a session row recorded against the pre-migration
-        // workspace path.
+        // arrange: a session row recorded against the pre-migration workspace path.
         await InitWorkspaceAsync();
         await QueryScalarAsync(
             $"""
@@ -308,10 +300,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// The connect error tells the user to run `nitro agent init` "to
-    /// migrate it"; `--migrate` must honor that even when the workspace is
-    /// already at '.git/nitro', not just report nothing to do and leave the
-    /// stale schema behind.
+    /// <c>--migrate</c> upgrades a stale schema even when the workspace is already
+    /// at '.git/nitro' and there is nothing to move.
     /// </summary>
     [Fact]
     public async Task Migrate_WorkspaceAlreadyInGitDirectory_UpgradesStaleSchema()
@@ -387,10 +377,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// The user ruling behind this option: --database-path lets init create
-    /// a board below an existing parent board, which nearest-board
-    /// resolution would otherwise hijack (ResolveForInit finds the parent's
-    /// board first and reports "Already initialized" against it).
+    /// <c>--database-path</c> creates a board below an existing parent board instead of
+    /// resolving to the parent board that nearest-board lookup would otherwise find.
     /// </summary>
     [Fact]
     public async Task DatabasePathOption_ParentHasInitializedBoard_CreatesNestedBoard()
@@ -401,8 +389,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         // act
         var result = await ExecuteCommandAsync("agent", "init", "--database-path", "./.nitro");
 
-        // assert: the nested board is created, and the parent's board is
-        // left completely untouched.
+        // assert: the parent's board is left untouched.
         result.AssertSuccess(
             """
             ✓ Initialized agent workspace at '.nitro/agents'.
@@ -418,14 +405,9 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// A board placed with --database-path was put there on purpose: the
-    /// user chose that location deliberately, and moving it into
-    /// '.git/nitro' would collide with the repository's own board there.
-    /// The migrate hint (printed for an ordinary fallback board whenever a
-    /// git repository exists, see
-    /// <see cref="PlainInit_Upgrade_PrintsMigrateHint_When_GitRepositoryExists"/>)
-    /// must never appear for a --database-path board, even though the same
-    /// git repository is present here.
+    /// The migrate hint printed for an ordinary fallback board (see
+    /// <see cref="PlainInit_Upgrade_PrintsMigrateHint_When_GitRepositoryExists"/>) never
+    /// appears for a board created with <c>--database-path</c>, even when a git repository is present.
     /// </summary>
     [Fact]
     public async Task DatabasePathOption_GitRepositoryExists_DoesNotPrintMigrateHint()
@@ -445,10 +427,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Proves the "no flag after init" promise: once --database-path has
-    /// created the nested board, plain nearest-board resolution (used by
-    /// every other command) finds it before the parent's, because it is
-    /// nearer.
+    /// Once <c>--database-path</c> creates the nested board, later commands without the
+    /// flag resolve to it ahead of the parent board through plain nearest-board lookup.
     /// </summary>
     [Fact]
     public async Task DatabasePathOption_LaterCommandsWithoutFlag_UseNestedBoard()
@@ -470,8 +450,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task DatabasePathOption_BareNitroDirectoryInParent_DoesNotHijackInit()
     {
-        // arrange: an empty leftover .nitro/agents directory in the parent,
-        // no database.
+        // arrange: an empty leftover .nitro/agents directory in the parent.
         var parentFallback = Path.Combine(
             Path.GetDirectoryName(WorkingDirectory)!, ".nitro", "agents");
         Directory.CreateDirectory(parentFallback);
@@ -505,14 +484,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Regression for a prefix bug found in review: the fresh-init prefix
-    /// read/write went through ITaskStore's cwd-resolved config methods,
-    /// which connect to the nearest board at or above the current
-    /// directory, not the just-resolved --database-path directory. A value
-    /// that is not itself the current directory exposed the bug (fails
-    /// against 4ba4d527fe with exit=1, stderr "No agent workspace found.
-    /// Run `nitro agent init` first.", because no board exists above the
-    /// cwd here).
+    /// The fresh-init prefix read and write target the board at the resolved
+    /// <c>--database-path</c> directory, not the nearest board above the current directory.
     /// </summary>
     [Fact]
     public async Task DatabasePathOption_SubdirectoryValue_CreatesBoardAtThatDirectory()
@@ -533,10 +506,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Same regression as <see cref="DatabasePathOption_SubdirectoryValue_CreatesBoardAtThatDirectory"/>,
-    /// with an absolute value outside the working directory entirely (fails
-    /// against 4ba4d527fe the same way: exit=1, "No agent workspace found.
-    /// Run `nitro agent init` first.").
+    /// Same as <see cref="DatabasePathOption_SubdirectoryValue_CreatesBoardAtThatDirectory"/>,
+    /// with an absolute <c>--database-path</c> value outside the working directory entirely.
     /// </summary>
     [Fact]
     public async Task DatabasePathOption_AbsoluteValueOutsideWorkingDirectory_CreatesBoardAtThatDirectory()
@@ -569,12 +540,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// The upgrade branch has the same cwd-coupled bug (reads the prefix
-    /// with store.GetPrefixAsync(), no directory): with no board at the cwd
-    /// this fails against 4ba4d527fe too, because the schema upgrade runs
-    /// against the nested board but the prefix readback then throws "No
-    /// agent workspace found" against the (nonexistent) cwd board - a
-    /// partially applied upgrade reported as a failure.
+    /// The schema upgrade for a <c>--database-path</c> board reads the prefix back from
+    /// that same board, not from the nearest board above the current directory.
     /// </summary>
     [Fact]
     public async Task DatabasePathOption_Upgrade_UsesNestedBoardOwnPrefix()
@@ -616,10 +583,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// --force reinitializes THAT board only: a separate board at the cwd
-    /// itself is left untouched, which would catch a fix that accidentally
-    /// routed the prefix write back through ITaskStore's cwd-resolved
-    /// config methods.
+    /// <c>--force</c> with <c>--database-path</c> reinitializes only the flagged board;
+    /// a separate board at the current directory is left untouched.
     /// </summary>
     [Fact]
     public async Task DatabasePathOption_Force_ReinitializesOnlyTheFlaggedBoard()
@@ -647,10 +612,8 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Creates a fully initialized, current-schema board at the given
-    /// prefix directly in the directory above <c>WorkingDirectory</c>,
-    /// bypassing the CLI so the test's own working directory is untouched.
-    /// Returns the created workspace directory.
+    /// Creates a fully initialized, current-schema board at the given prefix directly
+    /// in the directory above <c>WorkingDirectory</c>. Returns the created workspace directory.
     /// </summary>
     private async Task<string> InitParentWorkspaceAsync(string prefix)
     {
@@ -733,11 +696,9 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// The migration path this bead adds: plain <c>init</c> (no --force)
-    /// against an existing database at an upgradable schema version (v3,
-    /// this bead's starting point) applies the non-destructive schema
-    /// upgrade in place instead of throwing "Already initialized", and
-    /// touches neither the prefix nor the gitignore.
+    /// Plain <c>init</c> (no <c>--force</c>) against an existing database at an upgradable
+    /// schema version (v3) applies the non-destructive schema upgrade in place instead of
+    /// throwing "Already initialized", and touches neither the prefix nor the gitignore.
     /// </summary>
     [Fact]
     public async Task PlainInit_UpgradesSchemaOnly_When_ExistingVersionIsUpgradable()
@@ -844,8 +805,7 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
         var sendResult = await ExecuteCommandAsync(
             "agent", "mail", "send", "--to", "bob", "--subject", "Status", "--body", "Merged.");
 
-        // assert: the recipient has no live session, which is not an error;
-        // the mail is stored and bob reads it on his next pull.
+        // assert: no live session is not an error; the mail is stored.
         Assert.Equal(0, sendResult.ExitCode);
         Assert.Equal(
             AgentDatabase.CurrentVersion.ToString(), await QueryScalarAsync("PRAGMA user_version;"));
@@ -856,11 +816,9 @@ public sealed class InitAgentCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Seeds a full v3-shaped unified database (this bead's starting schema:
-    /// tasks, agents with role/implicit/client, and mail, but none of the
-    /// v4 session tables) directly at the unified path, with the given
-    /// prefix in config, mirroring an existing workspace from before this
-    /// bead.
+    /// Seeds a v3-shaped unified database (tasks, agents with role/implicit/client, and
+    /// mail, but none of the v4 session tables) directly at the unified path, with the
+    /// given prefix in config.
     /// </summary>
     private Task SeedV3WorkspaceAsync(string prefix)
         => SeedV3WorkspaceAsync(prefix, WorkspaceDirectory);
