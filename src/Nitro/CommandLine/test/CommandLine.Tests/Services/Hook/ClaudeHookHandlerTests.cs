@@ -16,7 +16,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// (reentrancy, per-turn budget, ledger reservation), and conditional
 /// teardown on SessionEnd. Every call runs with <c>dryRun: true</c>, which
 /// pins the row's generation to the fixed sentinel identity (pid 1, "0"
-/// proc_start) instead of walking for a live Claude Code ancestor - the same
+/// proc_start) instead of walking for a live Claude Code ancestor, the same
 /// substitution the command layer's <c>--dry-run</c> flag makes for
 /// fixture-driven runs.
 /// </summary>

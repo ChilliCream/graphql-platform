@@ -9,7 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// <c>test/fixtures/hooks/claude/install/</c> and
 /// <c>test/fixtures/hooks/claude/uninstall/</c>: missing, foreign-only,
 /// mixed, already-installed, outdated, manually-edited, and (for uninstall)
-/// a sidecar-drifted entry. No file I/O, no real <c>~/.claude</c> - pure
+/// a sidecar-drifted entry. No file I/O, no real <c>~/.claude</c>, pure
 /// JSON-text-in, JSON-text-out.
 /// </summary>
 public sealed class ClaudeHooksEditorTests
@@ -215,10 +215,7 @@ public sealed class ClaudeHooksEditorTests
     {
         var before = ClaudeHooksInstallFixtures.Read("uninstall", "drifted.json");
 
-        // The sidecar remembers the ORIGINAL install's command text, which no
-        // longer matches what is on disk (drifted.json's command was hand-
-        // edited to a different path after install, while staying
-        // marker-owned).
+        // the sidecar's original install command no longer matches what is on disk, though it stays marker-owned
         var staleSidecar = new Dictionary<string, ClaudeHooksSidecarEntry>
         {
             ["SessionStart"] = new(
