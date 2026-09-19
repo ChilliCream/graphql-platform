@@ -101,8 +101,8 @@ public sealed class ClaudeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_TheEntryTimeoutElapses()
     {
-        // arrange: an explicit short timeout stands in for the real 10s
-        // entry ceiling so this test does not have to wait it out.
+        // arrange
+        // a short timeout stands in for the real entry ceiling so the test does not wait it out
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("stop.json"));
         var output = new StringWriter();
@@ -127,10 +127,8 @@ public sealed class ClaudeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_TheHandlerIgnoresCancellation()
     {
-        // arrange: the handler never observes the linked token at all (a
-        // hung database call, for instance), so only racing the entry
-        // timeout against the handler task - never awaiting the handler
-        // task itself on timeout - can keep this call within the deadline.
+        // arrange
+        // the handler ignores the linked token, so racing it against the entry timeout is the only way out
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(HookFixtures.Read("stop.json"));
         var output = new StringWriter();
@@ -161,11 +159,8 @@ public sealed class ClaudeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_TheDatabaseIsContended()
     {
-        // arrange: a second connection holds an open write transaction on
-        // the workspace database, so the Stop handler's ledger reservation
-        // write blocks waiting for the lock. The executor's short timeout
-        // must still resolve to neutral instead of waiting out SQLite's own
-        // (far longer) default busy timeout.
+        // arrange
+        // a second connection holds an open write transaction, so the Stop handler's ledger write blocks on the lock
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-claude-hook-executor-contention-tests");
 
@@ -248,10 +243,8 @@ public sealed class ClaudeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_SchemaVersionMismatches()
     {
-        // arrange: the workspace database is stamped with a schema version
-        // newer than AgentDatabase.CurrentVersion, so the handler's own
-        // connection attempt throws ExitException; the executor's fail-open
-        // envelope must still resolve to neutral instead of surfacing it.
+        // arrange
+        // the workspace database is stamped with a schema version newer than the handler supports
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-claude-hook-executor-version-tests");
 
