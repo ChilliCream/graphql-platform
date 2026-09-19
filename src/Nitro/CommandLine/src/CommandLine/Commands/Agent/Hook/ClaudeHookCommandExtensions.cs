@@ -4,12 +4,9 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 
 /// <summary>
-/// Wires a Claude hook leaf command's action through
-/// <see cref="ClaudeHookExecutor"/> instead of
-/// <c>SetActionWithExceptionHandling</c>: a hook adapter reports a transient
-/// failure to the harness through its own JSON protocol rather than through
-/// stderr, and only a condition the user has to act on (an unmigrated
-/// workspace) reaches stderr with a nonzero exit.
+/// Wires a Claude hook leaf command's action through <see cref="ClaudeHookExecutor"/>
+/// instead of <c>SetActionWithExceptionHandling</c>. A hook adapter reports a transient
+/// failure to the harness through its own JSON protocol rather than through stderr.
 /// </summary>
 internal static class ClaudeHookCommandExtensions
 {

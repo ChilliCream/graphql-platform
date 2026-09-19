@@ -80,20 +80,16 @@ internal sealed class InitAgentCommand : Command
 
         if (databasePathOption is not null)
         {
-            // --database-path names a .nitro directory explicitly, so
-            // resolution never walks up looking for a nearer board: the
-            // workspace is created right there, at <path>/agents, the
-            // standard fallback layout later commands find with no flag.
+            // --database-path names a .nitro directory explicitly: the workspace is created at
+            // <path>/agents, and resolution never walks up looking for a nearer board.
             location = ResolveForDatabasePathOption(databasePathOption, currentDirectory);
         }
         else
         {
-            // Location resolution: an initialized workspace anywhere above
-            // wins (a .nitro/agents database before the repository's
-            // .git/nitro at each level); else, per level, an existing bare
-            // .nitro/agents directory (a fresh clone may carry committed
-            // memory markdown with no database yet) or the repository's
-            // .git/nitro; else a fresh .nitro/agents under the current
+            // Location resolution: an initialized workspace anywhere above wins (a
+            // .nitro/agents database before the repository's .git/nitro at each level);
+            // else, per level, an existing bare .nitro/agents directory or the
+            // repository's .git/nitro; else a fresh .nitro/agents under the current
             // directory.
             location = AgentWorkspace.ResolveForInit(fileSystem, currentDirectory);
         }
@@ -103,10 +99,8 @@ internal sealed class InitAgentCommand : Command
         var displayPath = AgentWorkspace.GetDisplayPath(workspaceDirectory);
         var isFallbackLayout = AgentWorkspace.IsFallbackLayout(workspaceDirectory);
 
-        // A board placed with --database-path was put there on purpose; the
-        // migrate hint (which would move it into .git/nitro) never applies
-        // to it, even when a git repository is present, so the lookup is
-        // skipped entirely for it.
+        // --database-path skips the migrate-hint lookup entirely: a board placed there
+        // never gets a hint to move it into .git/nitro.
         var gitWorkspace = databasePathOption is null
             ? AgentWorkspace.FindGitWorkspace(fileSystem, currentDirectory)
             : null;
@@ -136,13 +130,10 @@ internal sealed class InitAgentCommand : Command
                         : $"Already initialized at '{displayPath}'. Use --force to reinitialize.");
             }
 
-            // An existing database at an upgradable schema version: plain
-            // init applies the non-destructive schema upgrade only, no
-            // prefix or gitignore refresh, instead of throwing. This is what
-            // makes the already-shipped connect error text ("Run
-            // `nitro agent init` to migrate it") literally true. A database
-            // newer than this CLI understands still throws here, inside
-            // InitializeAsync, regardless of --force.
+            // An existing database at an upgradable schema version: plain init applies
+            // the non-destructive schema upgrade only, no prefix or gitignore refresh,
+            // instead of throwing. A database newer than this CLI understands still
+            // throws here, inside InitializeAsync, regardless of --force.
             await using (await database.InitializeAsync(workspaceDirectory, cancellationToken))
             {
             }
@@ -194,12 +185,10 @@ internal sealed class InitAgentCommand : Command
             await store.EnsureWorkspaceAsync(workspaceDirectory, cancellationToken);
             createdDatabase = true;
 
-            // Read/write the prefix against workspaceDirectory directly
-            // rather than through ITaskStore's cwd-resolved config methods:
-            // --database-path may name a directory the current directory
-            // does not resolve to via AgentWorkspace.Find (e.g. a nested
-            // board below a parent board), and the store's own config API
-            // would silently read and write the wrong board in that case.
+            // Reads/writes the prefix directly against workspaceDirectory, not through
+            // ITaskStore's cwd-resolved config methods, which would silently target the
+            // wrong board when --database-path names a directory the current directory
+            // does not resolve to.
             if (explicitPrefix is not null)
             {
                 prefix = AgentWorkspace.NormalizePrefix(explicitPrefix);
@@ -275,13 +264,10 @@ internal sealed class InitAgentCommand : Command
 
     /// <summary>
     /// Reads the 'prefix' config row directly from the database at
-    /// <paramref name="workspaceDirectory"/>, bypassing <see
-    /// cref="ITaskStore"/>'s config methods, which connect via the
-    /// cwd-resolved nearest board (<see cref="AgentWorkspace.Find"/>) rather
-    /// than the workspace directory this command just resolved. That
-    /// distinction only matters for <c>--database-path</c>, whose value need
-    /// not be the current directory or above it. Returns <see langword="null"/>
-    /// when no prefix row exists yet.
+    /// <paramref name="workspaceDirectory"/>, bypassing <see cref="ITaskStore"/>'s
+    /// config methods, which connect via the cwd-resolved nearest board
+    /// (<see cref="AgentWorkspace.Find"/>) instead. Returns <see langword="null"/> when
+    /// no prefix row exists yet.
     /// </summary>
     private static async Task<string?> ReadPrefixConfigAsync(
         AgentDatabase database,
@@ -321,13 +307,9 @@ internal sealed class InitAgentCommand : Command
         var sourceDisplay = AgentWorkspace.GetDisplayPath(sourceDirectory);
         var targetDisplay = AgentWorkspace.GetDisplayPath(targetDirectory);
 
-        // Only a .nitro/agents workspace migrates; a workspace already
-        // inside a git common directory (this repository's, or an outer
-        // repository's in a nested-repo setup) stays where it is. It may
-        // still be on a stale schema though: the connect error tells the
-        // user to run `nitro agent init` "to migrate it", so --migrate must
-        // upgrade an in-place workspace rather than just reporting nothing
-        // to do, or that instruction is a dead end.
+        // Only a .nitro/agents workspace migrates; a workspace already inside a git
+        // common directory stays where it is, though it may still be upgraded to the
+        // current schema below.
         if (!AgentWorkspace.IsFallbackLayout(sourceDirectory))
         {
             var existingVersion = await database.ReadVersionAsync(sourceDirectory, cancellationToken);

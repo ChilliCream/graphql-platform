@@ -6,14 +6,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Codex;
 
 /// <summary>
 /// Adapts Codex CLI's <c>notify</c> mechanism: the idle-turn gate. Queues one
-/// ledger-claimed unread-mail digest into the thread via <c>codex queue --thread</c>,
-/// then execs any foreign <c>notify</c> program this
-/// install wrapped, preserving argv/stdin/cwd and finishing with the
-/// foreign program's own exit code (install-flow contract: "ours execs it
-/// after our work... if our handler fails, the foreign program still
-/// runs"). Not wired through <c>CodexHookCommandExtensions</c>: this reads
-/// its payload from argv, not stdin, and its exit code carries meaning,
-/// unlike every other command in this tree.
+/// ledger-claimed unread-mail digest via <c>codex queue --thread</c>, then execs any foreign
+/// <c>notify</c> program this install wrapped, preserving argv, stdin, and cwd, and finishing
+/// with its exit code. Reads its payload from argv, not stdin, unlike every other command in
+/// this tree.
 /// </summary>
 internal sealed class NotifyHookCommand : Command
 {

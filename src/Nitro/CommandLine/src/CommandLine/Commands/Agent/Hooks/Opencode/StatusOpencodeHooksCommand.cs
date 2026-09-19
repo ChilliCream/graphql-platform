@@ -65,16 +65,10 @@ internal sealed class StatusOpencodeHooksCommand : Command
     }
 
     /// <summary>
-    /// Reports every opencode session this Nitro instance knows about, each
-    /// paired with what is actually known about its push path: the
-    /// registered endpoint, whether it is reachable (derived from the last
-    /// recorded ping, never freshly probed here), and the raw last-ping
-    /// result/detail. A session recorded by a different Nitro instance is
-    /// excluded - this instance never pings it (see
-    /// <see cref="IAgentSessionRegistry.FindLiveClaimedByAgentNameAsync"/>),
-    /// so nothing here could be verified. No workspace yet (hooks can be
-    /// installed and their status checked before `agent init` ever runs) is
-    /// not an error: it simply has no sessions to report.
+    /// Returns every opencode session this Nitro instance knows about, paired with its
+    /// registered endpoint, reachability, and last recorded ping result and detail.
+    /// Excludes sessions recorded by a different Nitro instance, and returns empty when
+    /// no workspace exists yet.
     /// </summary>
     private static async Task<IReadOnlyList<OpencodeSessionStatus>> ResolveOpencodeSessionsAsync(
         ICommandServices services, CancellationToken cancellationToken)
@@ -108,13 +102,9 @@ internal sealed class StatusOpencodeHooksCommand : Command
         string Path, string Outcome, bool Current, IReadOnlyList<OpencodeSessionStatus> Sessions);
 
     /// <summary>
-    /// What is actually known about one opencode session's push path, no
-    /// more: whether an endpoint is registered at all, whether it is
-    /// reachable, and the last recorded ping result/detail verbatim. Never
-    /// collapses those into a "healthy" or "working" verdict, and never
-    /// treats <see cref="AgentPingResult.Ok"/> as proof the agent received
-    /// or acted on anything - the async push route this reflects only
-    /// confirms the opencode server accepted and forked the run.
+    /// What is known about one opencode session's push path: whether an endpoint is
+    /// registered, its reachability, and the last recorded ping result and detail,
+    /// verbatim. Never collapses these into a "healthy" or "working" verdict.
     /// </summary>
     public sealed record OpencodeSessionStatus(
         string SessionId,
@@ -174,26 +164,11 @@ internal sealed class StatusOpencodeHooksCommand : Command
         }
 
         /// <summary>
-        /// <see cref="OpencodeSessionReachability.NoEndpoint"/> when no
-        /// trusted endpoint was ever registered (the unproven placeholder,
-        /// see hc-10-w61.1) - this session was never pinged, so there is no
-        /// "last ping" to report on. For a session with a registered
-        /// endpoint, only what the last recorded ping actually says:
-        /// <see cref="OpencodeSessionReachability.ReachableAtLastPing"/> for
-        /// <see cref="AgentPingResult.Ok"/>,
-        /// <see cref="OpencodeSessionReachability.EndpointGoneAtLastPing"/>
-        /// for <see cref="AgentPingResult.EndpointGone"/> (the client's own
-        /// recorded verdict - <c>PingSessionExecutor.MapOpencodeResult</c>
-        /// records this same value for a non-2xx answer, e.g. 401/404/500,
-        /// as for a genuinely unreachable endpoint, so this never claims the
-        /// endpoint itself is unreachable, only that the last recorded ping
-        /// did not come back accepted), and
-        /// <see cref="OpencodeSessionReachability.Unknown"/> for every other
-        /// outcome - never pinged yet, a timeout, a transport error, a
-        /// capacity drop, or an unsupported endpoint kind. None of those
-        /// remaining outcomes says the endpoint is unreachable, only that
-        /// this one attempt did not confirm it either way. Derived entirely
-        /// from what was already recorded - this performs no live network
+        /// Returns <see cref="OpencodeSessionReachability.NoEndpoint"/> when no trusted
+        /// endpoint was ever registered, otherwise maps the last recorded ping result to
+        /// <see cref="OpencodeSessionReachability.ReachableAtLastPing"/>,
+        /// <see cref="OpencodeSessionReachability.EndpointGoneAtLastPing"/>, or
+        /// <see cref="OpencodeSessionReachability.Unknown"/>. Performs no live network
         /// probe of its own.
         /// </summary>
         private static string ComputeReachability(AgentSessionRecord session)
@@ -213,11 +188,8 @@ internal sealed class StatusOpencodeHooksCommand : Command
     }
 
     /// <summary>
-    /// What <see cref="OpencodeSessionStatus.Reachability"/> can say. None of
-    /// these is a "working" or "healthy" verdict, and a failed last ping
-    /// never by itself implies pushes will not arrive - only
-    /// <see cref="AgentSessionEndpointKind.None"/> does (see
-    /// <see cref="OpencodeEndpointGuidance.SessionRemedy"/>).
+    /// The values <see cref="OpencodeSessionStatus.Reachability"/> can hold. None of them
+    /// is a "working" or "healthy" verdict.
     /// </summary>
     internal static class OpencodeSessionReachability
     {
@@ -228,14 +200,9 @@ internal sealed class StatusOpencodeHooksCommand : Command
         public const string ReachableAtLastPing = "reachable at last ping";
 
         /// <summary>
-        /// The last recorded ping to a registered endpoint came back
-        /// <see cref="AgentPingResult.EndpointGone"/> - the client's own
-        /// recorded verdict, not a freshly re-checked one, and not proof the
-        /// endpoint itself is unreachable: <c>PingSessionExecutor</c>
-        /// records this same result for a non-2xx answer (401, 404, 500 -
-        /// the server responded) as for a connection failure, so this names
-        /// the recorded result rather than asserting reachability either
-        /// way.
+        /// The last recorded ping to a registered endpoint reported
+        /// <see cref="AgentPingResult.EndpointGone"/>. This is the client's recorded
+        /// verdict, not proof the endpoint itself is unreachable.
         /// </summary>
         public const string EndpointGoneAtLastPing = "endpoint gone at last ping";
 

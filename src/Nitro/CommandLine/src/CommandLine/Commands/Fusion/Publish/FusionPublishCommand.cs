@@ -379,7 +379,7 @@ internal sealed class FusionPublishCommand : Command
                     else if (!force)
                     {
                         // Write directly instead of throwing so the release-slot fallback
-                        // in the outer catch is not triggered — the publish hasn't actually
+                        // in the outer catch is not triggered: the publish hasn't actually
                         // reserved any remote state that needs tearing down here.
                         console.Error.WriteErrorLine("Fusion configuration failed validation.");
                         return ExitCodes.Error;

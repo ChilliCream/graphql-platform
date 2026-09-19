@@ -5,10 +5,9 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Codex;
 
 /// <summary>
-/// Idempotent, same contract as the Claude installer: installing twice
-/// writes the same entries, reporting the second run as unchanged. A foreign
-/// <c>notify</c> program already configured is wrapped, never silently
-/// replaced (install-flow table, Codex row).
+/// Idempotent, same contract as the Claude installer: installing twice writes the same
+/// entries, reporting the second run as unchanged. A foreign <c>notify</c> program
+/// already configured is wrapped, never silently replaced.
 /// </summary>
 internal sealed class InstallCodexHooksCommand : Command
 {
