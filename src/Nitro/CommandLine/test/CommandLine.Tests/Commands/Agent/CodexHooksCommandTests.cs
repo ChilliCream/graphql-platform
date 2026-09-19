@@ -1,14 +1,10 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Command wiring (help text) only for <c>agent hooks codex install/status/uninstall</c>. Unlike
-/// Claude's <c>--scope project</c> round trip in <c>HooksCommandTests</c>, Codex's path resolver
-/// has no per-workspace override (<c>CODEX_HOME</c> is a per-user concept, not a project one) and
-/// this test harness has no plumbing to redirect it away from the real <c>~/.codex</c>. Per this
-/// ticket's hard constraint, nothing here ever actually installs. The deep install/status/uninstall
-/// and config.toml wrap/restore behavior is exercised directly against <c>CodexHooksEditor</c>/
-/// <c>CodexConfigTomlNotifyEditor</c>/<c>CodexHooksInstallerService</c> in their own dedicated test
-/// classes, all fixture- and temp-directory-driven.
+/// Covers command wiring (help text) for <c>agent hooks codex install/status/uninstall</c>; nothing
+/// here installs against the real <c>~/.codex</c>. The install/status/uninstall and config.toml
+/// wrap/restore behavior is covered by the dedicated <c>CodexHooksEditor</c>,
+/// <c>CodexConfigTomlNotifyEditor</c>, and <c>CodexHooksInstallerService</c> test classes.
 /// </summary>
 public sealed class CodexHooksCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
