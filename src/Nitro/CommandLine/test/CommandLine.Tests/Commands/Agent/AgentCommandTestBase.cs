@@ -66,13 +66,9 @@ public abstract class AgentCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Inserts a live <c>agent_sessions</c> row on <paramref name="host"/>
-    /// for the current test process's own pid and start time, so the
-    /// registry's liveness check reports it alive when <paramref name="host"/>
-    /// is the workspace's current instance id. Used to seed presence
-    /// scenarios (<c>agent list</c>'s presence column, the TUI Agents tab's
-    /// presence badge) without going through the (not-yet-built) hook
-    /// adapters.
+    /// Inserts a live <c>agent_sessions</c> row on <paramref name="host"/> using the
+    /// current test process's pid and start time. The registry's liveness check reports
+    /// it alive only when <paramref name="host"/> is the workspace's current instance id.
     /// </summary>
     protected async Task InsertAliveSessionRowAsync(
         string host,
@@ -132,9 +128,7 @@ public abstract class AgentCommandTestBase : CommandTestBase
 
     /// <summary>
     /// Updates the mutable role on the session row matching <paramref name="host"/>
-    /// and <paramref name="sessionId"/>, standing in for the same-row role
-    /// promotion <c>IAgentSessionRegistry.RegisterAsync</c> applies, without
-    /// requiring a detectable harness ancestor process in the test.
+    /// and <paramref name="sessionId"/>.
     /// </summary>
     protected async Task UpdateSessionRoleAsync(string host, string sessionId, string role)
     {

@@ -4,9 +4,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Covers the actor guard across the command surface. Actor names are
-/// allocated, never invented, so every command taking <c>--actor</c>
-/// rejects a name no allocation ever minted, and accepts one
+/// Covers the actor guard across the command surface: every command taking
+/// <c>--actor</c> rejects a name no allocation ever minted, and accepts one
 /// <c>agent login</c> did.
 /// </summary>
 public sealed class ActorGuardTests : AgentCommandTestBase
@@ -16,8 +15,8 @@ public sealed class ActorGuardTests : AgentCommandTestBase
 
     public ActorGuardTests(NitroCommandFixture fixture) : base(fixture)
     {
-        // The guard lives in the real resolver, so this suite must not run
-        // behind the fixed one every other command test uses.
+        // Runs against the real actor resolver, not the fixed one other
+        // command tests use.
         SetupRealActingActor();
         DefaultActor = null;
     }
