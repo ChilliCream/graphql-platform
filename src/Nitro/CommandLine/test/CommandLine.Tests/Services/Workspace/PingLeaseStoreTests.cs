@@ -106,7 +106,7 @@ public sealed class PingLeaseStoreTests : IDisposable
     [Fact]
     public async Task ReleaseAsync_Should_BeANoOp_When_AttemptIdDoesNotMatch()
     {
-        // arrange: a late release must never free a different attempt's held slot.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -116,7 +116,7 @@ public sealed class PingLeaseStoreTests : IDisposable
         await _leases.ReleaseAsync(slot!.Value, "attempt-stale", cancellationToken);
         var stillHeld = await _leases.TryAcquireAsync("attempt-2", now, TimeSpan.FromSeconds(30), cancellationToken);
 
-        // assert: slot 1 is still held, so the next acquire lands on slot 2.
+        // assert
         Assert.Equal(2, stillHeld);
     }
 
@@ -133,7 +133,7 @@ public sealed class PingLeaseStoreTests : IDisposable
             new PingLeaseStore(_fileSystem, _database)
                 .TryAcquireAsync($"attempt-{i}", now, TimeSpan.FromSeconds(30), cancellationToken)));
 
-        // assert: exactly four callers claimed a distinct slot, two were capacity-dropped.
+        // assert
         var claimed = results.Where(slot => slot is not null).Select(slot => slot!.Value).ToArray();
         Assert.Equal(4, claimed.Length);
         Assert.Equal([1, 2, 3, 4], claimed.OrderBy(s => s).ToArray());

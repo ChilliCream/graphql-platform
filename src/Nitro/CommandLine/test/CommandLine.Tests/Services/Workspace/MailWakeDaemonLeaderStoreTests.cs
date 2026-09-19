@@ -53,7 +53,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         await _leader.TryAcquireAsync(InstanceId, "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
-        // act: the same owner cannot re-acquire while its own lease is still live.
+        // act
         var epoch = await _leader.TryAcquireAsync(InstanceId, "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
@@ -95,7 +95,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
         var renewed = await _leader.TryRenewAsync(
             InstanceId, "owner-1", epoch!.Value, justBeforeExpiry, TimeSpan.FromSeconds(10), null, cancellationToken);
 
-        // assert: a rival trying to steal right after the original lease would have expired now fails.
+        // assert
         Assert.True(renewed);
         var stolen = await _leader.TryAcquireAsync(
             InstanceId, "owner-2", acquiredAt + TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(10), cancellationToken);
@@ -105,7 +105,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
     [Fact]
     public async Task TryRenewAsync_Should_ReturnFalse_When_EpochNoLongerMatches()
     {
-        // arrange: an owner that lost leadership to a fresher epoch.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -155,7 +155,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
         var reacquiredEpoch =
             await _leader.TryAcquireAsync(InstanceId, "owner-2", now, TimeSpan.FromSeconds(30), cancellationToken);
 
-        // assert: the next acquirer gets a fresh epoch without waiting out the lease duration.
+        // assert
         Assert.True(released);
         Assert.Equal(2, reacquiredEpoch);
     }

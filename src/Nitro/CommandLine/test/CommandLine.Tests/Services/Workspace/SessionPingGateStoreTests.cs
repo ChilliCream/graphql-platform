@@ -63,7 +63,8 @@ public sealed class SessionPingGateStoreTests : IDisposable
     [Fact]
     public async Task TryAcquireAsync_Should_AllowDifferentGenerations_When_SameSessionIdOnDifferentPid()
     {
-        // arrange: a stale generation (an older pid the OS has since reused).
+        // arrange
+        // Use the same harness and session id on a different host.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -109,7 +110,7 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var renewed = await _gates.TryRenewAsync(
             s_generation, "attempt-1", justBeforeExpiry, TimeSpan.FromSeconds(10), cancellationToken);
 
-        // assert: a caller trying to steal right after the original lease would have expired now fails.
+        // assert
         Assert.True(renewed);
         var stillHeld = await _gates.TryAcquireAsync(
             s_generation, "attempt-2", acquiredAt + TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(10), cancellationToken);
@@ -170,7 +171,7 @@ public sealed class SessionPingGateStoreTests : IDisposable
     [Fact]
     public async Task ReleaseAsync_Should_BeANoOp_When_AttemptIdDoesNotMatch()
     {
-        // arrange: a late release must never free a different attempt's held gate.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
