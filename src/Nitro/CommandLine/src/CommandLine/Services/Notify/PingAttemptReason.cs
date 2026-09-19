@@ -18,7 +18,7 @@ internal enum PingAttemptReason
     InvalidAuth,
 
     /// <summary>
-    /// The Claude peer socket connect failed with <c>SocketError.AccessDenied</c>.
+    /// A Claude peer socket operation reported <c>SocketError.AccessDenied</c>.
     /// </summary>
     AccessDenied,
     Timeout,

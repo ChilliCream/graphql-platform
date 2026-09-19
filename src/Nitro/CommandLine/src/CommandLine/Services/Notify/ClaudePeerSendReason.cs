@@ -1,10 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// The stable reasons a <see cref="IClaudePeerClient.SendAsync"/> call can
-/// end in. Distinct from <see cref="ClaudePeerSendOutcome.Retryable"/>: a
-/// reason is a fixed classification, retryability is a caller-facing hint
-/// about whether the same attempt is worth repeating.
+/// Outcome classifications for a Claude peer send attempt.
 /// </summary>
 internal enum ClaudePeerSendReason
 {
@@ -15,17 +12,13 @@ internal enum ClaudePeerSendReason
     EndpointGone,
 
     /// <summary>
-    /// The endpoint requires authentication this process could not supply:
-    /// no key belongs to the target process's exact generation, a key file
-    /// fails its permission check, or Windows requires a key that is
-    /// absent. Never a downgrade from a mismatch to unauthenticated.
+    /// The required authentication key is missing, invalid, or unavailable
+    /// for the target process.
     /// </summary>
     InvalidAuth,
 
     /// <summary>
-    /// The peer socket connect itself failed with <c>SocketError.AccessDenied</c>.
-    /// This reflects only what the OS reported for that one connect call; it
-    /// is not proof of any particular sandboxing mechanism.
+    /// A peer socket operation reported <c>SocketError.AccessDenied</c>.
     /// </summary>
     AccessDenied,
 

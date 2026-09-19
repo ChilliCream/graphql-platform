@@ -1,8 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// Sends prompts to, and checks the health of, an opencode server registered
-/// for a live session.
+/// Sends prompts to an opencode session and checks server and session reachability.
 /// </summary>
 internal interface IOpencodeServerClient
 {

@@ -6,14 +6,8 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// The cross-process mail-wake daemon leader for one
-/// <c>(workspace database, nitro_instance_id)</c>, running a heartbeat, an
-/// admission loop, and an execution loop while
-/// <see cref="MailWakeDaemonState.Ready"/>. A lost or failed lease renewal
-/// demotes to <see cref="MailWakeDaemonState.Standby"/> and cancels every
-/// in-flight actor dispatch; a daemon-side Claude access denial on this
-/// instance's own dispatch releases leadership and demotes to
-/// <see cref="MailWakeDaemonState.Degraded"/> instead.
+/// Coordinates background mail wakes for one workspace and Nitro instance.
+/// Lease loss returns it to standby; a Claude access denial temporarily degrades it.
 /// </summary>
 internal sealed class MailWakeDaemonCoordinator(
     IMailWakeDaemonLeaderStore leaderStore,
@@ -37,9 +31,7 @@ internal sealed class MailWakeDaemonCoordinator(
     private DateTimeOffset? _selfDeniedUntil;
 
     /// <summary>
-    /// The end of this instance's own daemon-side access-denied cooldown,
-    /// read and written under <see cref="_statusLock"/> so a concurrent
-    /// election tick never observes a torn or stale value.
+    /// The end of the access-denial cooldown, or null when no cooldown has been set.
     /// </summary>
     private DateTimeOffset? SelfDeniedUntil
     {
@@ -114,9 +106,7 @@ internal sealed class MailWakeDaemonCoordinator(
         {
             lifetime.Dispose();
 
-            // _lifetime/_runTask are cleared only once the run loop has
-            // actually finished, so StartAsync's guard keeps throwing while
-            // it is still alive.
+            // Restart remains unavailable while the previous run loop is unfinished.
             if (runTask.IsCompleted)
             {
                 _lifetime = null;
@@ -379,9 +369,7 @@ internal sealed class MailWakeDaemonCoordinator(
                     SelfDeniedUntil = timeProvider.GetUtcNow() + MailWakeDaemonRetryPolicy.MaxDelay;
                     UpdateStatus(s => s with { State = MailWakeDaemonState.Degraded, LastError = "access-denied" });
 
-                    // Cancels siblings first so they unwind before the lease
-                    // they were fenced under disappears, then releases the
-                    // lease.
+                    // Signals sibling dispatches to cancel before releasing leadership.
                     try
                     {
                         await degradedSource.CancelAsync();
@@ -534,8 +522,6 @@ internal sealed class MailWakeDaemonCoordinator(
 
     private sealed record LeaseSnapshot(string OwnerId, long Epoch, DateTimeOffset ExpiresAt);
 
-    // Internal, not private: Dapper.AOT requires this type to be visible
-    // outside the class.
     internal sealed class LeaseRow
     {
         public required string OwnerId { get; init; }

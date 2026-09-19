@@ -42,7 +42,7 @@ internal class SessionService : ISessionService
         }
         catch
         {
-            // The session is cleared below even when logout fails.
+            // The stored session reset is attempted even when remote logout fails.
         }
 
         await _configurationService.ResetAsync<Session>(cancellationToken);
@@ -128,8 +128,7 @@ internal class SessionService : ISessionService
         }
         catch
         {
-            // A failed refresh leaves result null; the check below clears
-            // the session.
+            // A refresh exception leaves result null; the check below clears the session tokens.
         }
 
         if (result is not { IsError: false })
@@ -173,8 +172,7 @@ internal class SessionService : ISessionService
 }
 
 /// <summary>
-/// Challenges a different identity provider when the authorize endpoint
-/// redirected to one.
+/// Processes the authorization response using its issuer as the authority.
 /// </summary>
 file sealed class DynamicAuthorityOidcClient : OidcClient
 {

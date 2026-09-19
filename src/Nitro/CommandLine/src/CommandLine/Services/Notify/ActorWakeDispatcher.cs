@@ -6,29 +6,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// Claims one actor's outstanding <c>mail_wake_outbox</c> generation as a
-/// frozen <c>mail_wake_batches</c> row and dispatches its one materialized
-/// coding-session target synchronously.
-/// <list type="bullet">
-/// <item>Nothing outstanding, not yet due, or another owner already holds a
-/// live batch for this actor: <see cref="DispatchAsync"/> returns null.</item>
-/// <item>The frozen target set is empty: the batch completes immediately as
-/// skipped.</item>
-/// <item>The actor has no unread mail left by dispatch time: the target
-/// settles <see cref="MailWakeTargetStatus.Satisfied"/> without attempting
-/// any transport.</item>
-/// <item>Otherwise, the target is re-resolved against its exact frozen
-/// generation; a session that ended or rebound since the claim settles as a
-/// failure. Nitro board sessions are never targets. The target is reserved
-/// through <see cref="ISessionGateCoordinator"/> and dispatched through
-/// <see cref="IPingSessionExecutor"/>; a Claude access-denied outcome leaves
-/// it pending.</item>
-/// </list>
-/// The batch's own lease is renewed periodically while dispatch is in
-/// flight. Losing that renewal cancels the target, which stays
-/// <see cref="MailWakeTargetStatus.Pending"/>, and leaves the batch row
-/// untouched. Otherwise this call completes the batch, or releases it with a
-/// rescheduled retry when a target was left with durable offered work.
+/// Dispatches one actor's outstanding wake work to at most one coding session.
+/// Returns null when no batch can be claimed and leaves unresolved work pending for retry.
 /// </summary>
 internal sealed class ActorWakeDispatcher(
     IMailWakeBatchStore batchStore,
@@ -150,8 +129,7 @@ internal sealed class ActorWakeDispatcher(
         }
         finally
         {
-            // Always drained before the `using` CTSs above dispose, so
-            // RenewLoopAsync never observes a disposed token.
+            // Stops and awaits lease renewal before disposing its cancellation sources.
             await renewalDoneSource.CancelAsync();
 
             try
@@ -160,8 +138,7 @@ internal sealed class ActorWakeDispatcher(
             }
             catch (OperationCanceledException)
             {
-                // Expected once renewalDoneSource signals dispatch is over,
-                // or the caller's own token was cancelled.
+                // Renewal stops when dispatch completes or the caller cancels.
             }
         }
 
@@ -182,19 +159,14 @@ internal sealed class ActorWakeDispatcher(
             }
         }
 
-        // else: a newer owner already holds the batch (this attempt's
-        // renewal was lost); it owns completing or releasing it now, not
-        // this attempt.
+        // A lost renewal leaves batch completion or release to a later owner.
 
         return new ActorWakeReceipt(actor, receipt.Status, [receipt]);
     }
 
     /// <summary>
-    /// Periodically renews the batch's own lease while its targets are
-    /// still dispatching. A failed renewal (the lease was lost to a fresher
-    /// claimant) cancels <paramref name="lossSource"/>, which every
-    /// in-flight or not-yet-started target's own dispatch observes and
-    /// stops on.
+    /// Renews the batch lease until dispatch stops or the caller cancels.
+    /// A rejected or failed renewal cancels <paramref name="lossSource"/>.
     /// </summary>
     private async Task RenewLoopAsync(
         string batchId,
@@ -225,14 +197,11 @@ internal sealed class ActorWakeDispatcher(
         }
         catch (OperationCanceledException)
         {
-            // Dispatch finished normally (stopToken), or the caller's own
-            // token was cancelled: either way, nothing more to renew.
+            // Dispatch completion or caller cancellation ends renewal.
         }
         catch (Exception)
         {
-            // A renewal whose result is unknown (the store call itself threw)
-            // is treated as lost: in-flight targets are left Pending and the
-            // batch row is left for lease-expiry reclaim.
+            // An unsuccessful renewal cancels dispatch and leaves the batch for expiry.
             await lossSource.CancelAsync();
         }
     }
@@ -265,8 +234,7 @@ internal sealed class ActorWakeDispatcher(
             if (session.EndpointKind is AgentSessionEndpointKind.DbWatch
                 or AgentSessionEndpointKind.CopilotExtension)
             {
-                // Database-watching endpoints observe the committed message
-                // themselves. No direct transport is required.
+                // Database-watching endpoints require no direct transport.
                 return await RecordDeliveredAsync(batchId, target, ownerId, batchAttemptId, claimedGeneration);
             }
 
@@ -297,24 +265,18 @@ internal sealed class ActorWakeDispatcher(
                 if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer
                     && !await sessionRegistry.ClaimIdlePushAsync(target, dispatchToken))
                 {
-                    // Not currently idle-armed: a nitro-pushed turn is active,
-                    // or an earlier idle transition already spent its one
-                    // push. Offers the target instead of failing outright, so
-                    // a later idle transition can retry.
+                    // An unarmed session remains pending for a later attempt.
                     return await RecordOfferedAsync(
                         batchId, target, ownerId, batchAttemptId, claimedGeneration, "idle-not-armed");
                 }
 
                 if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
                 {
-                    // This attempt now owns the one-shot idle-push claim and
-                    // must hand it back if it never reaches the rearm below.
+                    // This attempt holds the session's idle-push claim.
                     idlePushClaimed = true;
                 }
 
-                // Stamps pingAttemptId onto the row's last_ping_attempt. A
-                // false return means the row is gone or already advanced, so
-                // no transport call follows.
+                // Claims the ping attempt; no transport runs if the claim fails.
                 var stamped = await sessionRegistry.TryClaimPingCooldownAsync(
                     session, pingAttemptId, now, TimeSpan.Zero, dispatchToken);
 
@@ -344,10 +306,7 @@ internal sealed class ActorWakeDispatcher(
                     && (outcome.Reason != PingAttemptReason.Ok
                         || outcome.Detail == PingSessionExecutor.HealthOnlyDetail))
                 {
-                    // Nothing was delivered: a terminal failure, an
-                    // access-denied offer, or a health-only ping found no
-                    // digest to push. Gives back the idle-push claim taken
-                    // above.
+                    // An unsuccessful push or health-only check restores the idle-push claim.
                     await sessionRegistry.RearmIdlePushAsync(target, CancellationToken.None);
                 }
 
@@ -376,24 +335,17 @@ internal sealed class ActorWakeDispatcher(
             {
                 if (idlePushClaimed && !idlePushSettled)
                 {
-                    // The dispatch aborted mid-flight before the rearm above
-                    // ran: hands the claim back rather than stranding the
-                    // session unarmed.
+                    // An interrupted attempt restores the idle-push claim.
                     await sessionRegistry.RearmIdlePushAsync(target, CancellationToken.None);
                 }
 
-                // Never on dispatchToken: the reservation this attempt holds
-                // must be released (or extended into cooldown) even when
-                // dispatchToken itself is the reason the transport call just
-                // unwound.
+                // Reservation cleanup continues after dispatch cancellation.
                 await gateCoordinator.CompleteAsync(held, success, timeProvider.GetUtcNow(), CancellationToken.None);
             }
         }
         catch (OperationCanceledException) when (!callerToken.IsCancellationRequested)
         {
-            // This target was never dispatched, or its dispatch was aborted
-            // mid-flight, possibly after a transport call already wrote to
-            // the wire. Never asserted delivered or failed.
+            // A cancelled dispatch leaves the target pending without asserting a transport outcome.
             return new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
         }
     }

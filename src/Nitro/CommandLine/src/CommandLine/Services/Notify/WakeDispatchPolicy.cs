@@ -1,48 +1,34 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// The timing and concurrency constants the actor-batch foreground
-/// dispatcher fixes for one <see cref="ActorWakeDispatcher.DispatchAsync"/>
-/// call: the post-commit budget every recipient/target of one claimed batch
-/// shares, how long the batch's own lease and a per-target session gate are
-/// held, and how often the batch lease is renewed while dispatch is in
-/// flight. <see cref="BatchLeaseDuration"/> is strictly longer than
-/// <see cref="BatchDeadline"/>.
+/// Timing limits for wake dispatch, batch renewal, session reservations, and retries.
 /// </summary>
 internal static class WakeDispatchPolicy
 {
     /// <summary>
-    /// The absolute budget one <see cref="ActorWakeDispatcher.DispatchAsync"/>
-    /// call fixes once for the one actor and target that call claims.
+    /// The duration callers use to set an actor dispatch's deadline.
     /// </summary>
     public static readonly TimeSpan BatchDeadline = TimeSpan.FromSeconds(21);
 
     /// <summary>
-    /// Time reserved at the tail of <see cref="BatchDeadline"/> for
-    /// observing a handoff (an access-denied target's offer) rather than
-    /// spending it on transport work.
+    /// Time excluded from transport work at the end of a batch's dispatch budget.
     /// </summary>
     public static readonly TimeSpan HandoffObservationReserve = TimeSpan.FromMilliseconds(500);
 
     public static readonly TimeSpan BatchLeaseDuration = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// How often the dispatcher renews its batch lease while targets are
-    /// still in flight. Comfortably shorter than <see cref="BatchLeaseDuration"/>.
+    /// The interval between batch lease renewals during dispatch.
     /// </summary>
     public static readonly TimeSpan BatchRenewInterval = TimeSpan.FromSeconds(7);
 
     /// <summary>
-    /// How long a session ping gate is held for one reserved attempt before
-    /// it can be stolen as expired, distinct from the cooldown a successful
-    /// attempt extends it to (<see cref="PingPolicy.Cooldown"/>).
+    /// The duration of a session gate reservation before expiry.
     /// </summary>
     public static readonly TimeSpan SessionGateLeaseDuration = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// How far out a batch left with durable offered work (busy, cooldown,
-    /// capacity, or an access-denied handoff) reschedules its outbox row's
-    /// <c>due_at</c>.
+    /// The delay before retrying a batch with pending work.
     /// </summary>
     public static readonly TimeSpan OfferedRetryDelay = TimeSpan.FromSeconds(30);
 }

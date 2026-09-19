@@ -1,10 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// The whole result of one <see cref="IActorWakeDispatcher.DispatchAsync"/>
-/// call: the actor it dispatched for, its aggregate
-/// <see cref="WakeReceiptAggregator"/> status, and every target's own
-/// receipt.
+/// An actor's wake status and the receipts for the targets considered by its dispatch.
 /// </summary>
 internal sealed record ActorWakeReceipt(
     string Actor, string Status, IReadOnlyList<ActorWakeTargetReceipt> Targets);

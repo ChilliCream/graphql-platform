@@ -6,11 +6,9 @@ namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 internal static class MailAgentName
 {
     /// <summary>
-    /// Lowercases the given value and validates it starts with a letter or
-    /// digit and contains only lowercase letters, digits, hyphens, and
-    /// underscores. Throws <see cref="ExitException"/> when the value is
-    /// empty, starts with any other character, or contains any other
-    /// character; invalid characters are never stripped.
+    /// Lowercases the address and requires an ASCII letter or digit first, followed by
+    /// ASCII letters, digits, hyphens, or underscores. Throws <see cref="ExitException"/>
+    /// for empty or invalid addresses without stripping characters.
     /// </summary>
     public static string Normalize(string value)
     {
@@ -21,7 +19,6 @@ internal static class MailAgentName
             throw new ExitException("An agent name must not be empty.");
         }
 
-        // A leading hyphen or underscore is rejected.
         if (lowered[0] is not (>= 'a' and <= 'z' or >= '0' and <= '9'))
         {
             throw new ExitException(

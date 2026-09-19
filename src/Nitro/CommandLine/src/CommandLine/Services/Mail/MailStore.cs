@@ -22,9 +22,7 @@ internal sealed class MailStore(
     private const int MaxIdAttempts = 10;
 
     /// <summary>
-    /// Opens a connection to a new or existing workspace database, applies
-    /// the schema, and stamps the current schema version. Returns the open
-    /// connection so seeding helpers in tests can write against it directly.
+    /// Initializes the workspace database and returns an open connection owned by the caller.
     /// </summary>
     public async Task<SqliteConnection> InitializeAsync(
         string workspaceDirectory,
@@ -72,17 +70,13 @@ internal sealed class MailStore(
         var now = timeProvider.GetUtcNow();
         var seed = $"{sender}|{subject}|{now:O}";
 
-        // Auto-registers the sender through the shared registry before the
-        // message write transaction opens.
+        // Registers the sender before the message transaction.
         await agentRegistry.TouchAsync(sender, cancellationToken);
 
-        // Ensures every recipient has an agent row, implicit-created when
-        // they have never registered or acted, before the write transaction
-        // opens.
+        // Creates missing recipient identities before the message transaction.
         var unregistered = await EnsureRecipientsAsync(recipients, cancellationToken);
 
-        // Resolved before the write transaction opens, for the same reason as
-        // the sender touch and recipient registration above.
+        // Resolves wake ownership before the message transaction.
         var nitroInstanceId = creation.WakePolicy == MailWakePolicy.Enqueue
             ? await ResolveNitroInstanceIdAsync(cancellationToken)
             : null;
@@ -169,13 +163,10 @@ internal sealed class MailStore(
         var (original, root, recipients) =
             await ResolveReplyAsync(inReplyToId, actor, cancellationToken);
 
-        // Auto-registers the replying actor through the shared registry, now
-        // that eligibility is confirmed, before opening the write connection
-        // below.
+        // Registers the replying actor after participant validation.
         await agentRegistry.TouchAsync(actor, cancellationToken);
 
-        // Resolved before the write transaction opens, for the same reason
-        // SendMessageAsync resolves it before its own transaction.
+        // Resolves wake ownership before the reply transaction.
         var nitroInstanceId = wakePolicy == MailWakePolicy.Enqueue
             ? await ResolveNitroInstanceIdAsync(cancellationToken)
             : null;
@@ -338,13 +329,9 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Increments <c>mail_wake_outbox.requested_generation</c> once for each
-    /// distinct recipient, inserting the outbox row when this is its first
-    /// wake for (<paramref name="nitroInstanceId"/>, recipient). Preserves
-    /// the earliest pending <c>due_at</c> across concurrent enqueues to the
-    /// same recipient rather than overwriting it with this call's own
-    /// <paramref name="now"/>. Returns each recipient's resulting
-    /// generation, in recipient order.
+    /// Advances each recipient's wake generation for the Nitro instance and returns
+    /// the resulting tokens in recipient order. Preserves the earlier due time
+    /// when wake work already exists.
     /// </summary>
     private static async Task<List<MailWakeReceipt>> EnqueueWakeAsync(
         SqliteConnection connection,
@@ -380,12 +367,9 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Reads the original message and the thread root, validates the actor
-    /// is authorized to reply, and computes the reply's recipient set, all
-    /// against a short-lived read connection closed before this method
-    /// returns. Throws <see cref="ExitException"/> when the original
-    /// message does not exist, the actor is not a participant, or the
-    /// computed recipient set is empty.
+    /// Returns the original message, thread root, and computed reply recipients.
+    /// Throws <see cref="ExitException"/> when the message is missing, the actor is not
+    /// a participant, or no recipients remain.
     /// </summary>
     private async Task<(MailMessage Original, MailMessage Root, List<MailRecipient> Recipients)> ResolveReplyAsync(
         string inReplyToId,
@@ -552,8 +536,6 @@ internal sealed class MailStore(
         return messages;
     }
 
-    // The WHERE/LIMIT clauses are assembled at runtime, so this executes
-    // through plain ADO.NET rather than Dapper.
     private static (string Sql, Dictionary<string, object?> Parameters) BuildInboxQuery(
         MailInboxFilter filter)
     {
@@ -629,10 +611,6 @@ internal sealed class MailStore(
         return messages;
     }
 
-    // Only joins message_recipients when Agent is set. The join can then
-    // surface a message more than once, so DISTINCT dedupes ids back to one
-    // row per message. The WHERE/LIMIT clauses are assembled at runtime, so
-    // this uses plain ADO.NET rather than Dapper.
     private static (string Sql, Dictionary<string, object?> Parameters) BuildWorkspaceQuery(
         MailWorkspaceFilter filter)
     {
@@ -799,8 +777,7 @@ internal sealed class MailStore(
         await transaction.CommitAsync(cancellationToken);
     }
 
-    // Every id is validated as addressed to the actor before any write
-    // happens, giving the bulk mutations their all-or-nothing behavior.
+    // Validates every recipient copy before the caller changes any of them.
     private static async Task ValidateRecipientOwnershipAsync(
         SqliteConnection connection,
         IReadOnlyList<string> messageIds,
@@ -863,9 +840,6 @@ internal sealed class MailStore(
         return await BuildThreadSummariesAsync(connection, rollups, normalizedActor, cancellationToken);
     }
 
-    // The two branches keep separate compile-time-literal SQL strings, one
-    // per value of includeArchived, rather than splicing the archived
-    // predicate into one interpolated string.
     public async Task<IReadOnlyList<MailThreadSummary>> QueryInboxThreadsAsync(
         string actor,
         bool includeArchived,
@@ -976,16 +950,13 @@ internal sealed class MailStore(
                 """,
                 new { agent = normalizedAgent, cancellationToken });
 
-        // Never actor-scoped, even when narrowed to one agent: a workspace
-        // rollup must not expose that (or any) agent's read state.
+        // Workspace summaries omit per-actor unread and archived counts.
         return await BuildThreadSummariesAsync(connection, rollups, unreadActor: null, cancellationToken);
     }
 
     /// <summary>
-    /// Fills in each rollup's subject, last message details, body preview,
-    /// and (when <paramref name="unreadActor"/> is given) unread and
-    /// archived counts, against the same connection the rollups were read
-    /// from.
+    /// Returns thread summaries ordered by last-message time and thread id, newest first.
+    /// Unread and archived counts are null when <paramref name="unreadActor"/> is null.
     /// </summary>
     private static async Task<IReadOnlyList<MailThreadSummary>> BuildThreadSummariesAsync(
         SqliteConnection connection,
@@ -1065,10 +1036,9 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Collapses every run of whitespace (spaces, tabs, newlines) in
-    /// <paramref name="body"/> to a single space, trims the ends, and
-    /// truncates to <see cref="MailThreadSummary.BodyPreviewMaxLength"/>
-    /// characters with a trailing "…" when truncated.
+    /// Collapses whitespace and trims the body, retaining at most
+    /// <see cref="MailThreadSummary.BodyPreviewMaxLength"/> characters before
+    /// appending an ellipsis when truncated.
     /// </summary>
     private static string CreateBodyPreview(string body)
     {
@@ -1142,8 +1112,6 @@ internal sealed class MailStore(
     {
         var normalizedSender = MailAgentName.Normalize(sender);
 
-        // The LIMIT clause is assembled at runtime from the optional limit,
-        // executed through plain ADO.NET rather than Dapper.
         var sql =
             """
             SELECT id FROM messages
@@ -1326,15 +1294,11 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// Escapes the LIKE wildcard characters '%' and '_' (and the escape
-    /// character itself) so search text is matched literally, other than the
-    /// wildcards this store wraps around it.
+    /// Escapes percent signs, underscores, and backslashes for literal matching in a LIKE pattern.
     /// </summary>
     private static string EscapeLikeText(string value)
         => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
 
-    // Internal, not private: Dapper.AOT requires these types to be visible
-    // outside the class.
     internal sealed class MailMessageRow
     {
         public required string Id { get; init; }
@@ -1379,9 +1343,7 @@ internal sealed class MailStore(
     }
 
     /// <summary>
-    /// A thread's message count and last-message timestamp, for
-    /// <see cref="QueryThreadsAsync"/>; the subject and last sender are
-    /// filled in by follow-up queries per thread.
+    /// A thread id, message count, and last-message timestamp.
     /// </summary>
     internal sealed class ThreadRollupRow
     {

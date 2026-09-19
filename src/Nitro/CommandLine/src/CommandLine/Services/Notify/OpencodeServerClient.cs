@@ -125,12 +125,8 @@ internal sealed class OpencodeServerClient : IOpencodeServerClient
     }
 
     /// <summary>
-    /// Builds the opencode message body for <paramref name="text"/> verbatim.
-    /// A caller that wants the delivered turn recognized and skipped by
-    /// Nitro's opencode hooks prepends the reserved
-    /// <see cref="ChilliCream.Nitro.CommandLine.Services.Hook.OpencodeHookProtocol.PushedPromptPrefix"/> to
-    /// <paramref name="text"/> itself; this client has no opinion on the
-    /// text's shape.
+    /// Creates a prompt body containing <paramref name="text"/> unchanged, without
+    /// adding a Nitro hook prefix.
     /// </summary>
     private static HttpContent CreateMessageContent(string text)
     {

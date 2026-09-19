@@ -1,12 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// The timing constants the notifier contract fixes: the per-session
-/// cooldown, the lease duration a slot is held for, and the hard timeout a
-/// ping attempt's own digest and transport work is bounded by. The hard
-/// timeout is strictly shorter than the lease duration. An attempt's actual
-/// deadline is an absolute UTC instant, <c>now + HardTimeout</c>, fixed once
-/// at lease acquisition.
+/// The ping cooldown, transport slot lease duration, and maximum digest and transport duration.
 /// </summary>
 internal static class PingPolicy
 {

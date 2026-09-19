@@ -3,20 +3,14 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Services.Mail;
 
 /// <summary>
-/// Resolves role-targeted mail recipients from live orchestration
-/// participants.
+/// Resolves role-targeted recipients from registered session participants.
 /// </summary>
 internal static class MailRoleRecipients
 {
     /// <summary>
-    /// Returns the distinct normalized names of every durable, non-implicit
-    /// actor bound to a live session whose own role equals
-    /// <paramref name="role"/> (normalized), excluding
-    /// <paramref name="excludingActor"/>. When the session's own role is
-    /// blank, the durable identity's role is matched instead: a session
-    /// bound before role-aware registration never had its own role written.
-    /// An identity with no live session, and a live session that is unbound,
-    /// implicit, or matches neither role, are never returned.
+    /// Returns distinct non-implicit actor names whose session role matches the normalized
+    /// role, excluding <paramref name="excludingActor"/>. An empty session role falls
+    /// back to the actor's role; presence state is not filtered.
     /// </summary>
     public static async Task<IReadOnlyList<string>> ResolveAsync(
         IAgentSessionRegistry sessions,

@@ -1,15 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// Derives one multi-recipient command's status from its individual actor
-/// wake results. Each actor has at most one coding-session target. The
-/// successful terminal statuses (<see cref="MailWakeTargetStatus.Delivered"/>,
-/// <see cref="MailWakeTargetStatus.Satisfied"/>,
-/// <see cref="MailWakeTargetStatus.Delegated"/>,
-/// <see cref="MailWakeTargetStatus.Skipped"/>) need nothing further from the
-/// caller; <see cref="MailWakeTargetStatus.Pending"/>
-/// and <see cref="MailWakeTargetStatus.Failed"/> are not successful. A batch
-/// with no targets at all aggregates to <see cref="MailWakeTargetStatus.Skipped"/>.
+/// Combines recipient wake statuses and identifies successful terminal statuses.
 /// </summary>
 internal static class WakeReceiptAggregator
 {
@@ -27,16 +19,9 @@ internal static class WakeReceiptAggregator
     };
 
     /// <summary>
-    /// Combines every recipient's status into one command-level verdict.
-    /// <list type="bullet">
-    /// <item>No targets at all: <see cref="MailWakeTargetStatus.Skipped"/>.</item>
-    /// <item>At least one unresolved target:
-    /// <see cref="MailWakeTargetStatus.Pending"/>.</item>
-    /// <item>Every target failed: <see cref="MailWakeTargetStatus.Failed"/>.</item>
-    /// <item>At least one failed target: <see cref="MailWakeTargetStatus.Failed"/>.</item>
-    /// <item>Every target completed successfully: a deterministic status in
-    /// delivery, delegation, satisfaction, skip precedence.</item>
-    /// </list>
+    /// Returns the first status present in pending, failed, delivered, delegated, then
+    /// satisfied precedence. Returns skipped when none of those statuses are present,
+    /// including for empty input.
     /// </summary>
     public static string Aggregate(IReadOnlyList<string> recipientStatuses)
     {

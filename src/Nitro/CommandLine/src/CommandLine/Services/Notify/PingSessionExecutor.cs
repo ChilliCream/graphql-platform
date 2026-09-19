@@ -15,11 +15,7 @@ internal sealed class PingSessionExecutor(
     IOpencodeServerClient opencodeServerClient) : IPingSessionExecutor
 {
     /// <summary>
-    /// The <see cref="PingAttemptOutcome.Detail"/> value written when
-    /// <see cref="ExecuteOpencodeServerAsync"/> found no unread mail left to
-    /// push and issued a plain health ping instead. Lets a caller tell a
-    /// health check apart from a delivered digest push even though both
-    /// report <see cref="PingAttemptReason.Ok"/>.
+    /// The diagnostic marking an opencode health check performed without a mail digest.
     /// </summary>
     internal const string HealthOnlyDetail = "health-only";
 
@@ -102,12 +98,9 @@ internal sealed class PingSessionExecutor(
             cancellationToken);
 
     /// <summary>
-    /// Shared attempt shape for every endpoint kind: clamps the deadline,
-    /// builds the digest, invokes <paramref name="sendAsync"/> with it (null
-    /// when no unread mail remains, letting the caller decide whether that
-    /// still requires a transport call, as the opencode health ping does),
-    /// and always writes the outcome and releases the lease, however the
-    /// attempt ends.
+    /// Builds a digest and invokes <paramref name="sendAsync"/> within the attempt budget,
+    /// passing null when no unread mail or matching claimed session remains.
+    /// Outcome recording and lease release are best effort.
     /// </summary>
     private async Task<PingAttemptOutcome> ExecuteAsync(
         string harness,
@@ -123,8 +116,7 @@ internal sealed class PingSessionExecutor(
 
         if (remaining <= TimeSpan.Zero)
         {
-            // The deadline was already behind us by the time this attempt
-            // started running: no digest or transport work may start.
+            // An expired deadline produces a timeout without digest or transport work.
             try
             {
                 return await WriteResultAsync(
@@ -172,8 +164,7 @@ internal sealed class PingSessionExecutor(
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // A failed ping is a non-event: no exception from this method may
-            // ever propagate to the caller.
+            // Non-cancellation failures produce a transport-error outcome.
             return await WriteResultAsync(
                 harness, sessionId, attemptId, PingAttemptReason.TransportError, Truncate(exception.Message));
         }
@@ -230,9 +221,8 @@ internal sealed class PingSessionExecutor(
     }
 
     /// <summary>
-    /// Always writes on an uncancellable token: the caller's own
-    /// cancellation or hard-timeout token must not prevent the outcome it
-    /// just decided from actually being recorded.
+    /// Attempts to record the outcome independently of caller cancellation and returns it
+    /// even if recording fails.
     /// </summary>
     private async Task<PingAttemptOutcome> WriteResultAsync(
         string harness, string sessionId, string attemptId, PingAttemptReason reason, string? detail)
@@ -246,8 +236,7 @@ internal sealed class PingSessionExecutor(
         }
         catch
         {
-            // Recording the outcome is itself best effort; a failed write
-            // is a non-event like every other ping failure.
+            // A storage failure does not prevent returning the outcome.
         }
 
         return new PingAttemptOutcome(
@@ -265,15 +254,12 @@ internal sealed class PingSessionExecutor(
     {
         try
         {
-            // A best-effort release on an unrelated, uncancellable token: a
-            // caller's own cancellation must not leak the slot until it
-            // expires and gets stolen.
+            // Attempts lease release independently of caller cancellation.
             await leaseStore.ReleaseAsync(slot, attemptId, CancellationToken.None);
         }
         catch
         {
-            // The slot self-heals via expiry either way; a failed release
-            // is a non-event like every other ping failure.
+            // A failed release leaves the slot reserved until expiry or another release.
         }
     }
 
@@ -281,10 +267,8 @@ internal sealed class PingSessionExecutor(
         => value is { Length: > 200 } ? value[..200] : value;
 
     /// <summary>
-    /// The coarse, CHECK-compatible <c>agent_sessions.last_ping_result</c>
-    /// value for <paramref name="reason"/>. Every reason without its own
-    /// column value collapses to <see cref="AgentPingResult.Error"/>; rich
-    /// per-reason state lives only in the returned <see cref="PingAttemptOutcome"/>.
+    /// Maps an attempt reason to its persisted ping result, using
+    /// <see cref="AgentPingResult.Error"/> when no dedicated result exists.
     /// </summary>
     private static string ToResult(PingAttemptReason reason) => reason switch
     {
@@ -308,18 +292,12 @@ internal sealed class PingSessionExecutor(
     {
         CodexQueueResult.Ok => new TransportOutcome(PingAttemptReason.Ok, null),
         CodexQueueResult.EndpointGone => new TransportOutcome(PingAttemptReason.EndpointGone, null),
-        // CodexQueueResult.Error covers a spawn failure, a timeout, or any
-        // other nonzero exit; the subprocess's raw stderr never reaches
-        // this layer, so there is no detail to attach.
+        // Other queue failures have no transport detail.
         _ => new TransportOutcome(PingAttemptReason.TransportError, null)
     };
 
     /// <summary>
-    /// Maps one <see cref="IOpencodeServerClient"/> result string (the
-    /// <c>agent_sessions.last_ping_result</c> vocabulary it reuses) to a
-    /// <see cref="TransportOutcome"/>: <see cref="AgentPingResult.Ok"/> and
-    /// <see cref="AgentPingResult.Timeout"/> map directly, everything else,
-    /// including <see cref="AgentPingResult.EndpointGone"/>, collapses to
+    /// Maps opencode success and timeout results directly; all other values map to
     /// <see cref="PingAttemptReason.EndpointGone"/>.
     /// </summary>
     private static TransportOutcome MapOpencodeResult(string result) => result switch

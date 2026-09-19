@@ -1,10 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// The capped exponential backoff for the mail-wake daemon coordinator's
-/// SQLite busy/locked retries and per-actor transient-offer cooldown.
-/// Starts at <see cref="InitialDelay"/> and doubles per consecutive failure,
-/// never exceeding <see cref="MaxDelay"/>.
+/// Capped exponential delays for database contention and transient wake offers.
 /// </summary>
 internal static class MailWakeDaemonRetryPolicy
 {
@@ -17,9 +14,8 @@ internal static class MailWakeDaemonRetryPolicy
     private const int MaxDoublings = 32;
 
     /// <summary>
-    /// The delay before the <paramref name="consecutiveFailures"/>-th retry
-    /// (1-based; values below 1 are treated as 1, so the very first retry
-    /// always waits <see cref="InitialDelay"/>).
+    /// Returns the exponentially increasing delay for a 1-based failure count, capped
+    /// at <see cref="MaxDelay"/>. Counts below 1 use <see cref="InitialDelay"/>.
     /// </summary>
     public static TimeSpan ComputeDelay(int consecutiveFailures)
     {
@@ -40,9 +36,8 @@ internal static class MailWakeDaemonRetryPolicy
     }
 
     /// <summary>
-    /// Whether <paramref name="lastError"/> is a busy session gate, exhausted
-    /// transport capacity, an accepted Claude access-denied handoff, or an
-    /// opencode session offered because its idle-push gate was not armed.
+    /// True for busy, capacity-dropped, access-denied, or idle-not-armed offers;
+    /// false for null or any other value.
     /// </summary>
     public static bool IsTransientOffer(string? lastError) =>
         lastError is "busy" or "capacity-dropped" or "access-denied" or "idle-not-armed";
