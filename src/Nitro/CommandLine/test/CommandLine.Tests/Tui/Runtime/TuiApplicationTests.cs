@@ -154,8 +154,7 @@ public sealed class TuiApplicationTests
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
         // act
-        // The handler never reports the frame as dirty, so the initial frame can only
-        // reach the console output via the Live display's own startup paint.
+        // the handler never reports the frame as dirty, so only the Live display's startup paint runs.
         var runTask = app.RunAsync(_ => false, () => new Text("initial-frame-marker"), cts.Token);
         await Task.Delay(s_tickInterval * 5, testToken);
         cts.Cancel();
@@ -216,8 +215,6 @@ public sealed class TuiApplicationTests
     [Fact]
     public async Task RunAsync_Should_KeepDeliveringTickEvents_While_SlowEffectRuns()
     {
-        // A slow effect submitted from within the handler must not block the loop
-        // from continuing to deliver key/render events.
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole();
@@ -308,8 +305,6 @@ public sealed class TuiApplicationTests
     [Fact]
     public async Task RunAsync_Should_RestoreTerminal_WithinShutdownBound_When_EventSourceIsNoncooperative()
     {
-        // A noncooperative event source (one that never observes cancellation) must
-        // not block terminal restoration past the fixed shutdown bound.
         // arrange
         var testToken = TestContext.Current.CancellationToken;
         var console = new TestConsole { EmitAnsiSequences = true };
@@ -383,8 +378,7 @@ public sealed class TuiApplicationTests
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => runTask);
 
-        // Give the key-reader loop several poll intervals worth of time to consume
-        // the key below if it were still running.
+        // gives a still-running key-reader loop time to consume the key pushed below.
         await Task.Delay(s_keyPollInterval * 10, testToken);
         console.Input.PushKey(ConsoleKey.A);
         await Task.Delay(s_keyPollInterval * 10, testToken);

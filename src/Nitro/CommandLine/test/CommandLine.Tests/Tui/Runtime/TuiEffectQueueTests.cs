@@ -182,8 +182,7 @@ public sealed class TuiEffectQueueTests
         var completions = queue.DrainCompletions();
 
         // assert
-        // Supervised: the exception became a deterministic completion result instead
-        // of an unobserved background-task exception.
+        // the exception became a deterministic completion result, not an unobserved task exception.
         var faulted = Assert.IsType<TuiEffectCompletion<string>.Faulted>(Assert.Single(completions));
         Assert.Equal(operationId, faulted.OperationId);
         Assert.Same(thrown, faulted.Exception);
@@ -231,11 +230,8 @@ public sealed class TuiEffectQueueTests
     [Fact]
     public async Task DrainCompletions_Should_ReturnResult_Even_When_NoWakeEventWasEverConsumed()
     {
-        // A completion is persisted before any wake event is posted, so it is
-        // observable purely by draining, without ever running RunAsync (which is what
-        // relays the wake event onto a TuiApplication's channel) or reading anything
-        // from a channel at all. This is what makes a dropped wake event harmless.
         // arrange
+        // the completion is persisted without ever running RunAsync or reading from a channel.
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
         queue.TrySubmit("compose", (_, _) => Task.FromResult("stored"), testToken, out _);
@@ -291,8 +287,8 @@ public sealed class TuiEffectQueueTests
     [Fact]
     public async Task DrainPendingAsync_Should_ReturnOnceEffectCompletes_When_ItFinishesBeforeTheBound()
     {
-        // Exercises an effect completing DURING the quit gate's bounded drain.
         // arrange
+        // the effect completes during the bounded drain rather than before or after it.
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
         var release = new TaskCompletionSource();
@@ -316,9 +312,8 @@ public sealed class TuiEffectQueueTests
     [Fact]
     public async Task DrainPendingAsync_Should_LeavePendingCount_When_EffectOutlivesTheBound()
     {
-        // Exercises an effect still running AFTER the quit gate's bounded drain
-        // expires: the runtime gives up waiting but does not cancel it.
         // arrange
+        // the effect outlives the bounded drain; the runtime gives up waiting but does not cancel it.
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
         var release = new TaskCompletionSource();
