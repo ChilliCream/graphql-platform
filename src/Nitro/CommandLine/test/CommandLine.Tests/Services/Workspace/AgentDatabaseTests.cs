@@ -389,6 +389,130 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
+    /// Regression test for the merge (24a482671f) that renumbered this
+    /// branch's schema versions against main's: seeds a database exactly the
+    /// way the PRE-MERGE branch build itself stamped a real v13 workspace
+    /// (opencode harness, endpoint kind, and endpoint_secret from its own
+    /// v12 step; announcement_pending and idle_push_armed from its own v13
+    /// step) but with no takeover ledger tables at all, since those never
+    /// existed on this branch pre-merge and only reached the unified schema
+    /// from main. On the merged CLI the same stamped number 13 now means
+    /// something else ("takeover ledger and opencode present, announcement
+    /// columns missing"), so this seed is a genuinely different database
+    /// shape than <see cref="AgentDatabase.CurrentVersion"/>'s own idea of
+    /// v13. InitializeAsync
+    /// must still upgrade it to <see cref="AgentDatabase.CurrentVersion"/>,
+    /// applying the schema union: the takeover ledger tables get created (the
+    /// gap this test exists to catch), the already-present opencode and
+    /// announcement/idle-push columns are left alone, and the existing
+    /// session and agent rows survive with their values intact.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_Should_AddTakeoverLedgerTables_When_ExistingVersionIsPreMergeBranchStamped13()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agents (
+                    name TEXT PRIMARY KEY,
+                    registered_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT '',
+                    implicit INTEGER NOT NULL DEFAULT 0 CHECK (implicit IN (0, 1)),
+                    client TEXT NOT NULL DEFAULT ''
+                );
+
+                CREATE TABLE agent_sessions (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'opencode', 'nitro-board')),
+                    session_id TEXT NOT NULL,
+                    agent_name TEXT NULL REFERENCES agents (name),
+                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
+                    host TEXT NOT NULL,
+                    cwd TEXT NOT NULL,
+                    workspace_path TEXT NOT NULL,
+                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'opencode-server', 'db-watch', 'none')),
+                    endpoint_addr TEXT NOT NULL,
+                    endpoint_secret TEXT NULL,
+                    started_at TEXT NOT NULL,
+                    last_beat_at TEXT NOT NULL,
+                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
+                    last_ping_at TEXT NULL,
+                    last_ping_attempt TEXT NULL,
+                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
+                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
+                    role TEXT NOT NULL DEFAULT '',
+                    harness_version TEXT NOT NULL DEFAULT '',
+                    announcement_pending INTEGER NOT NULL DEFAULT 0 CHECK (announcement_pending IN (0, 1)),
+                    idle_push_armed INTEGER NOT NULL DEFAULT 0 CHECK (idle_push_armed IN (0, 1)),
+                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
+                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
+                    PRIMARY KEY (harness, session_id)
+                );
+
+                INSERT INTO agents (name, registered_at, last_seen_at, role, implicit, client)
+                VALUES ('maya', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00', 'backend', 0, 'opencode');
+
+                INSERT INTO agent_sessions (
+                    harness, session_id, agent_name, binding_kind, host,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, endpoint_secret, started_at, last_beat_at,
+                    announcement_pending, idle_push_armed
+                ) VALUES (
+                    'opencode', 'session-premerge13', 'maya', 'explicit', 'host-a',
+                    '/tmp/work', '/tmp/work/.nitro/agents', 'opencode-server', 'http://127.0.0.1:4096', 'top-secret',
+                    '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00',
+                    1, 1
+                );
+
+                PRAGMA user_version = 13;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(AgentDatabase.CurrentVersion,
+            await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+
+        Assert.Equal(1, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeovers'",
+            cancellationToken));
+        Assert.Equal(1, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'agent_takeover_items'",
+            cancellationToken));
+
+        var survivingSession = await QueryScalarStringAsync(
+            upgraded,
+            """
+            SELECT agent_name || '|' || endpoint_addr || '|' || endpoint_secret
+            FROM agent_sessions
+            WHERE session_id = 'session-premerge13'
+            """,
+            cancellationToken);
+        Assert.Equal("maya|http://127.0.0.1:4096|top-secret", survivingSession);
+
+        var preservedFlags = await QueryScalarLongAsync(
+            upgraded,
+            "SELECT announcement_pending + idle_push_armed FROM agent_sessions "
+            + "WHERE session_id = 'session-premerge13'",
+            cancellationToken);
+        Assert.Equal(2, preservedFlags);
+
+        var survivingAgent = await QueryScalarStringAsync(
+            upgraded, "SELECT client FROM agents WHERE name = 'maya'", cancellationToken);
+        Assert.Equal("opencode", survivingAgent);
+    }
+
+    /// <summary>
     /// Seeds a raw v2-shaped agents table, predating the role and implicit
     /// columns, with one row, mirroring a database left by a pre-.8 CLI.
     /// InitializeAsync must add the columns in place, without losing the
