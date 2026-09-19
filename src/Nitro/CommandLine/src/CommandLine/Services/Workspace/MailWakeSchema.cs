@@ -1,34 +1,13 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// The durable actor-wake queue and its claimed dispatch state. Four
-/// tables. <c>mail_wake_outbox</c> is the durable per-(Nitro instance,
-/// actor) queue head: <c>requested_generation</c> counts every distinct
-/// wake intent ever enqueued for that actor on this instance,
-/// <c>settled_generation</c> is the highest generation a completed batch
-/// has actually settled, and <c>due_at</c> is the earliest time outstanding
-/// work should next be attempted. <c>mail_wake_batches</c> is one immutable
-/// claim against an outbox row, fenced by <c>owner_id</c>/<c>attempt_id</c>/
-/// <c>expires_at</c> against a stale or superseded claimant; at most one
-/// <c>active</c> batch exists per actor at a time, enforced by
-/// <c>idx_mail_wake_batches_one_active_per_actor</c>. <c>mail_wake_targets</c>
-/// is one row per full session generation a batch dispatched to when
-/// claimed, cascading only with its owning batch, never with
-/// <c>agent_sessions</c>; <c>offered_generation</c> and
-/// <c>accepted_generation</c> record target-qualified acceptance.
-/// <c>mail_wake_daemons</c> is one persistent leader row per Nitro instance,
-/// with <c>epoch</c> incrementing every time a new owner steals an expired
-/// lease. Every <c>last_error</c> column is bounded the same way
-/// <c>agent_sessions.last_ping_detail</c> is. Statements are idempotent so
-/// applying them to an existing database is non-destructive.
+/// Defines the durable wake outbox, claimed batches, target outcomes, and daemon
+/// leadership leases. Each Nitro instance and actor can have at most one active batch.
 /// </summary>
 internal static class MailWakeSchema
 {
     /// <summary>
-    /// The <c>mail_wake_targets</c> column and constraint list, shared
-    /// between <see cref="Create"/> (applied under the live table name) and
-    /// <see cref="CreateMailWakeTargetsTable"/> (applied under a temporary
-    /// name to rebuild the table).
+    /// The columns and constraints of the wake target table.
     /// </summary>
     private const string MailWakeTargetsColumns =
         """
@@ -103,9 +82,7 @@ internal static class MailWakeSchema
         """;
 
     /// <summary>
-    /// The same <c>mail_wake_targets</c> column and constraint list as
-    /// <see cref="Create"/>, applied under <paramref name="tableName"/>
-    /// instead of the live table name.
+    /// Returns SQL to create wake targets under <paramref name="tableName"/>.
     /// </summary>
     public static string CreateMailWakeTargetsTable(string tableName) =>
         $"""

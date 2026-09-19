@@ -22,8 +22,7 @@ internal static class AgentActorAllocator
         SqliteConnection connection,
         DbTransaction transaction)
     {
-        // Both tables, not just the bound ones: `agent login` can reserve a
-        // name before any session claims it.
+        // Names in either the agent registry or durable session identities are unavailable.
         var occupied = (await connection.QueryAsync<string>(
                 """
                 SELECT actor FROM agent_session_identities

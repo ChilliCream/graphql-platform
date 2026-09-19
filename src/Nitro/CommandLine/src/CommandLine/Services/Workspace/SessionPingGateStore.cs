@@ -14,12 +14,7 @@ internal sealed class SessionPingGateStore(IFileSystem fileSystem, AgentDatabase
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // The DO UPDATE's WHERE clause is the atomic steal-if-expired check:
-        // when it evaluates false (the gate is held by an unexpired
-        // attempt), SQLite treats the whole upsert as a no-op and RETURNING
-        // yields no row, so a null result here means "not claimed" without
-        // this call ever needing to compare the returned attempt id against
-        // its own.
+        // An unexpired gate remains claimed by its current attempt.
         var claimed = await connection.QueryFirstOrDefaultAsync<string>(
             """
             INSERT INTO session_ping_gates (

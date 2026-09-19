@@ -31,9 +31,8 @@ internal sealed class ClaudeSessionActivityReader(Func<string, string?>? session
     }
 
     /// <summary>
-    /// The session file carrying <paramref name="sessionId"/>. The directory
-    /// holds one file per live session, named by its pid rather than its
-    /// session id, so the file is found by reading them.
+    /// Returns the contents of a session file with the matching session id, or null
+    /// when no readable matching file is found.
     /// </summary>
     private static string? ReadSessionFile(string sessionId)
     {

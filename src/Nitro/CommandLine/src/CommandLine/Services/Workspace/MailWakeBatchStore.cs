@@ -32,16 +32,11 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             || outbox.SettledGeneration >= outbox.RequestedGeneration
             || DateTimeOffset.Parse(outbox.DueAt, System.Globalization.CultureInfo.InvariantCulture) > now)
         {
-            // Nothing outstanding, or not due yet: commit to release the
-            // read lock promptly rather than leave it for disposal.
             await transaction.CommitAsync(cancellationToken);
             return null;
         }
 
-        // Reclaim an expired active batch before checking for a live one:
-        // a crashed owner's lease never gets renewed, so without this an
-        // expired row would wedge the actor's queue forever. Mirrors the
-        // steal-if-expired shape in MailWakeDaemonLeaderStore.TryAcquireAsync.
+        // Expired active batches are released before another batch is claimed.
         await connection.ExecuteAsync(
             """
             UPDATE mail_wake_batches SET status = 'released', last_error = 'lease expired'
@@ -51,9 +46,6 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             new { nitroInstanceId, actor, now, cancellationToken },
             transaction);
 
-        // Belt-and-braces alongside idx_mail_wake_batches_one_active_per_actor:
-        // checked explicitly so a losing caller gets a clean null instead of
-        // a thrown constraint-violation exception from the insert below.
         var activeBatchCount = await connection.ExecuteScalarAsync<long>(
             """
             SELECT COUNT(*) FROM mail_wake_batches
@@ -167,10 +159,7 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
             return false;
         }
 
-        // MAX(...) is what makes this "never settle G+1": ClaimedGeneration
-        // is fixed at claim time, so even if requested_generation has since
-        // advanced past it, settled_generation only ever catches up to the
-        // generation this exact batch claimed.
+        // Completion settles through the claimed generation without lowering existing settlement.
         await connection.ExecuteAsync(
             """
             UPDATE mail_wake_outbox
@@ -298,8 +287,6 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
-    // Internal, not private: Dapper.AOT's generated interceptors live
-    // outside this class and cannot reference a private nested type.
     internal sealed class OutboxDueRow
     {
         public required long RequestedGeneration { get; init; }

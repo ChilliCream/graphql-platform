@@ -1,25 +1,13 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// <c>session_ping_gates</c>: the per-session-generation mutual exclusion
-/// gate a caller reserves before attempting any endpoint transport against
-/// one exact <see cref="AgentSessionGeneration"/>, keyed by its full
-/// (harness, session_id, host) tuple. Distinct from <c>ping_leases</c>,
-/// which caps total outstanding ping children workspace-wide regardless of
-/// which session they target. Not referenced by a foreign key against
-/// <c>agent_sessions</c>, so ending or reaping the session it names never
-/// implicitly frees or blocks the gate. <c>attempt_id</c> fences release
-/// the same way <c>ping_leases.attempt_id</c> does, and an expired gate is
-/// reclaimed by stealing it, not by a separate sweep. Statements are
-/// idempotent so applying them to an existing database is non-destructive.
+/// Defines transport leases keyed by harness, session id, and host.
+/// Deleting session presence does not remove these leases.
 /// </summary>
 internal static class SessionPingGateSchema
 {
     /// <summary>
-    /// The <c>session_ping_gates</c> column and constraint list, shared
-    /// between <see cref="Create"/> (applied under the live table name) and
-    /// <see cref="CreateSessionPingGatesTable"/> (applied under a temporary
-    /// name to rebuild the table).
+    /// The columns and constraints of the session transport lease table.
     /// </summary>
     private const string SessionPingGatesColumns =
         """
@@ -45,9 +33,7 @@ internal static class SessionPingGateSchema
         """;
 
     /// <summary>
-    /// The same <c>session_ping_gates</c> column and constraint list as
-    /// <see cref="Create"/>, applied under <paramref name="tableName"/>
-    /// instead of the live table name.
+    /// Returns SQL to create session transport leases under <paramref name="tableName"/>.
     /// </summary>
     public static string CreateSessionPingGatesTable(string tableName) =>
         $"""

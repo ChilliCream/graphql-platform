@@ -193,8 +193,6 @@ internal sealed class TakeoverLedger(
         }).ToArray();
     }
 
-    // The SQL text here is assembled at runtime, not a call-site literal,
-    // so Dapper.AOT cannot intercept it; read through plain ADO.NET instead.
     private static async Task<List<TakeoverRecordRow>> ExecuteRecordQueryAsync(
         SqliteConnection connection,
         string sql,

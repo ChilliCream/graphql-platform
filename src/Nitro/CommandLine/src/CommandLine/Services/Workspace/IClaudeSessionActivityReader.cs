@@ -1,10 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Reads a live Claude Code harness session's idle/busy activity straight
-/// from its session file at display time, never stored or cached. Used by
-/// <c>agent list</c> and the TUI Agents tab for an
-/// <see cref="AgentSessionState.Online"/> claude-code row.
+/// Reads Claude session activity from its session file without caching it.
 /// </summary>
 internal interface IClaudeSessionActivityReader
 {

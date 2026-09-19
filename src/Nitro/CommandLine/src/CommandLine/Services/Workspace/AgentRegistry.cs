@@ -43,12 +43,9 @@ internal sealed class AgentRegistry(
     }
 
     /// <summary>
-    /// The agents upsert <see cref="RegisterAsync"/> applies (sets
-    /// last_seen_at to now, implicit to false, and role and client to the
-    /// given values), exposed so a caller with its own already-open writer
-    /// transaction can upsert an agent identity as part of it: SQLite allows
-    /// only one writer transaction per connection, so such a caller cannot
-    /// go through <see cref="RegisterAsync"/>, which opens its own.
+    /// Registers an agent within the supplied transaction using normalized name, role,
+    /// and client values. Refreshes last-seen time, clears the implicit flag, and
+    /// replaces the role and client values.
     /// </summary>
     public static async Task<AgentRecord> UpsertWithinTransactionAsync(
         SqliteConnection connection,
@@ -145,10 +142,7 @@ internal sealed class AgentRegistry(
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        // The no-op DO UPDATE (name = excluded.name, always the same value)
-        // exists only so RETURNING fires on a conflict too, giving a single
-        // round trip that both creates a missing row and fetches an
-        // existing one, without touching any column of an existing row.
+        // Existing agent values are preserved.
         var row = await connection.QueryFirstAsync<AgentRegistryRow>(
             """
             INSERT INTO agents (name, registered_at, last_seen_at, role, client, implicit)
@@ -221,10 +215,7 @@ internal sealed class AgentRegistry(
     }
 
     /// <summary>
-    /// Trims and lowercases the given value the same way
-    /// <see cref="AgentRole.Normalize"/> does. A null or whitespace-only
-    /// value normalizes to the empty string; like a role, a client carries
-    /// no character restriction.
+    /// Trims and lowercases the client name; null or whitespace yields an empty string.
     /// </summary>
     private static string NormalizeClient(string? client) => (client ?? string.Empty).Trim().ToLowerInvariant();
 
@@ -237,8 +228,6 @@ internal sealed class AgentRegistry(
         return await database.ConnectAsync(workspaceDirectory, cancellationToken);
     }
 
-    // Internal, not private: Dapper.AOT cannot generate against a private
-    // nested type.
     internal sealed class AgentRegistryRow
     {
         public required string Name { get; init; }

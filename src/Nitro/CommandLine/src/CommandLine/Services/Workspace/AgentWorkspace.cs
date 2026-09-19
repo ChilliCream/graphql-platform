@@ -3,11 +3,9 @@ using System.Globalization;
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Defines the on-disk layout of the unified agent workspace, shared by the
-/// task tracker and the mail feature, and shared helpers for it. In a git
-/// repository the workspace lives inside the git common directory
-/// (<c>.git/nitro</c>); outside git it lives at <c>.nitro/agents</c>, and an
-/// existing <c>.nitro/agents</c> always takes precedence over git.
+/// Resolves the shared agent workspace under a Git common directory or
+/// <c>.nitro/agents</c>. At each searched directory, an initialized fallback workspace
+/// takes precedence over a Git workspace.
 /// </summary>
 internal static class AgentWorkspace
 {
@@ -32,20 +30,16 @@ internal static class AgentWorkspace
     private const int MaxPrefixLength = 64;
 
     /// <summary>
-    /// Ignores the SQLite database files and the disposable memory index,
-    /// which are local state; the memory markdown and this file itself are
-    /// the committed, durable state and must not be ignored.
+    /// Git ignore rules for workspace database files and the legacy memory index directory.
     /// </summary>
     public const string GitIgnoreContent =
         """
-        # The agent database is the source of truth for tasks and mail. It is
-        # local, machine-specific state and is never committed.
+        # Local agent workspace database files.
         agents.db
         agents.db-wal
         agents.db-shm
 
-        # The memory index is a disposable, rebuildable cache; the curated and
-        # journal markdown under memory/ is the source of truth in git.
+        # Legacy memory index files.
         memory/.local/
         """;
 
@@ -100,23 +94,19 @@ internal static class AgentWorkspace
         => Path.Combine(workspaceDirectory, DatabaseFileName);
 
     /// <summary>
-    /// The project memory root, nested under the shared agent workspace
-    /// directory returned by <see cref="GetDirectory"/>.
+    /// Returns the legacy memory directory under the supplied workspace directory.
     /// </summary>
     public static string GetMemoryDirectory(string workspaceDirectory)
         => Path.Combine(workspaceDirectory, MemoryDirectoryName);
 
     /// <summary>
-    /// The machine-local Nitro root under the platform's application data
-    /// directory, shared by every global (non-project) feature: the memory
-    /// store, the instance id fallback file, and future global config.
+    /// Returns the Nitro configuration directory under the supplied application data directory.
     /// </summary>
     public static string GetGlobalConfigDirectory(string applicationDataDirectory)
         => Path.Combine(applicationDataDirectory, GlobalConfigDirectoryName);
 
     /// <summary>
-    /// The machine-local global memory root, under the platform's
-    /// application data directory. Independent of any project workspace.
+    /// Returns the legacy global memory directory under the supplied application data directory.
     /// </summary>
     public static string GetGlobalMemoryDirectory(string applicationDataDirectory)
         => Path.Combine(GetGlobalConfigDirectory(applicationDataDirectory), MemoryDirectoryName);
@@ -147,11 +137,9 @@ internal static class AgentWorkspace
         => FindLocation(fileSystem, startDirectory)?.WorkspaceDirectory;
 
     /// <summary>
-    /// Finds the nearest initialized workspace at or above the given
-    /// directory, together with the project directory that owns it. At each
-    /// level a <c>.nitro/agents</c> workspace takes precedence over the
-    /// repository's <c>.git/nitro</c>. Returns null when no workspace
-    /// exists.
+    /// Finds the nearest workspace containing an agent database and returns its project,
+    /// checkout, and workspace directories. At each level, the fallback layout takes
+    /// precedence over Git; null means no initialized workspace was found.
     /// </summary>
     public static WorkspaceLocation? FindLocation(IFileSystem fileSystem, string startDirectory)
     {
@@ -238,10 +226,9 @@ internal static class AgentWorkspace
     }
 
     /// <summary>
-    /// The <c>.git/nitro</c> workspace location for a repository rooted at
-    /// exactly the given directory, or null when it is not a repository
-    /// root. The project directory is the main checkout root, so every
-    /// linked worktree of a repository maps to the same location.
+    /// Returns the Git workspace location for this checkout root, or null when its Git
+    /// directory cannot be resolved. Linked worktrees share the common workspace
+    /// directory and retain their own checkout directory.
     /// </summary>
     private static WorkspaceLocation? FindGitWorkspaceAt(IFileSystem fileSystem, string directory)
     {
@@ -350,13 +337,8 @@ internal static class AgentWorkspace
     }
 
     /// <summary>
-    /// Finds the nearest workspace directory at or above the given directory
-    /// that has either an agent database or project memory markdown. An
-    /// initialized database beats markdown-only at each level, so a stale
-    /// restored <c>.nitro/agents</c> memory tree never shadows a migrated
-    /// <c>.git/nitro</c> workspace. Memory storage is markdown-first, so a
-    /// freshly cloned repository with committed curated or journal entries
-    /// but no database yet still counts. Returns null when neither exists.
+    /// Finds the nearest workspace with an agent database or a legacy curated or journal
+    /// directory, preferring a database at each level. Returns null when none is found.
     /// </summary>
     public static string? FindMemory(IFileSystem fileSystem, string startDirectory)
     {
@@ -404,8 +386,9 @@ internal static class AgentWorkspace
     }
 
     /// <summary>
-    /// Normalizes a task ID prefix to lowercase letters, digits, hyphens, and
-    /// underscores. Returns <see cref="FallbackPrefix"/> when nothing remains.
+    /// Keeps at most 64 lowercase ASCII letters, digits, hyphens, or underscores and
+    /// trims leading and trailing hyphens and underscores. Returns <see cref="FallbackPrefix"/>
+    /// when nothing remains.
     /// </summary>
     public static string NormalizePrefix(string value)
     {

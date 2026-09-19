@@ -1,9 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// A row of <c>agent_sessions</c>: one live harness session, claimed by an
-/// agent or not. Presence has a lifetime of minutes, distinct from the
-/// 30-day staleness semantics <see cref="AgentRecord"/> identity carries.
+/// A session presence record with its actor binding, endpoint, heartbeat, and ping state.
 /// </summary>
 internal sealed record AgentSessionRecord
 {
@@ -56,36 +54,29 @@ internal sealed record AgentSessionRecord
     public DateTimeOffset? LastPingAt { get; init; }
 
     /// <summary>
-    /// The attempt id of the most recent ping; results only write back if
-    /// they carry this id, so an out-of-order completion cannot overwrite a
-    /// newer attempt's result.
+    /// The most recent ping attempt id, or null before an attempt is claimed.
+    /// Only results carrying the current attempt id are recorded.
     /// </summary>
     public string? LastPingAttempt { get; init; }
 
     /// <summary>
-    /// One of <c>ok</c>, <c>spawn-failed</c>, <c>endpoint-gone</c>,
-    /// <c>timeout</c>, <c>capacity-dropped</c>, <c>error</c>, or
-    /// <c>unsupported</c> (an endpoint kind or protocol the notifier cannot
-    /// transport). Null before any ping attempt.
+    /// The most recent completed ping result from <see cref="AgentPingResult"/>.
+    /// Null before any attempt or while the latest attempt has no recorded result.
     /// </summary>
     public string? LastPingResult { get; init; }
 
     /// <summary>
-    /// An application-truncated diagnostic code (never raw stderr), at most
-    /// 200 characters.
+    /// The optional ping diagnostic, limited to 200 characters.
     /// </summary>
     public string? LastPingDetail { get; init; }
 
     /// <summary>
-    /// The mutable participant role, normalized the way
-    /// <see cref="AgentRole.Normalize"/> normalizes an agent's durable role.
-    /// Blank until a caller promotes it.
+    /// The normalized session role, or empty when no role is assigned.
     /// </summary>
     public required string Role { get; init; }
 
     /// <summary>
-    /// The exact harness version, captured once for the row's lifetime.
-    /// Blank until a caller captures it.
+    /// The most recently recorded harness version, or empty when no version is recorded.
     /// </summary>
     public required string HarnessVersion { get; init; }
 }

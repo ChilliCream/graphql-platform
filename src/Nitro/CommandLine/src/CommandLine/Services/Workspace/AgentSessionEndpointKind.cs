@@ -12,10 +12,7 @@ internal static class AgentSessionEndpointKind
     public const string OpencodeServer = "opencode-server";
 
     /// <summary>
-    /// A Nitro board session's endpoint: the shared workspace SQLite file
-    /// itself. A message addressed to this endpoint's actor is already
-    /// delivered the moment it commits, so it carries no routable peer or
-    /// thread id and no transport ever fires against it.
+    /// A Nitro board endpoint that observes mail through the shared workspace database.
     /// </summary>
     public const string DbWatch = "db-watch";
 

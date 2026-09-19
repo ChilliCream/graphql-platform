@@ -8,9 +8,7 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Opens and initializes the unified agent workspace database that backs
-/// both the task tracker and the mail feature: one file, one schema
-/// composed of both feature's tables, and one PRAGMA user_version.
+/// Opens, initializes, and upgrades the shared agent workspace database.
 /// </summary>
 internal sealed class AgentDatabase
 {
@@ -64,8 +62,7 @@ internal sealed class AgentDatabase
             throw;
         }
 
-        // Runs before the main transaction and manages its own: PRAGMA
-        // foreign_keys can only be toggled with no transaction pending.
+        // The constraint rebuild runs in its own transaction.
         await RebuildAgentSessionsCheckConstraintIfStaleAsync(connection, cancellationToken);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
@@ -83,8 +80,7 @@ internal sealed class AgentDatabase
 
         await connection.ExecuteAsync(TakeoverLedgerSchema.Create, transaction: transaction);
 
-        // Detected by the markdown store's presence on disk; a no-op once a
-        // workspace has already been carried across.
+        // Imports legacy markdown entries whose ids are absent from the database.
         await MemoryMarkdownImport.ImportAsync(
             connection, transaction, workspaceDirectory, cancellationToken);
 
@@ -106,8 +102,7 @@ internal sealed class AgentDatabase
 
         await transaction.CommitAsync(cancellationToken);
 
-        // Runs after the transaction commits: PRAGMA foreign_keys cannot be
-        // toggled with a transaction pending.
+        // The constraint rebuild runs after the schema transaction commits.
         await RebuildAgentSessionsHarnessCheckConstraintIfStaleAsync(connection, cancellationToken);
 
         return connection;
@@ -134,10 +129,7 @@ internal sealed class AgentDatabase
             transaction: transaction);
 
     /// <summary>
-    /// Adds the agents table's role, implicit, and client columns when the
-    /// database on hand's agents table predates any of them, checked column
-    /// by column so this is safe to run against a table that already
-    /// carries all three.
+    /// Adds any missing role, implicit, and client columns to the agents table.
     /// </summary>
     private static async Task UpgradeAgentsTableAsync(
         SqliteConnection connection,
@@ -170,9 +162,7 @@ internal sealed class AgentDatabase
     }
 
     /// <summary>
-    /// Adds the <c>agent_sessions</c> metadata columns when the database on
-    /// hand predates any of them, checked column by column so this is safe
-    /// to run against a table that already carries every column.
+    /// Adds missing session metadata and delivery-state columns.
     /// </summary>
     private static async Task UpgradeAgentSessionsMetadataColumnsAsync(
         SqliteConnection connection,
@@ -567,9 +557,6 @@ internal sealed class AgentDatabase
         string databasePath,
         CancellationToken cancellationToken)
     {
-        // Pooling would keep the database file open after the connection is
-        // disposed; a CLI process runs one command and exits, so it gains
-        // nothing from the pool.
         var connection = new SqliteConnection($"Data Source={databasePath};Pooling=False");
 
         await connection.OpenAsync(cancellationToken);

@@ -1,27 +1,13 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Agent presence and mail delivery/ping bookkeeping. Three tables:
-/// <c>agent_sessions</c> (the canonical active-membership table, one row per
-/// live harness session, claimed or not, keyed by (harness, session_id));
-/// <c>session_deliveries</c> (the at-most-once-per-channel notification
-/// ledger, cascading with its owning session); and <c>ping_leases</c> (the
-/// fixed four-slot concurrency cap on outstanding ping children). Statements
-/// are idempotent so applying them to an existing database is
-/// non-destructive. <c>last_ping_result</c> carries <c>unsupported</c> for
-/// an endpoint kind the notifier has no transport for: a distinct
-/// diagnostic from <c>endpoint_kind = 'none'</c>, which means the session
-/// simply has no endpoint to attempt at all. <c>agent_sessions</c> also
-/// carries the mutable participant <c>role</c> and the exact
-/// <c>harness_version</c>.
+/// Defines session presence, per-channel delivery reservations, and the four
+/// workspace ping-lease slots.
 /// </summary>
 internal static class AgentSessionSchema
 {
     /// <summary>
-    /// The <c>agent_sessions</c> column and constraint list, shared between
-    /// <see cref="Create"/> (applied under the live table name) and
-    /// <see cref="CreateAgentSessionsTable"/> (applied under a temporary
-    /// name to rebuild the table).
+    /// The columns and constraints of the session presence table.
     /// </summary>
     private const string AgentSessionsColumns =
         """
@@ -46,10 +32,6 @@ internal static class AgentSessionSchema
             harness_version TEXT NOT NULL DEFAULT '',
             announcement_pending INTEGER NOT NULL DEFAULT 0 CHECK (announcement_pending IN (0, 1)),
             idle_push_armed INTEGER NOT NULL DEFAULT 0 CHECK (idle_push_armed IN (0, 1)),
-            -- Table-level CHECK constraints must follow every column
-            -- definition (SQLite rejects one interleaved between columns),
-            -- so both cross-column checks live here instead of next to the
-            -- columns they compare.
             CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
             CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
             PRIMARY KEY (harness, session_id)
@@ -86,9 +68,7 @@ internal static class AgentSessionSchema
         """;
 
     /// <summary>
-    /// The same <c>agent_sessions</c> column and constraint list as
-    /// <see cref="Create"/>, applied under <paramref name="tableName"/>
-    /// instead of the live table name.
+    /// Returns SQL to create the session presence table under <paramref name="tableName"/>.
     /// </summary>
     public static string CreateAgentSessionsTable(string tableName) =>
         $"""

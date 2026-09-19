@@ -69,10 +69,6 @@ internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabas
 
         foreach (var messageId in messageIds)
         {
-            // ON CONFLICT DO NOTHING is the atomic claim: a zero row count
-            // means this (harness, session_id, message_id, channel) was
-            // already reserved, by this call's own session or an earlier
-            // one, so the message is excluded rather than reserved twice.
             await using var command = connection.CreateCommand();
             command.Transaction = (SqliteTransaction)transaction;
             command.CommandText =
@@ -122,13 +118,6 @@ internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabas
 
         foreach (var messageId in messageIds)
         {
-            // ON CONFLICT DO NOTHING is the atomic claim: a zero row count
-            // means this (harness, session_id, message_id, channel) was
-            // already reserved, by this call's own session or an earlier
-            // one, so the message is excluded rather than reserved twice.
-            // The EXISTS guard additionally confines the reservation to the
-            // exact host that owns the session row, so a session recorded
-            // by a different host (or already deleted) never reserves.
             await using var command = connection.CreateCommand();
             command.Transaction = (SqliteTransaction)transaction;
             command.CommandText =
@@ -179,10 +168,6 @@ internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabas
 
         foreach (var messageId in messageIds)
         {
-            // The EXISTS guard mirrors the generation overload of
-            // ReserveAsync: confined to the exact host that owns the
-            // session row, so a session recorded by a different host (or
-            // already deleted) releases nothing.
             await using var command = connection.CreateCommand();
             command.Transaction = (SqliteTransaction)transaction;
             command.CommandText =

@@ -1,11 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// A row of <c>session_deliveries</c>: an at-most-once claim that a given
-/// message was delivered to a given session over a given channel
-/// (<c>digest</c>, <c>gate</c>, or <c>ping</c>). The composite primary key
-/// includes the channel, so a digest lost to a crash between reserve and
-/// emit does not suppress the gate or a ping for the same message.
+/// A notification reservation for one session, message, and channel.
+/// A reservation does not confirm that delivery succeeded.
 /// </summary>
 internal sealed record SessionDeliveryRecord
 {

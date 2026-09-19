@@ -3,9 +3,7 @@ using System.Text.RegularExpressions;
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Validates <c>agent_sessions.endpoint_addr</c> values against the grammar
-/// enforced on write. A value that fails this grammar is demoted to
-/// <c>endpoint_kind = 'none'</c> instead of being stored.
+/// Validates session endpoint names and opencode server URLs.
 /// </summary>
 internal static partial class EndpointAddress
 {
@@ -16,9 +14,8 @@ internal static partial class EndpointAddress
             && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 
     /// <summary>
-    /// True only when <paramref name="value"/> is a syntactically valid
-    /// opencode server URL and <paramref name="serverBound"/> confirms this
-    /// process actually bound an HTTP server, not merely a placeholder URL.
+    /// Returns true when <paramref name="serverBound"/> is true and
+    /// <paramref name="value"/> is an absolute HTTP or HTTPS URL.
     /// </summary>
     public static bool IsTrustedOpencodeServerUrl(string value, bool serverBound)
         => serverBound && IsValidOpencodeServerUrl(value);

@@ -1,24 +1,13 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// Leader election over the one persistent <c>mail_wake_daemons</c> row per
-/// Nitro instance. A cross-process claim, not in-process state: the
-/// dashboard mail-wake daemon is its own process, so an in-process lock
-/// would elect nothing.
+/// Manages shared mail-wake leadership leases, one per Nitro instance.
 /// </summary>
 internal interface IMailWakeDaemonLeaderStore
 {
     /// <summary>
-    /// Atomically claims leadership for <paramref name="nitroInstanceId"/>,
-    /// creating its row on first use. Fails, returning null, when a current
-    /// lease is already held by someone else (checked by
-    /// <c>expires_at &gt; now</c>, not by owner identity, so a would-be
-    /// leader waiting out a live lease from its own prior attempt also
-    /// fails, not just a different owner). Succeeding increments
-    /// <c>mail_wake_daemons.epoch</c> from whatever it was before
-    /// (1 on first creation), so every successive owner, including the same
-    /// one reclaiming after its own expiry, gets a fresh epoch a stale write
-    /// under the old one can no longer fence past.
+    /// Claims absent or expired leadership and returns its new epoch, starting at 1.
+    /// Returns null while any unexpired lease exists, including one held by the same owner.
     /// </summary>
     Task<long?> TryAcquireAsync(
         string nitroInstanceId,
@@ -28,12 +17,8 @@ internal interface IMailWakeDaemonLeaderStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Extends the current leader's lease and optionally records
-    /// <paramref name="lastError"/>. Returns false, changing nothing, when
-    /// <paramref name="ownerId"/> or <paramref name="epoch"/> no longer
-    /// matches the live row, or the lease has already expired (a lost
-    /// leadership can never be renewed back; the caller must re-acquire and
-    /// treat that as a fresh epoch).
+    /// Sets the matching leader lease's expiry and last error; null clears the error.
+    /// Returns false when the owner or epoch differs or the lease has expired.
     /// </summary>
     Task<bool> TryRenewAsync(
         string nitroInstanceId,
@@ -45,11 +30,8 @@ internal interface IMailWakeDaemonLeaderStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Voluntarily releases leadership by expiring the lease immediately, so
-    /// the next <see cref="TryAcquireAsync"/> call from any owner succeeds
-    /// without waiting out the remaining lease duration. A no-op, returning
-    /// false, when <paramref name="ownerId"/> or <paramref name="epoch"/> no
-    /// longer matches the live row.
+    /// Sets the matching owner and epoch's lease expiry to <paramref name="now"/>.
+    /// Returns false when no matching leadership row exists.
     /// </summary>
     Task<bool> TryReleaseAsync(
         string nitroInstanceId,
