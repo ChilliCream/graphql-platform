@@ -21,7 +21,7 @@ internal static class OpencodeHooksTemplate
             const activeSessions = new Map();
             // sessionId -> whether the last chat-message response's parts landed on
             // output.parts. Reported to the hook process on the next chat-message
-            // payload as nitroDelivered; an absent entry means no turn has happened yet.
+            // payload as nitroDelivered.
             const appendOutcomes = new Map();
 
             function sessionId(properties) {
