@@ -143,7 +143,7 @@ public sealed class SessionGateCoordinatorTests : IDisposable
         // act
         await _coordinator.CompleteAsync(reserved.Reservation!, success: false, now, cancellationToken);
 
-        // assert: no cooldown at all, a fresh attempt succeeds right away.
+        // assert: no cooldown, so a fresh attempt succeeds right away.
         var retry = await _coordinator.TryReserveAsync(s_targetA, "attempt-2", now, cancellationToken);
         Assert.NotNull(retry.Reservation);
     }
