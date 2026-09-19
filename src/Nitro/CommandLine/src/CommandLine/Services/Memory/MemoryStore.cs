@@ -9,9 +9,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 /// <summary>
 /// Curated memories and the journal, in the workspace database beside tasks
 /// and mail: the curated vertical (save, update, forget, show, recent,
-/// search) and the journal vertical (log, promote). Search runs against the
-/// <c>memory_curated_fts</c> table the schema's own triggers maintain, so
-/// there is no index to rebuild or fall out of step.
+/// search) and the journal vertical (log, promote). Search runs against
+/// <c>memory_curated_fts</c>.
 /// </summary>
 internal sealed class MemoryStore(
     IFileSystem fileSystem,

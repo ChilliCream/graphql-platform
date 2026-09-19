@@ -2,8 +2,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
 /// Backend-agnostic task store used by every task command. No member exposes
-/// ADO.NET or SQLite types, so the backend can change without touching a
-/// command and the interface can be mocked for the TUI.
+/// ADO.NET or SQLite types.
 /// </summary>
 internal interface ITaskStore
 {

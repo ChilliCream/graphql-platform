@@ -2676,9 +2676,7 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// Column ordinals for <see cref="TaskRow"/>, captured once per reader
-    /// and reused for every row so <see cref="ExecuteTaskQueryAsync"/> reads
-    /// plain ADO.NET fields without any per-row reflection.
+    /// Column ordinals for <see cref="TaskRow"/>, captured once per reader.
     /// </summary>
     private readonly struct TaskRowColumns(
         int id, int title, int description, int design, int acceptanceCriteria, int notes,
@@ -2750,8 +2748,7 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// A group-by-priority row, kept numeric so it can be formatted as
-    /// P0..P4.
+    /// A group-by-priority row; <c>Priority</c> is the numeric P0..P4 level.
     /// </summary>
     internal sealed class PriorityCountRow
     {
