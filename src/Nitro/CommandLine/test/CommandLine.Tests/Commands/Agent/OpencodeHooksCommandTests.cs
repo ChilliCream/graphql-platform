@@ -188,9 +188,8 @@ public sealed class OpencodeHooksCommandTests : AgentCommandTestBase
     [Fact]
     public async Task ExecuteCommandAsync_Should_NameEndpointGoneWithoutClaimingUnreachable_When_LastPingWasEndpointGone()
     {
-        // arrange: a non-2xx response and a connection failure both collapse to EndpointGone with
-        // no detail, so the wording must not claim the endpoint is unreachable, and there is no
-        // detail for the line to carry.
+        // arrange
+        // Seed an EndpointGone ping result without detail.
         SetupGlobalConfigDirectory(Path.Combine(WorkingDirectory, "..", "app-data"));
         await InitWorkspaceAsync();
         await ExecuteCommandAsync("agent", "hooks", "opencode", "install", "--scope", "project");

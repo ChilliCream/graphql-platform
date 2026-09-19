@@ -1,12 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Covers command wiring (help text) for <c>agent hooks claude install/status/uninstall</c>, plus
-/// one <c>--scope project</c> round trip through the real command pipeline. The deep
-/// install/status/uninstall behavior is covered by <c>ClaudeHooksEditorTests</c> and
-/// <c>ClaudeHooksInstallerServiceTests</c>; only <c>--scope project</c> runs here, since
-/// <c>--scope user</c> resolves through the real OS home directory
-/// (<see cref="Environment.SpecialFolder.UserProfile"/>).
+/// Tests Claude hook command help and a project-scoped install, status,
+/// and uninstall round trip in a temporary workspace.
 /// </summary>
 public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {
@@ -130,44 +126,42 @@ public sealed class HooksCommandTests(NitroCommandFixture fixture) : AgentComman
     [Fact]
     public async Task InstallStatusUninstall_ClaudeGroup_ProjectScope_RoundTripsThroughTheRealCommandPipeline()
     {
-        // arrange: redirect the sidecar's global config directory into this test's own temp tree,
-        // since --scope project already resolves its settings path under AgentCommandTestBase's
-        // TestFileSystem-rooted WorkingDirectory.
+        // arrange
+        // Redirect the sidecar directory into the temporary test tree.
         var sidecarDirectory = Path.Combine(WorkingDirectory, "..", "app-data");
         SetupGlobalConfigDirectory(sidecarDirectory);
         await InitWorkspaceAsync();
 
-        // act: install
+        // act
         var install = await ExecuteCommandAsync("agent", "hooks", "claude", "install", "--scope", "project");
 
-        // assert: install
+        // assert
         Assert.Equal(0, install.ExitCode);
         Assert.Empty(install.StdErr);
         var settingsPath = Path.Combine(WorkingDirectory, ".claude", "settings.json");
         Assert.True(File.Exists(settingsPath));
 
-        // act: status after install
+        // act
         var statusAfterInstall =
             await ExecuteCommandAsync("agent", "hooks", "claude", "status", "--scope", "project");
 
-        // assert: status after install
+        // assert
         Assert.Equal(0, statusAfterInstall.ExitCode);
         Assert.Contains("SessionStart", statusAfterInstall.StdOut);
         Assert.DoesNotContain("missing", statusAfterInstall.StdOut, StringComparison.Ordinal);
         Assert.DoesNotContain("outdated", statusAfterInstall.StdOut, StringComparison.Ordinal);
 
-        // act: uninstall
+        // act
         var uninstall = await ExecuteCommandAsync("agent", "hooks", "claude", "uninstall", "--scope", "project");
 
-        // assert: uninstall
+        // assert
         Assert.Equal(0, uninstall.ExitCode);
 
-        // act: status after uninstall
+        // act
         var statusAfterUninstall =
             await ExecuteCommandAsync("agent", "hooks", "claude", "status", "--scope", "project");
 
-        // assert: uninstalling returns every event to missing, so status exits non-zero like
-        // `doctor`'s unhealthy exit code, since status is a check, not just a report.
+        // assert
         Assert.Equal(1, statusAfterUninstall.ExitCode);
         Assert.DoesNotContain("outdated", statusAfterUninstall.StdOut, StringComparison.Ordinal);
         Assert.DoesNotContain("installed", statusAfterUninstall.StdOut, StringComparison.Ordinal);

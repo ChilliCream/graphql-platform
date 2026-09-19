@@ -1,10 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Covers command wiring (help text) for <c>agent hooks codex install/status/uninstall</c>; nothing
-/// here installs against the real <c>~/.codex</c>. The install/status/uninstall and config.toml
-/// wrap/restore behavior is covered by the dedicated <c>CodexHooksEditor</c>,
-/// <c>CodexConfigTomlNotifyEditor</c>, and <c>CodexHooksInstallerService</c> test classes.
+/// Tests help output for <c>agent hooks codex</c> and its install, status,
+/// and uninstall subcommands.
 /// </summary>
 public sealed class CodexHooksCommandTests(NitroCommandFixture fixture) : AgentCommandTestBase(fixture)
 {

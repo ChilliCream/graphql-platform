@@ -15,7 +15,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     [Fact]
     public async Task SessionStart_Should_WriteTheActorContext_ToStdout()
     {
-        // arrange: an identity already bound to this thread id, so the announced actor is the seeded name.
+        // arrange
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
         SetupHookPayload();
@@ -32,7 +32,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     [Fact]
     public async Task SessionStart_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession()
     {
-        // arrange: a payload with no session id, so nothing identifies which session the event speaks for.
+        // arrange
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
         SetupSessionlessHookPayload();
@@ -100,7 +100,8 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     [Fact]
     public async Task SessionEnd_Should_KeepThePresenceRow_When_ThePayloadNamesNoSession()
     {
-        // arrange: the row exists, but this event's payload names no session, so nothing says which row it speaks for.
+        // arrange
+        // Start the session, then submit an event without a session id.
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
         SetupHookPayload();
@@ -166,7 +167,8 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
     [Fact]
     public async Task Notify_Should_QueueNothing_When_ThePayloadNamesNoThread()
     {
-        // arrange: mail is unread and a presence row exists, but no thread is named, so no session is identified.
+        // arrange
+        // Seed unread mail and a session before sending a notify payload without a thread id.
         await InitWorkspaceAsync();
         await SeedCodexIdentityAsync();
         await SeedMailAsync();
@@ -261,7 +263,7 @@ public sealed class CodexHookCommandTests(NitroCommandFixture fixture) : AgentCo
         => InsertSessionIdentityAsync("maya", SessionId, AgentSessionHarness.Codex);
 
     /// <summary>
-    /// Points the <c>notify</c> install sidecar at this test's own directory, where there is none.
+    /// Redirects <c>notify</c> sidecar lookup to the test directory, which has no sidecar.
     /// </summary>
     private void SetupHermeticSidecar()
         => SetupGlobalConfigDirectory(WorkingDirectory);

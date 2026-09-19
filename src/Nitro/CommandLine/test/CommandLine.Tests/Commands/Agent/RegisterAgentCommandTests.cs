@@ -97,7 +97,7 @@ public sealed class RegisterAgentCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task Register_Should_Fail_When_ActorIsOmitted()
     {
-        // arrange: no default actor is supplied, so the parser sees a caller who omitted it.
+        // arrange
         await InitWorkspaceAsync();
         DefaultActor = null;
 

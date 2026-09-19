@@ -66,9 +66,9 @@ public abstract class AgentCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Inserts an <c>agent_sessions</c> row for <paramref name="host"/>. A row whose host is
-    /// the workspace's current instance id is reported online, or unreachable when
-    /// <paramref name="endpointKind"/> is <c>none</c>; any other host is reported remote.
+    /// Inserts a session on <paramref name="host"/> with fresh start and heartbeat timestamps
+    /// and the supplied endpoint and ping state. A null <paramref name="agentName"/>
+    /// leaves the session without an associated agent.
     /// </summary>
     protected async Task InsertAliveSessionRowAsync(
         string host,
@@ -127,7 +127,7 @@ public abstract class AgentCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Updates the mutable role on the session row matching <paramref name="host"/>
+    /// Updates the role on all session rows matching <paramref name="host"/>
     /// and <paramref name="sessionId"/>.
     /// </summary>
     protected async Task UpdateSessionRoleAsync(string host, string sessionId, string role)
