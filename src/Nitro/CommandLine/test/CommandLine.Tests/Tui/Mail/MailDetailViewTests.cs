@@ -22,11 +22,7 @@ public sealed class MailDetailViewTests
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
 
-        // MailState defaults to MailListMode.Threads, where selecting a
-        // single-message thread's row still defaults the detail pane to
-        // MailViewMode.Thread (see MailState's class remarks); most of this
-        // file exercises the single-message view specifically, so switch
-        // back the same manual way a "t" keypress would.
+        // Threads mode defaults a single-message thread's row to Thread view
         state.ShowMessage();
         return state;
     }
@@ -162,8 +158,7 @@ public sealed class MailDetailViewTests
             ]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
-        // Archived messages drop out of the default Inbox mailbox; Workspace
-        // shows every message regardless of archived state.
+        // archived messages drop out of the default Inbox mailbox, but Workspace shows every message
         await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
         state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
@@ -189,8 +184,7 @@ public sealed class MailDetailViewTests
             recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
-        // Alice sent this message, so it never appears in her own Inbox
-        // (she is not a recipient); Sent carries messages she sent.
+        // alice sent this message, so it is not in her Inbox; Sent carries messages she sent
         await state.SelectMailboxAsync(MailMailbox.Sent, CancellationToken.None);
         state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
@@ -249,8 +243,7 @@ public sealed class MailDetailViewTests
         state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
         var console = new TestConsole().Width(80).Height(20);
-        // bob maps to an empty client; alice has no entry at all - both must
-        // render exactly as they would with no lookup given.
+        // bob maps to an empty client, alice has no entry at all, both must render as with no lookup
         var clientsByName = new Dictionary<string, string> { ["bob"] = "" };
 
         // act
@@ -266,11 +259,8 @@ public sealed class MailDetailViewTests
     [Fact]
     public async Task Render_Should_ShowBracketsLiterally_When_ClientContainsMarkupSyntax()
     {
-        // arrange - a client like "claude-opus-5[1m]" is agent-supplied and
-        // must never be parsed as Spectre markup; FieldLine escapes it via
-        // Markup.Escape before embedding it in already-markup content (see
-        // AttributeClient's own doc), so it must render literally, with
-        // neither a crash nor doubled brackets.
+        // arrange
+        // a client name is agent-supplied and must render literally, with neither a crash nor doubled brackets
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
@@ -353,9 +343,8 @@ public sealed class MailDetailViewTests
         // act
         console.Write(view.Render(state, 80, 20, focused: true));
 
-        // assert: detail.section.header's token can appear elsewhere in the
-        // frame regardless of whether the "From:" label itself carries the
-        // style, so pin the assertion to that label's known text.
+        // assert
+        // pinned to the "From:" label, since the style token can also appear elsewhere in the frame
         AssertAnsiStylePrefixesText(console.Output, "detail.section.header", "From:");
     }
 
@@ -382,9 +371,8 @@ public sealed class MailDetailViewTests
         // act
         console.Write(view.Render(state, 80, 20, focused: true));
 
-        // assert: pin each token to its recipient's known rendered line
-        // rather than the whole frame, since either token's escape sequence
-        // could otherwise be satisfied by an unrelated part of the render.
+        // assert
+        // each token is pinned to its recipient's own rendered line rather than the whole frame
         AssertAnsiStylePrefixesText(
             console.Output, "mail.detail.recipient.read", "orchestrator: read 2026-01-01 14:02");
         AssertAnsiStylePrefixesText(console.Output, "mail.detail.recipient.unread", "planner-1: unread");
