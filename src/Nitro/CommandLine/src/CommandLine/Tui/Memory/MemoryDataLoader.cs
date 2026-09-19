@@ -3,8 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Loads the memory tab's curated and journal lists from the memory store,
-/// through the same reads the CLI's <c>recent</c> and <c>search</c> commands use.
+/// Loads up to 200 curated memories or journal entries for the parsed query.
+/// Type and tag filters apply only to curated memories.
 /// </summary>
 internal sealed class MemoryDataLoader(IMemoryStore store)
 {

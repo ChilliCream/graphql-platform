@@ -7,11 +7,8 @@ using Form = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// The compose form: recipients, subject, and body. Recipients are parsed
-/// as a comma-separated list and validated by
-/// <see cref="IMailStore.SendMessageAsync"/>, so an unknown recipient
-/// surfaces as its <see cref="ExitException"/> message rather than a
-/// client-side check.
+/// A form for comma-separated recipients, a required subject, and a message body.
+/// Recipient names are validated by the mail store when submitted.
 /// </summary>
 internal sealed class MailComposeForm
 {
@@ -23,8 +20,7 @@ internal sealed class MailComposeForm
     public const string CancelButtonId = "cancel";
 
     /// <summary>
-    /// The footer hints for the compose form: its keys are consumed
-    /// entirely while it is active, so no global hints follow.
+    /// The footer hints displayed while the compose form captures input.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [
@@ -56,9 +52,7 @@ internal sealed class MailComposeForm
     }
 
     /// <summary>
-    /// Whether any field's current value differs from its blank default:
-    /// gates whether Esc should ask for discard confirmation before
-    /// cancelling.
+    /// Whether any field contains text, including whitespace.
     /// </summary>
     public bool IsDirty
         => Text(_toField).Length != 0 || Text(_subjectField).Length != 0 || Text(_bodyField).Length != 0;
@@ -77,12 +71,8 @@ internal sealed class MailComposeForm
     public IRenderable Render(int width, int height) => _form.Render(width, height);
 
     /// <summary>
-    /// Snapshots the submitted <paramref name="values"/> into a
-    /// <see cref="MailMessageCreation"/> ready for <see cref="IMailStore.SendMessageAsync"/>,
-    /// with <see cref="MailMessageCreation.WakePolicy"/> set to
-    /// <see cref="MailWakePolicy.Enqueue"/>. Pure and synchronous; every
-    /// field is already validated by the time a
-    /// <see cref="FormResult.Submitted"/> carries these values.
+    /// Builds a message creation from submitted form values with
+    /// <see cref="MailWakePolicy.Enqueue"/>. Does not write to the store.
     /// </summary>
     public static MailMessageCreation BuildCreation(IReadOnlyDictionary<string, FormValue> values, string actor)
     {

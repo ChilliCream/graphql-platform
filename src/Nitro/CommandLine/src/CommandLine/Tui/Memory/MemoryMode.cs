@@ -11,12 +11,8 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// The memory board <see cref="ITuiMode"/>: a list pane of curated memories
-/// or journal entries next to a detail pane for the selected item. f cycles
-/// between the curated and journal collections, s cycles the scope filter,
-/// and / opens the search box. Beyond browsing, the tab supports exactly two
-/// writes: p promotes the selected journal entry and d forgets
-/// (hard-deletes) the selected curated memory; there is no inline editing.
+/// Displays searchable curated memories and journal entries with a detail pane.
+/// Supports promoting journal entries and permanently deleting curated memories.
 /// </summary>
 internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 {
@@ -49,8 +45,7 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// The board's current live state: loaded items, collection, scope,
-    /// selection, and focus.
+    /// The loaded memory items, collection, search text, selection, and focus.
     /// </summary>
     public MemoryState State => _state;
 
@@ -74,16 +69,14 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     /// <inheritdoc />
     /// <remarks>
-    /// Defers the blocking store read: it only marks a refresh pending,
-    /// performed lazily on the first <see cref="Render"/> or
-    /// <see cref="Handle"/> call.
+    /// Schedules a refresh for the next <see cref="Render"/> or <see cref="Handle"/> call.
     /// </remarks>
     public void OnEnter() => _pendingRefresh = true;
 
     /// <inheritdoc />
     public void OnResize(int width, int height)
     {
-        // Render recomputes layout from its parameters every frame; no per-resize state to update.
+        // Layout is recomputed during rendering.
     }
 
     /// <inheritdoc />
@@ -593,9 +586,7 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private void RefreshBlocking() => _state.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
 
     /// <summary>
-    /// Performs the refresh <see cref="OnEnter"/> deferred, exactly once,
-    /// the first time <see cref="Render"/> or <see cref="Handle"/> runs
-    /// after entering the tab.
+    /// Performs a pending refresh once after entering the tab.
     /// </summary>
     private void EnsureLoaded()
     {

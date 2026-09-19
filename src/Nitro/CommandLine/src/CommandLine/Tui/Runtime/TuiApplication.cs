@@ -35,8 +35,7 @@ internal sealed class TuiApplication
     private static readonly TimeSpan s_defaultKeyPollInterval = TimeSpan.FromMilliseconds(15);
 
     /// <summary>
-    /// The fixed bound the shutdown path waits for the key-reader, tick, and
-    /// additional event-source tasks before giving up on them.
+    /// The default shutdown wait for background event-source tasks.
     /// </summary>
     private static readonly TimeSpan s_defaultShutdownDrainBound = TimeSpan.FromSeconds(5);
 
@@ -65,10 +64,9 @@ internal sealed class TuiApplication
     /// <param name="rootRenderer">Produces the renderable for the current frame.</param>
     /// <param name="cancellationToken">Stops the loop and restores the terminal when cancelled.</param>
     /// <param name="eventSources">
-    /// Additional event sources merged into the same channel as key input and ticks.
-    /// Each runs for the lifetime of the loop and is cancelled and awaited alongside
-    /// the built-in sources on every exit path, including when
-    /// <paramref name="rootHandler"/> throws.
+    /// Additional event sources sharing the input channel; null adds none.
+    /// On exit, their cancellation is requested and they are awaited with the built-in
+    /// sources up to the configured shutdown bound.
     /// </param>
     public async Task RunAsync(
         TuiEventHandler rootHandler,
@@ -138,14 +136,13 @@ internal sealed class TuiApplication
             }
             finally
             {
-                // Always stop and await the background key-reader, tick, and
-                // additional event-source tasks, even if the handler or renderer throws.
+                // Request cancellation of every event source on exit.
                 loopCts.Cancel();
                 channel.Writer.TryComplete();
 
                 try
                 {
-                    // Bounded so a noncooperative task cannot block terminal restoration indefinitely.
+                    // Wait for event sources up to the configured shutdown bound.
                     await Task.WhenAll([keyReaderTask, tickTask, .. additionalTasks])
                         .WaitAsync(_shutdownDrainBound, CancellationToken.None)
                         .ConfigureAwait(false);

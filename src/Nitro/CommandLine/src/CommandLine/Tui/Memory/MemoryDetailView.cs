@@ -7,10 +7,8 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Renders the memory tab's detail pane: the selected curated memory's
-/// frontmatter and body, or the selected journal entry's frontmatter and
-/// body, word-wrapped as plain text inside a scrollable bordered panel.
-/// Owns the body's scroll position; <see cref="MemoryState"/> owns everything else.
+/// Renders the selected memory's metadata and wrapped body as plain text in a
+/// scrollable detail panel.
 /// </summary>
 internal sealed class MemoryDetailView
 {
@@ -29,9 +27,7 @@ internal sealed class MemoryDetailView
     public void ScrollToBottom() => _bodyViewport.ScrollBy(int.MaxValue / 2);
 
     /// <summary>
-    /// Resets the body's scroll position to the top. Called whenever the
-    /// pane's content changes: a different item is selected, the collection
-    /// or scope filter changes, or the search box is applied.
+    /// Resets the body scroll position to the top.
     /// </summary>
     public void ResetScroll() => _bodyViewport.Update(0, 0);
 

@@ -5,9 +5,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// The forget (hard delete) action for the selected curated memory: builds
-/// the forget confirmation dialog and applies the delete to the memory
-/// store. No equivalent action exists for a journal entry.
+/// Builds deletion confirmations and permanently deletes curated memories.
 /// </summary>
 internal static class MemoryLifecycleActions
 {
@@ -21,7 +19,8 @@ internal static class MemoryLifecycleActions
             ButtonKind.Danger);
 
     /// <summary>
-    /// Permanently deletes <paramref name="record"/> in its own scope.
+    /// Permanently deletes the curated memory, returning a failed outcome when the
+    /// store throws <see cref="ExitException"/>.
     /// </summary>
     public static async Task<MemoryForgetOutcome> ForgetAsync(
         IMemoryStore store, MemoryRecord record, CancellationToken cancellationToken)

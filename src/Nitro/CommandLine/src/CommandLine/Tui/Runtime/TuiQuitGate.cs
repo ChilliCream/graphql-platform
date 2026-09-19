@@ -16,18 +16,15 @@ internal readonly record struct TuiQuitGateReport(
     public static readonly TuiQuitGateReport Clear = new(0, 0, []);
 
     /// <summary>
-    /// Whether this report has anything a normal quit should surface to the user
-    /// before it is allowed to cancel the event loop.
+    /// Whether either the pending count or the unknown-outcome count is positive.
     /// </summary>
     public bool HasUnresolvedWork => PendingCount > 0 || OutcomeUnknownCount > 0;
 }
 
 /// <summary>
-/// Stops a feature's own effect submissions and bounded-drains whatever is already in
-/// flight, reporting what remained unresolved afterward. Every registered gate runs
-/// before a normal confirmed quit is allowed to fire. Ctrl+C and host cancellation
-/// bypass this gate entirely. A feature that registers a gate must subscribe to
-/// <c>TuiShell.QuitCancelled</c> and call its queue's <c>ResumeAccepting</c>.
+/// Stops new feature submissions, waits within the supplied bound, and reports
+/// unresolved work before a confirmed quit. The host bypasses gates on cancellation
+/// and must resume submissions if the user cancels the quit confirmation.
 /// </summary>
 /// <param name="drainBound">The bounded wait for in-flight effects to resolve.</param>
 /// <param name="cancellationToken">Cancels the wait early; the drain itself is best-effort.</param>

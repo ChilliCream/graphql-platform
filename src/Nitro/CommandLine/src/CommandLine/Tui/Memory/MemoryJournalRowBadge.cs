@@ -5,9 +5,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Renders one journal entry row for the memory list pane when
-/// <see cref="MemoryCollectionFilter.Journal"/> is shown: selection prefix,
-/// scope, and the UTC capture day and time.
+/// Renders a journal row with a selection prefix, UTC capture time, and body preview.
 /// </summary>
 internal static class MemoryJournalRowBadge
 {

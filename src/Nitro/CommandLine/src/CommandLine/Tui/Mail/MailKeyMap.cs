@@ -4,25 +4,13 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Builds the Mail tab's key table, for its own
-/// <see cref="KeyDispatcher"/> in place of <see cref="KeyMap.CreateDefaultGlobal"/>:
-/// vim-style navigation (j/k/h/l and arrow keys, g/G for edges), Enter to
-/// focus the detail pane, Tab to switch panes, u to toggle read/unread, a
-/// to archive, r to reply, c to compose, Shift+R to refresh, y to copy the
-/// selected message id, f to cycle the list filter, p to open the Workspace
-/// agent filter picker, t to toggle the detail pane's thread view, Shift+V
-/// to toggle the list pane between threaded and flat rows, z as a fold
-/// prefix (za/zo/zc toggle/open/close a thread, zR/zM unfold/fold every
-/// thread), Shift+I/Shift+S/Shift+L/Shift+W to jump directly to the
-/// Inbox/Sent/All/Workspace mailbox, q and Ctrl+C to request quit, and
-/// Escape to leave the mode.
+/// Builds the mail tab's key bindings for navigation, mailbox and view selection,
+/// message actions, and exit requests.
 /// </summary>
 internal static class MailKeyMap
 {
     /// <summary>
-    /// The footer hint for the u chord, exposed so
-    /// <see cref="MailMode.SuppressedGlobalHints"/> can hide it, by value,
-    /// while <see cref="MailMailbox.Workspace"/> makes the gesture inert.
+    /// The read/unread footer hint, hidden when mail actions are read-only.
     /// </summary>
     public static readonly KeyHint ToggleReadHint = new("u", "read/unread");
 

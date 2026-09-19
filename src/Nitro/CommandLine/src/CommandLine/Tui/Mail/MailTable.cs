@@ -5,12 +5,7 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Renders the mail board's list pane as a table: a heading row (From, To,
-/// Subject, Preview, Age, and a message-count column in
-/// <see cref="MailListMode.Threads"/>) above rows for each
-/// <see cref="MailListRow"/>. Column widths are computed from the pane
-/// width once per render via <see cref="ComputeColumns"/>, with Subject and
-/// Preview splitting whatever remains after the fixed-width columns.
+/// Renders aligned mail headings, thread summaries, and message rows as markup.
 /// </summary>
 internal static class MailTable
 {
@@ -50,22 +45,16 @@ internal static class MailTable
     private const int SubjectShareDenominator = 5;
 
     /// <summary>
-    /// The list pane's computed column widths for one render pass, threaded
-    /// through <see cref="RenderHeading"/> and every row renderer so the
-    /// heading and every row line up.
+    /// The column widths and count-column visibility shared by a heading and its rows.
     /// </summary>
     public readonly record struct Columns(
         int PrefixWidth, int FromWidth, int ToWidth, int SubjectWidth, int PreviewWidth, int AgeWidth,
         int CountWidth, bool ShowCount);
 
     /// <summary>
-    /// Computes <see cref="Columns"/> for <paramref name="contentWidth"/>
-    /// display columns, showing the count column only when
-    /// <paramref name="showCount"/> (<see cref="MailListMode.Threads"/>).
-    /// Degrades gracefully at narrow widths: the fixed columns keep their
-    /// width (a pane narrower than the fixed budget still overflows by
-    /// design), while Subject and Preview shrink to zero without adding
-    /// overflow of their own.
+    /// Computes column widths with an optional count column, allocating remaining
+    /// space to Subject and Preview. Fixed columns can exceed the available width;
+    /// elastic columns shrink to zero.
     /// </summary>
     public static Columns ComputeColumns(int contentWidth, bool showCount)
     {
@@ -78,8 +67,7 @@ internal static class MailTable
             + AgeWidth + ColumnGap
             + countBudget;
 
-        // Two more gaps: between Subject and Preview, and between Preview
-        // and Age (Age's own leading gap is already in fixedWidth).
+        // Reserve the remaining gap between the elastic columns.
         var elastic = Math.Max(0, contentWidth - fixedWidth - ColumnGap);
         var subjectWidth = elastic <= 0 ? 0 : Math.Min(elastic, Math.Max(MinElasticWidth, elastic * SubjectShareNumerator / SubjectShareDenominator));
         var previewWidth = Math.Max(0, elastic - subjectWidth);
@@ -114,9 +102,8 @@ internal static class MailTable
     }
 
     /// <summary>
-    /// Renders a collapsed or expanded thread rollup row.
-    /// <paramref name="unreadToMe"/> comes from <see cref="MailState.IsThreadUnreadToMe"/>,
-    /// never computed here.
+    /// Renders a thread summary using the supplied expansion, selection, and
+    /// actor-specific unread state.
     /// </summary>
     public static string RenderThreadRow(
         MailThreadSummary summary,
@@ -160,12 +147,9 @@ internal static class MailTable
     }
 
     /// <summary>
-    /// Renders a message row: a flat-mode row (<paramref name="threadChild"/>
-    /// false, the count column blank when <see cref="Columns.ShowCount"/>)
-    /// or an expanded thread's indented child (true, the relationship glyph
-    /// replaced by <see cref="ThreadChildGlyph"/>).
-    /// <paramref name="unreadToMe"/> is <see cref="MailRecipientView.IsUnread"/>
-    /// on <paramref name="message"/> for <paramref name="actor"/>.
+    /// Renders a message using the supplied selection and actor-specific unread state.
+    /// An expanded thread child uses the thread-membership glyph; the count column
+    /// is blank for all message rows.
     /// </summary>
     public static string RenderMessageRow(
         MailMessage message,
@@ -281,8 +265,8 @@ internal static class MailTable
         => message.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name).ToArray();
 
     /// <summary>
-    /// The first name plus a <c>+N</c> overflow count for the rest, rather
-    /// than a truncated comma list.
+    /// Returns the first name with a count of additional names, or an empty string
+    /// for an empty list.
     /// </summary>
     private static string FormatOverflowList(IReadOnlyList<string> names)
     {
@@ -296,9 +280,8 @@ internal static class MailTable
     }
 
     /// <summary>
-    /// A short, whitespace-collapsed preview of a single message's body, for
-    /// the Preview column of a flat-mode or expanded-child message row.
-    /// Final truncation to the column width happens in <see cref="Truncate"/>.
+    /// Returns the body with each run of whitespace replaced by a single space and
+    /// leading and trailing whitespace removed.
     /// </summary>
     private static string CreatePreview(string body)
         => string.Join(' ', body.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
@@ -355,9 +338,7 @@ internal static class MailTable
     }
 
     /// <summary>
-    /// The terminal cell width of <paramref name="value"/>: the sum of every
-    /// <see cref="Rune"/>'s <see cref="GetRuneWidth"/>, never the UTF-16
-    /// <see cref="string.Length"/>.
+    /// Returns the sum of the terminal widths assigned to the string's Unicode scalars.
     /// </summary>
     private static int MeasureWidth(string value)
     {
@@ -396,11 +377,9 @@ internal static class MailTable
     }
 
     /// <summary>
-    /// Truncates <paramref name="value"/> to at most <paramref name="width"/>
-    /// terminal cells, appending <see cref="Ellipsis"/> when it does not
-    /// already fit. Walks whole <see cref="Rune"/>s, never a raw UTF-16
-    /// index. A rune whose <see cref="GetRuneWidth"/> would overflow the
-    /// remaining budget is dropped rather than emitted oversized.
+    /// Truncates to the requested terminal-cell width without splitting Unicode
+    /// scalars, adding an ellipsis when text is omitted. A non-positive width returns
+    /// an empty string.
     /// </summary>
     private static string Truncate(string value, int width)
     {

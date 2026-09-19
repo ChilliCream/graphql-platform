@@ -17,8 +17,7 @@ internal sealed class MemorySearchForm
     public const string CancelButtonId = "cancel";
 
     /// <summary>
-    /// The footer hints for the search form: its keys are consumed entirely
-    /// while it is active, so no global hints follow.
+    /// The footer hints displayed while the search form captures input.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [

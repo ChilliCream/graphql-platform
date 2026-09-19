@@ -3,15 +3,12 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// The memory tab's live state: which collection and scope are shown, the
-/// current search box text, the loaded curated or journal entries for them,
-/// and which row and pane are selected and focused.
+/// The selected collection, search text, loaded memory items, selection, and focus.
 /// </summary>
 internal sealed class MemoryState(MemoryDataLoader loader)
 {
     /// <summary>
-    /// Which collection <see cref="CuratedRecords"/>/<see cref="JournalEntries"/>
-    /// is populated for.
+    /// The active collection, initially curated memories.
     /// </summary>
     public MemoryCollectionFilter Collection { get; private set; } = MemoryCollectionFilter.Curated;
 
@@ -113,8 +110,8 @@ internal sealed class MemoryState(MemoryDataLoader loader)
     }
 
     /// <summary>
-    /// Switches <see cref="Collection"/> to the other value when
-    /// <paramref name="delta"/> is nonzero, and reloads.
+    /// Toggles the collection when <paramref name="delta"/> is nonzero.
+    /// Reloads the active collection even when the delta is zero.
     /// </summary>
     public async Task CycleCollectionAsync(int delta, CancellationToken cancellationToken)
     {

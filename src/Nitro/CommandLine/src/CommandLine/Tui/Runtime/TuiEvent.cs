@@ -20,7 +20,7 @@ internal abstract record TuiEvent
     public sealed record ResizeEvent(int Width, int Height) : TuiEvent;
 
     /// <summary>
-    /// A periodic tick fired with no other event pending.
+    /// A periodic tick with its UTC timestamp.
     /// </summary>
     public sealed record TickEvent(DateTimeOffset Now) : TuiEvent;
 
@@ -30,9 +30,8 @@ internal abstract record TuiEvent
     public sealed record DataChangedEvent : TuiEvent;
 
     /// <summary>
-    /// An asynchronous effect submitted through a <see cref="TuiEffectQueue{TResult}"/>
-    /// completed and persisted its result. The handler is expected to drain whichever
-    /// effect queues it owns.
+    /// An effect queue signaled completion or progress.
+    /// The handler should drain its queued outcomes.
     /// </summary>
     public sealed record EffectCompletedEvent : TuiEvent;
 }

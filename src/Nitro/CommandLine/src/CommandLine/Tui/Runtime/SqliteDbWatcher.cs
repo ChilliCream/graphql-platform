@@ -4,9 +4,8 @@ using System.Threading.Channels;
 namespace ChilliCream.Nitro.CommandLine.Tui.Runtime;
 
 /// <summary>
-/// A <see cref="TuiEventSource"/> that watches an agent workspace's SQLite database
-/// file and publishes a debounced <see cref="TuiEvent.DataChangedEvent"/> whenever
-/// the on-disk data changes, ignoring churn from this process's own reads.
+/// A best-effort source of debounced database-change events, triggered by main-file
+/// notifications or growth of the WAL file.
 /// </summary>
 internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = null)
 {
@@ -22,25 +21,20 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     internal Action? OnBaselineCaptured { get; init; }
 
     /// <summary>
-    /// Invoked synchronously as the first statement of <c>OnTick</c>, once per
-    /// debounce cycle. Test-only seam, a no-op unless a caller sets it.
+    /// An optional callback invoked at the start of each debounce timer callback.
     /// </summary>
     internal Action? OnDebounceTick { get; init; }
 
     /// <summary>
-    /// Invoked synchronously in <c>OnEvent</c>, immediately after the debounce
-    /// timer is (re)armed for a raw file system notification on the database
-    /// or <c>-wal</c> file. Test-only seam, a no-op unless a caller sets it.
+    /// An optional callback invoked after a database or WAL notification rearms
+    /// the debounce timer.
     /// </summary>
     internal Action? OnNotificationObserved { get; init; }
 
     /// <summary>
-    /// Watches the database file until <paramref name="cancellationToken"/> is
-    /// cancelled. When the parent directory does not exist or the file system does
-    /// not support watching it, this returns without writing anything, so the
-    /// caller degrades silently to manual refresh. A write landing after this
-    /// method captures its baseline but before the watcher starts raising events
-    /// is still reconciled once it does.
+    /// Watches until cancellation, reconciling main-file state and WAL growth once
+    /// after enabling notifications. Returns without events if the parent directory
+    /// is absent or the watcher cannot be started.
     /// </summary>
     public async Task RunAsync(ChannelWriter<TuiEvent> writer, CancellationToken cancellationToken)
     {
@@ -71,8 +65,7 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
 
         var lastWalSize = GetFileSize(walPath);
 
-        // Reconciliation baseline, captured before OnBaselineCaptured fires so a
-        // test can land a write deterministically inside the enable gap.
+        // Capture file state before enabling notifications.
         var lastMainState = GetMainFileState(_databasePath);
         var mainDatabaseChanged = false;
         var walChanged = false;
@@ -139,8 +132,7 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
                 return;
             }
 
-            // Closes the gap between the pre-enable baseline and the watcher
-            // actually raising events. A duplicate DataChangedEvent is harmless.
+            // Reconcile file changes since the baseline was captured.
             var reconciledMainState = GetMainFileState(_databasePath);
             var reconciledWalSize = GetFileSize(walPath);
 
@@ -192,9 +184,8 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     private const int SqliteHeaderSize = 100;
 
     /// <summary>
-    /// The byte offset, within the SQLite database header, of the 4-byte
-    /// big-endian file change counter that SQLite increments on every write
-    /// transaction.
+    /// The byte offset of the four-byte big-endian file change counter in the
+    /// SQLite database header.
     /// </summary>
     private const int ChangeCounterOffset = 24;
 
@@ -204,9 +195,7 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     private static ReadOnlySpan<byte> SqliteMagic => "SQLite format 3\0"u8;
 
     /// <summary>
-    /// A comparable snapshot of the main database file, used to detect a write
-    /// that lands after <see cref="RunAsync"/> captures its baseline but before
-    /// the underlying watcher starts raising events.
+    /// A snapshot of main-file modification time, length, and available change counter.
     /// </summary>
     private readonly record struct MainFileState(
         bool HasChangeCounter,
@@ -255,10 +244,8 @@ internal sealed class SqliteDbWatcher(string databasePath, TimeSpan? debounce = 
     }
 
     /// <summary>
-    /// Reads the SQLite database header from the file at <paramref name="path"/>
-    /// and, when the magic string matches, returns its file change counter.
-    /// Returns <see langword="false"/> for anything that is not a readable
-    /// SQLite database header, leaving the caller to fall back to mtime/length.
+    /// Reads the file change counter from a complete SQLite header with a matching
+    /// magic string. Returns false if the header is absent, unreadable, or invalid.
     /// </summary>
     private static bool TryReadChangeCounter(string path, out uint changeCounter)
     {

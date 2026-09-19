@@ -5,12 +5,8 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Renders one curated memory row for the memory list pane as a single
-/// Spectre markup line: selection prefix, scope, type, tags, and the
-/// updated-at age formatted relative to now via <see cref="MailAges"/>. Each
-/// field lands in a fixed-width column, computed across the currently
-/// visible rows by <see cref="ComputeWidths"/>; tags take the remaining
-/// width and are truncated with an ellipsis when they don't fit.
+/// Renders a curated-memory row with a selection prefix, type, tags, and
+/// relative modification time.
 /// </summary>
 internal static class MemoryRowBadge
 {

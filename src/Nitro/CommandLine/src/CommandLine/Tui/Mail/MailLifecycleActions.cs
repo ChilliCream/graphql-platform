@@ -4,17 +4,13 @@ using ChilliCream.Nitro.CommandLine.Tui.Editing;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Mark-read, mark-unread, and archive actions for the selected message:
-/// builds the archive confirmation dialog and applies each action to the
-/// mail store. Also owns the shared "refuse-with-reason" text
-/// <see cref="MailMode"/> shows for every mutating gesture, u, a, c, and r,
-/// while <see cref="MailMailbox.Workspace"/> is the active mailbox.
+/// Applies read-state and archive changes and builds archive confirmations.
+/// Store rejections represented by <see cref="ExitException"/> become failed outcomes.
 /// </summary>
 internal static class MailLifecycleActions
 {
     /// <summary>
-    /// The toast shown when <see cref="IsReadOnly"/> refuses a mutating
-    /// gesture, u, a, c, or r, before it ever reaches the store.
+    /// The refusal toast for writes attempted in the Workspace mailbox.
     /// </summary>
     public const string WorkspaceReadOnlyMessage =
         "Workspace is read-only. Press Shift+I for Inbox to make changes.";
@@ -74,8 +70,8 @@ internal static class MailLifecycleActions
     }
 
     /// <summary>
-    /// Marks <paramref name="message"/> unread when <paramref name="actor"/>
-    /// has already read it, or read otherwise.
+    /// Marks an unread recipient copy read, or marks it unread otherwise.
+    /// The store rejects an actor who is not a recipient.
     /// </summary>
     public static Task<MailActionOutcome> ToggleReadAsync(
         IMailStore store,

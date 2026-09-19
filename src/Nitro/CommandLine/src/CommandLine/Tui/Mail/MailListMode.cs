@@ -1,9 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Which shape the mail board's list pane renders <see cref="MailState.Rows"/>
-/// in: thread rollups (the default) or the flat per-message stream.
-/// <see cref="MailKeyMap"/>'s Shift+V toggles between the two.
+/// The list shape: thread summaries or a flat message list.
 /// </summary>
 internal enum MailListMode
 {

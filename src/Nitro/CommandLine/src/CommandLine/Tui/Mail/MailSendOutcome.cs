@@ -4,11 +4,9 @@ using ChilliCream.Nitro.CommandLine.Tui.Input;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// The outcome of a <see cref="MailComposeForm"/> or <see cref="MailReplyForm"/>
-/// submission run through <see cref="MailMode"/>'s own async send effect.
-/// <see cref="Succeeded"/> means the commit landed; nudging the recipients
-/// is best effort and never reported. <see cref="Stored"/> is an
-/// intermediate signal posted the moment the commit lands.
+/// The storage outcome of a compose or reply submission.
+/// <see cref="Stored"/> is an intermediate commit notice; recipient notification
+/// is separate from storage success.
 /// </summary>
 internal abstract record MailSendOutcome
 {
@@ -17,24 +15,17 @@ internal abstract record MailSendOutcome
     }
 
     /// <summary>
-    /// The message committed, but the actor-wake dispatch-and-observe step
-    /// has not started resolving it yet: an intermediate signal posted right
-    /// after the store commit.
+    /// An intermediate notice that the message and its wake intent were committed.
     /// </summary>
     public sealed record Stored(MailMessage Message) : MailSendOutcome;
 
     /// <summary>
-    /// The message committed. Nudging its recipients is best effort and
-    /// never reported here.
+    /// The message was committed; this does not report recipient notification.
     /// </summary>
     public sealed record Succeeded(MailMessage Message) : MailSendOutcome;
 
     /// <summary>
-    /// The message committed, but its wake outcome could not be reconciled
-    /// (the dispatch-and-observe step itself was cancelled or faulted for a
-    /// reason unrelated to the commit). Never means unsent: only a store
-    /// write that itself failed before ever producing a message produces
-    /// <see cref="Failed"/>.
+    /// The message was committed, but its notification outcome is unknown.
     /// </summary>
     public sealed record Reconciled(MailMessage Message) : MailSendOutcome;
 
@@ -46,11 +37,8 @@ internal abstract record MailSendOutcome
     public sealed record Failed(string ToastText) : MailSendOutcome;
 
     /// <summary>
-    /// The toast this outcome should show once observed: green for a
-    /// <see cref="Succeeded"/> commit; a rejected write or the intermediate
-    /// <see cref="Stored"/> signal is styled to reflect that the write is
-    /// not yet, or was never,
-    /// confirmed.
+    /// Returns an informational stored toast, a successful send toast, a warning for
+    /// an unknown notification outcome, or an error for a rejected write.
     /// </summary>
     public TuiMessage.ShowToast ToShowToast() => this switch
     {

@@ -3,12 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Loads the mail board's list and thread panes from the mail store: one
-/// load method per <see cref="MailMailbox"/>. <see cref="LoadInboxAsync"/>
-/// and <see cref="LoadInboxThreadsAsync"/> each translate a
-/// <see cref="MailListFilter"/> into the store's own "include archived"
-/// knob, then, for <see cref="MailListFilter.Archived"/>, narrow the result
-/// client side to archived-only entries.
+/// Loads mailbox messages and thread summaries from the mail store.
 /// </summary>
 internal sealed class MailDataLoader(IMailStore store)
 {
@@ -71,12 +66,9 @@ internal sealed class MailDataLoader(IMailStore store)
         => store.GetThreadMessagesAsync(threadId, cancellationToken);
 
     /// <summary>
-    /// Loads the actor's inbox thread rollups (the "Inbox" mailbox scope in
-    /// <see cref="MailListMode.Threads"/>) for the given filter, newest
-    /// activity first, mirroring <see cref="LoadInboxAsync"/>.
-    /// <see cref="MailListFilter.Unread"/> carries no thread-level narrowing
-    /// here: <see cref="MailState"/> applies that client side from
-    /// <see cref="MailThreadSummary.UnreadCount"/>.
+    /// Loads inbox thread summaries newest activity first, applying the archived
+    /// filter when requested. Unread filtering is applied separately by
+    /// <see cref="MailState"/>.
     /// </summary>
     public async Task<IReadOnlyList<MailThreadSummary>> LoadInboxThreadsAsync(
         string actor,
@@ -94,9 +86,7 @@ internal sealed class MailDataLoader(IMailStore store)
     }
 
     /// <summary>
-    /// Loads thread rollups for every thread the actor sent a message in
-    /// (the "Sent" mailbox scope in <see cref="MailListMode.Threads"/>),
-    /// newest activity first.
+    /// Loads summaries of threads the actor sent mail in, newest activity first.
     /// </summary>
     public Task<IReadOnlyList<MailThreadSummary>> LoadSentThreadsAsync(
         string actor,
@@ -104,9 +94,8 @@ internal sealed class MailDataLoader(IMailStore store)
         => store.QuerySentThreadsAsync(actor, cancellationToken);
 
     /// <summary>
-    /// Loads thread rollups for every thread the actor sent or received a
-    /// message in (the "All" mailbox scope in <see cref="MailListMode.Threads"/>),
-    /// newest activity first.
+    /// Loads summaries of threads the actor sent or received mail in, newest
+    /// activity first.
     /// </summary>
     public Task<IReadOnlyList<MailThreadSummary>> LoadAllThreadsAsync(
         string actor,
@@ -114,10 +103,8 @@ internal sealed class MailDataLoader(IMailStore store)
         => store.QueryThreadsAsync(actor, cancellationToken);
 
     /// <summary>
-    /// Loads thread rollups for every thread in the workspace (the
-    /// "Workspace" mailbox scope in <see cref="MailListMode.Threads"/>),
-    /// newest activity first, narrowed to threads <paramref name="agent"/>
-    /// sent or received a message in when given.
+    /// Loads workspace thread summaries newest activity first, limited to threads
+    /// the supplied agent sent or received mail in, or all agents when null.
     /// </summary>
     public Task<IReadOnlyList<MailThreadSummary>> LoadWorkspaceThreadsAsync(
         string? agent,

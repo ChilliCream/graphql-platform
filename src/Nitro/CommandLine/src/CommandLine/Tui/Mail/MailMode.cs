@@ -17,23 +17,9 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// The mail board <see cref="ITuiMode"/>: a message list pane next to a
-/// detail pane for the selected message, with a key toggling the detail
-/// pane between one message and its whole thread. Opening a message in the
-/// detail pane marks it read for the actor; the u, a, r, and c gestures
-/// toggle read/unread, archive (behind a confirmation), reply, and compose.
-/// The Shift+I/S/L/W gestures jump to the Inbox/Sent/All/Workspace
-/// <see cref="MailMailbox"/>. A board with no actor is read-only in every
-/// mailbox. <see cref="MailMailbox.Workspace"/> shows every agent's mail
-/// and is read-only by default, regardless of whether the actor is a
-/// recipient of the selected message (see <see cref="MailLifecycleActions.IsReadOnly"/>).
-/// The agent filter picker (p) narrows Workspace to messages one agent sent
-/// or received, in either direction; it has no effect elsewhere. The list
-/// pane renders as a table (<see cref="MailTable"/>): a heading row above
-/// thread rollup rows by default (<see cref="MailListMode.Threads"/>,
-/// Shift+V toggling to flat per-message rows), with za/zo/zc/zR/zM folding
-/// a thread's messages into indented rows beneath it. <see cref="MailState"/>
-/// defaults to <see cref="MailMailbox.Workspace"/>.
+/// Displays mailboxes as thread or message lists with a detail pane.
+/// Supports composing, replying, and recipient-state changes when the board has
+/// an acting agent and the selected mailbox is writable.
 /// </summary>
 internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
 {
@@ -50,9 +36,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private const int PanelChromeHeight = 2;
 
     /// <summary>
-    /// The number of distinct above/below indicator combinations the
-    /// list's viewport can settle on, bounding how many times reserving
-    /// space for them needs to be recomputed.
+    /// The maximum number of passes used to reserve viewport indicator rows.
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 
@@ -133,26 +117,19 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private readonly Viewport _listViewport = new(0, 0);
 
     /// <summary>
-    /// Runs a compose or reply submission's store-plus-wake workflow off the
-    /// input/render thread; see <see cref="SubmitCompose"/>, <see cref="SubmitReply"/>,
-    /// and <see cref="CreateQuitGate"/>. At most one submission is in flight
-    /// at a time (see <see cref="SendDedupeKey"/>).
+    /// Runs asynchronous compose and reply writes with wake intent for
+    /// <see cref="IMailWakeDaemonCoordinator"/>. At most one send is in flight at a time.
     /// </summary>
     private readonly TuiEffectQueue<MailSendOutcome> _sendEffects = new();
 
     /// <summary>
-    /// One <see cref="MailSendOutcome.Stored"/> notice per submitted send,
-    /// posted by <see cref="RunSendEffectAsync"/>/<see cref="RunReplyEffectAsync"/>
-    /// right after the store commit. Lets <see cref="DrainEffectQueue"/>
-    /// surface a "Stored" toast ahead of the terminal outcome, which can
-    /// take up to <see cref="WakeDispatchPolicy.BatchDeadline"/> longer to resolve.
+    /// Store-commit notices awaiting display before the final send outcome is drained.
     /// </summary>
     private readonly ConcurrentQueue<MailSendOutcome.Stored> _storedNotices = new();
 
     /// <summary>
-    /// Completions <see cref="CreateQuitGate"/> drained during its own
-    /// bounded wait, held here so <see cref="DrainEffectQueue"/> still turns
-    /// them into toasts on this mode's next <see cref="Handle"/> call.
+    /// Completions retained by the quit gate for processing on the next
+    /// <see cref="Handle"/> call.
     /// </summary>
     private readonly List<TuiEffectCompletion<MailSendOutcome>> _deferredCompletions = [];
 
@@ -186,9 +163,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <param name="agentRegistry">Resolves every registered agent's client attribution.</param>
     /// <param name="timeProvider">Defaults to <see cref="TimeProvider.System"/>.</param>
     /// <param name="effectCancellationToken">
-    /// Cancels a pending send's post-commit work; the store write itself is
-    /// always shielded from it. Defaults to <see cref="CancellationToken.None"/>
-    /// for a caller with no shutdown signal to plumb through.
+    /// Passed to submitted effects; the current send and reply effects do not use it
+    /// to cancel their store writes.
     /// </param>
     public MailMode(
         IMailStore store,
@@ -221,18 +197,13 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     private string RenderActor => _state.Actor ?? string.Empty;
 
     /// <summary>
-    /// The actor for a write, which every mutating gesture refuses without
-    /// (see <see cref="RefuseIfReadOnly"/>).
+    /// The acting agent for writes; throws when no identity is available.
     /// </summary>
     private string WritingActor
         => _state.Actor ?? throw new InvalidOperationException("The board has no agent identity.");
 
     /// <summary>
-    /// Whether this mode currently owns an active overlay (the archive
-    /// confirmation, the compose or reply form, or their shared discard
-    /// confirmation) that must consume raw key input directly rather than
-    /// through the semantic <see cref="TuiMessage"/> dispatch every other
-    /// gesture goes through.
+    /// Whether an overlay or pending fold prefix consumes raw key input.
     /// </summary>
     public bool IsInputCapturing
         => _archiveDialog is not null
@@ -253,9 +224,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         : [];
 
     /// <summary>
-    /// How many messages addressed to the actor are unread and not
-    /// archived, as of the last refresh. Drives a hosting tab's unread
-    /// badge.
+    /// The number of unread, unarchived messages addressed to the actor at the last
+    /// refresh, or zero without an acting agent.
     /// </summary>
     public int UnreadCount { get; private set; }
 
@@ -276,15 +246,12 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     /// <inheritdoc />
     public void OnResize(int width, int height)
     {
-        // Render recomputes layout from its parameters every frame; no per-resize state to update.
+        // Layout is recomputed during rendering.
     }
 
     /// <inheritdoc />
     /// <remarks>
-    /// Drains <see cref="_sendEffects"/> ahead of dispatching
-    /// <paramref name="message"/>, so any compose or reply completion
-    /// surfaces as a toast the moment any message reaches this mode
-    /// (see <see cref="DrainEffectQueue"/>).
+    /// Drains send outcomes before handling the message.
     /// </remarks>
     public IReadOnlyList<TuiMessage> Handle(TuiMessage message)
     {
@@ -448,8 +415,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Left and Right both flip focus between the two panes: with only two
-    /// panes, direction carries no extra meaning.
+    /// Toggles focus between the list and detail panes.
     /// </summary>
     private IReadOnlyList<TuiMessage> TogglePane()
     {
@@ -464,11 +430,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Marks the selected message read for the actor when it is currently
-    /// unread, aligning the detail pane's "open" gesture with the CLI's
-    /// read semantics. Silent on success; a failed write still surfaces as
-    /// a toast. Inert when <see cref="MailLifecycleActions.IsReadOnly"/>, so
-    /// opening a message in Workspace never writes.
+    /// Marks the selected unread message read when focusing its detail pane, unless
+    /// the mailbox is read-only. Returns a toast only when the write fails.
     /// </summary>
     private IReadOnlyList<TuiMessage> MaybeMarkSelectedRead()
     {
@@ -553,9 +516,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         => $"'{message.Id}' has no read/unread or archive state here.";
 
     /// <summary>
-    /// Opens the compose form. Unlike reply and archive, composing needs no
-    /// selected message, but is refused the same as every other mutating
-    /// gesture when <see cref="MailLifecycleActions.IsReadOnly"/>.
+    /// Opens the compose form, or returns a refusal toast when the mailbox is read-only.
     /// </summary>
     private IReadOnlyList<TuiMessage> OpenComposeForm()
     {
@@ -589,11 +550,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// The shared guard behind <see cref="ToggleRead"/>, <see cref="OpenArchiveDialog"/>,
-    /// <see cref="OpenComposeForm"/>, and <see cref="OpenReplyForm"/>: a
-    /// refusal toast when <see cref="MailLifecycleActions.IsReadOnly"/> is
-    /// true for <see cref="MailState.Mailbox"/>, or null when the gesture
-    /// may proceed.
+    /// Returns a refusal toast when the current mailbox is read-only, or null when
+    /// a write may proceed.
     /// </summary>
     private IReadOnlyList<TuiMessage>? RefuseIfReadOnly()
     {
@@ -669,13 +627,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Snapshots the compose form's validated values on this, the input
-    /// thread, then submits the whole store-plus-wake workflow to
-    /// <see cref="_sendEffects"/> so it runs off-thread. Duplicate submits
-    /// are refused with a toast, leaving the form open with its values
-    /// intact; a successful submit closes the form but retains it in
-    /// <see cref="_submittedComposeForm"/> so <see cref="DrainEffectQueue"/>
-    /// can reopen it if the store rejects the write.
+    /// Submits the compose values for an asynchronous store write, retaining the form
+    /// until the outcome is known. A refused submission leaves the form open.
     /// </summary>
     private IReadOnlyList<TuiMessage> SubmitCompose(FormResult.Submitted submitted)
     {
@@ -720,10 +673,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// The reply form's counterpart to <see cref="SubmitCompose"/>, sharing
-    /// <see cref="SendDedupeKey"/> with compose and the same
-    /// retain-until-resolved handling of the closed form through
-    /// <see cref="_submittedReplyForm"/>.
+    /// Submits the reply values for an asynchronous store write using the shared send
+    /// submission slot, retaining the form until the outcome is known.
     /// </summary>
     private IReadOnlyList<TuiMessage> SubmitReply(FormResult.Submitted submitted)
     {
@@ -741,11 +692,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// The compose send effect body: writes the message. The store write
-    /// uses <see cref="CancellationToken.None"/> throughout. Only
-    /// <see cref="ExitException"/> means the store rejected the write; every
-    /// other exception propagates and reaches the effect queue as
-    /// <see cref="TuiEffectCompletion{TResult}.Faulted"/>.
+    /// Stores the message and enqueues wake intent without cancellation, then posts a
+    /// stored notice and returns success. Converts <see cref="ExitException"/> to a
+    /// failed outcome; other exceptions propagate to the effect queue.
     /// </summary>
     private async Task<MailSendOutcome> RunSendEffectAsync(
         MailMessageCreation creation, CancellationToken _)
@@ -791,13 +740,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Drains every <see cref="_storedNotices"/> notice and compose/reply
-    /// completion persisted to <see cref="_sendEffects"/> since the last
-    /// call, turning each into its toast. A stored notice or committed
-    /// completion also refreshes this mode's loaded data. A
-    /// <see cref="MailSendOutcome.Failed"/> outcome reopens whichever of
-    /// <see cref="_submittedComposeForm"/> or <see cref="_submittedReplyForm"/>
-    /// the rejected submit retained; every other outcome discards them.
+    /// Processes queued store notices and send completions, refreshing mail after a
+    /// confirmed write. A rejected write restores the submitted form unless another
+    /// form of that kind is already open.
     /// </summary>
     private IReadOnlyList<TuiMessage> DrainEffectQueue()
     {
@@ -886,9 +831,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Discards every <see cref="MailSendOutcome.Stored"/> notice posted to
-    /// <see cref="_storedNotices"/> since the last call, without turning any
-    /// of them into a toast; see <see cref="CreateQuitGate"/>.
+    /// Discards all queued store notices without producing toasts.
     /// </summary>
     private void ClearStoredNotices()
     {
@@ -898,18 +841,9 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Builds the <see cref="TuiQuitGate"/> a hosting command registers with
-    /// <see cref="TuiShell"/>: stops accepting new sends, bounded-drains
-    /// whatever is already in flight, and reports what remained. A
-    /// <see cref="MailSendOutcome.Succeeded"/> whose notification is still
-    /// <see cref="MailWakeTargetStatus.Pending"/> adds to
-    /// <see cref="TuiQuitGateReport.PendingCount"/>; a
-    /// <see cref="MailSendOutcome.Reconciled"/>, faulted, or cancelled
-    /// completion adds to <see cref="TuiQuitGateReport.OutcomeUnknownCount"/>.
-    /// Every completion the drain observes is stashed into
-    /// <see cref="_deferredCompletions"/> so its toast still surfaces on this
-    /// mode's next <see cref="Handle"/> call. A cancelled second
-    /// confirmation must call <see cref="ResumeSendAcceptance"/>.
+    /// Creates a quit gate that stops submissions, waits within the supplied bound,
+    /// and reports pending effects and unknown outcomes. Drained completions remain
+    /// available to <see cref="Handle"/>; a cancelled quit must resume send acceptance.
     /// </summary>
     public TuiQuitGate CreateQuitGate() => async (bound, cancellationToken) =>
     {
@@ -941,25 +875,19 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     };
 
     /// <summary>
-    /// Reverses <see cref="CreateQuitGate"/>'s <c>StopAccepting</c> after a
-    /// cancelled second quit confirmation, per <see cref="TuiShell.QuitCancelled"/>'s
-    /// own contract.
+    /// Resumes send acceptance after a cancelled quit confirmation.
     /// </summary>
     public void ResumeSendAcceptance() => _sendEffects.ResumeAccepting();
 
     /// <summary>
-    /// A final, unconditional, bounded chance for a send still in flight to
-    /// land before the host process exits. Unlike <see cref="CreateQuitGate"/>,
-    /// this never runs interactively and never blocks a normal quit.
+    /// Waits within the supplied bound for pending sends to finish without cancelling
+    /// the sends or requesting user confirmation.
     /// </summary>
     public Task ShieldPendingSendsAsync(TimeSpan bound, CancellationToken cancellationToken)
         => _sendEffects.DrainPendingAsync(bound, cancellationToken);
 
     /// <summary>
-    /// Relays <see cref="_sendEffects"/>'s own wake event onto the TUI event
-    /// loop's channel; matches <see cref="TuiEventSource"/>, so a hosting
-    /// command merges this into <see cref="TuiApplication.RunAsync"/>
-    /// alongside its workspace database watcher.
+    /// Relays send-effect wake signals to the TUI event channel until cancellation.
     /// </summary>
     public Task RunSendEffectEventsAsync(ChannelWriter<TuiEvent> writer, CancellationToken cancellationToken)
         => _sendEffects.RunAsync(writer, cancellationToken);
@@ -1028,12 +956,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Opens the agent filter picker, sourced from <see cref="IAgentRegistry.ListAsync"/>
-    /// with an "All agents" entry prepended to clear the filter, pre-selected
-    /// on <see cref="MailState.AgentFilter"/>. Refused with a toast, rather
-    /// than reaching the registry, when <see cref="MailState.Mailbox"/> is
-    /// not <see cref="MailMailbox.Workspace"/>: the filter has no effect
-    /// anywhere else.
+    /// Opens the Workspace agent filter picker with the current filter selected and
+    /// an entry to clear it. Returns a refusal toast outside the Workspace mailbox.
     /// </summary>
     private IReadOnlyList<TuiMessage> OpenAgentFilterPicker()
     {
@@ -1113,11 +1037,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Toggles <see cref="MailState.ListMode"/> between
-    /// <see cref="MailListMode.Threads"/> and <see cref="MailListMode.Flat"/>
-    /// (Shift+V). Unlike every other mailbox/filter switch, this never
-    /// reaches the store: <see cref="MailState.ToggleListMode"/> rebuilds
-    /// <see cref="MailState.Rows"/> from data already loaded.
+    /// Toggles between thread and flat lists using the loaded list data.
+    /// Selecting a thread in the rebuilt list may load its messages.
     /// </summary>
     private IReadOnlyList<TuiMessage> ToggleListMode()
     {
@@ -1239,11 +1160,7 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Builds the list pane's panel directly, rather than through
-    /// <see cref="ColumnPane"/>, so <see cref="ResolveListBorderToken"/> can
-    /// give <see cref="MailMailbox.Workspace"/> a distinct border accent.
-    /// Every other mailbox resolves to exactly the border tokens
-    /// <see cref="ColumnPane"/> itself uses.
+    /// Renders the list panel with a distinct border accent for the Workspace mailbox.
     /// </summary>
     private Panel BuildListPanel(string name, int count, IReadOnlyList<string> lines, bool focused)
     {
@@ -1280,14 +1197,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
         => _detailView.Render(_state, width, height, _state.Focus == MailFocus.Detail, _clientsByName);
 
     /// <summary>
-    /// Renders the list's visible rows: a fixed heading row (see
-    /// <see cref="MailTable.RenderHeading"/>) followed by the scrolled
-    /// thread/message rows, padded with blank lines so the panel reports a
-    /// stable line count, with "N more above/below" indicators reserving
-    /// their own rows once the rows no longer fit <paramref name="interiorHeight"/>.
-    /// Column widths (<see cref="MailTable.ComputeColumns"/>) are computed
-    /// once per render from <paramref name="contentWidth"/> so the heading
-    /// and every row line up.
+    /// Renders the heading and visible list rows with aligned columns, scroll
+    /// indicators, and blank padding.
     /// </summary>
     private IReadOnlyList<string> RenderListLines(
         int contentWidth, int interiorHeight, bool focused, DateTimeOffset now)
@@ -1354,13 +1265,8 @@ internal sealed class MailMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Renders one <see cref="MailListRow"/> via <see cref="MailTable"/>,
-    /// resolving the unread-to-me highlight per row type: a thread row asks
-    /// <see cref="MailState.IsThreadUnreadToMe"/> (which knows how to read
-    /// Workspace's unscoped rollups safely); a message row asks
-    /// <see cref="MailRecipientView.IsUnread"/> directly, correct in every
-    /// mailbox since a message's own embedded recipients carry the actor's
-    /// real read state wherever it is queried from.
+    /// Renders a list row with the acting agent's unread highlight, resolved from the
+    /// thread summary or the message's recipient state.
     /// </summary>
     private string RenderRow(MailListRow row, bool selected, DateTimeOffset now, MailTable.Columns columns) => row switch
     {
