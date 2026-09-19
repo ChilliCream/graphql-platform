@@ -110,7 +110,7 @@ internal static class AgentDetailBody
     }
 
     /// <summary>
-    /// Wraps an escaped <paramref name="value"/> in <paramref name="styleMarkup"/> markup.
+    /// Escapes the value and applies the supplied style when non-empty.
     /// </summary>
     private static string StyledValue(string styleMarkup, string value)
     {
@@ -152,8 +152,8 @@ internal static class AgentDetailBody
     }
 
     /// <summary>
-    /// Prefixes non-empty section content with a bold header line and a blank separator line. Empty
-    /// content is returned unchanged.
+    /// Prefixes non-empty content with a styled section header and a blank line.
+    /// Empty content produces no lines.
     /// </summary>
     private static IReadOnlyList<TaskDetailBodyLine> WithStyledHeader(
         string header, IReadOnlyList<TaskDetailBodyLine> body)

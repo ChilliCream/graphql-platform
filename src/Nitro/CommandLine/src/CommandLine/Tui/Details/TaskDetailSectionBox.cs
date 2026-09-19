@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Details;
 
 /// <summary>
-/// Renders one long-text detail section, Description, Design, Acceptance criteria, or Notes, as a
-/// rounded-border box with the section name as the border title. Produces a flat list of plain-text
-/// display rows, one per line.
+/// Renders a titled, bordered long-text section as body lines.
+/// Content lines contain unescaped plain text; border lines contain markup.
 /// </summary>
 internal static class TaskDetailSectionBox
 {

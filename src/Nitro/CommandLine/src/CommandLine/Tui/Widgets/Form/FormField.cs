@@ -79,9 +79,8 @@ internal abstract class FormField
     protected static string RenderPlaceholder(string text) => $"[grey italic]{Markup.Escape(text)}[/]";
 
     /// <summary>
-    /// Wraps <paramref name="content"/> in the bordered panel shared by every field
-    /// renderer, with the field's title, focus-and-validation-driven border style,
-    /// and validation error line appended underneath when present.
+    /// Renders the content with a titled border styled for focus or a visible
+    /// validation error. A visible error is also rendered below the panel.
     /// </summary>
     protected IRenderable RenderPanel(IRenderable content, int width, bool focused)
     {

@@ -6,9 +6,8 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// Renders an <see cref="AgentDetailModel"/> as a scrollable body of its Session, Identity, Tasks, and
-/// Sent mail sections inside a bordered panel. Owns the body's scroll position; the model owns
-/// everything else.
+/// Renders the participant's Session, Identity, Tasks, and Sent mail sections in a
+/// scrollable panel and maintains the scroll position.
 /// </summary>
 internal sealed class AgentDetailView
 {
@@ -25,9 +24,7 @@ internal sealed class AgentDetailView
     private const int PanelChromeHeight = 2;
 
     /// <summary>
-    /// The number of distinct above/below indicator combinations the body's
-    /// viewport can settle on, bounding how many times reserving space for
-    /// them needs to be recomputed.
+    /// The maximum number of passes used to reserve viewport indicator rows.
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 

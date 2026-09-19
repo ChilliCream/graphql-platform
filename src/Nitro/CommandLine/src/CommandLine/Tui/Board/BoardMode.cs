@@ -8,9 +8,7 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
 /// <summary>
-/// The kanban board <see cref="ITuiMode"/>: renders a board view as equal-width
-/// columns and turns navigation, refresh, and selection intents into changes on
-/// a <see cref="BoardState"/>.
+/// Displays and navigates a task board with grid, stacked, and maximized layouts.
 /// </summary>
 internal sealed class BoardMode : ITuiMode
 {
@@ -27,9 +25,7 @@ internal sealed class BoardMode : ITuiMode
     private const int PanelChromeHeight = 2;
 
     /// <summary>
-    /// The number of distinct above/below indicator combinations a column's
-    /// viewport can settle on, bounding how many times reserving space for
-    /// them needs to be recomputed.
+    /// The maximum number of passes used to reserve viewport indicator rows.
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 
@@ -42,9 +38,8 @@ internal sealed class BoardMode : ITuiMode
     private bool _maximized;
 
     /// <summary>
-    /// Creates the board mode over <paramref name="loader"/>, starting on the
-    /// first of <paramref name="views"/>. Defaults to the single v1 built-in
-    /// view when <paramref name="views"/> is not given.
+    /// Creates a board using the first supplied view.
+    /// A null or empty view list selects <see cref="BoardView.Default"/>.
     /// </summary>
     public BoardMode(BoardDataLoader loader, IReadOnlyList<BoardView>? views = null)
     {
@@ -170,8 +165,7 @@ internal sealed class BoardMode : ITuiMode
         {
             if (i > 0)
             {
-                // A blank row between consecutive column panels: Text renders it, an empty Markup
-                // does not.
+                // Insert one blank row between stacked column panels.
                 rows.Add(new Text(string.Empty));
             }
 
@@ -259,7 +253,6 @@ internal sealed class BoardMode : ITuiMode
     {
         if (_views.Count <= 1)
         {
-            // Nothing to switch to with a single view.
             return [];
         }
 

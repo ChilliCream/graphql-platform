@@ -8,14 +8,9 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
 /// <summary>
-/// The full-screen task detail <see cref="ITuiMode"/> the shell switches to when Enter is pressed on
-/// the board: renders one task through <see cref="TaskDetailModel"/> and <see cref="TaskDetailView"/>,
-/// with the body scrollable via the global cursor and edge gestures.
+/// Displays the task loaded by <see cref="OpenOnTask"/> as a scrollable detail
+/// view with a metadata sidebar.
 /// </summary>
-/// <remarks>
-/// Opening the mode on a task is driven directly by the shell and is not reachable through
-/// <see cref="ITuiMode.Handle"/>.
-/// </remarks>
 internal sealed class BoardDetailMode : ITuiMode
 {
     private readonly TaskDetailModel _model;
@@ -30,8 +25,7 @@ internal sealed class BoardDetailMode : ITuiMode
     }
 
     /// <summary>
-    /// Escape leaves the mode; the binding exists to carry a footer hint. Scroll and edit come from the
-    /// global table.
+    /// Binds Escape to leave the detail mode with a matching footer hint.
     /// </summary>
     public KeyMap? KeyMap { get; } = new KeyMap(
     [

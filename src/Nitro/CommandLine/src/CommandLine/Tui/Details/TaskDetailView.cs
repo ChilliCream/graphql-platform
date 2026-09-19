@@ -35,9 +35,7 @@ internal sealed class TaskDetailView
     private const int PanelChromeHeight = 2;
 
     /// <summary>
-    /// The number of distinct above/below indicator combinations the body's
-    /// viewport can settle on, bounding how many times reserving space for
-    /// them needs to be recomputed.
+    /// The maximum number of passes used to reserve viewport indicator rows.
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 

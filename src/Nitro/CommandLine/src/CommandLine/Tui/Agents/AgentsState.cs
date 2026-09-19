@@ -3,18 +3,13 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// The live state of the agents list: every live participant from
-/// <see cref="IAgentSessionRegistry.ListParticipantsAsync"/>, in the order
-/// the registry returns them, which row is selected, and which of the tab's
-/// two panes currently holds focus.
+/// The loaded live participants, selected row, and focused pane.
 /// </summary>
 internal sealed class AgentsState(IAgentSessionRegistry sessionRegistry, IClaudeSessionActivityReader activityReader)
 {
     /// <summary>
-    /// The participant rows currently loaded, ordered by harness then
-    /// session id (the registry's own order). One row per live harness
-    /// session, including unbound ones; a session that ends or is reaped is
-    /// simply absent from the next <see cref="RefreshAsync"/>.
+    /// Live participant rows in registry order by harness and session id, including
+    /// unbound sessions. Ended or reaped sessions are absent after refresh.
     /// </summary>
     public IReadOnlyList<AgentParticipantRow> Rows { get; private set; } = [];
 
@@ -54,8 +49,8 @@ internal sealed class AgentsState(IAgentSessionRegistry sessionRegistry, IClaude
     }
 
     /// <summary>
-    /// Reads the Claude activity read-through for a single online claude-code session; every other row
-    /// carries no activity.
+    /// Attaches activity for an online Claude Code participant, or null activity
+    /// for other participants.
     /// </summary>
     private AgentParticipantRow ToRow(AgentSessionParticipant participant)
     {

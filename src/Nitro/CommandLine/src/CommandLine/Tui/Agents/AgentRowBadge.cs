@@ -5,10 +5,9 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// Renders one live participant row for the agents list pane as a single Spectre markup line:
-/// selection prefix, implicit marker, actor, presence badge, harness, role, and started/last-heard
-/// ages, each padded to the column widths from <see cref="ComputeWidths"/>. A row bound to an implicit
-/// durable identity renders dimmed.
+/// Renders a participant's actor, presence, harness, role, and session ages with
+/// selection and implicit-identity markers. Rows bound to implicit identities
+/// use the implicit-identity style.
 /// </summary>
 internal static class AgentRowBadge
 {
@@ -156,10 +155,8 @@ internal static class AgentRowBadge
     }
 
     /// <summary>
-    /// Resolves the theme style for <paramref name="role"/>: a per-role
-    /// <c>agents.list.role.&lt;role&gt;</c> token keyed by the lowercased role text, falling back to
-    /// the base <c>agents.list.role</c> token when no dedicated color is registered, including for the
-    /// empty role.
+    /// Returns the style for the lowercased role, or the base role style when the
+    /// role is empty or its dedicated style is plain.
     /// </summary>
     public static Style RoleStyle(string role)
     {

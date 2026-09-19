@@ -3,10 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// One live participant row as the Agents tab renders it: the
-/// <see cref="AgentSessionParticipant"/> paired with its Claude activity
-/// read-through, only ever set for an online claude-code session (see
-/// <see cref="AgentsState.RefreshAsync"/>).
+/// A live participant and its optional Claude activity.
+/// <see cref="AgentsState"/> supplies activity only for online Claude Code sessions.
 /// </summary>
 internal sealed record AgentParticipantRow(AgentSessionParticipant Participant, string? Activity)
 {

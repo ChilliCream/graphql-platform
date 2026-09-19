@@ -22,10 +22,9 @@ file static class FormMeasurement
 }
 
 /// <summary>
-/// A scoped modal form: labeled bordered fields with focus traversal, per-field
-/// validation, and a confirm/cancel button row. Rendered as a single-column,
-/// centered overlay; the host is expected to feed it raw key input and stop
-/// showing it once <see cref="HandleKey"/> returns a non-null result.
+/// A modal form with labeled fields, focus traversal, validation, and buttons.
+/// <see cref="HandleKey"/> returns submission, cancellation, or button-activation
+/// results for the host to process.
 /// </summary>
 internal sealed class Form
 {
@@ -54,7 +53,7 @@ internal sealed class Form
     private const int MinViableHeight = 10;
 
     /// <summary>
-    /// Rows of breathing room left between the modal and the edges of the frame.
+    /// Total vertical space reserved around the form panel.
     /// </summary>
     private const int FrameMargin = 2;
 
@@ -182,7 +181,7 @@ internal sealed class Form
         var availableFieldsHeight = Math.Max(0, maxPanelHeight - chrome);
         var needsScrolling = totalFieldsHeight > availableFieldsHeight;
 
-        // Reserve room for the scroll indicators only when scrolling is actually happening.
+        // Reserve two indicator rows when the fields exceed the available height.
         var windowBudget = needsScrolling
             ? Math.Max(0, availableFieldsHeight - 2)
             : availableFieldsHeight;
@@ -226,10 +225,8 @@ internal sealed class Form
     }
 
     /// <summary>
-    /// Picks the widest contiguous run of whole fields, anchored at
-    /// <paramref name="anchorIndex"/>, whose combined <paramref name="heights"/>
-    /// fit within <paramref name="budget"/>: the anchor field is always
-    /// included even when it alone exceeds the budget.
+    /// Selects a contiguous range of whole fields around the anchor within the
+    /// budget. The anchor is included even when it alone exceeds the budget.
     /// </summary>
     private static (int Start, int End) SelectVisibleFieldRange(
         IReadOnlyList<int> heights, int anchorIndex, int budget)
@@ -323,8 +320,8 @@ internal sealed class Form
     }
 
     /// <summary>
-    /// Validates every field, marking the form as having attempted a submit; returns the submitted
-    /// values when all fields are valid, or <see langword="null"/> to keep the form open otherwise.
+    /// Marks submission attempted and returns the field values when all fields are
+    /// valid, or null when validation fails.
     /// </summary>
     private FormResult? TryValidateAndSubmit()
     {
@@ -348,8 +345,7 @@ internal sealed class Form
             }
         }
 
-        // TrySave only calls this after TryValidateAndSubmit found an invalid
-        // field, so one is always present here.
+        // Validation reported an invalid field before this lookup.
         throw new InvalidOperationException("Expected an invalid field.");
     }
 }

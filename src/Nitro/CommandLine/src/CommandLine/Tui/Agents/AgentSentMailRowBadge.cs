@@ -14,7 +14,7 @@ internal static class AgentSentMailRowBadge
     private const string Arrow = "-> ";
 
     /// <summary>
-    /// The largest share of the available width the recipients list may claim.
+    /// The maximum character budget for the recipients column.
     /// </summary>
     private const int MaxRecipientsBudget = 24;
 

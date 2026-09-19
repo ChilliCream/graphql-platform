@@ -3,10 +3,8 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 
 /// <summary>
-/// An editable list of string entries, used for labels: add, remove, and edit
-/// entries in place. While browsing, up and down move the selected entry and
-/// are left unconsumed at the first or last entry so focus can move on; while
-/// editing an entry, Escape cancels only that edit rather than the whole form.
+/// An editable string list whose arrow keys traverse entries and release focus
+/// at either end. Escape during an entry edit cancels that edit only.
 /// </summary>
 internal sealed class EditableListField : FormField
 {
@@ -145,8 +143,7 @@ internal sealed class EditableListField : FormField
                     return true;
                 }
 
-                // An unrecognized key (for example Tab) blurs the entry: commit
-                // it in place and let the key fall through as focus traversal.
+                // Commit the entry and leave an unrecognized key for form navigation.
                 CommitEditing();
                 return false;
         }

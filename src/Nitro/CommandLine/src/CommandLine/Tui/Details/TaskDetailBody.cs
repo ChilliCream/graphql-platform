@@ -90,8 +90,8 @@ internal static class TaskDetailBody
     }
 
     /// <summary>
-    /// Drops a raw section's leading header line and wraps the remaining lines as plain, unescaped body
-    /// content.
+    /// Removes the leading header and converts the remaining lines to unescaped
+    /// plain-text body lines; empty input produces no lines.
     /// </summary>
     private static IReadOnlyList<TaskDetailBodyLine> PlainBody(IReadOnlyList<string> rawLines)
     {
@@ -111,8 +111,8 @@ internal static class TaskDetailBody
     }
 
     /// <summary>
-    /// Prefixes non-empty section content with a bold header line and a blank separator line. Empty
-    /// content is returned unchanged.
+    /// Prefixes non-empty content with a styled section header and a blank line.
+    /// Empty content produces no lines.
     /// </summary>
     private static IReadOnlyList<TaskDetailBodyLine> WithStyledHeader(string header, IReadOnlyList<TaskDetailBodyLine> body)
     {

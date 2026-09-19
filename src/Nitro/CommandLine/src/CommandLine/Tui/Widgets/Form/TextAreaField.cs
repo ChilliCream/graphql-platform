@@ -15,8 +15,7 @@ internal sealed class TextAreaField : FormField
     private const string CursorStyle = "black on white";
 
     /// <summary>
-    /// The fewest interior lines a text area ever renders, even when its content is empty or shorter
-    /// than its configured visible-lines count.
+    /// The minimum number of content rows allocated to the text area.
     /// </summary>
     private const int MinVisibleLines = 3;
 
@@ -230,7 +229,7 @@ internal sealed class TextAreaField : FormField
 
     private string RenderCursorLine(string line, int cursorColumn, int innerWidth)
     {
-        // +1 so the cursor can sit one column past the last character.
+        // Include one cursor position after the final character.
         _columnViewport.Update(line.Length + 1, innerWidth);
         _columnViewport.EnsureVisible(cursorColumn);
 

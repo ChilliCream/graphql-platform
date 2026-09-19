@@ -10,10 +10,9 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// The agents <see cref="ITuiMode"/>: a list pane of every live participant next to a detail pane for
-/// the selected one. Moving the list selection reloads the detail pane; Enter and h/l/Left/Right toggle
-/// which pane holds focus, List focus moves the selection with j/k, and Detail focus scrolls the detail
-/// body.
+/// Displays live participants beside the selected participant's details.
+/// Enter focuses the detail pane; horizontal navigation toggles pane focus, and
+/// vertical navigation moves the list selection or scrolls the focused detail pane.
 /// </summary>
 internal sealed class AgentsMode : ITuiMode
 {
@@ -30,9 +29,7 @@ internal sealed class AgentsMode : ITuiMode
     private const int PanelChromeHeight = 2;
 
     /// <summary>
-    /// The number of distinct above/below indicator combinations the
-    /// list's viewport can settle on, bounding how many times reserving
-    /// space for them needs to be recomputed.
+    /// The maximum number of passes used to reserve viewport indicator rows.
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 
@@ -287,9 +284,8 @@ internal sealed class AgentsMode : ITuiMode
     }
 
     /// <summary>
-    /// Reloads the detail pane when the selected participant's <see cref="AgentSessionKey"/> differs
-    /// from whichever it last loaded; a no-op otherwise. Used by the selection-move handlers; a data
-    /// refresh uses <see cref="RefreshDetail"/> instead.
+    /// Loads details when the selected participant differs from the loaded one.
+    /// Does nothing when no participant is selected or its key is unchanged.
     /// </summary>
     private void ReloadDetailIfNeeded()
     {
