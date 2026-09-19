@@ -65,21 +65,16 @@ export function strokeShadedPathRgba(
 /**
  * A wide, low-alpha halo pass underneath the caller's normal sharp strokes,
  * so every luminous element this touches carries a glow instead of a hard
- * vector edge (README section 3, planner ruling 187 item 3). Only used for
- * the plasma cache, which is baked once per `measure()`, so the cost never
- * lands on a live frame.
+ * vector edge. Only used for the plasma cache, which is baked once per
+ * `measure()`, so the cost never lands on a live frame.
  *
  * `paint` draws every halo path UNFILTERED into a same-size, same-transform
  * offscreen canvas (one `ctx.filter`-free stroke per path, cheap), and this
  * then composites that whole canvas onto `ctx` ONCE under a single
  * `ctx.filter = 'blur(...)'` pass. Setting `ctx.filter` before hundreds of
- * individual filtered strokes (the original approach) is not just slower --
- * it is catastrophically slower: a synthetic bench of 2100 strokes in this
- * same headless Chromium measured ~43.7s with `ctx.filter` set per stroke
- * versus ~29ms for one filtered `drawImage` of the same strokes rasterised
- * unfiltered first (see ticket hc-0-wrc.3 F2), which is exactly what caused
- * the two ~8.3s long tasks that blocked the RAF loop from reaching 60fps
- * until t=17s.
+ * individual filtered strokes is dramatically slower than rasterising them
+ * unfiltered first and blurring the whole result in one filtered
+ * `drawImage`.
  */
 function withBlurHalo(
   ctx: CanvasRenderingContext2D,
@@ -111,10 +106,10 @@ function withBlurHalo(
 /**
  * One tile's specular-gradient face, inset seam gap and (on large tiles)
  * fastener dots -- the shared paint code for both the wall layer and the
- * column layer (hc-0-wrc.3 comment 206: the column is now its own cached
- * layer, stamped over the far arc and under the near arc every frame, so it
- * needs the exact same tile rendering the wall always had, just painted
- * into a separate, transparent-background canvas).
+ * column layer, which is its own cached layer stamped over the far arc and
+ * under the near arc every frame, so it needs the exact same tile rendering
+ * the wall uses, just painted into a separate, transparent-background
+ * canvas.
  */
 function paintTile(ctx: CanvasRenderingContext2D, tile: Tile): void {
   const grad = ctx.createLinearGradient(
@@ -123,17 +118,13 @@ function paintTile(ctx: CanvasRenderingContext2D, tile: Tile): void {
     tile.lo.x,
     tile.lo.y,
   );
-  // Warmth is only allowed to nudge the fill alpha a little (~0.08 at
-  // most) -- it must not be what makes a tile read as lit; that is
-  // `tile.shade`'s job. Warmth's real effect is the coral mix below, so
-  // the tiles nearest the band tint pink without ever turning pale (fix
-  // 1/F1: warmth used to add up to 0.5 alpha on its own, which is what
-  // painted the whole column as a pale cylinder).
-  // Warmth's alpha lift and its coral mix fraction were both raised
-  // (hc-0-wrc.3 review 2, F3: "no visible pink on the column between the
-  // streaks") -- still capped well below `tile.shade`'s own contribution,
-  // and still 0 outside the band's falloff, so the chamber's overall
-  // under-20%-outside-the-band luminance budget is untouched.
+  // Warmth is only allowed to nudge the fill alpha a little -- it must not
+  // be what makes a tile read as lit; that is `tile.shade`'s job. Warmth's
+  // real effect is the coral mix below, so the tiles nearest the band tint
+  // pink without ever turning pale. The alpha lift and coral mix fraction
+  // stay capped well below `tile.shade`'s own contribution, and are 0
+  // outside the band's falloff, so the chamber's overall luminance budget
+  // outside the band is untouched.
   const warm = tile.warmth;
   const hiAlpha = 0.11 + tile.shade * 0.2 + warm * 0.15;
   const midAlpha = 0.08 + tile.shade * 0.14 + warm * 0.12;
@@ -187,20 +178,18 @@ function paintTile(ctx: CanvasRenderingContext2D, tile: Tile): void {
  * trapezoids, dark inset seams, fastener dots), the instrument lights and
  * the vignette. Painted once on mount and again on resize into its own
  * bottom-most canvas -- nothing ever needs to draw behind it, so unlike the
- * column it is never re-stamped per frame (hc-0-wrc.3 comment 206: the
- * column moved to its own cached layer so the plasma's far arc can draw
- * between the wall and the column and the near arc on top of the column;
- * baking both into one "chamber" canvas, as before, could never let the
- * far arc's orbiting streaks sit behind a static image).
+ * column it is never re-stamped per frame. The column is its own cached
+ * layer so the plasma's far arc can draw between the wall and the column
+ * and the near arc on top of the column; baking both into one "chamber"
+ * canvas, as before, could never let the far arc's orbiting streaks sit
+ * behind a static image.
  *
- * Tiles are dark slate at low alpha (mean luminance well under the
- * planner's 20% ceiling outside the plasma band): `tile.shade` gives each
- * tile's own directional-light specular variation, `tile.warmth` (0 almost
- * everywhere, 1 only for the handful of tiles whose row sits right at the
- * torus) is what is allowed to brighten a tile and mix coral into it --
- * "brighter only near the plasma" (planner ruling hc-0-wrc.3 comment 187
- * item 2). Seams are never stroked: they are the gap `insetQuad` already
- * left between neighbouring tile faces.
+ * Tiles are dark slate at low alpha: `tile.shade` gives each tile's own
+ * directional-light specular variation, `tile.warmth` (0 almost everywhere,
+ * 1 only for the handful of tiles whose row sits right at the torus) is
+ * what is allowed to brighten a tile and mix coral into it, so tiles read
+ * brighter only near the plasma. Seams are never stroked: they are the gap
+ * `insetQuad` already left between neighbouring tile faces.
  */
 export function paintWall(
   ctx: CanvasRenderingContext2D,
@@ -264,9 +253,9 @@ export function paintWall(
  * transparent-background canvas (never touching navy, ambient wash,
  * instrument lights or the vignette, which are the wall's job) so it can be
  * stamped with `drawImage` on top of the far arc and under the near arc
- * every live frame (hc-0-wrc.3 comment 206) -- real occlusion from actual
- * tile geometry and draw order, not a destination-out mask or a dimming
- * factor. Painted once on mount and again on resize, same as the wall; the
+ * every live frame -- real occlusion from actual tile geometry and draw
+ * order, not a destination-out mask or a dimming factor. Painted once on
+ * mount and again on resize, same as the wall; the
  * per-frame cost is one cheap `drawImage`, not a re-paint of the tiles.
  *
  * Each tile gets an opaque navy backing, in its own polygon, BEFORE its
@@ -307,13 +296,12 @@ export function paintColumnLayer(
  * Style for one cached plasma layer (the far half or the near half of the
  * band, see `paintPlasmaLayer`). `alphaMul` scales every alpha in the pass
  * -- the coral core, the white-hot centre and both halo passes together --
- * so the far half's "reduced alpha and desaturation" (hc-0-wrc.3 comment
- * 206) and the mobile density scale (review 3, F1: the 375 band is dense
- * enough at full alpha to blow out) both fall out of one number, and a
- * separate `colorHex` (`BRAND.coral` for the near half, `BRAND.coralSoft`
- * for the far half) carries the desaturation itself.
+ * so the far half's reduced alpha/desaturation and the mobile density scale
+ * both fall out of one number, and a separate `colorHex` (`BRAND.coral` for
+ * the near half, `BRAND.coralSoft` for the far half) carries the
+ * desaturation itself.
  */
-export interface PlasmaLayerStyle {
+interface PlasmaLayerStyle {
   readonly colorHex: string;
   readonly alphaMul: number;
 }
@@ -323,30 +311,23 @@ export interface PlasmaLayerStyle {
  * of the band (far or near, see `index.tsx`'s split by `isFarSide`), baked
  * once per `measure()` with `lighter` compositing so their glow adds
  * instead of covering. Every luminous element gets a wide, low-alpha,
- * canvas-blurred halo pass underneath its sharp core (README section 3,
- * planner ruling 187 item 3) -- affordable here because this canvas is
- * re-rendered only on resize, never per frame; the live layer draws the
- * small orbiting subset, the helix and the breathing bloom on top of this
- * every frame using a cheaper downscaled bloom pass instead (see
- * `index.tsx`).
+ * canvas-blurred halo pass underneath its sharp core -- affordable here
+ * because this canvas is re-rendered only on resize, never per frame; the
+ * live layer draws the small orbiting subset, the helix and the breathing
+ * bloom on top of this every frame using a cheaper downscaled bloom pass
+ * instead (see `index.tsx`).
  *
  * The two layers (far, near) are `drawImage`-d into the live canvas on
- * either side of the column layer every frame (hc-0-wrc.3 comment 206),
- * real occlusion from draw order rather than a destination-out mask or a
- * dimming factor; the column's own coral tint is a separate `'lighter'`
- * pass `index.tsx` draws right after the column so it visibly lands on the
- * tiles, not baked in here.
+ * either side of the column layer every frame: real occlusion from draw
+ * order rather than a destination-out mask or a dimming factor; the
+ * column's own coral tint is a separate `'lighter'` pass `index.tsx` draws
+ * right after the column so it visibly lands on the tiles, not baked in
+ * here.
  *
- * Base alphas cut from 2.2px@0.15/0.7px@0.2 (hc-0-wrc.3 review 3, F1: the
- * band blew out to white-salmon over 27-29% of its own area, ceiling 15%)
- * -- individual streaks now stay readable and the halo passes carry the
- * glow instead, per the planner's ruling not to raise bloom to compensate.
- *
- * The five service-colour streams (README section 4) were dropped
- * entirely (ticket hc-0-wrc.3 F3/verifier correction): even as dash
- * trails they read as thin straight lines crossing the frame at this
- * camera distance, and the planner's own ruling permits dropping them --
- * "the picture is slate plus coral."
+ * Base alphas are kept low so individual streaks stay readable without
+ * blowing out, and the halo passes carry the glow instead of raising bloom
+ * to compensate. The picture is slate plus coral: no other service-colour
+ * streams are drawn here.
  */
 export function paintPlasmaLayer(
   ctx: CanvasRenderingContext2D,

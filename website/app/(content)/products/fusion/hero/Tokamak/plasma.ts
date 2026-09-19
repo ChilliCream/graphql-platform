@@ -17,8 +17,7 @@ export interface ShadedPoint extends Pt {
  * Used to split streaks (by their own `theta0`, short arcs barely move it)
  * and the helix (by its own per-point `theta`, see `HelixPoint`) into a far
  * group drawn before the column layer and a near group drawn after it --
- * real occlusion from actual draw order, not a dimming factor (hc-0-wrc.3
- * comment 206/207).
+ * real occlusion from actual draw order, not a dimming factor.
  */
 export function isFarSide(theta: number): boolean {
   return Math.sin(theta) > 0;
@@ -39,12 +38,11 @@ export interface Streak {
    * 0..1 envelope over `phi`, peaking at the tube's own OUTER mid-line
    * (`phi` 0, where the torus' `y` offset is 0 and the tube faces the
    * camera), falling to near zero at the top/bottom silhouette (`phi`
-   * +-PI/2, review 3 F2's feather) and dimmed (not silenced) at the INNER
-   * mid-line (`phi` PI): the inner limb sits at the tube's smallest radius,
-   * closest to the column's own radius, and a full population there filled
-   * in the exact screen area the column's tiles are meant to occlude,
-   * regardless of `theta0` (review 3 F3: the near arc alone already
-   * covered the column). Folded into every projected point's `near` factor
+   * +-PI/2) and dimmed (not silenced) at the INNER mid-line (`phi` PI): the
+   * inner limb sits at the tube's smallest radius, closest to the column's
+   * own radius, and a full population there would fill in the exact screen
+   * area the column's tiles are meant to occlude, regardless of `theta0`.
+   * Folded into every projected point's `near` factor
    * (see `projectStreak`) so the band's own density -- not a hand-set 2D
    * fade or a column-width check -- gives it both a feathered edge and a
    * visible gap for the column, without hollowing out the ring's own
@@ -55,8 +53,8 @@ export interface Streak {
   readonly tubeScale: number;
 }
 
-export interface CreateStreakOptions {
-  /** A sparse outer streak, well off the tube's own radius, at a further-dampened weight -- the reference's loose streaks thinning out above/below the band (hc-0-wrc.3 review 3, F2). */
+interface CreateStreakOptions {
+  /** A sparse outer streak, well off the tube's own radius, at a further-dampened weight -- the reference's loose streaks thinning out above/below the band. */
   readonly stray?: boolean;
 }
 
@@ -65,8 +63,7 @@ export interface CreateStreakOptions {
  * torus' (theta, phi) domain, see `index.tsx`) so hundreds of streaks
  * spread evenly across the whole band instead of a purely random draw
  * letting some radius bands go empty while others accumulate enough
- * overlapping arcs to read as a complete, flat ring -- the same "annulus"
- * failure the ticket warns against, just arrived at in 3D instead of 2D.
+ * overlapping arcs to read as a complete, flat annulus.
  */
 export function createStreak(
   rand: () => number,
@@ -87,12 +84,11 @@ export function createStreak(
     // 0.35-0.7 rad (20-40deg): long enough, at this density and with
     // `lighter` compositing, that overlapping arcs stack into a continuous
     // band with a brighter middle line instead of a scattered cloud of
-    // short dashes spread across too much of the column's height
-    // (hc-0-wrc.3 review 2, F2).
+    // short dashes spread across too much of the column's height.
     arc: 0.35 + rand() * 0.35,
     phi,
     speed: (rand() < 0.5 ? -1 : 1) * (0.05 + rand() * 0.07),
-    width: 0.6 + rand() * 1,
+    width: 0.6 + rand(),
     alpha: 0.4 + rand() * 0.45,
     flickerSpeed: 0.3 + rand() * 0.6,
     flickerPhase: rand() * Math.PI * 2,
@@ -144,8 +140,7 @@ export interface HelixPoint extends ShadedPoint {
  * rather than a flat sine drawn in 2D. `twistPhase` advances over time for
  * the twisting motion. Runs at the torus' own major radius (`ampl = 1`) with
  * a tube amplitude under the streak band's own tube radius so it threads
- * through the band rather than swinging outside it (hc-0-wrc.3 review 2,
- * F4: the old `R*0.62` amplitude read as a hard loop unrelated to the band).
+ * through the band rather than swinging outside it as an unrelated loop.
  */
 export function projectHelix(
   torus: TorusParams,
@@ -180,8 +175,8 @@ export function projectHelix(
 }
 
 /**
- * Per-point far-side dimming for the helix (hc-0-wrc.3 review 2, F4): the
- * filament's own far/near split (see `splitByPredicate` below) already
+ * Per-point far-side dimming for the helix: the filament's own far/near
+ * split (see `splitByPredicate` below) already
  * draws its far run before the column layer and its near run after, but the
  * filament's far points falling OUTSIDE the column's own projected width
  * still need this extra dimming (nothing there to occlude them), so each
@@ -207,8 +202,8 @@ export function occludeHelixBehindColumn(
  * helix's far-side-behind-the-column points vs its near-side points), each
  * boundary point duplicated into both neighbouring runs so the runs still
  * meet with no visible gap. Used to draw the helix's far half before the
- * live front streaks and its near half after (planner/verifier ruling:
- * "thread partly hidden by the column and crossed by front streaks").
+ * live front streaks and its near half after, so the thread reads as
+ * partly hidden by the column and crossed by the front streaks.
  */
 export function splitByPredicate<T>(
   pts: readonly T[],

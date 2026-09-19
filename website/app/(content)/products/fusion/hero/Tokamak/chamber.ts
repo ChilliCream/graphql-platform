@@ -14,7 +14,7 @@ export interface Tile {
   readonly lo: Pt;
   /** 0..1 directional-light shade for this tile's facing (the "specular gradient" hotspot from the projected normal). */
   readonly shade: number;
-  /** 0..1 -- 1 where this tile's row sits right at the plasma torus, 0 far from it. Drives both the brightness boost and the coral tint: "brighter only near the plasma" (planner ruling 187 item 2). */
+  /** 0..1 -- 1 where this tile's row sits right at the plasma torus, 0 far from it. Drives both the brightness boost and the coral tint so tiles read brighter only near the plasma. */
   readonly warmth: number;
   readonly fastener: boolean;
   /** Approx on-screen size in px, for the fastener/detail size gate. */
@@ -29,24 +29,22 @@ export interface InstrumentLight {
 
 const SEAM_INSET = 0.09;
 /**
- * The column's own seam gap is narrower than the wall's (hc-0-wrc.3 review
- * 2, F1 residual): its own floor alpha is already lower than the wall's, so
- * a full-width seam gap lets a disproportionate amount of the (comparably
- * brighter) wall show through behind it, pulling the column's measured
- * mean luminance up above the wall's own instead of below it. Seams still
- * read as gaps, never strokes -- just narrower ones on the column.
+ * The column's own seam gap is narrower than the wall's: its floor alpha is
+ * already lower than the wall's, so a full-width seam gap would let a
+ * disproportionate amount of the brighter wall show through behind it,
+ * pulling the column's brightness above the wall's instead of below it.
+ * Seams still read as gaps, never strokes -- just narrower ones on the
+ * column.
  */
 const COLUMN_SEAM_INSET = SEAM_INSET * 0.55;
 const LIGHT_DIR = normalize3({ x: 0.4, y: 0.7, z: -0.6 });
 /**
- * The column's near half happens to face `LIGHT_DIR` almost head-on (its
- * outward normal has `z < 0`, matching `LIGHT_DIR.z`), so the raw dot-based
- * shade below would make the column the single brightest surface in the
- * chamber -- the "pale glass cylinder" the reviewer measured at 0.153 mean
- * luminance against the wall's 0.113-0.137 (hc-0-wrc.3 review 2, F1/F4).
- * Scaling the column's shade down to this ceiling (relative to the wall's
- * own 0..1 range) keeps its directional specular variation while landing at
- * or below the wall's own achieved brightness.
+ * The column's near half faces `LIGHT_DIR` almost head-on (its outward
+ * normal has `z < 0`, matching `LIGHT_DIR.z`), so the raw dot-based shade
+ * below would make the column the brightest surface in the chamber, reading
+ * as a pale glass cylinder rather than matching the wall's darker cast.
+ * Scaling the column's shade down to this ceiling keeps its directional
+ * specular variation while landing at or below the wall's own brightness.
  */
 const COLUMN_SHADE_CEILING = 0.15;
 
@@ -97,10 +95,10 @@ function insetQuad(
  * gap to the torus' own height, so only points that are both near the
  * column's radius AND near the plasma's height light up -- the column
  * lights up at the band, the wide outer wall (whose radius is nowhere near
- * the torus') stays dark, matching "brighter only near the plasma". Takes
+ * the torus') stays dark, so tiles read brighter only near the plasma. Takes
  * the tile's own mid `y`/`radius` (not a per-row max) and smoothsteps the
- * falloff so neighbouring tiles never jump between two discrete states --
- * fix 2's correction for the hard rim ellipse this produced as a per-row max.
+ * falloff so neighbouring tiles never jump between two discrete states,
+ * avoiding the hard rim ellipse a per-row max would produce.
  */
 function tileWarmth(y: number, radius: number, torus: TorusParams): number {
   const dr = radius - torus.R;
@@ -165,10 +163,8 @@ export function buildChamberTiles(
     );
     // Stagger alternate column rows by half a theta segment (a brick-style
     // offset) so each row's seam gaps land between the row above/below's
-    // tile faces instead of stacking into one continuous vertical line the
-    // full height of the column (hc-0-wrc.3 review 2, F1: "seams stack into
-    // full-height vertical lines"). Wall rows are unaffected -- their seams
-    // were never the reported issue.
+    // tile faces instead of stacking into one continuous vertical line down
+    // the full height of the column. Wall rows are unaffected.
     const rowStagger =
       kind === "column" && r % 2 === 1 ? 0.5 / thetaSegments : 0;
     for (let s = 0; s < thetaSegments; s++) {

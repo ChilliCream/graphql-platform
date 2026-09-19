@@ -28,10 +28,10 @@ export interface TokamakLayout {
    * The outer vessel wall: wide around the plasma's height (so it wraps
    * past the frame's left/right edges, the way the near wall of a tube
    * wraps around someone standing inside it) and narrowing back down to
-   * meet the column's radius above and below the band -- planner ruling
-   * hc-0-wrc.3 comment 187 item 1. The viewer never sees the vessel's
-   * outside silhouette: wall + column together cover the frame, darkening
-   * toward the edges only through the vignette, never through bare ground.
+   * meet the column's radius above and below the band. The viewer never
+   * sees the vessel's outside silhouette: wall + column together cover the
+   * frame, darkening toward the edges only through the vignette, never
+   * through bare ground.
    */
   readonly wallRows: readonly ChamberRow[];
   readonly wallThetaSegments: number;
@@ -73,10 +73,8 @@ function buildTaperedRows(
 }
 
 /**
- * Chamber and plasma geometry per viewport size (ticket hc-0-wrc.3, Rule L,
- * and the planner's re-composition ruling on comment 187/188). Every number
- * below is a chosen target, not a literal from the ticket's Concept section
- * (superseded): the copy-clear zone is measured by rendered extents (h1
+ * Chamber and plasma geometry per viewport size. Every number below is a
+ * chosen target: the copy-clear zone is measured by rendered extents (h1
  * text rect, paragraph box, each button's own rect, each +24px), and the
  * ring/streaks/filament/bloom clear it by construction.
  *
@@ -91,30 +89,20 @@ function buildTaperedRows(
  * navy.
  *
  * Desktop (w >= 768): the zone's right edge is the paragraph's,
- * `artLeft = w/2 + 72` (792 at 1440). The column/ring sit at `x = 0.775w`
- * (1116 at 1440, inside the ruled 74-78% band); the chamber's tiles may
- * extend left under the copy as low-alpha structure -- the scrims keep that
- * region dark, only the glowing torus must clear the zone (planner ruling
- * on hc-0-wrc.3 comment 142/160).
+ * `artLeft = w/2 + 72`. The column/ring sit at `x = 0.775w`; the chamber's
+ * tiles may extend left under the copy as low-alpha structure -- the scrims
+ * keep that region dark, only the glowing torus must clear the zone.
  *
  * Mobile (w < 768): the whole scene sits in the band below
- * `ButtonRow.bottom + 24`, `artTop = h * 0.77` (about 609 of a 792px
- * section, matching v11's mobile rule).
+ * `ButtonRow.bottom + 24`, `artTop = h * 0.77`.
  *
- * The ring reads small and washed at the old scale (hc-0-wrc.7): `focal`
- * alone is raised well past the desktop-derived starting point, `dist` and
- * `tilt` untouched. Raising only `focal` is a pure zoom -- `scale =
- * focal/depth` grows by the same factor for every projected point (chamber
- * rows, torus, streaks alike), so the column, the wall and the band all
- * grow together and keep the exact "inside the vessel" perspective the
- * `dist`/`tilt` pair already produces (their ratio to the world-space row
- * radii is what makes the wall wrap past the frame edges and the column
- * read as a cylinder -- untouched by a focal-only change). `nearFactor`
- * (`scale / camera.baseScale`) is a ratio of two focal-proportional
- * quantities, so the near/far dimming envelope is unaffected too. At
- * `focal = 480` the rendered ring spans ~86% of a 375px viewport (target
- * 85-90%, measured with `r3-band375.cjs`'s `bandX` extent), up from ~41% at
- * the old `focal = 250`.
+ * `focal` is raised well past a naive desktop-derived starting point so the
+ * ring reads at a comparable size on narrow viewports; `dist` and `tilt`
+ * stay untouched. Raising only `focal` is a pure zoom -- `scale =
+ * focal/depth` grows by the same factor for every projected point, so the
+ * column, the wall and the band all grow together and keep the same
+ * "inside the vessel" perspective, and `nearFactor` (a ratio of two
+ * focal-proportional quantities) is unaffected too.
  */
 export function computeLayout(w: number, h: number): TokamakLayout {
   const mobile = w < MOBILE_BREAKPOINT;
@@ -125,29 +113,14 @@ export function computeLayout(w: number, h: number): TokamakLayout {
     const originY = h * 0.5;
     const camera = makeCamera(originX, originY, 650, 300, 8);
     const columnRows = buildTaperedRows(92, 132, 700, 260, 1.6);
-    // Waist radius raised 700 -> 1500 and the taper's `power` raised 1.1 ->
-    // 2.2 (hc-0-g8l): removing the copy-column's destination-out erase from
-    // the wall canvas (see `index.tsx`'s `featherCopyClearZone` comment)
-    // exposed a real, second bug underneath it -- at the old 700/1.1 only
-    // the row exactly at the plasma's height reached back far enough (its
-    // own grazing/back-face cutoff, `theta = 180`) to project past the
-    // frame's left edge; every row above/below it, tapering toward
-    // `edgeRadius` and pushed back in `z` by `zSpread`, fell short and left
-    // a visible cliff (`x` in the 700s-800s at 1440) between painted and
-    // bare-navy wall. Raising `power` keeps the radius near `waistRadius`
-    // for most of the row range (only tapering sharply right at the rows
-    // that must meet the column near the top/bottom), so the rows spanning
-    // the section's visible height (`yScreen` roughly 55-1040 at 1440,
-    // derived the same way `occludeHelixBehindColumn`'s column half-width
-    // is: project each row's own `theta = 180` corner) all clear `x = 0`
-    // with margin instead of just the one row at the waist.
+    // A large waist radius and a high taper power keep each row's radius
+    // near `waistRadius` for most of the row range, so every row projects
+    // past the frame's left/right edges instead of only the one row at the
+    // plasma's height -- otherwise a visible cliff opens between painted
+    // wall and bare navy above/below the band.
     const wallRows = buildTaperedRows(1500, 132, 780, 920, 2.2);
-    // R/a shrunk from 130/34 (hc-0-wrc.3 review 2, F2): the near-tube band
-    // ran to 0.36 of the column's visible height (over the 0.35 ceiling)
-    // and its right limb projected past the 1440 frame edge. `a` is a
-    // touch below the planner's ~26 guidance -- at 26 the band (now denser
-    // and blurred per F3) still measured ~0.37 of the column's visible
-    // height; 21 lands the measured ratio at ~0.32, comfortably under 0.35.
+    // R/a are tuned so the near-tube band stays a modest fraction of the
+    // column's visible height and its limb stays inside the frame edge.
     const torus: TorusParams = { R: 105, a: 21, y: 0, z: 0 };
     return {
       w,
@@ -155,10 +128,9 @@ export function computeLayout(w: number, h: number): TokamakLayout {
       mobile,
       camera,
       columnRows,
-      // Reduced from 28 (review 2, F1): fewer, wider segments so a half-
-      // segment row stagger visibly breaks up the seam alignment instead of
-      // the stagger itself being smaller than the segment it is meant to
-      // offset.
+      // Fewer, wider segments so the half-segment row stagger (see
+      // `buildChamberTiles`) is visibly larger than a segment, and actually
+      // breaks up seam alignment instead of being swallowed by it.
       columnThetaSegments: 18,
       wallRows,
       wallThetaSegments: 56,
@@ -173,26 +145,15 @@ export function computeLayout(w: number, h: number): TokamakLayout {
   const originX = w * 0.5;
   const camera = makeCamera(originX, bandCenterY, 480, 160, 10);
   const columnRows = buildTaperedRows(36, 52, 275, 100, 1.6);
-  // Widened from 280/52/300/350 (hc-0-g8l): the mobile wall must paint
-  // behind the copy band across the full width, like the desktop wall
-  // does (planner ruling, F1) -- at the old, narrower rows only the band
-  // right at the plasma's height reached the frame edges; every row above
-  // it (the band under the copy) fell short on both `y` (never reaching
-  // the section's top) and `x` (never reaching the left/right edges).
-  // Confirmed with test-results/ver2-sweep-375.js: every row intersecting
-  // the frame spans x<=0 and x>=375, and the topmost row reaches y<=0
-  // (minY -644 at these values). `zSpread` dropped to 0 (from the
-  // reviewer's 200 starting point): the rows nearest the top of the copy
-  // band, pushed back in z, projected almost flat against the ambient
-  // navy wash and barely registered against the page's own background
-  // (canvas-on-minus-off delta -0.0003 to -0.014 in that region) -- with
-  // every row held at the same depth the whole band reads as tiled
-  // structure, not just the rows nearest the plasma. Measured with
-  // test-results/rev2-g8l.cjs and ver2-g8l.cjs: 375 copy-band delta 0.0107
-  // (>= 0.01), seam-to-face (p90-p10) 0.0269 (>= 0.02).
+  // Wide rows so the mobile wall paints behind the copy band across the
+  // full width, the way the desktop wall does: every row must reach both
+  // the top of the section and the left/right edges, not just the row at
+  // the plasma's height. `zSpread` is 0 so every row stays at the same
+  // depth and reads as tiled structure under the whole band, rather than
+  // only the rows nearest the plasma registering against the page.
   const wallRows = buildTaperedRows(650, 400, 900, 0, 1.6);
-  // Scaled proportionally to the desktop R/a change above (105/26, same
-  // ~0.39/0.38 ratio the original 51/13 kept against the original 130/34).
+  // R/a scaled proportionally to the desktop torus above, keeping the same
+  // tube-to-major-radius ratio.
   const torus: TorusParams = { R: 41, a: 8, y: 0, z: 0 };
   return {
     w,

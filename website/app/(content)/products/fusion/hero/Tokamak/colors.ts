@@ -28,10 +28,10 @@ export function hexToRgba(hex: string, alpha: number): string {
 
 /**
  * `BRAND` has no white -- every white this hero draws (fastener highlights,
- * streak/filament cores) used to be written as an ad hoc `rgba(255,255,255,a)`
- * literal or a raw `[255,255,255]` triple at each call site (hc-0-wrc.3
- * review 4 minor). The two triples live here once instead, the same idea as
- * `parseHex`'s cache: one source of truth, routed through by name.
+ * streak/filament cores) would otherwise be an ad hoc `rgba(255,255,255,a)`
+ * literal or a raw `[255,255,255]` triple at each call site. The two triples
+ * live here once instead, the same idea as `parseHex`'s cache: one source of
+ * truth, routed through by name.
  */
 const WHITE_RGB: readonly [number, number, number] = [255, 255, 255];
 /** The streak/filament near-white core, with a faint warm cast. */
@@ -51,8 +51,7 @@ export function warmWhiteToRgba(alpha: number): string {
  * Linearly blends two `#rrggbb` hex literals by `t` (0 = pure `hexA`, 1 =
  * pure `hexB`) and returns an `rgba(...)` string, parsed through the same
  * cached `parseHex` as `hexToRgba`. Used for the tiles' coral warmth tint
- * near the plasma band (planner ruling hc-0-wrc.3 comment 187 item 2), not
- * a new colour source.
+ * near the plasma band, not a new colour source.
  */
 export function mixHexToRgba(
   hexA: string,

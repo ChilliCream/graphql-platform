@@ -5,8 +5,7 @@
  * plasma band, the helical filament, the service-colour spirals) is built
  * as real points in this 3D space and projected through the same `project`
  * function, so the ellipses, the foreshortening and the near/far density
- * fall out of the projection instead of being drawn as flat 2D shapes
- * (ticket hc-0-wrc.3, the v11/hc-0-wrc.5 lesson).
+ * fall out of the projection instead of being drawn as flat 2D shapes.
  *
  * World axes: `y` runs along the column (the chamber's and the torus'
  * shared axis), `x`/`z` are the horizontal plane perpendicular to it. A
@@ -14,7 +13,7 @@
  * `ringPoint(radius, theta, y, z)`, sweeping `theta` around the column.
  */
 
-export interface Vec3 {
+interface Vec3 {
   readonly x: number;
   readonly y: number;
   readonly z: number;
@@ -31,7 +30,7 @@ export interface Camera {
   readonly baseScale: number;
 }
 
-export interface Projected {
+interface Projected {
   readonly x: number;
   readonly y: number;
   /** Screen px per world unit at this point: larger = nearer the camera. */
