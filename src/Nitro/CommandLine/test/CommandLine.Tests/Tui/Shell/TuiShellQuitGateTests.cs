@@ -198,9 +198,7 @@ public sealed class TuiShellQuitGateTests
     [Fact]
     public async Task Handle_Should_ConfirmQuit_When_QueuedEffectCompletesDuringTheGate()
     {
-        // Exercises a real TuiEffectQueue wired into the shell as a TuiQuitGate, with
-        // the effect resolving DURING the gate's bounded drain.
-        // arrange
+        // arrange: a real TuiEffectQueue wired in as a gate, with the effect resolving during the drain
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
         var release = new TaskCompletionSource();
@@ -238,9 +236,7 @@ public sealed class TuiShellQuitGateTests
     [Fact]
     public async Task Handle_Should_ShowSecondConfirmation_When_QueuedEffectOutlivesTheGate()
     {
-        // Exercises a real TuiEffectQueue wired into the shell as a TuiQuitGate, with
-        // the effect still running AFTER the gate's bounded drain expires.
-        // arrange
+        // arrange: a real TuiEffectQueue wired in as a gate, with the effect still running after the drain expires
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
         var release = new TaskCompletionSource();
@@ -349,9 +345,7 @@ public sealed class TuiShellQuitGateTests
     [Fact]
     public async Task Handle_Should_ConfirmQuit_When_QueuedEffectCompletedBeforeTheGate()
     {
-        // Exercises a real TuiEffectQueue wired into the shell as a TuiQuitGate, with
-        // the effect already resolved BEFORE the gate ever runs.
-        // arrange
+        // arrange: a real TuiEffectQueue wired in as a gate, with the effect already resolved before the gate runs
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
 
