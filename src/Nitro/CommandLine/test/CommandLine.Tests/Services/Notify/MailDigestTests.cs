@@ -339,8 +339,7 @@ public sealed class MailDigestTests
         // act
         var digest = MailDigest.Render("maya", [message], 1);
 
-        // assert: the pushed payload reports the message unread, and
-        // rendering leaves the recipient's read state untouched.
+        // assert: rendering reports the message unread and leaves the recipient's read state untouched.
         Assert.Contains("\"read\": false", digest);
         Assert.Null(Assert.Single(message.Recipients).ReadAt);
     }

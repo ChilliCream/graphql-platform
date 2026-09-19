@@ -139,12 +139,7 @@ public sealed class ClaudePeerClientTests : IDisposable
     [Fact]
     public async Task SendAsync_Should_ReturnAccessDenied_When_ConnectFailsWithSocketAccessDenied()
     {
-        // arrange: a real access-denied-shaped SocketException raised from the
-        // connect call itself (an unsearchable parent directory), not parsed
-        // from any exception text. Skipped where this OS trick cannot
-        // reproduce a real EACCES: Windows has no matching mechanism, and a
-        // process running as root bypasses the directory permission check
-        // entirely, which is checked independently of the outcome under test.
+        // arrange: a real EACCES-shaped SocketException from an unsearchable parent directory.
         if (OperatingSystem.IsWindows())
         {
             Assert.Skip("Unix directory-permission denial has no Windows equivalent.");
@@ -185,8 +180,7 @@ public sealed class ClaudePeerClientTests : IDisposable
         // act
         var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
 
-        // assert: JsonDocument.Parse throws the derived JsonReaderException,
-        // whose runtime type name is what ends up in Detail.
+        // assert: JsonDocument.Parse's derived JsonReaderException type name ends up in Detail.
         Assert.Equal(ClaudePeerSendOutcome.TransportError("JsonReaderException"), outcome);
     }
 
@@ -221,10 +215,8 @@ public sealed class ClaudePeerClientTests : IDisposable
     }
 
     /// <summary>
-    /// Strips the execute bit from <paramref name="socketPath"/>'s parent
-    /// directory, which turns a Unix-domain <c>connect(2)</c> against a path
-    /// beneath it into a real <c>EACCES</c> the OS reports as
-    /// <see cref="SocketError.AccessDenied"/>, not a fabricated exception.
+    /// Strips the execute bit from <paramref name="socketPath"/>'s parent directory, which turns a
+    /// Unix-domain <c>connect(2)</c> beneath it into a real <see cref="SocketError.AccessDenied"/>.
     /// </summary>
     private static void MakeParentUnsearchable(string socketPath)
     {

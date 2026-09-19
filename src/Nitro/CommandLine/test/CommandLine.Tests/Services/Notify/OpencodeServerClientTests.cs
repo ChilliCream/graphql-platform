@@ -12,9 +12,7 @@ public sealed class OpencodeServerClientTests
     [Fact]
     public async Task PushMessageAsync_Should_PreserveTextAndMarkTheTextPart_When_ServerAcceptsTheMessage()
     {
-        // arrange: the caller, not this client, prepends the reserved
-        // OpencodeHookProtocol.PushedPromptPrefix to text when it wants the
-        // turn recognized as Nitro-pushed - this client sends text verbatim.
+        // arrange: this client sends text verbatim, without prepending OpencodeHookProtocol.PushedPromptPrefix.
         HttpRequestMessage? capturedRequest = null;
         string? capturedBody = null;
         var client = CreateClient(async (request, _) =>
@@ -41,9 +39,7 @@ public sealed class OpencodeServerClientTests
     [Fact]
     public async Task PushMessageAsync_Should_WriteCompactJsonBody_When_TextIsSent()
     {
-        // arrange: the body is built with Utf8JsonWriter over an
-        // ArrayBufferWriter<byte>, not HotChocolate.Buffers, so this pins the
-        // exact wire format the opencode server expects.
+        // arrange: pins the exact compact wire format the opencode server expects.
         string? capturedBody = null;
         var client = CreateClient(async (request, _) =>
         {
@@ -62,8 +58,7 @@ public sealed class OpencodeServerClientTests
     [Fact]
     public async Task PushMessageAsync_Should_ReturnOk_When_ServerRespondsWithNoContent()
     {
-        // arrange: prompt_async forks the run server-side and returns 204
-        // with no body, unlike the synchronous message route it replaces.
+        // arrange: prompt_async returns 204 with no body.
         var client = CreateClient((_, _) =>
             Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent)));
 
