@@ -6,9 +6,8 @@ using Microsoft.Extensions.Time.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Agent.Tasks;
 
 /// <summary>
-/// Exercises the backend-agnostic read surface of <see cref="TaskStore"/> directly against a
-/// real SQLite workspace, seeded with raw SQL. Covers the DapperAOT-sensitive paths: TEXT
-/// timestamp columns, IN-array expansion, and record materialization.
+/// Tests <see cref="TaskStore"/> queries, state transitions, dependencies,
+/// and audit events against a real SQLite workspace.
 /// </summary>
 public sealed class TaskStoreTests : IAsyncDisposable
 {
@@ -756,7 +755,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseEligibleEpicsAsync_AllChildrenClosedOrArchived_ClosesEpic()
     {
-        // arrange: one child closed, one archived; both count as closed for eligibility.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2, type: TaskTypes.Epic);
@@ -780,7 +779,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseEligibleEpicsAsync_ArchivedEpic_IsNotReClosed()
     {
-        // arrange: an already-archived epic with all children closed.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         await InsertTaskAsync(connection, "acme-1", status: TaskStates.Archived, priority: 2, type: TaskTypes.Epic);
@@ -800,7 +799,8 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseEligibleEpicsAsync_ClosingPastCap_ArchivesOverflow()
     {
-        // arrange: the cap's worth of closed tasks, plus an epic whose closing pushes past the cap.
+        // arrange
+        // Seed the closed-task cap plus a closed child, then close its open epic.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
@@ -849,7 +849,8 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseTaskAsync_ClosingBeyondCap_ArchivesOldestClosedTask()
     {
-        // arrange: the cap's worth of closed tasks, plus one open task about to close.
+        // arrange
+        // Seed closed tasks with increasing closed_at values before closing one more task.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
@@ -869,7 +870,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
         // act
         await _store.CloseTaskAsync(["acme-101"], "done", "tester", cancellationToken);
 
-        // assert: only the oldest closed task is archived; the cap remains closed.
+        // assert
         var oldest = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
         Assert.Equal(TaskStates.Archived, oldest.Status);
         Assert.Equal(
@@ -1130,8 +1131,8 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     /// <summary>
-    /// Returns the event_type column for every audit-log row on a task, ordered by id, via
-    /// plain ADO.NET.
+    /// Returns the task's audit event types in event-id order, or an empty list
+    /// when it has no events.
     /// </summary>
     private static async Task<List<string>> QueryEventTypesAsync(SqliteConnection connection, string taskId)
     {
@@ -1263,7 +1264,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     /// <summary>
-    /// Runs a parameterized statement via plain ADO.NET, sidestepping Dapper.AOT's interceptor.
+    /// Executes the SQL statement with the supplied named parameter values.
     /// </summary>
     private static async Task ExecuteAsync(
         SqliteConnection connection,

@@ -207,7 +207,7 @@ public sealed class DoctorTaskCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Removes a task row directly, bypassing tombstoning, which orphans its labels and comments.
+    /// Deletes the task row while retaining its dependent rows, including labels and comments.
     /// </summary>
     private async Task DeleteTaskRowAsync(string taskId, CancellationToken cancellationToken)
     {

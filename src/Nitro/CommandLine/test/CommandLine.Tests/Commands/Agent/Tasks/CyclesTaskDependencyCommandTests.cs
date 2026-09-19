@@ -143,7 +143,8 @@ public sealed class CyclesTaskDependencyCommandTests(NitroCommandFixture fixture
         // act
         var result = await ExecuteCommandAsync("agent", "tasks", "dep", "cycles");
 
-        // assert: rotate the fixed chain a -> b -> c -> a to start at the smallest ID.
+        // assert
+        // Rotate a -> b -> c -> a to start at the ordinally smallest ID.
         var cycle = new List<string> { a, b, c };
         var startIndex = cycle.IndexOf(cycle.OrderBy(x => x, StringComparer.Ordinal).First());
         var rotated = cycle.Skip(startIndex).Concat(cycle.Take(startIndex)).ToList();

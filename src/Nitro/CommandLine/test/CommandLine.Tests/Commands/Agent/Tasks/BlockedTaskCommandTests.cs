@@ -152,7 +152,7 @@ public sealed class BlockedTaskCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Extracts the task ID from a `task create` confirmation line ("Created task 'ID': Title.").
+    /// Extracts the task ID from the human-readable <c>agent tasks create</c> confirmation.
     /// </summary>
     private static string ExtractTaskId(CommandResult result)
     {
