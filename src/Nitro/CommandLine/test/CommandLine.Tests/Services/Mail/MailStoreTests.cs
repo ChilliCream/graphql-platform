@@ -367,7 +367,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         // act
         var message = await SendAsync("claude", "hello", ["bob"], null, cancellationToken);
 
-        // assert: WakePolicy defaults to Skip when not passed explicitly.
+        // assert
         Assert.Empty(message.WakeReceipts);
         Assert.Null(await ReadOutboxRowAsync("bob", cancellationToken));
     }
@@ -421,7 +421,7 @@ public sealed class MailStoreTests : IAsyncDisposable
         var earliestDueAt = _timeProvider.GetUtcNow();
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
-        // act: due_at must not move later while settled_generation is still 0.
+        // act
         await SendAsync("claude", "second", ["bob"], null, cancellationToken, wakePolicy: MailWakePolicy.Enqueue);
 
         // assert
@@ -462,7 +462,8 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_RollBackMessageAndRecipients_When_WakeOutboxWriteFailsMidTransaction()
     {
-        // arrange: a trigger aborts the wake-outbox write for one actor to force a mid-transaction failure.
+        // arrange
+        // Abort the outbox insert for actor boom with a database trigger.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using (var connection = await SeedAsync(cancellationToken))
         {
@@ -494,7 +495,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_PersistNothing_When_CancelledBeforeAnyWriteObservesIt()
     {
-        // arrange: the token is already cancelled before any write can observe it.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -513,7 +514,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task SendMessageAsync_Should_BeReconcilableByItsReturnedId_When_CommitSucceeds()
     {
-        // arrange: re-querying by the returned id must reflect the fully committed state.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -533,10 +534,8 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     /// <summary>
-    /// Counts rows in <paramref name="table"/> matching
-    /// <paramref name="whereClause"/>, both compile-time literals at every
-    /// call site (never user input), for asserting a rolled-back write left
-    /// nothing behind.
+    /// Counts rows in <paramref name="table"/> matching <paramref name="whereClause"/>.
+    /// Both arguments are SQL fragments supplied by the test.
     /// </summary>
     private async Task<long> CountAsync(string table, string whereClause, CancellationToken cancellationToken)
     {
@@ -1111,7 +1110,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task QueryInboxThreadsAsync_Should_ExcludeThread_When_OnlyMessageToActorIsArchived()
     {
-        // arrange: bob's only message in this thread is archived for him.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -1147,7 +1146,8 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task QueryInboxThreadsAsync_Should_IncludeThread_When_SomeButNotAllMessagesToActorAreArchived()
     {
-        // arrange: bob is addressed by two messages in the thread, only one archived.
+        // arrange
+        // Archive one of the two messages addressed to bob.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);
@@ -1190,7 +1190,7 @@ public sealed class MailStoreTests : IAsyncDisposable
     [Fact]
     public async Task QuerySentThreadsAsync_Should_ReportNonZeroUnreadCount_When_OtherAgentRepliedInThread()
     {
-        // arrange: carol's reply addresses bob, giving him an unread recipient row on his own sent thread.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await SeedAgentAsync("bob", cancellationToken);

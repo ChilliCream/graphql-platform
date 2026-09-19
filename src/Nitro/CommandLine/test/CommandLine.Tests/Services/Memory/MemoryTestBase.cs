@@ -4,9 +4,8 @@ using Microsoft.Extensions.Time.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Memory;
 
 /// <summary>
-/// A per-test temp directory laid out as an agent workspace, with a real
-/// file system rooted at it and a fake clock, shared by the memory
-/// foundation tests.
+/// Provides a temporary workspace directory, a real file system, and a fake clock
+/// for memory tests. Deletes the temporary directory on disposal.
 /// </summary>
 public abstract class MemoryTestBase : IDisposable
 {
@@ -39,9 +38,7 @@ public abstract class MemoryTestBase : IDisposable
     protected string LocalDirectory => AgentWorkspace.GetMemoryLocalDirectory(MemoryDirectory);
 
     /// <summary>
-    /// Creates the workspace database memory now lives in, the same way
-    /// `agent init` would. Every memory read and write goes through it, so a
-    /// test that touches the store has to call this first.
+    /// Creates the workspace directory and initializes its database.
     /// </summary>
     protected void InitializeWorkspace()
     {

@@ -1,11 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Memory;
 
 /// <summary>
-/// Exercises the atomic create-without-overwrite and atomic-replace
-/// primitives <c>FileSystem</c> adds for memory storage: the crash/write
-/// contract (temp files live in the destination directory, a crash or a
-/// conflict leaves the destination untouched, and abandoned temp files are
-/// cleaned up) rather than any memory-specific behavior.
+/// Tests file creation without overwrite, replacement, and cleanup of
+/// abandoned temporary files.
 /// </summary>
 public sealed class AtomicFileSystemTests : MemoryTestBase
 {
@@ -42,7 +39,7 @@ public sealed class AtomicFileSystemTests : MemoryTestBase
         await Assert.ThrowsAsync<IOException>(
             () => FileSystem.CreateFileAtomicAsync(path, "conflicting", cancellationToken));
 
-        // assert: a losing create leaves the winner's content in place, never a partial or overwritten file.
+        // assert
         Assert.Equal("original", await File.ReadAllTextAsync(path, cancellationToken));
     }
 
@@ -59,7 +56,7 @@ public sealed class AtomicFileSystemTests : MemoryTestBase
         await Assert.ThrowsAsync<IOException>(
             () => FileSystem.CreateFileAtomicAsync(path, "conflicting", cancellationToken));
 
-        // assert: a losing create must clean up its own temp file rather than abandoning it.
+        // assert
         Assert.Equal(["note.md"], Directory.GetFiles(WorkingDirectory).Select(Path.GetFileName));
     }
 
@@ -91,7 +88,6 @@ public sealed class AtomicFileSystemTests : MemoryTestBase
         await FileSystem.ReplaceFileAtomicAsync(path, "updated", cancellationToken);
 
         // assert
-        // Last-writer-wins: the most recent replace is what readers see.
         Assert.Equal("updated", await File.ReadAllTextAsync(path, cancellationToken));
     }
 
@@ -107,7 +103,7 @@ public sealed class AtomicFileSystemTests : MemoryTestBase
         // act
         await FileSystem.ReplaceFileAtomicAsync(path, "updated", cancellationToken);
 
-        // assert: the staging temp file lives in the destination directory and a successful move leaves none behind.
+        // assert
         Assert.Equal(["note.md"], Directory.GetFiles(WorkingDirectory).Select(Path.GetFileName));
     }
 
@@ -138,7 +134,7 @@ public sealed class AtomicFileSystemTests : MemoryTestBase
         // act
         FileSystem.CleanupAbandonedTempFiles(WorkingDirectory, TimeSpan.FromHours(1));
 
-        // assert: a recent temp file might belong to a write still in flight, so cleanup must not touch it.
+        // assert
         Assert.True(File.Exists(inFlightTempPath));
     }
 
