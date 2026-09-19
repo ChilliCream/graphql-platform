@@ -149,14 +149,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
-        // Simulates a second, fully concurrent 'nitro agent hooks claude
-        // install' (project scope) landing in the window between this
-        // install's own sidecar read and its pre-write re-check: the SECOND
-        // ReadAllTextAsync call for the sidecar runs B's install to
-        // completion first, then reads the sidecar it left behind - exactly
-        // what this install's own re-read would observe. B's install only
-        // ever triggers on the first attempt's re-check read, so the retry
-        // then observes a stable sidecar and succeeds.
+        // The injected file system runs serviceB's install to completion on the sidecar's second read,
+        // so the retry then observes a stable sidecar and succeeds.
         var injectingFileSystem = new RunOnSecondReadFileSystem(
             _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
 
@@ -198,11 +192,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
-        // Simulates a second, fully concurrent install landing in the window
-        // between this uninstall's own sidecar read and its pre-write
-        // re-check: the SECOND ReadAllTextAsync call for the sidecar runs
-        // B's install to completion first, then reads the sidecar it left
-        // behind - exactly what this uninstall's own re-read would observe.
+        // The injected file system runs serviceB's install to completion on the sidecar's second read,
+        // so this uninstall's own re-read observes the sidecar B's install left behind.
         var injectingFileSystem = new RunOnSecondReadFileSystem(
             _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
 
@@ -247,11 +238,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Simulates a foreign process editing the settings file in the window
-    /// between the installer's initial read and its pre-write re-check: the
-    /// SECOND <see cref="ReadAllTextAsync"/> call for the watched path
-    /// writes <paramref name="editedContent"/> first, then reads it back -
-    /// exactly what the installer's own re-read would observe.
+    /// Writes <paramref name="editedContent"/> to the watched path on its second
+    /// <see cref="ReadAllTextAsync"/> call, then returns it, so the installer's own re-read observes it.
     /// </summary>
     private sealed class InjectEditOnSecondReadFileSystem(
         IFileSystem inner, string watchedPath, string editedContent) : IFileSystem
