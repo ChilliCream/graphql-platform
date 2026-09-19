@@ -138,9 +138,7 @@ public sealed class CodexNotifyExecutorTests
     [Fact]
     public async Task RunAsync_Should_StillExecForeign_When_Suppressed()
     {
-        // The NITRO_HOOK_SUPPRESS reentrancy guard is about OUR OWN mail
-        // work re-entering through a spawned relay; it must never suppress
-        // the operator's originally-configured foreign notify program.
+        // The NITRO_HOOK_SUPPRESS reentrancy guard must never suppress the operator's foreign notify program.
         var cancellationToken = TestContext.Current.CancellationToken;
         var environmentVariables = new FixedEnvironmentVariableProvider();
         environmentVariables.Set("NITRO_HOOK_SUPPRESS", "1");
