@@ -274,9 +274,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     [Fact]
     public async Task ExecuteCodexThreadAsync_Should_NotExposeTransportDetail_When_TheQueueClientReportsError()
     {
-        // arrange: CodexQueueResult.Error can stem from the subprocess's own
-        // stderr, but that raw text never reaches ICodexQueueClient's
-        // caller, so the returned outcome must carry no detail either.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeSessionAsync(cancellationToken);
         await _mail.SendMessageAsync(
@@ -301,9 +299,7 @@ public sealed class PingSessionExecutorTests : IDisposable
     [Fact]
     public async Task ExecuteClaudePeerAsync_Should_NotOverwriteTheRow_When_TheAttemptIsStale()
     {
-        // arrange: a stale attempt (staleAttemptId) races a newer one
-        // (newerAttemptId) that already reclaimed the row's cooldown by the
-        // time the stale attempt's write lands.
+        // arrange: a stale attempt races a newer one that already reclaimed the row's cooldown.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeSessionAsync(cancellationToken);
         await _mail.SendMessageAsync(
@@ -322,9 +318,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             cancellationToken);
         var executor = CreateExecutor();
 
-        // act: the stale attempt's own transport work still completes and
-        // returns its own conclusion, even though the row has already moved
-        // on to the newer attempt.
+        // act: the stale attempt's transport work still completes, though the row moved on to the newer attempt.
         var outcome = await executor.ExecuteClaudePeerAsync(
             Harness, SessionId, Actor, staleAttemptId, slot!.Value, FarFutureDeadline(), cancellationToken);
 
@@ -651,9 +645,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
             firstAttemptId, firstSlot!.Value, FarFutureDeadline(), cancellationToken);
 
-        // act: a fresh claim (which nulls the row's result/detail, the same
-        // as any new attempt's claim does) followed by a health-only ping
-        // that reports the same outcome as before.
+        // act: a fresh claim, then a health-only ping that reports the same outcome as before.
         _timeProvider.Advance(TimeSpan.FromSeconds(61));
         var secondAttemptId = await ClaimAttemptAsync(_opencodeGeneration, cancellationToken);
         var secondSlot = await _leases.TryAcquireAsync(
@@ -662,9 +654,7 @@ public sealed class PingSessionExecutorTests : IDisposable
             AgentSessionHarness.Opencode, OpencodeSessionId, OpencodeActor, OpencodeServerUrl, null,
             secondAttemptId, secondSlot!.Value, FarFutureDeadline(), cancellationToken);
 
-        // assert: the outcome reports the repeated health-only result, and
-        // the row is rewritten to that same outcome rather than left nulled
-        // by the claim.
+        // assert: the outcome reports the repeated result, and the row is rewritten rather than left nulled.
         Assert.Equal(AgentPingResult.Ok, outcome.Result);
         var row = await _sessions.FindByGenerationAsync(_opencodeGeneration, cancellationToken);
         Assert.Equal(AgentPingResult.Ok, row!.LastPingResult);
