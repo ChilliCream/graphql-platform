@@ -119,9 +119,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     [Fact]
     public async Task StandbyCoordinator_Should_AcquireLeadership_When_ThePriorLeaseExpires()
     {
-        // arrange: a short-lived lease held by a different owner, acquired
-        // directly through the store (standing in for a leader that crashed
-        // without releasing).
+        // arrange: a short-lived lease held by a different owner, acquired directly through the store.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var leaderStore = new MailWakeDaemonLeaderStore(_fileSystem, _database);
@@ -247,9 +245,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await coordinator.StopAsync(cancellationToken);
         stopwatch.Stop();
 
-        // assert: returned well within the shutdown budget, and a fresh
-        // acquire attempt succeeds immediately rather than waiting out the
-        // lease duration.
+        // assert: returned within the shutdown budget, and a fresh acquire succeeds immediately.
         Assert.True(stopwatch.Elapsed < s_fastPolicy.ShutdownWait, $"StopAsync took {stopwatch.Elapsed}.");
         var leaderStore = new MailWakeDaemonLeaderStore(_fileSystem, _database);
         var reacquired = await leaderStore.TryAcquireAsync(
@@ -260,9 +256,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     [Fact]
     public async Task StartAsync_Should_RecoverAndBecomeReady_When_TheLeaderStoreFaultsOnce()
     {
-        // arrange: the leader store itself throws a non-busy exception on
-        // the very first acquire attempt, standing in for an unexpected
-        // infrastructure fault on the election path.
+        // arrange: the leader store throws a non-busy exception on the first acquire attempt.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var faultingStore = new FaultingLeaderStore(new MailWakeDaemonLeaderStore(_fileSystem, _database));
@@ -273,9 +267,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         await WaitUntilAsync(() => coordinator.Status.LastError == "readonly", cancellationToken);
         await WaitUntilAsync(() => coordinator.Status.State == MailWakeDaemonState.Ready, cancellationToken);
 
-        // assert: the fault was recorded rather than killing the loop, and
-        // the next election attempt still reached Ready. StopAsync must not
-        // rethrow the earlier fault either.
+        // assert: the fault was recorded, and the next election attempt still reached Ready.
         Assert.Equal(MailWakeDaemonState.Ready, coordinator.Status.State);
         await coordinator.StopAsync(cancellationToken);
     }
@@ -283,9 +275,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     [Fact]
     public async Task RunningLeader_Should_DemoteToStandby_And_CancelInFlightDispatch_When_RenewalIsLost()
     {
-        // arrange: a live session with an in-flight, never-returning
-        // transport call, then the leader's next heartbeat renewal is made
-        // to fail as if a fresher claimant had taken the lease.
+        // arrange: a live session with a hanging transport call, then the next heartbeat renewal is made to fail.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -400,9 +390,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     [Fact]
     public async Task StartAsync_Should_GiveUpTheTick_And_RetryOnTheNextStandbyPoll_When_BusyRetriesAreExhausted()
     {
-        // arrange: the leader store throws SQLITE_BUSY on the first five
-        // acquire attempts, exhausting one tick's busy retries, then
-        // succeeds on the next standby poll's own first attempt.
+        // arrange: the leader store throws SQLITE_BUSY on the first five acquire attempts, then succeeds.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var busyStore = new BusyLeaderStore(new MailWakeDaemonLeaderStore(_fileSystem, _database), busyAcquireCalls: 5);
@@ -426,9 +414,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     [Fact]
     public async Task StartAsync_Should_Throw_When_APriorStopTimedOut_And_TheRunLoopIsStillAlive()
     {
-        // arrange: the only outstanding actor's dispatch hangs forever and
-        // ignores cancellation, so StopAsync's shutdown budget is exceeded
-        // and the run loop is still alive when it returns.
+        // arrange: the only outstanding actor's dispatch hangs forever and ignores cancellation.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -466,9 +452,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     [Fact]
     public async Task RunningLeader_Should_ReleaseLeadership_And_CancelSiblings_When_AccessDeniedReleaseIsBusy()
     {
-        // arrange: one actor's dispatch is denied Claude socket access, a
-        // second actor's dispatch hangs on transport, and the leader
-        // store's release throws SQLITE_BUSY once before succeeding.
+        // arrange: one actor is denied access, a second hangs on transport, and release throws SQLITE_BUSY once.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         const string deniedActor = "denied-actor";
@@ -500,9 +484,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
         // actual retry rather than for Degraded alone.
         await WaitUntilAsync(() => busyReleaseStore.ReleaseCalls >= 2, cancellationToken);
 
-        // assert: the release retried through the busy attempt and
-        // succeeded, and the hung actor's dispatch observed cancellation
-        // strictly before the release was even attempted.
+        // assert: the release retried through the busy attempt, and the hung actor's dispatch observed cancellation first.
         Assert.Equal(2, busyReleaseStore.ReleaseCalls);
         var ordered = events.ToArray();
         var cancelledIndex = Array.IndexOf(ordered, $"{hungActor}-cancelled");
@@ -526,9 +508,7 @@ public sealed class MailWakeDaemonCoordinatorTests : IDisposable
     [Fact]
     public async Task RunningLeader_Should_NeverExceedMaxConcurrentActorExecutions_When_MoreActorsAreDueThanTheLimit()
     {
-        // arrange: five due actors under a policy capped at four concurrent
-        // executions; every dispatch call takes long enough that the fifth
-        // actor can only be admitted once one of the first four completes.
+        // arrange: five due actors under a policy capped at four concurrent executions.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actors = Enumerable.Range(1, 5).Select(i => $"actor-{i}").ToArray();
