@@ -95,8 +95,7 @@ public sealed class AgentWorkspaceTests : IDisposable
     [Fact]
     public void ResolveGitCommonDirectory_Should_FollowWorktreePointer_ToCommonDirectory()
     {
-        // arrange: a linked worktree's .git file pointing at the main
-        // checkout's gitdir, which redirects to the common directory.
+        // arrange: a linked worktree's .git file points at the main checkout's gitdir.
         var mainGitDirectory = Path.Combine(_tempRoot.FullName, "main", ".git");
         var worktreeGitDirectory = Path.Combine(mainGitDirectory, "worktrees", "wt");
         Directory.CreateDirectory(worktreeGitDirectory);
@@ -173,8 +172,7 @@ public sealed class AgentWorkspaceTests : IDisposable
     [Fact]
     public void FindLocation_Should_ResolveThroughWorktreePointer_ToSharedWorkspace()
     {
-        // arrange: an initialized workspace in the main checkout's .git and
-        // a linked worktree pointing at it.
+        // arrange: an initialized workspace in the main checkout's .git and a linked worktree pointing at it.
         var mainRoot = Path.Combine(_tempRoot.FullName, "main");
         var mainGitDirectory = Path.Combine(mainRoot, ".git");
         var worktreeGitDirectory = Path.Combine(mainGitDirectory, "worktrees", "wt");
@@ -194,8 +192,7 @@ public sealed class AgentWorkspaceTests : IDisposable
         // act
         var location = AgentWorkspace.FindLocation(fileSystem, worktreeRoot);
 
-        // assert: the worktree resolves to the shared workspace, with the
-        // main checkout as project root and the worktree as checkout root.
+        // assert: the worktree resolves to the shared workspace, project root, and checkout root.
         Assert.Equal(Path.GetFullPath(workspaceDirectory), location?.WorkspaceDirectory);
         Assert.Equal(Path.GetFullPath(mainRoot), location?.ProjectDirectory);
         Assert.Equal(worktreeRoot, location?.CheckoutDirectory);
@@ -204,8 +201,7 @@ public sealed class AgentWorkspaceTests : IDisposable
     [Fact]
     public void FindMemory_Should_PreferInitializedGitWorkspace_Over_FallbackMarkdown()
     {
-        // arrange: a stale restored .nitro/agents memory tree next to an
-        // initialized .git/nitro workspace.
+        // arrange: a stale restored .nitro/agents memory tree next to an initialized .git/nitro workspace.
         var fallbackDirectory = AgentWorkspace.GetDirectory(_tempRoot.FullName);
         var fallbackMemory = AgentWorkspace.GetMemoryDirectory(fallbackDirectory);
         Directory.CreateDirectory(AgentWorkspace.GetMemoryCuratedDirectory(fallbackMemory));
@@ -241,8 +237,7 @@ public sealed class AgentWorkspaceTests : IDisposable
     [Fact]
     public void ResolveForInit_Should_PreferNearerGitRepository_Over_FartherBareFallbackDirectory()
     {
-        // arrange: an empty leftover .nitro/agents in an ancestor and a git
-        // repository in a nested directory.
+        // arrange: an empty leftover .nitro/agents in an ancestor and a git repository in a nested directory.
         Directory.CreateDirectory(AgentWorkspace.GetDirectory(_tempRoot.FullName));
         var repoRoot = Path.Combine(_tempRoot.FullName, "repo");
         var gitDirectory = Path.Combine(repoRoot, ".git");

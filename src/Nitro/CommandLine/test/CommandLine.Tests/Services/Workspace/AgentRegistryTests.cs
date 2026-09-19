@@ -89,9 +89,7 @@ public sealed class AgentRegistryTests : IDisposable
     [Fact]
     public async Task RegisterAsync_Should_OverwriteRole_When_CalledAgainWithoutRole()
     {
-        // arrange: register always sets role to the resolved value, the
-        // empty string when omitted, the same way last_seen_at is always
-        // bumped; TouchAsync is the path that preserves an existing role.
+        // arrange: RegisterAsync always sets role to the resolved value, the empty string when omitted.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitWorkspaceAsync(cancellationToken);
         await _registry.RegisterAsync("claude", role: "backend", client: "", cancellationToken);
