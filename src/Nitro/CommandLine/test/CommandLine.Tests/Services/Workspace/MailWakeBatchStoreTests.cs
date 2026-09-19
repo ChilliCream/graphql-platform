@@ -4,14 +4,9 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Exercises <see cref="MailWakeBatchStore"/>'s atomic claim/renew/complete/
-/// release primitives, and its target-outcome recording, directly against a
-/// real workspace database: claiming requires outstanding, due work; at most
-/// one active batch exists per actor, including under genuine concurrency;
-/// completing a batch settles only up to the generation it claimed, never a
-/// generation requested after the claim; release schedules retry timing when
-/// asked to; and every mutation is fenced to the exact owner/attempt that
-/// holds the batch.
+/// Exercises <see cref="MailWakeBatchStore"/>'s atomic claim, renew,
+/// complete, and release primitives directly against a real workspace
+/// database.
 /// </summary>
 public sealed class MailWakeBatchStoreTests : IDisposable
 {
@@ -128,7 +123,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     [Fact]
     public async Task TryClaimAsync_Should_ReturnNull_When_AnActiveBatchAlreadyExistsForTheActor()
     {
-        // arrange: one actor owner.
+        // arrange: an active batch already owns this actor.
         var cancellationToken = TestContext.Current.CancellationToken;
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         await using (var connection = await InitializeWorkspaceAsync(cancellationToken))
@@ -156,7 +151,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         var firstClaim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
 
-        // act: a second owner tries to claim 5s later, before expiry.
+        // act: a second owner claims 5s later, before expiry.
         var secondClaim = await _batches.TryClaimAsync(
             InstanceId, Actor, "owner-2", "attempt-2", [s_target], now + TimeSpan.FromSeconds(5),
             TimeSpan.FromSeconds(10), cancellationToken);
@@ -216,8 +211,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     [Fact]
     public async Task TryClaimAsync_Should_ClaimExactlyOnce_When_ConcurrentCallersRaceTheSameActor()
     {
-        // arrange: separate connections (Pooling=False, matching production)
-        // racing the same file for the same actor.
+        // arrange: separate connections (Pooling=False, matching production) racing the same actor.
         var cancellationToken = TestContext.Current.CancellationToken;
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         await using (var connection = await InitializeWorkspaceAsync(cancellationToken))
@@ -248,8 +242,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         var renewed = await _batches.TryRenewAsync(
             claim.BatchId, "owner-1", "attempt-1", justBeforeExpiry, TimeSpan.FromSeconds(10), cancellationToken);
 
-        // assert: completing right after the original lease would have
-        // expired still succeeds, proving the renewal took effect.
+        // assert: completing right after the original lease would have expired still succeeds.
         Assert.True(renewed);
         var completed = await _batches.TryCompleteAsync(
             claim.BatchId, "owner-1", "attempt-1", now + TimeSpan.FromSeconds(11), cancellationToken);
@@ -300,10 +293,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     [Fact]
     public async Task TryCompleteAsync_Should_NotSettlePastTheClaimedGeneration_When_ANewerGenerationWasRequestedDuringTheBatch()
     {
-        // arrange: no G completion settling G+1. The batch claims
-        // generation 1; while it is in flight, a fresh send bumps
-        // requested_generation to 2. Completing the G=1 batch must settle
-        // only 1, leaving the G=2 work outstanding.
+        // arrange: the batch claims generation 1, then a fresh send bumps requested_generation to 2.
         var cancellationToken = TestContext.Current.CancellationToken;
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         var claim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(30), cancellationToken, requestedGeneration: 1);
@@ -450,9 +440,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     [Fact]
     public async Task TryClaimAsync_Should_YieldAnIndependentClaim_When_ADifferentNitroInstanceClaimsTheSameActor()
     {
-        // arrange: mail_wake_outbox is keyed by (nitro_instance_id, actor),
-        // so two different instances can each hold their own outstanding
-        // generation for the same actor name at the same time.
+        // arrange: mail_wake_outbox is keyed by (nitro_instance_id, actor).
         var cancellationToken = TestContext.Current.CancellationToken;
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         const string otherInstanceId = "instance-b";
@@ -471,8 +459,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         var claimB = await _batches.TryClaimAsync(
             otherInstanceId, Actor, "owner-b", "attempt-b", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken);
 
-        // assert: two independent batches, and instance-b's owner cannot
-        // renew or complete instance-a's batch.
+        // assert: two independent batches, and instance-b's owner cannot renew or complete instance-a's batch.
         Assert.NotNull(claimA);
         Assert.NotNull(claimB);
         Assert.NotEqual(claimA.BatchId, claimB.BatchId);
@@ -526,10 +513,7 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         CancellationToken cancellationToken,
         string instanceId = InstanceId)
     {
-        // dueAt is bound as a parameter, not a string-interpolated literal:
-        // TryReleaseAsync compares it in SQL against another
-        // driver-serialized DateTimeOffset, so it must be written through
-        // the same binding path the store itself uses.
+        // dueAt is bound as a parameter, not a string-interpolated literal, to match how TryReleaseAsync writes it.
         await using var command = connection.CreateCommand();
         command.CommandText =
             """
