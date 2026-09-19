@@ -9,11 +9,7 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Memory;
 
 /// <summary>
-/// Exercises <see cref="MemoryMode"/> and its overlays against a real
-/// <see cref="MemoryStore"/>, the same way <c>MailModeRealStoreTests</c>
-/// does for the mail board: memory has no fake store double, so every
-/// memory TUI component test runs against the real store, matching
-/// <c>MemoryStoreTests</c>'s own convention.
+/// Exercises <see cref="MemoryMode"/> and its overlays against a real <see cref="MemoryStore"/>.
 /// </summary>
 public sealed class MemoryModeTests : MemoryTestBase
 {
@@ -54,9 +50,8 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public async Task OnEnter_Should_LoadCuratedMemories()
     {
-        // arrange: OnEnter only marks a refresh pending; the actual store
-        // read happens lazily on the first Render or Handle call, so a
-        // manual refresh stands in for the shell rendering the tab.
+        // arrange
+        // OnEnter only marks a refresh pending; a manual refresh stands in for the shell rendering the tab
         await SaveAsync("First.");
         var mode = CreateMode();
 
@@ -188,8 +183,8 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public void ForgetRequested_Should_ShowWarnToast_When_NoCuratedMemorySelected()
     {
-        // arrange: the journal collection has no notion of a selected
-        // curated memory to forget.
+        // arrange
+        // the journal collection has no notion of a selected curated memory to forget
         var mode = CreateMode();
         mode.OnEnter();
         mode.Handle(new TuiMessage.CycleView(1));
@@ -211,7 +206,8 @@ public sealed class MemoryModeTests : MemoryTestBase
         mode.OnEnter();
         mode.Handle(new TuiMessage.ForgetRequested());
 
-        // act: Enter confirms from the dialog's initially focused (empty) reason field.
+        // act
+        // Enter confirms from the dialog's initially focused, empty reason field
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
 
         // assert
@@ -246,8 +242,8 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public void PromoteRequested_Should_ShowWarnToast_When_NoJournalEntrySelected()
     {
-        // arrange: default collection is curated, which has no notion of a
-        // selected journal entry to promote.
+        // arrange
+        // the default collection is curated, which has no notion of a selected journal entry to promote
         var mode = CreateMode();
         mode.OnEnter();
 
@@ -304,9 +300,8 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public async Task PromoteForm_Submit_Should_ReportAlreadyPromoted_When_TheJournalEntryWasPromotedBefore()
     {
-        // arrange: the entry was already promoted outside the tab (for
-        // example via the CLI); promoting it again from the tab must be
-        // idempotent, not an error.
+        // arrange
+        // the entry was already promoted outside the tab; promoting it again from the tab is idempotent
         var entry = await LogAsync("Note one.");
         await _store.PromoteAsync(entry.Id, "fact", [], TestContext.Current.CancellationToken);
 
@@ -386,10 +381,8 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public async Task SearchForm_Apply_Should_ShowTypeTagIgnoredMarker_When_JournalCollectionSearchedWithType()
     {
-        // arrange: type: and tag: prefixes narrow the curated list, but the
-        // journal collection has no type or tags to filter by; the list
-        // title must surface that the qualifier was ignored rather than
-        // silently dropping it.
+        // arrange
+        // the journal collection has no type or tags to filter by, so a type:/tag: prefix is ignored
         await LogAsync("Note one.");
         var mode = CreateMode();
         mode.OnEnter();
