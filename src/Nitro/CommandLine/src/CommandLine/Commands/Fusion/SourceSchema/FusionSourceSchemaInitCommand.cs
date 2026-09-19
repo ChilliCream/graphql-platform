@@ -243,8 +243,7 @@ internal sealed class FusionSourceSchemaInitCommand : Command
 
         if (fileSystem.DirectoryExists(sourceSchemaPath))
         {
-            // must stay in sync with the lookup in FusionCompositionHelpers.ReadSourceSchemaAsync,
-            // otherwise composition looks for the settings file elsewhere.
+            // must stay in sync with the lookup in FusionCompositionHelpers.ReadSourceSchemaAsync
             var schemaFile = fileSystem
                 .GetFiles(sourceSchemaPath, "*.graphql*", SearchOption.AllDirectories)
                 .FirstOrDefault(f =>
