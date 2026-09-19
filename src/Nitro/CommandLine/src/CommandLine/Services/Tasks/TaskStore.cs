@@ -215,10 +215,7 @@ internal sealed class TaskStore(
 
         var blocked = new Dictionary<string, List<string>>();
 
-        // Pass 1: tasks with a blocking dependency on a non-terminal or
-        // missing target are blocked. Parent-child edges gate children only
-        // through pass 2 (blocked parents); a merely open parent does not
-        // block its children.
+        // Non-parent blocking edges block tasks when their targets are missing or non-terminal.
         foreach (var edge in dependencies)
         {
             if (edge.Type == TaskDependencyTypes.ParentChild
@@ -242,7 +239,7 @@ internal sealed class TaskStore(
             }
         }
 
-        // Pass 2: blocked parents propagate to their children, transitively.
+        // Blocked parents propagate their blocked state to descendants.
         var childrenByParent = dependencies
             .Where(e => e.Type == TaskDependencyTypes.ParentChild)
             .GroupBy(e => e.DependsOnId)
@@ -269,9 +266,7 @@ internal sealed class TaskStore(
             }
         }
 
-        // Pass 3: epics with non-terminal children are blocked. Runs after
-        // pass 2 so a parent blocked only by its children does not re-block
-        // those children.
+        // Epics with non-terminal children are blocked; this state does not propagate back to children.
         foreach (var edge in dependencies)
         {
             if (edge.Type != TaskDependencyTypes.ParentChild)
@@ -644,8 +639,6 @@ internal sealed class TaskStore(
 
         var readyCount = readyIds.Count(id => !blocked.ContainsKey(id));
 
-        // Reuses the full task set ComputeBlockedAsync already loaded, instead
-        // of a second query.
         var blockedTaskStatuses = new Dictionary<string, string>();
 
         foreach (var id in blocked.Keys)
@@ -900,8 +893,7 @@ internal sealed class TaskStore(
 
         await transaction.CommitAsync(cancellationToken);
 
-        // A parent-child edge alone does not block the new task; only the
-        // other blocking dependency types gate it (matching ComputeBlockedAsync).
+        // The creation result reports direct blockers, excluding parent-child edges.
         var blockedBy = resolvedDependencies
             .Where(d => d.Type != TaskDependencyTypes.ParentChild
                 && TaskDependencyTypes.IsBlocking(d.Type)
@@ -914,8 +906,7 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// The in-memory outcome of validating and applying a
-    /// <see cref="TaskUpdate"/> to a single task, before it is written.
+    /// The task after applying an update and the field transitions to record.
     /// </summary>
     private sealed record TaskUpdateChange(
         TaskItem Task,
@@ -949,12 +940,9 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// Applies the given field changes to every task and records the
-    /// corresponding events for each. Every task is loaded and validated
-    /// before any is written: either every task updates or none does,
-    /// mirroring <see cref="CloseTaskAsync"/>. Throws
-    /// <see cref="ExitException"/> when any task does not exist, is a
-    /// tombstone, or a status guard is violated.
+    /// Updates all supplied tasks and records their events atomically.
+    /// Throws <see cref="ExitException"/> before committing any changes for a missing
+    /// or tombstoned task or an invalid update.
     /// </summary>
     public async Task<IReadOnlyList<TaskItem>> UpdateTasksAsync(
         IReadOnlyList<string> ids,
@@ -966,10 +954,7 @@ internal sealed class TaskStore(
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        // Every task is loaded and validated (and has the update applied
-        // in-memory) before any write happens, which gives the bulk update
-        // its all-or-nothing behavior: nothing is written until every id has
-        // passed.
+        // All updates are validated before any task is written.
         var changes = new List<TaskUpdateChange>();
 
         foreach (var id in ids)
@@ -1048,10 +1033,8 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// Validates the given update against the task's current state and
-    /// applies the resulting field changes to <paramref name="task"/> in
-    /// memory. Performs no I/O. Throws <see cref="ExitException"/> when a
-    /// status guard is violated.
+    /// Applies the supplied update to the task object and returns its field transitions.
+    /// Throws <see cref="ExitException"/> for an invalid title or prohibited status change.
     /// </summary>
     private static TaskUpdateChange ApplyUpdate(TaskItem task, TaskUpdate update)
     {
@@ -1227,10 +1210,8 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// Persists a previously-computed <see cref="TaskUpdateChange"/> and
-    /// records the corresponding events. Performs no validation, since
-    /// <see cref="ApplyUpdate"/> already validated and applied the change to
-    /// <paramref name="task"/> in memory.
+    /// Writes the task and records its previously computed field transitions
+    /// within the supplied transaction.
     /// </summary>
     private async Task WriteUpdateAsync(
         SqliteConnection connection,
@@ -1358,9 +1339,7 @@ internal sealed class TaskStore(
         await using var connection = await ConnectAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        // Every task is loaded and validated before any write happens, which
-        // gives close its all-or-nothing behavior: nothing is written until
-        // every id has passed.
+        // All tasks are validated before any close is written.
         var tasks = new List<TaskItem>();
 
         foreach (var id in ids)
@@ -2371,10 +2350,7 @@ internal sealed class TaskStore(
         };
     }
 
-    // Searches the blocking-dependency graph for a path from dependsOnId
-    // back to id. Combined with the edge just inserted (id -> dependsOnId),
-    // such a path closes a cycle. Runs inside the same transaction as the
-    // insert.
+    // Returns a blocking cycle containing the new edge, or null when none exists.
     private static async Task<List<string>?> FindBlockingCycleAsync(
         SqliteConnection connection,
         DbTransaction transaction,
@@ -2414,9 +2390,7 @@ internal sealed class TaskStore(
 
                 path.Reverse();
 
-                // path runs dependsOnId..id; drop the trailing id (already the
-                // list's head) and close the loop by repeating the dependent
-                // task at the end, so the cycle both starts and ends at id.
+                // The cycle starts and ends at the dependent task.
                 var cycle = new List<string> { id };
                 cycle.AddRange(path.Take(path.Count - 1));
                 cycle.Add(id);
@@ -2442,11 +2416,9 @@ internal sealed class TaskStore(
         return null;
     }
 
-    // Formats a cycle as returned by FindBlockingCycleAsync, which already
-    // starts and ends at the dependent task.
     private static string FormatCycle(IReadOnlyList<string> cycle) => string.Join(" -> ", cycle);
 
-    // Builds a plain ADO.NET-ready SQL fragment and parameter map.
+    // Builds the task filter conditions and their parameter values.
     private static (string WhereClause, Dictionary<string, object?> Parameters) BuildTaskFilterClause(
         TaskFilter filter)
     {
@@ -2483,9 +2455,7 @@ internal sealed class TaskStore(
         }
         else if (!filter.IncludeArchived)
         {
-            // Archived tasks never come back through the null-Statuses
-            // default, even with IncludeAll: the CLI never returns them
-            // unless a filter explicitly asks via Statuses or IncludeArchived.
+            // Archived tasks require IncludeArchived or an explicit archived status filter.
             parameters["archivedStatus"] = TaskStates.Archived;
             conditions.Add("status != @archivedStatus");
         }
@@ -2578,9 +2548,7 @@ internal sealed class TaskStore(
     };
 
     /// <summary>
-    /// Escapes the LIKE wildcard characters '%' and '_' (and the escape
-    /// character itself) so search text is matched literally, other than the
-    /// wildcards callers wrap around it.
+    /// Escapes percent signs, underscores, and backslashes for literal LIKE matching.
     /// </summary>
     private static string EscapeLikeText(string value)
         => value.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
@@ -2620,8 +2588,6 @@ internal sealed class TaskStore(
         return new string(suffix);
     }
 
-    // These nested row types must stay internal, not private, for
-    // Dapper.AOT to intercept the queries that use them.
     internal sealed class TaskRow
     {
         public required string Id { get; init; }
@@ -2676,7 +2642,7 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// Column ordinals for <see cref="TaskRow"/>, captured once per reader.
+    /// The field positions used to read a task row.
     /// </summary>
     private readonly struct TaskRowColumns(
         int id, int title, int description, int design, int acceptanceCriteria, int notes,
@@ -2776,9 +2742,7 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// A dependency edge's task pair and type, for the blocking-cycle walk in
-    /// <see cref="AddDependencyAsync"/> and the integrity checks in
-    /// <see cref="CheckIntegrityAsync"/>.
+    /// A dependency's task pair and type.
     /// </summary>
     internal sealed class DependencyEdgeRow
     {
@@ -2788,8 +2752,7 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// A comment's task ID and row ID, for the orphan-comment check in
-    /// <see cref="CheckIntegrityAsync"/>.
+    /// A comment id and its associated task id.
     /// </summary>
     internal sealed class CommentOrphanRow
     {
@@ -2798,8 +2761,7 @@ internal sealed class TaskStore(
     }
 
     /// <summary>
-    /// A task-label pair, for the orphan-label check in
-    /// <see cref="CheckIntegrityAsync"/>.
+    /// A task id and its label.
     /// </summary>
     internal sealed class TaskLabelRow
     {

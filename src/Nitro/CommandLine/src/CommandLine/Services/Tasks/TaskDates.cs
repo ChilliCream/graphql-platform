@@ -16,7 +16,7 @@ internal static class TaskDates
             DateTimeStyles.AssumeUniversal,
             out var result))
         {
-            // Stored timestamps must all carry the +00:00 offset.
+            // Parsed timestamps are normalized to UTC.
             return result.ToUniversalTime();
         }
 

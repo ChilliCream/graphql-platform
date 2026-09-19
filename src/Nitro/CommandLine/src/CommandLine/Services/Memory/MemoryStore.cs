@@ -7,10 +7,7 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// Curated memories and the journal, in the workspace database beside tasks
-/// and mail: the curated vertical (save, update, forget, show, recent,
-/// search) and the journal vertical (log, promote). Search runs against
-/// <c>memory_curated_fts</c>.
+/// Stores, searches, and updates curated memories and journal entries in the agent workspace.
 /// </summary>
 internal sealed class MemoryStore(
     IFileSystem fileSystem,
@@ -158,8 +155,7 @@ internal sealed class MemoryStore(
 
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // The query is quoted into a single FTS5 phrase rather than passed
-        // through: a caller's text is search input, never query syntax.
+        // Each whitespace-separated search word is quoted as an FTS phrase.
         var match = MemoryFtsQuery.BuildLiteralMatch(query);
 
         var sql =
@@ -275,7 +271,7 @@ internal sealed class MemoryStore(
             + "ORDER BY created_at DESC, id;",
             new { since });
 
-        // Matched in memory: the journal has no FTS index.
+        // Every search term must occur in the journal body, ignoring case.
         var matched = entries.Where(row => MatchesAllWords(row.Body, words));
 
         return (limit is { } max ? matched.Take(max) : matched).Select(row => row.ToEntry()).ToList();
@@ -321,9 +317,7 @@ internal sealed class MemoryStore(
         var id = MemoryPromotedId.Derive(journalId);
         var now = timeProvider.GetUtcNow();
 
-        // INSERT OR IGNORE against the unique promoted_from index: a second
-        // promote of the same entry, including a concurrent one, affects no
-        // rows and reports the memory the first one produced.
+        // An existing promotion is returned unchanged, including its type and tags.
         var inserted = await connection.ExecuteAsync(
             """
             INSERT OR IGNORE INTO memory_curated (
@@ -364,9 +358,8 @@ internal sealed class MemoryStore(
     }
 
     /// <summary>
-    /// Loads full records for the given ids, preserving the order the ids
-    /// were given in: the ordering is decided by the query that produced
-    /// them (recency, or FTS rank), which a second lookup must not disturb.
+    /// Returns records for the supplied ids in input order, omitting missing records.
+    /// Empty input returns an empty result.
     /// </summary>
     private static async Task<IReadOnlyList<MemoryRecord>> LoadCuratedAsync(
         SqliteConnection connection,

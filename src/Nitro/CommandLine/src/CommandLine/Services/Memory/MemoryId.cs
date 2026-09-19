@@ -3,19 +3,14 @@ using System.Security.Cryptography;
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// Generates and validates globally collision-resistant memory and journal
-/// entry ids. Each id is a ULID: a 48-bit UTC millisecond timestamp
-/// followed by 80 bits of cryptographic randomness, Crockford base32
-/// encoded to 26 lowercase characters. Ids sort lexicographically by
-/// creation time.
+/// Generates lowercase, 26-character memory ids from a millisecond timestamp and
+/// random data, or from a hash. Timestamp-based ids sort by their encoded timestamp.
 /// </summary>
 internal static class MemoryId
 {
     public const int Length = 26;
 
-    // Crockford base32: excludes I, L, O, and U to avoid confusion with
-    // 1, 1, 0, and V. Already in ascending order, so lexicographic string
-    // comparison of encoded ids matches numeric comparison of their value.
+    // Lowercase Crockford base32 alphabet in ascending order.
     private const string Alphabet = "0123456789abcdefghjkmnpqrstvwxyz";
 
     public static string New(TimeProvider timeProvider) => New(timeProvider.GetUtcNow());
@@ -38,25 +33,20 @@ internal static class MemoryId
     }
 
     /// <summary>
-    /// Derives an id from the first 16 bytes of the given hash, using the
-    /// same Crockford base32 encoding <see cref="New(TimeProvider)"/> uses, but without a
-    /// timestamp/entropy split: identical input bytes always yield an
-    /// identical id.
+    /// Encodes the first 16 bytes of the hash as a lowercase memory id.
+    /// Identical bytes produce identical ids; fewer than 16 bytes are invalid.
     /// </summary>
     public static string FromHash(ReadOnlySpan<byte> hash) => Encode(hash[..16]);
 
     /// <summary>
-    /// Returns the id unchanged, or throws when it is not a well-formed
-    /// memory id. Guards the one place an id is inlined into SQL rather than
-    /// parameterized.
+    /// Returns a syntactically valid memory id unchanged, or throws <see cref="ExitException"/>.
     /// </summary>
     public static string Require(string value)
         => IsValid(value) ? value : throw new ExitException($"Invalid memory id '{value}'.");
 
     /// <summary>
-    /// True when the value is a well-formed id: exactly <see cref="Length"/>
-    /// lowercase Crockford base32 characters. Does not check that the id is
-    /// actually in use anywhere.
+    /// True for exactly <see cref="Length"/> lowercase Crockford base32 characters.
+    /// Does not check whether the id exists.
     /// </summary>
     public static bool IsValid(string value)
     {
@@ -80,7 +70,7 @@ internal static class MemoryId
     {
         Span<char> result =
         [
-            // Timestamp: 48 bits -> 10 characters.
+            // First 48 bits, encoded as 10 characters.
             Alphabet[(data[0] & 224) >> 5],
             Alphabet[data[0] & 31],
             Alphabet[(data[1] & 248) >> 3],
@@ -91,7 +81,7 @@ internal static class MemoryId
             Alphabet[(data[4] & 124) >> 2],
             Alphabet[((data[4] & 3) << 3) | ((data[5] & 224) >> 5)],
             Alphabet[data[5] & 31],
-            // Randomness: 80 bits -> 16 characters.
+            // Remaining 80 bits, encoded as 16 characters.
             Alphabet[(data[6] & 248) >> 3],
             Alphabet[((data[6] & 7) << 2) | ((data[7] & 192) >> 6)],
             Alphabet[(data[7] & 62) >> 1],

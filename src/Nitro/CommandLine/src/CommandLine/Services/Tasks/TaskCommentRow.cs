@@ -3,8 +3,7 @@ using System.Globalization;
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// An all-primitives projection of a comment row; the timestamp column is
-/// stored as TEXT and parsed by <see cref="ToTaskComment"/>.
+/// A stored task comment with its timestamp represented as text.
 /// </summary>
 internal sealed class TaskCommentRow
 {

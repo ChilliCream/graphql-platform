@@ -6,18 +6,14 @@ using Microsoft.Data.Sqlite;
 namespace ChilliCream.Nitro.CommandLine.Services.Memory;
 
 /// <summary>
-/// The v10-to-v11 one-way carry of a markdown memory store into the
-/// workspace database: reads whatever is on disk once, inserts it, and
-/// leaves the source files in place, untouched.
+/// Imports legacy markdown memories and journal entries into the workspace database
+/// without modifying the source files.
 /// </summary>
 internal static class MemoryMarkdownImport
 {
     /// <summary>
-    /// Imports every curated memory and journal entry under
-    /// <paramref name="workspaceDirectory"/>'s memory directory into the
-    /// given connection, skipping ids the database already carries so a
-    /// re-run cannot duplicate. A file whose frontmatter does not parse is
-    /// skipped rather than failing the upgrade.
+    /// Imports readable, valid memory markdown files and returns the number of inserted
+    /// entries. Existing ids or promotion links are retained without overwriting their records.
     /// </summary>
     public static async Task<int> ImportAsync(
         SqliteConnection connection,
@@ -119,8 +115,7 @@ internal static class MemoryMarkdownImport
 
         var imported = 0;
 
-        // Journal files sit one date-bucketed directory deep, which the
-        // database has no equivalent of: created_at carries the date.
+        // Journal files are imported recursively from the journal directory.
         foreach (var path in Directory
             .EnumerateFiles(journalDirectory, "*.md", SearchOption.AllDirectories)
             .Order(StringComparer.Ordinal))
