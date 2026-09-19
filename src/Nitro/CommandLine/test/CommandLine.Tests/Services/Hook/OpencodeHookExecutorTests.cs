@@ -98,10 +98,8 @@ public sealed class OpencodeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutralAndExitWithFailure_When_HandlerThrowsSchemaMismatch()
     {
-        // arrange: a stale workspace schema keeps every hook of every
-        // session inert until someone migrates it, so it must surface on
-        // stderr with a nonzero exit rather than disappear into the
-        // neutral fail-open response like every other failure.
+        // arrange
+        // a schema mismatch must surface on stderr with a nonzero exit, unlike every other failure
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(OpencodeHookFixtures.Read("session-idle.json"));
         var output = new StringWriter();
@@ -126,8 +124,8 @@ public sealed class OpencodeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_TheEntryTimeoutElapses()
     {
-        // arrange: an explicit short timeout stands in for the real 10s
-        // entry ceiling so this test does not have to wait it out.
+        // arrange
+        // a short timeout stands in for the real entry ceiling so the test does not wait it out
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(OpencodeHookFixtures.Read("session-idle.json"));
         var output = new StringWriter();
@@ -151,10 +149,8 @@ public sealed class OpencodeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_TheHandlerIgnoresCancellation()
     {
-        // arrange: the handler never observes the linked token at all (a
-        // hung database call, for instance), so only racing the entry
-        // timeout against the handler task - never awaiting the handler
-        // task itself on timeout - can keep this call within the deadline.
+        // arrange
+        // the handler ignores the linked token, so racing it against the entry timeout is the only way out
         var cancellationToken = TestContext.Current.CancellationToken;
         var input = new StringReader(OpencodeHookFixtures.Read("session-idle.json"));
         var output = new StringWriter();
@@ -184,11 +180,9 @@ public sealed class OpencodeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_TheDatabaseIsContended()
     {
-        // arrange: a second connection holds an open write transaction on
-        // the workspace database, so the session-idle handler's own write
-        // (the heartbeat touch) blocks waiting for the lock. The
-        // executor's short timeout must still resolve to neutral instead
-        // of waiting out SQLite's own (far longer) default busy timeout.
+        // arrange
+        // a second connection holds an open write transaction, so the session-idle handler's heartbeat touch
+        // blocks on the lock
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-opencode-hook-executor-contention-tests");
 
@@ -274,12 +268,9 @@ public sealed class OpencodeHookExecutorTests
     [Fact]
     public async Task RunAsync_Should_WriteNeutral_When_SchemaVersionIsNewerThanSupported()
     {
-        // arrange: the workspace database is stamped with a schema version
-        // newer than AgentDatabase.CurrentVersion, so the handler's own
-        // connection attempt throws the generic ExitException (not the
-        // migratable AgentWorkspaceSchemaMismatchException); the executor's
-        // fail-open envelope must still resolve to neutral instead of
-        // surfacing it.
+        // arrange
+        // a schema version newer than the handler supports throws the generic ExitException, not the
+        // migratable AgentWorkspaceSchemaMismatchException, and must still resolve to neutral
         var cancellationToken = TestContext.Current.CancellationToken;
         var tempRoot = Directory.CreateTempSubdirectory("nitro-opencode-hook-executor-version-tests");
 
