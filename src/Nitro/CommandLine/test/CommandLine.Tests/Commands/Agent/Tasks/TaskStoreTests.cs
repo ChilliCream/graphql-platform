@@ -758,8 +758,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseEligibleEpicsAsync_AllChildrenClosedOrArchived_ClosesEpic()
     {
-        // arrange: one child closed, one child archived; both count as
-        // closed for eligibility purposes.
+        // arrange: one child closed, one archived; both count as closed for eligibility.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         await InsertTaskAsync(connection, "acme-1", status: TaskStates.Open, priority: 2, type: TaskTypes.Epic);
@@ -783,8 +782,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseEligibleEpicsAsync_ArchivedEpic_IsNotReClosed()
     {
-        // arrange: an already-archived epic must not be picked up again,
-        // even though all of its children are closed.
+        // arrange: an already-archived epic with all children closed.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         await InsertTaskAsync(connection, "acme-1", status: TaskStates.Archived, priority: 2, type: TaskTypes.Epic);
@@ -804,10 +802,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseEligibleEpicsAsync_ClosingPastCap_ArchivesOverflow()
     {
-        // arrange: the cap's worth of closed tasks already exist, plus an
-        // epic whose only child is closed; closing the epic itself is the
-        // close that pushes the total past the cap, so the epic-close path
-        // must also run ArchiveExcessClosedTasksAsync.
+        // arrange: the cap's worth of closed tasks, plus an epic whose closing pushes past the cap.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
@@ -856,8 +851,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
     [Fact]
     public async Task CloseTaskAsync_ClosingBeyondCap_ArchivesOldestClosedTask()
     {
-        // arrange: 100 already-closed tasks with strictly increasing
-        // closed_at, plus one open task about to become the 101st close.
+        // arrange: the cap's worth of closed tasks, plus one open task about to close.
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var connection = await SeedAsync(cancellationToken);
         var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
@@ -877,9 +871,7 @@ public sealed class TaskStoreTests : IAsyncDisposable
         // act
         await _store.CloseTaskAsync(["acme-101"], "done", "tester", cancellationToken);
 
-        // assert: the oldest closed task (acme-1) archived; everything else,
-        // including the newly closed task, stays closed; exactly the cap
-        // remains closed.
+        // assert: only the oldest closed task is archived; the cap remains closed.
         var oldest = await _store.GetRequiredTaskAsync("acme-1", cancellationToken);
         Assert.Equal(TaskStates.Archived, oldest.Status);
         Assert.Equal(
