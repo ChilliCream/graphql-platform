@@ -129,10 +129,8 @@ function strayAngles(
  * Tokamak: the Fusion hero's plasma scene, seen from inside the vessel -- a
  * dark tiled steel column and wall wrapping around the viewer, with a
  * coral/pink plasma torus of hundreds of orbiting streaks and a twisting
- * filament at its centre. See `../../_prototypes/heroes/README.md` for the
- * shared hero contract (palette, lighting/depth, motion gating, technique)
- * and `../../_prototypes/heroes/PlasmaFusion` for the static/live split and
- * cheap-bloom technique this follows.
+ * filament at its centre, split into a static baked layer and a live layer
+ * for a cheap-bloom effect that stays cheap under the frame budget.
  */
 export default function Tokamak() {
   const rootRef = useRef<HTMLDivElement>(null);
