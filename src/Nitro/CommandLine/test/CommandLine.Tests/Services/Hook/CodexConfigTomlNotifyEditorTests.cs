@@ -61,11 +61,8 @@ public sealed class CodexConfigTomlNotifyEditorTests
     [Fact]
     public void Install_OurOwnStaleEntry_ReplacesItAndCarriesThePriorForeignRecordForward()
     {
-        // A reinstall after the launch descriptor changed: what's on disk is
-        // OUR previous argv, not a foreign program, so the sidecar's
-        // recorded foreign value (from before we EVER wrapped anything)
-        // must survive untouched rather than being overwritten with our own
-        // stale entry.
+        // What's on disk is our own previous argv, not a foreign program, so the sidecar's earlier
+        // foreign record must carry forward untouched instead of being overwritten with our stale entry.
         var staleArgv = new List<string> { "/opt/old/nitro", "agent", "hook", "codex", "notify" };
         var before = $"notify = [{string.Join(", ", staleArgv.Select(a => $"\"{a}\""))}]\n";
         var recordedPriorForeign = new List<string> { "/usr/local/bin/herdr-notify" };
@@ -146,8 +143,7 @@ public sealed class CodexConfigTomlNotifyEditorTests
     [Fact]
     public void Uninstall_ForeignEditSinceInstall_LeavesItUntouched()
     {
-        // The value on disk no longer matches what we installed (a foreign
-        // edit landed since): must not clobber it.
+        // A foreign edit landed since install, so the value on disk no longer matches and must not be clobbered.
         const string edited = "notify = [\"/something/else\"]\n";
 
         var result = CodexConfigTomlNotifyEditor.Uninstall(edited, s_ourArgv, ["/usr/local/bin/herdr-notify"]);
