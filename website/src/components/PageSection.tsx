@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type PageSectionMaxWidth = "7xl" | "5xl";
+type PageSectionMaxWidth = "7xl" | "6xl" | "5xl";
 
 interface PageSectionProps {
   readonly maxWidth?: PageSectionMaxWidth;
@@ -14,6 +14,7 @@ interface PageSectionProps {
 // wide screens while the centering gutter alone keeps it off the edges.
 const MAX_WIDTH: Record<PageSectionMaxWidth, string> = {
   "7xl": "max-w-7xl min-[86rem]:px-0",
+  "6xl": "max-w-6xl min-[78rem]:px-0",
   "5xl": "max-w-5xl min-[70rem]:px-0",
 };
 
