@@ -92,7 +92,7 @@ internal sealed class StatusOpencodeHooksCommand : Command
         return participants
             .Where(participant => participant.Session.Harness == AgentSessionHarness.Opencode
                 && participant.State != AgentSessionState.Remote)
-            .Select(participant => OpencodeSessionStatus.From(participant))
+            .Select(OpencodeSessionStatus.From)
             .ToArray();
     }
 
