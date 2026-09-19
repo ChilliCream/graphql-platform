@@ -7,8 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// against <see cref="StringReader"/>/<see cref="StringWriter"/>, mirroring
 /// <c>ClaudeHookExecutorTests</c>: the suppression short-circuit, every
 /// failure path resolving to the neutral <c>{}</c> response, and successful
-/// translation into the wire shape, using the S1 spike's captured Codex
-/// payload fixtures.
+/// translation of the captured Codex payload fixtures into the wire shape.
 /// </summary>
 public sealed class CodexHookExecutorTests
 {
