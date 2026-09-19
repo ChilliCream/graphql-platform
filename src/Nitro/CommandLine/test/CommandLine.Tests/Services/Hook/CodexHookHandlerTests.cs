@@ -11,11 +11,10 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// Exercises <see cref="CodexHookHandler"/> end to end against a real
 /// workspace database: presence upsert on SessionStart, the unread-mail
 /// digest on UserPromptSubmit, conditional teardown on SessionEnd, and the
-/// notify-driven idle-turn gate - including the S2-verified notify/queue
-/// loop guard (a message already claimed on the gate channel is never
-/// re-queued when the queued digest's own delivery turn re-fires notify).
-/// Every call runs with <c>dryRun: true</c>, mirroring
-/// <c>ClaudeHookHandlerTests</c>.
+/// notify-driven idle-turn gate, including the notify/queue loop guard (a
+/// message already claimed on the gate channel is never re-queued when the
+/// queued digest's own delivery turn re-fires notify). Every call runs with
+/// <c>dryRun: true</c>, mirroring <c>ClaudeHookHandlerTests</c>.
 /// </summary>
 public sealed class CodexHookHandlerTests : IDisposable
 {
@@ -87,8 +86,8 @@ public sealed class CodexHookHandlerTests : IDisposable
 
         var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        // assert: startup assigns a friendly actor and injects it into the
-        // harness context immediately.
+        // assert
+        // startup assigns a friendly actor and injects it into the harness context immediately
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
         Assert.Contains($"Your Nitro actor name is \"{row.AgentName}\".", outcome.AdditionalContext);
@@ -245,8 +244,8 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionStartAsync_Should_ReturnNeutral_When_CwdIsMissing()
     {
-        // arrange: fail-open on a malformed/incomplete payload - no process
-        // identity's workspace can even be checked without a cwd.
+        // arrange
+        // no process identity's workspace can be checked without a cwd, so this must fail open
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var payload = new CodexHookPayload { SessionId = SessionId, Cwd = null };
@@ -300,8 +299,7 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionStartAsync_Should_LeaveHarnessVersionBlank_When_TheResolverReturnsNone()
     {
-        // A metadata resolution failure (no rollout file, no resolvable exe
-        // path) must never block session creation.
+        // A metadata resolution failure must never block session creation.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
@@ -487,7 +485,8 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleNotifyAsync_Should_LeaveTheMessageUnread_When_ItQueuesTheDigest()
     {
-        // arrange: queuing the body onto the thread never means it was read.
+        // arrange
+        // queuing the body onto the thread never means it was read
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -497,8 +496,8 @@ public sealed class CodexHookHandlerTests : IDisposable
         // act
         var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
 
-        // assert: the queued payload says unread, the message is still in the
-        // unread inbox, and the unread count is unchanged.
+        // assert
+        // the queued payload says unread, and the unread inbox and count are unchanged
         Assert.True(outcome.Queued);
         var call = Assert.Single(_queueClient.Calls);
         Assert.Contains("\"read\": false", call.Message);
@@ -539,11 +538,8 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleNotifyAsync_Should_NotReQueue_When_TheQueuedDigestsOwnDeliveryTurnRefiresNotify()
     {
-        // arrange: turn 1
-        // fires notify, queues a digest; turn 2 (the queued digest's own
-        // delivery) fires notify again for the SAME thread-id with a new
-        // turn-id, and the message-id-keyed ledger must skip it, otherwise
-        // the notify/queue loop never terminates.
+        // arrange
+        // turn 1 queues a digest; turn 2, the digest's own delivery, re-fires notify for the same thread
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -552,7 +548,8 @@ public sealed class CodexHookHandlerTests : IDisposable
         var first = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
         Assert.True(first.Queued);
 
-        // act: second notify firing, same thread, no NEW mail.
+        // act
+        // second notify firing, same thread, no new mail
         var second = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
 
         // assert
@@ -563,9 +560,8 @@ public sealed class CodexHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleNotifyAsync_Should_QueueAgain_When_NewMailArrivesAfterAnEarlierQueue()
     {
-        // The gate channel's ledger reservation is at-most-once PER MESSAGE,
-        // not per session: a brand new message must still gate even after an
-        // earlier message was already queued and delivered.
+        // The gate channel's ledger reservation is at-most-once per message, not per session, so a brand
+        // new message must still gate even after an earlier one was already queued and delivered.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -592,9 +588,7 @@ public sealed class CodexHookHandlerTests : IDisposable
 
         Assert.False(outcome.Queued);
 
-        // The ledger reservation still stands: a retried notify for the SAME
-        // (already-attempted) mail does not queue it a second time. This is
-        // the plan's documented reserve-then-emit crash policy.
+        // The ledger reservation still stands, so a retried notify for the same mail does not queue it again.
         var retried = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
         Assert.Equal(CodexNotifyOutcome.Neutral, retried);
         Assert.Single(_queueClient.Calls);
