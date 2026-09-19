@@ -1,9 +1,8 @@
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hooks.Codex;
 
 /// <summary>
-/// Installs, inspects, and removes this CLI's Codex CLI turn-boundary hook entries
-/// (<c>~/.codex/hooks.json</c>) and idle-turn gate wiring (<c>notify</c> in
-/// <c>~/.codex/config.toml</c>). A sibling command group to <c>agent hooks claude</c>.
+/// Installs, inspects, and removes this CLI's Codex hook entries in
+/// <c>~/.codex/hooks.json</c> and notify wiring in <c>~/.codex/config.toml</c>.
 /// </summary>
 internal sealed class CodexHooksCommand : Command
 {

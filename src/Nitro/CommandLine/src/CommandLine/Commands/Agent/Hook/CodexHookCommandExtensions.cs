@@ -4,11 +4,8 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 
 /// <summary>
-/// Wires a Codex stdin-based hook leaf command's action through
-/// <see cref="CodexHookExecutor"/>, the Codex analog of
-/// <see cref="ClaudeHookCommandExtensions.SetHookAction"/>. Covers <c>session-start</c>,
-/// <c>user-prompt-submit</c>, and <c>session-end</c>; <c>notify</c> reads argv, not
-/// stdin, and is wired separately in <c>NotifyHookCommand</c>.
+/// Binds a Codex hook command to stdin payload handling through
+/// <see cref="CodexHookExecutor"/>.
 /// </summary>
 internal static class CodexHookCommandExtensions
 {

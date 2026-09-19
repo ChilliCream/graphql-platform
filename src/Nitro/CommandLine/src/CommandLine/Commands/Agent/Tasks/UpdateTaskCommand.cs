@@ -144,7 +144,7 @@ internal sealed class UpdateTaskCommand : Command
             || typeGiven || assigneeGiven || notesGiven || designGiven || acceptanceCriteriaGiven
             || dueGiven || deferUntilGiven || estimateGiven;
 
-        // Every id is validated up front, before any write.
+        // Check that every task exists before starting updates.
         foreach (var id in ids)
         {
             await store.GetRequiredTaskAsync(id, cancellationToken);

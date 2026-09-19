@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Notify;
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook.Opencode;
 
 /// <summary>
-/// Adapts the opencode shim's <c>session.idle</c> event: touches the session's heartbeat
-/// so it stays live for <see cref="ActorWakeDispatcher"/>. Payload JSON on stdin, <c>{}</c>
-/// on stdout, always.
+/// Handles an Opencode <c>session.idle</c> payload from stdin to refresh the session
+/// heartbeat used by <see cref="ActorWakeDispatcher"/>. Writes a neutral JSON response.
 /// </summary>
 internal sealed class SessionIdleHookCommand : Command
 {

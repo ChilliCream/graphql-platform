@@ -4,12 +4,8 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 
 /// <summary>
-/// Wires an opencode hook leaf command's action through
-/// <see cref="OpencodeHookExecutor"/>, the opencode analog of
-/// <see cref="ClaudeHookCommandExtensions.SetHookAction"/> and
-/// <see cref="CodexHookCommandExtensions.SetCodexHookAction"/>. Unlike Claude and
-/// Codex, opencode's response envelope carries no hook-event-name equivalent, so this
-/// method takes none.
+/// Binds an Opencode hook command to stdin payload handling through
+/// <see cref="OpencodeHookExecutor"/>.
 /// </summary>
 internal static class OpencodeHookCommandExtensions
 {

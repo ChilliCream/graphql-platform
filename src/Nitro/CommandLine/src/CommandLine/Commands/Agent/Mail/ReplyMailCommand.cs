@@ -51,8 +51,7 @@ internal sealed class ReplyMailCommand : Command
         var message = await store.ReplyMessageAsync(
             messageId, actor, body, MailWakePolicy.Enqueue, cancellationToken);
 
-        // Posted after the message durably commits; a failed nudge does
-        // not fail this command.
+        // Nudge recipients after the message and wake intent commit.
         await nudge.NudgeAsync(
             [.. message.Recipients.Select(recipient => recipient.Name)], cancellationToken);
 

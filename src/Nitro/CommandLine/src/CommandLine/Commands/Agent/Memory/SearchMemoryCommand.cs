@@ -43,12 +43,11 @@ internal sealed class SearchMemoryCommand : Command
         var since = parseResult.GetValue(Opt<MemorySinceOption>.Instance);
         var limit = parseResult.GetValue(Opt<MemoryLimitOption>.Instance);
 
-        // `--tag`/`--type` can never match a journal entry, so a tag/type
-        // filter excludes the journal band entirely.
+        // A tag or type filter excludes the journal band.
         var hasCuratedFilter = tags.Length > 0 || type is not null;
 
-        // Both bands are queried under --collection all: split an explicit
-        // limit across them (curated gets the ceiling half).
+        // With --collection all and no curated-only filter, split an explicit limit
+        // between both bands, giving curated entries the ceiling half.
         var splitBands = collection is MemoryCollections.All && !hasCuratedFilter;
         var curatedLimit = limit;
         var journalLimit = limit;

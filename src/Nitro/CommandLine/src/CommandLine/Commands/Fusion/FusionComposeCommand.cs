@@ -753,8 +753,7 @@ internal sealed class FusionComposeCommand : Command
     }
 
     /// <summary>
-    /// Indents every line after the first by three spaces, aligning it under
-    /// the emoji-prefixed first line.
+    /// Indents every line after the first by three spaces, preserving the first line.
     /// </summary>
     private static string FormatMultilineMessage(string message)
     {

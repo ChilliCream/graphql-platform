@@ -61,8 +61,7 @@ internal sealed class CyclesTaskDependencyCommand : Command
         return ExitCodes.Success;
     }
 
-    // Enumerates each elementary cycle exactly once. Internal, not private:
-    // also used by DoctorTaskCommand's workspace health check.
+    // Enumerates simple directed cycles, each rooted at its ordinally smallest id.
     internal static List<List<string>> FindCycles(IReadOnlyDictionary<string, List<string>> adjacency)
     {
         var cycles = new List<List<string>>();

@@ -82,10 +82,7 @@ internal sealed class AgentCommand : Command
     }
 
     /// <summary>
-    /// Reproduces exactly what System.CommandLine prints when this group is invoked bare
-    /// with no action set: the "Required command was not provided." parse error on
-    /// stderr, followed by the group's own help (which lists <c>init</c> among its
-    /// subcommands) on stdout.
+    /// Writes a missing-command error and the group help, then returns the error exit code.
     /// </summary>
     private static int WriteBareGroupGuidance(ParseResult parseResult)
     {

@@ -57,9 +57,9 @@ internal static class MemoryBody
     }
 
     /// <summary>
-    /// Reads a file's content, resolving a relative path against the
-    /// current directory. Throws <see cref="ExitException"/> when the file
-    /// does not exist or is empty.
+    /// Reads a file relative to the current directory when needed, converts CRLF
+    /// to LF, and removes leading LF characters. Throws <see cref="ExitException"/>
+    /// when the file is missing or the normalized content is empty.
     /// </summary>
     public static async Task<string> ReadFileAsync(
         IFileSystem fileSystem,

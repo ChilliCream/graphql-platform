@@ -77,8 +77,7 @@ internal sealed class BroadcastMailCommand : Command
             },
             cancellationToken);
 
-        // Posted after the message durably commits; a failed nudge does
-        // not fail this command.
+        // Nudge recipients after the message and wake intent commit.
         await nudge.NudgeAsync(
             [.. message.Recipients.Select(recipient => recipient.Name)], cancellationToken);
 

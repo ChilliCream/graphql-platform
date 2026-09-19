@@ -59,7 +59,7 @@ internal static class AgentTuiLauncher
         var searchMode = new SearchMode(taskStore);
         var treeView = new DependencyTreeView(taskStore, rootId: "");
 
-        // The event loop and Mail send effects share one shutdown signal.
+        // Pass the host shutdown token to the event loop and Mail tab.
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         var tabs = BuildTabs(
@@ -158,9 +158,8 @@ internal static class AgentTuiLauncher
     }
 
     /// <summary>
-    /// Builds the Mail tab with no actor: it opens on the workspace-wide
-    /// mailbox and refuses every write. Wake dispatch belongs to the shared
-    /// daemon; the tab enqueues work and observes the result.
+    /// Builds the Mail tab without an acting identity, showing the workspace-wide
+    /// mailbox and refusing writes.
     /// </summary>
     internal static TuiTab BuildMailTab(
         IMailStore mailStore,

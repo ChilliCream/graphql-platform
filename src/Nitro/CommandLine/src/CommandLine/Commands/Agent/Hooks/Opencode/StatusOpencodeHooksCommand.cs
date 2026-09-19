@@ -65,10 +65,9 @@ internal sealed class StatusOpencodeHooksCommand : Command
     }
 
     /// <summary>
-    /// Returns every opencode session this Nitro instance knows about, paired with its
-    /// registered endpoint, reachability, and last recorded ping result and detail.
-    /// Excludes sessions recorded by a different Nitro instance, and returns empty when
-    /// no workspace exists yet.
+    /// Returns Opencode participants from this Nitro instance with their registered
+    /// endpoint and last recorded ping diagnostics. Returns an empty list when no
+    /// workspace exists.
     /// </summary>
     private static async Task<IReadOnlyList<OpencodeSessionStatus>> ResolveOpencodeSessionsAsync(
         ICommandServices services, CancellationToken cancellationToken)
@@ -102,9 +101,8 @@ internal sealed class StatusOpencodeHooksCommand : Command
         string Path, string Outcome, bool Current, IReadOnlyList<OpencodeSessionStatus> Sessions);
 
     /// <summary>
-    /// What is known about one opencode session's push path: whether an endpoint is
-    /// registered, its reachability, and the last recorded ping result and detail,
-    /// verbatim. Never collapses these into a "healthy" or "working" verdict.
+    /// An Opencode session's registered endpoint and reachability classification
+    /// from its last recorded ping, including the original result and detail.
     /// </summary>
     public sealed record OpencodeSessionStatus(
         string SessionId,
@@ -164,12 +162,9 @@ internal sealed class StatusOpencodeHooksCommand : Command
         }
 
         /// <summary>
-        /// Returns <see cref="OpencodeSessionReachability.NoEndpoint"/> when no trusted
-        /// endpoint was ever registered, otherwise maps the last recorded ping result to
-        /// <see cref="OpencodeSessionReachability.ReachableAtLastPing"/>,
-        /// <see cref="OpencodeSessionReachability.EndpointGoneAtLastPing"/>, or
-        /// <see cref="OpencodeSessionReachability.Unknown"/>. Performs no live network
-        /// probe of its own.
+        /// Returns <see cref="OpencodeSessionReachability.NoEndpoint"/> when no endpoint
+        /// is registered, otherwise classifies the last recorded ping result.
+        /// Performs no live network probe.
         /// </summary>
         private static string ComputeReachability(AgentSessionRecord session)
         {
@@ -188,12 +183,12 @@ internal sealed class StatusOpencodeHooksCommand : Command
     }
 
     /// <summary>
-    /// The values <see cref="OpencodeSessionStatus.Reachability"/> can hold. None of them
-    /// is a "working" or "healthy" verdict.
+    /// Reachability classifications based on the registered endpoint and recorded
+    /// ping result exposed by <see cref="OpencodeSessionStatus.Reachability"/>.
     /// </summary>
     internal static class OpencodeSessionReachability
     {
-        /// <summary>No endpoint was ever registered; never pinged.</summary>
+        /// <summary>No endpoint is registered.</summary>
         public const string NoEndpoint = "unreachable";
 
         /// <summary>The last recorded ping to a registered endpoint was accepted.</summary>
@@ -207,10 +202,8 @@ internal sealed class StatusOpencodeHooksCommand : Command
         public const string EndpointGoneAtLastPing = "endpoint gone at last ping";
 
         /// <summary>
-        /// A registered endpoint whose last recorded ping outcome does not
-        /// say whether it is reachable: never pinged, a timeout, a
-        /// transport error, a capacity drop, or an unsupported endpoint
-        /// kind.
+        /// A registered endpoint with no recorded ping result that confirms acceptance
+        /// or an endpoint-gone outcome.
         /// </summary>
         public const string Unknown = "unknown";
     }

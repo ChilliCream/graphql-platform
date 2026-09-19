@@ -21,10 +21,8 @@ internal sealed class MailThreadRow
             + FormatAge(LastActivityAt, Now);
 
     /// <summary>
-    /// Formats the elapsed time between <paramref name="lastActivityAt"/> and
-    /// <paramref name="now"/> as a short relative label: "now" under a minute,
-    /// then minutes, hours, or days, falling back to an ISO date once the
-    /// thread's last activity is a week or older.
+    /// Formats elapsed time as minutes, hours, or days, or a UTC ISO date from one
+    /// week onward. Returns "now" for activity less than a minute old or in the future.
     /// </summary>
     private static string FormatAge(DateTimeOffset lastActivityAt, DateTimeOffset now)
     {
