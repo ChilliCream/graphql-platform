@@ -86,8 +86,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         // act
         var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
-        // assert: startup assigns a friendly actor and injects it into the
-        // harness context immediately.
+        // assert
+        // startup assigns a friendly actor and injects it into the harness context immediately
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
         Assert.Contains($"Your Nitro actor name is \"{row.AgentName}\".", outcome.AdditionalContext);
@@ -100,8 +100,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionStartAsync_Should_BindTheSameGeneratedActor_When_CalledAgainForTheSameSession()
     {
-        // arrange: stability across a duplicate SessionStart for the exact
-        // same (harness, session id).
+        // arrange
+        // stability across a duplicate SessionStart for the exact same (harness, session id)
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var first = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
@@ -212,10 +212,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionStartAsync_Should_ReturnNeutralWithoutCreatingARow_When_CwdHasNoWorkspace()
     {
-        // arrange: fail-open on a missing workspace. The payload's cwd is a
-        // separate temp root with no agents.db anywhere in its ancestry, so
-        // AgentWorkspace.Find resolves nothing (unlike a subdirectory of the
-        // real workspace, which Find would still resolve by walking up).
+        // arrange
+        // fail-open on a missing workspace, since the cwd's temp root has no agents.db in its ancestry
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var noWorkspaceRoot = Directory.CreateTempSubdirectory("nitro-claude-hook-no-workspace-tests");
@@ -240,8 +238,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionStartAsync_Should_ReturnNeutral_When_CwdIsMissing()
     {
-        // arrange: fail-open on a malformed/incomplete payload - no process
-        // identity's workspace can even be checked without a cwd.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var payload = new ClaudeHookPayload { SessionId = SessionId, Cwd = null };
@@ -287,7 +284,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             new FixedInstanceIdProvider("host-1"),
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
-        // act: not a dry run, which is what skips the session file read.
+        // act
+        // not a dry run, which is what skips the session file read
         await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: false, cancellationToken);
 
         // assert
@@ -298,9 +296,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionStartAsync_Should_LeaveHarnessVersionBlank_When_TheResolverReturnsNone()
     {
-        // arrange: a metadata resolution failure (no session file, a
-        // reused pid, or a malformed file) must never block session
-        // creation.
+        // arrange
+        // a metadata resolution failure must never block session creation
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
@@ -335,9 +332,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_NoMailIsAddressedToTheActor()
     {
-        // arrange: SessionStart bound the row to its generated actor, but
-        // nobody has sent that actor any mail yet. The actor name is not
-        // repeated here, so there is nothing left to say.
+        // arrange
+        // SessionStart bound the row to its generated actor, but nobody has sent that actor any mail yet
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
@@ -397,8 +393,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_LeaveTheMessageUnread_When_ItReturnsTheDigest()
     {
-        // arrange: the digest carries the body, but showing it never means
-        // the recipient read it.
+        // arrange
+        // the digest carries the body, but showing it never means the recipient read it
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -416,8 +412,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_ReturnNeutral_When_CalledAgainWithNoNewMail()
     {
-        // arrange: the ledger suppresses redelivery of the same message on
-        // the digest channel once it has been reserved.
+        // arrange
+        // the ledger suppresses redelivery of the same message on the digest channel once reserved
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -435,9 +431,9 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_NotRedeliver_When_AMessageIsMarkedUnreadAfterItsDigest()
     {
-        // arrange: the ledger's suppression is about NOTIFICATION, not read
-        // state - marking a delivered message unread again must not cause
-        // the digest to show it a second time.
+        // arrange
+        // suppression is about notification, not read state, so marking a delivered message unread again
+        // must not show it in the digest a second time
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -456,7 +452,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleUserPromptSubmitAsync_Should_ResetTheBlockBudget()
     {
-        // arrange: drive the Stop gate's budget to its ceiling first.
+        // arrange
+        // drive the Stop gate's budget to its ceiling first
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -501,8 +498,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleStopAsync_Should_ReturnNeutral_When_StopHookActiveIsTrue()
     {
-        // arrange: the reentrancy guard fires before anything else, even
-        // when unread mail exists.
+        // arrange
+        // the reentrancy guard fires before anything else, even when unread mail exists
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -540,8 +537,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleStopAsync_Should_LeaveTheMessageUnread_When_ItGatesOnUnreadMail()
     {
-        // arrange: the gate shows the body, but blocking the turn never means
-        // the recipient read it.
+        // arrange
+        // the gate shows the body, but blocking the turn never means the recipient read it
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -594,9 +591,9 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleStopAsync_Should_ReturnNeutral_When_CalledAgainForTheSameUnreadMail()
     {
-        // arrange: the gate channel's ledger reservation is at-most-once per
-        // message, so a second Stop for the exact same still-unread mail
-        // does not block again.
+        // arrange
+        // the gate channel's ledger reservation is at-most-once per message, so a second Stop for the
+        // same still-unread mail does not block again
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -614,9 +611,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleStopAsync_Should_StopBlocking_When_PerTurnBudgetIsExhausted()
     {
-        // arrange: each iteration sends a NEW message so every Stop call has
-        // fresh, never-gated mail to react to; only the budget should stop
-        // the blocking, not the ledger.
+        // arrange
+        // each iteration sends a new message, so only the budget should stop the blocking, not the ledger
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -630,7 +626,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
         await SendMailAsync("bob-over-budget", actor, cancellationToken);
 
-        // act: budget is now exhausted.
+        // act
+        // budget is now exhausted
         var overBudget = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
         // assert
@@ -640,9 +637,9 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleStopAsync_Should_LeaveTheMessageEligibleForAFutureBudgetCycle_When_OverBudget()
     {
-        // arrange: exhaust the budget on unrelated mail, leaving one message
-        // never actually gated because every Stop call was over budget by
-        // the time it was considered.
+        // arrange
+        // exhaust the budget on unrelated mail, leaving one message never gated because every Stop call
+        // was over budget by the time it was considered
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -656,8 +653,9 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var pending = await SendMailAsync("bob-pending", actor, cancellationToken);
         await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken); // over budget, no-op
 
-        // act: a fresh turn resets the budget, so the message the previous
-        // turn never got to gate must still be eligible.
+        // act
+        // a fresh turn resets the budget, so the message the previous turn never got to gate must
+        // still be eligible
         await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
         var afterReset = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
 
@@ -669,10 +667,9 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleStopAsync_Should_ReturnNeutral_When_TheRowIsDeletedBetweenResolveAndIncrement()
     {
-        // arrange: the increment reports no row matched (e.g. a concurrent
-        // SessionEnd deleted it after FindByGenerationAsync above already
-        // saw it), so the ledger reservation must not be reported as a
-        // block the caller never actually recorded a budget spend for.
+        // arrange
+        // the increment reports no row matched (e.g. a concurrent SessionEnd deleted it first), so this
+        // must not be reported as a block the caller never recorded a budget spend for
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -699,9 +696,9 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleStopAsync_Should_ReserveAtMostMaxDigestMessages_When_ManyMessagesAreUnread()
     {
-        // arrange: the Stop path's unbounded inbox query would otherwise
-        // reserve every unread message for the gate channel even though a
-        // single block is emitted regardless of how many there are.
+        // arrange
+        // the Stop path's unbounded inbox query would otherwise reserve every unread message for the
+        // gate channel, even though only one block is emitted
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -735,11 +732,9 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleStopAsync_Should_ResolveTheSameGeneration_When_ReplayedFromADifferentHandlerInstance()
     {
-        // arrange: dry-run pins a fixed sentinel identity rather than this
-        // process's own pid and start time, so a session-start captured by
-        // one handler instance and replayed against a second (a separate CLI
-        // invocation, in real usage) still resolves the same generation
-        // instead of minting an unrelated row.
+        // arrange
+        // dry-run pins a fixed sentinel identity, so a session-start captured by one handler instance and
+        // replayed against a second still resolves the same generation instead of minting a new row
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var sessionStartHandler = CreateHandler();
@@ -778,7 +773,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     [Fact]
     public async Task HandleSessionEndAsync_Should_ReturnNeutral_When_NoRowExists()
     {
-        // arrange: fail-open, no SessionStart ever ran for this session.
+        // arrange
+        // fail-open, no SessionStart ever ran for this session
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
