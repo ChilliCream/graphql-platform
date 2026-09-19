@@ -3,12 +3,10 @@ using ChilliCream.Nitro.CommandLine.Services.Memory;
 namespace ChilliCream.Nitro.CommandLine.Tests.Memory;
 
 /// <summary>
-/// The context budget determinism contract test: given the same ranked
-/// candidates, limit, and character budget, <see cref="MemoryContextBudget.Select"/>
-/// always admits the same entries in the same order, following the exact
-/// prefix algorithm (whole entries, in rank order, until the limit or the
-/// character cap would be exceeded) rather than anything order-sensitive to
-/// iteration or collection internals.
+/// Given the same ranked candidates, limit, and character budget,
+/// <see cref="MemoryContextBudget.Select"/> always admits the same entries
+/// in the same order: whole entries in rank order until the limit or the
+/// character cap would be exceeded.
 /// </summary>
 public sealed class MemoryContextBudgetTests
 {
