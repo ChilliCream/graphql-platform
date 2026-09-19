@@ -5,7 +5,6 @@ import { Band } from "@/src/components/Band";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { CardGrid } from "@/src/components/CardGrid";
 import { FeatureRow } from "@/src/components/FeatureRow";
-import { PageHero } from "@/src/components/PageHero";
 import { Section } from "@/src/components/Section";
 import { SectionHeading } from "@/src/components/SectionHeading";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
@@ -13,7 +12,8 @@ import { Card } from "@/src/design-system/Card";
 import { Link } from "@/src/design-system/Link";
 
 import type { CopyLink } from "./content";
-import { FEATURES, HERO, NITRO_BAND, SECTIONS } from "./content";
+import { FEATURES, NITRO_BAND, SECTIONS } from "./content";
+import { FusionHero } from "./hero/FusionHero";
 import LayeredDiagram from "./hero/LayeredDiagram";
 import {
   FLIGHT_RECORDER_RATIO,
@@ -38,7 +38,7 @@ import {
  */
 
 interface FusionPageProps {
-  /** Replaces the default `PageHero` + `ButtonRow` block; used by the hero prototypes. */
+  /** Replaces the default `FusionHero`; used by the hero prototypes. */
   readonly hero?: ReactNode;
 }
 
@@ -114,23 +114,7 @@ const VISUALS: Readonly<Record<string, Panel>> = {
 export function FusionPage({ hero }: FusionPageProps) {
   return (
     <>
-      {hero ?? (
-        <>
-          <PageHero
-            eyebrow={HERO.eyebrow}
-            title={HERO.title}
-            teaser={HERO.teaser}
-          />
-          <ButtonRow>
-            <SolidButton href={HERO.buttons[0].href}>
-              {HERO.buttons[0].label}
-            </SolidButton>
-            <OutlineButton href={HERO.buttons[1].href}>
-              {HERO.buttons[1].label}
-            </OutlineButton>
-          </ButtonRow>
-        </>
-      )}
+      {hero ?? <FusionHero />}
       <div
         // Below sm the diagram fills and crops the panel so labels keep their minimum size.
         className={`${PANEL_CLASS} mt-12 aspect-[3/4] overflow-hidden sm:aspect-square md:aspect-[9/8] lg:aspect-[9/4]`}
