@@ -144,18 +144,10 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Regression for a prior generated-shim defect: the pushed-prompt
-    /// prefix must be detected and stripped from <c>output.parts</c> (the
-    /// message opencode actually delivers to the model), not
-    /// <c>input.parts</c>. Runs the generated JavaScript itself under Node,
-    /// with <c>Bun.spawn</c> stubbed to capture the payload the shim sends
-    /// to the hook process instead of a real CLI process, so the regression
-    /// is caught even though the two objects would look identical to a
-    /// purely textual assertion on the template source. The stub returns a
-    /// hook response with parts to append, so this also exercises
-    /// <c>appendParts</c> end to end. Fails when <c>CI_BUILD</c> is set and
-    /// node is not found; skips when node is not found and
-    /// <c>CI_BUILD</c> is not set.
+    /// The pushed-prompt prefix must be stripped from <c>output.parts</c> (the message opencode
+    /// delivers to the model), not <c>input.parts</c>. Runs the generated shim under Node with
+    /// <c>Bun.spawn</c> stubbed to capture the payload it sends to the hook process. Fails when
+    /// <c>CI_BUILD</c> is set and node is not found; skips when node is not found and it is not set.
     /// </summary>
     [Fact]
     public async Task Build_Should_StripThePrefixFromOutputPartsOnly_When_TheGeneratedShimRunsAChatMessage()
@@ -472,26 +464,9 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Regression for hc-10-w61.1: opencode's plugins run inside a Bun
-    /// Worker whose <c>process.argv</c> never carries the parent process's
-    /// <c>--port</c>/<c>--hostname</c>/<c>--mdns</c> flags, so an
-    /// argv-based probe cannot tell a bound server from the placeholder.
-    /// Instead the shim reads the plugin input's <c>serverUrl</c> getter
-    /// twice and compares by reference: opencode returns a fresh
-    /// placeholder URL on every read when nothing is bound, so two reads
-    /// are never the same object, and the SAME object every time once a
-    /// server actually bound. Runs the generated JavaScript itself under
-    /// Node, with <c>Bun.spawn</c> stubbed to capture the
-    /// <c>session-created</c> payload the shim sends to the hook process,
-    /// driving the SAME template with a fresh-URL-every-read fake and a
-    /// stable-URL fake in one script so this test discriminates both
-    /// directions on its own: a probe neutered to a constant fails one of
-    /// the two assertions below, instead of the fresh-URL fake alone
-    /// passing for the wrong reason against a constant <c>false</c>.
-    /// Proven against the shim's probe neutered to a constant false result
-    /// (this test then fails the second assertion: expects True, gets
-    /// False) and to a constant true result (fails the first assertion
-    /// instead: expects False, gets True).
+    /// Reports <c>serverBound: true</c> only for a <c>serverUrl</c> getter that returns the same URL
+    /// object on every read, discriminating it in one run from a getter that returns a fresh placeholder
+    /// on every read.
     /// </summary>
     [Fact]
     public async Task Build_Should_ReportServerBoundOnlyForTheStableUrlFake_When_DiscriminatingByServerUrlGetterIdentity()
@@ -517,28 +492,19 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         // act
         var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
 
-        // assert: the fresh-URL fake proves the placeholder is rejected...
+        // assert
+        // the fresh-URL fake proves the placeholder is rejected
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
         var result = JsonDocument.Parse(stdOut).RootElement;
         Assert.False(result.GetProperty("freshServerBound").GetBoolean());
 
-        // ...and the stable-URL fake, driven through the SAME template in
-        // the SAME run, proves the false above came from the identity
-        // check actually failing to match, not from a probe that always
-        // reports false regardless of what it was given.
+        // the stable-URL fake, run through the same template, proves the identity check itself works
         Assert.True(result.GetProperty("stableServerBound").GetBoolean());
     }
 
     /// <summary>
-    /// Regression for hc-10-w61.1: when the plugin input's <c>serverUrl</c>
-    /// getter returns the SAME URL object on every read - as opencode's
-    /// does once a server actually bound - the shim reports
-    /// <c>serverBound: true</c> and forwards that URL. Proven against
-    /// a44492ccc6 (the argv-mirror predecessor): under plain Node,
-    /// <c>process.argv</c> carries no <c>--port</c>/<c>--hostname</c>/
-    /// <c>--mdns</c> flag, so that shim always reported
-    /// <c>serverBound: false</c> here regardless of what the getter
-    /// returned.
+    /// Reports <c>serverBound: true</c> and forwards the URL when the plugin input's <c>serverUrl</c>
+    /// getter returns the same URL object on every read.
     /// </summary>
     [Fact]
     public async Task Build_Should_ReportServerBound_When_TheServerUrlGetterReturnsTheSameUrlEachRead()
@@ -628,8 +594,8 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     /// A driver appended to the generated shim module: stubs
     /// <c>Bun.spawn</c> to capture the <c>session-created</c> payload, then
     /// instantiates the plugin with an input whose <c>serverUrl</c> getter
-    /// returns the SAME stable <c>URL</c> object on every read - mimicking a
-    /// genuinely bound opencode server - and fires a <c>session.created</c>
+    /// returns the same stable <c>URL</c> object on every read, mimicking a
+    /// genuinely bound opencode server, and fires a <c>session.created</c>
     /// event, so the payload's forwarded <c>serverUrl</c> can be checked
     /// verbatim. The fresh-URL (unbound) side of the identity comparison is
     /// covered separately by
@@ -670,11 +636,10 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
     /// <summary>
     /// A driver appended to the generated shim module: stubs
     /// <c>Bun.spawn</c> to capture each <c>session-created</c> payload,
-    /// then instantiates the plugin TWICE against the SAME template - once
-    /// with a fresh-<c>URL</c>-every-read fake, once with a stable-<c>URL</c>
-    /// fake - so a single run proves both directions of the
-    /// getter-identity probe: a probe forced to a constant fails one of
-    /// the two reported fields no matter which constant it was forced to.
+    /// then instantiates the plugin twice against the same template, once
+    /// with a fresh-<c>URL</c>-every-read fake and once with a stable-<c>URL</c>
+    /// fake, so a single run proves both directions of the
+    /// getter-identity probe.
     /// </summary>
     private static string BuildServerBoundDiscriminationDriverScript()
         => """
