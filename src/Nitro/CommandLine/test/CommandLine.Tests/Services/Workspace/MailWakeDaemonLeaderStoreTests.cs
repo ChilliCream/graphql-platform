@@ -4,12 +4,8 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
 /// Exercises <see cref="MailWakeDaemonLeaderStore"/>'s leader election over
-/// the one persistent <c>mail_wake_daemons</c> row per Nitro instance
-/// directly against a real workspace database: first acquisition, a live
-/// lease rejecting a second claimant, epoch monotonically incrementing every
-/// time leadership changes hands, renewal fenced by owner and epoch,
-/// voluntary release freeing the lease immediately, and exactly one leader
-/// winning when several processes race the same instance concurrently.
+/// the one persistent <c>mail_wake_daemons</c> row per Nitro instance,
+/// directly against a real workspace database.
 /// </summary>
 public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
 {
@@ -57,8 +53,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
         await _leader.TryAcquireAsync(InstanceId, "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
-        // act: even the same owner cannot re-acquire while its own lease is
-        // still live; renewal is TryRenewAsync's job.
+        // act: the same owner cannot re-acquire while its own lease is still live.
         var epoch = await _leader.TryAcquireAsync(InstanceId, "owner-1", now, TimeSpan.FromSeconds(30), cancellationToken);
 
         // assert
@@ -68,7 +63,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
     [Fact]
     public async Task TryAcquireAsync_Should_IncrementEpoch_When_StealingAnExpiredLease()
     {
-        // arrange: one leader epoch across successive owners.
+        // arrange: successive owners of one leader epoch.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -100,8 +95,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
         var renewed = await _leader.TryRenewAsync(
             InstanceId, "owner-1", epoch!.Value, justBeforeExpiry, TimeSpan.FromSeconds(10), null, cancellationToken);
 
-        // assert: a rival trying to steal right after the original lease
-        // would have expired now fails, proving the renewal took effect.
+        // assert: a rival trying to steal right after the original lease would have expired now fails.
         Assert.True(renewed);
         var stolen = await _leader.TryAcquireAsync(
             InstanceId, "owner-2", acquiredAt + TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(10), cancellationToken);
@@ -111,8 +105,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
     [Fact]
     public async Task TryRenewAsync_Should_ReturnFalse_When_EpochNoLongerMatches()
     {
-        // arrange: fenced stale writes - an owner that lost leadership to a
-        // fresher epoch can never renew its old one back to life.
+        // arrange: an owner that lost leadership to a fresher epoch.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var acquiredAt = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -162,8 +155,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
         var reacquiredEpoch =
             await _leader.TryAcquireAsync(InstanceId, "owner-2", now, TimeSpan.FromSeconds(30), cancellationToken);
 
-        // assert: the next acquirer, right away, without waiting out the
-        // lease duration, gets a fresh epoch.
+        // assert: the next acquirer gets a fresh epoch without waiting out the lease duration.
         Assert.True(released);
         Assert.Equal(2, reacquiredEpoch);
     }
@@ -187,8 +179,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
     [Fact]
     public async Task TryAcquireAsync_Should_ElectExactlyOneLeader_When_SixConcurrentProcessesRaceTheSameInstance()
     {
-        // arrange: separate connections (Pooling=False, matching production)
-        // racing the same file for the same instance.
+        // arrange: separate connections (Pooling=False, matching production) racing the same instance.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
