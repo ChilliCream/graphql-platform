@@ -333,8 +333,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_LeaveTheAnnouncementArmed_When_DigestReservationFails()
     {
         // arrange
-        // the digest step runs before the announcement is claimed, so a mail-store or ledger failure there is
-        // simulated by making it throw
+        // the digest step runs before the announcement is claimed, so the ledger is made to throw there
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -421,8 +420,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
     public async Task HandleChatMessageAsync_Should_StillReleaseTheDigestReservation_When_TheTurnsTokenIsAlreadyCancelled()
     {
         // arrange
-        // ClaimAnnouncementAsync fails at the exact moment this turn's own token is cancelled, so a compensating
-        // release cannot reuse that token
+        // the claim fails while this turn's own token is already cancelled
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
@@ -507,8 +505,7 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         pushedUndeliveredPayload.Delivered = false;
 
         // act
-        // a Nitro-pushed turn reports the earlier announcement never landed, and the re-arm runs above the
-        // NitroPushed early return
+        // the re-arm runs above the NitroPushed early return
         var pushed = await _handler.HandleChatMessageAsync(pushedUndeliveredPayload, dryRun: true, cancellationToken);
 
         // assert
@@ -567,8 +564,6 @@ public sealed class OpencodeHookHandlerTests : IDisposable
         undeliveredPayload.Delivered = false;
 
         // act
-        // the shim reports that response never landed, so the reservation must be released before this call's
-        // own digest build can reserve and deliver it again
         var undelivered = await _handler.HandleChatMessageAsync(undeliveredPayload, dryRun: true, cancellationToken);
 
         // assert
