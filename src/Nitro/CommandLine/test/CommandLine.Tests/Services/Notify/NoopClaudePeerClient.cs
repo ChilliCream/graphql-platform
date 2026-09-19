@@ -3,8 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Notify;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Never reached by the codex-thread end-to-end smoke test, but required to
-/// satisfy <see cref="PingSessionExecutor"/>'s constructor.
+/// No-op <see cref="IClaudePeerClient"/> that always returns <see cref="ClaudePeerSendOutcome.Ok"/>.
 /// </summary>
 internal sealed class NoopClaudePeerClient : IClaudePeerClient
 {

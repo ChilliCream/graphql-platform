@@ -4,14 +4,10 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Delegates every <see cref="IMailWakeBatchStore"/> member to
-/// <paramref name="inner"/> except <see cref="TryRecordTargetOutcomeAsync"/>:
-/// its first call for <paramref name="racedTarget"/> first races in a
-/// synthetic Delivered acceptance for the same target, through the same
-/// owner/attempt fence the caller's own call is about to use, before
-/// forwarding the caller's own (terminal-failure) call - simulating a
-/// concurrent acceptance observation landing just before the terminal
-/// outcome commits.
+/// Delegates every <see cref="IMailWakeBatchStore"/> member to <paramref name="inner"/> except
+/// <see cref="TryRecordTargetOutcomeAsync"/>, whose first call for <paramref name="racedTarget"/> records a
+/// synthetic Delivered acceptance for that target through the same owner/attempt fence before forwarding the
+/// caller's own call, simulating a concurrent acceptance landing just before the terminal outcome commits.
 /// </summary>
 internal sealed class RacingAcceptanceMailWakeBatchStoreDecorator(
     IMailWakeBatchStore inner, AgentSessionGeneration racedTarget, long acceptedGeneration) : IMailWakeBatchStore

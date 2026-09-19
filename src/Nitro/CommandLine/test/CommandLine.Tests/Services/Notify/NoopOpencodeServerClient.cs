@@ -4,8 +4,7 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Never reached by the codex-thread end-to-end smoke test, but required to
-/// satisfy <see cref="PingSessionExecutor"/>'s constructor.
+/// No-op <see cref="IOpencodeServerClient"/> that always returns <see cref="AgentPingResult.Ok"/>.
 /// </summary>
 internal sealed class NoopOpencodeServerClient : IOpencodeServerClient
 {

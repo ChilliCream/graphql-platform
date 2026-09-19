@@ -4,14 +4,8 @@ using ChilliCream.Nitro.CommandLine.Services.Notify;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Delegates every <see cref="IMailStore"/> member to <paramref
-/// name="inner"/> except <see cref="QueryInboxAsync"/> and <see
-/// cref="CountUnreadAsync"/>, which always report no unread mail: wiring
-/// this into <see cref="PingSessionExecutor"/>'s own digest lookup, while
-/// <see cref="ActorWakeDispatcher"/> keeps the real <paramref name="inner"/>
-/// for its own outstanding-mail gate, deterministically reproduces the
-/// health-only race the executor's opencode branch handles (the mail a wake
-/// targeted got read out from under it by the time the digest was built).
+/// Delegates every <see cref="IMailStore"/> member to <paramref name="inner"/> except
+/// <see cref="QueryInboxAsync"/> and <see cref="CountUnreadAsync"/>, which always report no unread mail.
 /// </summary>
 internal sealed class NoUnreadMailStoreDecorator(IMailStore inner) : IMailStore
 {

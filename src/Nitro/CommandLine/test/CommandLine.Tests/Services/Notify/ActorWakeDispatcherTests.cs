@@ -243,9 +243,9 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     [Fact]
     public async Task DispatchAsync_Should_RecordFailed_And_LeaveTheReboundGenerationUntouched_When_TheFrozenTargetFullyRebounds()
     {
-        // arrange: a genuine full-session rebound - the frozen target's
+        // arrange: a genuine full-session rebound. The frozen target's
         // session actually ends and a new process claims the same
-        // (harness, session_id) under a new pid/proc_start - races the
+        // (harness, session_id) under a new pid/proc_start, racing the
         // target loop's own re-resolution of the frozen generation.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
@@ -333,7 +333,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         var receipt = await dispatchTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
-        // assert: never asserted delivered or failed - the target stays
+        // assert: never asserted delivered or failed, the target stays
         // pending because this attempt lost its own claim before it could
         // durably record anything.
         Assert.NotNull(receipt);
@@ -356,7 +356,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     public async Task DispatchAsync_Should_AbandonInFlightTargets_When_TheBatchRenewalThrows_And_AllowReclaimOnceTheLeaseExpires()
     {
         // arrange: TryRenewAsync itself throws (the store call failed
-        // outright, not merely reported false) - a renewal whose result is
+        // outright, not merely reported false), a renewal whose result is
         // unknown must be treated exactly like a lost renewal, never let a
         // non-OperationCanceledException escape the renewal loop.
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -375,8 +375,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             _timeProvider);
 
         // act: start the dispatch, wait until it has entered the transport
-        // call, then advance the clock just past the renew interval - well
-        // short of the batch's own 30s lease - so it is the renewal
+        // call, then advance the clock just past the renew interval, well
+        // short of the batch's own 30s lease, so it is the renewal
         // attempt's own thrown exception that ends dispatch, not a natural
         // lease expiry.
         var dispatchTask = dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
@@ -385,7 +385,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
 
         var receipt = await dispatchTask.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
 
-        // assert: never asserted delivered or failed - the target stays
+        // assert: never asserted delivered or failed, the target stays
         // pending because this attempt never durably recorded anything
         // before its renewal failed.
         Assert.NotNull(receipt);
@@ -429,7 +429,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var receipt = await otherInstanceDispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
 
         // assert: nothing claimed for host-2, and host-1's own outstanding
-        // work is completely unaffected - a same-instance dispatcher still
+        // work is completely unaffected, a same-instance dispatcher still
         // claims it normally afterward.
         Assert.Null(receipt);
 
@@ -445,7 +445,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // arrange: the transport ends in an unaccepted terminal failure, but
         // a decorator races a synthetic Delivered acceptance for the same
         // target through this batch's own owner/attempt fence just before
-        // the dispatcher's own terminal write commits - the terminal outcome
+        // the dispatcher's own terminal write commits. The terminal outcome
         // must still be what the receipt (and the durable row) report.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
@@ -553,8 +553,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     {
         // arrange: the real PingSessionExecutor (not the scriptable fake)
         // proves the wake path's own attempt stamp on agent_sessions lets
-        // its later last_ping_result write actually match the row, instead
-        // of silently matching zero rows the way it did before this fix.
+        // its later last_ping_result write actually match the row.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(AgentSessionEndpointKind.CodexThread, "thread-1", cancellationToken);
@@ -593,10 +592,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // proves an opencode session's health-only outcome is durably
         // recorded via the wake path, across two separate wakes, not
         // merely held in the in-memory receipt. The executor is wired to a
-        // mail store that always reports no unread mail, deterministically
-        // reproducing the production race the health-only branch exists
-        // for (the mail a wake targeted got read out from under it) while
-        // the dispatcher's own outstanding-mail gate keeps seeing the real,
+        // mail store that always reports no unread mail, while the
+        // dispatcher's own outstanding-mail gate keeps seeing the real,
         // still-unread state so each wake actually reaches the executor.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
@@ -618,7 +615,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             _globalConfigDirectoryProvider,
             _timeProvider);
 
-        // act: first wake - unread mail exists, so the dispatcher reaches
+        // act: first wake, unread mail exists, so the dispatcher reaches
         // the executor, whose own digest lookup finds nothing to push.
         var firstReceipt = await dispatcher.DispatchAsync(Actor, Deadline(), cancellationToken);
         var firstRow = await _sessions.FindByGenerationAsync(generation, cancellationToken);
@@ -629,12 +626,10 @@ public sealed class ActorWakeDispatcherTests : IDisposable
             (MailWakeTargetStatus.Delivered, AgentPingResult.Ok, PingSessionExecutor.HealthOnlyDetail),
             (firstReceipt?.Status, firstRow.LastPingResult, firstRow.LastPingDetail));
 
-        // act: second wake - a genuine idle transition rearms the one-shot
+        // act: second wake, a genuine idle transition rearms the one-shot
         // claim (already rearmed by the first health-only outcome, done
         // again for clarity), the gate's post-success cooldown has passed,
-        // and a fresh unread message drives another real attempt. This is
-        // exactly the claim-then-execute sequence that used to erase the
-        // row on alternate wakes.
+        // and a fresh unread message drives another real attempt.
         await _sessions.RearmIdlePushAsync(generation, cancellationToken);
         _timeProvider.Advance(PingPolicy.Cooldown + TimeSpan.FromSeconds(1));
         await SendEnqueuedMailAsync(cancellationToken);
@@ -711,7 +706,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     {
         // arrange: a session that never had its idle-push gate armed (a
         // nitro-pushed turn is still active, or nothing rearmed it since the
-        // last claim) - mail must wait for the next genuine idle transition.
+        // last claim). Mail must wait for the next genuine idle transition.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         await SeedLiveSessionAsync(
@@ -763,7 +758,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     {
         // arrange: the session ping gate is held by an unrelated attempt, so
         // the very first dispatch is rejected before it ever reaches the
-        // idle-push claim - a busy gate must not spend the one-shot claim.
+        // idle-push claim. A busy gate must not spend the one-shot claim.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var generation = await SeedLiveSessionAsync(
@@ -782,7 +777,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         Assert.Equal("busy", Assert.Single(busyReceipt!.Targets).LastError);
         Assert.Empty(busyExecutor.Calls);
 
-        // act: release the gate and let the offered retry become due - the
+        // act: release the gate and let the offered retry become due. The
         // claim was never spent by the busy attempt, so the still-armed
         // session delivers on the very next dispatch.
         await _gates.ReleaseAsync(generation, "external-holder", cancellationToken);
@@ -814,7 +809,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         // assert
         Assert.Equal(MailWakeTargetStatus.Failed, failedReceipt?.Status);
 
-        // act: new mail arrives - the failed attempt already rearmed the
+        // act: new mail arrives, the failed attempt already rearmed the
         // claim, so this delivers on the very next dispatch without waiting
         // for a genuine prompt to rearm it by hand.
         await SendEnqueuedMailAsync(cancellationToken);
@@ -831,7 +826,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
     public async Task DispatchAsync_Should_RearmTheIdlePushClaim_When_TheOpencodeAttemptWasHealthOnly()
     {
         // arrange: the executor reports a successful ping that pushed
-        // nothing (PingSessionExecutor.HealthOnlyDetail) - the unread mail
+        // nothing (PingSessionExecutor.HealthOnlyDetail). The unread mail
         // it targeted raced away before the transport call ran, so the
         // claim taken for this attempt must be handed back rather than
         // treated as spent.
@@ -899,7 +894,7 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         var target = Assert.Single(receipt.Targets);
         Assert.Equal(MailWakeTargetStatus.Pending, target.Status);
 
-        // act: new mail arrives - the aborted attempt already rearmed the
+        // act: new mail arrives, the aborted attempt already rearmed the
         // claim, so this delivers on the very next dispatch without waiting
         // for a genuine prompt to rearm it by hand.
         await SendEnqueuedMailAsync(cancellationToken);
@@ -956,7 +951,8 @@ public sealed class ActorWakeDispatcherTests : IDisposable
         string sessionId = "session-1")
     {
         // A genuinely alive pid/proc_start: dispatch resolves live sessions
-        // through FindLiveClaimedByAgentNameAsync, which reaps dead
+        // through FindLiveClaimedByAgentNameAsync, which reaps dead sessions
+        // before it looks.
         var harness = endpointKind switch
         {
             AgentSessionEndpointKind.ClaudePeer => AgentSessionHarness.ClaudeCode,
