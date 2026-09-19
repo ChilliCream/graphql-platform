@@ -5,9 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 /// <summary>
 /// An <see cref="ITuiMode"/> that owns modal overlays needing raw key input
 /// (text fields, for example) rather than the semantic <see cref="TuiMessage"/>
-/// dispatch every other gesture goes through. <see cref="TuiShell"/> checks
-/// <see cref="IsInputCapturing"/> on the active tab's mode instead of a
-/// concrete type check, so any mode can opt into owning its own overlays.
+/// dispatch every other gesture goes through.
 /// </summary>
 internal interface IRawKeyCapturingMode
 {

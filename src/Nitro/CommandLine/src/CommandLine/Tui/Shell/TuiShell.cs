@@ -94,24 +94,18 @@ internal sealed class TuiShell
 
     /// <summary>
     /// Builds a tabbed shell hosting <paramref name="tabs"/> in order, starting on
-    /// the first. Each tab keeps its own mode stack and key dispatcher, so switching
-    /// tabs preserves nested mode state and routes keys only to the active tab.
+    /// the first. Each tab keeps its own mode stack and key dispatcher.
     /// <paramref name="tasksTabIndex"/> identifies which tab owns the shell-level task
     /// overlay machinery (the task editor, the close/reopen/delete confirmation, the
-    /// status and priority quick pickers, and the task create form): that machinery
-    /// only activates while the tab at that index is active. A one-row tab strip
-    /// renders above the content region whenever more than one tab is hosted.
+    /// status and priority quick pickers, and the task create form).
     /// <paramref name="quitGates"/> runs before a confirmed normal quit is allowed to
     /// raise <see cref="QuitConfirmed"/>: each stops its own feature's new submissions
     /// and bounded-drains what is already in flight, and a nonzero pending or
     /// outcome-unknown count reported back turns the confirmation into a second
-    /// prompt naming those counts rather than quitting immediately. Omitted, quitting
-    /// behaves exactly as before.
+    /// prompt naming those counts. Omitted, quitting behaves exactly as before.
     /// <paramref name="mailWakeDaemonState"/>, when given, is polled once per render
-    /// and shown as a short badge in the footer's trailing segment (to the left of
-    /// the actor identity), so the mail-wake daemon's Ready/Standby/Degraded/Stopping
-    /// state stays visible while the dashboard is open, never blocking or altering
-    /// any tab's own behavior.
+    /// and shown as a short badge in the footer's trailing segment, to the left of
+    /// the actor identity.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
     /// <paramref name="tasksTabIndex"/> is not a valid index into <paramref name="tabs"/>.
@@ -155,10 +149,8 @@ internal sealed class TuiShell
         _width = initialWidth;
         _height = initialHeight;
 
-        // Every tab's root mode initializes its own data on shell startup
-        // (not only the active tab's), so an inactive tab's tab-strip title
-        // (for example the mail tab's unread badge) is accurate before it is
-        // ever switched to.
+        // Every tab's root mode initializes its own data on shell startup,
+        // not only the active tab's.
         foreach (var tab in _tabs)
         {
             tab.ActiveMode.OnEnter();
@@ -175,7 +167,7 @@ internal sealed class TuiShell
     /// Raised when a second quit confirmation, shown because a registered
     /// <see cref="TuiQuitGate"/> reported unresolved work, is itself cancelled. A
     /// feature that registered a gate is expected to resume its own effect queue's
-    /// submissions in response, since the TUI stays live.
+    /// submissions in response.
     /// </summary>
     public event Action? QuitCancelled;
 
@@ -250,10 +242,8 @@ internal sealed class TuiShell
 
     /// <summary>
     /// Renders the one-row tab strip: every hosted tab's title with its
-    /// <see cref="TuiTab.Mnemonic"/> bracketed (for example <c>[A]gents</c>)
-    /// and styled in the footer's own key token, the active tab highlighted
-    /// the same way a selected board row is, reusing the footer's own
-    /// tokens rather than introducing new ones.
+    /// <see cref="TuiTab.Mnemonic"/> bracketed and styled in the footer's own
+    /// key token, the active tab highlighted in the footer's selection style.
     /// </summary>
     private IRenderable RenderTabStrip()
     {
@@ -317,18 +307,14 @@ internal sealed class TuiShell
 
     /// <summary>
     /// Refreshes every hosted tab's currently active mode, not only the
-    /// active tab's, so a tab's data stays current while another tab is
-    /// focused (for example the mail tab's unread badge while the tasks tab
-    /// is active).
+    /// active tab's.
     /// </summary>
     private bool HandleDataChanged() => BroadcastToTabs(new TuiMessage.RefreshRequested());
 
     /// <summary>
     /// Drains every hosted tab's own effect queue, not only the active
-    /// tab's, the same way <see cref="HandleDataChanged"/> refreshes every
-    /// tab: a compose or reply completing on the mail tab must still show
-    /// its toast while another tab is active. A mode that owns no effect
-    /// queue ignores this message (see <see cref="TuiMessage.EffectCompleted"/>).
+    /// tab's. A mode that owns no effect queue ignores this message (see
+    /// <see cref="TuiMessage.EffectCompleted"/>).
     /// </summary>
     private bool HandleEffectCompleted() => BroadcastToTabs(new TuiMessage.EffectCompleted());
 
@@ -337,12 +323,7 @@ internal sealed class TuiShell
     /// active mode. The active tab's own follow-ups are routed through the
     /// shell's normal <see cref="HandleMessage"/> dispatch; an inactive
     /// tab's follow-ups are scoped to <see cref="TuiMessage.ShowToast"/>
-    /// only, since a toast is shell-global on the toaster row regardless of
-    /// which tab is active, while every other follow-up kind stays dropped:
-    /// <see cref="HandleMessage"/> acts on shell-level state (dialogs,
-    /// overlays) and the currently ACTIVE tab, so routing an inactive tab's
-    /// non-toast follow-up through it would leak that tab's outcome onto
-    /// whichever tab the user is actually looking at.
+    /// only, and every other follow-up kind stays dropped.
     /// </summary>
     private bool BroadcastToTabs(TuiMessage message)
     {
@@ -368,8 +349,7 @@ internal sealed class TuiShell
         // The quit confirmation, the task editor, the close/reopen/delete
         // confirmation, and the task create form are modal: while one is
         // active it consumes every key itself, and unresolved keys are
-        // swallowed rather than falling through to the active mode or the
-        // global table.
+        // swallowed.
         if (_confirmDialog is { } quitDialog)
         {
             var chord = KeyChord.From(info);
@@ -410,11 +390,9 @@ internal sealed class TuiShell
             return true;
         }
 
-        // A mode that owns its own overlays (for example the mail mode's
-        // archive confirmation, compose and reply forms, and their shared
-        // discard confirmation) needs raw key input for its text fields
-        // while one is active, the same way the search mode's query input
-        // does above, rather than the semantic TuiMessage dispatch below.
+        // A mode that owns its own overlays needs raw key input for its
+        // text fields while one is active, the same way the search mode's
+        // query input does above.
         if (ActiveMode is IRawKeyCapturingMode { IsInputCapturing: true } capturingMode)
         {
             foreach (var followUp in capturingMode.HandleRawKey(info))
@@ -425,9 +403,7 @@ internal sealed class TuiShell
             return true;
         }
 
-        // Tab switching is checked ahead of the active tab's own dispatch,
-        // so it stays inert whenever any of the overlays above are
-        // capturing input, and never collides with either tab's key table.
+        // Tab switching is checked ahead of the active tab's own dispatch.
         if (_tabs.Count > 1)
         {
             var tabChord = KeyChord.From(info);
@@ -523,8 +499,8 @@ internal sealed class TuiShell
         HandleMessage(outcome.ToShowToast());
         HandleMessage(new TuiMessage.RefreshRequested());
 
-        // A failed save leaves the form open with its entered values so the
-        // user can see the error and retry; only a successful save closes it.
+        // A failed save leaves the form open with its entered values; only
+        // a successful save closes it.
         if (outcome is TaskEditorOutcome.Succeeded)
         {
             _editorForm = null;
@@ -711,8 +687,8 @@ internal sealed class TuiShell
         HandleMessage(outcome.ToShowToast());
         HandleMessage(new TuiMessage.RefreshRequested());
 
-        // A failed save leaves the form open with its entered values so the
-        // user can see the error and retry; only a successful save closes it.
+        // A failed save leaves the form open with its entered values; only
+        // a successful save closes it.
         if (outcome is TaskCreateOutcome.Succeeded succeeded)
         {
             _createForm = null;
@@ -803,10 +779,10 @@ internal sealed class TuiShell
     /// Runs the pre-cancellation quit gate: on the first confirmation, every
     /// registered <see cref="TuiQuitGate"/> stops its feature's new submissions and
     /// bounded-drains what is already in flight. With nothing left unresolved,
-    /// <see cref="QuitConfirmed"/> fires immediately, exactly as it would with no
-    /// gates registered. Otherwise a second confirmation naming the pending and
-    /// outcome-unknown counts is shown, and only confirming that fires
-    /// <see cref="QuitConfirmed"/>; gates are not re-run for that second confirmation.
+    /// <see cref="QuitConfirmed"/> fires immediately. Otherwise a second
+    /// confirmation naming the pending and outcome-unknown counts is shown,
+    /// and only confirming that fires <see cref="QuitConfirmed"/>; gates are
+    /// not re-run for that second confirmation.
     /// </summary>
     private bool HandleConfirmQuit()
     {
@@ -850,18 +826,15 @@ internal sealed class TuiShell
             }
             catch (TimeoutException)
             {
-                // The gate itself failed to answer within its own bound plus a grace
-                // period. This reports the gate's silence; it does not guess whether
-                // the feature's commit boundary resolved.
+                // The gate itself failed to answer within its own bound plus a
+                // grace period.
                 outcomeUnknownCount++;
                 continue;
             }
             catch (Exception)
             {
-                // A gate that faults, whether it throws synchronously or returns a
-                // faulted task, is reported as outcome-unknown for that gate. The
-                // runtime does not guess the feature's commit state and never lets
-                // a gate fault tear down the TUI.
+                // A gate that faults, whether it throws synchronously or returns
+                // a faulted task, is reported as outcome-unknown for that gate.
                 outcomeUnknownCount++;
                 continue;
             }
@@ -1038,9 +1011,8 @@ internal sealed class TuiShell
             return ShowToastNow(BoardIdentity.NoIdentityMessage, ToastStyle.Warn);
         }
 
-        // A selected task becomes the new task's parent: creating unconditionally
-        // requires no selection (unlike edit, lifecycle, and the pickers), so no
-        // "no task selected" toast gates this on the active mode's selection.
+        // A selected task becomes the new task's parent. Creating requires
+        // no selection, unlike edit, lifecycle, and the pickers.
         _createForm = new TaskCreateForm(typePreset, ActiveMode.SelectedTaskId);
         return true;
     }
@@ -1084,17 +1056,13 @@ internal sealed class TuiShell
 
     /// <summary>
     /// Builds the footer's hint list for whichever context currently owns
-    /// key input, mirroring <see cref="HandleKey"/>'s own priority order so
-    /// the footer can never show a hint the active input context would not
-    /// actually honor. The fully modal overlays (the quit confirmation, the
-    /// discard confirmation, the task editor, the lifecycle confirmation,
-    /// the quick pickers, and the task create form) show only their own
-    /// hints, since they consume every key themselves; the search mode's
-    /// query input is treated the same way while it has focus, since
-    /// <see cref="SearchMode.HandleQueryKey"/> swallows every key that is
-    /// not one of its own bindings into the query rather than falling
-    /// through to the global table. Every other context's hints are
-    /// followed by the global table's, with quit last.
+    /// key input, mirroring <see cref="HandleKey"/>'s own priority order.
+    /// The fully modal overlays (the quit confirmation, the discard
+    /// confirmation, the task editor, the lifecycle confirmation, the quick
+    /// pickers, and the task create form) show only their own hints; the
+    /// search mode's query input is treated the same way while it has
+    /// focus. Every other context's hints are followed by the global
+    /// table's, with quit last.
     /// </summary>
     private IReadOnlyList<KeyHint> BuildFooterHints()
     {
@@ -1137,17 +1105,15 @@ internal sealed class TuiShell
             return [SearchMode.TypingHint, .. contextHints, SearchMode.EnterHint];
         }
 
-        // A mode capturing raw key input (see HandleKey) swallows every key
-        // into its own overlay the same way the search query input does
-        // above, so the footer must show only that overlay's own hints too.
+        // A mode capturing raw key input (see HandleKey) shows only its own
+        // hints, the same way the search query input does above.
         if (ActiveMode is IRawKeyCapturingMode { IsInputCapturing: true } capturingMode)
         {
             return capturingMode.CapturingHints;
         }
 
-        // Without an identity every task write is refused, so the chord
-        // must not be advertised, the same way a read-only mail mailbox
-        // hides its own.
+        // Without an identity every task write is refused, so the edit
+        // chord is hidden.
         var suppressed = _actor is null
             ? [.. ActiveMode.SuppressedGlobalHints, new KeyHint("e", "edit")]
             : ActiveMode.SuppressedGlobalHints;
@@ -1161,12 +1127,10 @@ internal sealed class TuiShell
     /// identity (when <paramref name="actor"/> is given) as the footer's single
     /// status-row line: the hints on the left as <see cref="FormatFooterHints"/>
     /// lays them out, the badge and identity right-aligned to the row's right
-    /// edge, badge first, so they stand out from the key and action styles. This
-    /// trailing segment never steals width the hints would otherwise use: it is
-    /// fit into whatever room is left over after the hints are laid out. The
-    /// badge is fixed-width and shown whole or not at all; the identity is
-    /// truncated with a trailing ellipsis (or omitted entirely on widths too
-    /// narrow for even that) rather than shrinking the hints further.
+    /// edge, badge first. This trailing segment is fit into whatever room is
+    /// left over after the hints are laid out. The badge is fixed-width and
+    /// shown whole or not at all; the identity is truncated with a trailing
+    /// ellipsis, or omitted entirely on widths too narrow for even that.
     /// </summary>
     private static string FormatFooter(
         IReadOnlyList<KeyHint> hints, int width, string? actor, MailWakeDaemonState? mailWakeDaemonState)

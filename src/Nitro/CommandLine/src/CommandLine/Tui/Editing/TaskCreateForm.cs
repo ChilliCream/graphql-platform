@@ -46,9 +46,7 @@ internal sealed class TaskCreateForm
 
     /// <summary>
     /// The footer hints for the task create form: its keys are consumed
-    /// entirely while it is active, so no global hints follow. The create
-    /// hint advertises Ctrl+S rather than Ctrl+Enter because it is the chord
-    /// reliably distinguishable from a plain Enter across terminals.
+    /// entirely while it is active, so no global hints follow.
     /// </summary>
     public static readonly IReadOnlyList<KeyHint> Hints =
     [
@@ -109,9 +107,7 @@ internal sealed class TaskCreateForm
             initialSelectedId: typePreset);
 
         // A selected board row becomes the new task's parent by default, but
-        // this field lets the user clear it and create a root task instead:
-        // without it, a populated board column (which always has a
-        // selection) could never create a top-level task from the board.
+        // this field lets the user clear it and create a root task instead.
         _parentField = parentId is null
             ? null
             : new SelectField(

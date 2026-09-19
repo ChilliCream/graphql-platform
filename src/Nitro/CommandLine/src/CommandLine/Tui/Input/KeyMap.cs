@@ -79,15 +79,8 @@ internal sealed class KeyMap
     /// Escape to leave the active mode.
     /// </summary>
     /// <remarks>
-    /// Only a curated subset carries a <see cref="KeyBinding.Hint"/>, so the
-    /// footer stays a short-help bar rather than a full binding dump: the four
-    /// direction keys collapse into one <c>hjkl move</c> hint (their arrow-key
-    /// equivalents stay unhinted), and the rarer or currently inert gestures
-    /// (g/G, /, t, x, X, s, p, c, C, Ctrl+C, and Ctrl+N/P, which cycles
-    /// between views but has nothing to cycle to until a second board view
-    /// exists) stay hidden from the footer while remaining fully bound. Quit's
-    /// binding is declared last so it is also the last global hint, per the
-    /// footer's display order.
+    /// Ctrl+N/Ctrl+P cycles between views but currently has nothing to cycle
+    /// to until a second board view exists.
     /// </remarks>
     public static KeyMap CreateDefaultGlobal() => new(
     [

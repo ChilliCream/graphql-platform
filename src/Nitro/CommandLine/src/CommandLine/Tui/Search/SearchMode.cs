@@ -11,19 +11,14 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Search;
 /// <summary>
 /// The search mode: a query input line, a live-updating results list, and a
 /// detail panel for the selected task, with focus switching between the
-/// three. Queries the store through <see cref="TaskQueryParser"/> and
-/// <see cref="TaskQuery.ToFilter"/>; issues no SQL of its own.
+/// three.
 /// </summary>
 /// <remarks>
-/// Text typed into the query input and the debounce that follows it are not
-/// reachable through <see cref="ITuiMode.Handle"/>: the shell's key dispatch
-/// only ever produces the closed <see cref="TuiMessage"/> set from a
-/// <see cref="Input.KeyMap"/>. <see cref="HandleQueryKey"/> and
-/// <see cref="TickAsync"/> expose that behavior directly for the shell to
-/// drive: raw key input while <see cref="Focus"/> is <see cref="SearchFocus.Input"/>,
-/// and every tick, respectively. <see cref="FocusInput"/> is likewise driven
-/// directly by the shell for the '/' gesture, since jumping into search from
-/// another mode has no equivalent in the closed <see cref="TuiMessage"/> set.
+/// <see cref="HandleQueryKey"/> and <see cref="TickAsync"/> are driven
+/// directly by the shell: raw key input while <see cref="Focus"/> is
+/// <see cref="SearchFocus.Input"/>, and every tick, respectively.
+/// <see cref="FocusInput"/> is likewise driven directly by the shell for
+/// the '/' gesture.
 /// </remarks>
 internal sealed class SearchMode : ITuiMode
 {
@@ -127,8 +122,7 @@ internal sealed class SearchMode : ITuiMode
         {
             case TuiMessage.RefreshRequested:
                 // Re-runs the last applied query for display on the next tick,
-                // without touching a not-yet-due pending edit: an external
-                // write must not discard text the user is still typing.
+                // without touching a not-yet-due pending edit.
                 _refreshRequested = true;
                 return [];
 

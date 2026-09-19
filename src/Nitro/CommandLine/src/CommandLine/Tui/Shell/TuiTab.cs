@@ -6,8 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Shell;
 /// One tab hosted by a tabbed <see cref="TuiShell"/>: a root mode, its own
 /// navigation stack, and its own <see cref="KeyDispatcher"/>. Switching tabs
 /// preserves each tab's nested mode state and selection independently, and
-/// <see cref="TuiMessage.Back"/> never crosses tabs since the mode stack it
-/// pops belongs to whichever tab is active.
+/// <see cref="TuiMessage.Back"/> never crosses tabs.
 /// </summary>
 internal sealed class TuiTab
 {
@@ -39,9 +38,7 @@ internal sealed class TuiTab
     /// The letter this tab jumps to on <c>Shift+&lt;letter&gt;</c> (see
     /// <see cref="TuiShell"/>'s mnemonic resolution), and the letter
     /// bracketed in the tab strip's rendering of <see cref="Title"/>. Given
-    /// explicitly rather than derived from <see cref="Title"/> so a live
-    /// title (for example the Mail tab's unread badge suffix) never shifts
-    /// which letter is the mnemonic.
+    /// explicitly rather than derived from <see cref="Title"/>.
     /// </summary>
     public char Mnemonic { get; }
 
@@ -53,8 +50,7 @@ internal sealed class TuiTab
 
     /// <summary>
     /// This tab's own key dispatcher: its global key table is checked only
-    /// while this tab is active, so tabs never leak key bindings into one
-    /// another.
+    /// while this tab is active.
     /// </summary>
     public KeyDispatcher Dispatcher { get; }
 

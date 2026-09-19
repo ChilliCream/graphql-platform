@@ -14,17 +14,15 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Tree;
 /// refocus the tree on any node while remembering the path back.
 /// </summary>
 /// <remarks>
-/// Enter and f both refocus the tree on the cursor node, and Enter is
-/// already reachable through the global key table via
-/// <see cref="TuiMessage.OpenSelected"/>; <see cref="KeyMap"/> maps f to the
-/// same message. m toggles the edge mode, d toggles the direction, and u
-/// pops the breadcrumb stack, via <see cref="TuiMessage.ToggleTreeEdgeMode"/>,
+/// Enter and f both refocus the tree on the cursor node: Enter through the
+/// global key table via <see cref="TuiMessage.OpenSelected"/>, and
+/// <see cref="KeyMap"/> maps f to the same message. m toggles the edge
+/// mode, d toggles the direction, and u pops the breadcrumb stack, via
+/// <see cref="TuiMessage.ToggleTreeEdgeMode"/>,
 /// <see cref="TuiMessage.ToggleTreeDirection"/>, and
-/// <see cref="TuiMessage.NavigateTreeBack"/>. Entering the tree on a task
-/// selected in another mode, and leaving it, are shell-level concerns: the
-/// shell drives <see cref="EnterOnTask"/> directly the same way
-/// <c>SearchMode.HandleQueryKey</c> is driven directly for gestures outside
-/// the closed <see cref="TuiMessage"/> set.
+/// <see cref="TuiMessage.NavigateTreeBack"/>. The shell drives
+/// <see cref="EnterOnTask"/> directly when entering the tree on a task
+/// selected in another mode.
 /// </remarks>
 internal sealed class DependencyTreeView : ITuiMode
 {
@@ -294,11 +292,9 @@ internal sealed class DependencyTreeView : ITuiMode
 
     /// <summary>
     /// Builds the panel header: the breadcrumb of ids the tree has been
-    /// refocused through, followed by the edge mode and direction. Degrades
-    /// deterministically as <paramref name="maxWidth"/> shrinks, middle-
-    /// truncating the id chain first and, if that alone still does not fit,
-    /// dropping the edge mode and then the direction, so the header never
-    /// depends on the panel's own ellipsis truncation.
+    /// refocused through, followed by the edge mode and direction. As
+    /// <paramref name="maxWidth"/> shrinks, the id chain is middle-truncated
+    /// first, then the edge mode is dropped, then the direction.
     /// </summary>
     private string BuildTitle(int maxWidth)
     {
