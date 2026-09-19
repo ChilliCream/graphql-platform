@@ -72,8 +72,7 @@ public sealed class TaskDetailViewTests
             "t-1", notes: string.Join('\n', Enumerable.Range(1, 30).Select(i => $"line {i}")));
         var view = await CreateViewAsync(store, "t-1");
 
-        // act: an initial render establishes the viewport's window height and
-        // total line count, which scrolling depends on.
+        // act: an initial render establishes the viewport height/line count that scrolling depends on.
         RenderToText(view, width: 110, height: 10);
 
         for (var i = 0; i < 10; i++)
@@ -90,8 +89,7 @@ public sealed class TaskDetailViewTests
     [Fact]
     public async Task Render_Should_KeepSelectedRow_Visible_When_CursorMovesPastTheViewport()
     {
-        // arrange: ten dependency rows in a body panel too short to show them all
-        // at once.
+        // arrange: ten dependency rows in a body panel too short to show them all at once.
         var store = new FakeTaskStore();
         store.Tasks["t-1"] = TaskItemBuilder.Create("t-1");
         store.Dependencies["t-1"] = Enumerable.Range(0, 10)
@@ -114,8 +112,7 @@ public sealed class TaskDetailViewTests
 
         var text = RenderToText(view, width: 110, height: 10, focused: true);
 
-        // assert: the now-selected last row scrolled into view, and the
-        // viewport reports rows hidden above it.
+        // assert: the now-selected last row scrolled into view; the viewport reports rows hidden above it.
         Assert.Contains("d-9", text);
         Assert.Contains("more above", text);
     }
@@ -123,10 +120,7 @@ public sealed class TaskDetailViewTests
     [Fact]
     public async Task Render_Should_KeepScrollOffset_When_TaskHasDependencyRows_And_BodyScrolledToBottom()
     {
-        // arrange: a task with a dependency row (which claims a fixed,
-        // unmoving selected-row line index) and enough notes and comment
-        // lines that the body overflows a short viewport, with content after
-        // the dependency row so scrolling past it is observable.
+        // arrange: a dependency row (fixed selected-row line) plus enough notes/comments to overflow the viewport.
         var store = new FakeTaskStore();
         store.Tasks["t-1"] = TaskItemBuilder.Create(
             "t-1", notes: string.Join('\n', Enumerable.Range(1, 30).Select(i => $"line {i}")));
@@ -153,13 +147,11 @@ public sealed class TaskDetailViewTests
         var view = await CreateViewAsync(store, "t-1");
         RenderToText(view, width: 110, height: 10);
 
-        // act: scroll all the way to the bottom, past the dependency row's
-        // fixed line index, then render again.
+        // act: scroll to the bottom, past the dependency row's fixed line index, then render again.
         view.ScrollToBottom();
         var text = RenderToText(view, width: 110, height: 10);
 
-        // assert: the bottom of the body stays in view instead of snapping
-        // back up to the dependency row.
+        // assert: the bottom of the body stays in view instead of snapping back to the dependency row.
         Assert.Contains("comment 5", text);
         Assert.Contains("more above", text);
     }
@@ -167,10 +159,7 @@ public sealed class TaskDetailViewTests
     [Fact]
     public async Task Render_Should_NotClipLastSidebarGroup_When_StackedAndAFieldWraps()
     {
-        // arrange: a stacked-layout width narrow enough that "Created:
-        // 2026-01-01 09:00 by e2e-agent" wraps to two rows in the sidebar
-        // panel, with a "Blocked by" group after it whose fixed panel Height
-        // must grow to account for that wrap instead of clipping the group.
+        // arrange: a width narrow enough the Created line wraps, so the Blocked by panel below must grow, not clip.
         var store = new FakeTaskStore();
         store.Tasks["t-1"] = TaskItemBuilder.Create(
             "t-1", createdAt: DateTimeOffset.UnixEpoch, createdBy: "e2e-agent");
