@@ -3,9 +3,9 @@ using System.Runtime.CompilerServices;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Locates the Codex hook payload fixtures under
-/// <c>test/fixtures/hooks/codex/</c>, sibling to the <c>CommandLine.Tests</c> project
-/// directory. Mirrors <see cref="HookFixtures"/>'s resolution-by-source-path.
+/// Reads captured Codex hook payload fixtures from <c>test/fixtures/hooks/codex/</c>, resolved
+/// relative to this file's own source path so it works regardless of the test run's working
+/// directory.
 /// </summary>
 internal static class CodexHookFixtures
 {
@@ -19,11 +19,8 @@ internal static class CodexHookFixtures
 }
 
 /// <summary>
-/// Locates the golden <c>hooks.json</c> "before" fixtures for
-/// <c>hooks codex install/status/uninstall</c> under
-/// <c>test/fixtures/hooks/codex/install/</c> and
-/// <c>test/fixtures/hooks/codex/uninstall/</c>, and the <c>config.toml</c>
-/// notify fixtures under <c>test/fixtures/hooks/codex/config-toml/</c>.
+/// Reads golden <c>hooks.json</c> "before" fixtures for <c>hooks codex install/status/uninstall</c>
+/// and <c>config.toml</c> notify fixtures from <c>test/fixtures/hooks/codex/&lt;category&gt;/</c>.
 /// </summary>
 internal static class CodexHooksInstallFixtures
 {

@@ -3,13 +3,9 @@ using System.Runtime.CompilerServices;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Locates the golden <c>settings.json</c> "before" fixtures for
-/// <c>hooks install/status/uninstall</c> under
-/// <c>test/fixtures/hooks/claude/install/</c> and
-/// <c>test/fixtures/hooks/claude/uninstall/</c>, sibling to the
-/// <c>CommandLine.Tests</c> project directory. Mirrors
-/// <c>HookFixtures</c>'s resolution-by-source-path so tests work regardless
-/// of the run's working directory.
+/// Reads golden <c>settings.json</c> "before" fixtures for <c>hooks install/status/uninstall</c>
+/// from <c>test/fixtures/hooks/claude/&lt;category&gt;/</c>, resolved relative to this file's
+/// own source path so it works regardless of the test run's working directory.
 /// </summary>
 internal static class ClaudeHooksInstallFixtures
 {
