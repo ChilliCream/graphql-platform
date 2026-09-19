@@ -65,9 +65,8 @@ internal sealed class SendMailCommand : Command
             },
             cancellationToken);
 
-        // Strictly post-commit: the message is durably written above. The
-        // nudge only wakes recipients that have a live session; everyone
-        // else sees it when they pull, so it can never fail this command.
+        // Posted after the message durably commits; a failed nudge does
+        // not fail this command.
         await nudge.NudgeAsync(
             [.. message.Recipients.Select(recipient => recipient.Name)], cancellationToken);
 

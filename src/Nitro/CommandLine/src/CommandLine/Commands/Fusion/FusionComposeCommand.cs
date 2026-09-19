@@ -282,9 +282,7 @@ internal sealed class FusionComposeCommand : Command
             return initialResult;
         }
 
-        // use a bounded channel to queue composition requests
-        // when already a composition is running we enqueue a new message ...
-        // a single message which will trigger a new composition after the current one has completed.
+        // Queues at most one pending composition request while one is running.
         var compositionChannel = Channel.CreateBounded<string>(
             new BoundedChannelOptions(1)
             {
@@ -755,8 +753,8 @@ internal sealed class FusionComposeCommand : Command
     }
 
     /// <summary>
-    /// Since we're prefixing the message with an emoji and space before printing,
-    /// we need to also indent each line of a multiline message by three spaces to fix the alignment.
+    /// Indents every line after the first by three spaces, aligning it under
+    /// the emoji-prefixed first line.
     /// </summary>
     private static string FormatMultilineMessage(string message)
     {

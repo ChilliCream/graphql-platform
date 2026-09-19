@@ -23,9 +23,8 @@ internal sealed class SaveMemoryCommand : Command
 
         MemoryBody.AddValidator(this);
 
-        // --type has no sensible default (unlike a task's type), so it is
-        // required here even though the shared option instance also serves
-        // `update`, where it is optional.
+        // --type is required here; the shared option instance is optional
+        // on `update`.
         Validators.Add(result =>
         {
             if (result.GetResult(Opt<MemoryTypeOption>.Instance) is not { Implicit: false })

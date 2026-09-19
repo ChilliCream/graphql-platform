@@ -35,9 +35,7 @@ internal sealed class ForgetMemoryCommand : Command
         var id = parseResult.GetRequiredValue(Opt<MemoryIdArgument>.Instance);
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
 
-        // Existence is checked up front, before the confirmation prompt, so
-        // a nonexistent memory fails immediately instead of asking to
-        // confirm it.
+        // Existence is checked up front, before the confirmation prompt.
         await store.GetRequiredAsync(id, cancellationToken);
 
         if (!force)

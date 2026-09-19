@@ -77,9 +77,8 @@ internal sealed class BroadcastMailCommand : Command
             },
             cancellationToken);
 
-        // Strictly post-commit: the message is durably written above. The
-        // nudge only wakes recipients that have a live session; everyone
-        // else sees it when they pull, so it can never fail this command.
+        // Posted after the message durably commits; a failed nudge does
+        // not fail this command.
         await nudge.NudgeAsync(
             [.. message.Recipients.Select(recipient => recipient.Name)], cancellationToken);
 
@@ -99,9 +98,7 @@ internal sealed class BroadcastMailCommand : Command
 
     /// <summary>
     /// Returns the normalized names of every non-implicit registered agent
-    /// except <paramref name="excludingActor"/>. A broadcast with no role
-    /// filter reaches every registered mailbox regardless of whether any of
-    /// its sessions are currently live.
+    /// except <paramref name="excludingActor"/>.
     /// </summary>
     private static async Task<IReadOnlyList<string>> ResolveEveryRegisteredAgentAsync(
         IAgentRegistry registry, string excludingActor, CancellationToken cancellationToken)

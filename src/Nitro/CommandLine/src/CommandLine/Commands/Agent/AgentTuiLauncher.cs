@@ -25,8 +25,7 @@ internal static class AgentTuiLauncher
 
     /// <summary>
     /// Runs the TUI and owns its mail wake daemon. The board is an
-    /// observer: it never takes an actor, so it registers no session and
-    /// refuses every write.
+    /// observer: it takes no actor and refuses every write.
     /// </summary>
     public static Task<int> RunAsync(
         INitroConsole console,
@@ -159,9 +158,9 @@ internal static class AgentTuiLauncher
     }
 
     /// <summary>
-    /// Builds the Mail tab with no actor, so it opens on the workspace-wide
+    /// Builds the Mail tab with no actor: it opens on the workspace-wide
     /// mailbox and refuses every write. Wake dispatch belongs to the shared
-    /// daemon; the tab enqueues work and observes its result.
+    /// daemon; the tab enqueues work and observes the result.
     /// </summary>
     internal static TuiTab BuildMailTab(
         IMailStore mailStore,

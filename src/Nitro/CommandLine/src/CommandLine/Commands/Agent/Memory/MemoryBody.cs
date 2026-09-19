@@ -5,13 +5,12 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Memory;
 
 /// <summary>
 /// Shared parsing and resolution of the text argument / <c>--file</c> pair
-/// used by <c>save</c>, mirroring <c>MailBody</c>.
+/// used by <c>save</c>.
 /// </summary>
 internal static class MemoryBody
 {
     /// <summary>
-    /// Adds a parse-time validator that requires exactly one of the text
-    /// argument or <c>--file</c>.
+    /// Requires exactly one of the text argument or <c>--file</c>.
     /// </summary>
     public static void AddValidator(Command command)
     {
@@ -32,7 +31,7 @@ internal static class MemoryBody
 
     /// <summary>
     /// Resolves the memory text from the positional argument or, when
-    /// given, verbatim from the file named by <c>--file</c>. Throws
+    /// given, from the file named by <c>--file</c>. Throws
     /// <see cref="ExitException"/> when the resolved text is empty.
     /// </summary>
     public static async Task<string> ResolveAsync(
@@ -59,9 +58,8 @@ internal static class MemoryBody
 
     /// <summary>
     /// Reads a file's content, resolving a relative path against the
-    /// current directory. Line endings are normalized to LF and leading
-    /// blank lines are dropped. Throws <see cref="ExitException"/> when the
-    /// file does not exist or is empty.
+    /// current directory. Throws <see cref="ExitException"/> when the file
+    /// does not exist or is empty.
     /// </summary>
     public static async Task<string> ReadFileAsync(
         IFileSystem fileSystem,
