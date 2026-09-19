@@ -1875,7 +1875,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     public async Task WithSourceSchemaFile_LocalLegacyArchive_ExistingRequestId_ReusesSlotAndSkipsClaim()
     {
         // arrange
-        // A cached request ID from a prior begin/start run, publish reuses it and skips the slot and claim mutations.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaFile();
         SetupStageCompositionSettings();
@@ -1942,7 +1941,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     public async Task WithSourceSchemaFile_NoLegacyArchive_ExistingRequestId_IgnoredAndRequestsNewSlot()
     {
         // arrange
-        // Without --legacy-v1-archive the cached request ID is ignored, publish requests a new deployment slot.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaFile();
         SetupStageCompositionSettings();
@@ -3481,7 +3479,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     public async Task WithSourceSchema_LocalLegacyArchive_ExistingRequestId_ReusesSlotAndSkipsClaim()
     {
         // arrange
-        // A cached request ID from a prior begin/start run, publish reuses it and skips the slot and claim mutations.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaDownload();
         SetupStageCompositionSettings();
@@ -3550,7 +3547,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     public async Task WithSourceSchema_NoLegacyArchive_ExistingRequestId_IgnoredAndRequestsNewSlot()
     {
         // arrange
-        // Without --legacy-v1-archive the cached request ID is ignored, publish requests a new deployment slot.
         SetupFusionPublishingStateCache(RequestId);
         SetupSourceSchemaDownload();
         SetupStageCompositionSettings();

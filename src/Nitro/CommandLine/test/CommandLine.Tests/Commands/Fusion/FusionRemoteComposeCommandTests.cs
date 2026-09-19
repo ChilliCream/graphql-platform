@@ -1093,7 +1093,7 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
 
     private static CancellationTokenSource CreateWatchCancellationTokenSource()
     {
-        // Generous on purpose, these tests race the production debounce, settle delay, and watcher dispatch latency.
+        // Cancel the watch test after 30 seconds or when the test token is cancelled.
         var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
             TestContext.Current.CancellationToken);
         cancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(30));
