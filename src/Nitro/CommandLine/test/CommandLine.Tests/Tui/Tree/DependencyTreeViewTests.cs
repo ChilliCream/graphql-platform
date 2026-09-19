@@ -391,13 +391,7 @@ public sealed class DependencyTreeViewTests
     [InlineData(10, "aaa… z")]
     public void Render_Should_DegradeBreadcrumbHeader_When_PanelIsNarrow(int width, string expectedHeader)
     {
-        // arrange: a two-id breadcrumb (a pushed root plus the current root)
-        // wide enough on its own to overflow the panel at the narrower
-        // widths below. The sole visible row (the tree has no edges once
-        // refocused on "z") carries a long title so the panel's own,
-        // content-driven width never becomes the binding constraint on the
-        // header budget at any of the widths under test, matching the
-        // pre-refactor header sizing exactly.
+        // arrange: a long breadcrumb overflows the panel, the long title row keeps the panel width from binding
         var longRootId = new string('a', 30);
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create(longRootId));
@@ -414,27 +408,14 @@ public sealed class DependencyTreeViewTests
         var console = new TestConsole().Width(120);
         console.Write(panel);
 
-        // assert: the header degrades deterministically (middle-truncating
-        // the id chain, then dropping the edge mode, then the direction)
-        // instead of being cut wherever Spectre's own panel-header ellipsis
-        // lands. Asserted against the rendered top border line rather than
-        // panel.Header.Text, since Spectre may still re-truncate a header
-        // that does not fit the panel's actual (content-driven) width.
+        // assert: the header degrades deterministically (id chain, edge mode, direction), not via Spectre's ellipsis
         Assert.Contains(expectedHeader, console.Lines[0]);
     }
 
     [Fact]
     public void Render_Should_TruncateHeaderToPanelWidth_When_ContentRowsAreNarrowerThanHeader()
     {
-        // arrange: a two-id breadcrumb (53 chars
-        // fully expanded: "acme-epic1 > acme-epic1.1 · blocking · depended
-        // on by"), but the only visible row after refocusing is the short,
-        // untitled "acme-epic1.1" node itself, so the panel's actual
-        // (content-driven) width is only 36 columns, well under the full
-        // header. The header must degrade to fit that panel width via this
-        // view's own deterministic middle-truncation, not via Spectre's
-        // PanelHeader ellipsis, which would otherwise cut it mid-word before
-        // " by".
+        // arrange: the visible row is short, so the panel's width is 36 columns, forcing the header to self-truncate
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("acme-epic1"));
         store.Tasks.Add(TaskItemBuilder.Create("acme-epic1.1"));
