@@ -240,8 +240,7 @@ public sealed class MemoryStoreTests : MemoryTestBase
     [Fact]
     public async Task SearchCuratedAsync_Should_SeeAnUpdatedBody()
     {
-        // arrange: the schema's triggers keep the index in step, so there is
-        // no rebuild step between the write and the search that finds it.
+        // arrange: the schema's triggers keep the index in step, so no rebuild is needed before searching.
         var cancellationToken = TestContext.Current.CancellationToken;
         var saved = await SaveAsync("Original wording.");
 
@@ -314,9 +313,7 @@ public sealed class MemoryStoreTests : MemoryTestBase
     [Fact]
     public async Task PromoteAsync_Should_ReturnTheFirstOutcome_When_PromotedTwice()
     {
-        // arrange: the unique promoted_from index makes the second promote
-        // affect no rows, so it reports what the first one produced rather
-        // than duplicating or failing.
+        // arrange: the unique promoted_from index makes the second promote affect no rows.
         var cancellationToken = TestContext.Current.CancellationToken;
         var entry = await LogAsync("Investigated the flaky test.");
         var first = await _store.PromoteAsync(entry.Id, "decision", ["flaky"], cancellationToken);

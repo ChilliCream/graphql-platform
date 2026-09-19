@@ -48,8 +48,7 @@ public sealed class AgentWorkspaceMemoryTests : MemoryTestBase
     [Fact]
     public void FindMemory_Should_ReturnDirectory_When_OnlyCuratedMarkdownExistsWithNoDatabase()
     {
-        // arrange: a fresh clone of a repository that committed curated
-        // memory but has not run `agent init` (or `sync`) yet.
+        // arrange: a repository clone with committed curated memory but no `agent init` (or `sync`) run yet.
         Directory.CreateDirectory(CuratedDirectory);
         File.WriteAllText(Path.Combine(CuratedDirectory, "01hqzxk8xdtd3fk3f0z7c5g8vm.md"), "---\n---\n");
 

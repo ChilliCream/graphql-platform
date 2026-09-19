@@ -63,9 +63,7 @@ public sealed class MemoryContextBudgetTests
     [Fact]
     public void Select_Should_StopBeforeExceedingMaxChars_RatherThanSkippingToASmallerLaterEntry()
     {
-        // arrange: the second entry's rendering alone would fit, but it is
-        // never considered because the algorithm stops at the first entry
-        // that would exceed the budget rather than skipping ahead.
+        // arrange: the second entry alone would fit, but the algorithm stops at the first that exceeds the budget.
         var first = CreateRecord("mem-01", new string('a', 40));
         var second = CreateRecord("mem-02", "x");
         var candidates = new[] { first, second };

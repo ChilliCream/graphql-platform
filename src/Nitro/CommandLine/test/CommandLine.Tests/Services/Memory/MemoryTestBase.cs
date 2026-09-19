@@ -24,17 +24,12 @@ public abstract class MemoryTestBase : IDisposable
 
     protected string WorkingDirectory { get; }
 
-    // private protected, not protected: TestFileSystem is internal, and a
-    // protected member of this public base could otherwise be reached from
-    // a derived class outside the assembly, which could not see that type.
     private protected TestFileSystem FileSystem { get; }
 
     protected FakeTimeProvider TimeProvider { get; }
 
     protected string WorkspaceDirectory => AgentWorkspace.GetDirectory(WorkingDirectory);
 
-    // The markdown layout the v11 import still reads from, and the only
-    // thing AgentWorkspace's memory path helpers are used for now.
     protected string MemoryDirectory => AgentWorkspace.GetMemoryDirectory(WorkspaceDirectory);
 
     protected string CuratedDirectory => AgentWorkspace.GetMemoryCuratedDirectory(MemoryDirectory);

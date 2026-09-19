@@ -42,9 +42,7 @@ public sealed class AtomicFileSystemTests : MemoryTestBase
         await Assert.ThrowsAsync<IOException>(
             () => FileSystem.CreateFileAtomicAsync(path, "conflicting", cancellationToken));
 
-        // assert
-        // The no-clobber contract: a losing create leaves the winner's
-        // content in place, never a partial or overwritten file.
+        // assert: a losing create leaves the winner's content in place, never a partial or overwritten file.
         Assert.Equal("original", await File.ReadAllTextAsync(path, cancellationToken));
     }
 
@@ -61,9 +59,7 @@ public sealed class AtomicFileSystemTests : MemoryTestBase
         await Assert.ThrowsAsync<IOException>(
             () => FileSystem.CreateFileAtomicAsync(path, "conflicting", cancellationToken));
 
-        // assert
-        // A losing create must clean up its own temp file rather than
-        // abandoning it in the destination directory.
+        // assert: a losing create must clean up its own temp file rather than abandoning it.
         Assert.Equal(["note.md"], Directory.GetFiles(WorkingDirectory).Select(Path.GetFileName));
     }
 
@@ -111,10 +107,7 @@ public sealed class AtomicFileSystemTests : MemoryTestBase
         // act
         await FileSystem.ReplaceFileAtomicAsync(path, "updated", cancellationToken);
 
-        // assert
-        // The temp file used to stage the write is always in the
-        // destination's own directory, and a successful move leaves none
-        // of it behind.
+        // assert: the staging temp file lives in the destination directory and a successful move leaves none behind.
         Assert.Equal(["note.md"], Directory.GetFiles(WorkingDirectory).Select(Path.GetFileName));
     }
 
@@ -145,9 +138,7 @@ public sealed class AtomicFileSystemTests : MemoryTestBase
         // act
         FileSystem.CleanupAbandonedTempFiles(WorkingDirectory, TimeSpan.FromHours(1));
 
-        // assert
-        // A recent temp file might belong to a write still in flight, so
-        // cleanup must not touch it.
+        // assert: a recent temp file might belong to a write still in flight, so cleanup must not touch it.
         Assert.True(File.Exists(inFlightTempPath));
     }
 
