@@ -128,8 +128,30 @@ interface ColumnRowSpec {
   readonly rimRadiusBottom: number;
   readonly ySpanTop: number;
   readonly ySpanBottom: number;
-  readonly zSpread: number;
+  /** `z` at the top rim (`at = 1` on the `i > 0` side). */
+  readonly zSpreadTop: number;
+  /**
+   * `z` at the bottom rim (`at = 1` on the `i < 0` side) -- defaults to
+   * `zSpreadTop` for callers (mobile/stacked) whose top and bottom rim ARE
+   * the same wall edge row. `sideBySide`'s two rims are two independently
+   * chosen wall rows (checkpoint 1's substitution, comments 328-330) with
+   * different `z`, so the two sides need their own value: a single shared
+   * `zSpread` would land one rim off its own target `z` and reopen a kink
+   * at that rim.
+   */
+  readonly zSpreadBottom?: number;
   readonly spacingPower: number;
+  /**
+   * Rows per side, default `ROWS_PER_SIDE` (shared with the FROZEN wall
+   * builder). `sideBySide`'s column overrides this (checkpoint 2): its two
+   * rim points sit far more foreshortened than the wall's own edge row
+   * used to, so the same 9-per-side count cannot keep every adjacent
+   * pair's drawn tile height within 1.5x of its neighbour (verified
+   * empirically against the real projection, `test-results/dbg-spacing`,
+   * not checked in) -- more, smaller angular steps are needed purely for
+   * the column's own row placement, independent of the wall's.
+   */
+  readonly rowsPerSide?: number;
 }
 
 function buildColumnRows(spec: ColumnRowSpec): ChamberRow[] {
@@ -139,19 +161,22 @@ function buildColumnRows(spec: ColumnRowSpec): ChamberRow[] {
     rimRadiusBottom,
     ySpanTop,
     ySpanBottom,
-    zSpread,
+    zSpreadTop,
+    zSpreadBottom = zSpreadTop,
     spacingPower,
+    rowsPerSide = ROWS_PER_SIDE,
   } = spec;
   // r(rim) = rimRadiusTop/Bottom at y = +-ySpan, so k is solved per side
   // from that boundary condition rather than picked by hand.
   const kTop = (rimRadiusTop - waistRadius) / (ySpanTop * ySpanTop);
   const kBottom = (rimRadiusBottom - waistRadius) / (ySpanBottom * ySpanBottom);
   const rows: ChamberRow[] = [];
-  for (let i = -ROWS_PER_SIDE; i <= ROWS_PER_SIDE; i++) {
-    const t = i / ROWS_PER_SIDE;
+  for (let i = -rowsPerSide; i <= rowsPerSide; i++) {
+    const t = i / rowsPerSide;
     const at = Math.abs(t);
     const ySpan = i < 0 ? ySpanBottom : ySpanTop;
     const k = i < 0 ? kBottom : kTop;
+    const zSpread = i < 0 ? zSpreadBottom : zSpreadTop;
     const y = Math.sign(t) * Math.pow(at, spacingPower) * ySpan;
     const radius = waistRadius + k * y * y;
     // Same `z` formula as `buildTaperedRows` (`at * at * zSpread`), using
@@ -222,7 +247,7 @@ function solveFocalForRing(
  * (`ringWidthFrac`) rather than assuming the analytic and rendered widths
  * match.
  */
-const STACKED_RING_WIDTH_FRACTION = 0.64;
+const STACKED_RING_WIDTH_FRACTION = 0.67;
 /**
  * The target fed to `solveFocalForRing` for the ring's analytic height,
  * same caveat as `STACKED_RING_WIDTH_FRACTION` above: the rendered band
@@ -234,48 +259,75 @@ const STACKED_RING_WIDTH_FRACTION = 0.64;
 const STACKED_BAND_FIT = 0.65;
 
 /**
- * `mobile` and `stacked` share one wall edge row (`MOBILE_WALL_*`, also fed
- * to `buildTaperedRows` for `wallRows` in both branches below) AND one
- * column row profile: the column's own waist (`MOBILE_COLUMN_WAIST`) and
- * its rims are that SAME wall edge row -- same y, z and radius as the
- * wall's innermost ceiling/floor ring, per `buildColumnRows`'s own doc --
- * so the column literally continues the wall's taper down to the waist
- * instead of capping it with an unrelated, independently-sized cylinder.
- * `stacked`'s own camera keeps the same `dist`/`tiltDeg` as `mobile` and
- * only solves a different `focal`, so the same row profile carries over.
+ * `mobile`'s and `stacked`'s WALL is FROZEN at its pre-ticket values
+ * (checkpoint 3, ruling 329/330 -- only the mobile/stacked COLLAR relation
+ * and the column's own construction change): `buildTaperedRows(650, 400,
+ * 900, 0, 1.6)`, restored exactly after an earlier cycle had shrunk
+ * `ySpread` to 440 to dodge a near-camera depth singularity that no longer
+ * applies (see `COLUMN_BAND_*` below) -- `buildChamberTiles` already culls
+ * any individual tile that touches it (`depth <= 1`), the wall painted
+ * fine at 900 before, and the column's own silhouette no longer walks this
+ * row at all (it is built from the column's own drawn tiles, `paint.ts`'s
+ * `buildColumnSilhouette`).
  */
-const MOBILE_COLUMN_WAIST = 36;
 const MOBILE_WALL_WAIST_RADIUS = 650;
 const MOBILE_WALL_EDGE_RADIUS = 400;
-// Down from the pre-ticket 900: `mobile`'s (and `stacked`'s, same `dist`)
-// camera has `dist = 160`, and `project`'s own `depth = y*sinTilt + dist`
-// (tilt 10deg, `z = 0` throughout this branch) lands at just 3.7 world
-// units at `y = -900` -- effectively AT the camera plane, so `project`'s
-// `Math.max(depth, 1)` clamp sends `scale` to a huge, near-singular value.
-// `buildChamberTiles` quietly culls any tile touching that (its own
-// `depth <= 1` check), so the pre-ticket WALL likely never actually drew
-// much there; but `buildColumnSilhouette`'s envelope has no such culling
-// (`project` never errors, only clamps), so sharing this row as the
-// column's own rim (checkpoint 1) turned that latent singularity into a
-// huge, black, rectangular envelope -- the reported "boxy rectangle"
-// under the mobile/stacked ring. 440 keeps depth well clear (83.6 world
-// units at the bottom rim, `probe-mobile-depth.cjs`, not checked in) at
-// both `mobile`'s and `stacked`'s shared `dist`/`tiltDeg`.
-const MOBILE_WALL_Y_SPREAD = 440;
+const MOBILE_WALL_Y_SPREAD = 900;
 const MOBILE_WALL_Z_SPREAD = 0;
 const MOBILE_WALL_POWER = 1.6;
 
 /**
- * `a` kept at the pre-ticket tube thickness; `R` solved so `R - a` equals
- * the column's own waist radius exactly (`MOBILE_COLUMN_WAIST` above) --
- * the collar ring's inner edge then sits exactly on the waist, gap 0,
- * well inside the user ruling's "at most 0.05 R" (D(1)). `dist`/`tiltDeg`
- * stay the mobile construction's own values, keeping the same "inside the
- * vessel" perspective.
+ * The column's own band-sized hourglass (checkpoint 3, ruling 329/330):
+ * fully independent of the wall's rows -- its two rims are NOT the wall's
+ * own edge row here (unlike `sideBySide`'s substitution), they simply sit
+ * OFF canvas, so `rimRadiusTop`/`rimRadiusBottom` only have to stay small
+ * enough that the silhouette never balloons, never match a wall value.
+ *
+ * `rimRadius` <= 100 and `ySpan` chosen so the front arc (`theta = 3*PI/2`,
+ * `z = -radius` there since row `z` is 0 throughout this branch) never
+ * nears the camera's own `depth <= 1` singularity: `depth = y*sinTilt -
+ * radius*cosTilt + dist` (`dist = 160`, `tiltDeg = 10`) lands at 52.9-129.3
+ * world units at both rims with these values (`test-results/dbg-mobile-
+ * column`, not checked in) -- comfortably over the ticket's 40-unit floor,
+ * unlike the pre-ticket-shared wall row that caused checkpoint 1's "boxy
+ * rectangle".
+ *
+ * `spacingPower` 2 (steeper than the wall's own compression) packs rows
+ * tightly through the waist and lets them spread out approaching the
+ * (off-canvas) rims, landing the near-waist ROWS' own on-screen spacing in
+ * the same 30-54px range the mobile wall's own back-arc rows sit at
+ * (`test-results/rvv-geom.cjs`'s `wallRows`), instead of one wide gap
+ * either side of the band.
+ */
+const COLUMN_BAND_RIM_RADIUS = 70;
+const COLUMN_BAND_Y_SPAN = 220;
+const COLUMN_BAND_SPACING_POWER = 2;
+
+/**
+ * `a` kept at each mode's own pre-ticket tube thickness; `R` is the value
+ * that lands the RENDERED ring at the ticket's own width target (measured
+ * with `rvv-ring.cjs`, not assumed) -- the column's own waist then FOLLOWS
+ * `R - a` (gap 0, well inside D(1)'s "at most 0.05 R"), never the reverse
+ * (ruling 330: "NO pre-ticket R/a restore"). `mobile`'s camera has a fixed
+ * `focal` (unlike `stacked`'s, solved per band by `solveFocalForRing`), so
+ * `R` is the only free parameter that moves its rendered ring size.
+ */
+const MOBILE_TORUS_A = 8;
+const MOBILE_TORUS_R = 39;
+const MOBILE_COLUMN_WAIST = MOBILE_TORUS_R - MOBILE_TORUS_A;
+
+/**
+ * `stacked`'s own `focal` is solved per band (`solveFocalForRing`) to hit
+ * `STACKED_RING_WIDTH_FRACTION` regardless of `R` (the solve is scale-
+ * invariant in `R + a`), so `R` here only has to be a reasonable tube-to-
+ * column proportion, not itself search-tuned against the rendered width --
+ * kept near the ticket's own starting value.
  */
 const STACKED_TORUS_A = 5;
+const STACKED_TORUS_R = 44;
+const STACKED_COLUMN_WAIST = STACKED_TORUS_R - STACKED_TORUS_A;
 const STACKED_TORUS: TorusParams = {
-  R: MOBILE_COLUMN_WAIST + STACKED_TORUS_A,
+  R: STACKED_TORUS_R,
   a: STACKED_TORUS_A,
   y: 0,
   z: 0,
@@ -283,15 +335,15 @@ const STACKED_TORUS: TorusParams = {
 const STACKED_DIST = 160;
 const STACKED_TILT_DEG = 10;
 
-function buildMobileColumnRows(): ChamberRow[] {
+function buildBandColumnRows(waistRadius: number): ChamberRow[] {
   return buildColumnRows({
-    waistRadius: MOBILE_COLUMN_WAIST,
-    rimRadiusTop: MOBILE_WALL_EDGE_RADIUS,
-    rimRadiusBottom: MOBILE_WALL_EDGE_RADIUS,
-    ySpanTop: MOBILE_WALL_Y_SPREAD,
-    ySpanBottom: MOBILE_WALL_Y_SPREAD,
-    zSpread: MOBILE_WALL_Z_SPREAD,
-    spacingPower: 0.62,
+    waistRadius,
+    rimRadiusTop: COLUMN_BAND_RIM_RADIUS,
+    rimRadiusBottom: COLUMN_BAND_RIM_RADIUS,
+    ySpanTop: COLUMN_BAND_Y_SPAN,
+    ySpanBottom: COLUMN_BAND_Y_SPAN,
+    zSpreadTop: 0,
+    spacingPower: COLUMN_BAND_SPACING_POWER,
   });
 }
 
@@ -361,55 +413,83 @@ export function computeLayout(
     const originX = zoneRight + bandWidth / 2;
     const originY = h * 0.5;
     const camera = makeCamera(originX, originY, 650 * s, 300, 8);
-    // The wall's own inner ceiling/floor row (the column's rims, see
-    // `buildColumnRows`'s own doc). All three retuned down from the
-    // pre-ticket values (780/920/132): the pre-ticket wall's own zSpread
-    // (920, almost 3x `dist`) is fine for the WALL alone (its radius stays
-    // near 1500 for almost the whole row range, only dropping to 132 at
-    // the very last row, so the huge z barely interacts with a small
-    // radius until that one row); shared as the COLUMN's own rim too,
-    // where every row's radius sits near 92-260 throughout, the same z
-    // swing (subtracted from a nearly-constant small radius, every row,
-    // not just the last) makes the front-arc's projected Y fold back on
-    // itself between rows -- confirmed against the real bundled
-    // `project`/`ringPoint` (`probe-rows.cjs`/`probe-zpower.cjs`, not
-    // checked in): the pre-ticket wall values produced row-to-row
-    // reversals of hundreds of px and a visible black band across the
-    // waist in the rendered column-only capture. This (100/150/170)
-    // keeps every reversal under 15px (`probe-search2.cjs`, not checked
-    // in) while still landing both rims inside the canvas, below the
-    // header, at 1280/1440/1920 (`h = 792`, the section's real rendered
-    // height): top rim front-y 143-183px, bottom rim front-y 571-631px.
-    const SIDE_WALL_EDGE_RADIUS = 170;
-    const SIDE_WALL_Y_SPREAD = 100;
-    const SIDE_WALL_Z_SPREAD = 150;
-    const SIDE_COLUMN_WAIST = 92;
-    // Hourglass: waist 92*s at the band, flaring to the wall's own inner
-    // row (`SIDE_WALL_EDGE_RADIUS*s` at `+-SIDE_WALL_Y_SPREAD*s`) at both
-    // rims -- the column's last row on each side is that exact wall row
-    // (same y/z/radius), so the projected outline has no kink and no step
-    // at the junction.
+    // WALL row-builder parameters and painter are FROZEN at their
+    // 8c545c43e1 values (planner comment 327, ratified 328/329): the wall
+    // is verified by pixel parity outside the column's bbox and the
+    // bridging row, never re-tuned. `base` is the baseline's full 19-row
+    // array; only its two outermost rows (0 and 18, the wall's own literal
+    // "innermost ceiling/floor ring" -- a tiny far ring at depth, comments
+    // 328/329) are replaced below by the column's own rim rows, and
+    // `base[17]`/`base[1]` (still frozen wall rows) become the bridging
+    // rows into those rims.
+    const base = buildTaperedRows(1500 * s, 132 * s, 780 * s, 920 * s, 2.2);
+    const SIDE_WALL_SEGMENTS = 56;
+
+    // The column's own waist, set here per planner comment 315 (about
+    // 360px at 1440 -- landed at 79*s so `R - a` below gives gap 0 with
+    // `a` unchanged, and the ring's own outer edge stays inside the 648
+    // band with margin instead of touching the frame's right edge).
+    const SIDE_COLUMN_WAIST = 79;
+
+    // Top and bottom rim points (canonical units, `*s` scales them like
+    // the rest of this branch), chosen by `test-results/wqa-rim-search.cjs`
+    // against `base[17]`/`base[1]` (the bridging rows) under the
+    // acceptance in plan item 1: front arc inside the canvas (top rim
+    // additionally below the 72px header at 1440), no `depth<=1` corner in
+    // the bridging pair, and the bridging pair's own mean drawn-tile
+    // height within 15% of the reference pair `base[16]->base[17]` (top)
+    // -- `base[1]`'s own back arc is already off-canvas at 1440 (y 801 on
+    // an `h=792` canvas), so no bottom-rim candidate can meet the wall's
+    // own 15% bar with its front arc in-canvas too (NEEDS-PLANNER, comment
+    // 332): the bottom rim is chosen instead by the reduced bar the ticket
+    // ruling accepted there -- front arc in-canvas, no `depth<=1` corner,
+    // seam width as close as the geometry allows -- and both junctions'
+    // numbers are reported by the fixer's verification, not asserted here.
+    const SIDE_TOP_RIM_Y = 346;
+    const SIDE_TOP_RIM_Z = 540;
+    const SIDE_TOP_RIM_R = 236;
+    // Chosen jointly across 1280/1440/1920 (`test-results/dbg-bottom-joint`
+    // search, folded into `wqa-rim-search.cjs`'s reported numbers) so the
+    // bottom rim's front arc stays inside the canvas at every width (max
+    // front-y 759.9 of 792 at 1920, the tightest); the 15% tile-height bar
+    // is unattainable here (base row1's own back arc is already off-canvas
+    // at 1440, comment 332) so this is optimised for in-canvas margin
+    // instead -- reported, not asserted, at every width.
+    const SIDE_BOTTOM_RIM_Y = -400;
+    const SIDE_BOTTOM_RIM_Z = 992;
+    const SIDE_BOTTOM_RIM_R = 128;
+
+    // Hourglass: waist at the band, flaring independently to each chosen
+    // rim point above -- the column's own row 0/18 land exactly on those
+    // rim points (same y/z/radius `buildColumnRows` always gives its
+    // endpoints), so substituting them in for the wall's own rows 0/18
+    // below introduces no kink/step by construction.
+    // `rowsPerSide`/`spacingPower` retuned together (checkpoint 2,
+    // `test-results/dbg-spacing`, not checked in) against the real
+    // projected pair heights so every adjacent near-facing pair is within
+    // 1.5x its neighbour end to end (max ratio 1.50 at 1440) -- 9 rows per
+    // side could not clear that bar for this hourglass's own asymmetric
+    // rim spans without a >2x jump somewhere near the waist.
     const columnRows = buildColumnRows({
       waistRadius: SIDE_COLUMN_WAIST * s,
-      rimRadiusTop: SIDE_WALL_EDGE_RADIUS * s,
-      rimRadiusBottom: SIDE_WALL_EDGE_RADIUS * s,
-      ySpanTop: SIDE_WALL_Y_SPREAD * s,
-      ySpanBottom: SIDE_WALL_Y_SPREAD * s,
-      zSpread: SIDE_WALL_Z_SPREAD * s,
-      spacingPower: 0.62,
+      rimRadiusTop: SIDE_TOP_RIM_R * s,
+      rimRadiusBottom: SIDE_BOTTOM_RIM_R * s,
+      ySpanTop: SIDE_TOP_RIM_Y * s,
+      ySpanBottom: -SIDE_BOTTOM_RIM_Y * s,
+      zSpreadTop: SIDE_TOP_RIM_Z * s,
+      zSpreadBottom: SIDE_BOTTOM_RIM_Z * s,
+      spacingPower: 1.3,
+      rowsPerSide: 14,
     });
-    // A large waist radius and a high taper power keep each row's radius
-    // near `waistRadius` for most of the row range, so every row projects
-    // past the frame's left/right edges instead of only the one row at the
-    // plasma's height -- otherwise a visible cliff opens between painted
-    // wall and bare navy above/below the band.
-    const wallRows = buildTaperedRows(
-      1500 * s,
-      SIDE_WALL_EDGE_RADIUS * s,
-      SIDE_WALL_Y_SPREAD * s,
-      SIDE_WALL_Z_SPREAD * s,
-      2.2,
-    );
+    // The desktop substitution (comments 328-330): the column's rim rows
+    // REPLACE the wall's own two far-ring rows (`base[0]`/`base[18]`), and
+    // `base[1]`/`base[17]` bridge from the frozen wall into those rims.
+    // Every other row is the untouched, frozen baseline wall row.
+    const wallRows: ChamberRow[] = [
+      columnRows[0],
+      ...base.slice(1, 18),
+      columnRows[columnRows.length - 1],
+    ];
     // R - a = the column's own waist radius exactly (D(1)'s "gap of at
     // most 0.05 R", landed at 0 here), `a` kept at the pre-ticket tube
     // thickness (21) so the band's thickness/exposure is unchanged; both
@@ -431,9 +511,9 @@ export function computeLayout(
       // Shared with the wall (row spacing, seam width and fastener rhythm
       // all read from the same `thetaSegments` value) so the tile rhythm
       // does not jump at the rim junction.
-      columnThetaSegments: 56,
+      columnThetaSegments: SIDE_WALL_SEGMENTS,
       wallRows,
-      wallThetaSegments: 56,
+      wallThetaSegments: SIDE_WALL_SEGMENTS,
       torus,
       artLeft: zoneRight,
       artTop: 0,
@@ -469,7 +549,7 @@ export function computeLayout(
       STACKED_DIST,
       STACKED_TILT_DEG,
     );
-    const columnRows = buildMobileColumnRows();
+    const columnRows = buildBandColumnRows(STACKED_COLUMN_WAIST);
     // Wide rows so the wall paints behind the copy band across the full
     // width, the way the `sideBySide` wall does: every row must reach both
     // the top of the section and the left/right edges, not just the row at
@@ -497,7 +577,7 @@ export function computeLayout(
   const bandCenterY = artTop + (h - artTop) / 2;
   const originX = w * 0.5;
   const camera = makeCamera(originX, bandCenterY, 480, 160, 10);
-  const columnRows = buildMobileColumnRows();
+  const columnRows = buildBandColumnRows(MOBILE_COLUMN_WAIST);
   // Wide rows so the mobile wall paints behind the copy band across the
   // full width, the way the desktop wall does: every row must reach both
   // the top of the section and the left/right edges, not just the row at
@@ -505,12 +585,12 @@ export function computeLayout(
   // depth and reads as tiled structure under the whole band, rather than
   // only the rows nearest the plasma registering against the page.
   const wallRows = buildMobileWallRows();
-  // R - a = the column's own waist radius exactly (D(1)), `a` kept at the
-  // pre-ticket tube thickness (8) so the band's thickness/exposure is
-  // unchanged.
-  const MOBILE_TORUS_A = 8;
+  // R - a = the column's own waist radius exactly (D(1)), `a` kept at
+  // mobile's own tube thickness so the band's thickness/exposure is
+  // unchanged; `R` is `MOBILE_TORUS_R` (module-level, search-tuned against
+  // the rendered ring width, ruling 330 -- never the pre-ticket value).
   const torus: TorusParams = {
-    R: MOBILE_COLUMN_WAIST + MOBILE_TORUS_A,
+    R: MOBILE_TORUS_R,
     a: MOBILE_TORUS_A,
     y: 0,
     z: 0,
