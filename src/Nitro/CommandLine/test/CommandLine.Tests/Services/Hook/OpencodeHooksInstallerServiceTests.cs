@@ -173,7 +173,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             ct);
 
         // act
-        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node, scriptPath, ct);
 
         // assert
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
@@ -214,7 +214,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             ct);
 
         // act
-        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node, scriptPath, ct);
 
         // assert
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
@@ -252,7 +252,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             ct);
 
         // act
-        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node, scriptPath, ct);
 
         // assert
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
@@ -291,7 +291,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             ct);
 
         // act
-        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node, scriptPath, ct);
 
         // assert
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
@@ -332,7 +332,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             ct);
 
         // act
-        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node, scriptPath, ct);
 
         // assert
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
@@ -372,7 +372,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             ct);
 
         // act
-        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node, scriptPath, ct);
 
         // assert
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
@@ -413,7 +413,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             ct);
 
         // act
-        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node, scriptPath, ct);
 
         // assert
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
@@ -453,7 +453,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
             ct);
 
         // act
-        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node, scriptPath, ct);
 
         // assert
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
@@ -488,7 +488,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         await File.WriteAllTextAsync(scriptPath, template + BuildServerBoundDiscriminationDriverScript(), ct);
 
         // act
-        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node, scriptPath, ct);
 
         // assert
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
@@ -524,7 +524,7 @@ public sealed class OpencodeHooksInstallerServiceTests : IDisposable
         await File.WriteAllTextAsync(scriptPath, template + BuildServerBoundDriverScript(), ct);
 
         // act
-        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node!, scriptPath, ct);
+        var (exitCode, stdOut, stdErr) = await RunNodeAsync(node, scriptPath, ct);
 
         // assert
         Assert.True(exitCode == 0, $"node exited with {exitCode}: {stdErr}");
