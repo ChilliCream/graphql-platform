@@ -82,7 +82,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
 
         // assert
         result.AssertSuccess(
-            mode == InteractionMode.JsonOutput
+            mode != InteractionMode.Interactive
                 ? """
                   {"items":[
                   {"name":"products","environments":"production","lastVersion":"1.1.0"}
@@ -141,7 +141,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertSuccess(
             """
-            No services found.
+            {"items":[],"returned":0,"total":null,"hasMore":false}
             """);
     }
 
