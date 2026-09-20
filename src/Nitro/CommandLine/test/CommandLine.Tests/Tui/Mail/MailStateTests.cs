@@ -222,17 +222,18 @@ public sealed class MailStateTests
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
+        store.Messages.Add(MailMessageBuilder.Create(
+            "m-2", createdAt: s_now.AddMinutes(1), recipients: [MailMessageBuilder.ToRecipient("alice")]));
         var state = CreateState(store);
-        await state.RefreshAsync(CancellationToken.None);
-        state.SelectedRow = 0;
+        await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
+        state.SelectedRow = 1;
 
         // act
-        // already in the default Inbox mailbox
         await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
 
         // assert
         Assert.Equal(MailMailbox.Inbox, state.Mailbox);
-        Assert.Equal(0, state.SelectedRow);
+        Assert.Equal(1, state.SelectedRow);
     }
 
     [Fact]

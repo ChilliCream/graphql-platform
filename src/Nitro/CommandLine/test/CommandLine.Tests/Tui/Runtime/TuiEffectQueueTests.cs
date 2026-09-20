@@ -287,22 +287,27 @@ public sealed class TuiEffectQueueTests
     public async Task DrainPendingAsync_Should_ReturnOnceEffectCompletes_When_ItFinishesBeforeTheBound()
     {
         // arrange
-        // the effect completes during the bounded drain rather than before or after it.
+        // The effect is blocked before the drain begins.
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
+        var effectEntered = new TaskCompletionSource();
         var release = new TaskCompletionSource();
 
         async Task<string> Effect(TuiOperationId id, CancellationToken ct)
         {
+            effectEntered.SetResult();
             await release.Task.WaitAsync(s_testTimeout, ct);
             return "done";
         }
 
         queue.TrySubmit("compose", Effect, testToken, out _);
-        release.SetResult();
+        await effectEntered.Task.WaitAsync(testToken);
 
         // act
-        await queue.DrainPendingAsync(TimeSpan.FromSeconds(5), testToken);
+        var drainTask = queue.DrainPendingAsync(TimeSpan.FromSeconds(5), testToken);
+        Assert.False(drainTask.IsCompleted); // the drain has entered its wait for the blocked effect
+        release.SetResult();
+        await drainTask;
 
         // assert
         Assert.Equal(0, queue.PendingCount);

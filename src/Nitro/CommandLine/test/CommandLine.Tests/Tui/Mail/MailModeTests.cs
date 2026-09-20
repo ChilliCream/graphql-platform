@@ -937,11 +937,14 @@ public sealed class MailModeTests
         mode.HandleRawKey(Key(ConsoleKey.Tab));
         Type(mode, "Body");
         mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+        await WaitUntilAsync(() => store.SendGateEntered, cancellationToken);
 
         // act
         await effectCts.CancelAsync();
+        var shieldTask = mode.ShieldPendingSendsAsync(TimeSpan.FromSeconds(2), cancellationToken);
+        Assert.False(shieldTask.IsCompleted); // the shield waits for the committed write already in flight
         gate.SetResult();
-        await mode.ShieldPendingSendsAsync(TimeSpan.FromSeconds(2), cancellationToken);
+        await shieldTask;
 
         // assert
         Assert.Single(store.Messages);

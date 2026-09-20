@@ -476,13 +476,17 @@ public sealed class FormTests
         // act
         console.Write(form.Render(80, 20));
 
-        // assert: the line above the button row carries no field content, only side borders.
+        // assert
         var lines = console.Output.Split('\n');
         var buttonLineIndex = Array.FindIndex(lines, line => line.Contains("Save"));
-        var lineAboveButtons = lines[buttonLineIndex - 1];
+        var rowsAroundSeparator = lines[(buttonLineIndex - 2)..(buttonLineIndex + 1)];
 
-        Assert.DoesNotContain("Status", lineAboveButtons);
-        Assert.DoesNotContain("(o)", lineAboveButtons);
+        rowsAroundSeparator.MatchInlineSnapshots(
+            [
+                "│ ╰──────────────────────────────────────────────────────────────────────────╯ │",
+                "│                                                                              │",
+                "│  Save                           Cancel                                       │"
+            ]);
     }
 
     private static FormUnderTest CreateTallForm(int fieldCount)

@@ -201,31 +201,38 @@ public sealed class TuiShellQuitGateTests
         // arrange: a real TuiEffectQueue wired in as a gate, with the effect resolving during the drain
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
+        var effectEntered = new TaskCompletionSource();
         var release = new TaskCompletionSource();
+        var gateEntered = new TaskCompletionSource();
 
         async Task<string> Effect(TuiOperationId id, CancellationToken ct)
         {
+            effectEntered.SetResult();
             await release.Task.WaitAsync(TimeSpan.FromSeconds(5), ct);
             return "done";
         }
 
-        queue.TrySubmit("compose", Effect, testToken, out _);
+        TuiQuitGate gate = async (bound, ct) =>
+        {
+            queue.StopAccepting();
+            gateEntered.SetResult();
+            await queue.DrainPendingAsync(bound, ct);
+            return new TuiQuitGateReport(queue.PendingCount, 0, queue.PendingOperationIds);
+        };
 
-        var shell = CreateShell(new FakeTuiMode(), QueueGate(queue));
+        queue.TrySubmit("compose", Effect, testToken, out _);
+        await effectEntered.Task.WaitAsync(testToken);
+
+        var shell = CreateShell(new FakeTuiMode(), gate);
         var confirmed = false;
         shell.QuitConfirmed += () => confirmed = true;
         shell.Handle(s_quitKey);
 
-        _ = Task.Run(
-            async () =>
-            {
-                await Task.Delay(50, testToken);
-                release.SetResult();
-            },
-            testToken);
-
         // act
-        var dirty = shell.Handle(s_yesKey);
+        var handleTask = Task.Run(() => shell.Handle(s_yesKey), testToken);
+        await gateEntered.Task.WaitAsync(testToken);
+        release.SetResult();
+        var dirty = await handleTask;
 
         // assert
         Assert.True(dirty);

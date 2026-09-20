@@ -438,22 +438,79 @@ public sealed class TaskEditorFormTests
         // the 80x24 frame (23 content rows once the status row is reserved) must stay fully operable
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, ["alpha"]);
-        var console = new TestConsole().Width(80).Height(23);
         var fieldLabels = new[] { "Title", "Status", "Priority", "Type", "Labels", "Description", "Notes" };
+        var focusedFieldFrames = new List<string>();
 
-        // act & assert
-        // every field is reachable by Tab and, once focused, scrolled fully into view
+        // act
+        // every field is reachable by Tab and, once focused, is fully rendered in a fresh frame
         foreach (var label in fieldLabels)
         {
+            var console = new TestConsole().Width(80).Height(23);
             console.Write(form.Render(80, 23));
-            Assert.Contains(label, console.Output);
+            var lines = console.Output.Split('\n');
+            var fieldStart = Array.FindIndex(lines, line => line.Contains($"╭─{label}"));
+            var fieldEnd = Array.FindIndex(lines, fieldStart, line => line.Contains("╰"));
+            focusedFieldFrames.Add(string.Join("\n", lines[fieldStart..(fieldEnd + 1)]));
             form.HandleKey(Key(ConsoleKey.Tab));
         }
 
-        // act
         // the button row is the next and final stop
-        console.Write(form.Render(80, 23));
-        Assert.Contains("Save", console.Output);
+        var buttonConsole = new TestConsole().Width(80).Height(23);
+        buttonConsole.Write(form.Render(80, 23));
+        var buttonLines = buttonConsole.Output.Split('\n');
+        var buttonLineIndex = Array.FindIndex(buttonLines, line => line.Contains("Save"));
+        var buttonFrame = string.Join("\n", buttonLines[(buttonLineIndex - 1)..(buttonLineIndex + 2)]);
+
+        // assert
+        focusedFieldFrames.MatchInlineSnapshots(
+            [
+                """
+                │ ╭─Title *──────────────────────────────────────────────────────────────────╮ │
+                │ │ Title                                                                    │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                │ ╭─Status───────────────────────────────────────────────────────────────────╮ │
+                │ │ (o) Open  ( ) In Progress  ( ) Blocked  ( ) Deferred                     │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                │ ╭─Priority─────────────────────────────────────────────────────────────────╮ │
+                │ │ ( ) P0  ( ) P1  (o) P2  ( ) P3  ( ) P4                                   │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                │ ╭─Type─────────────────────────────────────────────────────────────────────╮ │
+                │ │ (o) Task  ( ) Bug  ( ) Feature  ( ) Epic  ( ) Chore  ( ) Docs            │ │
+                │ │ ( ) Question                                                             │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                │ ╭─Labels───────────────────────────────────────────────────────────────────╮ │
+                │ │ - alpha                                                                  │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                │ ╭─Description──────────────────────────────────────────────────────────────╮ │
+                │ │                                                                          │ │
+                │ │                                                                          │ │
+                │ │                                                                          │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                │ ╭─Notes────────────────────────────────────────────────────────────────────╮ │
+                │ │                                                                          │ │
+                │ │                                                                          │ │
+                │ │                                                                          │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """
+            ]);
+        buttonFrame.MatchInlineSnapshot(
+            """
+            │                                                                              │
+            │  Save                           Cancel                                       │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+            """);
 
         // act
         var result = form.HandleKey(Key(ConsoleKey.Enter));
