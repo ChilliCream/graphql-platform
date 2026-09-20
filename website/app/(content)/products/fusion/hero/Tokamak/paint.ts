@@ -480,13 +480,36 @@ export function paintColumnLayer(
       ctx.lineTo(columnSilhouette[i].x, columnSilhouette[i].y);
     }
     ctx.closePath();
-    ctx.fillStyle = blackToRgba(1);
+    // A vertical gradient, not a flat fill: checkpoint 3's mobile/stacked
+    // continuous scene reads the column as low-alpha structure away from
+    // the band (`Tile.bandFade`'s own doc), and the opaque base has to
+    // fade the same way its tiles do, or a solid black silhouette would
+    // show through every faded tile's seams and gaps. `sideBySide` tiles
+    // never carry a `bandFade` below 1 (`bandFadeFloor` defaults to 1
+    // there), so this reduces to the pre-ticket flat opaque fill for that
+    // mode -- both stops land on alpha 1.
+    let minY = columnSilhouette[0].y;
+    let maxY = columnSilhouette[0].y;
+    for (const p of columnSilhouette) {
+      if (p.y < minY) minY = p.y;
+      if (p.y > maxY) maxY = p.y;
+    }
+    const edgeFade = columnTiles.reduce(
+      (min, t) => Math.min(min, t.bandFade),
+      1,
+    );
+    const grad = ctx.createLinearGradient(0, minY, 0, maxY);
+    grad.addColorStop(0, blackToRgba(edgeFade));
+    grad.addColorStop(0.5, blackToRgba(1));
+    grad.addColorStop(1, blackToRgba(edgeFade));
+    ctx.fillStyle = grad;
     ctx.fill();
     ctx.lineWidth = 3;
-    ctx.strokeStyle = blackToRgba(1);
+    ctx.strokeStyle = grad;
     ctx.stroke();
   }
   for (const tile of columnTiles) {
+    ctx.globalAlpha = tile.bandFade;
     ctx.fillStyle = hexToRgba(BRAND.navy, 1);
     ctx.beginPath();
     ctx.moveTo(tile.poly[0].x, tile.poly[0].y);
@@ -497,8 +520,10 @@ export function paintColumnLayer(
     ctx.fill();
   }
   for (const tile of columnTiles) {
+    ctx.globalAlpha = tile.bandFade;
     paintTile(ctx, tile);
   }
+  ctx.globalAlpha = 1;
 }
 
 /**

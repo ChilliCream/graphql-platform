@@ -391,12 +391,19 @@ export default function Tokamak() {
         layout.torus,
         "wall",
       );
+      // Checkpoint 3 (mobile/stacked as one continuous scene): away from
+      // the band, the column reads as low-alpha structure rather than an
+      // opaque black block, so the wall stays visible around/through it
+      // and behind the copy band -- `sideBySide` keeps the pre-ticket
+      // fully opaque column (floor 1, `bandFadeAt`'s own no-op case).
+      const columnBandFadeFloor = layout.mode === "sideBySide" ? 1 : 0.45;
       const columnTiles = buildChamberTiles(
         layout.columnRows,
         layout.columnThetaSegments,
         layout.camera,
         layout.torus,
         "column",
+        columnBandFadeFloor,
       );
       const columnBase = buildColumnSilhouette(
         layout.columnRows,

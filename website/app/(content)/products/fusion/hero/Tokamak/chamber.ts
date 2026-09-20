@@ -19,6 +19,15 @@ export interface Tile {
   readonly fastener: boolean;
   /** Approx on-screen size in px, for the fastener/detail size gate. */
   readonly size: number;
+  /**
+   * 0..1 -- 1 at the plasma band, easing down to `bandFadeFloor` (see
+   * `buildChamberTiles`) toward each rim. Column tiles only (always 1 for
+   * `kind === "wall"`): checkpoint 3's mobile/stacked continuous scene
+   * reads the column as low-alpha structure away from the band rather
+   * than an opaque black block, without touching its geometry. Consumed
+   * by `paint.ts`'s `paintColumnLayer` as a per-tile `globalAlpha`.
+   */
+  readonly bandFade: number;
 }
 
 export interface InstrumentLight {
@@ -27,16 +36,15 @@ export interface InstrumentLight {
   readonly r: number;
 }
 
-const SEAM_INSET = 0.09;
 /**
- * The column's own seam gap is narrower than the wall's: its floor alpha is
- * already lower than the wall's, so a full-width seam gap would let a
- * disproportionate amount of the brighter wall show through behind it,
- * pulling the column's brightness above the wall's instead of below it.
- * Seams still read as gaps, never strokes -- just narrower ones on the
- * column.
+ * Shared by both the wall and the column (checkpoint 1's "seam width...
+ * shared with the wall"): the column's own opaque black base
+ * (`buildColumnSilhouette`/`paintColumnLayer`) sits under every column
+ * seam gap regardless of the inset fraction, so widening the column's
+ * seams to match the wall's no longer risks a brighter layer showing
+ * through them the way it would have before that base existed.
  */
-const COLUMN_SEAM_INSET = SEAM_INSET * 0.55;
+const SEAM_INSET = 0.09;
 const LIGHT_DIR = normalize3({ x: 0.4, y: 0.7, z: -0.6 });
 /**
  * The column's near half faces `LIGHT_DIR` almost head-on (its outward
@@ -116,6 +124,21 @@ function tileWarmth(y: number, radius: number, torus: TorusParams): number {
  * camera looks (a back face on a convex object viewed from outside),
  * negative when it points back toward the camera (a front face).
  */
+/**
+ * 1 at `y = 0` (the band), smoothstepped down to `floor` at `|y| = maxY`
+ * (a rim) -- `floor === 1` (the default, `buildChamberTiles`'s wall calls
+ * and every pre-ticket call site) makes this a no-op (returns 1
+ * unconditionally), so it only changes rendering where a caller opts in.
+ */
+function bandFadeAt(y: number, maxY: number, floor: number): number {
+  if (floor >= 1 || maxY <= 0) {
+    return 1;
+  }
+  const t = clamp(1 - Math.abs(y) / maxY, 0, 1);
+  const eased = t * t * (3 - 2 * t);
+  return floor + (1 - floor) * eased;
+}
+
 function facingAway(midTheta: number, camera: Camera): boolean {
   const normal = { x: Math.cos(midTheta), y: 0, z: Math.sin(midTheta) };
   const forward = { x: 0, y: camera.sinTilt, z: camera.cosTilt };
@@ -151,8 +174,10 @@ export function buildChamberTiles(
   camera: Camera,
   torus: TorusParams,
   kind: "column" | "wall",
+  bandFadeFloor = 1,
 ): Tile[] {
   const tiles: Tile[] = [];
+  const maxY = rows.reduce((m, row) => Math.max(m, Math.abs(row.y)), 0);
   for (let r = 0; r < rows.length - 1; r++) {
     const rowA = rows[r];
     const rowB = rows[r + 1];
@@ -189,11 +214,7 @@ export function buildChamberTiles(
       const wPx = Math.hypot(c1.x - c0.x, c1.y - c0.y);
       const hPx = Math.hypot(c3.x - c0.x, c3.y - c0.y);
       const size = Math.min(wPx, hPx);
-      const poly = insetQuad(
-        [c0, c1, c2, c3],
-        size,
-        kind === "column" ? COLUMN_SEAM_INSET : SEAM_INSET,
-      );
+      const poly = insetQuad([c0, c1, c2, c3], size, SEAM_INSET);
       const normal = { x: Math.cos(midTheta), y: 0, z: Math.sin(midTheta) };
       const rawShade = clamp(dot3(normal, LIGHT_DIR) * 0.5 + 0.5, 0.16, 1);
       const shade =
@@ -206,6 +227,7 @@ export function buildChamberTiles(
         warmth,
         fastener: size > 18 && (r * thetaSegments + s) % 3 === 0,
         size,
+        bandFade: bandFadeAt((rowA.y + rowB.y) / 2, maxY, bandFadeFloor),
       });
     }
   }
