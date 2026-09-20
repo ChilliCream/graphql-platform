@@ -137,16 +137,38 @@ function solveFocalForRing(
   return Math.min(focalForWidth, focalForHeight);
 }
 
-/** Ring spans this fraction of the viewport width in STACKED mode, the midpoint of Rule F's 70-80% target. */
-const STACKED_RING_WIDTH_FRACTION = 0.75;
 /**
- * The ring's own vertical extent may use at most this fraction of the
- * available band height, leaving the rest as margin so the ring never
- * touches `artTop` or the section's own bottom edge.
+ * The target fed to `solveFocalForRing` for the ring's analytic (tube
+ * surface) width, not its own rendered width: the rendered ring also
+ * carries the stray population (streaks pushed out to 1.3-2.2x the tube
+ * radius, `plasma.ts`'s `tubeScale`) and the bloom halo around it, both of
+ * which read at the 25%-luminance probe threshold and extend visibly
+ * beyond the analytic surface. Measured against the real render, this
+ * value lands the rendered ring at 70-75% of the viewport width (Rule F's
+ * 70-80% target) -- raise it and re-measure with `wkf-containment.cjs`
+ * (`ringWidthFrac`) rather than assuming the analytic and rendered widths
+ * match.
  */
-const STACKED_BAND_FIT = 0.82;
-/** Reused from the mobile construction's own camera/torus (`computeMobileLayout`) -- STACKED refits the same relative build to the measured band via `focal` alone (a pure zoom, see `solveFocalForRing`), never the mobile look itself. */
-const STACKED_TORUS: TorusParams = { R: 41, a: 8, y: 0, z: 0 };
+const STACKED_RING_WIDTH_FRACTION = 0.64;
+/**
+ * The target fed to `solveFocalForRing` for the ring's analytic height,
+ * same caveat as `STACKED_RING_WIDTH_FRACTION` above: the rendered band
+ * (strays plus bloom) reads taller than the analytic surface. Measured
+ * against the real render, this value keeps the rendered ring's own
+ * bounding box inside `[artTop, section bottom]` with margin at every
+ * tested width (`wkf-containment.cjs`'s `ringTop`/`ringBottom`).
+ */
+const STACKED_BAND_FIT = 0.65;
+/**
+ * A flatter tube than the mobile torus (`R:a` about 9:1 instead of
+ * 5:1, keeping `R + a` close to mobile's own 49) -- STACKED's band height
+ * budget is fixed by the measured copy (typically far shorter, relative
+ * to the viewport, than mobile's own band), so a thinner tube is what
+ * lets a 70-80%-wide ring actually fit a short band; `dist`/`tiltDeg`
+ * stay the mobile construction's own values, keeping the same "inside the
+ * vessel" perspective.
+ */
+const STACKED_TORUS: TorusParams = { R: 44, a: 5, y: 0, z: 0 };
 const STACKED_DIST = 160;
 const STACKED_TILT_DEG = 10;
 
@@ -242,7 +264,13 @@ export function computeLayout(
     // `focal` alone to the band this viewport's own copy actually leaves.
     const artTop = copyRect ? copyRect.bottom + 24 : h * 0.77;
     const bandHeight = Math.max(1, h - artTop);
-    const bandCenterY = artTop + bandHeight / 2;
+    // Weighted a little below the band's exact midpoint: the tilted
+    // camera's near-side reference point (`bandCenter()` in `index.tsx`)
+    // is not exactly the ring's own visual vertical centre, and the
+    // rendered extent (bloom included) sits closer to `artTop` than a
+    // pure midpoint split would predict -- this keeps real margin on both
+    // sides instead of the ring nearly touching `artTop`.
+    const bandCenterY = artTop + bandHeight * 0.58;
     const originX = w * 0.5;
     const focal = solveFocalForRing(
       STACKED_TORUS.R,
