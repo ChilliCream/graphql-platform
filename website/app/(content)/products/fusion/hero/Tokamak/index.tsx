@@ -11,7 +11,12 @@ import {
 } from "./chamber";
 import { hexToRgba, warmWhiteToRgba, whiteToRgba } from "./colors";
 import { project, torusPoint } from "./geometry";
-import { computeLayout, type TokamakLayout } from "./sceneLayout";
+import {
+  computeLayout,
+  MOBILE_BREAKPOINT,
+  type CopyRect,
+  type TokamakLayout,
+} from "./sceneLayout";
 import {
   paintColumnLayer,
   paintPlasmaLayer,
@@ -42,6 +47,11 @@ import {
  */
 const DESKTOP_STATIC_STREAKS = 900;
 const DESKTOP_LIVE_STREAKS = 72;
+// STACKED's ring is typically closer in absolute size to the desktop ring
+// than to the small mobile one (70-80% of a 768-1279px viewport, not a
+// 375px one), so it reuses the desktop counts rather than the mobile ones.
+const STACKED_STATIC_STREAKS = DESKTOP_STATIC_STREAKS;
+const STACKED_LIVE_STREAKS = DESKTOP_LIVE_STREAKS;
 // Close to the desktop count: the ring spans most of the mobile viewport,
 // so the band needs close to desktop-level streak density to read as a
 // continuous torus rather than a sparse scatter.
@@ -167,7 +177,7 @@ export default function Tokamak() {
     }
 
     const rand = mulberry32(0x746f6b31);
-    let layout: TokamakLayout = computeLayout(0, 0);
+    let layout: TokamakLayout = computeLayout(0, 0, null);
     let dpr = 1;
     let w = 0;
     let h = 0;
@@ -190,7 +200,7 @@ export default function Tokamak() {
     // zone by erasure.
     function featherCopyClearZone(ctx: CanvasRenderingContext2D) {
       ctx.globalCompositeOperation = "destination-out";
-      if (!layout.mobile) {
+      if (layout.mode === "sideBySide") {
         const left = layout.artLeft;
         const right = layout.artLeft + 24;
         const fade = ctx.createLinearGradient(left, 0, right, 0);
@@ -292,12 +302,18 @@ export default function Tokamak() {
     }
 
     function buildScene() {
-      const totalStatic = layout.mobile
-        ? MOBILE_STATIC_STREAKS
-        : DESKTOP_STATIC_STREAKS;
-      const totalLive = layout.mobile
-        ? MOBILE_LIVE_STREAKS
-        : DESKTOP_LIVE_STREAKS;
+      const totalStatic =
+        layout.mode === "mobile"
+          ? MOBILE_STATIC_STREAKS
+          : layout.mode === "stacked"
+            ? STACKED_STATIC_STREAKS
+            : DESKTOP_STATIC_STREAKS;
+      const totalLive =
+        layout.mode === "mobile"
+          ? MOBILE_LIVE_STREAKS
+          : layout.mode === "stacked"
+            ? STACKED_LIVE_STREAKS
+            : DESKTOP_LIVE_STREAKS;
       const totalStray = Math.round(totalStatic * STRAY_FRACTION);
 
       // The column's projected half-width at the plasma's height: the
@@ -387,6 +403,55 @@ export default function Tokamak() {
       });
     }
 
+    // The copy block's own rendered rect (`data-hero-copy` on
+    // `FusionHero.tsx`'s copy block), relative to the section, used to
+    // choose STACKED's `artTop` and SIDE-BY-SIDE's `zoneRight` from the
+    // real layout instead of magic widths. `right` reads the teaser
+    // paragraph's own rect -- the copy block's LAST `<p>` (its first is the
+    // `Eyebrow`'s own label, which is as wide as the block's own box and
+    // would defeat the point of measuring); the teaser is narrower than
+    // the block's own box at `xl:max-w-2xl` widths (where the box reserves
+    // more room than the current teaser text uses) and wider than the
+    // `text-balance` h1 and the left-aligned buttons, so it is the copy's
+    // own real rightmost content. `bottom` reads the button row's own
+    // bottom (the block's last child), not the block's own `py-24` bottom
+    // padding. `null` only if the block genuinely is not in the DOM (never
+    // in practice, since `measure()` runs after mount) -- callers fall
+    // back to the previous fixed constants.
+    function measureCopyRect(): CopyRect | null {
+      const copyEl = document.querySelector<HTMLElement>("[data-hero-copy]");
+      if (!copyEl || !root) {
+        return null;
+      }
+      const rootBox = root.getBoundingClientRect();
+      const paragraphs = copyEl.querySelectorAll("p");
+      const widest = paragraphs[paragraphs.length - 1] ?? copyEl;
+      const bottomEl = copyEl.lastElementChild ?? copyEl;
+      return {
+        right: widest.getBoundingClientRect().right - rootBox.left,
+        bottom: bottomEl.getBoundingClientRect().bottom - rootBox.top,
+      };
+    }
+
+    /**
+     * The values that determine `layout`: a change in any of them is worth
+     * a rebuild, a re-fire with the same values is not. Compared as a
+     * plain string (cheap for four numbers, and simpler than a deep-equal)
+     * so `remeasureIfChanged` -- used by the copy block's own
+     * `ResizeObserver` entry and `document.fonts.ready`, both of which are
+     * guaranteed to fire at least once even with no real size change --
+     * can skip a rebuild that would draw nothing new: `buildScene`'s
+     * static cache is drawn from a single shared random generator that
+     * keeps advancing across calls (never reseeded, matching the
+     * mount call's own single draw), so an unconditional rebuild on a
+     * same-values re-fire would silently swap in a different streak
+     * pattern for no visible reason. `root`'s own pre-existing
+     * `ResizeObserver` entry (below) intentionally keeps calling
+     * `measure()` unconditionally, exactly as before this ticket, so a
+     * genuine resize is still always honoured.
+     */
+    let lastMeasureSignature = "";
+
     function measure() {
       w = root!.clientWidth;
       h = root!.clientHeight;
@@ -408,8 +473,35 @@ export default function Tokamak() {
       glowH = Math.max(1, Math.round(h * GLOW_SCALE));
       glow.width = glowW;
       glow.height = glowH;
-      layout = computeLayout(w, h);
+      const copyRect = measureCopyRect();
+      const signatureCopyRect = w < MOBILE_BREAKPOINT ? null : copyRect;
+      lastMeasureSignature = `${w}x${h}:${signatureCopyRect?.right ?? "n"}:${signatureCopyRect?.bottom ?? "n"}`;
+      layout = computeLayout(w, h, copyRect);
       buildScene();
+    }
+
+    /**
+     * Re-measures only if `root`'s own size, or (at `stacked`/`sideBySide`
+     * widths, where `computeLayout` actually reads it) the copy block's
+     * own rect, moved since the last measure (see `lastMeasureSignature`).
+     * Below the `mobile` breakpoint the copy rect is excluded on purpose:
+     * `computeLayout`'s `mobile` branch never reads it, so a font-load
+     * reflow that nudges the teaser paragraph by a sub-pixel would
+     * otherwise still read as "changed" and force a rebuild -- and thus a
+     * fresh reseed of `buildScene`'s random draw -- of a scene that would
+     * come out geometrically identical either way (the pixel-parity gate
+     * at 375).
+     */
+    function remeasureIfChanged() {
+      const width = root!.clientWidth;
+      const height = root!.clientHeight;
+      const copyRect = width < MOBILE_BREAKPOINT ? null : measureCopyRect();
+      const signature = `${width}x${height}:${copyRect?.right ?? "n"}:${copyRect?.bottom ?? "n"}`;
+      if (signature === lastMeasureSignature) {
+        return;
+      }
+      measure();
+      drawLive(2);
     }
 
     function drawLive(timeSec: number) {
@@ -571,7 +663,8 @@ export default function Tokamak() {
       const breathe =
         0.86 + 0.14 * Math.sin((timeSec / BREATHE_PERIOD_S) * Math.PI * 2);
       liveCtx!.globalCompositeOperation = "lighter";
-      const wallLiftScale = layout.mobile ? MOBILE_WALL_LIFT_SCALE : 1;
+      const wallLiftScale =
+        layout.mode === "mobile" ? MOBILE_WALL_LIFT_SCALE : 1;
       const tintR = Math.max(1, bandHalfHeightPx() * 0.9 * wallLiftScale);
       const tint = liveCtx!.createRadialGradient(
         torusCenter.x,
@@ -627,7 +720,7 @@ export default function Tokamak() {
       // `torusCenter` sits at the band's near-side point, not the torus'
       // axis point, so the core radius is derived from its own scale.
       const coreR = torusCenter.scale * layout.torus.a * 0.8 * breathe;
-      const coreDensityScale = layout.mobile ? MOBILE_CORE_SCALE : 1;
+      const coreDensityScale = layout.mode === "mobile" ? MOBILE_CORE_SCALE : 1;
       const core = liveCtx!.createRadialGradient(
         torusCenter.x,
         torusCenter.y,
@@ -664,6 +757,9 @@ export default function Tokamak() {
 
     const RESIZE_DEBOUNCE_MS = 150;
     let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    // `root`'s own resize handling is unchanged from before this ticket --
+    // unconditional, so a genuine resize is always honoured -- and stays
+    // the only trigger that isn't guarded by `remeasureIfChanged`.
     const ro = new ResizeObserver(() => {
       if (resizeTimer !== null) {
         clearTimeout(resizeTimer);
@@ -679,13 +775,59 @@ export default function Tokamak() {
     });
     ro.observe(root);
 
+    // The copy block's own size (and so `artTop`/`zoneRight`) can change
+    // independently of `root`'s own size -- most often when the fonts used
+    // for the eyebrow/h1/paragraph finish loading and reflow the copy,
+    // which `root`'s own `ResizeObserver` entry never fires for. A
+    // separate observer (rather than adding the copy block to `ro` above)
+    // keeps `root`'s own entry exactly as it was, and lets this one use
+    // `remeasureIfChanged`'s guard: both it and `document.fonts.ready` are
+    // guaranteed to fire at least once even with no real size change, and
+    // an unconditional rebuild on that harmless re-fire would silently
+    // swap the static cache's shared random generator to a different
+    // streak pattern for no visible reason.
+    const copyEl = document.querySelector<HTMLElement>("[data-hero-copy]");
+    let copyResizeTimer: ReturnType<typeof setTimeout> | null = null;
+    const copyRo = copyEl
+      ? new ResizeObserver(() => {
+          if (copyResizeTimer !== null) {
+            clearTimeout(copyResizeTimer);
+          }
+          copyResizeTimer = setTimeout(() => {
+            copyResizeTimer = null;
+            if (!disposed) {
+              remeasureIfChanged();
+            }
+          }, RESIZE_DEBOUNCE_MS);
+        })
+      : null;
+    if (copyEl && copyRo) {
+      copyRo.observe(copyEl);
+    }
+    let fontsCancelled = false;
+    document.fonts?.ready
+      .then(() => {
+        if (!fontsCancelled && !disposed) {
+          remeasureIfChanged();
+        }
+      })
+      .catch(() => {
+        // Font-load failures are not this scene's concern; the fallback
+        // band/zone constants in `computeLayout` still apply.
+      });
+
     return () => {
       disposed = true;
+      fontsCancelled = true;
       drawLiveRef.current = null;
       if (resizeTimer !== null) {
         clearTimeout(resizeTimer);
       }
+      if (copyResizeTimer !== null) {
+        clearTimeout(copyResizeTimer);
+      }
       ro.disconnect();
+      copyRo?.disconnect();
     };
   }, []);
 
@@ -708,19 +850,20 @@ export default function Tokamak() {
       <canvas ref={wallRef} className="absolute inset-0 h-full w-full" />
       <canvas ref={liveRef} className="absolute inset-0 h-full w-full" />
       {/*
-        Desktop copy-column scrim: the gradient stops are tuned so the
-        paragraph, which extends further right than the h1, stays clear of
-        the 7:1 contrast floor -- stops that fade out earlier leave the
-        paragraph's tail sitting on too little scrim.
+        SIDE-BY-SIDE copy-column scrim (>= 1280, matching
+        `sceneLayout.ts`'s `SIDE_BY_SIDE_BREAKPOINT`): the gradient stops
+        are tuned so the paragraph, which extends further right than the
+        h1, stays clear of the 7:1 contrast floor -- stops that fade out
+        earlier leave the paragraph's tail sitting on too little scrim.
       */}
       <div
-        className="absolute inset-0 hidden md:block"
+        className="absolute inset-0 hidden xl:block"
         style={{
           background: `linear-gradient(90deg, ${hexToRgba(BRAND.navy, 0.72)} 0%, ${hexToRgba(BRAND.navy, 0.52)} 54%, ${hexToRgba(BRAND.navy, 0)} 74%)`,
         }}
       />
       <div
-        className="absolute inset-0 hidden md:block"
+        className="absolute inset-0 hidden xl:block"
         style={{
           background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0)} 66%, ${hexToRgba(BRAND.navy, 0.9)} 98%)`,
         }}
@@ -732,18 +875,18 @@ export default function Tokamak() {
         }}
       />
       {/*
-        Mobile copy-band scrim: now that the wall paints behind the mobile
-        copy band too, the scrim alpha is raised enough to hold the h1/
-        paragraph 7:1 contrast floor against that painted structure.
+        `mobile`/STACKED copy-band scrim (< 1280): now that the wall paints
+        behind the copy band too, the scrim alpha is raised enough to hold
+        the h1/paragraph 7:1 contrast floor against that painted structure.
       */}
       <div
-        className="absolute inset-0 md:hidden"
+        className="absolute inset-0 xl:hidden"
         style={{
           background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0.6)} 0%, ${hexToRgba(BRAND.navy, 0.6)} 72%, ${hexToRgba(BRAND.navy, 0)} 78%)`,
         }}
       />
       <div
-        className="absolute inset-0 md:hidden"
+        className="absolute inset-0 xl:hidden"
         style={{
           background: `linear-gradient(180deg, ${hexToRgba(BRAND.navy, 0)} 94%, ${hexToRgba(BRAND.navy, 0.5)} 100%)`,
         }}
