@@ -89,7 +89,8 @@ internal sealed class CostAnalyzerMiddleware(
                     cache.TryAddPlan(operationId, plan);
                 }
 
-                // Cost analysis requires at least one coerced variable set, so an explicit empty variable batch is invalid.
+                // Cost analysis requires at least one coerced variable set, so an explicit empty
+                // variable batch is invalid.
                 if (context.VariableValues.Length == 0)
                 {
                     context.Result = ErrorHelper.StateInvalidForCostAnalysisMissingVariableValues();
