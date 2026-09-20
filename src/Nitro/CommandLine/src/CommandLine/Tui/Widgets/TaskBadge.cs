@@ -11,6 +11,7 @@ internal static class TaskBadge
 {
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
+    private const string Ellipsis = "…";
 
     /// <summary>
     /// Builds the markup line for one task row, truncating the title with an
@@ -48,11 +49,12 @@ internal static class TaskBadge
         var truncatedTitle = DisplayWidth.Truncate(title, titleBudget);
         var escapedTitle = Markup.Escape(truncatedTitle);
 
-        var line =
-            $"{Markup.Escape(prefix)}{TaskGlyphs.StatusMarkup(status)} "
-            + $"{TaskGlyphs.TypeCodeMarkup(type)} "
-            + $"{Stylize(priorityStyle, priorityText)} "
-            + $"{Markup.Escape(id)} {escapedTitle}";
+        var line = fixedPlainWidth > maxWidth
+            ? RenderNarrow(prefix, glyph, status, typeCode, type, priorityText, priorityStyle, id, maxWidth)
+            : $"{Markup.Escape(prefix)}{TaskGlyphs.StatusMarkup(status)} "
+                + $"{TaskGlyphs.TypeCodeMarkup(type)} "
+                + $"{Stylize(priorityStyle, priorityText)} "
+                + $"{Markup.Escape(id)} {escapedTitle}";
 
         if (selected)
         {
@@ -61,6 +63,53 @@ internal static class TaskBadge
         }
 
         return line;
+    }
+
+    private static string RenderNarrow(
+        string prefix,
+        string glyph,
+        string status,
+        string typeCode,
+        string type,
+        string priority,
+        string priorityStyle,
+        string id,
+        int maxWidth)
+    {
+        var remaining = maxWidth - DisplayWidth.Measure(Ellipsis);
+        var line = string.Empty;
+
+        AppendNarrowPart(ref line, ref remaining, prefix, string.Empty);
+        AppendNarrowPart(
+            ref line,
+            ref remaining,
+            glyph,
+            ThemeTokens.GetStyle($"status.glyph.{status}").ToMarkup());
+        AppendNarrowPart(ref line, ref remaining, " ", string.Empty);
+        AppendNarrowPart(
+            ref line,
+            ref remaining,
+            $"[{typeCode}]",
+            ThemeTokens.GetStyle($"badge.type.{type}").ToMarkup());
+        AppendNarrowPart(ref line, ref remaining, " ", string.Empty);
+        AppendNarrowPart(ref line, ref remaining, priority, priorityStyle);
+        AppendNarrowPart(ref line, ref remaining, " ", string.Empty);
+        AppendNarrowPart(ref line, ref remaining, id, string.Empty);
+
+        return line + Ellipsis;
+    }
+
+    private static void AppendNarrowPart(ref string line, ref int remaining, string value, string styleMarkup)
+    {
+        var truncatedValue = DisplayWidth.Slice(value, remaining);
+
+        if (truncatedValue.Length == 0)
+        {
+            return;
+        }
+
+        line += Stylize(styleMarkup, Markup.Escape(truncatedValue));
+        remaining -= DisplayWidth.Measure(truncatedValue);
     }
 
     private static string Stylize(string styleMarkup, string content) =>

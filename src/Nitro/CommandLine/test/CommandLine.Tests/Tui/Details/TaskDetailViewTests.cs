@@ -221,6 +221,32 @@ public sealed class TaskDetailViewTests
         Assert.Contains("not found", text);
     }
 
+    [Fact]
+    public async Task Render_Should_RenderTruncationMarker_When_ContentInteriorIsOneColumn()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks["t-1"] = TaskItemBuilder.Create("t-1");
+        store.Dependencies["t-1"] =
+        [
+            new TaskDependencyDetail
+            {
+                Type = TaskDependencyTypes.Related,
+                DependsOnId = "d-1",
+                Status = TaskStates.Open,
+                Title = "Dependency"
+            }
+        ];
+        var view = await CreateViewAsync(store, "t-1");
+        var console = new TestConsole().Width(5).Height(100);
+
+        // act
+        console.Write(view.Render(width: 5, height: 100, focused: true));
+
+        // assert
+        Assert.Contains("…", console.Output);
+    }
+
     private static async Task<TaskDetailView> CreateViewAsync(FakeTaskStore? store = null, string taskId = "t-1")
     {
         store ??= new FakeTaskStore();

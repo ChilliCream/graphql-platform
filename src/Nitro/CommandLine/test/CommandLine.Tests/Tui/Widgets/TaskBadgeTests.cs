@@ -143,6 +143,27 @@ public sealed class TaskBadgeTests
     }
 
     [Fact]
+    public void Render_Should_FitDisplayWidth_When_FixedPrefixExceedsMaxWidth()
+    {
+        // arrange
+        const int maxWidth = 1;
+
+        // act
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "Fix bug",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: maxWidth);
+
+        // assert
+        Assert.True(Markup.Remove(line).GetCellWidth() <= maxWidth);
+        Assert.Equal("…", Markup.Remove(line));
+    }
+
+    [Fact]
     public void Render_Should_FitDisplayWidth_When_TitleContainsCjkAndEmoji()
     {
         // arrange

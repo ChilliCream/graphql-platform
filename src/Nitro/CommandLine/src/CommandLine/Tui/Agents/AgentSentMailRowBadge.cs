@@ -11,6 +11,7 @@ internal static class AgentSentMailRowBadge
 {
     private const string NoRecipients = "-";
     private const string Arrow = "-> ";
+    private const string Ellipsis = "…";
 
     /// <summary>
     /// The maximum character budget for the recipients column.
@@ -35,15 +36,24 @@ internal static class AgentSentMailRowBadge
         var recipientsText = recipients.Length == 0 ? NoRecipients : recipients;
 
         // Terminal-cell width of everything but the subject and recipients.
-        var fixedPlainWidth = DisplayWidth.Measure(age) + 1 + DisplayWidth.Measure(Arrow);
+        var fixedPlainWidth = DisplayWidth.Measure(age) + 2 + DisplayWidth.Measure(Arrow);
         var remaining = Math.Max(0, maxWidth - fixedPlainWidth);
         var recipientsBudget = Math.Min(MaxRecipientsBudget, remaining / 2);
         var truncatedRecipients = DisplayWidth.Truncate(recipientsText, recipientsBudget);
 
-        var subjectBudget = Math.Max(0, remaining - DisplayWidth.Measure(truncatedRecipients) - 1);
+        var subjectBudget = Math.Max(0, remaining - DisplayWidth.Measure(truncatedRecipients));
         var truncatedSubject = DisplayWidth.Truncate(message.Subject, subjectBudget);
 
-        return
-            $"{Markup.Escape(age)} {Markup.Escape(truncatedSubject)} {Arrow}{Markup.Escape(truncatedRecipients)}";
+        return fixedPlainWidth > maxWidth
+            ? RenderNarrow(age, maxWidth)
+            : $"{Markup.Escape(age)} {Markup.Escape(truncatedSubject)} {Arrow}{Markup.Escape(truncatedRecipients)}";
+    }
+
+    private static string RenderNarrow(string age, int maxWidth)
+    {
+        var remaining = maxWidth - DisplayWidth.Measure(Ellipsis);
+        var prefix = DisplayWidth.Slice($"{age}  {Arrow}", remaining);
+
+        return Markup.Escape(prefix) + Ellipsis;
     }
 }

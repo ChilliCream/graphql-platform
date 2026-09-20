@@ -14,6 +14,7 @@ internal static class TaskDetailRowRenderer
     private const string UnselectedPrefix = "  ";
     private const string DependencyArrow = "->";
     private const string BlocksArrow = "<-";
+    private const string Ellipsis = "…";
 
     /// <summary>
     /// Builds the markup line for one row, truncating the title with an
@@ -40,10 +41,11 @@ internal static class TaskDetailRowRenderer
         var titleBudget = Math.Max(0, maxWidth - fixedPlainWidth);
         var truncatedTitle = DisplayWidth.Truncate(title, titleBudget);
 
-        var line =
-            $"{Markup.Escape(prefix)}{TaskGlyphs.StatusMarkup(status)} "
-            + $"{Markup.Escape(row.Type)} {Markup.Escape(arrow)} "
-            + $"{Markup.Escape(row.TargetId)} {Markup.Escape(truncatedTitle)}";
+        var line = fixedPlainWidth > maxWidth
+            ? RenderNarrow(prefix, status, row.Type, arrow, row.TargetId, maxWidth)
+            : $"{Markup.Escape(prefix)}{TaskGlyphs.StatusMarkup(status)} "
+                + $"{Markup.Escape(row.Type)} {Markup.Escape(arrow)} "
+                + $"{Markup.Escape(row.TargetId)} {Markup.Escape(truncatedTitle)}";
 
         if (row.IsBlocking)
         {
@@ -57,5 +59,48 @@ internal static class TaskDetailRowRenderer
         }
 
         return line;
+    }
+
+    private static string RenderNarrow(
+        string prefix,
+        string status,
+        string type,
+        string arrow,
+        string targetId,
+        int maxWidth)
+    {
+        var remaining = maxWidth - DisplayWidth.Measure(Ellipsis);
+        var line = string.Empty;
+
+        AppendNarrowPart(ref line, ref remaining, prefix, string.Empty);
+        var glyph = TaskGlyphs.Status(status);
+        AppendNarrowPart(
+            ref line,
+            ref remaining,
+            glyph,
+            ThemeTokens.GetStyle($"status.glyph.{status}").ToMarkup());
+        AppendNarrowPart(ref line, ref remaining, " ", string.Empty);
+        AppendNarrowPart(ref line, ref remaining, type, string.Empty);
+        AppendNarrowPart(ref line, ref remaining, " ", string.Empty);
+        AppendNarrowPart(ref line, ref remaining, arrow, string.Empty);
+        AppendNarrowPart(ref line, ref remaining, " ", string.Empty);
+        AppendNarrowPart(ref line, ref remaining, targetId, string.Empty);
+
+        return line + Ellipsis;
+    }
+
+    private static void AppendNarrowPart(ref string line, ref int remaining, string value, string styleMarkup)
+    {
+        var truncatedValue = DisplayWidth.Slice(value, remaining);
+
+        if (truncatedValue.Length == 0)
+        {
+            return;
+        }
+
+        line += styleMarkup.Length == 0
+            ? Markup.Escape(truncatedValue)
+            : $"[{styleMarkup}]{Markup.Escape(truncatedValue)}[/]";
+        remaining -= DisplayWidth.Measure(truncatedValue);
     }
 }
