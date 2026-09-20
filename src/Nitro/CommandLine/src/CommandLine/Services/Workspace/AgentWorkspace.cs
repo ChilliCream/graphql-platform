@@ -34,12 +34,14 @@ internal static class AgentWorkspace
     /// </summary>
     public const string GitIgnoreContent =
         """
-        # Local agent workspace database files.
+        # The agent database is the source of truth for tasks and mail. It is
+        # local, machine-specific state and is never committed.
         agents.db
         agents.db-wal
         agents.db-shm
 
-        # Legacy memory index files.
+        # The memory index is a disposable, rebuildable cache; the curated and
+        # journal markdown under memory/ is the source of truth in git.
         memory/.local/
         """;
 
