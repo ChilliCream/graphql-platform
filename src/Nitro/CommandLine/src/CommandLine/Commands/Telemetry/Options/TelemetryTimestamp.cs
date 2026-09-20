@@ -15,7 +15,24 @@ internal static class TelemetryTimestamp
     {
         if (TryParseDuration(value, out var duration))
         {
-            timestamp = now - duration;
+            if ((enforceMaximumAge && duration > MaximumAge)
+                || duration > now - DateTimeOffset.MinValue)
+            {
+                timestamp = default;
+                error = MaximumAgeMessage(optionName);
+                return false;
+            }
+
+            try
+            {
+                timestamp = now - duration;
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                timestamp = default;
+                error = MaximumAgeMessage(optionName);
+                return false;
+            }
         }
         else if (value.Contains('T')
             && DateTimeOffset.TryParse(
@@ -34,11 +51,9 @@ internal static class TelemetryTimestamp
             return false;
         }
 
-        if (enforceMaximumAge && timestamp < now - MaximumAge)
+        if (enforceMaximumAge && now - timestamp > MaximumAge)
         {
-            error = $"Option '{optionName}' cannot be more than 60 days in the past."
-                + Environment.NewLine
-                + "hint: choose a more recent timestamp or duration.";
+            error = MaximumAgeMessage(optionName);
             return false;
         }
 
@@ -76,17 +91,31 @@ internal static class TelemetryTimestamp
             return false;
         }
 
-        duration = unit switch
+        switch (unit)
         {
-            's' => TimeSpan.FromSeconds(valuePart),
-            'm' => TimeSpan.FromMinutes(valuePart),
-            'h' => TimeSpan.FromHours(valuePart),
-            'd' => TimeSpan.FromDays(valuePart),
-            _ => throw new InvalidOperationException()
-        };
+            case 's':
+                duration = TimeSpan.FromSeconds(valuePart);
+                break;
+            case 'm':
+                duration = TimeSpan.FromMinutes(valuePart);
+                break;
+            case 'h':
+                duration = TimeSpan.FromHours(valuePart);
+                break;
+            case 'd':
+                duration = TimeSpan.FromDays(valuePart);
+                break;
+            default:
+                return false;
+        }
 
         return true;
     }
+
+    private static string MaximumAgeMessage(string optionName)
+        => $"Option '{optionName}' cannot be more than 60 days in the past."
+            + Environment.NewLine
+            + "hint: choose a more recent timestamp or duration.";
 
     private static string InvalidValueMessage(string optionName, string value)
         => $"Option '{optionName}' received an invalid value: {value}"

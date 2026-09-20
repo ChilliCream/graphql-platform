@@ -106,8 +106,37 @@ public sealed class TelemetryTimestampTests
             error);
     }
 
+    [Theory]
+    [InlineData("--since", true)]
+    [InlineData("--until", false)]
+    public void TryParse_Should_ReturnError_When_DurationOversizedUnderflows(
+        string optionName,
+        bool enforceMaximumAge)
+    {
+        // arrange
+        var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+
+        // act
+        var success = TelemetryTimestamp.TryParse(
+            "999999d",
+            now,
+            optionName,
+            enforceMaximumAge,
+            out _,
+            out var error);
+
+        // assert
+        Assert.False(success);
+        Assert.Equal(
+            $"""
+            Option '{optionName}' cannot be more than 60 days in the past.
+            hint: choose a more recent timestamp or duration.
+            """,
+            error);
+    }
+
     [Fact]
-    public void Parse_Should_AddHint_When_SinceValueIsInvalid()
+    public void Parse_Should_AddHintAndReturnExitCodeOne_When_SinceValueIsInvalid()
     {
         // arrange
         var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
@@ -125,10 +154,39 @@ public sealed class TelemetryTimestampTests
         var result = command.Parse(["--since", "yesterday"]);
 
         // assert
+        Assert.Equal(1, result.Invoke());
         Assert.Equal(
             """
             Option '--since' received an invalid value: yesterday
             hint: use a duration such as 30m, 2h, or 7d, or an ISO 8601 timestamp.
+            """,
+            Assert.Single(result.Errors).Message);
+    }
+
+    [Fact]
+    public void Parse_Should_AddHintAndReturnExitCodeOne_When_SinceValueIsOlderThanSixtyDays()
+    {
+        // arrange
+        var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var environmentVariables = new Mock<IEnvironmentVariableProvider>();
+        using var provider = new ServiceCollection()
+            .AddSingleton<IEnvironmentVariableProvider>(environmentVariables.Object)
+            .AddSingleton<TimeProvider>(new FakeTimeProvider(now))
+            .BuildServiceProvider();
+        CommandExecutionContext.Initialize(new CommandServices(provider));
+        var since = new TelemetrySinceOption();
+        var command = new Command("telemetry");
+        command.Options.Add(since);
+
+        // act
+        var result = command.Parse(["--since", "61d"]);
+
+        // assert
+        Assert.Equal(1, result.Invoke());
+        Assert.Equal(
+            """
+            Option '--since' cannot be more than 60 days in the past.
+            hint: choose a more recent timestamp or duration.
             """,
             Assert.Single(result.Errors).Message);
     }
