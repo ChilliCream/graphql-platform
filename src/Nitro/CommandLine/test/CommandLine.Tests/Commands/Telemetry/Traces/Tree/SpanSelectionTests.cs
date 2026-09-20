@@ -46,6 +46,45 @@ public sealed class SpanSelectionTests
     }
 
     [Fact]
+    public void SelectOverview_Should_PrioritizeNestedErrorBeforeChildCap_WhenParentIsFast()
+    {
+        // arrange
+        var spans = new List<TraceSpan> { CreateSpan("root") };
+        spans.AddRange(Enumerable.Range(0, 24).Select(i => CreateSpan($"slow-{i}", "root", 100)));
+        spans.Add(CreateSpan("context", "root"));
+        spans.Add(CreateSpan("nested-error", "context", status: "ERROR"));
+        var tree = SpanTreeBuilder.Build(spans);
+
+        // act
+        var selection = SpanSelection.SelectOverview(tree, maximumSpans: 3);
+
+        // assert
+        Assert.Equal(
+            ["root", "context", "nested-error"],
+            selection.Spans.Select(static span => span.Node.Span.SpanId).ToArray());
+    }
+
+    [Fact]
+    public void SelectOverview_Should_PrioritizeNestedSlowBranchBeforeGlobalCap_WhenParentIsFast()
+    {
+        // arrange
+        var tree = SpanTreeBuilder.Build(
+        [
+            CreateSpan("slow-root", duration: 100),
+            CreateSpan("context-root"),
+            CreateSpan("nested-slow", "context-root", duration: 100)
+        ]);
+
+        // act
+        var selection = SpanSelection.SelectOverview(tree, maximumSpans: 3);
+
+        // assert
+        Assert.Equal(
+            ["context-root", "nested-slow", "slow-root"],
+            selection.Spans.Select(static span => span.Node.Span.SpanId).ToArray());
+    }
+
+    [Fact]
     public void SelectOverview_Should_RespectMaximumChildrenPerParent_When_ParentHasManyChildren()
     {
         // arrange

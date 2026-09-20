@@ -1,4 +1,3 @@
-using System.Buffers.Binary;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -45,6 +44,14 @@ internal sealed class ShowTraceCommand : Command
 
         ConfigureOutput(console, parseResult);
 
+        if (console.OutputFormat is OutputFormat.Ndjson)
+        {
+            return TelemetryErrorRenderer.Render(
+                console,
+                "The traces show command does not support ndjson output.",
+                "use --output json or omit --output.");
+        }
+
         if (!TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
         {
             return ExitCodes.Error;
@@ -60,7 +67,7 @@ internal sealed class ShowTraceCommand : Command
             seeker,
             cancellationToken);
 
-        if (trace is null)
+        if (trace is null || trace.Spans.Count == 0)
         {
             return TelemetryErrorRenderer.Render(
                 console,
@@ -126,38 +133,12 @@ internal sealed class ShowTraceCommand : Command
 
     private static string? GetSeeker(ParseResult parseResult)
     {
-        var explicitSeeker = parseResult.GetValue(Opt<TraceSeekerOption>.Instance);
-        if (parseResult.GetResult(Opt<TraceSeekerOption>.Instance) is { Implicit: false }
-            && !string.IsNullOrEmpty(explicitSeeker))
+        if (parseResult.GetResult(Opt<TraceSeekerOption>.Instance) is { Implicit: false })
         {
-            return explicitSeeker;
+            return parseResult.GetValue(Opt<TraceSeekerOption>.Instance);
         }
 
-        var sinceGiven = parseResult.GetResult(Opt<TelemetrySinceOption>.Instance) is { Implicit: false };
-        var untilGiven = parseResult.GetResult(Opt<TelemetryUntilOption>.Instance) is { Implicit: false };
-        if (!sinceGiven && !untilGiven)
-        {
-            return null;
-        }
-
-        var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);
-        var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
-        var timestamp = sinceGiven && untilGiven
-            ? Midpoint(since, until)
-            : sinceGiven
-                ? since
-                : until;
-        return TraceSeeker.Format(timestamp);
-    }
-
-    private static DateTimeOffset Midpoint(DateTimeOffset first, DateTimeOffset second)
-    {
-        if (first > second)
-        {
-            (first, second) = (second, first);
-        }
-
-        return first + TimeSpan.FromTicks((second - first).Ticks / 2);
+        return null;
     }
 
     private static void RenderSummary(
@@ -166,15 +147,27 @@ internal sealed class ShowTraceCommand : Command
         Trace trace,
         SpanSelectionResult selection)
     {
-        var returnedSpanCount = trace.Spans.Count;
-        var totalSpanCount = trace.SpanCount ?? returnedSpanCount;
-        var errorCount = trace.Spans.Count(SpanSelection.IsError);
-        console.WriteRawLine(
-            $"trace {traceId}: {returnedSpanCount} spans ({errorCount} errors), total {FormatDuration(trace.TotalDuration)} ms");
-
+        var returnedSpanCount = selection.TotalSpanCount;
         if (trace.SpansTruncated)
         {
-            console.WriteRawLine($"shows {selection.Count} of {totalSpanCount} spans");
+            var totalSpanCount = trace.SpanCount is { } count
+                ? $"total {count} spans"
+                : "total span count unknown";
+            console.WriteRawLine(
+                $"trace {traceId}: {returnedSpanCount} returned spans (errors unknown), "
+                + $"{totalSpanCount}, duration unknown (server-capped)");
+        }
+        else
+        {
+            var errorCount = trace.Spans.Count(SpanSelection.IsError);
+            console.WriteRawLine(
+                $"trace {traceId}: {returnedSpanCount} spans ({errorCount} errors), "
+                + $"total {FormatDuration(trace.TotalDuration)} ms");
+        }
+
+        if (selection.Count < returnedSpanCount)
+        {
+            console.WriteRawLine($"shows {selection.Count} of {returnedSpanCount} spans");
         }
 
         var operations = trace.Spans
@@ -257,17 +250,6 @@ internal sealed class TraceSeekerOption : Option<string>
         Required = false;
         Hidden = true;
         this.NonEmptyStringsOnly();
-    }
-}
-
-internal static class TraceSeeker
-{
-    public static string Format(DateTimeOffset timestamp)
-    {
-        var nanoseconds = checked((ulong)(timestamp.UtcDateTime.Ticks - DateTime.UnixEpoch.Ticks) * 100);
-        Span<byte> bytes = stackalloc byte[sizeof(ulong)];
-        BinaryPrimitives.WriteUInt64LittleEndian(bytes, nanoseconds);
-        return Convert.ToBase64String(bytes);
     }
 }
 

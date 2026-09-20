@@ -54,7 +54,9 @@ public sealed class ShowTraceCommandTests
                 "--span",
                 "child",
                 "--seeker",
-                "opaque-cursor"]);
+                "opaque-cursor",
+                "--since",
+                "2h"]);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -68,16 +70,26 @@ public sealed class ShowTraceCommandTests
             Times.Once);
     }
 
-    [Fact]
-    public async Task Execute_Should_DeriveSeekerFromExplicitTimeBounds_When_SeekerIsNotSpecified()
+    [Theory]
+    [InlineData("--since", "10m")]
+    [InlineData("--until", "5m")]
+    [InlineData("--since", "2h", "--until", "1h")]
+    public async Task Execute_Should_NotDeriveSeekerFromTimeBounds(
+        string firstOption,
+        string firstValue,
+        string? secondOption = null,
+        string? secondValue = null)
     {
         // arrange
         var client = CreateClient(CreateTrace());
+        var arguments = new List<string> { firstOption, firstValue };
+        if (secondOption is not null && secondValue is not null)
+        {
+            arguments.AddRange([secondOption, secondValue]);
+        }
 
         // act
-        var result = await ExecuteAsync(
-            client,
-            commandArguments: ["--since", "10m", "--until", "5m"]);
+        var result = await ExecuteAsync(client, commandArguments: arguments.ToArray());
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -86,7 +98,7 @@ public sealed class ShowTraceCommandTests
                 WorkspaceId,
                 "trace-id",
                 null,
-                TraceSeeker.Format(s_testNow - TimeSpan.FromMinutes(7.5)),
+                null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -131,6 +143,108 @@ public sealed class ShowTraceCommandTests
         Assert.Equal(
             "The trace 'trace-id' was not found.\nhint: run nitro telemetry traces list --since 2h",
             result.StdErr);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task Execute_Should_RenderNotFound_When_TraceHasNoSpans(
+        bool includeSpan,
+        bool json)
+    {
+        // arrange
+        var client = CreateClient(new Trace(0, false, 0, []));
+        var arguments = new List<string>();
+        if (includeSpan)
+        {
+            arguments.AddRange(["--span", "span-id"]);
+        }
+
+        if (json)
+        {
+            arguments.AddRange(["--output", "json"]);
+        }
+
+        // act
+        var result = await ExecuteAsync(client, commandArguments: arguments.ToArray());
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Equal(
+            "The trace 'trace-id' was not found.\nhint: run nitro telemetry traces list --since 2h",
+            result.StdErr);
+        Assert.Empty(result.StdOut);
+    }
+
+    [Fact]
+    public async Task Execute_Should_RejectNdjsonOutput()
+    {
+        // arrange
+        var client = CreateClient(CreateTrace());
+
+        // act
+        var result = await ExecuteAsync(client, commandArguments: ["--output", "ndjson"]);
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("does not support ndjson", result.StdErr, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReportOverviewDisplayCap()
+    {
+        // arrange
+        var spans = Enumerable.Range(0, 120)
+            .Select(i => CreateSpan($"span-{i}"))
+            .ToArray();
+        var client = CreateClient(new Trace(120, false, 120, spans));
+
+        // act
+        var result = await ExecuteAsync(client);
+
+        // assert
+        Assert.Contains("shows 96 of 120 spans", result.StdOut, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Execute_Should_ReportFocusedDisplayCapForReturnedSubtree()
+    {
+        // arrange
+        var spans = new List<TraceSpan> { CreateSpan("focus") };
+        for (var i = 0; i < 24; i++)
+        {
+            var childId = $"child-{i}";
+            spans.Add(CreateSpan(childId, "focus"));
+            spans.Add(CreateSpan($"leaf-{i}", childId));
+        }
+
+        spans.Add(CreateSpan("leaf-extra", "child-0"));
+        spans.Add(CreateSpan("outside"));
+        var client = CreateClient(new Trace(51, false, 51, spans));
+
+        // act
+        var result = await ExecuteAsync(client, commandArguments: ["--span", "focus"]);
+
+        // assert
+        Assert.Contains("shows 40 of 50 spans", result.StdOut, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Execute_Should_LabelServerCappedSummaryWhenCountIsUnknown()
+    {
+        // arrange
+        var client = CreateClient(new Trace(null, true, 0, [CreateSpan("root", duration: 20)]));
+
+        // act
+        var result = await ExecuteAsync(client);
+
+        // assert
+        Assert.Equal(
+            "trace trace-id: 1 returned spans (errors unknown), total span count unknown, "
+            + "duration unknown (server-capped)",
+            result.StdOut.Split(Environment.NewLine)[0]);
     }
 
     private static Mock<ITelemetryClient> CreateClient(Trace? trace)

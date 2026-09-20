@@ -31,10 +31,10 @@ internal static class SpanSelection
     {
         var root = tree.Find(spanId);
         return root is null
-            ? new SpanSelectionResult([], tree.Count)
+            ? new SpanSelectionResult([], 0)
             : Select(
                 [root],
-                tree.Count,
+                CountSubtree(root),
                 maximumSpans,
                 maximumDepth,
                 maximumChildrenPerParent);
@@ -57,12 +57,15 @@ internal static class SpanSelection
             return new SpanSelectionResult([], totalSpanCount);
         }
 
+        var subtreeImportance = ComputeSubtreeImportance(roots, maximumDepth);
         var selected = new List<SpanSelectionEntry>(Math.Min(maximumSpans, totalSpanCount));
         var queue = new PriorityQueue<SelectionCandidate, SpanPriority>();
 
         foreach (var root in roots)
         {
-            queue.Enqueue(new SelectionCandidate(root, 0), SpanPriority.For(root));
+            queue.Enqueue(
+                new SelectionCandidate(root, 0),
+                SpanPriority.For(root, subtreeImportance));
         }
 
         while (queue.Count > 0 && selected.Count < maximumSpans)
@@ -78,23 +81,133 @@ internal static class SpanSelection
                 continue;
             }
 
-            foreach (var child in OrderedChildren(node).Take(maximumChildrenPerParent))
+            foreach (var child in OrderedChildren(node, subtreeImportance).Take(maximumChildrenPerParent))
             {
                 queue.Enqueue(
                     new SelectionCandidate(child, depth + 1),
-                    SpanPriority.For(child));
+                    SpanPriority.For(child, subtreeImportance));
             }
         }
 
         return new SpanSelectionResult(selected, totalSpanCount);
     }
 
+    private static int CountSubtree(SpanTreeNode root)
+    {
+        var count = 0;
+        var pending = new Stack<SpanTreeNode>();
+        pending.Push(root);
+
+        while (pending.Count > 0)
+        {
+            var node = pending.Pop();
+            count++;
+
+            foreach (var child in node.Children)
+            {
+                pending.Push(child);
+            }
+        }
+
+        return count;
+    }
+
+    private static Dictionary<SpanTreeNode, SpanImportance> ComputeSubtreeImportance(
+        IReadOnlyList<SpanTreeNode> roots,
+        int maximumDepth)
+    {
+        var importance = new Dictionary<SpanTreeNode, SpanImportance>();
+
+        foreach (var root in roots)
+        {
+            ComputeSubtreeImportance(root, 0, maximumDepth, importance);
+        }
+
+        return importance;
+    }
+
+    private static SpanImportance ComputeSubtreeImportance(
+        SpanTreeNode node,
+        int depth,
+        int maximumDepth,
+        Dictionary<SpanTreeNode, SpanImportance> importance)
+    {
+        if (importance.TryGetValue(node, out var existing))
+        {
+            return existing;
+        }
+
+        var best = SpanImportance.For(node.Span);
+        if (depth < maximumDepth)
+        {
+            foreach (var child in node.Children)
+            {
+                var childImportance = ComputeSubtreeImportance(
+                    child,
+                    depth + 1,
+                    maximumDepth,
+                    importance);
+                if (childImportance.CompareTo(best) < 0)
+                {
+                    best = childImportance;
+                }
+            }
+        }
+
+        importance[node] = best;
+        return best;
+    }
+
     private readonly record struct SelectionCandidate(SpanTreeNode Node, int Depth);
 
-    private static IEnumerable<SpanTreeNode> OrderedChildren(SpanTreeNode node)
+    private static IEnumerable<SpanTreeNode> OrderedChildren(
+        SpanTreeNode node,
+        IReadOnlyDictionary<SpanTreeNode, SpanImportance> subtreeImportance)
         => node.Children
-            .OrderBy(static child => SpanPriority.For(child))
+            .OrderBy(child => SpanPriority.For(child, subtreeImportance))
             .ThenBy(static child => child.Span.SpanId, StringComparer.Ordinal);
+
+    private readonly record struct SpanImportance(
+        int Category,
+        double Duration,
+        double Start) : IComparable<SpanImportance>
+    {
+        public static SpanImportance For(TraceSpan span)
+            => new(
+                GetCategory(span),
+                NormalizeDuration(span.DurationMs),
+                NormalizeStart(span.Start));
+
+        public int CompareTo(SpanImportance other)
+        {
+            var category = Category.CompareTo(other.Category);
+            if (category != 0)
+            {
+                return category;
+            }
+
+            var duration = other.Duration.CompareTo(Duration);
+            if (duration != 0)
+            {
+                return duration;
+            }
+
+            return Start.CompareTo(other.Start);
+        }
+
+        private static int GetCategory(TraceSpan span)
+            => IsError(span)
+                ? 0
+                : span.DurationMs >= SlowSpanThresholdMs
+                    ? 1
+                    : 2;
+
+        private static double NormalizeDuration(double duration)
+            => double.IsNaN(duration) ? 0 : duration;
+
+        private static double NormalizeStart(double start)
+            => double.IsNaN(start) ? double.MaxValue : start;
+    }
 
     private readonly record struct SpanPriority(
         int Category,
@@ -102,12 +215,17 @@ internal static class SpanSelection
         double Start,
         string SpanId) : IComparable<SpanPriority>
     {
-        public static SpanPriority For(SpanTreeNode node)
-            => new(
-                GetCategory(node.Span),
-                NormalizeDuration(node.Span.DurationMs),
-                NormalizeStart(node.Span.Start),
+        public static SpanPriority For(
+            SpanTreeNode node,
+            IReadOnlyDictionary<SpanTreeNode, SpanImportance> subtreeImportance)
+        {
+            var importance = subtreeImportance[node];
+            return new(
+                importance.Category,
+                importance.Duration,
+                importance.Start,
                 node.Span.SpanId);
+        }
 
         public int CompareTo(SpanPriority other)
         {
@@ -128,19 +246,6 @@ internal static class SpanSelection
                 ? start
                 : string.Compare(SpanId, other.SpanId, StringComparison.Ordinal);
         }
-
-        private static int GetCategory(TraceSpan span)
-            => IsError(span)
-                ? 0
-                : span.DurationMs >= SlowSpanThresholdMs
-                    ? 1
-                    : 2;
-
-        private static double NormalizeDuration(double duration)
-            => double.IsNaN(duration) ? 0 : duration;
-
-        private static double NormalizeStart(double start)
-            => double.IsNaN(start) ? double.MaxValue : start;
     }
 }
 
