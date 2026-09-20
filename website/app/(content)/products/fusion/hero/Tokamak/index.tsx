@@ -332,10 +332,11 @@ export default function Tokamak() {
 
       // The column's projected half-width at the plasma's height: the
       // middle column row sits at the torus' own y (see `sceneLayout.ts`'s
-      // `buildTaperedRows`, t=0), so projecting its edge (world x = radius)
-      // and comparing to the on-axis centre (`camera.originX`) gives the
-      // span the helix's far-side points have to fall inside to read as
-      // behind the column (`occludeHelixBehindColumn`).
+      // `buildColumnRows`, waist row at `i=0`, `y=0`), so projecting its
+      // edge (world x = radius) and comparing to the on-axis centre
+      // (`camera.originX`) gives the span the helix's far-side points have
+      // to fall inside to read as behind the column
+      // (`occludeHelixBehindColumn`).
       const midColumnRow =
         layout.columnRows[Math.floor(layout.columnRows.length / 2)];
       const columnEdge = project(
