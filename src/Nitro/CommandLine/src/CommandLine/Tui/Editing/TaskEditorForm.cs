@@ -210,6 +210,16 @@ internal sealed class TaskEditorForm
 
                 var result = await store.UpdateTaskAsync(_taskId, update, cancellationToken);
                 changedFields.AddRange(result.ChangedFields);
+
+                if (statusGiven)
+                {
+                    changedFields.Add("status");
+                }
+
+                if (priorityGiven)
+                {
+                    changedFields.Add("priority");
+                }
             }
 
             var (added, removed) = DiffLabels(_snapshot.Labels, labels);

@@ -288,6 +288,50 @@ public sealed class TaskEditorFormTests
     }
 
     [Fact]
+    public async Task SubmitAsync_Should_ReportUpdated_When_OnlyStatusChanged()
+    {
+        // arrange
+        var task = TaskItemBuilder.Create("a1", "Title", TaskStates.Open, priority: TaskPriorities.Medium);
+        var form = new TaskEditorForm(task, []);
+        TabTo(form, 1);
+        form.HandleKey(Key(ConsoleKey.RightArrow));
+        var submitted = Save(form);
+        var store = new FakeTaskStore();
+
+        // act
+        var outcome = await form.SubmitAsync(store, submitted.Values, "me", CancellationToken.None);
+
+        // assert
+        Assert.True(store.UpdateReceived!.StatusGiven);
+        Assert.False(store.UpdateReceived.PriorityGiven);
+        var succeeded = Assert.IsType<TaskEditorOutcome.Succeeded>(outcome);
+        Assert.Equal(["status"], succeeded.ChangedFields);
+        Assert.Equal("Updated task 'a1'.", succeeded.ToastText);
+    }
+
+    [Fact]
+    public async Task SubmitAsync_Should_ReportUpdated_When_OnlyPriorityChanged()
+    {
+        // arrange
+        var task = TaskItemBuilder.Create("a1", "Title", TaskStates.Open, priority: TaskPriorities.Medium);
+        var form = new TaskEditorForm(task, []);
+        TabTo(form, 2);
+        form.HandleKey(Key(ConsoleKey.RightArrow));
+        var submitted = Save(form);
+        var store = new FakeTaskStore();
+
+        // act
+        var outcome = await form.SubmitAsync(store, submitted.Values, "me", CancellationToken.None);
+
+        // assert
+        Assert.False(store.UpdateReceived!.StatusGiven);
+        Assert.True(store.UpdateReceived.PriorityGiven);
+        var succeeded = Assert.IsType<TaskEditorOutcome.Succeeded>(outcome);
+        Assert.Equal(["priority"], succeeded.ChangedFields);
+        Assert.Equal("Updated task 'a1'.", succeeded.ToastText);
+    }
+
+    [Fact]
     public async Task SubmitAsync_Should_AddAndRemoveLabels_When_LabelsEdited()
     {
         // arrange
