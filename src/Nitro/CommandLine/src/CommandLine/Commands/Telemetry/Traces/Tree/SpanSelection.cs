@@ -57,52 +57,142 @@ internal static class SpanSelection
             return new SpanSelectionResult([], totalSpanCount);
         }
 
-        var subtreeImportance = ComputeSubtreeImportance(roots, maximumDepth);
+        var candidates = Discover(roots, maximumDepth);
+        candidates.Sort(static (left, right) =>
+        {
+            var importance = left.Importance.CompareTo(right.Importance);
+            return importance != 0
+                ? importance
+                : left.EncounterOrdinal.CompareTo(right.EncounterOrdinal);
+        });
+
         var selected = new List<SpanSelectionEntry>(Math.Min(maximumSpans, totalSpanCount));
-        var queue = new PriorityQueue<SelectionCandidate, SpanPriority>();
+        var selectedNodes = new HashSet<SpanTreeNode>(ReferenceEqualityComparer.Instance);
+        var selectedChildCounts = new Dictionary<SpanTreeNode, int>(ReferenceEqualityComparer.Instance);
 
-        foreach (var root in roots)
+        foreach (var target in candidates)
         {
-            queue.Enqueue(
-                new SelectionCandidate(root, 0),
-                SpanPriority.For(root, subtreeImportance));
-        }
+            var path = GetPath(target);
+            var missing = path.Where(candidate => !selectedNodes.Contains(candidate.Node)).ToArray();
 
-        while (queue.Count > 0 && selected.Count < maximumSpans)
-        {
-            var candidate = queue.Dequeue();
-            var node = candidate.Node;
-            var depth = candidate.Depth;
-
-            selected.Add(new SpanSelectionEntry(node, depth, selected.Count));
-
-            if (depth == maximumDepth)
+            if (missing.Length == 0 || selected.Count + missing.Length > maximumSpans)
             {
                 continue;
             }
 
-            foreach (var child in OrderedChildren(node, subtreeImportance).Take(maximumChildrenPerParent))
+            var canSelect = true;
+            foreach (var candidate in missing)
             {
-                queue.Enqueue(
-                    new SelectionCandidate(child, depth + 1),
-                    SpanPriority.For(child, subtreeImportance));
+                if (candidate.Predecessor is { } predecessor
+                    && selectedChildCounts.GetValueOrDefault(predecessor.Node) >= maximumChildrenPerParent)
+                {
+                    canSelect = false;
+                    break;
+                }
+            }
+
+            if (!canSelect)
+            {
+                continue;
+            }
+
+            foreach (var candidate in missing)
+            {
+                selectedNodes.Add(candidate.Node);
+                selected.Add(new SpanSelectionEntry(candidate.Node, candidate.Depth, selected.Count));
+
+                if (candidate.Predecessor is { } predecessor)
+                {
+                    selectedChildCounts[predecessor.Node] =
+                        selectedChildCounts.GetValueOrDefault(predecessor.Node) + 1;
+                }
             }
         }
 
         return new SpanSelectionResult(selected, totalSpanCount);
     }
 
+    private static List<SelectionCandidate> Discover(
+        IReadOnlyList<SpanTreeNode> roots,
+        int maximumDepth)
+    {
+        var candidates = new List<SelectionCandidate>();
+        var pending = new Queue<SelectionCandidate>();
+        var visited = new HashSet<SpanTreeNode>(ReferenceEqualityComparer.Instance);
+        var encounterOrdinal = 0;
+
+        foreach (var root in roots)
+        {
+            if (visited.Add(root))
+            {
+                var candidate = new SelectionCandidate(root, 0, null, encounterOrdinal++);
+                candidates.Add(candidate);
+                pending.Enqueue(candidate);
+            }
+        }
+
+        while (pending.Count > 0)
+        {
+            var candidate = pending.Dequeue();
+            if (candidate.Depth == maximumDepth)
+            {
+                continue;
+            }
+
+            foreach (var child in candidate.Node.Children)
+            {
+                if (visited.Add(child))
+                {
+                    var childCandidate = new SelectionCandidate(
+                        child,
+                        candidate.Depth + 1,
+                        candidate,
+                        encounterOrdinal++);
+                    candidates.Add(childCandidate);
+                    pending.Enqueue(childCandidate);
+                }
+            }
+        }
+
+        return candidates;
+    }
+
+    private static SelectionCandidate[] GetPath(SelectionCandidate target)
+    {
+        var path = new List<SelectionCandidate>();
+        var candidate = target;
+
+        while (true)
+        {
+            path.Add(candidate);
+            if (candidate.Predecessor is not { } predecessor)
+            {
+                break;
+            }
+
+            candidate = predecessor;
+        }
+
+        path.Reverse();
+        return [.. path];
+    }
+
     private static int CountSubtree(SpanTreeNode root)
     {
         var count = 0;
         var pending = new Stack<SpanTreeNode>();
+        var visited = new HashSet<SpanTreeNode>(ReferenceEqualityComparer.Instance);
         pending.Push(root);
 
         while (pending.Count > 0)
         {
             var node = pending.Pop();
-            count++;
+            if (!visited.Add(node))
+            {
+                continue;
+            }
 
+            count++;
             foreach (var child in node.Children)
             {
                 pending.Push(child);
@@ -112,60 +202,22 @@ internal static class SpanSelection
         return count;
     }
 
-    private static Dictionary<SpanTreeNode, SpanImportance> ComputeSubtreeImportance(
-        IReadOnlyList<SpanTreeNode> roots,
-        int maximumDepth)
-    {
-        var importance = new Dictionary<SpanTreeNode, SpanImportance>();
-
-        foreach (var root in roots)
-        {
-            ComputeSubtreeImportance(root, 0, maximumDepth, importance);
-        }
-
-        return importance;
-    }
-
-    private static SpanImportance ComputeSubtreeImportance(
+    private sealed class SelectionCandidate(
         SpanTreeNode node,
         int depth,
-        int maximumDepth,
-        Dictionary<SpanTreeNode, SpanImportance> importance)
+        SelectionCandidate? predecessor,
+        int encounterOrdinal)
     {
-        if (importance.TryGetValue(node, out var existing))
-        {
-            return existing;
-        }
+        public SpanTreeNode Node { get; } = node;
 
-        var best = SpanImportance.For(node.Span);
-        if (depth < maximumDepth)
-        {
-            foreach (var child in node.Children)
-            {
-                var childImportance = ComputeSubtreeImportance(
-                    child,
-                    depth + 1,
-                    maximumDepth,
-                    importance);
-                if (childImportance.CompareTo(best) < 0)
-                {
-                    best = childImportance;
-                }
-            }
-        }
+        public int Depth { get; } = depth;
 
-        importance[node] = best;
-        return best;
+        public SelectionCandidate? Predecessor { get; } = predecessor;
+
+        public int EncounterOrdinal { get; } = encounterOrdinal;
+
+        public SpanImportance Importance { get; } = SpanImportance.For(node.Span);
     }
-
-    private readonly record struct SelectionCandidate(SpanTreeNode Node, int Depth);
-
-    private static IEnumerable<SpanTreeNode> OrderedChildren(
-        SpanTreeNode node,
-        IReadOnlyDictionary<SpanTreeNode, SpanImportance> subtreeImportance)
-        => node.Children
-            .OrderBy(child => SpanPriority.For(child, subtreeImportance))
-            .ThenBy(static child => child.Span.SpanId, StringComparer.Ordinal);
 
     private readonly record struct SpanImportance(
         int Category,
@@ -207,45 +259,6 @@ internal static class SpanSelection
 
         private static double NormalizeStart(double start)
             => double.IsNaN(start) ? double.MaxValue : start;
-    }
-
-    private readonly record struct SpanPriority(
-        int Category,
-        double Duration,
-        double Start,
-        string SpanId) : IComparable<SpanPriority>
-    {
-        public static SpanPriority For(
-            SpanTreeNode node,
-            IReadOnlyDictionary<SpanTreeNode, SpanImportance> subtreeImportance)
-        {
-            var importance = subtreeImportance[node];
-            return new(
-                importance.Category,
-                importance.Duration,
-                importance.Start,
-                node.Span.SpanId);
-        }
-
-        public int CompareTo(SpanPriority other)
-        {
-            var category = Category.CompareTo(other.Category);
-            if (category != 0)
-            {
-                return category;
-            }
-
-            var duration = other.Duration.CompareTo(Duration);
-            if (duration != 0)
-            {
-                return duration;
-            }
-
-            var start = Start.CompareTo(other.Start);
-            return start != 0
-                ? start
-                : string.Compare(SpanId, other.SpanId, StringComparison.Ordinal);
-        }
     }
 }
 
