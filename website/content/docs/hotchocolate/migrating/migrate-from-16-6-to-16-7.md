@@ -85,7 +85,7 @@ In 16.6, `OperationVariableCoercion` already ran after the operation cache and t
      .UseOperationExecution();
 ```
 
-Warmup requests use the assumed-bound path without variable coercion. `GraphQL-Cost: validate` requests always run variable coercion, matching `execute`/`report` (2026-09-14 user ruling); a `validate` request without required variables now fails with the ordinary variable-coercion error instead of the assumed-bound path an earlier 16.7 preview used. The assumed bound is not exposed through the request pipeline.
+`OperationVariableCoercion` and `CostAnalyzer` no longer special-case warmup requests: `SkipWarmupExecution` is the only stage that checks whether a request is a warmup request, so a warmup request is coerced and cost-analyzed exactly like any other request before that stage stops it from executing. `GraphQL-Cost: validate` requests always run variable coercion, matching `execute`/`report` (2026-09-14 user ruling); a `validate` request without required variables fails with the ordinary variable-coercion error. The assumed bound is not exposed through the request pipeline.
 
 ## Omitted list-size requirement now enforces
 
@@ -256,4 +256,4 @@ Cost rejections, including the single result for a rejected variable batch, retu
 
 Request batching is an array of independent requests in one HTTP request. Cost limits currently apply separately to each independent request in a request batch. Summing costs across an entire request batch is planned, with no target version.
 
-Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan`, all estimates for the request, and whether the result is the assumed bound (warmup requests). Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a non-warmup request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state.
+Use `RequestContext.TryGetCostAnalysisResult(out var result)` to access the compiled `CostPlan` and all estimates for the request. Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state.

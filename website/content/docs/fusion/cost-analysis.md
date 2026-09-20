@@ -147,7 +147,7 @@ An operation whose exact compile would exceed `CaseBudget` is, by default (`Case
 
 # Accessing the Analysis Result
 
-`RequestContext.TryGetCostAnalysisResult` provides the compiled `CostPlan`, every estimate for the request, and whether the estimates are the assumed bound (warmup requests). Read the result after the cost middleware has completed:
+`RequestContext.TryGetCostAnalysisResult` provides the compiled `CostPlan` and every estimate for the request. Read the result after the cost middleware has completed:
 
 ```csharp
 builder.Services
@@ -161,14 +161,13 @@ builder.Services
             {
                 CostPlan plan = result.Plan;
                 IReadOnlyList<CostEstimate> estimates = result.Estimates;
-                bool isAssumedBound = result.IsAssumedBound;
             }
         },
         key: "ReadCostAnalysisResult",
         before: WellKnownRequestMiddleware.CostAnalyzerMiddleware);
 ```
 
-Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a non-warmup request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state. This applies to `execute`, `report`, and `validate` mode alike.
+Cost analysis and reporting return `HC0048` when required operation or document state is missing, when a request reaches the analyzer with zero coerced variable sets (an explicit empty variable batch, `variables: []`), or when metrics cannot be attached to the execution-result state. This applies to `execute`, `report`, and `validate` mode alike.
 
 # Next Steps
 
