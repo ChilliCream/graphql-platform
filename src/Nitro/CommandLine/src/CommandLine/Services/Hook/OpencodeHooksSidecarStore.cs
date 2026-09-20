@@ -55,6 +55,8 @@ internal sealed class OpencodeHooksSidecarStore(
     {
         var lockPath = path + ".lock";
 
+        IOException? lockException = null;
+
         for (var attempt = 1; attempt <= MaxLockAttempts; attempt++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -63,8 +65,10 @@ internal sealed class OpencodeHooksSidecarStore(
             {
                 return File.Open(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
             }
-            catch (IOException)
+            catch (IOException exception)
             {
+                lockException = exception;
+
                 if (attempt < MaxLockAttempts)
                 {
                     await Task.Delay(s_lockRetryDelay, cancellationToken);
@@ -72,8 +76,8 @@ internal sealed class OpencodeHooksSidecarStore(
             }
         }
 
-        throw new ExitException(
-            $"The '{FileName}' sidecar record is locked by another nitro process. Re-run the command.");
+        throw ThrowHelper.Exit(
+            $"Could not acquire write lock '{lockPath}' for sidecar '{path}' after {MaxLockAttempts} attempts: {lockException!.Message}");
     }
 
     internal static string Hash(string? text)

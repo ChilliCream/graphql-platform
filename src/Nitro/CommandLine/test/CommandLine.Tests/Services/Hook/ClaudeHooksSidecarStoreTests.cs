@@ -11,7 +11,7 @@ public sealed class ClaudeHooksSidecarStoreTests : IDisposable
     public void Dispose() => _tempRoot.Delete(recursive: true);
 
     [Fact]
-    public async Task WriteIfUnchangedAsync_ConcurrentWriters_RejectsTheContendingWriter()
+    public async Task WriteIfUnchangedAsync_Should_RejectContendingWriter_When_WriteLockIsHeld()
     {
         // arrange
         var ct = TestContext.Current.CancellationToken;
@@ -60,12 +60,15 @@ public sealed class ClaudeHooksSidecarStoreTests : IDisposable
         // assert
         Assert.Equal(firstHash, secondHash);
         Assert.Equal(1, results.Count(result => result.Succeeded));
-        Assert.Contains("locked by another nitro process", results[1].Failure, StringComparison.Ordinal);
+        Assert.False(results[1].Succeeded);
+        Assert.StartsWith(
+            $"Could not acquire write lock '{sidecarPath}.lock' for sidecar '{sidecarPath}' after 5 attempts: ",
+            results[1].Failure);
         Assert.Equal(["first"], persistedFile.Files.Keys);
     }
 
     [Fact]
-    public async Task WriteIfUnchangedAsync_DifferentSidecarPath_IsNotBlockedByAnotherSidecar()
+    public async Task WriteIfUnchangedAsync_Should_NotBlockAnotherSidecar_When_SidecarPathsDiffer()
     {
         // arrange
         var ct = TestContext.Current.CancellationToken;
@@ -96,6 +99,34 @@ public sealed class ClaudeHooksSidecarStoreTests : IDisposable
         // assert
         Assert.True(firstWriteResult);
         Assert.True(secondWrite);
+    }
+
+    [Fact]
+    public async Task WriteIfUnchangedAsync_Should_IncludeLockOpenFailure_When_LockParentIsMissing()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        var sidecarDirectory = Path.Combine(_tempRoot.FullName, "sidecars");
+        var sidecarPath = Path.Combine(sidecarDirectory, "claude-hooks-sidecar.json");
+        Directory.CreateDirectory(sidecarDirectory);
+        var store = CreateStore(
+            new ControlledSidecarReplaceFileSystem(
+                new TestFileSystem(_tempRoot.FullName),
+                sidecarPath,
+                deleteSidecarDirectoryBeforeLock: true),
+            sidecarDirectory);
+        var (file, hashAtRead) = await store.ReadWithHashAsync(ct);
+        file.Files["first"] = [];
+
+        // act
+        var exception = await Record.ExceptionAsync(() => store.WriteIfUnchangedAsync(file, hashAtRead, ct));
+
+        // assert
+        var exitException = Assert.IsType<ExitException>(exception);
+        Assert.StartsWith(
+            $"Could not acquire write lock '{sidecarPath}.lock' for sidecar '{sidecarPath}' after 5 attempts: ",
+            exitException.Message);
+        Assert.Contains("Could not find a part of the path", exitException.Message, StringComparison.Ordinal);
     }
 
     private static ClaudeHooksSidecarStore CreateStore(IFileSystem fileSystem, string sidecarDirectory)

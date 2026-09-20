@@ -3,17 +3,19 @@ using ChilliCream.Nitro.CommandLine.Services;
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Delegates file operations while optionally blocking or failing sidecar replacement.
+/// Delegates file operations while controlling sidecar replacement and lock setup.
 /// </summary>
 internal sealed class ControlledSidecarReplaceFileSystem(
     IFileSystem inner,
     string sidecarPath,
     bool blockFirstReplacement = false,
-    bool failReplacement = false) : IFileSystem
+    bool failReplacement = false,
+    bool deleteSidecarDirectoryBeforeLock = false) : IFileSystem
 {
     private readonly TaskCompletionSource _replaceStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly TaskCompletionSource _releaseReplace = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private int _hasBlocked;
+    private int _hasDeletedSidecarDirectory;
 
     public bool FileExists(string path) => inner.FileExists(path);
 
@@ -56,7 +58,20 @@ internal sealed class ControlledSidecarReplaceFileSystem(
 
     public void DeleteFile(string path) => inner.DeleteFile(path);
 
-    public bool DirectoryExists(string path) => inner.DirectoryExists(path);
+    public bool DirectoryExists(string path)
+    {
+        var exists = inner.DirectoryExists(path);
+
+        if (exists
+            && deleteSidecarDirectoryBeforeLock
+            && string.Equals(path, Path.GetDirectoryName(sidecarPath), StringComparison.Ordinal)
+            && Interlocked.CompareExchange(ref _hasDeletedSidecarDirectory, 1, 0) == 0)
+        {
+            inner.DeleteDirectory(path, recursive: true);
+        }
+
+        return exists;
+    }
 
     public void CreateDirectory(string path) => inner.CreateDirectory(path);
 

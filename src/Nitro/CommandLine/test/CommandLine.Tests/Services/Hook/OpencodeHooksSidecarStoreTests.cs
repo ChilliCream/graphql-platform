@@ -21,7 +21,7 @@ public sealed class OpencodeHooksSidecarStoreTests : IDisposable
     public void Dispose() => _tempRoot.Delete(recursive: true);
 
     [Fact]
-    public async Task WriteIfUnchangedAsync_ConcurrentWriters_RejectsTheContendingWriter()
+    public async Task WriteIfUnchangedAsync_Should_RejectContendingWriter_When_WriteLockIsHeld()
     {
         // arrange
         var ct = TestContext.Current.CancellationToken;
@@ -67,12 +67,15 @@ public sealed class OpencodeHooksSidecarStoreTests : IDisposable
         // assert
         Assert.Equal(firstHash, secondHash);
         Assert.Equal(1, results.Count(result => result.Succeeded));
-        Assert.Contains("locked by another nitro process", results[1].Failure, StringComparison.Ordinal);
+        Assert.False(results[1].Succeeded);
+        Assert.StartsWith(
+            $"Could not acquire write lock '{_sidecarPath}.lock' for sidecar '{_sidecarPath}' after 5 attempts: ",
+            results[1].Failure);
         Assert.Equal(["first"], persistedFile.Files.Keys);
     }
 
     [Fact]
-    public async Task WriteIfUnchangedAsync_CancelledWhileWaitingForTheLock_PreservesTheSidecar()
+    public async Task WriteIfUnchangedAsync_Should_Cancel_When_WriteLockIsHeld()
     {
         // arrange
         var ct = TestContext.Current.CancellationToken;
@@ -95,7 +98,7 @@ public sealed class OpencodeHooksSidecarStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task WriteIfUnchangedAsync_StaleSnapshot_ReleasesTheLockAfterRejectedAndSuccessfulWrites()
+    public async Task WriteIfUnchangedAsync_Should_ReleaseWriteLock_When_SnapshotIsStale()
     {
         // arrange
         var ct = TestContext.Current.CancellationToken;
@@ -120,6 +123,31 @@ public sealed class OpencodeHooksSidecarStoreTests : IDisposable
         Assert.Equal(changedContent, contentAfterRejectedWrite);
         Assert.True(recovered);
         Assert.True(rewritten);
+    }
+
+    [Fact]
+    public async Task WriteIfUnchangedAsync_Should_IncludeLockOpenFailure_When_LockParentIsMissing()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        Directory.CreateDirectory(_sidecarDirectory);
+        var store = CreateStore(
+            new ControlledSidecarReplaceFileSystem(
+                new TestFileSystem(_tempRoot.FullName),
+                _sidecarPath,
+                deleteSidecarDirectoryBeforeLock: true));
+        var (file, hashAtRead) = await store.ReadWithHashAsync(ct);
+        file.Files["first"] = CreateEntry();
+
+        // act
+        var exception = await Record.ExceptionAsync(() => store.WriteIfUnchangedAsync(file, hashAtRead, ct));
+
+        // assert
+        var exitException = Assert.IsType<ExitException>(exception);
+        Assert.StartsWith(
+            $"Could not acquire write lock '{_sidecarPath}.lock' for sidecar '{_sidecarPath}' after 5 attempts: ",
+            exitException.Message);
+        Assert.Contains("Could not find a part of the path", exitException.Message, StringComparison.Ordinal);
     }
 
     private OpencodeHooksSidecarStore CreateStore(IFileSystem? fileSystem = null)
