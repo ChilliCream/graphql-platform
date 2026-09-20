@@ -206,15 +206,15 @@ public abstract class CommandTestBase
 
         AddDefaultActorIfRequired(arguments);
 
-        var stdOutWriter = new StringWriter();
-        var stdErrWriter = new StringWriter();
+        var stdOut = new SynchronizedOutputCapture();
+        var stdErr = new SynchronizedOutputCapture();
 
         var outConsole = new TestConsole();
-        outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+        outConsole.Profile.Out = new AnsiConsoleOutput(stdOut.Writer);
         outConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         var errConsole = new TestConsole();
-        errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
+        errConsole.Profile.Out = new AnsiConsoleOutput(stdErr.Writer);
         errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         if (_interactionMode is InteractionMode.JsonOutput)
@@ -242,16 +242,16 @@ public abstract class CommandTestBase
 
         var invocationConfig = new InvocationConfiguration
         {
-            Output = stdOutWriter,
-            Error = stdErrWriter
+            Output = stdOut.Writer,
+            Error = stdErr.Writer
         };
 
         var exitCode = await rootCommand.ExecuteAsync(arguments, services, invocationConfig, default);
 
         return new CommandResult(
             exitCode,
-            stdOutWriter.ToString()?.TrimEnd() ?? string.Empty,
-            stdErrWriter.ToString()?.TrimEnd() ?? string.Empty,
+            stdOut.GetOutput().TrimEnd(),
+            stdErr.GetOutput().TrimEnd(),
             rootCommand.Name);
     }
 
@@ -306,16 +306,16 @@ public abstract class CommandTestBase
             arguments.AddRange(["--output", "json"]);
         }
 
-        var stdOutWriter = new StringWriter();
-        var stdErrWriter = new StringWriter();
+        var stdOut = new SynchronizedOutputCapture();
+        var stdErr = new SynchronizedOutputCapture();
 
         var outConsole = new TestConsole();
-        outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+        outConsole.Profile.Out = new AnsiConsoleOutput(stdOut.Writer);
         outConsole.Profile.Width = Constants.DefaultPrintWidth;
         outConsole.Profile.Capabilities.Interactive = true;
 
         var errConsole = new TestConsole();
-        errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
+        errConsole.Profile.Out = new AnsiConsoleOutput(stdErr.Writer);
         errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         var console = new NitroConsole(
@@ -330,8 +330,8 @@ public abstract class CommandTestBase
             {
                 var invocationConfig = new InvocationConfiguration
                 {
-                    Output = stdOutWriter,
-                    Error = stdErrWriter
+                    Output = stdOut.Writer,
+                    Error = stdErr.Writer
                 };
 
                 var exitCode = await rootCommand.ExecuteAsync(
@@ -339,13 +339,13 @@ public abstract class CommandTestBase
 
                 return new CommandResult(
                     exitCode,
-                    stdOutWriter.ToString()?.TrimEnd() ?? string.Empty,
-                    stdErrWriter.ToString()?.TrimEnd() ?? string.Empty,
+                    stdOut.GetOutput().TrimEnd(),
+                    stdErr.GetOutput().TrimEnd(),
                     rootCommand.Name);
             },
             outConsole,
-            stdOutWriter.ToString,
-            stdErrWriter.ToString);
+            stdOut.GetOutput,
+            stdErr.GetOutput);
     }
 
     private ServiceProvider BuildServices(INitroConsole console)
