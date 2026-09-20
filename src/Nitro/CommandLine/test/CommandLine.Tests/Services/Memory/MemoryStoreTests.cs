@@ -294,6 +294,26 @@ public sealed class MemoryStoreTests : MemoryTestBase
     }
 
     [Fact]
+    public async Task SearchJournalAsync_Should_MatchWordsAndAgreeWithCuratedSearch_When_QueryContainsTabsAndNewlines()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var journal = await LogAsync("Investigated the flaky watcher test.");
+        var curated = await SaveAsync("Investigated the flaky watcher test.");
+
+        // act
+        const string query = "flaky\t\nwatcher";
+        var journalResults = await _store.SearchJournalAsync(
+            query, since: null, limit: null, cancellationToken);
+        var curatedResults = await _store.SearchCuratedAsync(
+            query, [], type: null, since: null, limit: null, cancellationToken);
+
+        // assert
+        Assert.Equal([journal.Id], journalResults.Select(entry => entry.Id));
+        Assert.Equal([curated.Id], curatedResults.Select(record => record.Id));
+    }
+
+    [Fact]
     public async Task PromoteAsync_Should_CopyTheEntryIntoACuratedMemory()
     {
         // arrange

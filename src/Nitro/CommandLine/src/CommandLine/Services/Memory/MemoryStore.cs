@@ -261,7 +261,7 @@ internal sealed class MemoryStore(
     public async Task<IReadOnlyList<MemoryJournalEntry>> SearchJournalAsync(
         string query, DateTimeOffset? since, int? limit, CancellationToken cancellationToken)
     {
-        var words = query.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var words = query.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
 
         await using var connection = await ConnectAsync(cancellationToken);
 
