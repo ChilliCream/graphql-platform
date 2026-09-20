@@ -119,13 +119,13 @@ internal static class FilterParser
                 var open = Advance();
                 if (Peek().Kind == FilterTokenKind.RightParenthesis)
                 {
-                    var close = Advance();
-                    return new FilterTermNode(string.Empty, open.Start, close.End);
+                    var emptyClose = Advance();
+                    return new FilterTermNode(string.Empty, open.Start, emptyClose.End);
                 }
 
                 var inner = ParseOr();
-                ExpectClosing(open);
-                return inner;
+                var close = ExpectClosing(open);
+                return inner with { End = close.End };
             }
 
             if (CanStartValue(token.Kind))
@@ -420,14 +420,14 @@ internal static class FilterParser
             return Advance();
         }
 
-        private void ExpectClosing(FilterToken open)
+        private FilterToken ExpectClosing(FilterToken open)
         {
             if (Peek().Kind != FilterTokenKind.RightParenthesis)
             {
                 throw Error("Missing closing parenthesis", open.Start);
             }
 
-            Advance();
+            return Advance();
         }
 
         private FilterToken Peek(int offset = 0)
