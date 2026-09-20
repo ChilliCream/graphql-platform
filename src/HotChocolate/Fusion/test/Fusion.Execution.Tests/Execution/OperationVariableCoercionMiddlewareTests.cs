@@ -17,7 +17,26 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
         "query test($input: String!) { field(input: $input) }";
 
     [Fact]
-    public async Task InvokeAsync_Should_SkipCoercion_When_RequestIsWarmup()
+    public async Task InvokeAsync_Should_CoerceVariables_When_RequestIsWarmup()
+    {
+        // arrange
+        var executor = await CreateExecutorAsync();
+
+        var warmupRequest = OperationRequestBuilder.New()
+            .SetDocument(OperationText)
+            .SetVariableValues(new Dictionary<string, object?> { ["input"] = "value" })
+            .MarkAsWarmupRequest()
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(warmupRequest, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.IsType<WarmupExecutionResult>(result);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_ReturnNonNullViolation_When_RequiredVariableIsMissing_ForWarmupRequest()
     {
         // arrange
         var executor = await CreateExecutorAsync();
@@ -31,7 +50,8 @@ public class OperationVariableCoercionMiddlewareTests : FusionTestBase
         var result = await executor.ExecuteAsync(warmupRequest, TestContext.Current.CancellationToken);
 
         // assert
-        Assert.IsType<WarmupExecutionResult>(result);
+        var error = Assert.Single(result.ExpectOperationResult().Errors);
+        Assert.Equal(ErrorCodes.Execution.NonNullViolation, error.Code);
     }
 
     [Fact]
