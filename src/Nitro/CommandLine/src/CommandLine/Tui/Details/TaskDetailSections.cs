@@ -118,9 +118,13 @@ internal static class TaskDetailSections
                     if (segment.Length == 0)
                     {
                         segment = DisplayWidth.FirstTextElement(remaining);
+                        result.Add("…");
+                    }
+                    else
+                    {
+                        result.Add(segment);
                     }
 
-                    result.Add(segment);
                     remaining = remaining[segment.Length..];
                 }
 

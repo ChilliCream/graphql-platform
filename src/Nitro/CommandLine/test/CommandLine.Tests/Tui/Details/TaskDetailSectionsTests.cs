@@ -148,6 +148,36 @@ public sealed class TaskDetailSectionsTests
         Assert.All(lines, line => Assert.False(HasUnpairedSurrogate(line)));
     }
 
+    [Fact]
+    public void WrapLine_Should_ReplaceOversizedCjkWithEllipsis_When_WidthIsOne()
+    {
+        // arrange
+        const int width = 1;
+
+        // act
+        var lines = TaskDetailSections.WrapLine("漢abc", width);
+
+        // assert
+        Assert.Equal(["…", "a", "b", "c"], lines);
+        Assert.All(lines, line => Assert.True(line.GetCellWidth() <= width));
+        Assert.Equal("abc", string.Concat(lines.Skip(1)));
+    }
+
+    [Fact]
+    public void WrapLine_Should_ReplaceOversizedEmojiWithEllipsis_When_WidthIsOne()
+    {
+        // arrange
+        const int width = 1;
+
+        // act
+        var lines = TaskDetailSections.WrapLine("😀abc", width);
+
+        // assert
+        Assert.Equal(["…", "a", "b", "c"], lines);
+        Assert.All(lines, line => Assert.True(line.GetCellWidth() <= width));
+        Assert.All(lines, line => Assert.False(HasUnpairedSurrogate(line)));
+    }
+
     private static bool HasUnpairedSurrogate(string value)
     {
         for (var i = 0; i < value.Length; i++)
