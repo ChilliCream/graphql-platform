@@ -178,8 +178,10 @@ function insetQuadPx(
   const center: Pt = { x: cx, y: cy };
   const halfGap = gapPx / 2;
 
-  // Per-edge inward unit normal, oriented toward the quad's centroid.
+  // Per-edge inward unit normal, oriented toward the quad's centroid, and
+  // the edge's own unit direction (used below by the axis-scan cap).
   const normals: Pt[] = [];
+  const dirs: Pt[] = [];
   for (let i = 0; i < 4; i++) {
     const a = p[i];
     const b = p[(i + 1) % 4];
@@ -194,6 +196,7 @@ function insetQuadPx(
       ny = -ny;
     }
     normals.push({ x: nx, y: ny });
+    dirs.push({ x: ex / len, y: ey / len });
   }
 
   // Opposite-pair thickness (perpendicular distance from one edge's line
@@ -208,7 +211,42 @@ function insetQuadPx(
   };
   const inset02 = pairInset(0, 2);
   const inset13 = pairInset(1, 3);
-  const insets = [inset02, inset13, inset02, inset13];
+  const rawInsets = [inset02, inset13, inset02, inset13];
+
+  // Axis-scan cap (hc-0-wqa fix 2, review 3's rim-fringe finding): a
+  // perpendicular inset's effect on a FIXED horizontal/vertical scanline
+  // (rv3-fringe.cjs's own method) is NOT bounded by the inset's own
+  // magnitude -- shifting a near-grazing tile's own near-horizontal (or
+  // near-vertical) edge inward by a perpendicular `insetPx` moves that
+  // edge's intersection with a fixed-`y` (or fixed-`x`) scanline by
+  // `insetPx / |sin(edge angle from that axis)|`, which blows up for the
+  // column's own most-foreshortened limb tiles after the flare (a <1px
+  // perpendicular inset measured as a 28-34px black run along a fixed `y`
+  // -- confirmed directly, not assumed: a multi-row scan at the exact
+  // offending pixels showed the run length spike only at the few `y`
+  // values nearly tangent to that edge, collapsing back to single digits
+  // 1-2px away). Caps each edge's OWN applied inset so its contribution to
+  // either axis' scan-run stays near `gapPx`, with a small floor so the
+  // seam never fully closes (F2 still needs a locatable dark gap).
+  // Only bites for edges within `AXIS_THRESHOLD` (~8.6 degrees) of
+  // perfectly horizontal or vertical -- ordinary tilted edges (the vast
+  // majority of tiles, including most near-limb ones) keep their full
+  // `halfGap` inset unreduced, so F2's "100% in-band seams black" bar
+  // (verifier 2 item 5/2) is not collaterally weakened; only the rare,
+  // truly axis-grazing edge (this run's own 28-89px fringe offenders, `m`
+  // -> 0 as the edge -> exactly horizontal/vertical) scales down toward
+  // `AXIS_FLOOR_PX`.
+  const AXIS_FLOOR_PX = 0.7;
+  const AXIS_THRESHOLD = 0.12;
+  const axisCap = (i: number): number => {
+    const d = dirs[i];
+    const m = Math.min(Math.abs(d.x), Math.abs(d.y));
+    if (m >= AXIS_THRESHOLD) {
+      return halfGap;
+    }
+    return Math.max(AXIS_FLOOR_PX, halfGap * (m / AXIS_THRESHOLD));
+  };
+  const insets = rawInsets.map((v, i) => Math.min(v, axisCap(i)));
 
   const lines: Line[] = [];
   for (let i = 0; i < 4; i++) {
@@ -221,15 +259,50 @@ function insetQuadPx(
     });
   }
 
+  // A corner where the two adjacent (offset) edges meet at a sharp/acute
+  // angle -- the near-limb, most-foreshortened tiles' own most skewed
+  // corners -- can push `intersectLines`' own miter point far past either
+  // edge's own `gapPx/2` offset (the classic "miter join" spike a stroke
+  // renderer's own `miterLimit` guards against): verified directly
+  // against the real render (hc-0-wqa fix 2, review 3's rim-fringe
+  // finding) -- an UNCLAMPED miter corner left a 28-34px black margin at
+  // the limb (rv3-fringe.cjs), far past the intended ~1.35px per-edge
+  // offset, because the true tile is a thin sliver at a grazing angle and
+  // its two "inner" edges meet at a very acute angle there. Clamped to
+  // `MITER_LIMIT` times the corner's own two edges' inset amount (matching
+  // the spirit of SVG/canvas `miterLimit`): past that, the corner falls
+  // back to the BEVEL point (the midpoint of the two edges' own
+  // individually-offset endpoints at that corner) instead of the spiked
+  // miter intersection.
+  const MITER_LIMIT = 3;
   const corners: Pt[] = [];
   for (let i = 0; i < 4; i++) {
-    const prev = lines[(i + 3) % 4];
+    const prevIdx = (i + 3) % 4;
+    const prev = lines[prevIdx];
     const cur = lines[i];
     const hit = intersectLines(prev, cur);
-    // Degenerate (near-parallel adjacent edges, a vanishingly thin tile):
-    // fall back to the old centroid-lerp for this corner alone rather than
-    // producing an undefined/NaN vertex.
-    corners.push(hit ?? lerpPt(p[i], center, 0.3));
+    const localInset = Math.max(insets[prevIdx], insets[i], 1);
+    // The two edges' own offset points AT corner `i` (not `lines[].p`,
+    // which each anchor at their edge's OWN start corner -- `lines[prevIdx]`
+    // starts at corner `prevIdx`, the opposite end of that edge from `i`).
+    const nearA: Pt = {
+      x: p[i].x + normals[prevIdx].x * insets[prevIdx],
+      y: p[i].y + normals[prevIdx].y * insets[prevIdx],
+    };
+    const nearB: Pt = { x: cur.p.x, y: cur.p.y };
+    const bevel: Pt = {
+      x: (nearA.x + nearB.x) / 2,
+      y: (nearA.y + nearB.y) / 2,
+    };
+    if (!hit) {
+      // Degenerate (near-parallel adjacent edges, a vanishingly thin
+      // tile): fall back to the old centroid-lerp for this corner alone
+      // rather than producing an undefined/NaN vertex.
+      corners.push(lerpPt(p[i], center, 0.3));
+      continue;
+    }
+    const miterDist = Math.hypot(hit.x - p[i].x, hit.y - p[i].y);
+    corners.push(miterDist > localInset * MITER_LIMIT ? bevel : hit);
   }
   return corners as unknown as readonly [Pt, Pt, Pt, Pt];
 }

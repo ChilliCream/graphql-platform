@@ -9,102 +9,35 @@ interface Pt {
 }
 
 /**
- * The column's opaque backing, as ONE simple outline polygon of the whole
- * hourglass silhouette (never a union of separately filled cells, which
- * always leaves antialiased hairlines/gaps at shared edges -- Rule F, and
- * the user's own report of a dark half-moon/hairlines on the shipped
- * pillar).
+ * The column's opaque backing, as the TRUE UNION of the drawn tiles' own
+ * quads (hc-0-wqa fix 2, review 3's F1 transfer: "the base = the exact
+ * union of the drawn tile polygons"), not a single scanline min/max-x
+ * envelope polygon (that approach's own doc previously claimed this same
+ * exactness, but the flare route's much larger radius jump per row
+ * produces many more foreshortened, near-grazing tiles -- for those, a
+ * quad's own bounding-box `y`-range can cross a scanline `y` where the
+ * quad's true (non-rectangular, skewed) footprint does not actually reach
+ * that `x`; pooling ALL tiles' scanline extents together then bridges
+ * clean across a real gap between two unrelated tiles/limb clusters,
+ * exposing flat black -- rv3-fringe.cjs's `left` edge read up to 89px at
+ * 1440, on the isolated column-only canvas, real for the reasons above,
+ * not a plasma-masking artifact).
  *
- * Built directly from the DRAWN column tiles' own `rawPoly` (the un-inset
- * corner quads `buildChamberTiles` computes before the seam gap is cut
- * in): the exact same kept, `depth > 1`, near-facing tiles the column
- * layer actually paints, not a separately sampled row arc. Checkpoint 1's
- * F1 transfer ("the base must be the exact union of the tile polygons")
- * is then true by construction -- there is no approximating envelope or
- * margin left to overshoot the tiles (a stray fringe/crescent) or fall
- * short of them (a hairline gap): every tile's own 4 edges are fed into
- * the same scanline min/max-x envelope `buildColumnSilhouette` used to
- * build from the row arcs, so two neighbouring tiles' shared edge (and
- * any row-to-row edge) still closes the scanline gaps between separately
- * sampled points the same way the row-arc version's own doc described,
- * just anchored to the real tile geometry instead of a widened arc
- * sample.
- *
- * Filling this once at alpha 1 (see `paintColumnLayer`) covers both the
- * area the real (inset) tiles occupy AND every seam gap between them, so
- * nothing drawn behind the column (the far arc's streaks) is ever visible
- * through a tile or a seam, and the top rim's own front edge -- where the
- * ceiling begins -- is the polygon's own top edge, always solid.
+ * Returns each drawn column tile's own `rawPoly` (the un-inset corner
+ * quad, before the seam gap is cut in) directly: `paintColumnLayer` draws
+ * every one of these quads into ONE path and fills it once with the
+ * canvas' default "nonzero" winding rule, which unions overlapping and
+ * adjacent quads correctly (a point covered by any quad reads as inside,
+ * with no double-fill artifact since it is a single `fill()` call) and,
+ * unlike a scanline envelope, can never bridge across a real gap between
+ * two quads that do not actually touch. Two neighbouring tiles' shared
+ * edge (and the un-inset seam gap between them) is still covered because
+ * `rawPoly` is pre-inset, exactly as before.
  */
-
-interface YExtent {
-  min: number;
-  max: number;
-}
-
-function extendExtent(map: Map<number, YExtent>, y: number, x: number): void {
-  const key = Math.round(y);
-  const cur = map.get(key);
-  if (!cur) {
-    map.set(key, { min: x, max: x });
-  } else if (x < cur.min) {
-    cur.min = x;
-  } else if (x > cur.max) {
-    cur.max = x;
-  }
-}
-
-/** Extends `map`'s per-scanline min/max `x` with both of `a`/`b` AND every
- * integer `y` strictly between them, linearly interpolated along the `a`
- * -> `b` segment -- so a row's own consecutive dense samples never leave a
- * scanline gap between them for the envelope to miss. */
-function addSegment(map: Map<number, YExtent>, a: Pt, b: Pt): void {
-  extendExtent(map, a.y, a.x);
-  extendExtent(map, b.y, b.x);
-  const y0 = Math.round(Math.min(a.y, b.y));
-  const y1 = Math.round(Math.max(a.y, b.y));
-  if (y1 <= y0 + 1) {
-    return;
-  }
-  const dy = b.y - a.y;
-  for (let y = y0 + 1; y < y1; y++) {
-    const t = dy !== 0 ? (y - a.y) / dy : 0;
-    extendExtent(map, y, a.x + (b.x - a.x) * t);
-  }
-}
-
 export function buildColumnSilhouette(
   columnTiles: readonly Tile[],
-): readonly Pt[] {
-  if (columnTiles.length === 0) {
-    return [];
-  }
-  const extents = new Map<number, YExtent>();
-  // Every drawn tile's own 4 edges (its true, un-inset corners): a
-  // neighbouring tile's matching edge contributes the same segment (up to
-  // floating-point noise), so the union naturally closes without a
-  // separate "between-row" pass -- unlike the row-arc version, these
-  // segments already ARE real tile edges, not samples approximating them.
-  for (const tile of columnTiles) {
-    const [c0, c1, c2, c3] = tile.rawPoly;
-    addSegment(extents, c0, c1);
-    addSegment(extents, c1, c2);
-    addSegment(extents, c2, c3);
-    addSegment(extents, c3, c0);
-  }
-  const ys = [...extents.keys()].sort((a, b) => a - b);
-  if (ys.length === 0) {
-    return [];
-  }
-  const path: Pt[] = [];
-  for (const y of ys) {
-    path.push({ x: extents.get(y)!.max, y });
-  }
-  for (let i = ys.length - 1; i >= 0; i--) {
-    const y = ys[i];
-    path.push({ x: extents.get(y)!.min, y });
-  }
-  return path;
+): readonly (readonly [Pt, Pt, Pt, Pt])[] {
+  return columnTiles.map((tile) => tile.rawPoly);
 }
 
 /**
@@ -362,22 +295,21 @@ export function paintWall(
  * Painted once on mount and again on resize, same as the wall; the
  * per-frame cost is one cheap `drawImage`, not a re-paint of the tiles.
  *
- * `columnSilhouette` (see `buildColumnSilhouette` above) is ONE simple
- * outline polygon of the whole hourglass -- not a union of separately
- * filled cells, which always leaves antialiased hairlines at shared edges
- * -- filled ONCE, at alpha 1, with the local `blackToRgba` helper (a user
- * ruling for this one element: the README's "black only encodes
- * transparency" convention is overridden here). The same path is then
- * stroked once, also opaque black, at a 3px width: `buildColumnSilhouette`
- * builds its envelope from a `y`-rounded-to-the-pixel scanline map (see its
- * own doc), so the fill's own edge can land a sub-pixel outside where a
- * real tile corner sits purely from that pixel rounding (corner-
- * containment probed directly against `buildChamberTiles`'s own output:
- * 0 corners outside the FILLED polygon at both 1440 and 375 once the
- * envelope's between-row pass is included) -- the stroke (still the SAME
- * path, so this stays one opaque shape, never a second fill that could
- * itself leave a seam) closes that rounding with margin, without widening
- * the silhouette enough to show past the tiles as exposed black (G3).
+ * `columnSilhouette` (see `buildColumnSilhouette` above) is every drawn
+ * column tile's own `rawPoly` quad, all moved into ONE path (one
+ * `moveTo`/3x`lineTo`/`closePath` run per quad) and filled ONCE, at alpha
+ * 1, with the local `blackToRgba` helper (a user ruling for this one
+ * element: the README's "black only encodes transparency" convention is
+ * overridden here) -- the canvas' default "nonzero" winding rule unions
+ * every quad in that one `fill()` call (no double-fill artifact from
+ * overlapping quads, since it is a single path/single fill, not a union of
+ * SEPARATELY filled cells, which would leave antialiased hairlines at
+ * shared edges). This is a TRUE union of the tile polygons (hc-0-wqa fix
+ * 2, review 3's F1 transfer), not an approximating envelope: it can never
+ * overshoot past the tiles (a stray fringe) or bridge across a real gap
+ * between two tiles that do not touch, the way the prior scanline min/max
+ * envelope could on the flare route's more foreshortened limb tiles
+ * (`buildColumnSilhouette`'s own doc).
  *
  * The wall gets its own opaque backing once, for the whole canvas, from
  * the navy `fillRect` under all its tiles; the column has no such backdrop
@@ -399,7 +331,7 @@ export function paintColumnLayer(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  columnSilhouette: readonly Pt[],
+  columnSilhouette: readonly (readonly [Pt, Pt, Pt, Pt])[],
   columnTiles: readonly Tile[],
   /**
    * `project({x: 0, y: torus.y, z: torus.z}, camera).y` -- the band's own
@@ -412,13 +344,21 @@ export function paintColumnLayer(
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.globalCompositeOperation = "source-over";
-  if (columnSilhouette.length >= 3) {
+  if (columnSilhouette.length > 0) {
     ctx.beginPath();
-    ctx.moveTo(columnSilhouette[0].x, columnSilhouette[0].y);
-    for (let i = 1; i < columnSilhouette.length; i++) {
-      ctx.lineTo(columnSilhouette[i].x, columnSilhouette[i].y);
+    let minY = columnSilhouette[0][0].y;
+    let maxY = columnSilhouette[0][0].y;
+    for (const quad of columnSilhouette) {
+      ctx.moveTo(quad[0].x, quad[0].y);
+      ctx.lineTo(quad[1].x, quad[1].y);
+      ctx.lineTo(quad[2].x, quad[2].y);
+      ctx.lineTo(quad[3].x, quad[3].y);
+      ctx.closePath();
+      for (const p of quad) {
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      }
     }
-    ctx.closePath();
     // A vertical gradient, not a flat fill: checkpoint 3's mobile/stacked
     // continuous scene reads the column as low-alpha structure away from
     // the band (`Tile.bandFade`'s own doc), and the opaque base has to
@@ -427,12 +367,6 @@ export function paintColumnLayer(
     // never carry a `bandFade` below 1 (`bandFadeFloor` defaults to 1
     // there), so this reduces to the pre-ticket flat opaque fill for that
     // mode -- both stops land on alpha 1.
-    let minY = columnSilhouette[0].y;
-    let maxY = columnSilhouette[0].y;
-    for (const p of columnSilhouette) {
-      if (p.y < minY) minY = p.y;
-      if (p.y > maxY) maxY = p.y;
-    }
     // The two edge fades come from the FIRST and LAST row pairs' own
     // `bandFade` (F10), not a blanket minimum over every tile: with the
     // two rims flaring independently, the two ends fade at different
