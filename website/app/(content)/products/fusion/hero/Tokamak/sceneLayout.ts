@@ -90,6 +90,65 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 /**
+ * The central column's own row profile: an HOURGLASS, narrowest at the
+ * waist (the plasma band's own height, world y = 0 = `torus.y`, kept at
+ * row index `floor(len/2)` -- both the per-point far/near split and the
+ * opaque base read that row for the column's radius at the band) and
+ * flaring to `rimMultiplier` (1.6-2.0) times the waist radius at both
+ * rims, per `r(y) = r_waist + k * (y - y_band)^2`. `ySpanTop`/
+ * `ySpanBottom` are the world-y distance from the waist to each rim,
+ * solved independently (not mirrored) because the camera's tilt and each
+ * row's own near-side reference point (`theta = 3*PI/2`, the same
+ * front-face convention `chamber.ts`'s `facingAway` uses) do not project
+ * symmetrically around the camera's aim -- a single shared span either
+ * overshoots one rim past the frame or leaves the other short of it.
+ *
+ * Row placement compresses toward the rims: `spacingPower` (kept < 1, the
+ * opposite of `buildTaperedRows`' own `power` exponent on the RADIUS)
+ * applied to `|t|^spacingPower` on the row's own y makes each row step
+ * shrink, in projected screen space, as it nears a rim -- verified
+ * empirically against the real projection, not assumed from the world-y
+ * spacing alone -- so the trapezoid tiles read denser approaching the rim
+ * the way a globe's latitude rings compress toward its poles, instead of
+ * a handful of oversized slabs.
+ */
+interface ColumnRowSpec {
+  readonly waistRadius: number;
+  readonly rimMultiplier: number;
+  readonly ySpanTop: number;
+  readonly ySpanBottom: number;
+  readonly zSpread: number;
+  readonly spacingPower: number;
+}
+
+function buildColumnRows(spec: ColumnRowSpec): ChamberRow[] {
+  const {
+    waistRadius,
+    rimMultiplier,
+    ySpanTop,
+    ySpanBottom,
+    zSpread,
+    spacingPower,
+  } = spec;
+  // r(rim) = waistRadius * rimMultiplier at y = +-ySpan, so k is solved
+  // per side from that boundary condition rather than picked by hand.
+  const kTop = (waistRadius * (rimMultiplier - 1)) / (ySpanTop * ySpanTop);
+  const kBottom =
+    (waistRadius * (rimMultiplier - 1)) / (ySpanBottom * ySpanBottom);
+  const rows: ChamberRow[] = [];
+  for (let i = -ROWS_PER_SIDE; i <= ROWS_PER_SIDE; i++) {
+    const t = i / ROWS_PER_SIDE;
+    const at = Math.abs(t);
+    const ySpan = i < 0 ? ySpanBottom : ySpanTop;
+    const k = i < 0 ? kBottom : kTop;
+    const y = Math.sign(t) * Math.pow(at, spacingPower) * ySpan;
+    const radius = waistRadius + k * y * y;
+    rows.push({ y, z: at * at * zSpread, radius });
+  }
+  return rows;
+}
+
+/**
  * The torus' own projected width/height in px at `baseScale = 1`
  * (`focal === dist`), at the near side (`theta = -PI/2`, the convention
  * `isFarSide`/`bandCenter` in `index.tsx` use) -- `originX`/`originY` don't
@@ -172,6 +231,26 @@ const STACKED_TORUS: TorusParams = { R: 44, a: 5, y: 0, z: 0 };
 const STACKED_DIST = 160;
 const STACKED_TILT_DEG = 10;
 
+/**
+ * `mobile` and `stacked` share one column row profile (as `buildTaperedRows`
+ * did before this ticket): waist 36, rims 1.8x (64.8), spans solved
+ * against `mobile`'s own fixed camera (`scratch-geom-probe6/7.mjs`, not
+ * checked in) so both rims land between `artTop + 24` and the canvas
+ * bottom at 375 -- `stacked`'s own camera keeps the same `dist`/`tiltDeg`
+ * and only solves a different `focal`, so the same row profile carries
+ * over as the same approximation `buildTaperedRows` was.
+ */
+function buildMobileColumnRows(): ChamberRow[] {
+  return buildColumnRows({
+    waistRadius: 36,
+    rimMultiplier: 1.8,
+    ySpanTop: 6.1,
+    ySpanBottom: 30.6,
+    zSpread: 5,
+    spacingPower: 0.62,
+  });
+}
+
 /** `copyRect.right` is `null` only when the `data-hero-copy` block isn't found yet (never observed in practice, since `measure()` runs after mount) -- matches the same-width plateau the real measurement produces below the `sm:px-12` container's own `max-w-6xl` cap. */
 function fallbackZoneRight(w: number): number {
   const contentLeft = w <= 1152 ? 0 : (w - 1152) / 2;
@@ -228,7 +307,19 @@ export function computeLayout(
     const originX = zoneRight + bandWidth / 2;
     const originY = h * 0.5;
     const camera = makeCamera(originX, originY, 650 * s, 300, 8);
-    const columnRows = buildTaperedRows(92 * s, 132 * s, 700 * s, 260 * s, 1.6);
+    // Hourglass: waist 92*s at the band, rims 1.8x (165.6*s) at the top
+    // and bottom, spans solved (see `scratch-geom-probe4.mjs`, not
+    // checked in) so the top rim's front arc lands ~12% down the 1440
+    // canvas and the bottom rim ~88% down it -- both inside the top/
+    // bottom 15% target with margin, all 19 rows visible.
+    const columnRows = buildColumnRows({
+      waistRadius: 92 * s,
+      rimMultiplier: 1.8,
+      ySpanTop: 74.5 * s,
+      ySpanBottom: 99.7 * s,
+      zSpread: 30 * s,
+      spacingPower: 0.62,
+    });
     // A large waist radius and a high taper power keep each row's radius
     // near `waistRadius` for most of the row range, so every row projects
     // past the frame's left/right edges instead of only the one row at the
@@ -287,7 +378,7 @@ export function computeLayout(
       STACKED_DIST,
       STACKED_TILT_DEG,
     );
-    const columnRows = buildTaperedRows(36, 52, 275, 100, 1.6);
+    const columnRows = buildMobileColumnRows();
     // Wide rows so the wall paints behind the copy band across the full
     // width, the way the `sideBySide` wall does: every row must reach both
     // the top of the section and the left/right edges, not just the row at
@@ -314,7 +405,7 @@ export function computeLayout(
   const bandCenterY = artTop + (h - artTop) / 2;
   const originX = w * 0.5;
   const camera = makeCamera(originX, bandCenterY, 480, 160, 10);
-  const columnRows = buildTaperedRows(36, 52, 275, 100, 1.6);
+  const columnRows = buildMobileColumnRows();
   // Wide rows so the mobile wall paints behind the copy band across the
   // full width, the way the desktop wall does: every row must reach both
   // the top of the section and the left/right edges, not just the row at
