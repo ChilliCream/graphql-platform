@@ -21,7 +21,6 @@ public sealed class MailRecipientViewTests
     public void FindRecipient_Should_MatchCaseInsensitively_When_ActorIsNotNormalized()
     {
         // arrange
-        // the store lowercases recipient names, but the actor passed in here is not necessarily already normalized
         var message = MailMessageBuilder.Create("m-1", recipients: [MailMessageBuilder.ToRecipient("alice")]);
 
         // act

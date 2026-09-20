@@ -40,9 +40,8 @@ public sealed class MailTableTests
     }
 
     /// <summary>
-    /// Renders <paramref name="markup"/> through a plain (no-ANSI) <see cref="TestConsole"/>
-    /// so style tags disappear and only the literal characters remain, for
-    /// tests that need to measure column positions rather than styling.
+    /// Renders <paramref name="markup"/> through <see cref="TestConsole"/> without ANSI styling
+    /// and removes trailing line breaks.
     /// </summary>
     private static string RenderPlain(string markup)
     {
@@ -52,9 +51,7 @@ public sealed class MailTableTests
     }
 
     /// <summary>
-    /// Renders <paramref name="markup"/> through a <see cref="TestConsole"/> built with
-    /// <c>.Colors(ColorSystem.TrueColor)</c> and <c>.EmitAnsiSequences()</c>, the console shape
-    /// <see cref="AssertAnsiStyleApplied"/> requires.
+    /// Renders <paramref name="markup"/> through <see cref="TestConsole"/> with true-color ANSI styling.
     /// </summary>
     private static string RenderAnsi(string markup)
     {
@@ -108,7 +105,6 @@ public sealed class MailTableTests
         var columns = MailTable.ComputeColumns(100, showCount: false);
 
         // assert
-        // 49 fixed columns leave 50 elastic columns, split 2/5 subject, 3/5 preview
         Assert.Equal(20, columns.SubjectWidth);
         Assert.Equal(30, columns.PreviewWidth);
         Assert.False(columns.ShowCount);
@@ -121,7 +117,6 @@ public sealed class MailTableTests
         var columns = MailTable.ComputeColumns(100, showCount: true);
 
         // assert
-        // the same 100 columns now also spend 6 on the count column
         Assert.True(columns.ShowCount);
         Assert.Equal(17, columns.SubjectWidth);
         Assert.Equal(27, columns.PreviewWidth);
@@ -231,7 +226,6 @@ public sealed class MailTableTests
         var read = MailTable.RenderThreadRow(thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
-        // the unread-to-me row carries the marker glyph and a style span the read row does not
         Assert.Contains("●", unread);
         Assert.DoesNotContain("●", read);
         Assert.NotEqual(unread, read);
@@ -281,7 +275,6 @@ public sealed class MailTableTests
         var output = RenderAnsi(line);
 
         // assert
-        // mail.row.to and mail.row.age share their color with other row tokens, so each is pinned to its own text
         AssertAnsiStyleApplied(output, "mail.row.glyph.direct");
         AssertAnsiStylePrefixesText(output, "mail.row.to", "alice");
         AssertAnsiStylePrefixesText(output, "mail.row.age", "now");
@@ -300,7 +293,6 @@ public sealed class MailTableTests
         var output = RenderAnsi(line);
 
         // assert
-        // mail.row.glyph.from-me and mail.row.from.me share their color, so each is pinned to its own text
         AssertAnsiStylePrefixesText(output, "mail.row.glyph.from-me", "F");
         AssertAnsiStylePrefixesText(output, "mail.row.from.me", "alice");
     }
@@ -394,7 +386,6 @@ public sealed class MailTableTests
         var output = RenderAnsi(line);
 
         // assert
-        // mail.row.to, mail.row.preview, and mail.row.age share colors with other row tokens, so each is pinned
         AssertAnsiStyleApplied(output, "mail.row.glyph.direct");
         AssertAnsiStylePrefixesText(output, "mail.row.to", "alice");
         AssertAnsiStylePrefixesText(output, "mail.row.preview", "hi");
@@ -474,7 +465,6 @@ public sealed class MailTableTests
             thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns));
 
         // assert
-        // every label starts at the same index as the row's corresponding data cell
         Assert.Equal(offsetFrom, heading.IndexOf("From", StringComparison.Ordinal));
         Assert.Equal(offsetFrom, row.IndexOf(new string('F', columns.FromWidth), StringComparison.Ordinal));
         Assert.Equal(offsetTo, heading.IndexOf("To", StringComparison.Ordinal));
@@ -486,7 +476,6 @@ public sealed class MailTableTests
         Assert.Equal(offsetAge, heading.IndexOf("Age", StringComparison.Ordinal));
 
         // assert
-        // the row line always fills exactly contentWidth; the heading is trimmed to no longer than it
         Assert.Equal(contentWidth, row.Length);
         Assert.True(heading.Length <= contentWidth);
     }
@@ -511,7 +500,6 @@ public sealed class MailTableTests
             thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns));
 
         // assert
-        // the clamped subject floor keeps Subject/Preview from pushing Age past contentWidth
         Assert.True(heading.Length <= contentWidth, $"heading length {heading.Length} exceeded {contentWidth}.");
         Assert.True(row.Length <= contentWidth, $"row length {row.Length} exceeded {contentWidth}.");
     }
@@ -520,7 +508,7 @@ public sealed class MailTableTests
     public void RenderThreadRow_Should_FitContentWidth_InTerminalCells_When_EveryColumnHoldsWideCjkCharacters()
     {
         // arrange
-        // every text column is stuffed with CJK ideographs, 2 terminal cells each
+        // Fill sender, recipients, subject, and preview with two-cell CJK characters.
         const int contentWidth = 80;
         var columns = MailTable.ComputeColumns(contentWidth, showCount: true);
         var thread = Thread(
@@ -534,7 +522,6 @@ public sealed class MailTableTests
             thread, expanded: false, unreadToMe: false, selected: false, "alice", s_now, columns));
 
         // assert
-        // the row still fills exactly contentWidth terminal cells
         Assert.Equal(contentWidth, MeasureCellWidth(row));
     }
 
@@ -542,7 +529,7 @@ public sealed class MailTableTests
     public void RenderMessageRow_Should_FitContentWidth_InTerminalCells_When_EveryColumnHoldsEmojiCharacters()
     {
         // arrange
-        // every text column is stuffed with astral-plane emoji, a UTF-16 surrogate pair each, 2 terminal cells
+        // Fill sender, recipients, subject, and body with two-cell emoji.
         const int contentWidth = 80;
         var columns = MailTable.ComputeColumns(contentWidth, showCount: false);
         var message = MailMessageBuilder.Create(
@@ -572,7 +559,7 @@ public sealed class MailTableTests
     public void RenderMessageRow_Should_NeverEmitALoneSurrogate_When_TruncatingEmojiContent(int contentWidth)
     {
         // arrange
-        // every fixed and elastic column budget is exercised at a different cut point as contentWidth varies
+        // Vary the available width while keeping the emoji content fixed.
         var columns = MailTable.ComputeColumns(contentWidth, showCount: false);
         var message = MailMessageBuilder.Create(
             "m-1",
@@ -587,7 +574,6 @@ public sealed class MailTableTests
             message, threadChild: false, unreadToMe: false, selected: false, "alice", s_now, columns);
 
         // assert
-        // no lone surrogate in either the raw markup or the plain rendered text
         Assert.False(ContainsLoneSurrogate(row));
         Assert.False(ContainsLoneSurrogate(RenderPlain(row)));
     }

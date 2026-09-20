@@ -22,7 +22,7 @@ public sealed class MailDetailViewTests
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
 
-        // Threads mode defaults a single-message thread's row to Thread view
+        // Switch the selected thread to its single-message view.
         state.ShowMessage();
         return state;
     }
@@ -158,7 +158,7 @@ public sealed class MailDetailViewTests
             ]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
-        // archived messages drop out of the default Inbox mailbox, but Workspace shows every message
+        // Use Workspace to include archived messages.
         await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
         state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
@@ -184,7 +184,7 @@ public sealed class MailDetailViewTests
             recipients: [MailMessageBuilder.ToRecipient("bob")]));
         var state = new MailState("alice", new MailDataLoader(store));
         await state.RefreshAsync(CancellationToken.None);
-        // alice sent this message, so it is not in her Inbox; Sent carries messages she sent
+        // Select Sent to display the message sent by alice.
         await state.SelectMailboxAsync(MailMailbox.Sent, CancellationToken.None);
         state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
@@ -243,7 +243,7 @@ public sealed class MailDetailViewTests
         state.ShowMessage(); // Threads mode defaults a single-message thread's row to Thread view
         var view = new MailDetailView();
         var console = new TestConsole().Width(80).Height(20);
-        // bob maps to an empty client, alice has no entry at all, both must render as with no lookup
+        // Supply an empty client for bob and no lookup entry for alice.
         var clientsByName = new Dictionary<string, string> { ["bob"] = "" };
 
         // act
@@ -260,7 +260,7 @@ public sealed class MailDetailViewTests
     public async Task Render_Should_ShowBracketsLiterally_When_ClientContainsMarkupSyntax()
     {
         // arrange
-        // a client name is agent-supplied and must render literally, with neither a crash nor doubled brackets
+        // Use a client name containing markup brackets.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1",
@@ -344,7 +344,6 @@ public sealed class MailDetailViewTests
         console.Write(view.Render(state, 80, 20, focused: true));
 
         // assert
-        // pinned to the "From:" label, since the style token can also appear elsewhere in the frame
         AssertAnsiStylePrefixesText(console.Output, "detail.section.header", "From:");
     }
 
@@ -372,7 +371,6 @@ public sealed class MailDetailViewTests
         console.Write(view.Render(state, 80, 20, focused: true));
 
         // assert
-        // each token is pinned to its recipient's own rendered line rather than the whole frame
         AssertAnsiStylePrefixesText(
             console.Output, "mail.detail.recipient.read", "orchestrator: read 2026-01-01 14:02");
         AssertAnsiStylePrefixesText(console.Output, "mail.detail.recipient.unread", "planner-1: unread");

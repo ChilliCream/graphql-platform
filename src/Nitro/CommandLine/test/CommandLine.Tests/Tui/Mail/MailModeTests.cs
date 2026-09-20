@@ -367,7 +367,6 @@ public sealed class MailModeTests
         console.Write(mode.Render(100, 20));
 
         // assert
-        // the default mailbox is Workspace, rendered as a threaded table with a heading row
         Assert.Contains("Workspace (1)", console.Output);
         Assert.Contains("From", console.Output);
         Assert.Contains("Subject", console.Output);
@@ -392,7 +391,6 @@ public sealed class MailModeTests
         console.Write(mode.Render(100, 20));
 
         // assert
-        // the registry lookup threads into the detail pane without a per-row query
         Assert.Contains("From: bob (codex)", console.Output);
     }
 
@@ -432,7 +430,6 @@ public sealed class MailModeTests
         console.Write(mode.Render(100, 20));
 
         // assert
-        // bob is not in the registry, so no attribution shows
         Assert.Contains("From: bob", console.Output);
         Assert.DoesNotContain("From: bob (", console.Output);
     }
@@ -685,7 +682,7 @@ public sealed class MailModeTests
     public async Task ComposeForm_Submit_Should_ShowErrorToast_And_WriteNothing_When_StoreRejectsTheWrite()
     {
         // arrange
-        // the store rejects a write with no recipients, exercising the same write-failure toast path
+        // A comma passes the nonempty To-field check but produces no recipient names.
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore();
         var mode = CreateMode(store);
@@ -703,7 +700,6 @@ public sealed class MailModeTests
         var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
 
         // assert
-        // the compose form reopens with the typed subject intact behind the error toast
         Assert.Equal(ToastStyle.Error, toast.Style);
         Assert.Empty(store.Messages);
         Assert.True(mode.IsInputCapturing);
@@ -734,7 +730,6 @@ public sealed class MailModeTests
         var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
 
         // assert
-        // the reply form reopens with the typed body intact behind the error toast
         Assert.Equal(ToastStyle.Error, toast.Style);
         Assert.Empty(store.Messages);
         Assert.True(mode.IsInputCapturing);
@@ -773,13 +768,12 @@ public sealed class MailModeTests
         var followUp = mode.HandleRawKey(CtrlKey(ConsoleKey.S));
 
         // assert
-        // refused with a warning, the second form stays open with its values intact
         var toast = Assert.Single(followUp);
         Assert.Equal(ToastStyle.Warn, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
         Assert.True(mode.IsInputCapturing);
         Assert.Empty(store.Messages); // the first write is still held open
 
-        // release the gated write, so only the first message was ever stored
+        // Release the first write and wait for completion.
         store.SendGate!.SetResult();
         await WaitForOutcomeToastAsync(mode, cancellationToken);
         Assert.Single(store.Messages);
@@ -881,11 +875,8 @@ public sealed class MailModeTests
     }
 
     /// <summary>
-    /// Polls <see cref="MailMode.Handle"/> with a <see cref="TuiMessage.RefreshRequested"/> until
-    /// a terminal compose/reply outcome toast drains: every terminal outcome is
-    /// <see cref="ToastStyle.Success"/>, <see cref="ToastStyle.Warn"/>, or
-    /// <see cref="ToastStyle.Error"/>, skipping the intermediate <see cref="ToastStyle.Info"/>
-    /// "Sending" and "Stored" toasts.
+    /// Refreshes <see cref="MailMode"/> until a non-<see cref="ToastStyle.Info"/> outcome toast
+    /// is returned. Cancels the wait after five seconds or when the supplied token is cancelled.
     /// </summary>
     private static async Task<TuiMessage.ShowToast> WaitForOutcomeToastAsync(
         MailMode mode, CancellationToken cancellationToken)
@@ -993,7 +984,7 @@ public sealed class MailModeTests
     public async Task RunSendEffectEventsAsync_Should_EmitAnEffectCompletedEvent_ThatHandleDrainsIntoTheOutcomeToast()
     {
         // arrange
-        // the event channel delivers a send completion without a keypress or db-watcher tick to drive it
+        // Run the send-effect event source and submit a message.
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore();
         var mode = CreateMode(store);
@@ -1011,7 +1002,7 @@ public sealed class MailModeTests
         mode.HandleRawKey(CtrlKey(ConsoleKey.S));
 
         // act
-        // poll channel events into Handle until a non-Info (terminal) toast surfaces
+        // Handle completion events until a non-Info toast appears.
         using var readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         readCts.CancelAfter(TimeSpan.FromSeconds(5));
         TuiMessage.ShowToast? toast = null;
@@ -1074,7 +1065,6 @@ public sealed class MailModeTests
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Escape));
 
         // assert
-        // still capturing input, now the discard confirmation
         Assert.Empty(followUp);
         Assert.True(mode.IsInputCapturing);
     }
@@ -1115,7 +1105,6 @@ public sealed class MailModeTests
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Escape));
 
         // assert
-        // back to the compose form, still capturing, nothing sent
         Assert.Empty(followUp);
         Assert.True(mode.IsInputCapturing);
         Assert.Empty(store.Messages);
@@ -1479,7 +1468,6 @@ public sealed class MailModeTests
             ThemeTokens.GetStyle(MailMode.ResolveListBorderToken(MailMailbox.Workspace, focused: true)));
 
         // assert
-        // the border pane's output actually carries the ANSI sequence for the Workspace-focused border style
         var borderStyle = ThemeTokens.GetStyle(MailMode.ResolveListBorderToken(MailMailbox.Workspace, focused: true));
         var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
         styleConsole.Write(new Markup("x", borderStyle));
@@ -1590,7 +1578,6 @@ public sealed class MailModeTests
         console.Write(mode.Render(100, 20));
 
         // assert
-        // bob's client is shown, carol's empty client shows nothing
         Assert.Contains("bob (codex)", console.Output);
         Assert.Contains("carol", console.Output);
         Assert.DoesNotContain("carol (", console.Output);
@@ -1620,7 +1607,6 @@ public sealed class MailModeTests
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
 
         // assert
-        // m-1 (bob sent it) and m-2 (bob received it), not m-3 (bob is neither sender nor recipient)
         Assert.Empty(followUp);
         Assert.False(mode.IsInputCapturing);
         Assert.Equal("bob", mode.State.AgentFilter);
@@ -1958,7 +1944,6 @@ public sealed class MailModeTests
         mode.HandleRawKey(new ConsoleKeyInfo('R', ConsoleKey.R, shift: true, alt: false, control: false));
 
         // assert
-        // each thread row now has its one message as an indented child row too, so the row count doubles
         Assert.Equal(4, mode.State.Rows.Count);
         var threadRows = mode.State.Rows.OfType<MailListRow.Thread>().ToList();
         Assert.Equal(2, threadRows.Count);
@@ -2012,7 +1997,6 @@ public sealed class MailModeTests
         console.Write(mode.Render(100, 20));
 
         // assert
-        // exactly one unread-to-me marker, not two
         var markerCount = console.Output.Split('\u25cf').Length - 1;
         Assert.Equal(1, markerCount);
     }

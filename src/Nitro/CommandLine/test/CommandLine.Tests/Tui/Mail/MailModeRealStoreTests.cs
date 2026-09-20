@@ -70,11 +70,8 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     private MailMode CreateMode(string actor) => new(_store, actor, _registry, _timeProvider);
 
     /// <summary>
-    /// Polls <see cref="MailMode.Handle"/> with a <see cref="TuiMessage.RefreshRequested"/> until
-    /// a terminal compose/reply outcome toast drains: every terminal outcome is
-    /// <see cref="ToastStyle.Success"/>, <see cref="ToastStyle.Warn"/>, or
-    /// <see cref="ToastStyle.Error"/>, skipping the intermediate <see cref="ToastStyle.Info"/>
-    /// "Stored" notice.
+    /// Refreshes <see cref="MailMode"/> until a non-<see cref="ToastStyle.Info"/> outcome toast
+    /// is returned. Cancels the wait after five seconds or when the supplied token is cancelled.
     /// </summary>
     private static async Task<TuiMessage.ShowToast> WaitForOutcomeToastAsync(
         MailMode mode, CancellationToken cancellationToken)
@@ -162,7 +159,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     public async Task ComposeForm_Submit_Should_CreateImplicitRow_When_RecipientIsUnknown()
     {
         // arrange
-        // an unregistered recipient is implicit-created (mailbox-on-first-message), independently of the wake status
+        // Compose a message to an unregistered recipient.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
         await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
@@ -190,7 +187,7 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     public async Task ReplyForm_Submit_Should_ComputeTheSameRecipientSet_AsTheCliReplyCommand()
     {
         // arrange
-        // two equivalent threads: one replied to directly via IMailStore.ReplyMessageAsync, one through the form
+        // Seed matching threads for a direct reply and a reply built by the form.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
         await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);

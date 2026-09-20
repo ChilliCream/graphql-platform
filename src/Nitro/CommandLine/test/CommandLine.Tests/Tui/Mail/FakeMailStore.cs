@@ -4,8 +4,8 @@ using ChilliCream.Nitro.CommandLine.Tui.Mail;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
 /// <summary>
-/// An in-memory <see cref="IMailStore"/> implementing the query and write surface the mail
-/// board model uses. Every other member throws <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="IMailStore"/> supporting <see cref="MailMode"/> queries and writes.
+/// Unsupported members throw <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeMailStore : IMailStore
 {
@@ -20,7 +20,7 @@ internal sealed class FakeMailStore : IMailStore
     public TaskCompletionSource? SendGate { get; set; }
 
     /// <summary>
-    /// True once a send or reply has reached <see cref="SendGate"/> and is waiting on it.
+    /// True after a send or reply has entered <see cref="SendGate"/>; remains true after the wait ends.
     /// </summary>
     public bool SendGateEntered { get; private set; }
 
@@ -90,10 +90,9 @@ internal sealed class FakeMailStore : IMailStore
         => throw new NotSupportedException();
 
     /// <summary>
-    /// Sends a message: every given recipient becomes a "to" recipient, and no unknown-recipient
-    /// validation happens. When <see cref="MailMessageCreation.WakePolicy"/> is
-    /// <see cref="MailWakePolicy.Enqueue"/>, every recipient gets a <see cref="MailWakeReceipt"/>
-    /// with an incrementing generation.
+    /// Sends to the names in <see cref="MailMessageCreation.To"/> without actor lookup;
+    /// CC recipients are ignored. <see cref="MailWakePolicy.Enqueue"/> creates one
+    /// <see cref="MailWakeReceipt"/> per recipient with a generation from a shared counter.
     /// </summary>
     public async Task<MailMessage> SendMessageAsync(MailMessageCreation creation, CancellationToken cancellationToken)
     {
@@ -135,9 +134,8 @@ internal sealed class FakeMailStore : IMailStore
     }
 
     /// <summary>
-    /// Replies to a message: the reply's only recipient is the original message's sender, and cc
-    /// recipients and the actor-exclusion rule are not reproduced. See
-    /// <see cref="SendMessageAsync"/> for <paramref name="wakePolicy"/>.
+    /// Replies only to the original sender. <see cref="MailWakePolicy.Enqueue"/> creates
+    /// a wake receipt using the same generation counter as <see cref="SendMessageAsync"/>.
     /// </summary>
     public async Task<MailMessage> ReplyMessageAsync(
         string inReplyToId, string sender, string body, MailWakePolicy wakePolicy, CancellationToken cancellationToken)
@@ -248,10 +246,9 @@ internal sealed class FakeMailStore : IMailStore
             unreadActor: null));
 
     /// <summary>
-    /// Mirrors <c>MailStore.BuildThreadSummariesAsync</c> in-memory, grouping messages matching
-    /// <paramref name="threadFilter"/> by thread. <see cref="MailThreadSummary.UnreadCount"/> and
-    /// <see cref="MailThreadSummary.ArchivedCount"/> are computed only when
-    /// <paramref name="unreadActor"/> is given.
+    /// Returns summaries for threads with at least one message matching <paramref name="threadFilter"/>.
+    /// Each summary includes the entire thread, with unread and archived counts null
+    /// when <paramref name="unreadActor"/> is null.
     /// </summary>
     private IReadOnlyList<MailThreadSummary> BuildThreadSummaries(Func<MailMessage, bool> threadFilter, string? unreadActor)
     {

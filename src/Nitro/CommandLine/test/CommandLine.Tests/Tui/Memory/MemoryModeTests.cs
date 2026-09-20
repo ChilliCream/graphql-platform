@@ -51,7 +51,6 @@ public sealed class MemoryModeTests : MemoryTestBase
     public async Task OnEnter_Should_LoadCuratedMemories()
     {
         // arrange
-        // OnEnter only marks a refresh pending; a manual refresh stands in for the shell rendering the tab
         await SaveAsync("First.");
         var mode = CreateMode();
 
@@ -184,7 +183,6 @@ public sealed class MemoryModeTests : MemoryTestBase
     public void ForgetRequested_Should_ShowWarnToast_When_NoCuratedMemorySelected()
     {
         // arrange
-        // the journal collection has no notion of a selected curated memory to forget
         var mode = CreateMode();
         mode.OnEnter();
         mode.Handle(new TuiMessage.CycleView(1));
@@ -207,7 +205,7 @@ public sealed class MemoryModeTests : MemoryTestBase
         mode.Handle(new TuiMessage.ForgetRequested());
 
         // act
-        // Enter confirms from the dialog's initially focused, empty reason field
+        // Confirm with the reason field empty.
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
 
         // assert
@@ -243,7 +241,6 @@ public sealed class MemoryModeTests : MemoryTestBase
     public void PromoteRequested_Should_ShowWarnToast_When_NoJournalEntrySelected()
     {
         // arrange
-        // the default collection is curated, which has no notion of a selected journal entry to promote
         var mode = CreateMode();
         mode.OnEnter();
 
@@ -301,7 +298,7 @@ public sealed class MemoryModeTests : MemoryTestBase
     public async Task PromoteForm_Submit_Should_ReportAlreadyPromoted_When_TheJournalEntryWasPromotedBefore()
     {
         // arrange
-        // the entry was already promoted outside the tab; promoting it again from the tab is idempotent
+        // Promote the journal entry before opening the tab.
         var entry = await LogAsync("Note one.");
         await _store.PromoteAsync(entry.Id, "fact", [], TestContext.Current.CancellationToken);
 
@@ -382,7 +379,7 @@ public sealed class MemoryModeTests : MemoryTestBase
     public async Task SearchForm_Apply_Should_ShowTypeTagIgnoredMarker_When_JournalCollectionSearchedWithType()
     {
         // arrange
-        // the journal collection has no type or tags to filter by, so a type:/tag: prefix is ignored
+        // Apply a type qualifier while viewing the journal.
         await LogAsync("Note one.");
         var mode = CreateMode();
         mode.OnEnter();

@@ -102,7 +102,7 @@ public sealed class MailDataLoaderTests
     public async Task LoadSentAsync_Should_ReturnAnUnrepliedThreadRootMessage()
     {
         // arrange
-        // no recipient row exists for the sender, so this message is otherwise unreachable in the Inbox mailbox
+        // Alice sends to bob and has no recipient row on the message.
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", sender: "alice", threadId: "m-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
@@ -153,7 +153,6 @@ public sealed class MailDataLoaderTests
         var workspace = await loader.LoadWorkspaceAsync(agent: null, CancellationToken.None);
 
         // assert
-        // only reachable from the Workspace mailbox for actor alice
         Assert.Empty(inbox);
         Assert.Empty(sent);
         Assert.Empty(all);
@@ -177,7 +176,6 @@ public sealed class MailDataLoaderTests
         var messages = await loader.LoadWorkspaceAsync("alice", CancellationToken.None);
 
         // assert
-        // m-1 (alice sent it) and m-2 (alice received it), not m-3 (alice is neither sender nor recipient)
         Assert.Equal(["m-2", "m-1"], messages.Select(m => m.Id));
     }
 

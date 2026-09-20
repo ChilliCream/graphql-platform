@@ -127,7 +127,6 @@ public sealed class MailStateTests
         await state.CycleFilterAsync(1, CancellationToken.None); // Inbox -> Unread
 
         // assert
-        // t-2 is fully read now, so the client-side Threads filter hides it, leaving only t-1
         Assert.Equal(MailListFilter.Unread, state.Filter);
         Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
     }
@@ -149,7 +148,6 @@ public sealed class MailStateTests
         await state.SelectMailboxAsync(MailMailbox.Inbox, CancellationToken.None);
 
         // assert
-        // t-1's only message to alice is archived, so it is excluded by the default Inbox filter
         Assert.Equal(MailListFilter.Inbox, state.Filter);
         Assert.Equal(["t-2"], state.Threads.Select(t => t.ThreadId));
     }
@@ -173,7 +171,6 @@ public sealed class MailStateTests
         await state.CycleFilterAsync(1, CancellationToken.None); // Unread -> Archived
 
         // assert
-        // only t-1 carries an archived-for-alice message, so cycling to Archived narrows to it
         Assert.Equal(MailListFilter.Archived, state.Filter);
         Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
     }
@@ -211,7 +208,7 @@ public sealed class MailStateTests
         state.SelectedRow = 1;
 
         // act
-        // Workspace is chosen since re-selecting the already-active Inbox would be a no-op
+        // Switch from Inbox to Workspace.
         await state.SelectMailboxAsync(MailMailbox.Workspace, CancellationToken.None);
 
         // assert
@@ -316,7 +313,6 @@ public sealed class MailStateTests
         await state.RefreshAsync(CancellationToken.None);
 
         // assert
-        // the manual override survives, rather than resetting to the MessageRow's own Message default
         Assert.Equal(MailViewMode.Thread, state.ViewMode);
     }
 
@@ -340,7 +336,6 @@ public sealed class MailStateTests
         await state.RefreshAsync(CancellationToken.None);
 
         // assert
-        // the manual override survives, rather than resetting to the thread row's own Thread default
         Assert.Equal(MailViewMode.Message, state.ViewMode);
     }
 
@@ -364,7 +359,6 @@ public sealed class MailStateTests
         state.SelectedRow = 1;
 
         // assert
-        // the new row's own default resolves fresh, unaffected by the previous row's override
         Assert.Equal(MailViewMode.Thread, state.ViewMode);
     }
 
@@ -407,7 +401,7 @@ public sealed class MailStateTests
         Assert.Equal(["m-1"], state.ThreadMessages.Select(m => m.Id));
 
         // act
-        // the surviving row skips SelectedRow's re-sync, so RefreshAsync must refresh ThreadMessages itself
+        // Add a reply to the selected thread, then refresh.
         store.Messages.Add(MailMessageBuilder.Create(
             "m-2", threadId: "t-1", createdAt: s_now.AddMinutes(1)));
         await state.RefreshAsync(CancellationToken.None);
@@ -539,7 +533,6 @@ public sealed class MailStateTests
         await state.RefreshAsync(CancellationToken.None);
 
         // assert
-        // one thread rollup for the two messages collapses into one Rows entry, not two
         Assert.Equal(["t-1"], state.Threads.Select(t => t.ThreadId));
         Assert.Equal(2, state.Threads[0].MessageCount);
         var row = Assert.Single(state.Rows);
@@ -563,7 +556,6 @@ public sealed class MailStateTests
         state.ExpandThread("t-1");
 
         // assert
-        // the thread row, now expanded, followed by its two messages oldest first as indented children
         Assert.Equal(3, state.Rows.Count);
         var threadRow = Assert.IsType<MailListRow.Thread>(state.Rows[0]);
         Assert.True(threadRow.Expanded);
@@ -631,7 +623,6 @@ public sealed class MailStateTests
         state.ExpandAllThreads();
 
         // assert
-        // two thread rows, each with its one message
         Assert.Equal(4, state.Rows.Count);
 
         // act
