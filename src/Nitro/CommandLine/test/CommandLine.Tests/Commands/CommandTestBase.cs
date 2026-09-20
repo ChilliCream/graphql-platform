@@ -343,7 +343,9 @@ public abstract class CommandTestBase
                     stdErrWriter.ToString()?.TrimEnd() ?? string.Empty,
                     rootCommand.Name);
             },
-            outConsole);
+            outConsole,
+            stdOutWriter.ToString,
+            stdErrWriter.ToString);
     }
 
     private ServiceProvider BuildServices(INitroConsole console)
@@ -660,8 +662,14 @@ internal sealed class FixedCodexPathResolver(string hooksJsonPath, string config
 
 internal sealed class InteractiveCommand(
     Func<CancellationToken, Task<CommandResult>> executeAsync,
-    TestConsole testConsole)
+    TestConsole testConsole,
+    Func<string> standardOutput,
+    Func<string> standardError)
 {
+    public string StdOut => standardOutput();
+
+    public string StdErr => standardError();
+
     public void Input(string input)
     {
         testConsole.Input.PushTextWithEnter(input);

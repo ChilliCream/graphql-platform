@@ -448,15 +448,22 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
                 "Remote",
                 sourceSchema,
                 cancellationTokenSource.Token);
+            await WaitForOutputAsync(
+                () => watchCommand.StdOut,
+                "Watching for changes in",
+                cancellationTokenSource.Token);
             Assert.Equal(1, Volatile.Read(ref requestCount));
             before = await File.ReadAllBytesAsync(
                 archiveFile,
                 cancellationTokenSource.Token);
             SetupFile(settingsFile, renamedSettings);
-
-            await TriggerFileChangesAsync(
+            await File.WriteAllTextAsync(
                 settingsFile,
                 renamedSettings,
+                cancellationTokenSource.Token);
+            await WaitForOutputAsync(
+                () => watchCommand.StdErr,
+                "A source schema settings 'name' cannot change during watch mode.",
                 cancellationTokenSource.Token);
         }
         finally
@@ -1122,18 +1129,26 @@ public sealed class FusionRemoteComposeCommandTests(NitroCommandFixture fixture)
         }
     }
 
-    private static async Task TriggerFileChangesAsync(
-        string file,
-        string content,
+    private static async Task WaitForOutputAsync(
+        Func<string> readOutput,
+        string expectedOutput,
         CancellationToken cancellationToken)
     {
-        for (var i = 1; i <= 3; i++)
+        using var timeoutCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+            cancellationToken);
+        timeoutCancellationTokenSource.CancelAfter(TimeSpan.FromSeconds(10));
+
+        try
         {
-            await File.WriteAllTextAsync(
-                file,
-                content + new string(' ', i),
-                cancellationToken);
-            await Task.Delay(500, cancellationToken);
+            while (!readOutput().Contains(expectedOutput, StringComparison.Ordinal))
+            {
+                await Task.Delay(50, timeoutCancellationTokenSource.Token);
+            }
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException(
+                $"Expected output containing '{expectedOutput}', but observed:{Environment.NewLine}{readOutput()}");
         }
     }
 
