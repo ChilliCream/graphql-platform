@@ -36,7 +36,7 @@ internal sealed class OperationCompilerMiddleware
 
         var documentInfo = context.OperationDocumentInfo;
 
-        if (documentInfo.Document is not null && !documentInfo.Id.IsEmpty && documentInfo.IsValidated)
+        if (documentInfo.Document is not null && documentInfo.Id.HasValue && documentInfo.IsValidated)
         {
             var normalizedDocument = context.GetNormalizedDocument();
             var inFlightOperation = context.Features.Get<TaskCompletionSource<Operation>>();
