@@ -43,6 +43,11 @@ internal sealed class ClaudeSessionActivityReader(Func<string, string?>? session
         var directory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude", "sessions");
 
+        return ReadSessionFile(directory, sessionId);
+    }
+
+    internal static string? ReadSessionFile(string directory, string sessionId)
+    {
         try
         {
             foreach (var path in Directory.EnumerateFiles(directory, "*.json"))

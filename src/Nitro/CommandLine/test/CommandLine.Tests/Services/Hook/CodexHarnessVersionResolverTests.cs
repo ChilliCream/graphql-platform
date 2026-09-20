@@ -7,7 +7,6 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 /// Exercises <see cref="CodexHarnessVersionResolver"/> against injected readers
 /// and temporary rollout files.
 /// </summary>
-[Collection(HomeDirectoryCollection.Name)]
 public sealed class CodexHarnessVersionResolverTests
 {
     [Fact]
@@ -53,9 +52,9 @@ public sealed class CodexHarnessVersionResolverTests
     public void Resolve_Should_ReturnEmpty_When_RolloutRecordTypeIsNotAString()
     {
         // arrange
-        using var home = new TemporaryHomeDirectory();
-        WriteRolloutFile(home, "{\"type\":1}");
-        var resolver = new CodexHarnessVersionResolver();
+        using var directory = new TemporaryDirectory();
+        WriteRolloutFile(directory, "{\"type\":1}");
+        var resolver = CreateResolver(directory);
 
         // act
         var version = resolver.Resolve("session-1");
@@ -68,9 +67,9 @@ public sealed class CodexHarnessVersionResolverTests
     public void Resolve_Should_ReturnEmpty_When_RolloutFileRootIsAnArray()
     {
         // arrange
-        using var home = new TemporaryHomeDirectory();
-        WriteRolloutFile(home, "[]");
-        var resolver = new CodexHarnessVersionResolver();
+        using var directory = new TemporaryDirectory();
+        WriteRolloutFile(directory, "[]");
+        var resolver = CreateResolver(directory);
 
         // act
         var version = resolver.Resolve("session-1");
@@ -85,9 +84,9 @@ public sealed class CodexHarnessVersionResolverTests
     public void Resolve_Should_ReturnEmpty_When_RolloutPayloadIsNotWellFormed(string json)
     {
         // arrange
-        using var home = new TemporaryHomeDirectory();
-        WriteRolloutFile(home, json);
-        var resolver = new CodexHarnessVersionResolver();
+        using var directory = new TemporaryDirectory();
+        WriteRolloutFile(directory, json);
+        var resolver = CreateResolver(directory);
 
         // act
         var version = resolver.Resolve("session-1");
@@ -96,10 +95,12 @@ public sealed class CodexHarnessVersionResolverTests
         Assert.Equal("", version);
     }
 
-    private static void WriteRolloutFile(TemporaryHomeDirectory home, string json)
+    private static CodexHarnessVersionResolver CreateResolver(TemporaryDirectory directory)
+        => new(rolloutVersionReader: sessionId =>
+            CodexHarnessVersionResolver.ReadRolloutVersion(directory.Root.FullName, sessionId));
+
+    private static void WriteRolloutFile(TemporaryDirectory directory, string json)
     {
-        var directory = Path.Combine(home.Root.FullName, ".codex", "sessions");
-        Directory.CreateDirectory(directory);
-        File.WriteAllText(Path.Combine(directory, "rollout-test-session-1.jsonl"), json);
+        File.WriteAllText(Path.Combine(directory.Root.FullName, "rollout-test-session-1.jsonl"), json);
     }
 }

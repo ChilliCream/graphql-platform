@@ -14,6 +14,11 @@ internal sealed class ClaudeSessionFileReader : IClaudeSessionFileReader
         var directory = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude", "sessions");
 
+        return Find(directory, sessionId);
+    }
+
+    internal ClaudeSessionFile? Find(string directory, string sessionId)
+    {
         try
         {
             foreach (var path in Directory.EnumerateFiles(directory, "*.json"))

@@ -21,43 +21,7 @@ internal sealed class CodexHarnessVersionResolver(
             var root = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".codex", "sessions");
 
-            if (!Directory.Exists(root))
-            {
-                return null;
-            }
-
-            var file = Directory.EnumerateFiles(root, $"rollout-*-{sessionId}.jsonl", SearchOption.AllDirectories)
-                .FirstOrDefault();
-
-            if (file is null)
-            {
-                return null;
-            }
-
-            using var reader = new StreamReader(file);
-            var firstLine = reader.ReadLine();
-
-            if (firstLine is null)
-            {
-                return null;
-            }
-
-            using var document = JsonDocument.Parse(firstLine);
-            var root2 = document.RootElement;
-
-            if (root2.ValueKind != JsonValueKind.Object
-                || !root2.TryGetProperty("type", out var typeElement)
-                || typeElement.ValueKind != JsonValueKind.String
-                || typeElement.GetString() != "session_meta"
-                || !root2.TryGetProperty("payload", out var payload)
-                || payload.ValueKind != JsonValueKind.Object
-                || !payload.TryGetProperty("cli_version", out var versionElement)
-                || versionElement.ValueKind != JsonValueKind.String)
-            {
-                return null;
-            }
-
-            return versionElement.GetString();
+            return ReadRolloutVersion(root, sessionId);
         }
         catch (IOException)
         {
@@ -71,5 +35,46 @@ internal sealed class CodexHarnessVersionResolver(
         {
             return null;
         }
+    }
+
+    internal static string? ReadRolloutVersion(string root, string sessionId)
+    {
+        if (!Directory.Exists(root))
+        {
+            return null;
+        }
+
+        var file = Directory.EnumerateFiles(root, $"rollout-*-{sessionId}.jsonl", SearchOption.AllDirectories)
+            .FirstOrDefault();
+
+        if (file is null)
+        {
+            return null;
+        }
+
+        using var reader = new StreamReader(file);
+        var firstLine = reader.ReadLine();
+
+        if (firstLine is null)
+        {
+            return null;
+        }
+
+        using var document = JsonDocument.Parse(firstLine);
+        var root2 = document.RootElement;
+
+        if (root2.ValueKind != JsonValueKind.Object
+            || !root2.TryGetProperty("type", out var typeElement)
+            || typeElement.ValueKind != JsonValueKind.String
+            || typeElement.GetString() != "session_meta"
+            || !root2.TryGetProperty("payload", out var payload)
+            || payload.ValueKind != JsonValueKind.Object
+            || !payload.TryGetProperty("cli_version", out var versionElement)
+            || versionElement.ValueKind != JsonValueKind.String)
+        {
+            return null;
+        }
+
+        return versionElement.GetString();
     }
 }

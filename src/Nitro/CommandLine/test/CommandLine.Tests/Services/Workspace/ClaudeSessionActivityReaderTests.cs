@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.HookRuntime;
 
-[Collection(HomeDirectoryCollection.Name)]
 public sealed class ClaudeSessionActivityReaderTests
 {
     [Fact]
@@ -22,11 +21,11 @@ public sealed class ClaudeSessionActivityReaderTests
     public void GetStatus_Should_ReturnNull_When_DiscoveredSessionFileRootIsAnArray()
     {
         // arrange
-        using var home = new TemporaryHomeDirectory();
-        var directory = Path.Combine(home.Root.FullName, ".claude", "sessions");
-        Directory.CreateDirectory(directory);
-        File.WriteAllText(Path.Combine(directory, "session.json"), "[]");
-        var reader = new ClaudeSessionActivityReader();
+        using var directory = new TemporaryDirectory();
+        File.WriteAllText(Path.Combine(directory.Root.FullName, "session.json"), "[]");
+        var reader = new ClaudeSessionActivityReader(
+            sessionFileReader: sessionId =>
+                ClaudeSessionActivityReader.ReadSessionFile(directory.Root.FullName, sessionId));
 
         // act
         var status = reader.GetStatus("session-1");
