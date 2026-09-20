@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using ChilliCream.Nitro.CommandLine.Results;
+using HotChocolate.Buffers;
 using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
@@ -126,7 +127,7 @@ internal sealed class TelemetryListRenderer(INitroConsole console)
 
     private static string Serialize<TItem>(TItem item, JsonTypeInfo<TItem> jsonTypeInfo)
     {
-        var buffer = new ArrayBufferWriter<byte>();
+        using var buffer = new PooledArrayWriter();
 
         using (var writer = new Utf8JsonWriter(buffer, s_jsonWriterOptions))
         {
