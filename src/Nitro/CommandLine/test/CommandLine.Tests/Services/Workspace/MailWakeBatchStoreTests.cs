@@ -222,9 +222,10 @@ public sealed class MailWakeBatchStoreTests : IDisposable
         }
 
         // act
-        var results = await Task.WhenAll(Enumerable.Range(1, 6).Select(i =>
-            new MailWakeBatchStore(_fileSystem, _database).TryClaimAsync(
-                InstanceId, Actor, $"owner-{i}", $"attempt-{i}", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken)));
+        var results = await ConcurrentTestHarness.RunAsync(
+            6,
+            i => new MailWakeBatchStore(_fileSystem, _database).TryClaimAsync(
+                InstanceId, Actor, $"owner-{i}", $"attempt-{i}", [s_target], now, TimeSpan.FromSeconds(30), cancellationToken));
 
         // assert: exactly one caller claimed the batch.
         Assert.Single(results, claim => claim is not null);

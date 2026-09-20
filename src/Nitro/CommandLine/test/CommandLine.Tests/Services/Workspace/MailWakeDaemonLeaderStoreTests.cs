@@ -177,7 +177,7 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task TryAcquireAsync_Should_ElectExactlyOneLeader_When_SixConcurrentProcessesRaceTheSameInstance()
+    public async Task TryAcquireAsync_Should_ElectExactlyOneLeader_When_SixConcurrentCallersRaceTheSameInstance()
     {
         // arrange: separate connections (Pooling=False, matching production) racing the same instance.
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -185,9 +185,10 @@ public sealed class MailWakeDaemonLeaderStoreTests : IDisposable
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
 
         // act
-        var results = await Task.WhenAll(Enumerable.Range(1, 6).Select(i =>
-            new MailWakeDaemonLeaderStore(_fileSystem, _database)
-                .TryAcquireAsync(InstanceId, $"owner-{i}", now, TimeSpan.FromSeconds(30), cancellationToken)));
+        var results = await ConcurrentTestHarness.RunAsync(
+            6,
+            i => new MailWakeDaemonLeaderStore(_fileSystem, _database)
+                .TryAcquireAsync(InstanceId, $"owner-{i}", now, TimeSpan.FromSeconds(30), cancellationToken));
 
         // assert: exactly one caller became leader, with epoch 1.
         var won = results.Where(epoch => epoch is not null).ToArray();

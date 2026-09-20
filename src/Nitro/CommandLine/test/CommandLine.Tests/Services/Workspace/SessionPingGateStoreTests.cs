@@ -186,7 +186,7 @@ public sealed class SessionPingGateStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task TryAcquireAsync_Should_ClaimExactlyOnce_When_SixConcurrentProcessesRaceTheSameGeneration()
+    public async Task TryAcquireAsync_Should_ClaimExactlyOnce_When_SixConcurrentCallersRaceTheSameGeneration()
     {
         // arrange: separate connections racing the same generation, Pooling=False as in production.
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -194,9 +194,10 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
 
         // act
-        var results = await Task.WhenAll(Enumerable.Range(1, 6).Select(i =>
-            new SessionPingGateStore(_fileSystem, _database)
-                .TryAcquireAsync(s_generation, $"attempt-{i}", now, TimeSpan.FromSeconds(30), cancellationToken)));
+        var results = await ConcurrentTestHarness.RunAsync(
+            6,
+            i => new SessionPingGateStore(_fileSystem, _database)
+                .TryAcquireAsync(s_generation, $"attempt-{i}", now, TimeSpan.FromSeconds(30), cancellationToken));
 
         // assert: exactly one caller claimed the gate.
         Assert.Equal(1, results.Count(claimed => claimed));

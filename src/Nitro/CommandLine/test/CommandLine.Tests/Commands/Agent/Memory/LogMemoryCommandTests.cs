@@ -136,9 +136,10 @@ public sealed class LogMemoryCommandTests(NitroCommandFixture fixture)
         await InitWorkspaceAsync();
 
         // act: two "simultaneous" log invocations racing to capture into the same journal.
-        var firstTask = ExecuteCommandAsync("agent", "memory", "log", "First capture.");
-        var secondTask = ExecuteCommandAsync("agent", "memory", "log", "Second capture.");
-        var results = await Task.WhenAll(firstTask, secondTask);
+        var captures = new[] { "First capture.", "Second capture." };
+        var results = await ConcurrentTestHarness.RunAsync(
+            captures.Length,
+            i => ExecuteCommandAsync("agent", "memory", "log", captures[i - 1]));
 
         // assert
         Assert.All(results, result => Assert.Equal(0, result.ExitCode));

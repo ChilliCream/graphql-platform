@@ -440,8 +440,9 @@ public sealed class MailStoreTests : IAsyncDisposable
         const int concurrentSends = 5;
 
         // act
-        var messages = await Task.WhenAll(Enumerable.Range(1, concurrentSends).Select(i =>
-            CreateStore().SendMessageAsync(
+        var messages = await ConcurrentTestHarness.RunAsync(
+            concurrentSends,
+            i => CreateStore().SendMessageAsync(
                 new MailMessageCreation
                 {
                     Sender = "claude",
@@ -450,7 +451,7 @@ public sealed class MailStoreTests : IAsyncDisposable
                     To = ["bob"],
                     WakePolicy = MailWakePolicy.Enqueue
                 },
-                cancellationToken)));
+                cancellationToken));
 
         // assert: every generation from 1 through concurrentSends was handed out exactly once.
         var generations = messages.Select(m => Assert.Single(m.WakeReceipts).Generation).Order().ToArray();

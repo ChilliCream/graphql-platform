@@ -121,7 +121,7 @@ public sealed class PingLeaseStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task TryAcquireAsync_Should_CapAtExactlyFour_When_SixConcurrentProcessesRaceTheSameDatabase()
+    public async Task TryAcquireAsync_Should_CapAtExactlyFour_When_SixConcurrentCallersRaceTheSameDatabase()
     {
         // arrange: separate connections racing the same file, Pooling=False as in production.
         var cancellationToken = TestContext.Current.CancellationToken;
@@ -129,9 +129,10 @@ public sealed class PingLeaseStoreTests : IDisposable
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
 
         // act
-        var results = await Task.WhenAll(Enumerable.Range(1, 6).Select(i =>
-            new PingLeaseStore(_fileSystem, _database)
-                .TryAcquireAsync($"attempt-{i}", now, TimeSpan.FromSeconds(30), cancellationToken)));
+        var results = await ConcurrentTestHarness.RunAsync(
+            6,
+            i => new PingLeaseStore(_fileSystem, _database)
+                .TryAcquireAsync($"attempt-{i}", now, TimeSpan.FromSeconds(30), cancellationToken));
 
         // assert
         var claimed = results.Where(slot => slot is not null).Select(slot => slot!.Value).ToArray();

@@ -1313,9 +1313,10 @@ public sealed class AgentSessionRegistryTests : IDisposable
         var now = _timeProvider.GetUtcNow();
 
         // act
-        var results = await Task.WhenAll(Enumerable.Range(1, 5).Select(i =>
-            _sessions.TryClaimPingCooldownAsync(
-                session, $"attempt-{i}", now, TimeSpan.FromSeconds(60), cancellationToken)));
+        var results = await ConcurrentTestHarness.RunAsync(
+            5,
+            i => CreateSessionRegistry().TryClaimPingCooldownAsync(
+                session, $"attempt-{i}", now, TimeSpan.FromSeconds(60), cancellationToken));
 
         // assert
         Assert.Equal(1, results.Count(claimed => claimed));
@@ -1376,6 +1377,15 @@ public sealed class AgentSessionRegistryTests : IDisposable
 
     private static AgentSessionGeneration Generation(string sessionId)
         => new(Harness, sessionId, CurrentHost);
+
+    private AgentSessionRegistry CreateSessionRegistry()
+        => new(
+            _fileSystem,
+            _timeProvider,
+            _database,
+            new AgentRegistry(_fileSystem, _timeProvider, _database),
+            new FixedInstanceIdProvider(CurrentHost),
+            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName));
 
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
