@@ -23,6 +23,7 @@ internal sealed class TelemetryCommand : Command
         Subcommands.Add(new AttributesCommand());
         Subcommands.Add(new Logs.LogsCommand());
         Subcommands.Add(new ServicesCommand());
+        Subcommands.Add(new Traces.TracesCommand());
     }
 }
 
