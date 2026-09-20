@@ -6,7 +6,6 @@ import { BRAND } from "../../tokens";
 import { useElementMotion } from "../../visuals/hooks";
 import {
   buildChamberTiles,
-  buildColumnSilhouette,
   buildInstrumentLights,
   type InstrumentLight,
 } from "./chamber";
@@ -19,6 +18,7 @@ import {
   type TokamakLayout,
 } from "./sceneLayout";
 import {
+  buildColumnSilhouette,
   paintColumnLayer,
   paintPlasmaLayer,
   paintWall,

@@ -1,7 +1,83 @@
 import { BRAND } from "../../tokens";
-import type { ColumnBaseCell, InstrumentLight, Tile } from "./chamber";
+import type { InstrumentLight, Tile } from "./chamber";
 import { hexToRgba, mixHexToRgba, whiteToRgba } from "./colors";
+import { project, ringPoint, type Camera } from "./geometry";
 import type { ShadedPoint } from "./plasma";
+import type { ChamberRow } from "./sceneLayout";
+
+interface Pt {
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface ColumnBaseCell {
+  /** The cell's four uninset screen-space corners -- no seam gap, unlike `Tile.poly`. */
+  readonly poly: readonly [Pt, Pt, Pt, Pt];
+  /** 0 at the column's own silhouette edge (`theta` = pi or 2*pi), 1 at its front-facing centre (`theta` = 3*pi/2) -- the base's vertical cylinder shading, darkest at the limb, independent of the tile grid's own directional-light `shade`. */
+  readonly rim: number;
+}
+
+/**
+ * The same front-face test `chamber.ts`'s own (private) `facingAway` uses
+ * for the column's near half: a cylinder cell's outward normal, dotted
+ * against the camera's forward vector (from `cosTilt`/`sinTilt`, the world
+ * x=0 on-axis camera this scene always uses) -- negative when the normal
+ * points back toward the camera (a front face, kept).
+ */
+function columnCellFacesCamera(midTheta: number, camera: Camera): boolean {
+  const normal = { x: Math.cos(midTheta), y: 0, z: Math.sin(midTheta) };
+  const forward = { x: 0, y: camera.sinTilt, z: camera.cosTilt };
+  const dot =
+    normal.x * forward.x + normal.y * forward.y + normal.z * forward.z;
+  return dot < 0;
+}
+
+/**
+ * The column's opaque backing: one uninset quad per (row, theta-segment)
+ * cell, sharing the exact row/theta grid (including the brick stagger and
+ * back-face cull) `chamber.ts`'s `buildChamberTiles(..., "column")` uses
+ * for the real tiles, so the two line up cell-for-cell. Because these
+ * quads are never inset toward their own centre, their union exactly
+ * covers both the area the real (inset) tiles occupy AND the seam gaps
+ * between them -- painting this first, at alpha 1, then the real tiles on
+ * top (see `paintColumnLayer` below), leaves every seam backed by this
+ * base's own darker paint instead of transparent, so nothing drawn behind
+ * the column (the far arc's streaks) is ever visible through a tile or a
+ * seam.
+ */
+export function buildColumnSilhouette(
+  rows: readonly ChamberRow[],
+  thetaSegments: number,
+  camera: Camera,
+): ColumnBaseCell[] {
+  const cells: ColumnBaseCell[] = [];
+  for (let r = 0; r < rows.length - 1; r++) {
+    const rowA = rows[r];
+    const rowB = rows[r + 1];
+    const rowStagger = r % 2 === 1 ? 0.5 / thetaSegments : 0;
+    for (let s = 0; s < thetaSegments; s++) {
+      const t0 = (s / thetaSegments + rowStagger) * Math.PI * 2;
+      const t1 = ((s + 1) / thetaSegments + rowStagger) * Math.PI * 2;
+      const midTheta = (t0 + t1) / 2;
+      if (!columnCellFacesCamera(midTheta, camera)) {
+        continue;
+      }
+      const wA0 = ringPoint(rowA.radius, t0, rowA.y, rowA.z);
+      const wA1 = ringPoint(rowA.radius, t1, rowA.y, rowA.z);
+      const wB1 = ringPoint(rowB.radius, t1, rowB.y, rowB.z);
+      const wB0 = ringPoint(rowB.radius, t0, rowB.y, rowB.z);
+      const c0 = project(wA0, camera);
+      const c1 = project(wA1, camera);
+      const c2 = project(wB1, camera);
+      const c3 = project(wB0, camera);
+      if (c0.depth <= 1 || c1.depth <= 1 || c2.depth <= 1 || c3.depth <= 1) {
+        continue;
+      }
+      cells.push({ poly: [c0, c1, c2, c3], rim: Math.abs(Math.sin(midTheta)) });
+    }
+  }
+  return cells;
+}
 
 /**
  * Strokes a projected, per-point-shaded path (a streak arc, the helix, a
@@ -258,7 +334,7 @@ export function paintWall(
  * Painted once on mount and again on resize, same as the wall; the
  * per-frame cost is one cheap `drawImage`, not a re-paint of the tiles.
  *
- * `columnBase` (see `chamber.ts`'s `buildColumnSilhouette`) is the union of
+ * `columnBase` (see `buildColumnSilhouette` above) is the union of
  * the column's own UNINSET cells -- it covers both the area the real
  * (inset) tiles occupy AND the seam gaps between them -- filled first, at
  * alpha 1, with a vertical cylinder shading darkest at the silhouette edge
