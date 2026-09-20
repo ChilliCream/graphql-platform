@@ -433,31 +433,40 @@ export function computeLayout(
 
     // Top and bottom rim points (canonical units, `*s` scales them like
     // the rest of this branch), chosen by `test-results/wqa-rim-search.cjs`
-    // against `base[17]`/`base[1]` (the bridging rows) under the
-    // acceptance in plan item 1: front arc inside the canvas (top rim
-    // additionally below the 72px header at 1440), no `depth<=1` corner in
-    // the bridging pair, and the bridging pair's own mean drawn-tile
-    // height within 15% of the reference pair `base[16]->base[17]` (top)
-    // -- `base[1]`'s own back arc is already off-canvas at 1440 (y 801 on
-    // an `h=792` canvas), so no bottom-rim candidate can meet the wall's
-    // own 15% bar with its front arc in-canvas too (NEEDS-PLANNER, comment
-    // 332): the bottom rim is chosen instead by the reduced bar the ticket
-    // ruling accepted there -- front arc in-canvas, no `depth<=1` corner,
-    // seam width as close as the geometry allows -- and both junctions'
-    // numbers are reported by the fixer's verification, not asserted here.
+    // against `base[17]`/`base[1]` (the bridging rows): front arc inside
+    // the canvas (top rim additionally below the 72px header at 1440), no
+    // `depth<=1` corner in the bridging pair, and the bridging pair's own
+    // mean drawn-tile height within 15% of the reference pair
+    // `base[16]->base[17]`.
     const SIDE_TOP_RIM_Y = 346;
     const SIDE_TOP_RIM_Z = 540;
     const SIDE_TOP_RIM_R = 236;
-    // Chosen jointly across 1280/1440/1920 (`test-results/dbg-bottom-joint`
-    // search, folded into `wqa-rim-search.cjs`'s reported numbers) so the
-    // bottom rim's front arc stays inside the canvas at every width (max
-    // front-y 759.9 of 792 at 1920, the tightest); the 15% tile-height bar
-    // is unattainable here (base row1's own back arc is already off-canvas
-    // at 1440, comment 332) so this is optimised for in-canvas margin
-    // instead -- reported, not asserted, at every width.
-    const SIDE_BOTTOM_RIM_Y = -400;
-    const SIDE_BOTTOM_RIM_Z = 992;
-    const SIDE_BOTTOM_RIM_R = 128;
+    // OPTION B (planner ruling, ticket comment 334, orchestrator relay
+    // 335, superseding the interim "front arc in canvas" reading of
+    // comment 333): `base[1]`'s own back arc is already off-canvas at
+    // 1440 (y 801 on an `h=792` canvas), so the bottom rim's front arc is
+    // allowed to sit below the canvas too -- the wall's own floor is
+    // already cut by the section bottom the same way. What the ruling
+    // requires instead is that the VISIBLE part of the bottom junction is
+    // geometrically true: on every IN-CANVAS tile of the bridging row
+    // (`base[1] -> bottom rim`, a tile counts as in-canvas if any of its 4
+    // un-inset corners projects inside the canvas), mean tile height
+    // within 15% of the reference pair `base[1]->base[2]`, seam gap within
+    // 1px of that pair's own seam gap, and no `depth<=1` corner. Chosen by
+    // `test-results/wqa-rim-search.cjs`'s extended search (dropped the
+    // "front arc in canvas" bottom-rim constraint, computes the three
+    // stats over in-canvas tiles only, canonical `(y, z, r)` triple
+    // checked jointly at 1280/1440/1920): `R0 = 236` ties the top rim's
+    // own radius exactly (`dR = 0`, the smallest reachable on the search
+    // grid), keeping the hourglass symmetric-looking; `Y0`/`Z0` chosen
+    // among the `dR = 0` candidates for the best worst-case margin across
+    // the three widths (worst height ratio 12.4% at 1280, worst seam-gap
+    // diff 0.96px at 1920, in-canvas coverage 28/28, 28/28, 17/28 of the
+    // 28 drawn bridging tiles at 1280/1440/1920). Numbers reported in the
+    // fixer's ticket comment.
+    const SIDE_BOTTOM_RIM_Y = -270;
+    const SIDE_BOTTOM_RIM_Z = 230;
+    const SIDE_BOTTOM_RIM_R = 236;
 
     // Hourglass: waist at the band, flaring independently to each chosen
     // rim point above -- the column's own row 0/18 land exactly on those
