@@ -41,6 +41,42 @@ public sealed class AgentRowBadgeTests
     }
 
     [Fact]
+    public void Render_Should_FitFixedColumns_When_RoleHasNoBudget()
+    {
+        // arrange
+        const int maxWidth = 47;
+        var row = new AgentParticipantRow(
+            AgentSessionParticipantBuilder.Participant(agentName: "agent-a"),
+            Activity: null);
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
+
+        // assert
+        Assert.Equal("    agent-a ● claude-code started now heard now", line);
+        Assert.Equal(maxWidth, line.GetCellWidth());
+    }
+
+    [Fact]
+    public void Render_Should_TruncateRoleByDisplayWidth_When_NormalWidthHasPartialRoleBudget()
+    {
+        // arrange
+        const int maxWidth = 55;
+        var row = new AgentParticipantRow(
+            AgentSessionParticipantBuilder.Participant(agentName: "agent-a", role: "漢😀❤️1️⃣tail"),
+            Activity: null);
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
+
+        // act
+        var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
+
+        // assert
+        Assert.Equal("    agent-a ● claude-code 漢😀❤️… started now heard now", line);
+        Assert.Equal(maxWidth, line.GetCellWidth());
+    }
+
+    [Fact]
     public void Render_Should_ReturnEmpty_When_MaxWidthIsZero()
     {
         // arrange

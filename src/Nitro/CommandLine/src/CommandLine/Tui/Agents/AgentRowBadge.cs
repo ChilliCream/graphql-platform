@@ -85,15 +85,13 @@ internal static class AgentRowBadge
         var roleText = DisplayWidth.PadRight(RoleText(session), widths.Role);
         var roleBudget = Math.Max(0, maxWidth - fixedPlainWidth);
         var truncatedRole = DisplayWidth.Truncate(roleText, roleBudget);
-        var minimumPlainWidth = fixedPlainWidth - 1;
-
         var actorStyle = ThemeTokens.GetStyle("agents.list.name").ToMarkup();
         var presenceStyle = PresenceStyle(row.Participant.State).ToMarkup();
         var harnessStyle = ThemeTokens.GetStyle("agents.list.harness").ToMarkup();
         var roleStyle = RoleStyle(session.Role).ToMarkup();
         var ageStyle = ThemeTokens.GetStyle("agents.list.age").ToMarkup();
 
-        var line = minimumPlainWidth > maxWidth
+        var line = fixedPlainWidth > maxWidth
             ? RenderNarrow(
                 prefix,
                 marker,
