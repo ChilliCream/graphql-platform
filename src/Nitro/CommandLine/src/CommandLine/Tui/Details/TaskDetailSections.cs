@@ -94,42 +94,57 @@ internal static class TaskDetailSections
 
         var result = new List<string>();
         var current = new System.Text.StringBuilder();
+        var currentWidth = 0;
 
         foreach (var word in line.Split(' '))
         {
-            if (word.Length > width)
+            var wordWidth = DisplayWidth.Measure(word);
+
+            if (wordWidth > width)
             {
                 if (current.Length > 0)
                 {
                     result.Add(current.ToString());
                     current.Clear();
+                    currentWidth = 0;
                 }
 
                 var remaining = word;
 
-                while (remaining.Length > width)
+                while (DisplayWidth.Measure(remaining) > width)
                 {
-                    result.Add(remaining[..width]);
-                    remaining = remaining[width..];
+                    var segment = DisplayWidth.Slice(remaining, width);
+
+                    if (segment.Length == 0)
+                    {
+                        segment = DisplayWidth.FirstTextElement(remaining);
+                    }
+
+                    result.Add(segment);
+                    remaining = remaining[segment.Length..];
                 }
 
                 current.Append(remaining);
+                currentWidth = DisplayWidth.Measure(remaining);
                 continue;
             }
 
             if (current.Length == 0)
             {
                 current.Append(word);
+                currentWidth = wordWidth;
             }
-            else if (current.Length + 1 + word.Length <= width)
+            else if (currentWidth + 1 + wordWidth <= width)
             {
                 current.Append(' ').Append(word);
+                currentWidth += 1 + wordWidth;
             }
             else
             {
                 result.Add(current.ToString());
                 current.Clear();
                 current.Append(word);
+                currentWidth = wordWidth;
             }
         }
 

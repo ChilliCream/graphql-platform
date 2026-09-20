@@ -143,6 +143,26 @@ public sealed class TaskBadgeTests
     }
 
     [Fact]
+    public void Render_Should_FitDisplayWidth_When_TitleContainsCjkAndEmoji()
+    {
+        // arrange
+        const int maxWidth = 20;
+
+        // act
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "漢😀 task title",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: maxWidth);
+
+        // assert
+        Assert.True(Markup.Remove(line).GetCellWidth() <= maxWidth);
+    }
+
+    [Fact]
     public void Render_Should_ReturnEmpty_When_MaxWidthIsZero()
     {
         // act

@@ -11,7 +11,6 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 /// </summary>
 internal static class AgentRowBadge
 {
-    private const string Ellipsis = "…";
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
     private const string ImplicitMarker = "i";
@@ -40,12 +39,12 @@ internal static class AgentRowBadge
         foreach (var row in rows)
         {
             var session = row.Participant.Session;
-            actorWidth = Math.Max(actorWidth, ActorText(session).Length);
-            presenceWidth = Math.Max(presenceWidth, PresenceText(row).Length);
-            harnessWidth = Math.Max(harnessWidth, session.Harness.Length);
-            roleWidth = Math.Max(roleWidth, RoleText(session).Length);
-            startedWidth = Math.Max(startedWidth, MailAges.Format(session.StartedAt, now).Length);
-            lastHeardWidth = Math.Max(lastHeardWidth, MailAges.Format(session.LastBeatAt, now).Length);
+            actorWidth = Math.Max(actorWidth, DisplayWidth.Measure(ActorText(session)));
+            presenceWidth = Math.Max(presenceWidth, DisplayWidth.Measure(PresenceText(row)));
+            harnessWidth = Math.Max(harnessWidth, DisplayWidth.Measure(session.Harness));
+            roleWidth = Math.Max(roleWidth, DisplayWidth.Measure(RoleText(session)));
+            startedWidth = Math.Max(startedWidth, DisplayWidth.Measure(MailAges.Format(session.StartedAt, now)));
+            lastHeardWidth = Math.Max(lastHeardWidth, DisplayWidth.Measure(MailAges.Format(session.LastBeatAt, now)));
         }
 
         return new Widths(actorWidth, presenceWidth, harnessWidth, roleWidth, startedWidth, lastHeardWidth);
@@ -69,23 +68,23 @@ internal static class AgentRowBadge
         var prefix = selected ? SelectedPrefix : UnselectedPrefix;
         var isImplicit = row.Participant.Agent?.Implicit ?? false;
         var marker = isImplicit ? ImplicitMarker : ExplicitMarker;
-        var actor = ActorText(session).PadRight(widths.Actor);
-        var presenceBadge = PresenceText(row).PadRight(widths.Presence);
-        var harness = session.Harness.PadRight(widths.Harness);
-        var startedAge = MailAges.Format(session.StartedAt, now).PadRight(widths.StartedAge);
-        var lastHeardAge = MailAges.Format(session.LastBeatAt, now).PadRight(widths.LastHeardAge);
+        var actor = DisplayWidth.PadRight(ActorText(session), widths.Actor);
+        var presenceBadge = DisplayWidth.PadRight(PresenceText(row), widths.Presence);
+        var harness = DisplayWidth.PadRight(session.Harness, widths.Harness);
+        var startedAge = DisplayWidth.PadRight(MailAges.Format(session.StartedAt, now), widths.StartedAge);
+        var lastHeardAge = DisplayWidth.PadRight(MailAges.Format(session.LastBeatAt, now), widths.LastHeardAge);
 
-        // Plain-text length of everything but the role.
-        var fixedPlainLength = prefix.Length + marker.Length + 1
-            + actor.Length + 1
-            + presenceBadge.Length + 1
-            + harness.Length + 1
-            + "started ".Length + startedAge.Length + 1
-            + "heard ".Length + lastHeardAge.Length;
+        // Terminal-cell width of everything but the role, including its following separator.
+        var fixedPlainWidth = DisplayWidth.Measure(prefix) + DisplayWidth.Measure(marker) + 1
+            + DisplayWidth.Measure(actor) + 1
+            + DisplayWidth.Measure(presenceBadge) + 1
+            + DisplayWidth.Measure(harness) + 1
+            + DisplayWidth.Measure("started ") + DisplayWidth.Measure(startedAge) + 1
+            + DisplayWidth.Measure("heard ") + DisplayWidth.Measure(lastHeardAge) + 1;
 
-        var roleText = RoleText(session).PadRight(widths.Role);
-        var roleBudget = Math.Max(0, maxWidth - fixedPlainLength);
-        var truncatedRole = Truncate(roleText, roleBudget);
+        var roleText = DisplayWidth.PadRight(RoleText(session), widths.Role);
+        var roleBudget = Math.Max(0, maxWidth - fixedPlainWidth);
+        var truncatedRole = DisplayWidth.Truncate(roleText, roleBudget);
 
         var actorStyle = ThemeTokens.GetStyle("agents.list.name").ToMarkup();
         var presenceStyle = PresenceStyle(row.Participant.State).ToMarkup();
@@ -177,24 +176,4 @@ internal static class AgentRowBadge
 
     private static string Stylize(string styleMarkup, string content) =>
         styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
-
-    private static string Truncate(string value, int width)
-    {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
-
-        if (value.Length <= width)
-        {
-            return value;
-        }
-
-        if (width == 1)
-        {
-            return Ellipsis;
-        }
-
-        return string.Concat(value.AsSpan(0, width - 1), Ellipsis);
-    }
 }

@@ -10,7 +10,6 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Details;
 /// </summary>
 internal static class TaskDetailRowRenderer
 {
-    private const string Ellipsis = "…";
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
     private const string DependencyArrow = "->";
@@ -34,12 +33,12 @@ internal static class TaskDetailRowRenderer
         var arrow = row.Kind == TaskDetailRowKind.Dependency ? DependencyArrow : BlocksArrow;
         var title = row.Title ?? "(deleted)";
 
-        var fixedPlainLength = prefix.Length + TaskGlyphs.Status(status).Length + 1
-            + row.Type.Length + 1 + arrow.Length + 1
-            + row.TargetId.Length + 1;
+        var fixedPlainWidth = DisplayWidth.Measure(prefix) + DisplayWidth.Measure(TaskGlyphs.Status(status)) + 1
+            + DisplayWidth.Measure(row.Type) + 1 + DisplayWidth.Measure(arrow) + 1
+            + DisplayWidth.Measure(row.TargetId) + 1;
 
-        var titleBudget = Math.Max(0, maxWidth - fixedPlainLength);
-        var truncatedTitle = Truncate(title, titleBudget);
+        var titleBudget = Math.Max(0, maxWidth - fixedPlainWidth);
+        var truncatedTitle = DisplayWidth.Truncate(title, titleBudget);
 
         var line =
             $"{Markup.Escape(prefix)}{TaskGlyphs.StatusMarkup(status)} "
@@ -58,25 +57,5 @@ internal static class TaskDetailRowRenderer
         }
 
         return line;
-    }
-
-    private static string Truncate(string value, int width)
-    {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
-
-        if (value.Length <= width)
-        {
-            return value;
-        }
-
-        if (width == 1)
-        {
-            return Ellipsis;
-        }
-
-        return string.Concat(value.AsSpan(0, width - 1), Ellipsis);
     }
 }

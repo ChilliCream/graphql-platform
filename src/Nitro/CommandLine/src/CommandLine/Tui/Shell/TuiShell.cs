@@ -1101,7 +1101,7 @@ internal sealed class TuiShell
         IReadOnlyList<KeyHint> hints, int width, string? actor, MailWakeDaemonState? mailWakeDaemonState)
     {
         var hintMarkup = FormatFooterHints(hints, width, out var hintPlainWidth);
-        var available = width - hintPlainWidth - (hintPlainWidth > 0 ? FooterSeparator.Length : 0);
+        var available = width - hintPlainWidth - (hintPlainWidth > 0 ? DisplayWidth.Measure(FooterSeparator) : 0);
 
         if (available <= 0)
         {
@@ -1115,29 +1115,29 @@ internal sealed class TuiShell
         {
             var badgeText = FormatMailWakeDaemonBadge(state);
 
-            if (badgeText.Length <= available)
+            if (DisplayWidth.Measure(badgeText) <= available)
             {
                 var badgeStyle = ThemeTokens.GetStyle(MailWakeDaemonStyleToken(state)).ToMarkup();
                 trailingMarkup = $"[{badgeStyle}]{Markup.Escape(badgeText)}[/]";
-                trailingPlainWidth = badgeText.Length;
-                available -= badgeText.Length;
+                trailingPlainWidth = DisplayWidth.Measure(badgeText);
+                available -= trailingPlainWidth;
             }
         }
 
         if (!string.IsNullOrEmpty(actor))
         {
-            var separatorNeeded = trailingPlainWidth > 0 ? FooterSeparator.Length : 0;
+            var separatorNeeded = trailingPlainWidth > 0 ? DisplayWidth.Measure(FooterSeparator) : 0;
             var identityAvailable = available - separatorNeeded;
 
             string? identityText = null;
 
-            if (actor.Length <= identityAvailable)
+            if (DisplayWidth.Measure(actor) <= identityAvailable)
             {
                 identityText = actor;
             }
-            else if (identityAvailable > FooterEllipsis.Length)
+            else if (identityAvailable > DisplayWidth.Measure(FooterEllipsis))
             {
-                identityText = actor[..(identityAvailable - FooterEllipsis.Length)] + FooterEllipsis;
+                identityText = DisplayWidth.Truncate(actor, identityAvailable);
             }
 
             if (identityText is not null)
@@ -1148,7 +1148,7 @@ internal sealed class TuiShell
                 trailingMarkup = trailingPlainWidth > 0
                     ? trailingMarkup + FooterSeparator + identityMarkup
                     : identityMarkup;
-                trailingPlainWidth += separatorNeeded + identityText.Length;
+                trailingPlainWidth += separatorNeeded + DisplayWidth.Measure(identityText);
             }
         }
 
@@ -1193,7 +1193,7 @@ internal sealed class TuiShell
     /// width of the returned markup, so callers can lay out further content
     /// (for example the footer identity) in whatever room is left.
     /// </summary>
-    private static string FormatFooterHints(IReadOnlyList<KeyHint> hints, int width, out int plainWidth)
+    internal static string FormatFooterHints(IReadOnlyList<KeyHint> hints, int width, out int plainWidth)
     {
         if (width <= 0 || hints.Count == 0)
         {
@@ -1214,7 +1214,9 @@ internal sealed class TuiShell
                 $"[{keyStyle}]{Markup.Escape(hints[i].Key)}[/] [{actionStyle}]{Markup.Escape(hints[i].Action)}[/]";
         }
 
-        var fullPlainWidth = plainItems.Sum(item => item.Length) + FooterSeparator.Length * (hints.Count - 1);
+        var separatorWidth = DisplayWidth.Measure(FooterSeparator);
+        var ellipsisWidth = DisplayWidth.Measure(FooterEllipsis);
+        var fullPlainWidth = plainItems.Sum(DisplayWidth.Measure) + separatorWidth * (hints.Count - 1);
 
         if (fullPlainWidth <= width)
         {
@@ -1224,11 +1226,11 @@ internal sealed class TuiShell
 
         var included = 0;
         var usedWidth = 0;
-        var trailerWidth = FooterSeparator.Length + FooterEllipsis.Length;
+        var trailerWidth = separatorWidth + ellipsisWidth;
 
         for (var i = 0; i < hints.Count; i++)
         {
-            var itemWidth = (i == 0 ? 0 : FooterSeparator.Length) + plainItems[i].Length;
+            var itemWidth = (i == 0 ? 0 : separatorWidth) + DisplayWidth.Measure(plainItems[i]);
 
             if (usedWidth + itemWidth + trailerWidth > width)
             {
@@ -1241,8 +1243,8 @@ internal sealed class TuiShell
 
         if (included == 0)
         {
-            plainWidth = width >= FooterEllipsis.Length ? FooterEllipsis.Length : 0;
-            return width >= FooterEllipsis.Length ? FooterEllipsis : string.Empty;
+            plainWidth = width >= ellipsisWidth ? ellipsisWidth : 0;
+            return width >= ellipsisWidth ? FooterEllipsis : string.Empty;
         }
 
         plainWidth = usedWidth + trailerWidth;

@@ -493,20 +493,20 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
-    public void Render_Should_TruncateRoleAndNotThrow_When_TerminalIsNarrow()
+    public void Render_Should_FitDisplayWidth_When_RoleContainsCjkAndEmoji()
     {
-        // arrange: a role text long enough that a narrow terminal must truncate it.
-        var sessions = new FakeAgentSessionRegistry();
-        sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
-            sessionId: "s-a", agentName: "agent-a", role: "a-very-long-mutable-role-value"));
-        var mode = CreateMode(sessions);
-        mode.OnEnter();
+        // arrange
+        const int maxWidth = 60;
+        var row = new AgentParticipantRow(
+            AgentSessionParticipantBuilder.Participant(agentName: "agent-a", role: "漢😀 a-very-long-mutable-role-value"),
+            Activity: null);
+        var widths = AgentRowBadge.ComputeWidths([row], s_now);
 
         // act
-        var exception = Record.Exception(() => RenderToText(mode, width: 30, height: 20));
+        var line = AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths);
 
         // assert
-        Assert.Null(exception);
+        Assert.True(Markup.Remove(line).GetCellWidth() <= maxWidth);
     }
 
     [Fact]

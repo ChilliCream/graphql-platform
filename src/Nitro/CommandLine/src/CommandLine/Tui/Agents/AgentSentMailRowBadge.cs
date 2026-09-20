@@ -9,7 +9,6 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 /// </summary>
 internal static class AgentSentMailRowBadge
 {
-    private const string Ellipsis = "…";
     private const string NoRecipients = "-";
     private const string Arrow = "-> ";
 
@@ -35,36 +34,16 @@ internal static class AgentSentMailRowBadge
         var recipients = string.Join(", ", message.Recipients.OrderBy(r => r.Ordinal).Select(r => r.Name));
         var recipientsText = recipients.Length == 0 ? NoRecipients : recipients;
 
-        // Plain-text length of everything but the subject and recipients.
-        var fixedPlainLength = age.Length + 1 + Arrow.Length;
-        var remaining = Math.Max(0, maxWidth - fixedPlainLength);
+        // Terminal-cell width of everything but the subject and recipients.
+        var fixedPlainWidth = DisplayWidth.Measure(age) + 1 + DisplayWidth.Measure(Arrow);
+        var remaining = Math.Max(0, maxWidth - fixedPlainWidth);
         var recipientsBudget = Math.Min(MaxRecipientsBudget, remaining / 2);
-        var truncatedRecipients = Truncate(recipientsText, recipientsBudget);
+        var truncatedRecipients = DisplayWidth.Truncate(recipientsText, recipientsBudget);
 
-        var subjectBudget = Math.Max(0, remaining - truncatedRecipients.Length - 1);
-        var truncatedSubject = Truncate(message.Subject, subjectBudget);
+        var subjectBudget = Math.Max(0, remaining - DisplayWidth.Measure(truncatedRecipients) - 1);
+        var truncatedSubject = DisplayWidth.Truncate(message.Subject, subjectBudget);
 
         return
             $"{Markup.Escape(age)} {Markup.Escape(truncatedSubject)} {Arrow}{Markup.Escape(truncatedRecipients)}";
-    }
-
-    private static string Truncate(string value, int width)
-    {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
-
-        if (value.Length <= width)
-        {
-            return value;
-        }
-
-        if (width == 1)
-        {
-            return Ellipsis;
-        }
-
-        return string.Concat(value.AsSpan(0, width - 1), Ellipsis);
     }
 }

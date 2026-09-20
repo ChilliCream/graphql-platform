@@ -5,7 +5,9 @@ using ChilliCream.Nitro.CommandLine.Tui.Runtime;
 using ChilliCream.Nitro.CommandLine.Tui.Search;
 using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using ChilliCream.Nitro.CommandLine.Tui.Tree;
+using Spectre.Console;
 using Spectre.Console.Testing;
+using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Shell;
 
@@ -1216,6 +1218,22 @@ public sealed class TuiShellTests
         Assert.Equal(SearchFocus.List, search.Focus);
         Assert.DoesNotContain("type search", text);
         Assert.Contains("move", text);
+    }
+
+    [Fact]
+    public void FormatFooterHints_Should_FitDisplayWidth_When_HintContainsCjkAndEmoji()
+    {
+        // arrange
+        const int width = 11;
+        var hints = new[] { new KeyHint("漢", "😀 action") };
+
+        // act
+        var markup = TuiShell.FormatFooterHints(hints, width, out var plainWidth);
+        var renderedWidth = Markup.Remove(markup).GetCellWidth();
+
+        // assert
+        Assert.Equal(renderedWidth, plainWidth);
+        Assert.True(renderedWidth <= width);
     }
 
     [Fact]

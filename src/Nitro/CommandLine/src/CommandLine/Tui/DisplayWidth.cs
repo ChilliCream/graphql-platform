@@ -10,7 +10,6 @@ namespace ChilliCream.Nitro.CommandLine.Tui;
 internal static class DisplayWidth
 {
     private const string Ellipsis = "…";
-    private const char EllipsisChar = '…';
 
     /// <summary>
     /// The lowest code point of every contiguous run of terminal-wide code points this class measures
@@ -36,13 +35,56 @@ internal static class DisplayWidth
     public static int Measure(string value)
     {
         var width = 0;
+        var elements = StringInfo.GetTextElementEnumerator(value);
 
-        foreach (var rune in value.EnumerateRunes())
+        while (elements.MoveNext())
         {
-            width += GetRuneWidth(rune);
+            width += GetTextElementWidth((string)elements.Current);
         }
 
         return width;
+    }
+
+    /// <summary>
+    /// Returns the first Unicode text element in <paramref name="value"/>, or an empty string when
+    /// <paramref name="value"/> is empty.
+    /// </summary>
+    public static string FirstTextElement(string value)
+    {
+        var elements = StringInfo.GetTextElementEnumerator(value);
+        return elements.MoveNext() ? (string)elements.Current : string.Empty;
+    }
+
+    /// <summary>
+    /// Returns the longest prefix of <paramref name="value"/> that fits within <paramref name="width"/>
+    /// terminal cells. A non-positive width returns an empty string.
+    /// </summary>
+    public static string Slice(string value, int width)
+    {
+        if (width <= 0)
+        {
+            return string.Empty;
+        }
+
+        var used = 0;
+        var end = 0;
+        var elements = StringInfo.GetTextElementEnumerator(value);
+
+        while (elements.MoveNext())
+        {
+            var element = (string)elements.Current;
+            var elementWidth = GetTextElementWidth(element);
+
+            if (used + elementWidth > width)
+            {
+                break;
+            }
+
+            used += elementWidth;
+            end += element.Length;
+        }
+
+        return value[..end];
     }
 
     /// <summary>
@@ -66,26 +108,7 @@ internal static class DisplayWidth
             return Ellipsis;
         }
 
-        var budget = width - Measure(Ellipsis);
-        var used = 0;
-        var builder = new StringBuilder();
-        var elements = StringInfo.GetTextElementEnumerator(value);
-
-        while (elements.MoveNext())
-        {
-            var element = (string)elements.Current;
-            var elementWidth = Measure(element);
-
-            if (used + elementWidth > budget)
-            {
-                break;
-            }
-
-            builder.Append(element);
-            used += elementWidth;
-        }
-
-        return builder.Append(EllipsisChar).ToString();
+        return Slice(value, width - Measure(Ellipsis)) + Ellipsis;
     }
 
     /// <summary>
@@ -120,8 +143,28 @@ internal static class DisplayWidth
         return truncatedWidth >= width ? truncated : new string(' ', width - truncatedWidth) + truncated;
     }
 
+    private static int GetTextElementWidth(string element)
+    {
+        var width = 0;
+
+        foreach (var rune in element.EnumerateRunes())
+        {
+            width = Math.Max(width, GetRuneWidth(rune));
+        }
+
+        return width;
+    }
+
     private static int GetRuneWidth(Rune rune)
     {
+        if (rune.Value == 0x200D
+            || Rune.GetUnicodeCategory(rune) is UnicodeCategory.NonSpacingMark
+                or UnicodeCategory.SpacingCombiningMark
+                or UnicodeCategory.EnclosingMark)
+        {
+            return 0;
+        }
+
         var value = rune.Value;
 
         if (value < 0x1100)

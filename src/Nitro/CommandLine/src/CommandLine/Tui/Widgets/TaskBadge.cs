@@ -9,7 +9,6 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Widgets;
 /// </summary>
 internal static class TaskBadge
 {
-    private const string Ellipsis = "…";
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
 
@@ -39,14 +38,14 @@ internal static class TaskBadge
         var priorityText = TaskPriorities.Format(priority);
         var priorityStyle = ThemeTokens.GetStyle($"badge.priority.p{priority}").ToMarkup();
 
-        // Plain-text length of everything but the title.
-        var fixedPlainLength = prefix.Length + glyph.Length + 1
-            + typeCode.Length + 2 + 1
-            + priorityText.Length + 1
-            + id.Length + 1;
+        // Terminal-cell width of everything but the title.
+        var fixedPlainWidth = DisplayWidth.Measure(prefix) + DisplayWidth.Measure(glyph) + 1
+            + DisplayWidth.Measure(typeCode) + 2 + 1
+            + DisplayWidth.Measure(priorityText) + 1
+            + DisplayWidth.Measure(id) + 1;
 
-        var titleBudget = Math.Max(0, maxWidth - fixedPlainLength);
-        var truncatedTitle = Truncate(title, titleBudget);
+        var titleBudget = Math.Max(0, maxWidth - fixedPlainWidth);
+        var truncatedTitle = DisplayWidth.Truncate(title, titleBudget);
         var escapedTitle = Markup.Escape(truncatedTitle);
 
         var line =
@@ -66,24 +65,4 @@ internal static class TaskBadge
 
     private static string Stylize(string styleMarkup, string content) =>
         styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
-
-    private static string Truncate(string value, int width)
-    {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
-
-        if (value.Length <= width)
-        {
-            return value;
-        }
-
-        if (width == 1)
-        {
-            return Ellipsis;
-        }
-
-        return string.Concat(value.AsSpan(0, width - 1), Ellipsis);
-    }
 }

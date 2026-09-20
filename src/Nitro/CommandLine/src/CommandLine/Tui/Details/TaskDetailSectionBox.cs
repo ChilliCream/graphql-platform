@@ -21,23 +21,25 @@ internal static class TaskDetailSectionBox
     /// </summary>
     public static IReadOnlyList<TaskDetailBodyLine> Render(string title, string text, int width)
     {
-        if (string.IsNullOrEmpty(text))
+        if (string.IsNullOrEmpty(text) || width <= 0)
         {
             return [];
         }
 
-        var boxWidth = Math.Max(width, ChromeWidth + 1);
-        var interiorWidth = boxWidth - ChromeWidth;
-        var contentLines = TaskDetailSections.WrapText(text, interiorWidth);
+        var boxWidth = width;
+        var interiorWidth = Math.Max(0, boxWidth - ChromeWidth);
+        var contentLines = interiorWidth > 0
+            ? TaskDetailSections.WrapText(text, interiorWidth)
+            : new[] { string.Empty };
 
         var lines = new List<TaskDetailBodyLine>(contentLines.Count + 2) { TopBorder(title, boxWidth) };
 
         foreach (var line in contentLines)
         {
-            lines.Add(new TaskDetailBodyLine($"│ {line.PadRight(interiorWidth)} │", IsMarkup: false));
+            lines.Add(new TaskDetailBodyLine(ContentLine(line, boxWidth, interiorWidth), IsMarkup: false));
         }
 
-        lines.Add(new TaskDetailBodyLine($"╰{new string('─', Math.Max(0, boxWidth - 2))}╯", IsMarkup: true));
+        lines.Add(new TaskDetailBodyLine(BottomBorder(boxWidth), IsMarkup: true));
         return lines;
     }
 
@@ -45,8 +47,20 @@ internal static class TaskDetailSectionBox
     {
         var borderStyle = ThemeTokens.GetStyle("detail.section.border").ToMarkup();
         var titleStyle = ThemeTokens.GetStyle("detail.section.header").ToMarkup();
-        var escapedTitle = Markup.Escape(title);
-        var fill = Math.Max(0, width - 3 - title.Length);
+
+        if (width == 1)
+        {
+            return new TaskDetailBodyLine(Styled(borderStyle, "╭"), IsMarkup: true);
+        }
+
+        if (width == 2)
+        {
+            return new TaskDetailBodyLine(Styled(borderStyle, "╭╮"), IsMarkup: true);
+        }
+
+        var truncatedTitle = DisplayWidth.Truncate(title, width - 3);
+        var escapedTitle = Markup.Escape(truncatedTitle);
+        var fill = Math.Max(0, width - 3 - DisplayWidth.Measure(truncatedTitle));
 
         var content =
             Styled(borderStyle, "╭─")
@@ -55,6 +69,21 @@ internal static class TaskDetailSectionBox
 
         return new TaskDetailBodyLine(content, IsMarkup: true);
     }
+
+    private static string ContentLine(string line, int width, int interiorWidth) => width switch
+    {
+        1 => "│",
+        2 => "││",
+        3 => "│ │",
+        _ => $"│ {DisplayWidth.PadRight(line, interiorWidth)} │"
+    };
+
+    private static string BottomBorder(int width) => width switch
+    {
+        1 => "╰",
+        2 => "╰╯",
+        _ => $"╰{new string('─', width - 2)}╯"
+    };
 
     private static string Styled(string style, string content) => style.Length == 0 ? content : $"[{style}]{content}[/]";
 }

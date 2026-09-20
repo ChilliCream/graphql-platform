@@ -63,6 +63,19 @@ public sealed partial class TaskDetailSectionBoxTests
     }
 
     [Fact]
+    public void Render_Should_FitDisplayWidth_When_TitleAndTextContainCjkAndEmoji()
+    {
+        // arrange
+        const int width = 10;
+
+        // act
+        var lines = TaskDetailSectionBox.Render("漢😀 section title", "漢😀", width);
+
+        // assert
+        Assert.All(StripStyle(lines), line => Assert.True(line.Content.GetCellWidth() <= width));
+    }
+
+    [Fact]
     public void Render_Should_NotThrow_When_TitleIsLongerThanWidth()
     {
         // act
