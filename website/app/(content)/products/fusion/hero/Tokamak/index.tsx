@@ -187,25 +187,20 @@ export default function Tokamak() {
     /** The column's own projected half-width at the plasma's height, in px -- see `occludeHelixBehindColumn`. Recomputed in `buildScene` whenever the layout changes. */
     let columnHalfWidthPx = 0;
     let disposed = false;
-    // Debug-only escape hatch (`?tokamakDebugColumn` on the URL): skips
-    // every plasma draw in `drawLive` (the far/near cached blits, glow,
-    // tint, bloom, core, live streaks, the helix) so the live canvas shows
-    // only the wall and the opaque column layer, with nothing to bleed
-    // through it -- used to sample the column's own silhouette in
-    // isolation. Never active without the query param, so normal rendering
-    // is untouched.
+    // Development-only escape hatch (`?tokamakDebugColumn` on the URL, and
+    // only outside production): skips every plasma draw in `drawLive` (the
+    // far/near cached blits, glow, tint, bloom, core, live streaks, the
+    // helix) so the live canvas shows only the wall and the opaque column
+    // layer, with nothing to bleed through it -- used to sample the
+    // column's own silhouette in isolation from a test script. Gated on
+    // `NODE_ENV` as well as the query param, and never exposes a window
+    // global: a test script locates the column's own bbox from its own
+    // alpha scan of this canvas, and unit-checks `isFarSide`/
+    // `splitByPredicate` via a direct import of `plasma.ts`, not a global.
     const hidePlasmaForDebug =
+      process.env.NODE_ENV !== "production" &&
       typeof window !== "undefined" &&
       new URLSearchParams(window.location.search).has("tokamakDebugColumn");
-    // Debug-only, same gate: exposes the real `isFarSide`/`splitByPredicate`
-    // functions this module uses for the far/near occlusion split, so a
-    // test script can feed them synthetic straddling points and assert the
-    // split -- the actual split helper, not a re-implementation of it.
-    if (hidePlasmaForDebug && typeof window !== "undefined") {
-      (
-        window as unknown as { __tokamakDebugSplit?: unknown }
-      ).__tokamakDebugSplit = { isFarSide, splitByPredicate };
-    }
 
     // Erases the LIVE (plasma) canvas's own copy-clear zone -- the
     // ring/streaks/filament/bloom must never render under the copy, so
@@ -414,37 +409,6 @@ export default function Tokamak() {
       );
       paintWall(wallCtx!, w, h, wallTiles, lights);
       paintColumnLayer(columnCtx!, w, h, columnBase, columnTiles);
-
-      // Debug-only (see `hidePlasmaForDebug`): the column layer's own
-      // non-transparent pixel bbox, read from its own transparent-
-      // background offscreen canvas (never the composited live canvas,
-      // where the wall's opaque backdrop leaves no transparency to bound
-      // by) -- lets a test script sample the column's on-screen silhouette
-      // exactly, at any viewport, without duplicating this scene's own
-      // projection math.
-      if (hidePlasmaForDebug && typeof window !== "undefined") {
-        const cW = columnCanvas.width;
-        const cH = columnCanvas.height;
-        const px = columnCtx!.getImageData(0, 0, cW, cH).data;
-        let minX = cW;
-        let maxX = 0;
-        let minY = cH;
-        let maxY = 0;
-        for (let y = 0; y < cH; y += 2) {
-          for (let x = 0; x < cW; x += 2) {
-            if (px[(cW * y + x) * 4 + 3] === 0) {
-              continue;
-            }
-            if (x < minX) minX = x;
-            if (x > maxX) maxX = x;
-            if (y < minY) minY = y;
-            if (y > maxY) maxY = y;
-          }
-        }
-        (
-          window as unknown as { __tokamakDebugColumnBox?: unknown }
-        ).__tokamakDebugColumnBox = { minX, maxX, minY, maxY, w: cW, h: cH };
-      }
 
       // The ring's projected width uses the camera's own base scale (the
       // scale at its aim depth), the same basis the ring's actual
