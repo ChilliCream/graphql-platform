@@ -157,16 +157,16 @@ internal sealed class EditableListField : FormField
         var end = _selectedIndex;
         var used = Math.Min(heights[_selectedIndex], budget);
 
-        while (end + 1 < heights.Count && used + heights[end + 1] <= budget)
-        {
-            end++;
-            used += heights[end];
-        }
-
         while (start - 1 >= 0 && used + heights[start - 1] <= budget)
         {
             start--;
             used += heights[start];
+        }
+
+        while (end + 1 < heights.Count && used + heights[end + 1] <= budget)
+        {
+            end++;
+            used += heights[end];
         }
 
         return (start, end);
