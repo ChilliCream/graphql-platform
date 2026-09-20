@@ -227,14 +227,13 @@ builder
             {
                 CostPlan plan = result.Plan;
                 IReadOnlyList<CostEstimate> estimates = result.Estimates;
-                bool isAssumedBound = result.IsAssumedBound;
             }
         },
         key: "ReadCostAnalysisResult",
         before: WellKnownRequestMiddleware.CostAnalyzerMiddleware);
 ```
 
-`GetCostMetrics()` returns the first evaluated set. `TryGetCostAnalysisResult` exposes the compiled `CostPlan`, every estimate in a variable batch, and whether the estimates are the assumed bound (warmup requests).
+`GetCostMetrics()` returns the first evaluated set. `TryGetCostAnalysisResult` exposes the compiled `CostPlan` and every estimate in a variable batch.
 
 # Rejections and HTTP Status
 

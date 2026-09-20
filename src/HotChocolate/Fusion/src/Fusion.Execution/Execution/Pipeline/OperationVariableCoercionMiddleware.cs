@@ -28,12 +28,6 @@ internal sealed class OperationVariableCoercionMiddleware
     {
         var operation = context.GetNormalizedOperation();
 
-        // Warmup requests do not produce coerced values.
-        if (context.IsWarmupRequest())
-        {
-            return next(context);
-        }
-
         return TryCoerceVariables(
             context,
             operation.VariableDefinitions,

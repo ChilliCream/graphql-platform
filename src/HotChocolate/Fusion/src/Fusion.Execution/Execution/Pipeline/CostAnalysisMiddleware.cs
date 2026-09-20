@@ -37,10 +37,8 @@ internal sealed class CostAnalysisMiddleware
             return next(context);
         }
 
-        var isWarmup = context.IsWarmupRequest();
-
-        // Non-warmup cost analysis requires at least one coerced variable set, so an explicit empty variable batch is invalid.
-        if (!isWarmup && context.VariableValues.IsDefaultOrEmpty)
+        // Cost analysis requires at least one coerced variable set, so an explicit empty variable batch is invalid.
+        if (context.VariableValues.IsDefaultOrEmpty)
         {
             context.Result = ErrorHelper.StateInvalidForCostAnalysisMissingVariableValues();
             return default;
@@ -72,31 +70,20 @@ internal sealed class CostAnalysisMiddleware
                 _cache.TryAdd(operationId, plan);
             }
 
-            var isAssumedBound = isWarmup;
+            var builder = ImmutableArray.CreateBuilder<CostEstimate>(context.VariableValues.Length);
+            var adapter = new CostVariableValuesAdapter();
 
-            if (isAssumedBound)
+            foreach (var variableValues in context.VariableValues)
             {
-                var estimate = plan.EvaluateAssumedBound();
-                estimates = [estimate];
+                adapter.SetValues(variableValues);
+                var estimate = plan.Evaluate(adapter);
+                builder.Add(estimate);
                 _diagnosticEvents.OperationCost(context, estimate.FieldCost, estimate.TypeCost);
             }
-            else
-            {
-                var builder = ImmutableArray.CreateBuilder<CostEstimate>(context.VariableValues.Length);
-                var adapter = new CostVariableValuesAdapter();
 
-                foreach (var variableValues in context.VariableValues)
-                {
-                    adapter.SetValues(variableValues);
-                    var estimate = plan.Evaluate(adapter);
-                    builder.Add(estimate);
-                    _diagnosticEvents.OperationCost(context, estimate.FieldCost, estimate.TypeCost);
-                }
+            estimates = builder.MoveToImmutable();
 
-                estimates = builder.MoveToImmutable();
-            }
-
-            var analysisResult = new CostAnalysisResult(plan, estimates, isAssumedBound);
+            var analysisResult = new CostAnalysisResult(plan, estimates);
             context.Features.Set(analysisResult);
 
             if ((mode & CostAnalysisMode.Enforce) == CostAnalysisMode.Enforce)
