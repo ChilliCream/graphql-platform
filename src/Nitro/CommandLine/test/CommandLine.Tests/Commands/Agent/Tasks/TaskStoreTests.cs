@@ -798,33 +798,46 @@ public sealed class TaskStoreTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task CloseEligibleEpicsAsync_DoesNotClose_WhenClosedChildIsReopenedAfterEligibilityRead()
+    public async Task CloseTaskAsync_DoesNotArchive_WhenSelectedClosedTaskIsReopened()
     {
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await using var seedConnection = await SeedAsync(cancellationToken);
-        await InsertTaskAsync(seedConnection, "acme-1", TaskStates.Open, 2, type: TaskTypes.Epic);
-        await InsertTaskAsync(seedConnection, "acme-1.1", TaskStates.Closed, 2);
-        await InsertDependencyAsync(seedConnection, "acme-1.1", "acme-1", TaskDependencyTypes.ParentChild);
+        var baseTime = _timeProvider.GetUtcNow().AddDays(-200);
+
+        for (var i = 1; i <= TaskStates.ClosedTaskCap; i++)
+        {
+            await InsertTaskAsync(
+                seedConnection,
+                $"acme-{i}",
+                status: TaskStates.Closed,
+                priority: 2,
+                closedAt: baseTime.AddMinutes(i));
+        }
+
+        await InsertTaskAsync(seedConnection, "acme-101", TaskStates.Open, 2);
 
         var store = new TaskStore(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase())
         {
-            AfterEligibleEpicsReadAsync = (connection, transaction, _) => SetTaskStatusAsync(
-                connection, transaction, "acme-1.1", TaskStates.Open)
+            AfterClosedTasksSelectedAsync = (_, connection, transaction, _) => ReopenTaskStateAsync(
+                connection, transaction, "acme-1")
         };
 
         // act
-        var closed = await store.CloseEligibleEpicsAsync("tester", cancellationToken);
+        await store.CloseTaskAsync(["acme-101"], "done", "tester", cancellationToken);
 
         // assert
-        Assert.Empty(closed);
         Assert.Equal(
             TaskStates.Open,
             (await _store.GetRequiredTaskAsync("acme-1", cancellationToken)).Status);
-        Assert.Equal(
-            TaskStates.Open,
-            (await _store.GetRequiredTaskAsync("acme-1.1", cancellationToken)).Status);
         Assert.Empty(await QueryEventTypesAsync(seedConnection, "acme-1"));
+        Assert.Equal(
+            TaskStates.Closed,
+            (await _store.GetRequiredTaskAsync("acme-101", cancellationToken)).Status);
+        Assert.Equal(
+            TaskStates.ClosedTaskCap,
+            (await _store.QueryTasksAsync(
+                new TaskFilter { Statuses = [TaskStates.Closed] }, cancellationToken)).Count);
     }
 
     [Fact]
@@ -1333,16 +1346,21 @@ public sealed class TaskStoreTests : IAsyncDisposable
             ("@taskId", taskId), ("@text", text), ("@now", now));
     }
 
-    private static Task SetTaskStatusAsync(
+    private static Task ReopenTaskStateAsync(
         SqliteConnection connection,
         DbTransaction? transaction,
-        string id,
-        string status)
+        string id)
         => ExecuteAsync(
             connection,
             transaction,
-            "UPDATE tasks SET status = @status WHERE id = @id",
-            ("@id", id), ("@status", status));
+            """
+            UPDATE tasks
+            SET status = @status,
+                closed_at = NULL,
+                close_reason = ''
+            WHERE id = @id
+            """,
+            ("@id", id), ("@status", TaskStates.Open));
 
     /// <summary>
     /// Executes the SQL statement with the supplied named parameter values.

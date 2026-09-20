@@ -37,6 +37,13 @@ internal sealed class TaskStore(
         init;
     }
 
+    internal Func<IReadOnlyList<string>, SqliteConnection, DbTransaction?, CancellationToken, Task>?
+        AfterClosedTasksSelectedAsync
+    {
+        get;
+        init;
+    }
+
     public async Task<SqliteConnection> InitializeAsync(
         string workspaceDirectory,
         CancellationToken cancellationToken)
@@ -1764,39 +1771,107 @@ internal sealed class TaskStore(
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        var idsToArchive = (await connection.QueryAsync<string>(
-            """
-            WITH excess AS (
-                SELECT CASE
-                    WHEN COUNT(*) > @closedTaskCap THEN COUNT(*) - @closedTaskCap
-                    ELSE 0
-                END AS count
-                FROM tasks
-                WHERE status = @closed
-            ),
-            tasks_to_archive AS (
+        List<string> idsToArchive;
+
+        if (AfterClosedTasksSelectedAsync is { } afterClosedTasksSelectedAsync)
+        {
+            var selectedIds = (await connection.QueryAsync<string>(
+                """
+                WITH excess AS (
+                    SELECT CASE
+                        WHEN COUNT(*) > @closedTaskCap THEN COUNT(*) - @closedTaskCap
+                        ELSE 0
+                    END AS count
+                    FROM tasks
+                    WHERE status = @closed
+                )
                 SELECT id
                 FROM tasks
                 WHERE status = @closed
                 ORDER BY closed_at ASC, id ASC
                 LIMIT (SELECT count FROM excess)
-            )
-            UPDATE tasks
-            SET status = @archived,
-                updated_at = @updatedAt
-            WHERE status = @closed
-              AND id IN (SELECT id FROM tasks_to_archive)
-            RETURNING id
-            """,
-            new
+                """,
+                new
+                {
+                    closed = TaskStates.Closed,
+                    closedTaskCap = TaskStates.ClosedTaskCap,
+                    cancellationToken
+                },
+                transaction)).ToList();
+
+            if (selectedIds.Count == 0)
             {
-                closed = TaskStates.Closed,
-                archived = TaskStates.Archived,
-                closedTaskCap = TaskStates.ClosedTaskCap,
-                updatedAt = now,
-                cancellationToken
-            },
-            transaction)).ToList();
+                idsToArchive = [];
+            }
+            else
+            {
+                await afterClosedTasksSelectedAsync(selectedIds, connection, transaction, cancellationToken);
+
+                idsToArchive = [];
+
+                foreach (var id in selectedIds)
+                {
+                    var affected = await connection.ExecuteAsync(
+                        """
+                        UPDATE tasks
+                        SET status = @archived,
+                            updated_at = @updatedAt
+                        WHERE status = @closed
+                          AND id = @id
+                        """,
+                        new
+                        {
+                            closed = TaskStates.Closed,
+                            archived = TaskStates.Archived,
+                            id,
+                            updatedAt = now,
+                            cancellationToken
+                        },
+                        transaction);
+
+                    if (affected != 0)
+                    {
+                        idsToArchive.Add(id);
+                    }
+                }
+            }
+        }
+        else
+        {
+            idsToArchive = (await connection.QueryAsync<string>(
+                """
+                WITH excess AS (
+                    SELECT CASE
+                        WHEN COUNT(*) > @closedTaskCap THEN COUNT(*) - @closedTaskCap
+                        ELSE 0
+                    END AS count
+                    FROM tasks
+                    WHERE status = @closed
+                ),
+                tasks_to_archive AS (
+                    SELECT id
+                    FROM tasks
+                    WHERE status = @closed
+                    ORDER BY closed_at ASC, id ASC
+                    LIMIT (SELECT count FROM excess)
+                )
+                UPDATE tasks
+                SET status = @archived,
+                    updated_at = @updatedAt
+                WHERE status = @closed
+                  AND id IN (SELECT id FROM tasks_to_archive)
+                RETURNING id
+                """,
+                new
+                {
+                    closed = TaskStates.Closed,
+                    archived = TaskStates.Archived,
+                    closedTaskCap = TaskStates.ClosedTaskCap,
+                    updatedAt = now,
+                    cancellationToken
+                },
+                transaction)).ToList();
+        }
 
         foreach (var id in idsToArchive)
         {
