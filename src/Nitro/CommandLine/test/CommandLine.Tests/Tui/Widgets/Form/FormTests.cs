@@ -1,4 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
+using Spectre.Console;
+using Spectre.Console.Rendering;
 using Spectre.Console.Testing;
 using FormUnderTest = ChilliCream.Nitro.CommandLine.Tui.Widgets.Form.Form;
 
@@ -11,6 +13,13 @@ public sealed class FormTests
     private static ConsoleKeyInfo Key(ConsoleKey key, bool shift = false) => new('\0', key, shift, false, false);
 
     private static ConsoleKeyInfo CtrlKey(ConsoleKey key) => new('\0', key, false, false, true);
+
+    private static IReadOnlyList<Segment> RenderSegments(IRenderable renderable, TestConsole console, int width)
+    {
+        var options = RenderOptions.Create(console, console.Profile.Capabilities);
+
+        return [.. renderable.Render(options, width)];
+    }
 
     private static FormUnderTest CreateForm(
         Func<FormValue, string?>? titleValidator = null,
@@ -531,6 +540,71 @@ public sealed class FormTests
         var lines = console.Output.Split('\n');
         Assert.True(lines.Length <= 10, $"expected at most 10 lines, got {lines.Length}.");
         Assert.Contains("cursor line", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_KeepFocusedEditableListCaretAndSaveWithinFrameHeight_When_FieldExceedsAvailableHeight()
+    {
+        // arrange
+        var field = new EditableListField(
+            "labels",
+            "Labels",
+            initialValues: Enumerable.Range(1, 20).Select(index => $"entry-{index}"));
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Edit Task", [field], buttons);
+        var console = new TestConsole().Width(80).Height(100);
+
+        for (var i = 0; i < 19; i++)
+        {
+            form.HandleKey(Key(ConsoleKey.DownArrow));
+        }
+
+        form.HandleKey(Key(ConsoleKey.Enter));
+        form.HandleKey(Key(ConsoleKey.Home));
+
+        // act
+        var rendered = form.Render(80, 10);
+        console.Write(rendered);
+        var segments = RenderSegments(rendered, console, 80);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.Contains("entry-20", console.Output);
+        Assert.Contains("Save", console.Output);
+        Assert.Contains(segments, segment =>
+            segment.Text == "e"
+            && segment.Style.Foreground == Color.Black
+            && segment.Style.Background == Color.White);
+    }
+
+    [Fact]
+    public void Render_Should_KeepMiddleTextAreaCaretAndSaveWithinFrameHeight_When_IndicatorsDoNotFit()
+    {
+        // arrange
+        var fields = new FormField[]
+        {
+            new TextAreaField("first", "First", initialValue: "first"),
+            new TextAreaField("middle", "Middle", initialValue: "cursor"),
+            new TextAreaField("last", "Last", initialValue: "last")
+        };
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Edit Task", fields, buttons);
+        var console = new TestConsole().Width(80).Height(100);
+        form.HandleKey(Key(ConsoleKey.Tab));
+        form.HandleKey(Key(ConsoleKey.Home));
+
+        // act
+        var rendered = form.Render(80, 10);
+        console.Write(rendered);
+        var segments = RenderSegments(rendered, console, 80);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.Contains("Save", console.Output);
+        Assert.Contains(segments, segment =>
+            segment.Text == "c"
+            && segment.Style.Foreground == Color.Black
+            && segment.Style.Background == Color.White);
     }
 
     [Fact]

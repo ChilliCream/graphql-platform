@@ -181,31 +181,46 @@ internal sealed class Form
         var availableFieldsHeight = Math.Max(0, maxPanelHeight - chrome);
         var needsScrolling = totalFieldsHeight > availableFieldsHeight;
 
-        // Reserve two indicator rows when multiple fields exceed the available height.
-        var windowBudget = needsScrolling && _fields.Count > 1
+        var anchorIndex = IsFieldFocused ? _focusIndex : _fields.Count - 1;
+        var reserveIndicators = needsScrolling && _fields.Count > 1;
+        var windowBudget = reserveIndicators
             ? Math.Max(0, availableFieldsHeight - 2)
             : availableFieldsHeight;
 
-        var anchorIndex = IsFieldFocused ? _focusIndex : _fields.Count - 1;
+        RenderAnchorWithinBudget(windowBudget);
 
-        if (fieldHeights[anchorIndex] > windowBudget)
+        // The field's minimum bounded rendering takes priority over scroll indicators,
+        // so its caret and the pinned button row remain visible.
+        if (reserveIndicators && fieldHeights[anchorIndex] > windowBudget)
         {
-            var renderable = _fields[anchorIndex].Render(
-                formWidth,
-                focused: IsFieldFocused,
-                maxHeight: windowBudget);
-
-            fieldRenderables[anchorIndex] = renderable;
-            fieldHeights[anchorIndex] = FormMeasurement.MeasureHeight(renderable, formWidth);
+            reserveIndicators = false;
+            windowBudget = availableFieldsHeight;
+            RenderAnchorWithinBudget(windowBudget);
         }
 
         var (startIndex, endIndex) = SelectVisibleFieldRange(fieldHeights, anchorIndex, windowBudget);
         var hiddenAbove = startIndex > 0;
         var hiddenBelow = endIndex < _fields.Count - 1;
 
+        void RenderAnchorWithinBudget(int maxHeight)
+        {
+            if (fieldHeights[anchorIndex] <= maxHeight)
+            {
+                return;
+            }
+
+            var renderable = _fields[anchorIndex].Render(
+                formWidth,
+                focused: IsFieldFocused,
+                maxHeight: maxHeight);
+
+            fieldRenderables[anchorIndex] = renderable;
+            fieldHeights[anchorIndex] = FormMeasurement.MeasureHeight(renderable, formWidth);
+        }
+
         var sections = new List<IRenderable>(endIndex - startIndex + 4);
 
-        if (hiddenAbove)
+        if (reserveIndicators && hiddenAbove)
         {
             sections.Add(new Markup("[grey italic]▲ more fields above[/]"));
         }
@@ -215,7 +230,7 @@ internal sealed class Form
             sections.Add(fieldRenderables[i]);
         }
 
-        if (hiddenBelow)
+        if (reserveIndicators && hiddenBelow)
         {
             sections.Add(new Markup("[grey italic]▼ more fields below[/]"));
         }

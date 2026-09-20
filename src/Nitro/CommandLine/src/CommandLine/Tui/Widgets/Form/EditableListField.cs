@@ -11,6 +11,8 @@ internal sealed class EditableListField : FormField
     private const string SelectedRowStyle = "aqua";
     private const string Bullet = "- ";
 
+    private const int PanelBorderHeight = 2;
+
     private readonly List<string> _entries;
 
     private int _selectedIndex;
@@ -92,15 +94,28 @@ internal sealed class EditableListField : FormField
     }
 
     public override IRenderable Render(int width, bool focused)
+        => RenderWithVisibleRows(width, focused, _entries.Count);
+
+    public override IRenderable Render(int width, bool focused, int maxHeight)
+    {
+        var errorHeight = ShowErrors && Validate() is not null ? 1 : 0;
+        var visibleRows = Math.Max(1, maxHeight - PanelBorderHeight - errorHeight);
+
+        return RenderWithVisibleRows(width, focused, visibleRows);
+    }
+
+    private IRenderable RenderWithVisibleRows(int width, bool focused, int visibleRows)
     {
         if (_entries.Count == 0)
         {
             return RenderPanel(new Markup(RenderPlaceholder("no labels - type to add")), width, focused);
         }
 
-        var rows = new List<IRenderable>();
+        var count = Math.Min(visibleRows, _entries.Count);
+        var start = Math.Clamp(_selectedIndex - (count / 2), 0, _entries.Count - count);
+        var rows = new List<IRenderable>(count);
 
-        for (var i = 0; i < _entries.Count; i++)
+        for (var i = start; i < start + count; i++)
         {
             var isCurrentRow = focused && i == _selectedIndex;
             var text = IsEditing && i == _selectedIndex
