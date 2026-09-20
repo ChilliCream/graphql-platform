@@ -26,7 +26,7 @@ export const HERO = {
   eyebrow: "GraphQL Federation Gateway",
   title: "Fusion",
   teaser:
-    "The gateway that composes your teams' source schemas into one composite schema and executes every query across the subgraphs. Fusion is the only gateway that supports both the GraphQL Federation specification and Apollo Federation, and it composes OpenAPI and gRPC sources too.",
+    "The gateway that composes your teams' subgraphs into one coherent graph and executes every query across them. Fusion is the only gateway that supports both the GraphQL Federation specification and Apollo Federation, and it composes OpenAPI and gRPC sources too.",
   buttons: [
     { label: "Get Started", href: "/docs/fusion/getting-started" },
     {
@@ -46,7 +46,7 @@ export const SECTIONS: readonly CopySection[] = [
     id: "what-is-fusion",
     title: "What is Fusion?",
     paragraphs: [
-      "Fusion is an API gateway. Your teams keep their own services and their own schemas; Fusion composes those source schemas into one composite schema and serves it at a single endpoint. A client sends one query, the gateway works out which subgraphs hold the data, calls them, and returns one response.",
+      "Fusion is an API gateway. Your teams keep their own services and their own schemas; Fusion composes those subgraphs into one coherent graph and serves it at a single endpoint. A client sends one query, the gateway works out which subgraphs hold the data, calls them, and returns one response.",
       "Composition happens in your build, not at runtime, so contract conflicts are caught before anything is deployed. A subgraph is an ordinary service: a GraphQL server in any language, or a service that publishes an OpenAPI document or a gRPC definition. If federation itself is new to you, start with the GraphQL Federation page.",
     ],
     links: [
@@ -61,8 +61,8 @@ export const SECTIONS: readonly CopySection[] = [
     id: "both-specifications",
     title: "Both specifications, one gateway",
     paragraphs: [
-      "Fusion is the only gateway that supports both the GraphQL Federation specification and Apollo Federation. Source schemas written to either protocol compose into the same composite schema, so a team can adopt either one, run both side by side, or move a single subgraph across without a coordinated cutover.",
-      "Fusion also composes sources that are not GraphQL servers at all: a service that publishes an OpenAPI document or a gRPC definition joins the same composite schema, with its contract validated in the same composition step.",
+      "Fusion is the only gateway that supports both the GraphQL Federation specification and Apollo Federation. Subgraphs written to either protocol compose into the same graph, so a team can adopt either one, run both side by side, or move a single subgraph across without a coordinated cutover.",
+      "Fusion also composes sources that are not GraphQL servers at all: a service that publishes an OpenAPI document or a gRPC definition joins the same graph, with its contract validated in the same composition step.",
     ],
     links: [],
     inPractice: [
@@ -77,7 +77,7 @@ export const SECTIONS: readonly CopySection[] = [
     title: "Any GraphQL server, no plugin",
     paragraphs: [
       "Subgraphs can be written in any language. A GraphQL subgraph stays an ordinary GraphQL server: it declares its keys and lookups in its own schema, the gateway calls it with ordinary GraphQL queries, and there is no distributed-runtime package or vendor protocol layer to install alongside it. The servers listed on the GraphQL Federation page qualify on the same terms, and so does any other GraphQL server.",
-      "The one build step you add is composition. It validates the source schemas against one another, and type conflicts, missing fields and incompatible enums fail the pipeline instead of the gateway.",
+      "The one build step you add is composition. It validates the subgraphs against one another, and type conflicts, missing fields and incompatible enums fail the pipeline instead of the gateway.",
     ],
     links: [
       {
@@ -87,7 +87,7 @@ export const SECTIONS: readonly CopySection[] = [
     ],
     inPractice: [
       {
-        label: "how composition validates source schemas",
+        label: "how composition validates subgraphs",
         href: "/docs/fusion/composition",
       },
       {
@@ -100,7 +100,7 @@ export const SECTIONS: readonly CopySection[] = [
     id: "client-safety",
     title: "Composition protects the graph, Nitro protects your clients",
     paragraphs: [
-      "Composition catches conflicts between subgraphs, and that is where federation's guarantees end. Nothing in it stops a team from removing a field that a mobile app still queries: the source schemas still compose, the build stays green, and the query fails in the hands of a client the subgraph team never sees.",
+      "Composition catches conflicts between subgraphs, and that is where federation's guarantees end. Nothing in it stops a team from removing a field that a mobile app still queries: the subgraphs still compose, the build stays green, and the query fails in the hands of a client the subgraph team never sees.",
       "Nitro closes that gap. Its schema governance compares every schema change with the operations published by real clients and tells the team what is safe, risky or breaking before the change is merged.",
     ],
     links: [],
@@ -135,12 +135,12 @@ export const FEATURES: readonly Feature[] = [
   {
     title: "Both Federation Protocols",
     description:
-      "Subgraphs written to the GraphQL Federation specification and subgraphs written to Apollo Federation compose into the same composite schema, so you can move one subgraph at a time.",
+      "Subgraphs written to the GraphQL Federation specification and subgraphs written to Apollo Federation compose into the same graph, so you can move one subgraph at a time.",
   },
   {
     title: "OpenAPI and gRPC Sources",
     description:
-      "A service that publishes an OpenAPI document or a gRPC definition joins the same composite schema, with its contract validated in the same composition step.",
+      "A service that publishes an OpenAPI document or a gRPC definition joins the same graph, with its contract validated in the same composition step.",
   },
   {
     title: "Any Language, Any Server",
@@ -150,7 +150,7 @@ export const FEATURES: readonly Feature[] = [
   {
     title: "Composition in Your Pipeline",
     description:
-      "Composition validates the source schemas against one another before deployment, so type conflicts, missing fields, and incompatible enums fail the build instead of the gateway.",
+      "Composition validates the subgraphs against one another before deployment, so type conflicts, missing fields, and incompatible enums fail the build instead of the gateway.",
   },
   {
     title: "Hot-Swapped Configuration",

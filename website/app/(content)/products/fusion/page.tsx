@@ -12,13 +12,13 @@ import { FusionPage } from "./FusionPage";
 const PAGE = {
   title: "Fusion: GraphQL Federation Gateway",
   description:
-    "Fusion is the GraphQL Federation gateway that composes source schemas from any GraphQL server, OpenAPI, and gRPC into one composite schema and executes every query across them.",
+    "Fusion is the GraphQL Federation gateway that composes subgraphs from any GraphQL server, OpenAPI, and gRPC into one coherent graph and executes every query across them.",
   path: "/products/fusion",
   keywords: [
     "GraphQL Federation gateway",
     "GraphQL gateway",
     "Apollo Federation compatible gateway",
-    "composite schema",
+    "coherent graph",
     "Fusion GraphQL",
   ],
 } as const;
