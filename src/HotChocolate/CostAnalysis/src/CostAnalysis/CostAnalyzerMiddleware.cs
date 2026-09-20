@@ -89,17 +89,15 @@ internal sealed class CostAnalyzerMiddleware(
                     cache.TryAddPlan(operationId, plan);
                 }
 
-                var isAssumedBound = context.IsWarmupRequest();
-
-                // Non-warmup cost analysis requires at least one coerced variable set, so an explicit empty variable batch is invalid.
-                if (!isAssumedBound && context.VariableValues.Length == 0)
+                // Cost analysis requires at least one coerced variable set, so an explicit empty variable batch is invalid.
+                if (context.VariableValues.Length == 0)
                 {
                     context.Result = ErrorHelper.StateInvalidForCostAnalysisMissingVariableValues();
                     return;
                 }
 
-                var estimates = Evaluate(context, plan, isAssumedBound);
-                context.Features.Set(new CostAnalysisResult(plan, estimates, isAssumedBound));
+                var estimates = Evaluate(context, plan);
+                context.Features.Set(new CostAnalysisResult(plan, estimates));
 
                 costMetrics = CreateCostMetrics(estimates);
                 context.SetCostMetrics(costMetrics[0]);
@@ -171,16 +169,8 @@ internal sealed class CostAnalyzerMiddleware(
 
     private ImmutableArray<CostEstimate> Evaluate(
         RequestContext context,
-        CostPlan plan,
-        bool isAssumedBound)
+        CostPlan plan)
     {
-        if (isAssumedBound)
-        {
-            var estimate = plan.EvaluateAssumedBound();
-            diagnosticEvents.OperationCost(context, estimate.FieldCost, estimate.TypeCost);
-            return [estimate];
-        }
-
         var builder = ImmutableArray.CreateBuilder<CostEstimate>(context.VariableValues.Length);
 
         foreach (var variableValues in context.VariableValues)
