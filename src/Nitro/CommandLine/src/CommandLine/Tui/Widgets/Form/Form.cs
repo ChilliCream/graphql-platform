@@ -2,7 +2,7 @@ using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
 
-file static class FormMeasurement
+internal static class FormMeasurement
 {
     /// <summary>
     /// An off-screen console used only to obtain a <see cref="RenderOptions"/> for
@@ -18,7 +18,7 @@ file static class FormMeasurement
     /// the visual lines it occupies.
     /// </summary>
     public static int MeasureHeight(IRenderable renderable, int width)
-        => Segment.SplitLines(renderable.Render(s_options, Math.Max(1, width))).Count;
+        => Segment.SplitLines(renderable.Render(s_options, Math.Max(1, width)), Math.Max(1, width)).Count;
 }
 
 /// <summary>
@@ -191,7 +191,11 @@ internal sealed class Form
 
         if (reserveIndicators && fieldHeights[anchorIndex] > windowBudget)
         {
-            maxPanelHeight = Math.Max(maxPanelHeight, height - (FrameMargin - 1));
+            var (initialStartIndex, initialEndIndex) = SelectVisibleFieldRange(fieldHeights, anchorIndex, windowBudget);
+            var indicatorHeight = (initialStartIndex > 0 ? 1 : 0) + (initialEndIndex < _fields.Count - 1 ? 1 : 0);
+            var requiredPanelHeight = chrome + indicatorHeight + fieldHeights[anchorIndex];
+
+            maxPanelHeight = Math.Min(height, Math.Max(maxPanelHeight, requiredPanelHeight));
             availableFieldsHeight = Math.Max(0, maxPanelHeight - chrome);
             windowBudget = Math.Max(0, availableFieldsHeight - 2);
             RenderAnchorWithinBudget(windowBudget);

@@ -12,6 +12,7 @@ internal sealed class EditableListField : FormField
     private const string Bullet = "- ";
 
     private const int PanelBorderHeight = 2;
+    private const int PanelBorderWidth = 4;
 
     private readonly List<string> _entries;
 
@@ -94,7 +95,7 @@ internal sealed class EditableListField : FormField
     }
 
     public override IRenderable Render(int width, bool focused)
-        => RenderWithVisibleRows(width, focused, _entries.Count);
+        => RenderWithVisibleRows(width, focused, int.MaxValue);
 
     public override IRenderable Render(int width, bool focused, int maxHeight)
     {
@@ -111,28 +112,64 @@ internal sealed class EditableListField : FormField
             return RenderPanel(new Markup(RenderPlaceholder("no labels - type to add")), width, focused);
         }
 
-        var count = Math.Min(visibleRows, _entries.Count);
-        var start = Math.Clamp(_selectedIndex - (count / 2), 0, _entries.Count - count);
-        var rows = new List<IRenderable>(count);
+        var entryRenderables = new IRenderable[_entries.Count];
+        var entryHeights = new int[_entries.Count];
+        var contentWidth = Math.Max(1, width - PanelBorderWidth);
 
-        for (var i = start; i < start + count; i++)
+        for (var i = 0; i < _entries.Count; i++)
         {
             var isCurrentRow = focused && i == _selectedIndex;
-            var text = IsEditing && i == _selectedIndex
-                ? RenderEditingLine(_editor!)
-                : Markup.Escape(_entries[i]);
+            entryRenderables[i] = RenderEntry(i, isCurrentRow);
+            entryHeights[i] = FormMeasurement.MeasureHeight(entryRenderables[i], contentWidth);
+        }
 
-            var line = Bullet + text;
+        var (start, end) = SelectVisibleEntryRange(entryHeights, visibleRows);
+        var rows = new List<IRenderable>(end - start + 1);
 
-            if (isCurrentRow)
+        for (var i = start; i <= end; i++)
+        {
+            var entry = entryRenderables[i];
+
+            if (i == _selectedIndex && entryHeights[i] > visibleRows)
             {
-                line = $"[{SelectedRowStyle}]{line}[/]";
+                entry = new VisualRowWindow(entry, visibleRows, contentWidth);
             }
 
-            rows.Add(new Markup(line));
+            rows.Add(entry);
         }
 
         return RenderPanel(new Rows(rows), width, focused);
+    }
+
+    private IRenderable RenderEntry(int index, bool isCurrentRow)
+    {
+        var text = IsEditing && index == _selectedIndex
+            ? RenderEditingLine(_editor!)
+            : Markup.Escape(_entries[index]);
+        var line = Bullet + text;
+
+        return new Markup(isCurrentRow ? $"[{SelectedRowStyle}]{line}[/]" : line);
+    }
+
+    private (int Start, int End) SelectVisibleEntryRange(IReadOnlyList<int> heights, int budget)
+    {
+        var start = _selectedIndex;
+        var end = _selectedIndex;
+        var used = Math.Min(heights[_selectedIndex], budget);
+
+        while (end + 1 < heights.Count && used + heights[end + 1] <= budget)
+        {
+            end++;
+            used += heights[end];
+        }
+
+        while (start - 1 >= 0 && used + heights[start - 1] <= budget)
+        {
+            start--;
+            used += heights[start];
+        }
+
+        return (start, end);
     }
 
     private bool HandleEditingKey(ConsoleKeyInfo info)
@@ -227,6 +264,42 @@ internal sealed class EditableListField : FormField
 
         _entries.RemoveAt(_selectedIndex);
         _selectedIndex = Math.Min(_selectedIndex, _entries.Count - 1);
+    }
+
+    private sealed class VisualRowWindow(IRenderable content, int visibleRows, int width) : IRenderable
+    {
+        public Measurement Measure(RenderOptions options, int maxWidth) => content.Measure(options, Math.Min(maxWidth, width));
+
+        public IEnumerable<Segment> Render(RenderOptions options, int maxWidth)
+        {
+            var renderWidth = Math.Min(maxWidth, width);
+            var lines = Segment.SplitLines(content.Render(options, renderWidth), renderWidth);
+            var cursorLine = lines.FindIndex(line => line.Any(IsCursorSegment));
+
+            if (cursorLine < 0)
+            {
+                cursorLine = 0;
+            }
+
+            var start = Math.Clamp(cursorLine - visibleRows + 1, 0, Math.Max(0, lines.Count - visibleRows));
+            var end = Math.Min(lines.Count, start + visibleRows);
+            var segments = new List<Segment>();
+
+            for (var i = start; i < end; i++)
+            {
+                segments.AddRange(lines[i]);
+
+                if (i < end - 1)
+                {
+                    segments.Add(Segment.LineBreak);
+                }
+            }
+
+            return segments;
+        }
+
+        private static bool IsCursorSegment(Segment segment)
+            => segment.Style.Foreground == Color.Black && segment.Style.Background == Color.White;
     }
 
     private static string RenderEditingLine(LineEditor editor)

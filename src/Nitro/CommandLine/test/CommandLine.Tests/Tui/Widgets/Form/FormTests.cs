@@ -610,6 +610,69 @@ public sealed class FormTests
     }
 
     [Fact]
+    public void Render_Should_KeepInvalidMiddleTextFieldAndSaveWithinFrameHeight_When_IndicatorsAreVisible()
+    {
+        // arrange
+        var fields = new FormField[]
+        {
+            new TextField("to", "To", initialValue: "recipient"),
+            new TextField(
+                "subject",
+                "Subject",
+                validator: value => value is FormValue.Text { Value.Length: 0 } ? "Subject is required." : null),
+            new TextField("body", "Body", initialValue: "message")
+        };
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Compose", fields, buttons);
+        var console = new TestConsole().Width(80).Height(100);
+        form.HandleKey(CtrlKey(ConsoleKey.S));
+
+        // act
+        var rendered = form.Render(80, 10);
+        console.Write(rendered);
+        var segments = RenderSegments(rendered, console, 80);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.All(
+            ["Subject is required.", "▲ more fields above", "▼ more fields below", "Save"],
+            text => Assert.Contains(text, console.Output));
+        Assert.Contains(segments, segment =>
+            segment.Text == " "
+            && segment.Style.Foreground == Color.Black
+            && segment.Style.Background == Color.White);
+    }
+
+    [Fact]
+    public void Render_Should_KeepLateEditableListCaretAndSaveWithinFrameHeight_When_LongEntryWraps()
+    {
+        // arrange
+        var field = new EditableListField(
+            "labels",
+            "Labels",
+            initialValues: ["first", new string('x', 96), "last"]);
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Edit Task", [field], buttons);
+        var console = new TestConsole().Width(24).Height(100);
+        form.HandleKey(Key(ConsoleKey.DownArrow));
+        form.HandleKey(Key(ConsoleKey.Enter));
+        form.HandleKey(Key(ConsoleKey.LeftArrow));
+
+        // act
+        var rendered = form.Render(24, 10);
+        console.Write(rendered);
+        var segments = RenderSegments(rendered, console, 24);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.Contains("Save", console.Output);
+        Assert.Contains(segments, segment =>
+            segment.Text == "x"
+            && segment.Style.Foreground == Color.Black
+            && segment.Style.Background == Color.White);
+    }
+
+    [Fact]
     public void Render_Should_ShowFocusedField_When_ScrolledPastTheFirstScreen()
     {
         // arrange: the same oversized form, focus moved to the last field.
