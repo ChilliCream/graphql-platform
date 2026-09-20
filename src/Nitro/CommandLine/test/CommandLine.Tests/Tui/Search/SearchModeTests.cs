@@ -130,19 +130,22 @@ public sealed class SearchModeTests
         var mode = new SearchMode(new FakeTaskStore());
         Assert.Equal(SearchFocus.Input, mode.Focus);
 
-        // act & assert
-        // Input -> List
+        // act
         mode.Handle(new TuiMessage.OpenSelected());
+
+        // assert
         Assert.Equal(SearchFocus.List, mode.Focus);
 
-        // act & assert
-        // List -> Detail
+        // act
         mode.Handle(new TuiMessage.OpenSelected());
+
+        // assert
         Assert.Equal(SearchFocus.Detail, mode.Focus);
 
-        // act & assert
-        // Detail stays put
+        // act
         mode.Handle(new TuiMessage.OpenSelected());
+
+        // assert
         Assert.Equal(SearchFocus.Detail, mode.Focus);
     }
 
@@ -155,19 +158,22 @@ public sealed class SearchModeTests
         mode.Handle(new TuiMessage.OpenSelected());
         Assert.Equal(SearchFocus.Detail, mode.Focus);
 
-        // act & assert
-        // Detail -> List
+        // act
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+
+        // assert
         Assert.Equal(SearchFocus.List, mode.Focus);
 
-        // act & assert
-        // List -> Input
+        // act
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+
+        // assert
         Assert.Equal(SearchFocus.Input, mode.Focus);
 
-        // act & assert
-        // Input stays put
+        // act
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
+
+        // assert
         Assert.Equal(SearchFocus.Input, mode.Focus);
     }
 
@@ -288,13 +294,12 @@ public sealed class SearchModeTests
         Assert.Null(mode.ParseError);
 
         // act
-        // an external write refreshes before the debounce is due
+        // Request a refresh before the pending query is due.
         mode.Handle(new TuiMessage.RefreshRequested());
         var refreshedAt = s_now + SearchMode.DebounceWindow - TimeSpan.FromMilliseconds(1);
         var refreshRan = await mode.TickAsync(refreshedAt, CancellationToken.None);
 
         // assert
-        // refresh reran the last applied (empty) query without touching the in-flight text or its debounce timer.
         Assert.True(refreshRan);
         Assert.Equal(2, store.QueryCount);
         Assert.Null(store.LastFilter!.Text);
@@ -317,11 +322,10 @@ public sealed class SearchModeTests
         await mode.TickAsync(s_now + SearchMode.DebounceWindow - TimeSpan.FromMilliseconds(1), CancellationToken.None);
 
         // act
-        // the original debounce timer, unaffected by the refresh, comes due
+        // Advance to the original query deadline.
         var ran = await mode.TickAsync(s_now + SearchMode.DebounceWindow, CancellationToken.None);
 
         // assert
-        // the typed query is the one that ends up applied
         Assert.True(ran);
         Assert.Equal("Beta", store.LastFilter!.Text);
         Assert.Equal(["t-2"], mode.Results.Select(t => t.Id));

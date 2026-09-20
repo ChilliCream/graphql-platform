@@ -127,7 +127,6 @@ public sealed class KeyDispatcherTests
     public void CombineHints_Should_DropSuppressedGlobalHints()
     {
         // arrange
-        // a suppressed global hint must not appear even though the global table still binds it.
         var globalMap = new KeyMap(
         [
             new KeyBinding(new KeyChord(ConsoleKey.Q, ConsoleModifiers.None, 'q'), () => new TuiMessage.QuitRequested(), new KeyHint("q", "quit")),

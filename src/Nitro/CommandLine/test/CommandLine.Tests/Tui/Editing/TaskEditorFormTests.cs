@@ -102,7 +102,6 @@ public sealed class TaskEditorFormTests
     public void Constructor_Should_RoundTripCustomStatus_When_NotAmongWellKnownOptions()
     {
         // arrange
-        // a closed task opened for editing keeps its own status selected instead of silently defaulting to "open"
         var task = TaskItemBuilder.Create("a1", status: TaskStates.Closed);
 
         // act
@@ -154,7 +153,6 @@ public sealed class TaskEditorFormTests
         var result = form.HandleKey(Key(ConsoleKey.Enter));
 
         // assert
-        // the form stays open because the required title is empty
         Assert.Null(result);
     }
 
@@ -172,7 +170,6 @@ public sealed class TaskEditorFormTests
         var result = form.HandleKey(Key(ConsoleKey.Enter));
 
         // assert
-        // the form stays open because a whitespace-only title is rejected, matching TaskCreateForm's title validator
         Assert.Null(result);
     }
 
@@ -180,7 +177,6 @@ public sealed class TaskEditorFormTests
     public void HandleKey_Should_Submit_When_CtrlEnterFromTitleField()
     {
         // arrange
-        // focus never leaves the title field, no Tab to Save
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, []);
         Type(form, "!");
@@ -197,7 +193,6 @@ public sealed class TaskEditorFormTests
     public void HandleKey_Should_Submit_When_CtrlSFromTitleField()
     {
         // arrange
-        // Ctrl+S is the fallback save chord for terminals that deliver Ctrl+Enter identically to a plain Enter
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, []);
         Type(form, "!");
@@ -222,7 +217,6 @@ public sealed class TaskEditorFormTests
         var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
 
         // assert
-        // the form stays open and focus moves to the invalid title field instead of closing
         Assert.Null(result);
         Assert.Equal(TaskEditorForm.TitleFieldId, form.FocusedField?.Id);
     }
@@ -297,7 +291,7 @@ public sealed class TaskEditorFormTests
     public async Task SubmitAsync_Should_AddAndRemoveLabels_When_LabelsEdited()
     {
         // arrange
-        // remove "b", add "c", keep "a"
+        // Remove "b", add "c", and keep "a".
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, ["a", "b"]);
         TabTo(form, 4);

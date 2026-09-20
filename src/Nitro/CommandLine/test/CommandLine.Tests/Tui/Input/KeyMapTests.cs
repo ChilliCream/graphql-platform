@@ -434,7 +434,6 @@ public sealed class KeyMapTests
         var keyMap = KeyMap.CreateDefaultGlobal();
 
         // assert
-        // j/k/h/l and their arrow-key equivalents collapse into a single "move" hint.
         Assert.Single(keyMap.Hints, h => h.Action == "move");
     }
 
@@ -442,7 +441,6 @@ public sealed class KeyMapTests
     public void TryResolve_Should_NotFallBackToKeyChar_When_CharIsControlChar()
     {
         // arrange
-        // Ctrl+C's KeyChar '\u0003' is a control char and must not fall back to a binding that shares it.
         var chord = new KeyChord(ConsoleKey.C, ConsoleModifiers.Control, '\u0003');
         var keyMap = new KeyMap([new KeyBinding(chord, () => new TuiMessage.QuitRequested())]);
         var differentKeySameControlChar = new KeyChord(ConsoleKey.D3, ConsoleModifiers.Control, '\u0003');

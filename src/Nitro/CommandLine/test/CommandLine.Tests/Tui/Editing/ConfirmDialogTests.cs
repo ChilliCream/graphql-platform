@@ -71,7 +71,6 @@ public sealed class ConfirmDialogTests
     public void HandleKey_Should_ReturnConfirmed_When_EnterActivatesDefaultButtonAfterTab()
     {
         // arrange
-        // the confirm button is selected by default among the buttons
         var dialog = CreateDialog();
         dialog.HandleKey(Key(ConsoleKey.Tab));
 

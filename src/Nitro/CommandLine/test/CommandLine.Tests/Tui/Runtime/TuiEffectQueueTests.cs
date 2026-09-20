@@ -182,7 +182,6 @@ public sealed class TuiEffectQueueTests
         var completions = queue.DrainCompletions();
 
         // assert
-        // the exception became a deterministic completion result, not an unobserved task exception.
         var faulted = Assert.IsType<TuiEffectCompletion<string>.Faulted>(Assert.Single(completions));
         Assert.Equal(operationId, faulted.OperationId);
         Assert.Same(thrown, faulted.Exception);
@@ -231,7 +230,7 @@ public sealed class TuiEffectQueueTests
     public async Task DrainCompletions_Should_ReturnResult_Even_When_NoWakeEventWasEverConsumed()
     {
         // arrange
-        // the completion is persisted without ever running RunAsync or reading from a channel.
+        // The wake-event relay is never started.
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
         queue.TrySubmit("compose", (_, _) => Task.FromResult("stored"), testToken, out _);
@@ -313,7 +312,7 @@ public sealed class TuiEffectQueueTests
     public async Task DrainPendingAsync_Should_LeavePendingCount_When_EffectOutlivesTheBound()
     {
         // arrange
-        // the effect outlives the bounded drain; the runtime gives up waiting but does not cancel it.
+        // The effect remains blocked until released after the drain.
         var testToken = TestContext.Current.CancellationToken;
         var queue = new TuiEffectQueue<string>();
         var release = new TaskCompletionSource();

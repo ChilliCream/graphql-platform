@@ -9,9 +9,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
     private static readonly TimeSpan s_debounce = TimeSpan.FromMilliseconds(50);
 
     /// <summary>
-    /// The debounce used by the coalescing test. It is far wider than the time the burst takes to
-    /// write so that neither file system event delivery nor a scheduler delay stretched by a loaded
-    /// machine can push two writes of the same burst into separate debounce windows.
+    /// The debounce interval used by burst-coalescing tests.
     /// </summary>
     private static readonly TimeSpan s_burstDebounce = TimeSpan.FromMilliseconds(500);
 
@@ -35,9 +33,8 @@ public sealed class SqliteDbWatcherTests : IDisposable
     private static readonly TimeSpan s_neverFiringDebounce = TimeSpan.FromSeconds(60);
 
     /// <summary>
-    /// Waits for the watcher to settle after start-up and drains any events it published in that
-    /// window. Anything published after this returns was caused by the act step, not by start-up
-    /// reconciliation.
+    /// Drains events after each quiet-period delay until a pass finds none, with a bounded timeout.
+    /// Startup notifications may still arrive after this method returns.
     /// </summary>
     private static async Task SettleAsync(Channel<TuiEvent> channel, CancellationToken cancellationToken)
     {
@@ -98,7 +95,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_PublishDataChangedEvent_When_WalGrowsBeforeEventsAreEnabled()
     {
         // arrange
-        // OnBaselineCaptured fires synchronously during the pre-enable -wal baseline read.
+        // The hook writes after the baseline is captured and before file events are enabled.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -124,7 +121,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_PublishDataChangedEvent_When_DatabaseFileWrittenBeforeEventsAreEnabled()
     {
         // arrange
-        // OnBaselineCaptured grows the file (100 to 150 bytes) and advances the change counter.
+        // The hook grows the file from 100 to 150 bytes and advances its change counter.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllBytes(databasePath, CreateSqliteHeader(changeCounter: 1));
@@ -154,7 +151,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_PublishDataChangedEvent_When_NonSqliteMainFileMtimeAdvances_BeforeEventsAreEnabled()
     {
         // arrange
-        // a non-SQLite payload forces the mtime/length fallback; the hook keeps length equal and bumps mtime.
+        // The hook changes a non-SQLite file, keeping its length and advancing its modification time.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -184,7 +181,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_PublishDataChangedEvent_When_MainFileReplaced_WithSameChangeCounter_ButDifferentLength()
     {
         // arrange
-        // the replacement keeps the same change counter as the original file but a different length.
+        // The replacement preserves the change counter and changes the file length.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllBytes(databasePath, CreateSqliteHeader(changeCounter: 5));
@@ -214,7 +211,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_PublishDataChangedEvent_When_MainFileChangeCounterAdvances_WithMtimeAndLengthUnchanged()
     {
         // arrange
-        // the hook advances the change counter but resets mtime to the baseline and keeps length equal.
+        // Only the change counter advances; file length and modification time remain unchanged.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllBytes(databasePath, CreateSqliteHeader(changeCounter: 1));
@@ -244,7 +241,6 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_NotPublishDataChangedEvent_When_NothingWrittenAtStartup()
     {
         // arrange
-        // no OnBaselineCaptured hook writes into the enable gap, so no event should publish at all.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -266,7 +262,6 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_NotPublishDataChangedEvent_When_OnlyWalSiblingWritten()
     {
         // arrange
-        // a plain read creates and deletes the -wal sibling too, the same churn a real write leaves on -wal alone.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -291,7 +286,6 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_NotPublishDataChangedEvent_When_OnlyShmSiblingWritten()
     {
         // arrange
-        // a plain read churns through the -shm sibling the same way it churns through -wal above.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -303,7 +297,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var runTask = watcher.RunAsync(channel.Writer, cts.Token);
         await SettleAsync(channel, testToken);
 
-        // create, modify, and delete -shm repeatedly to model read-triggered churn.
+        // Create and rewrite the shared-memory file before deleting it.
         for (var i = 0; i < 5; i++)
         {
             File.WriteAllText(databasePath + "-shm", "shm-" + i);
@@ -323,7 +317,6 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_PublishDataChangedEvent_ForARealWrite_AmidWalAndShmChurn()
     {
         // arrange
-        // a real write must still be detected while -wal and -shm noise churns around it.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -351,7 +344,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_PublishDataChangedEvent_When_WalGrowsAndStaysGrown_LikeACheckpointBlockedByAConcurrentReader()
     {
         // arrange
-        // a blocked checkpoint leaves the write appended only in -wal, with the main file mtime unmoved.
+        // Only the WAL file grows; the main database file remains unchanged.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -375,7 +368,6 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_PublishDataChangedEvent_When_WalGrowsPastAPriorGrowth()
     {
         // arrange
-        // a second uncheckpointed write must also be detected, so the growth baseline advances each time.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -402,7 +394,6 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_NotPublishDataChangedEvent_When_WalIsRewrittenAtTheSameSize()
     {
         // arrange
-        // a same-size rewrite of -wal touches mtime without appending frames, so it must stay silent.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -428,7 +419,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
     public async Task RunAsync_Should_CoalesceBurstOfWalGrowth_IntoSingleEvent()
     {
         // arrange
-        // five synchronous -wal appends within one debounce window must coalesce into a single event.
+        // Write five successively larger WAL files without delays between writes.
         var testToken = TestContext.Current.CancellationToken;
         var databasePath = Path.Combine(_directory, "tasks.db");
         File.WriteAllText(databasePath, "initial");
@@ -470,7 +461,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var notificationsAtFirstTick = -1;
         var watcher = new SqliteDbWatcher(databasePath, s_burstDebounce)
         {
-            // fires once per debounce cycle, counted only once the act phase sets the "acting" flag.
+            // Count act-phase debounce callbacks and capture the notification count at the first one.
             OnDebounceTick = () =>
             {
                 if (Volatile.Read(ref acting) == 0)
@@ -481,7 +472,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
                 Interlocked.Increment(ref tickCount);
                 Interlocked.CompareExchange(ref notificationsAtFirstTick, Volatile.Read(ref notifications), -1);
             },
-            // fires once per raw file system notification, before debounce coalesces it.
+            // Count database and WAL notifications after each one rearms the debounce timer.
             OnNotificationObserved = () =>
             {
                 if (Volatile.Read(ref acting) != 0)
@@ -498,7 +489,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
         await SettleAsync(channel, testToken);
         Volatile.Write(ref acting, 1);
 
-        // five synchronous writes within one debounce window reset the same timer instead of firing separately.
+        // Write five database updates without delays between writes.
         for (var i = 0; i < 5; i++)
         {
             File.WriteAllText(databasePath, "changed-" + i);
@@ -506,7 +497,7 @@ public sealed class SqliteDbWatcherTests : IDisposable
 
         var first = await ReadOneAsync(channel.Reader, testToken);
 
-        // an extra publish is allowed only when a notification arrived after the first debounce cycle.
+        // Each additional event requires a notification received after the first debounce callback.
         await Task.Delay(s_burstDebounce * 2, testToken);
         cts.Cancel();
         await runTask;
@@ -571,7 +562,6 @@ public sealed class SqliteDbWatcherTests : IDisposable
         var completed = await Task.WhenAny(runTask, Task.Delay(s_testTimeout, testToken));
 
         // assert
-        // the watcher returns on its own rather than only when the timeout delay wins the race.
         Assert.Same(runTask, completed);
         await runTask;
     }

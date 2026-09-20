@@ -154,7 +154,7 @@ public sealed class TuiApplicationTests
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
 
         // act
-        // the handler never reports the frame as dirty, so only the Live display's startup paint runs.
+        // The handler returns false for every event.
         var runTask = app.RunAsync(_ => false, () => new Text("initial-frame-marker"), cts.Token);
         await Task.Delay(s_tickInterval * 5, testToken);
         cts.Cancel();
@@ -378,7 +378,7 @@ public sealed class TuiApplicationTests
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => runTask);
 
-        // gives a still-running key-reader loop time to consume the key pushed below.
+        // Allow several polling intervals before and after adding the key.
         await Task.Delay(s_keyPollInterval * 10, testToken);
         console.Input.PushKey(ConsoleKey.A);
         await Task.Delay(s_keyPollInterval * 10, testToken);
