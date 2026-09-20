@@ -32,7 +32,6 @@ import {
   projectHelix,
   projectStreak,
   splitByPredicate,
-  type HelixPoint,
   type ShadedPoint,
   type Streak,
 } from "./plasma";
@@ -198,6 +197,15 @@ export default function Tokamak() {
     const hidePlasmaForDebug =
       typeof window !== "undefined" &&
       new URLSearchParams(window.location.search).has("tokamakDebugColumn");
+    // Debug-only, same gate: exposes the real `isFarSide`/`splitByPredicate`
+    // functions this module uses for the far/near occlusion split, so a
+    // test script can feed them synthetic straddling points and assert the
+    // split -- the actual split helper, not a re-implementation of it.
+    if (hidePlasmaForDebug && typeof window !== "undefined") {
+      (
+        window as unknown as { __tokamakDebugSplit?: unknown }
+      ).__tokamakDebugSplit = { isFarSide, splitByPredicate };
+    }
 
     // Erases the LIVE (plasma) canvas's own copy-clear zone -- the
     // ring/streaks/filament/bloom must never render under the copy, so
@@ -342,9 +350,12 @@ export default function Tokamak() {
       columnHalfWidthPx = Math.abs(columnEdge.x - layout.camera.originX);
 
       // Static streaks are frozen (never orbit), so their far/near split is
-      // fixed once here -- `isFarSide` on each streak's own `theta0` -- and
-      // baked straight into two separate cached layers, the far layer
-      // desaturated and dimmed.
+      // fixed once here and baked straight into two separate cached layers,
+      // the far layer desaturated and dimmed. Split PER POINT (`p.theta`,
+      // via `splitByPredicate`), not by the streak's own `theta0` alone: a
+      // streak's 20-40deg arc can straddle the far/near boundary, and a
+      // whole-streak split would draw its head or tail on the wrong side of
+      // the column.
       const farPaths: ShadedPoint[][] = [];
       const nearPaths: ShadedPoint[][] = [];
       const pushStatic = (theta0: number, phi: number, stray: boolean) => {
@@ -355,7 +366,9 @@ export default function Tokamak() {
           0,
           false,
         );
-        (isFarSide(theta0) ? farPaths : nearPaths).push(pts);
+        const { far, near } = splitByPredicate(pts, (p) => isFarSide(p.theta));
+        farPaths.push(...far);
+        nearPaths.push(...near);
       };
       for (const [theta0, phi] of stratifiedAngles(totalStatic, rand)) {
         pushStatic(theta0, phi, false);
@@ -566,7 +579,7 @@ export default function Tokamak() {
       );
       const { far: helixFar, near: helixNear } = splitByPredicate(
         helixPts,
-        (p: HelixPoint) => isFarSide(p.theta),
+        (p: ShadedPoint) => isFarSide(p.theta),
       );
 
       const hotIndex = liveStreaks.length
@@ -577,55 +590,70 @@ export default function Tokamak() {
         index,
         theta0: streak.theta0 + orbitPhase,
       }));
-      const farLive = advanced.filter((a) => isFarSide(a.theta0));
-      const nearLive = advanced.filter((a) => !isFarSide(a.theta0));
 
-      // Streaks on the torus' far side (opposite the camera) already
-      // project at greater depth (`near` is small from `nearFactor`) and
-      // carry a lower `weight`/dimmer colour of their own (see
-      // `createStreak`); the far/near split below additionally draws them
-      // BEFORE the column layer and the near group AFTER it, so the
-      // column's own tiles occlude whichever far streaks actually fall
+      // Each live streak is projected once per frame here and its point
+      // list split PER POINT (`p.theta`, via `splitByPredicate`), not by
+      // the streak's own `theta0` alone: a streak's 20-40deg arc can
+      // straddle the far/near boundary, and a whole-streak split would draw
+      // its head or tail on the wrong side of the column. Streaks on the
+      // torus' far side already project at greater depth (`near` is small
+      // from `nearFactor`) and carry a lower `weight`/dimmer colour of
+      // their own (see `createStreak`); the far runs below are additionally
+      // drawn BEFORE the column layer and the near runs AFTER it, so the
+      // column's own tiles occlude whichever far points actually fall
       // behind it -- real occlusion from draw order, not a hand-set
-      // dimming factor.
+      // dimming factor. Splitting once here (reused by both `strokeGroup`
+      // and `drawGlowGroup` below) also means `projectStreak` runs exactly
+      // once per live streak per frame, not once per draw pass.
+      const liveRuns = advanced.map(({ streak, index, theta0 }) => {
+        const pts = projectStreak(
+          { ...streak, theta0 },
+          layout.torus,
+          layout.camera,
+          timeSec,
+          true,
+          8,
+        );
+        const { far, near } = splitByPredicate(pts, (p) => isFarSide(p.theta));
+        return { streak, index, far, near };
+      });
+
       const strokeGroup = (
-        group: readonly { streak: Streak; index: number; theta0: number }[],
+        side: "far" | "near",
         colorHex: string,
         alphaMul: number,
       ) => {
-        for (const { streak, index, theta0 } of group) {
-          const pts = projectStreak(
-            { ...streak, theta0 },
-            layout.torus,
-            layout.camera,
-            timeSec,
-            true,
-            8,
-          );
+        for (const { streak, index, far, near } of liveRuns) {
+          const runs = side === "far" ? far : near;
+          if (runs.length === 0) {
+            continue;
+          }
           const flicker =
             0.65 +
             0.35 *
               Math.sin(timeSec * streak.flickerSpeed + streak.flickerPhase);
           const hot = index === hotIndex ? 1.4 : 1;
-          strokeShadedPath(
-            liveCtx!,
-            pts,
-            colorHex,
-            2.4 * hot,
-            streak.alpha * flicker * 0.4 * alphaMul * hot,
-          );
-          strokeShadedPathRgba(
-            liveCtx!,
-            pts,
-            whiteToRgba,
-            0.9 * hot,
-            flicker * 0.3 * alphaMul * hot,
-          );
+          for (const run of runs) {
+            strokeShadedPath(
+              liveCtx!,
+              run,
+              colorHex,
+              2.4 * hot,
+              streak.alpha * flicker * 0.4 * alphaMul * hot,
+            );
+            strokeShadedPathRgba(
+              liveCtx!,
+              run,
+              whiteToRgba,
+              0.9 * hot,
+              flicker * 0.3 * alphaMul * hot,
+            );
+          }
         }
       };
 
       const strokeHelixRuns = (
-        runs: readonly HelixPoint[][],
+        runs: readonly ShadedPoint[][],
         colorHex: string,
         alphaMul: number,
       ) => {
@@ -643,11 +671,11 @@ export default function Tokamak() {
 
       // Glow halo first (downscaled, blurred by the upscale), sharp cores
       // on top -- every luminous element on this layer carries a halo. Run
-      // once per half (its own streaks + its own helix run) so the far
+      // once per half (its own streak runs + its own helix run) so the far
       // half's bloom is dimmed and desaturated along with its streaks.
       const drawGlowGroup = (
-        group: readonly { streak: Streak; theta0: number }[],
-        helixRuns: readonly HelixPoint[][],
+        side: "far" | "near",
+        helixRuns: readonly ShadedPoint[][],
         colorHex: string,
         alphaMul: number,
       ) => {
@@ -655,27 +683,17 @@ export default function Tokamak() {
         glowCtx!.clearRect(0, 0, w, h);
         glowCtx!.globalCompositeOperation = "lighter";
         glowCtx!.lineCap = "round";
-        // 8 samples here (vs the default 16 the static cache bakes once
-        // with) -- these `liveStreaks` re-project every frame, so halving
-        // their per-streak sample count keeps the longer 0.35-0.7 rad arcs
-        // affordable within the 4ms budget; the cached majority (the
-        // visual bulk) still gets the full 16.
-        for (const { streak, theta0 } of group) {
-          const pts = projectStreak(
-            { ...streak, theta0 },
-            layout.torus,
-            layout.camera,
-            timeSec,
-            true,
-            8,
-          );
-          strokeShadedPath(
-            glowCtx!,
-            pts,
-            colorHex,
-            5.5,
-            streak.alpha * 0.5 * alphaMul,
-          );
+        for (const { streak, far, near } of liveRuns) {
+          const runs = side === "far" ? far : near;
+          for (const run of runs) {
+            strokeShadedPath(
+              glowCtx!,
+              run,
+              colorHex,
+              5.5,
+              streak.alpha * 0.5 * alphaMul,
+            );
+          }
         }
         for (const run of helixRuns) {
           strokeShadedPath(glowCtx!, run, colorHex, 4.5, 0.28 * alphaMul);
@@ -694,8 +712,8 @@ export default function Tokamak() {
       if (!hidePlasmaForDebug) {
         liveCtx!.globalCompositeOperation = "lighter";
         blit(liveCtx!, farCanvas);
-        drawGlowGroup(farLive, helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
-        strokeGroup(farLive, BRAND.coralSoft, FAR_ALPHA_MUL);
+        drawGlowGroup("far", helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
+        strokeGroup("far", BRAND.coralSoft, FAR_ALPHA_MUL);
         strokeHelixRuns(helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
       }
 
@@ -765,8 +783,8 @@ export default function Tokamak() {
         liveCtx!.fill();
 
         blit(liveCtx!, nearCanvas);
-        drawGlowGroup(nearLive, helixNear, BRAND.coral, NEAR_ALPHA_MUL);
-        strokeGroup(nearLive, BRAND.coral, NEAR_ALPHA_MUL);
+        drawGlowGroup("near", helixNear, BRAND.coral, NEAR_ALPHA_MUL);
+        strokeGroup("near", BRAND.coral, NEAR_ALPHA_MUL);
         strokeHelixRuns(helixNear, BRAND.coral, NEAR_ALPHA_MUL);
 
         // `torusCenter` sits at the band's near-side point, not the torus'

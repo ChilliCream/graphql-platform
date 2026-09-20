@@ -9,15 +9,25 @@ interface Pt {
 /** One projected point of a streak/filament/spiral, with its near/far factor baked in. */
 export interface ShadedPoint extends Pt {
   readonly near: number;
+  /**
+   * The world orbit angle (`theta`) this point was projected at. Lets
+   * `isFarSide` classify each point of a path individually instead of the
+   * whole path by one `theta0` -- a short streak arc straddling the
+   * far/near boundary needs its own points split into separate runs (see
+   * `splitByPredicate`) rather than being drawn wholesale on one side,
+   * which would let its head or tail cross the column instead of being
+   * occluded by it.
+   */
+  readonly theta: number;
 }
 
 /**
  * Whether a torus orbit angle sits on the far side of the column, the same
  * convention `chamber.ts` back-face-culls the column by: `sin(theta) > 0`.
- * Used to split streaks (by their own `theta0`, short arcs barely move it)
- * and the helix (by its own per-point `theta`, see `HelixPoint`) into a far
- * group drawn before the column layer and a near group drawn after it --
- * real occlusion from actual draw order, not a dimming factor.
+ * Used per point (each `ShadedPoint`'s own `theta`, via `splitByPredicate`)
+ * to split both streaks and the helix into far runs drawn before the
+ * column layer and near runs drawn after it -- real occlusion from actual
+ * draw order, not a dimming factor.
  */
 export function isFarSide(theta: number): boolean {
   return Math.sin(theta) > 0;
@@ -123,14 +133,10 @@ export function projectStreak(
       x: proj.x,
       y: proj.y,
       near: nearFactor(proj.scale, camera) * streak.weight,
+      theta: tt,
     });
   }
   return pts;
-}
-
-/** A helix point that also carries its own `theta` (orbit angle), so occlusion and draw-order splitting can work per point instead of treating the whole loop as one theta. */
-export interface HelixPoint extends ShadedPoint {
-  readonly theta: number;
 }
 
 /**
@@ -150,8 +156,8 @@ export function projectHelix(
   ampl = 1,
   tubeAmpl = 0.5,
   samples = 128,
-): HelixPoint[] {
-  const pts: HelixPoint[] = [];
+): ShadedPoint[] {
+  const pts: ShadedPoint[] = [];
   for (let i = 0; i <= samples; i++) {
     const theta = (i / samples) * Math.PI * 2;
     const phi = twistPhase + theta * windCount;
@@ -176,20 +182,18 @@ export function projectHelix(
 
 /**
  * Per-point far-side dimming for the helix: the filament's own far/near
- * split (see `splitByPredicate` below) already
- * draws its far run before the column layer and its near run after, but the
- * filament's far points falling OUTSIDE the column's own projected width
- * still need this extra dimming (nothing there to occlude them), so each
- * point is tested against `isFarSide` and the column's projected half-width
- * individually, unlike `paint.ts`'s streak-group split which treats a whole
- * short arc as one `theta0`.
+ * split (see `splitByPredicate` below) already draws its far run before the
+ * column layer and its near run after, but the filament's far points
+ * falling OUTSIDE the column's own projected width still need this extra
+ * dimming (nothing there to occlude them), so each point is tested against
+ * `isFarSide` and the column's projected half-width individually.
  */
 export function occludeHelixBehindColumn(
-  pts: readonly HelixPoint[],
+  pts: readonly ShadedPoint[],
   camera: Camera,
   columnHalfWidthPx: number,
   factor = 0.3,
-): HelixPoint[] {
+): ShadedPoint[] {
   return pts.map((p) =>
     isFarSide(p.theta) && Math.abs(p.x - camera.originX) < columnHalfWidthPx
       ? { ...p, near: p.near * factor }
@@ -199,11 +203,15 @@ export function occludeHelixBehindColumn(
 
 /**
  * Splits a per-point-classified path into contiguous runs (e.g. the
- * helix's far-side-behind-the-column points vs its near-side points), each
- * boundary point duplicated into both neighbouring runs so the runs still
- * meet with no visible gap. Used to draw the helix's far half before the
- * live front streaks and its near half after, so the thread reads as
- * partly hidden by the column and crossed by the front streaks.
+ * helix's or a streak's far-side-behind-the-column points vs its near-side
+ * points), each boundary point duplicated into both neighbouring runs so
+ * the runs still meet with no visible gap. Used for the helix (drawing its
+ * far half before the live front streaks and its near half after, so the
+ * thread reads as partly hidden by the column and crossed by the front
+ * streaks) and, per point rather than by a whole streak's `theta0`, for
+ * every projected streak: an arc spanning 20-40 degrees can straddle the
+ * far/near boundary, and drawing it wholesale on one side would let its
+ * head or tail cross the column instead of being occluded by it.
  */
 export function splitByPredicate<T>(
   pts: readonly T[],
