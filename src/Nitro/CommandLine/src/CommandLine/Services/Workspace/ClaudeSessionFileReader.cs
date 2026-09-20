@@ -46,7 +46,8 @@ internal sealed class ClaudeSessionFileReader : IClaudeSessionFileReader
             using var document = JsonDocument.Parse(File.ReadAllText(path));
             var root = document.RootElement;
 
-            if (!root.TryGetProperty("sessionId", out var id)
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty("sessionId", out var id)
                 || id.ValueKind != JsonValueKind.String
                 || id.GetString() != sessionId)
             {

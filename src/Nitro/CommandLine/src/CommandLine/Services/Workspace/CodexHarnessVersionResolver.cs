@@ -45,10 +45,14 @@ internal sealed class CodexHarnessVersionResolver(
             using var document = JsonDocument.Parse(firstLine);
             var root2 = document.RootElement;
 
-            if (!root2.TryGetProperty("type", out var typeElement)
+            if (root2.ValueKind != JsonValueKind.Object
+                || !root2.TryGetProperty("type", out var typeElement)
+                || typeElement.ValueKind != JsonValueKind.String
                 || typeElement.GetString() != "session_meta"
                 || !root2.TryGetProperty("payload", out var payload)
-                || !payload.TryGetProperty("cli_version", out var versionElement))
+                || payload.ValueKind != JsonValueKind.Object
+                || !payload.TryGetProperty("cli_version", out var versionElement)
+                || versionElement.ValueKind != JsonValueKind.String)
             {
                 return null;
             }

@@ -58,7 +58,9 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
                 return ClaudePeerSendOutcome.EndpointGone;
             }
 
-            if (!root.TryGetProperty("peerProtocol", out var protocolElement)
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty("peerProtocol", out var protocolElement)
+                || protocolElement.ValueKind != JsonValueKind.Number
                 || !protocolElement.TryGetInt32(out var protocol)
                 || protocol != SupportedProtocol)
             {
@@ -162,7 +164,8 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
             {
                 using var document = JsonDocument.Parse(json);
 
-                if (document.RootElement.TryGetProperty("sessionId", out var id)
+                if (document.RootElement.ValueKind == JsonValueKind.Object
+                    && document.RootElement.TryGetProperty("sessionId", out var id)
                     && id.ValueKind == JsonValueKind.String
                     && id.GetString() == sessionId)
                 {
@@ -190,7 +193,9 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
         endpoint = string.Empty;
         procStart = string.Empty;
 
-        if (!root.TryGetProperty("pid", out var pidElement)
+        if (root.ValueKind != JsonValueKind.Object
+            || !root.TryGetProperty("pid", out var pidElement)
+            || pidElement.ValueKind != JsonValueKind.Number
             || !pidElement.TryGetInt32(out pid)
             || pid <= 0
             || !root.TryGetProperty("sessionId", out var sessionIdElement)
@@ -257,7 +262,8 @@ internal sealed class ClaudePeerClient : IClaudePeerClient
             using var keyDocument = JsonDocument.Parse(keyJson);
             var root = keyDocument.RootElement;
 
-            if (!root.TryGetProperty("procStart", out var procStartElement)
+            if (root.ValueKind != JsonValueKind.Object
+                || !root.TryGetProperty("procStart", out var procStartElement)
                 || ReadScalar(procStartElement) != procStart)
             {
                 continue;

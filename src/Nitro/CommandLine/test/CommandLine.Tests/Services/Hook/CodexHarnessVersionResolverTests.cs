@@ -1,11 +1,13 @@
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.HookRuntime;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Exercises <see cref="CodexHarnessVersionResolver"/> against an injected
-/// rollout-version reader (no real filesystem access).
+/// Exercises <see cref="CodexHarnessVersionResolver"/> against injected readers
+/// and temporary rollout files.
 /// </summary>
+[Collection(HomeDirectoryCollection.Name)]
 public sealed class CodexHarnessVersionResolverTests
 {
     [Fact]
@@ -45,5 +47,59 @@ public sealed class CodexHarnessVersionResolverTests
 
         // assert
         Assert.Equal("", version);
+    }
+
+    [Fact]
+    public void Resolve_Should_ReturnEmpty_When_RolloutRecordTypeIsNotAString()
+    {
+        // arrange
+        using var home = new TemporaryHomeDirectory();
+        WriteRolloutFile(home, "{\"type\":1}");
+        var resolver = new CodexHarnessVersionResolver();
+
+        // act
+        var version = resolver.Resolve("session-1");
+
+        // assert
+        Assert.Equal("", version);
+    }
+
+    [Fact]
+    public void Resolve_Should_ReturnEmpty_When_RolloutFileRootIsAnArray()
+    {
+        // arrange
+        using var home = new TemporaryHomeDirectory();
+        WriteRolloutFile(home, "[]");
+        var resolver = new CodexHarnessVersionResolver();
+
+        // act
+        var version = resolver.Resolve("session-1");
+
+        // assert
+        Assert.Equal("", version);
+    }
+
+    [Theory]
+    [InlineData("{\"type\":\"session_meta\",\"payload\":[]}")]
+    [InlineData("{\"type\":\"session_meta\",\"payload\":{\"cli_version\":1}}")]
+    public void Resolve_Should_ReturnEmpty_When_RolloutPayloadIsNotWellFormed(string json)
+    {
+        // arrange
+        using var home = new TemporaryHomeDirectory();
+        WriteRolloutFile(home, json);
+        var resolver = new CodexHarnessVersionResolver();
+
+        // act
+        var version = resolver.Resolve("session-1");
+
+        // assert
+        Assert.Equal("", version);
+    }
+
+    private static void WriteRolloutFile(TemporaryHomeDirectory home, string json)
+    {
+        var directory = Path.Combine(home.Root.FullName, ".codex", "sessions");
+        Directory.CreateDirectory(directory);
+        File.WriteAllText(Path.Combine(directory, "rollout-test-session-1.jsonl"), json);
     }
 }

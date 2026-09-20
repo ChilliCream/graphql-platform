@@ -20,7 +20,11 @@ internal sealed class ClaudeSessionActivityReader(Func<string, string?>? session
         {
             using var document = JsonDocument.Parse(json);
 
-            return document.RootElement.TryGetProperty("status", out var status)
+            var root = document.RootElement;
+
+            return root.ValueKind == JsonValueKind.Object
+                && root.TryGetProperty("status", out var status)
+                && status.ValueKind == JsonValueKind.String
                 ? status.GetString()
                 : null;
         }
@@ -49,7 +53,8 @@ internal sealed class ClaudeSessionActivityReader(Func<string, string?>? session
                 {
                     using var document = JsonDocument.Parse(json);
 
-                    if (document.RootElement.TryGetProperty("sessionId", out var id)
+                    if (document.RootElement.ValueKind == JsonValueKind.Object
+                        && document.RootElement.TryGetProperty("sessionId", out var id)
                         && id.ValueKind == JsonValueKind.String
                         && id.GetString() == sessionId)
                     {

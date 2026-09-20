@@ -185,6 +185,85 @@ public sealed class ClaudePeerClientTests : IDisposable
         Assert.Equal(ClaudePeerSendOutcome.TransportError("JsonReaderException"), outcome);
     }
 
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("1")]
+    public async Task SendAsync_Should_ReturnEndpointGone_When_RegistryRootIsNotAnObject(string json)
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await WriteRegistryJsonAsync(json, cancellationToken);
+
+        // act
+        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_ReturnEndpointGone_When_RegistryPidIsNotANumber()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var json = JsonSerializer.Serialize(new
+        {
+            pid = "4242",
+            sessionId = SessionId,
+            kind = "interactive",
+            procStart = ProcStart,
+            peerProtocol = 1,
+            messagingSocketPath = _socketPath
+        });
+        await WriteRegistryJsonAsync(json, cancellationToken);
+
+        // act
+        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudePeerSendOutcome.EndpointGone, outcome);
+    }
+
+    [Fact]
+    public async Task SendAsync_Should_ReturnUnsupported_When_RegistryProtocolIsNotANumber()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var json = JsonSerializer.Serialize(new
+        {
+            pid = Pid,
+            sessionId = SessionId,
+            kind = "interactive",
+            procStart = ProcStart,
+            peerProtocol = "1",
+            messagingSocketPath = _socketPath
+        });
+        await WriteRegistryJsonAsync(json, cancellationToken);
+
+        // act
+        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudePeerSendOutcome.Unsupported, outcome);
+    }
+
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("1")]
+    public async Task SendAsync_Should_ReturnInvalidAuth_When_KeyRootIsNotAnObject(string json)
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await WriteRegistryAsync(protocol: 1, cancellationToken);
+        await WriteKeyJsonAsync(json, cancellationToken);
+
+        // act
+        var outcome = await _client.SendAsync(SessionId, "hello", cancellationToken);
+
+        // assert
+        Assert.Equal(ClaudePeerSendOutcome.InvalidAuth, outcome);
+    }
+
     private async Task<(ClaudePeerSendOutcome Outcome, IReadOnlyList<JsonDocument> Frames)>
         SendToListeningSocketAsync(string message, CancellationToken cancellationToken)
     {
@@ -269,14 +348,22 @@ public sealed class ClaudePeerClientTests : IDisposable
             messagingSocketPath = endpointOverride ?? _socketPath
         });
 
-        return File.WriteAllTextAsync(
-            Path.Combine(_sessionDirectory, $"{Pid}.json"), json, cancellationToken);
+        return WriteRegistryJsonAsync(json, cancellationToken);
     }
+
+    private Task WriteRegistryJsonAsync(string json, CancellationToken cancellationToken)
+        => File.WriteAllTextAsync(
+            Path.Combine(_sessionDirectory, $"{Pid}.json"), json, cancellationToken);
 
     private async Task WriteKeyAsync(string procStart, CancellationToken cancellationToken)
     {
-        var path = Path.Combine(_sessionDirectory, $"{Pid}.test.key");
         var json = JsonSerializer.Serialize(new { peerToken = PeerToken, procStart });
+        await WriteKeyJsonAsync(json, cancellationToken);
+    }
+
+    private async Task WriteKeyJsonAsync(string json, CancellationToken cancellationToken)
+    {
+        var path = Path.Combine(_sessionDirectory, $"{Pid}.test.key");
         await File.WriteAllTextAsync(path, json, cancellationToken);
 
         if (!OperatingSystem.IsWindows())
