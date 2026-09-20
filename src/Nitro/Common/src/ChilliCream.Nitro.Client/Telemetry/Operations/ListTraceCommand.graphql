@@ -1,0 +1,43 @@
+query ListTraceCommandQuery(
+  $workspaceId: ID!
+  $filter: OpenTelemetryFilterInput
+  $environments: [String!]
+  $spanKinds: [OpenTelemetrySpanKind!]
+  $from: DateTime
+  $to: DateTime
+  $first: Int
+  $after: String
+) {
+  workspaceById(workspaceId: $workspaceId) {
+    spans(
+      filter: $filter
+      environments: $environments
+      spanKinds: $spanKinds
+      from: $from
+      to: $to
+      first: $first
+      after: $after
+    ) {
+      edges {
+        cursor
+        node {
+          traceId
+          spanId
+          seeker
+          spanName
+          spanKind
+          duration
+          epoch
+          statusCode
+          resourceAttributes {
+            key
+            value
+          }
+        }
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}

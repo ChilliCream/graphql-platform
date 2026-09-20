@@ -1,4 +1,4 @@
-schema {
+﻿schema {
   query: Query
   mutation: Mutation
   subscription: Subscription
@@ -6,28 +6,52 @@ schema {
 
 type Query {
   apiById(id: ID!): Api @cost(weight: "10")
+  """
+  Resolves a single authorization audit-log entry by its global id, encoded from the
+  owning organization id and the event id. Returns null when the id
+  cannot be resolved or the caller is not authorized to read it.
+  """
+  authorizationEventLogById(id: ID!): AuthorizationEventLog @cost(weight: "10")
+  clientById(id: ID!): Client @cost(weight: "10")
+  clientVersionById(id: ID!): ClientVersion @cost(weight: "10")
+  deploymentById(id: ID!): Deployment @cost(weight: "10")
   fusionConfigurationByApiId(id: ID!, stage: String!): FusionConfiguration
     @cost(weight: "10")
   mcpFeatureCollectionById(id: ID!): McpFeatureCollection @cost(weight: "10")
+  mcpFeatureCollectionVersionById(id: ID!): McpFeatureCollectionVersion
+    @cost(weight: "10")
   me: Viewer @deprecated(reason: "Use `viewer` instead.")
   "Fetches an object given its ID."
   node("ID of the object." id: ID!): Node @cost(weight: "10")
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10")
   openApiCollectionById(id: ID!): OpenApiCollection @cost(weight: "10")
+  openApiCollectionVersionById(id: ID!): OpenApiCollectionVersion
+    @cost(weight: "10")
+  operationById(id: ID!): Operation @cost(weight: "10")
   organizationById(id: ID!): Organization @cost(weight: "10")
+  schemaChangeLogById(id: ID!): SchemaChangeLog @cost(weight: "10")
   stageById(id: ID!): Stage @cost(weight: "10")
   version: String
   viewer: Viewer
   workspaceById(workspaceId: ID!): Workspace @cost(weight: "10")
+  """
+  A workspace by organization name and workspace name. Null when either name is unknown or the
+  caller is unauthorized.
+  """
+  workspaceByName(
+    "The organization's name."
+    organizationName: String!
+    "The workspace's name."
+    workspaceName: String!
+  ): Workspace @cost(weight: "10")
 }
 
 type Mutation {
   approveDeployment(input: ApproveDeploymentInput!): ApproveDeploymentPayload!
     @cost(weight: "10")
-  beginFusionConfigurationPublish(
-    input: BeginFusionConfigurationPublishInput!
-  ): BeginFusionConfigurationPublishPayload! @cost(weight: "10")
+  beginFusionConfigurationPublish(input: BeginFusionConfigurationPublishInput!): BeginFusionConfigurationPublishPayload!
+    @cost(weight: "10")
   cancelDeployment(input: CancelDeploymentInput!): CancelDeploymentPayload!
     @cost(weight: "10")
   cancelFusionConfigurationComposition(
@@ -40,24 +64,24 @@ type Mutation {
   createApiKey(input: CreateApiKeyInput!): CreateApiKeyPayload!
     @authorize
     @cost(weight: "10")
-  createApiKeyForApi(
-    input: CreateApiKeyForApiInput!
-  ): CreateApiKeyForApiPayload! @authorize @cost(weight: "10")
+  createApiKeyForApi(input: CreateApiKeyForApiInput!): CreateApiKeyForApiPayload!
+    @authorize
+    @cost(weight: "10")
   createClient(input: CreateClientInput!): CreateClientPayload!
     @authorize
     @cost(weight: "10")
-  createMcpFeatureCollection(
-    input: CreateMcpFeatureCollectionInput!
-  ): CreateMcpFeatureCollectionPayload! @authorize @cost(weight: "10")
+  createMcpFeatureCollection(input: CreateMcpFeatureCollectionInput!): CreateMcpFeatureCollectionPayload!
+    @authorize
+    @cost(weight: "10")
   createMockSchema(input: CreateMockSchemaInput!): CreateMockSchemaPayload!
     @authorize
     @cost(weight: "10")
-  createOpenApiCollection(
-    input: CreateOpenApiCollectionInput!
-  ): CreateOpenApiCollectionPayload! @authorize @cost(weight: "10")
-  createPersonalAccessToken(
-    input: CreatePersonalAccessTokenInput!
-  ): CreatePersonalAccessTokenPayload! @authorize @cost(weight: "10")
+  createOpenApiCollection(input: CreateOpenApiCollectionInput!): CreateOpenApiCollectionPayload!
+    @authorize
+    @cost(weight: "10")
+  createPersonalAccessToken(input: CreatePersonalAccessTokenInput!): CreatePersonalAccessTokenPayload!
+    @authorize
+    @cost(weight: "10")
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspacePayload!
     @authorize
     @cost(weight: "10")
@@ -70,54 +94,50 @@ type Mutation {
   deleteClientById(input: DeleteClientByIdInput!): DeleteClientByIdPayload!
     @authorize
     @cost(weight: "10")
-  deleteMcpFeatureCollectionById(
-    input: DeleteMcpFeatureCollectionByIdInput!
-  ): DeleteMcpFeatureCollectionByIdPayload! @authorize @cost(weight: "10")
-  deleteMockSchemaById(
-    input: DeleteMockSchemaByIdInput!
-  ): DeleteMockSchemaByIdPayload! @authorize @cost(weight: "10")
-  deleteOpenApiCollectionById(
-    input: DeleteOpenApiCollectionByIdInput!
-  ): DeleteOpenApiCollectionByIdPayload! @authorize @cost(weight: "10")
+  deleteMcpFeatureCollectionById(input: DeleteMcpFeatureCollectionByIdInput!): DeleteMcpFeatureCollectionByIdPayload!
+    @authorize
+    @cost(weight: "10")
+  deleteMockSchemaById(input: DeleteMockSchemaByIdInput!): DeleteMockSchemaByIdPayload!
+    @authorize
+    @cost(weight: "10")
+  deleteOpenApiCollectionById(input: DeleteOpenApiCollectionByIdInput!): DeleteOpenApiCollectionByIdPayload!
+    @authorize
+    @cost(weight: "10")
   ensureTunnelSession: EnsureTunnelSessionPayload!
     @authorize
     @cost(weight: "10")
-  forceDeleteStageByApiId(
-    input: ForceDeleteStageByApiIdInput!
-  ): ForceDeleteStageByApiIdPayload! @authorize @cost(weight: "10")
-  pollClientVersionPublishRequest(
-    input: PollClientVersionPublishRequestInput!
-  ): PollClientVersionPublishRequestPayload! @authorize @cost(weight: "10")
+  forceDeleteStageByApiId(input: ForceDeleteStageByApiIdInput!): ForceDeleteStageByApiIdPayload!
+    @authorize
+    @cost(weight: "10")
+  pollClientVersionPublishRequest(input: PollClientVersionPublishRequestInput!): PollClientVersionPublishRequestPayload!
+    @authorize
+    @cost(weight: "10")
   pollClientVersionValidationRequest(
     input: PollClientVersionValidationRequestInput!
   ): PollClientVersionValidationRequestPayload! @authorize @cost(weight: "10")
-  pollSchemaVersionPublishRequest(
-    input: PollSchemaVersionPublishRequestInput!
-  ): PollSchemaVersionPublishRequestPayload! @authorize @cost(weight: "10")
+  pollSchemaVersionPublishRequest(input: PollSchemaVersionPublishRequestInput!): PollSchemaVersionPublishRequestPayload!
+    @authorize
+    @cost(weight: "10")
   pollSchemaVersionValidationRequest(
     input: PollSchemaVersionValidationRequestInput!
   ): PollSchemaVersionValidationRequestPayload! @authorize @cost(weight: "10")
   publishClient(input: PublishClientInput!): PublishClientPayload!
     @authorize
     @cost(weight: "10")
-  publishMcpFeatureCollection(
-    input: PublishMcpFeatureCollectionInput!
-  ): PublishMcpFeatureCollectionPayload! @authorize @cost(weight: "10")
-  publishOpenApiCollection(
-    input: PublishOpenApiCollectionInput!
-  ): PublishOpenApiCollectionPayload! @authorize @cost(weight: "10")
+  publishMcpFeatureCollection(input: PublishMcpFeatureCollectionInput!): PublishMcpFeatureCollectionPayload!
+    @authorize
+    @cost(weight: "10")
+  publishOpenApiCollection(input: PublishOpenApiCollectionInput!): PublishOpenApiCollectionPayload!
+    @authorize
+    @cost(weight: "10")
   publishSchema(input: PublishSchemaInput!): PublishSchemaPayload!
     @authorize
     @cost(weight: "10")
-  pushDocumentChanges(
-    input: PushDocumentChangeInput!
-  ): PushDocumentChangesPayload!
+  pushDocumentChanges(input: PushDocumentChangeInput!): PushDocumentChangesPayload!
     @authorize(policy: "DocumentsWrite")
     @cost(weight: "10")
     @deprecated(reason: "Use pushWorkspaceChanges")
-  pushWorkspaceChanges(
-    input: PushWorkspaceChangesInput!
-  ): PushWorkspaceChangesPayload!
+  pushWorkspaceChanges(input: PushWorkspaceChangesInput!): PushWorkspaceChangesPayload!
     @authorize(policy: "DocumentsWrite")
     @cost(weight: "10")
   removeWorkspace(input: RemoveWorkspaceInput!): RemoveWorkspacePayload!
@@ -126,12 +146,10 @@ type Mutation {
   renameWorkspace(input: RenameWorkspaceInput!): RenameWorkspacePayload!
     @authorize
     @cost(weight: "10")
-  revokePersonalAccessToken(
-    input: RevokePersonalAccessTokenInput!
-  ): RevokePersonalAccessTokenPayload! @authorize @cost(weight: "10")
-  setActiveWorkspace(
-    input: SetActiveWorkspaceInput!
-  ): SetActiveWorkspacePayload!
+  revokePersonalAccessToken(input: RevokePersonalAccessTokenInput!): RevokePersonalAccessTokenPayload!
+    @authorize
+    @cost(weight: "10")
+  setActiveWorkspace(input: SetActiveWorkspaceInput!): SetActiveWorkspacePayload!
     @authorize(policy: "WorkspaceManage")
     @cost(weight: "10")
   startFusionConfigurationComposition(
@@ -143,35 +161,35 @@ type Mutation {
   updateApiSettings(input: UpdateApiSettingsInput!): UpdateApiSettingsPayload!
     @authorize
     @cost(weight: "10")
-  updateFeatureFlags(
-    input: UpdateFeatureFlagsInput!
-  ): UpdateFeatureFlagsPayload! @authorize @cost(weight: "10")
+  updateFeatureFlags(input: UpdateFeatureFlagsInput!): UpdateFeatureFlagsPayload!
+    @authorize
+    @cost(weight: "10")
   updateMockSchema(input: UpdateMockSchemaInput!): UpdateMockSchemaPayload!
     @authorize
     @cost(weight: "10")
   updatePreferences(input: UpdatePreferencesInput!): UpdatePreferencesPayload!
     @authorize
     @cost(weight: "10")
-  updateStageCompositionSettings(
-    input: UpdateStageCompositionSettingsInput!
-  ): UpdateStageCompositionSettingsPayload! @authorize @cost(weight: "10")
+  updateStageCompositionSettings(input: UpdateStageCompositionSettingsInput!): UpdateStageCompositionSettingsPayload!
+    @authorize
+    @cost(weight: "10")
   updateStages(input: UpdateStagesInput!): UpdateStagesPayload!
     @cost(weight: "10")
-  updateThemeSettings(
-    input: UpdateThemeSettingsInput!
-  ): UpdateThemeSettingsPayload! @authorize @cost(weight: "10")
+  updateThemeSettings(input: UpdateThemeSettingsInput!): UpdateThemeSettingsPayload!
+    @authorize
+    @cost(weight: "10")
   uploadClient(input: UploadClientInput!): UploadClientPayload!
     @authorize
     @cost(weight: "10")
-  uploadFusionSubgraph(
-    input: UploadFusionSubgraphInput!
-  ): UploadFusionSubgraphPayload! @authorize @cost(weight: "10")
-  uploadMcpFeatureCollection(
-    input: UploadMcpFeatureCollectionInput!
-  ): UploadMcpFeatureCollectionPayload! @authorize @cost(weight: "10")
-  uploadOpenApiCollection(
-    input: UploadOpenApiCollectionInput!
-  ): UploadOpenApiCollectionPayload! @authorize @cost(weight: "10")
+  uploadFusionSubgraph(input: UploadFusionSubgraphInput!): UploadFusionSubgraphPayload!
+    @authorize
+    @cost(weight: "10")
+  uploadMcpFeatureCollection(input: UploadMcpFeatureCollectionInput!): UploadMcpFeatureCollectionPayload!
+    @authorize
+    @cost(weight: "10")
+  uploadOpenApiCollection(input: UploadOpenApiCollectionInput!): UploadOpenApiCollectionPayload!
+    @authorize
+    @cost(weight: "10")
   uploadSchema(input: UploadSchemaInput!): UploadSchemaPayload!
     @authorize
     @cost(weight: "10")
@@ -181,12 +199,12 @@ type Mutation {
   validateFusionConfigurationComposition(
     input: ValidateFusionConfigurationCompositionInput!
   ): ValidateFusionConfigurationCompositionPayload! @cost(weight: "10")
-  validateMcpFeatureCollection(
-    input: ValidateMcpFeatureCollectionInput!
-  ): ValidateMcpFeatureCollectionPayload! @authorize @cost(weight: "10")
-  validateOpenApiCollection(
-    input: ValidateOpenApiCollectionInput!
-  ): ValidateOpenApiCollectionPayload! @authorize @cost(weight: "10")
+  validateMcpFeatureCollection(input: ValidateMcpFeatureCollectionInput!): ValidateMcpFeatureCollectionPayload!
+    @authorize
+    @cost(weight: "10")
+  validateOpenApiCollection(input: ValidateOpenApiCollectionInput!): ValidateOpenApiCollectionPayload!
+    @authorize
+    @cost(weight: "10")
   validateSchema(input: ValidateSchemaInput!): ValidateSchemaPayload!
     @authorize
     @cost(weight: "10")
@@ -194,38 +212,17 @@ type Mutation {
 
 type Subscription {
   onClientVersionPublishingUpdate(requestId: ID!): ClientVersionPublishResult!
-  onClientVersionValidationUpdate(
-    requestId: ID!
-  ): ClientVersionValidationResult!
-  onFusionConfigurationPublishingTaskChanged(
-    requestId: ID!
-  ): FusionConfigurationPublishingResult!
-  onMcpFeatureCollectionVersionPublishingUpdate(
-    requestId: ID!
-  ): McpFeatureCollectionVersionPublishResult!
-  onMcpFeatureCollectionVersionValidationUpdate(
-    requestId: ID!
-  ): McpFeatureCollectionVersionValidationResult!
-  onOpenApiCollectionVersionPublishingUpdate(
-    requestId: ID!
-  ): OpenApiCollectionVersionPublishResult!
-  onOpenApiCollectionVersionValidationUpdate(
-    requestId: ID!
-  ): OpenApiCollectionVersionValidationResult!
-  onPersistedQueriesChanged(
-    apiId: ID!
-    stageName: String!
-  ): PersistedQueriesChanged!
+  onClientVersionValidationUpdate(requestId: ID!): ClientVersionValidationResult!
+  onFusionConfigurationPublishingTaskChanged(requestId: ID!): FusionConfigurationPublishingResult!
+  onMcpFeatureCollectionVersionPublishingUpdate(requestId: ID!): McpFeatureCollectionVersionPublishResult!
+  onMcpFeatureCollectionVersionValidationUpdate(requestId: ID!): McpFeatureCollectionVersionValidationResult!
+  onOpenApiCollectionVersionPublishingUpdate(requestId: ID!): OpenApiCollectionVersionPublishResult!
+  onOpenApiCollectionVersionValidationUpdate(requestId: ID!): OpenApiCollectionVersionValidationResult!
+  onPersistedQueriesChanged(apiId: ID!, stageName: String!): PersistedQueriesChanged!
     @deprecated(reason: "Use `onStageChanged` instead.")
   onSchemaVersionPublishingUpdate(requestId: ID!): SchemaVersionPublishResult!
-  onSchemaVersionValidationUpdate(
-    requestId: ID!
-  ): SchemaVersionValidationResult!
-  onStageChanged(
-    apiId: ID!
-    kind: [StageChangeKind!]
-    stageName: String!
-  ): StageChangedEvent!
+  onSchemaVersionValidationUpdate(requestId: ID!): SchemaVersionValidationResult!
+  onStageChanged(apiId: ID!, kind: [StageChangeKind!], stageName: String!): StageChangedEvent!
   onStageChangeLogAdded(
     apiId: ID!
     kind: [StageChangeLogKind!]
@@ -410,6 +407,7 @@ type Api implements Node {
   settings: ApiSettings!
   stage(name: String!): Stage @cost(weight: "10")
   stages: [Stage!]! @cost(weight: "10")
+  subgraph(name: String!): Subgraph @cost(weight: "10")
   version: Version!
   workspace: Workspace @cost(weight: "10")
 }
@@ -617,6 +615,7 @@ type ApiHttpConnection {
 "API Key Details"
 type ApiKey implements Node {
   actions: ApiKeyActions!
+  createdAt: DateTime!
   createdBy: UserInfo!
   id: ID!
   name: String!
@@ -848,6 +847,12 @@ type AuthorizationEventLog {
   eventId: UUID!
   eventType: AuthorizationEventType!
   """
+  The global id of this audit-log entry, encoded from the owning organization id and
+  the event id so the id alone is enough to locate the row via
+  Query.authorizationEventLogById.
+  """
+  id: ID!
+  """
   Whether the permission evaluation was conditional.
   Used by: PermissionMatchEvent when PermissionResult.Condition is not null
   """
@@ -964,8 +969,10 @@ type Client implements Node {
     before: String
     "Returns the first _n_ elements from the list."
     first: Int
+    kind: OperationKind
     "Returns the last _n_ elements from the list."
     last: Int
+    search: String
   ): OperationsConnection
     @listSize(
       assumedSize: 50
@@ -1003,6 +1010,7 @@ type Client implements Node {
     first: Int
     "Returns the last _n_ elements from the list."
     last: Int
+    search: String
   ): ClientVersionConnection
     @listSize(
       assumedSize: 50
@@ -1038,7 +1046,9 @@ type ClientDeployment implements Node & Deployment {
   errors: [ClientDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  publicationState: DeploymentPublicationState! @cost(weight: "10")
   source: SourceMetadata
+  stage: Stage @cost(weight: "10")
   status: DeploymentStatus!
   tag: String!
 }
@@ -1136,6 +1146,27 @@ type ClientVersion implements Node {
   client: Client @cost(weight: "10")
   createdAt: DateTime!
   id: ID!
+  metrics(from: DateTime!, operationId: ID, stageIds: [ID!]!, to: DateTime!): ClientVersionMetrics
+    @cost(weight: "10")
+  operations(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the last _n_ elements from the list."
+    last: Int
+    search: String
+  ): OperationsConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
   persistedQueries(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -1175,6 +1206,20 @@ type ClientVersionEdge {
   cursor: String!
   "The item at the end of the edge."
   node: ClientVersion!
+}
+
+type ClientVersionMetrics {
+  dataset: [ClientVersionMetricsPoint!]!
+}
+
+type ClientVersionMetricsPoint {
+  epoch: Long!
+  errorRate: Float!
+  mean: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithError: Long!
 }
 
 type ClientVersionNotFoundError implements Error {
@@ -1222,7 +1267,13 @@ type CommitFusionConfigurationPublishPayload {
   requestId: ID
 }
 
-type ConcurrentOperationError implements Error & SchemaVersionPublishError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & McpFeatureCollectionVersionPublishError & ProcessingError {
+type ConcurrentOperationError implements Error &
+  SchemaVersionPublishError &
+  ClientVersionPublishError &
+  FusionConfigurationPublishingError &
+  OpenApiCollectionVersionPublishError &
+  McpFeatureCollectionVersionPublishError &
+  ProcessingError {
   message: String!
 }
 
@@ -1241,11 +1292,11 @@ type CoordinateClientUsageMetrics implements Node {
     "Returns the elements in the list that come after the specified cursor."
     after: String
     "Returns the elements in the list that come before the specified cursor."
-    before: String
+    before: String @deprecated(reason: "Backward pagination is deprecated. Use first and after.")
     "Returns the first _n_ elements from the list."
     first: Int
     "Returns the last _n_ elements from the list."
-    last: Int
+    last: Int @deprecated(reason: "Backward pagination is deprecated. Use first and after.")
   ): CoordinateClientUsageOperationInsightsConnection
     @listSize(
       assumedSize: 50
@@ -1413,6 +1464,16 @@ type DeleteMockSchemaByIdPayload {
 type DeleteOpenApiCollectionByIdPayload {
   errors: [DeleteOpenApiCollectionByIdError!]
   openApiCollection: OpenApiCollection
+}
+
+"""
+Projects an existing Deployment (schema, client, OpenAPI collection, MCP
+feature collection, or fusion configuration deployment).
+"""
+type DeploymentActivity implements WorkspaceActivity {
+  deployment: Deployment!
+  id: ID!
+  occurredAt: DateTime!
 }
 
 type DeploymentApproval {
@@ -1791,28 +1852,16 @@ type FieldAddedChange implements SchemaChange {
 }
 
 type FieldCoordinateMetrics implements CoordinateMetrics {
-  clientUsage(
-    clientId: ID
-    from: DateTime!
-    to: DateTime!
-  ): CoordinateClientUsage @cost(weight: "10")
+  clientUsage(clientId: ID, from: DateTime!, to: DateTime!): CoordinateClientUsage
+    @cost(weight: "10")
   clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
     @cost(weight: "10")
-  duration(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): FieldDurationGraph @cost(weight: "10")
-  requests(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateRequestGraph @cost(weight: "10")
-  usages(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateUsageGraph @cost(weight: "10")
+  duration(from: DateTime!, resolution: Int! = 300, to: DateTime!): FieldDurationGraph
+    @cost(weight: "10")
+  requests(from: DateTime!, resolution: Int! = 300, to: DateTime!): CoordinateRequestGraph
+    @cost(weight: "10")
+  usages(from: DateTime!, resolution: Int! = 300, to: DateTime!): CoordinateUsageGraph
+    @cost(weight: "10")
 }
 
 type FieldDurationGraph {
@@ -1864,8 +1913,10 @@ type FusionConfigurationDeployment implements Node & Deployment {
   errors: [FusionConfigurationDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  publicationState: DeploymentPublicationState! @cost(weight: "10")
   schemaChanges: FusionConfigurationDeploymentSchemaChanges
   source: SourceMetadata
+  stage: Stage @cost(weight: "10")
   status: DeploymentStatus!
   subgraph: Subgraph
     @cost(weight: "10")
@@ -1951,13 +2002,51 @@ type FusionSubgraph implements Subgraph {
   api: Api @cost(weight: "10")
   id: ID!
   name: String!
+  versions(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the last _n_ elements from the list."
+    last: Int
+  ): FusionSubgraphVersionConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
 }
 
 type FusionSubgraphVersion {
   createdAt: DateTime!
   fusionSubgraph: FusionSubgraph! @cost(weight: "10")
   id: ID!
+  routingUrl: String
+  sourceSchema: String @cost(weight: "1")
   tag: String!
+}
+
+"A connection to a list of items."
+type FusionSubgraphVersionConnection {
+  "A list of edges."
+  edges: [FusionSubgraphVersionEdge!]
+  "A flattened list of the nodes."
+  nodes: [FusionSubgraphVersion!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type FusionSubgraphVersionEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: FusionSubgraphVersion!
 }
 
 type GitHubSourceMetadata implements SourceMetadata {
@@ -1967,7 +2056,9 @@ type GitHubSourceMetadata implements SourceMetadata {
   workflowRunUrl: URL!
 }
 
-type GraphQLDirectiveArgumentDefinition implements Node & GraphQLTypeSystemMember & GraphQLInputValueDefinition {
+type GraphQLDirectiveArgumentDefinition implements Node &
+  GraphQLTypeSystemMember &
+  GraphQLInputValueDefinition {
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
@@ -2015,7 +2106,9 @@ type GraphQLEnumValueDefinition implements Node & GraphQLTypeSystemMember {
   usage(from: DateTime, to: DateTime): CoordinateUsage! @cost(weight: "10")
 }
 
-type GraphQLInputObjectFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLInputValueDefinition {
+type GraphQLInputObjectFieldDefinition implements Node &
+  GraphQLTypeSystemMember &
+  GraphQLInputValueDefinition {
   coordinate: String!
   id: ID!
   isDeprecated: Boolean!
@@ -2039,7 +2132,10 @@ type GraphQLInputObjectTypeDefinitionFieldsConnection {
   nodes: [GraphQLInputObjectFieldDefinition!]!
 }
 
-type GraphQLInterfaceFieldArgumentDefinition implements Node & GraphQLTypeSystemMember & GraphQLInputValueDefinition & GraphQLOutputFieldArgumentDefinition {
+type GraphQLInterfaceFieldArgumentDefinition implements Node &
+  GraphQLTypeSystemMember &
+  GraphQLInputValueDefinition &
+  GraphQLOutputFieldArgumentDefinition {
   coordinate: String!
   declaringField: String!
   declaringType: String!
@@ -2054,7 +2150,9 @@ type GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection implements Graph
   nodes: [GraphQLInterfaceFieldArgumentDefinition!]!
 }
 
-type GraphQLInterfaceFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
+type GraphQLInterfaceFieldDefinition implements Node &
+  GraphQLTypeSystemMember &
+  GraphQLOutputFieldDefinition {
   arguments: GraphQLInterfaceFieldArgumentDefinitionArgumentsConnection!
     @cost(weight: "10")
   coordinate: String!
@@ -2080,7 +2178,10 @@ type GraphQLInterfaceTypeDefinitionFieldsConnection {
   nodes: [GraphQLInterfaceFieldDefinition!]!
 }
 
-type GraphQLObjectFieldArgumentDefinition implements Node & GraphQLTypeSystemMember & GraphQLInputValueDefinition & GraphQLOutputFieldArgumentDefinition {
+type GraphQLObjectFieldArgumentDefinition implements Node &
+  GraphQLTypeSystemMember &
+  GraphQLInputValueDefinition &
+  GraphQLOutputFieldArgumentDefinition {
   coordinate: String!
   declaringField: String!
   declaringType: String!
@@ -2095,7 +2196,9 @@ type GraphQLObjectFieldArgumentDefinitionArgumentsConnection implements GraphQLO
   nodes: [GraphQLObjectFieldArgumentDefinition!]!
 }
 
-type GraphQLObjectFieldDefinition implements Node & GraphQLTypeSystemMember & GraphQLOutputFieldDefinition {
+type GraphQLObjectFieldDefinition implements Node &
+  GraphQLTypeSystemMember &
+  GraphQLOutputFieldDefinition {
   arguments: GraphQLObjectFieldArgumentDefinitionArgumentsConnection!
     @cost(weight: "10")
   coordinate: String!
@@ -2316,7 +2419,11 @@ type InvalidFusionSourceSchemaArchiveError implements Error {
   message: String!
 }
 
-type InvalidGraphQLSchemaError implements SchemaVersionValidationError & SchemaVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & ProcessingError {
+type InvalidGraphQLSchemaError implements SchemaVersionValidationError &
+  SchemaVersionPublishError &
+  FusionConfigurationPublishingError &
+  FusionConfigurationValidationError &
+  ProcessingError {
   errors: [GraphQLSchemaError!]!
   message: String!
 }
@@ -2422,7 +2529,9 @@ type McpFeatureCollectionDeployment implements Node & Deployment {
   id: ID!
   logs: [DeploymentLog!]!
   mcpFeatureCollection: McpFeatureCollection @cost(weight: "10")
+  publicationState: DeploymentPublicationState! @cost(weight: "10")
   source: SourceMetadata
+  stage: Stage @cost(weight: "10")
   status: DeploymentStatus!
   tag: String!
 }
@@ -2513,7 +2622,8 @@ type McpFeatureCollectionSummary {
   toolCount: Int!
 }
 
-type McpFeatureCollectionValidationArchiveError implements McpFeatureCollectionVersionValidationError & ProcessingError {
+type McpFeatureCollectionValidationArchiveError implements McpFeatureCollectionVersionValidationError &
+  ProcessingError {
   message: String!
 }
 
@@ -2538,7 +2648,12 @@ type McpFeatureCollectionValidationEntityValidationError implements McpFeatureCo
   message: String!
 }
 
-type McpFeatureCollectionValidationError implements McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
+type McpFeatureCollectionValidationError implements McpFeatureCollectionVersionPublishError &
+  McpFeatureCollectionVersionValidationError &
+  SchemaVersionPublishError &
+  SchemaVersionValidationError &
+  FusionConfigurationValidationError &
+  ProcessingError {
   collections: [McpFeatureCollectionValidationCollection!]!
   message: String!
 }
@@ -2832,7 +2947,9 @@ type OpenApiCollectionDeployment implements Node & Deployment {
   id: ID!
   logs: [DeploymentLog!]!
   openApiCollection: OpenApiCollection @cost(weight: "10")
+  publicationState: DeploymentPublicationState! @cost(weight: "10")
   source: SourceMetadata
+  stage: Stage @cost(weight: "10")
   status: DeploymentStatus!
   tag: String!
 }
@@ -2937,7 +3054,8 @@ type OpenApiCollectionPublishedModelsEdge {
   node: PublishedOpenApiModel!
 }
 
-type OpenApiCollectionValidationArchiveError implements OpenApiCollectionVersionValidationError & ProcessingError {
+type OpenApiCollectionValidationArchiveError implements OpenApiCollectionVersionValidationError &
+  ProcessingError {
   message: String!
 }
 
@@ -2968,7 +3086,12 @@ type OpenApiCollectionValidationEntityValidationError implements OpenApiCollecti
   message: String!
 }
 
-type OpenApiCollectionValidationError implements OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
+type OpenApiCollectionValidationError implements OpenApiCollectionVersionPublishError &
+  OpenApiCollectionVersionValidationError &
+  SchemaVersionPublishError &
+  SchemaVersionValidationError &
+  FusionConfigurationValidationError &
+  ProcessingError {
   collections: [OpenApiCollectionValidationCollection!]!
   message: String!
 }
@@ -3095,6 +3218,22 @@ type OpenApiSummary {
   modelCount: Int!
 }
 
+"""
+A suggested attribute key: the dotted path plus the population (kind) it comes from
+(a direct field, or a JSON attribute scope: resource, scope, span, log, event, link, body).
+"""
+type OpenTelemetryAttributeKey {
+  kind: OpenTelemetryAttributeKind!
+  path: String!
+}
+
+type OpenTelemetryAttributeValue {
+  boolean: Boolean
+  float: Float
+  int: Int
+  string: String
+}
+
 type OpenTelemetryBoolAttribute implements OpenTelemetryAttribute {
   key: String!
   value: Boolean!
@@ -3110,6 +3249,7 @@ type OpenTelemetryDbSpan implements OpenTelemetrySpan {
   links: [OpenTelemetryTraceLink!]!
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
+  seeker: String!
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
@@ -3141,6 +3281,7 @@ type OpenTelemetryDefaultSpan implements OpenTelemetrySpan {
   links: [OpenTelemetryTraceLink!]!
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
+  seeker: String!
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
@@ -3183,6 +3324,7 @@ type OpenTelemetryGraphQLOperationSpan implements OpenTelemetrySpan {
     @cost(weight: "10")
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
+  seeker: String!
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
@@ -3200,6 +3342,7 @@ type OpenTelemetryGraphQLOperationSpanDocumentAttributes {
 }
 
 type OpenTelemetryGraphQLOperationSpanOperationAttributes {
+  hash: String
   kind: String
   name: String
 }
@@ -3213,6 +3356,7 @@ type OpenTelemetryGraphQLResolverSpan implements OpenTelemetrySpan {
   links: [OpenTelemetryTraceLink!]!
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
+  seeker: String!
   selection: OpenTelemetryGraphQLResolverSpanSelectionAttributes
     @cost(weight: "10")
   spanAttributes: [Attribute!]!
@@ -3250,6 +3394,7 @@ type OpenTelemetryHttpClientSpan implements OpenTelemetrySpan {
   links: [OpenTelemetryTraceLink!]!
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
+  seeker: String!
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
@@ -3280,6 +3425,7 @@ type OpenTelemetryHttpServerSpan implements OpenTelemetrySpan {
   links: [OpenTelemetryTraceLink!]!
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
+  seeker: String!
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
@@ -3303,36 +3449,26 @@ type OpenTelemetryHttpServerSpanAttributes {
 type OpenTelemetryLog {
   api: Api @cost(weight: "10")
   body: String!
+  bodyDetail: OpenTelemetryLogBody!
   epoch: Float!
+  id: String!
   logAttributes: [OpenTelemetryAttribute!]!
+  observedEpoch: Float
   resourceAttributes: [Attribute!]!
+  scope: OpenTelemetryScope
+  seeker: String!
   severityNumber: Int!
   severityText: String!
   spanId: String!
   stage: Stage @cost(weight: "10")
+  traceFlags: Int
   traceId: String!
 }
 
-"A connection to a list of items."
-type OpenTelemetryLogsConnection {
-  "A list of edges."
-  edges: [OpenTelemetryLogsEdge!]
-  "A flattened list of the nodes."
-  nodes: [OpenTelemetryLog!]
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-}
-
-"An edge in a connection."
-type OpenTelemetryLogsEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
-  node: OpenTelemetryLog!
-}
-
-type OpenTelemetryLogsSeverityGraph {
-  dataset: [OpenTelemetryLogsSeverityGraphData!]!
+type OpenTelemetryLogBody {
+  json: String
+  kind: OpenTelemetryLogBodyKind!
+  message: String
 }
 
 type OpenTelemetryLogsSeverityGraphCountData {
@@ -3348,6 +3484,13 @@ type OpenTelemetryLogsSeverityGraphData {
 type OpenTelemetryLongAttribute implements OpenTelemetryAttribute {
   key: String!
   value: Long!
+}
+
+type OpenTelemetryScope {
+  attributes: [OpenTelemetryAttribute!]!
+  name: String
+  schemaUrl: String
+  version: String
 }
 
 type OpenTelemetryStringAttribute implements OpenTelemetryAttribute {
@@ -3367,15 +3510,17 @@ type OpenTelemetryTrace {
     first: Int
     "Returns the last _n_ elements from the list."
     last: Int
-  ): OpenTelemetryLogsConnection
+  ): OpenTelemetryTraceLogsConnection!
     @listSize(
-      assumedSize: 200
+      assumedSize: 1000
       slicingArguments: ["first", "last"]
       slicingArgumentDefaultValue: 10
       sizedFields: ["edges", "nodes"]
       requireOneSlicingArgument: false
     )
+  spanCount: Int @cost(weight: "10")
   spans: [OpenTelemetrySpan!]! @cost(weight: "10")
+  spansTruncated: Boolean! @cost(weight: "10")
   totalDuration: Float! @cost(weight: "10")
 }
 
@@ -3390,6 +3535,17 @@ type OpenTelemetryTraceLink {
   spanId: String!
   traceId: String!
   traceState: String!
+}
+
+type OpenTelemetryTraceLogsConnection {
+  edges: [OpenTelemetryTraceLogsEdge!]
+  nodes: [OpenTelemetryLog!]
+  pageInfo: PageInfo!
+}
+
+type OpenTelemetryTraceLogsEdge {
+  cursor: String!
+  node: OpenTelemetryLog!
 }
 
 type OpenTelemetryTransactionInsight {
@@ -3500,11 +3656,21 @@ type OpenTelemetryTransactionTraceSample {
 
 type Operation {
   document: RequestDocument @cost(weight: "10")
+  id: ID!
   kind: OperationKind!
+  metrics(stageId: ID!): StageOperationMetrics @cost(weight: "10")
   name: String
 }
 
-type OperationInProgress implements SchemaVersionValidationResult & SchemaVersionPublishResult & ClientVersionValidationResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionPublishResult & McpFeatureCollectionVersionValidationResult {
+type OperationInProgress implements SchemaVersionValidationResult &
+  SchemaVersionPublishResult &
+  ClientVersionValidationResult &
+  ClientVersionPublishResult &
+  FusionConfigurationPublishingResult &
+  OpenApiCollectionVersionPublishResult &
+  OpenApiCollectionVersionValidationResult &
+  McpFeatureCollectionVersionPublishResult &
+  McpFeatureCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -3609,7 +3775,19 @@ type OperationLatencyGraphData {
   p99: Float!
 }
 
-type OperationsAreNotAllowedError implements SchemaVersionValidationError & SchemaVersionPublishError & ProcessingError {
+type OperationMetricsSummary {
+  averageLatency: Float!
+  errorRate: Float!
+  impact: Float!
+  opm: Float!
+  successRate: Float!
+  totalCount: Long!
+  totalCountWithErrors: Long!
+}
+
+type OperationsAreNotAllowedError implements SchemaVersionValidationError &
+  SchemaVersionPublishError &
+  ProcessingError {
   column: Int! @deprecated(reason: "Locations are no longer used")
   end: Int! @deprecated(reason: "Locations are no longer used")
   line: Int! @deprecated(reason: "Locations are no longer used")
@@ -3691,18 +3869,21 @@ type Organization implements Node {
   addOns: OrganizationAddOns @cost(weight: "10")
   """
   Returns a paginated connection of authorization audit-log entries for the given
-  organization, optionally filtered to a time window.
+  organization, optionally filtered to a time window, a set of event
+  types (match-any), and/or a case-insensitive search over the permission name.
   """
   authorizationEventLogs(
     "Returns the elements in the list that come after the specified cursor."
     after: String
     "Returns the elements in the list that come before the specified cursor."
     before: String
+    eventTypes: [AuthorizationEventType!]
     "Returns the first _n_ elements from the list."
     first: Int
     from: DateTime
     "Returns the last _n_ elements from the list."
     last: Int
+    search: String
     to: DateTime
   ): OrganizationAuthorizationEventLogsConnection
     @listSize(
@@ -3732,6 +3913,8 @@ type Organization implements Node {
     first: Int
     "Returns the last _n_ elements from the list."
     last: Int
+    orderBy: [GroupOrderByInput!]
+    search: String
   ): OrganizationGroupsConnection
     @listSize(
       assumedSize: 50
@@ -3755,6 +3938,8 @@ type Organization implements Node {
     first: Int
     "Returns the last _n_ elements from the list."
     last: Int
+    orderBy: [OrganizationMemberOrderByInput!]
+    search: String
   ): OrganizationMembersConnection
     @listSize(
       assumedSize: 50
@@ -3917,6 +4102,8 @@ type OrganizationMemberGroupsConnection {
   nodes: [Group!]!
   "Information to aid in pagination."
   pageInfo: PageInfo!
+  "The total count of groups the member belongs to."
+  totalCount: Int! @cost(weight: "10")
 }
 
 type OrganizationMemberGroupsEdge {
@@ -4327,7 +4514,12 @@ type PersistedQueryErrorLocation {
   line: Int!
 }
 
-type PersistedQueryValidationError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationValidationError & ProcessingError {
+type PersistedQueryValidationError implements ClientVersionPublishError &
+  ClientVersionValidationError &
+  SchemaVersionPublishError &
+  SchemaVersionValidationError &
+  FusionConfigurationValidationError &
+  ProcessingError {
   client: Client @cost(weight: "10")
   clientId: ID! @deprecated(reason: "Use `client` instead.")
   hasMoreErrors: Boolean!
@@ -4410,20 +4602,41 @@ type PossibleTypeRemoved implements SchemaChange {
   typeName: String!
 }
 
-type ProcessingTaskApproved implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
+type ProcessingTaskApproved implements SchemaVersionPublishResult &
+  ClientVersionPublishResult &
+  FusionConfigurationPublishingResult &
+  OpenApiCollectionVersionPublishResult &
+  McpFeatureCollectionVersionPublishResult {
   state: ProcessingState!
 }
 
-type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
+type ProcessingTaskIsQueued implements FusionConfigurationPublishingResult &
+  ClientVersionPublishResult &
+  SchemaVersionPublishResult &
+  OpenApiCollectionVersionPublishResult &
+  McpFeatureCollectionVersionPublishResult {
   queuePosition: Int! @cost(weight: "10")
   state: ProcessingState!
 }
 
-type ProcessingTaskIsReady implements FusionConfigurationPublishingResult & ClientVersionPublishResult & SchemaVersionPublishResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
+type ProcessingTaskIsReady implements FusionConfigurationPublishingResult &
+  ClientVersionPublishResult &
+  SchemaVersionPublishResult &
+  OpenApiCollectionVersionPublishResult &
+  McpFeatureCollectionVersionPublishResult {
   state: ProcessingState!
 }
 
-type ProcessingTimeoutError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
+type ProcessingTimeoutError implements SchemaVersionValidationError &
+  SchemaVersionPublishError &
+  ClientVersionValidationError &
+  ClientVersionPublishError &
+  FusionConfigurationPublishingError &
+  OpenApiCollectionVersionPublishError &
+  OpenApiCollectionVersionValidationError &
+  McpFeatureCollectionVersionPublishError &
+  McpFeatureCollectionVersionValidationError &
+  ProcessingError {
   message: String!
 }
 
@@ -4484,6 +4697,7 @@ type PublishedMcpTool implements Node {
     after: String
     "Returns the first _n_ elements from the list."
     first: Int
+    search: String
   ): PublishedMcpToolRevisionsConnection
     @listSize(
       assumedSize: 50
@@ -4655,6 +4869,7 @@ type PublishedOpenApiEndpoint implements Node {
     after: String
     "Returns the first _n_ elements from the list."
     first: Int
+    search: String
   ): PublishedOpenApiEndpointRevisionsConnection
     @listSize(
       assumedSize: 50
@@ -4941,7 +5156,16 @@ type PushWorkspaceChangesPayload {
   errors: [PushWorkspaceChangesError!]
 }
 
-type ReadyTimeoutError implements ClientVersionPublishError & ClientVersionValidationError & SchemaVersionPublishError & SchemaVersionValidationError & FusionConfigurationPublishingError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
+type ReadyTimeoutError implements ClientVersionPublishError &
+  ClientVersionValidationError &
+  SchemaVersionPublishError &
+  SchemaVersionValidationError &
+  FusionConfigurationPublishingError &
+  OpenApiCollectionVersionPublishError &
+  OpenApiCollectionVersionValidationError &
+  McpFeatureCollectionVersionPublishError &
+  McpFeatureCollectionVersionValidationError &
+  ProcessingError {
   message: String!
 }
 
@@ -5114,23 +5338,14 @@ type SchemaChangeViolationError {
 }
 
 type SchemaCoordinateMetrics implements CoordinateMetrics {
-  clientUsage(
-    clientId: ID
-    from: DateTime!
-    to: DateTime!
-  ): CoordinateClientUsage @cost(weight: "10")
+  clientUsage(clientId: ID, from: DateTime!, to: DateTime!): CoordinateClientUsage
+    @cost(weight: "10")
   clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
     @cost(weight: "10")
-  requests(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateRequestGraph @cost(weight: "10")
-  usages(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateUsageGraph @cost(weight: "10")
+  requests(from: DateTime!, resolution: Int! = 300, to: DateTime!): CoordinateRequestGraph
+    @cost(weight: "10")
+  usages(from: DateTime!, resolution: Int! = 300, to: DateTime!): CoordinateUsageGraph
+    @cost(weight: "10")
 }
 
 type SchemaDeployment implements Node & Deployment {
@@ -5140,8 +5355,10 @@ type SchemaDeployment implements Node & Deployment {
   errors: [SchemaDeploymentError!]!
   id: ID!
   logs: [DeploymentLog!]!
+  publicationState: DeploymentPublicationState! @cost(weight: "10")
   schemaChanges: SchemaDeploymentSchemaChanges
   source: SourceMetadata
+  stage: Stage @cost(weight: "10")
   status: DeploymentStatus!
   tag: String!
 }
@@ -5195,7 +5412,10 @@ type SchemaVersion {
   tags: [String!]! @deprecated(reason: "Use `tag` instead.")
 }
 
-type SchemaVersionChangeViolationError implements SchemaVersionValidationError & SchemaVersionPublishError & FusionConfigurationValidationError & ProcessingError {
+type SchemaVersionChangeViolationError implements SchemaVersionValidationError &
+  SchemaVersionPublishError &
+  FusionConfigurationValidationError &
+  ProcessingError {
   changes: [SchemaChangeLogEntry!]!
   message: String!
 }
@@ -5233,7 +5453,9 @@ type SchemaVersionsEdge {
   node: SchemaVersion!
 }
 
-type SchemaVersionSyntaxError implements SchemaVersionValidationError & SchemaVersionPublishError & ProcessingError {
+type SchemaVersionSyntaxError implements SchemaVersionValidationError &
+  SchemaVersionPublishError &
+  ProcessingError {
   column: Int!
   line: Int!
   message: String!
@@ -5250,6 +5472,330 @@ type SchemaVersionValidationSuccess implements SchemaVersionValidationResult {
   state: ProcessingState!
 }
 
+type SearchApisConnection {
+  edges: [SearchApisEdge!]
+  nodes: [Api!]!
+  pageInfo: PageInfo!
+}
+
+type SearchApisEdge {
+  clientCount: Int!
+  cursor: String!
+  lastPublishedAt: DateTime
+  metrics: StageMetrics
+  node: Api!
+  subgraphCount: Int!
+  version: String
+}
+
+type Service {
+  """
+  Gets values seen for one attribute key within one telemetry signal, narrowed to this
+  service, for filter autocompletion.
+  """
+  attributeValues(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Only include values seen in one of these environments; omit for all."
+    environments: [String!]
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "The attribute key whose values are suggested."
+    key: String!
+    "Only scan this attribute population; omit to scan all populations within the selected signal."
+    kind: OpenTelemetryAttributeKind
+    "Only suggest values matching this text; omit for all values."
+    search: String
+    "The telemetry signal whose attribute values are queried."
+    signal: OpenTelemetrySignalKind!
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): ServiceAttributeValuesConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  environmentNames: [String!]!
+  """
+  Gets log counts per time bucket for one service, optionally split into series by
+  groupBy. Uses the same filter arguments as logs so the chart agrees with the list.
+  """
+  logDistribution(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    "Only include data at or after this point in time."
+    from: DateTime!
+    groupBy: String
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): ServiceLogDistributionGraph @cost(weight: "10")
+  "A single service's logs, narrowed to its resources and (optionally) its environments."
+  logs(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Only include logs seen in one of these environments; omit for all."
+    environments: [String!]
+    "A filter tree narrowing the returned logs."
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): ServiceLogsConnection
+    @listSize(
+      assumedSize: 1000
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  name: String!
+  """
+  Gets span counts per time bucket for one service, optionally split into series by
+  groupBy. Uses the same filter arguments as spans so the chart agrees with the list.
+  """
+  spanDistribution(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    "Only include data at or after this point in time."
+    from: DateTime!
+    groupBy: String
+    spanKinds: [OpenTelemetrySpanKind!]
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): ServiceSpanDistributionGraph @cost(weight: "10")
+  "A single service's spans, narrowed to its resources and (optionally) its environments."
+  spans(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Only include spans seen in one of these environments; omit for all."
+    environments: [String!]
+    "A filter tree narrowing the returned spans."
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Only include spans of these kinds; omit for all kinds."
+    spanKinds: [OpenTelemetrySpanKind!]
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): ServiceSpansConnection
+    @listSize(
+      assumedSize: 1000
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  """
+  Looks up a trace by id. Unscoped by service, like the workspace-level traceById: a
+  trace id is already unique within the workspace, so no additional resource narrowing is
+  needed or exposed here (no environments argument).
+  """
+  traceById(seeker: String, spanId: String, traceId: String!): OpenTelemetryTrace
+    @cost(weight: "10")
+  transaction(kind: OpenTelemetrySpanKind, name: String!): ServiceTransactionMetrics!
+  transactions: ServiceTransactionsMetrics!
+  """
+  Service versions first seen in the range; firstSeenAt is bucket-granular
+  (30 minutes).
+  """
+  versionMarkers(
+    "Only include versions seen in one of these environments; omit for all."
+    environments: [String!]
+    "Only include data at or after this point in time."
+    from: DateTime!
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): [ServiceVersionMarker!] @cost(weight: "10")
+}
+
+type ServiceAttributeValuesConnection {
+  edges: [ServiceAttributeValuesEdge!]!
+  nodes: [OpenTelemetryAttributeValue!]!
+  pageInfo: PageInfo!
+}
+
+type ServiceAttributeValuesEdge {
+  cursor: String!
+  matches: [TextMatch!]!
+  node: OpenTelemetryAttributeValue!
+}
+
+type ServiceLatencySummary {
+  max: Float
+  mean: Float
+  min: Float
+  p50: Float
+  p95: Float
+  p99: Float
+}
+
+"""
+Log counts per time bucket for one service, optionally split into series by
+groupBy.
+"""
+type ServiceLogDistributionGraph {
+  dataset: [WorkspaceLogDistributionGraphBucket!]!
+  groupBy: String
+  "Bucket width in unix milliseconds."
+  interval: Long!
+  series: [WorkspaceLogDistributionGraphSeries!]!
+}
+
+type ServiceLogsConnection {
+  edges: [ServiceLogsEdge!]
+  nodes: [OpenTelemetryLog!]
+  pageInfo: PageInfo!
+}
+
+type ServiceLogsEdge {
+  cursor: String!
+  node: OpenTelemetryLog!
+}
+
+"""
+Span counts per time bucket for one service, optionally split into series by
+groupBy.
+"""
+type ServiceSpanDistributionGraph {
+  dataset: [WorkspaceSpanDistributionGraphBucket!]!
+  groupBy: String
+  "Bucket width in unix milliseconds."
+  interval: Long!
+  series: [WorkspaceSpanDistributionGraphSeries!]!
+}
+
+type ServiceSpansConnection {
+  edges: [ServiceSpansEdge!]
+  nodes: [OpenTelemetrySpan!]
+  pageInfo: PageInfo!
+}
+
+type ServiceSpansEdge {
+  cursor: String!
+  node: OpenTelemetrySpan!
+}
+
+type ServiceThroughputSummary {
+  errorRate: Float
+  opm: Float
+  successRate: Float
+  totalCount: Long
+  totalCountWithError: Long
+}
+
+"""
+Telemetry views for a single transaction of a service. Unknown transaction names yield empty
+results. When kind is set, latency, throughput, and samples narrow to that
+span kind so drilling in from an insights node (whose identity is name + kind) agrees with this
+view; when omitted, every kind sharing the name is aggregated (legacy behavior). Note:
+latencyDistribution stays unfiltered regardless -- the aggregated metrics tier it reads has no
+span.kind dimension.
+"""
+type ServiceTransactionMetrics {
+  latency(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    to: DateTime!
+  ): OpenTelemetryTransactionLatencyGraph @cost(weight: "10")
+  """
+  Gets an approximate latency distribution from error-split quantile sketches.
+  The result uses log-scale bins and is not an exact histogram.
+  """
+  latencyDistribution(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    to: DateTime!
+  ): OpenTelemetryTransactionLatencyDistributionGraph @cost(weight: "10")
+  samples(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    maxLatency: Float
+    minLatency: Float
+    to: DateTime!
+  ): [OpenTelemetryTransactionTraceSample!]! @cost(weight: "10")
+  throughput(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    to: DateTime!
+  ): OpenTelemetryTransactionThroughputGraph @cost(weight: "10")
+}
+
+"Aggregate latency and throughput totals across the service's transactions."
+type ServiceTransactionMetricsSummary {
+  latency: ServiceLatencySummary @cost(weight: "10")
+  throughput: ServiceThroughputSummary @cost(weight: "10")
+}
+
+"Service-wide transaction telemetry: latency, throughput, insights, and summary."
+type ServiceTransactionsMetrics {
+  insights(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    from: DateTime!
+    orderBy: [OpenTelemetryTransactionInsightsOrderByInput!]
+    search: String
+    spanKinds: [OpenTelemetrySpanKind!]
+    to: DateTime!
+  ): OpenTelemetryTransactionInsightsConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  latency(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    spanKinds: [OpenTelemetrySpanKind!]
+    to: DateTime!
+  ): OpenTelemetryTransactionsLatencyGraph @cost(weight: "10")
+  summary(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    to: DateTime!
+  ): ServiceTransactionMetricsSummary! @cost(weight: "10")
+  throughput(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    from: DateTime!
+    spanKinds: [OpenTelemetrySpanKind!]
+    to: DateTime!
+  ): OpenTelemetryTransactionsThroughputGraph @cost(weight: "10")
+}
+
 type ServiceVersionMarker {
   firstSeenAt: DateTime!
   version: String!
@@ -5263,6 +5809,33 @@ type SetActiveWorkspacePayload {
 type Stage implements Node {
   actions: StageActions!
   api: Api @cost(weight: "10")
+  "Gets values seen for one stage attribute key within one telemetry signal for filter autocompletion."
+  attributeValues(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "The attribute key whose values are suggested."
+    key: String!
+    "Only scan this attribute population; omit to scan all populations within the selected signal."
+    kind: OpenTelemetryAttributeKind
+    "Only suggest values matching this text; omit for all values."
+    search: String
+    "The telemetry signal whose attribute values are queried."
+    signal: OpenTelemetrySignalKind!
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): StageAttributeValuesConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
   changeLog(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -5270,9 +5843,11 @@ type Stage implements Node {
     before: String
     "Returns the first _n_ elements from the list."
     first: Int
+    hasChanges: Boolean
     kind: [StageChangeLogKind!]
     "Returns the last _n_ elements from the list."
     last: Int
+    search: String
   ): StageChangeLogConnection
     @listSize(
       assumedSize: 50
@@ -5302,6 +5877,7 @@ type Stage implements Node {
   coordinates(
     "Returns the elements in the list that come after the specified cursor."
     after: String
+    coordinates: [String!]
     "Returns the first _n_ elements from the list."
     first: Int
     from: DateTime
@@ -5326,8 +5902,14 @@ type Stage implements Node {
     before: String
     "Returns the first _n_ elements from the list."
     first: Int
+    kinds: [DeploymentKind!]
     "Returns the last _n_ elements from the list."
     last: Int
+    search: String
+    sources: [DeploymentSourceKind!]
+    statuses: [DeploymentStatus!]
+    subgraphName: String
+    tag: String
   ): DeploymentsConnection
     @listSize(
       assumedSize: 50
@@ -5340,29 +5922,39 @@ type Stage implements Node {
   displayName: String!
   essentials: StageEssentials @cost(weight: "10")
   id: ID!
+  "Gets stage log counts per time bucket, optionally split into series by groupBy."
   logDistribution(
+    filter: OpenTelemetryFilterInput
+    "Only include data at or after this point in time."
     from: DateTime!
+    groupBy: String
+    "Only include data at or before this point in time."
     to: DateTime!
-  ): OpenTelemetryLogsSeverityGraph @cost(weight: "10")
+  ): WorkspaceLogDistributionGraph @cost(weight: "10")
   logs(
     "Returns the elements in the list that come after the specified cursor."
     after: String
     "Returns the elements in the list that come before the specified cursor."
     before: String
+    "A filter tree narrowing the returned logs."
+    filter: OpenTelemetryFilterInput
     "Returns the first _n_ elements from the list."
     first: Int
+    "Only include data at or after this point in time."
     from: DateTime
     "Returns the last _n_ elements from the list."
     last: Int
+    "Only include data at or before this point in time."
     to: DateTime
-  ): OpenTelemetryLogsConnection
+  ): StageLogsConnection
     @listSize(
-      assumedSize: 200
+      assumedSize: 1000
       slicingArguments: ["first", "last"]
       slicingArgumentDefaultValue: 10
       sizedFields: ["edges", "nodes"]
       requireOneSlicingArgument: false
     )
+    @cost(weight: "10")
   mcpDeployments(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -5487,11 +6079,46 @@ type Stage implements Node {
     )
     @cost(weight: "10")
   publishedSchema: PublishedSchemaVersion @cost(weight: "10")
-  traceById(
-    seeker: String
-    spanId: String
-    traceId: String!
-  ): OpenTelemetryTrace @cost(weight: "10")
+  publishedSubgraphVersion(name: String!): FusionSubgraphVersion
+    @cost(weight: "10")
+  "Gets stage span counts per time bucket, optionally split into series by groupBy."
+  spanDistribution(
+    filter: OpenTelemetryFilterInput
+    "Only include data at or after this point in time."
+    from: DateTime!
+    groupBy: String
+    spanKinds: [OpenTelemetrySpanKind!]
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): WorkspaceSpanDistributionGraph @cost(weight: "10")
+  spans(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "A filter tree narrowing the returned spans."
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Only include spans of these kinds; omit for all kinds."
+    spanKinds: [OpenTelemetrySpanKind!]
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): StageSpansConnection
+    @listSize(
+      assumedSize: 1000
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  traceById(seeker: String, spanId: String, traceId: String!): OpenTelemetryTrace
+    @cost(weight: "10")
 }
 
 type StageActions {
@@ -5500,6 +6127,18 @@ type StageActions {
   canViewDeployments: Boolean! @cost(weight: "10")
   canViewLogs: Boolean! @cost(weight: "10")
   canViewTraces: Boolean! @cost(weight: "10")
+}
+
+type StageAttributeValuesConnection {
+  edges: [StageAttributeValuesEdge!]!
+  nodes: [OpenTelemetryAttributeValue!]!
+  pageInfo: PageInfo!
+}
+
+type StageAttributeValuesEdge {
+  cursor: String!
+  matches: [TextMatch!]!
+  node: OpenTelemetryAttributeValue!
 }
 
 "A connection to a list of items."
@@ -5605,6 +6244,17 @@ type StageLatencySummary {
   p99: Float
 }
 
+type StageLogsConnection {
+  edges: [StageLogsEdge!]
+  nodes: [OpenTelemetryLog!]
+  pageInfo: PageInfo!
+}
+
+type StageLogsEdge {
+  cursor: String!
+  node: OpenTelemetryLog!
+}
+
 "A connection to a list of items."
 type StageMcpFeatureCollectionDeploymentsConnection {
   "A list of edges."
@@ -5652,10 +6302,8 @@ type StageMetrics {
   operations: StageOperationsMetrics!
   resolver(coordinate: String!): StageResolverMetrics!
   resolvers: StageResolversMetrics!
-  serviceVersionMarkers(
-    from: DateTime!
-    to: DateTime!
-  ): [ServiceVersionMarker!] @cost(weight: "10")
+  serviceVersionMarkers(from: DateTime!, to: DateTime!): [ServiceVersionMarker!]
+    @cost(weight: "10")
   subgraphs: StageSubgraphsMetrics!
   transaction(name: String!): StageTransactionMetrics!
   transactions: StageTransactionsMetrics!
@@ -5706,20 +6354,19 @@ type StageOpenApiCollectionsMetrics {
 }
 
 type StageOperationMetrics {
-  latency(from: DateTime!, to: DateTime!): OperationLatencyGraph
+  hash: String!
+  latency(clientId: ID, clientVersion: String, from: DateTime!, to: DateTime!): OperationLatencyGraph
     @cost(weight: "10")
-  latencyDistribution(
-    from: DateTime!
-    to: DateTime!
-  ): OperationLatencyDistributionGraph @cost(weight: "10")
+  latencyDistribution(from: DateTime!, to: DateTime!): OperationLatencyDistributionGraph
+    @cost(weight: "10")
   requestDocument: RequestDocument @cost(weight: "10")
-  samples(
-    from: DateTime!
-    maxLatency: Float
-    minLatency: Float
-    to: DateTime!
-  ): [OperationTraceSample!]! @cost(weight: "10")
+  samples(from: DateTime!, maxLatency: Float, minLatency: Float, to: DateTime!): [OperationTraceSample!]!
+    @cost(weight: "10")
+  summary(clientId: ID!, from: DateTime!, to: DateTime!): OperationMetricsSummary
+    @cost(weight: "10")
   throughput(
+    clientId: ID
+    clientVersion: String
     from: DateTime!
     operationKinds: [OperationKind!] @deprecated(reason: "Not longer in use")
     to: DateTime!
@@ -5751,18 +6398,12 @@ type StageOperationsMetrics {
       requireOneSlicingArgument: false
     )
     @cost(weight: "10")
-  latency(
-    from: DateTime!
-    operationKinds: [OperationKind!]
-    to: DateTime!
-  ): OperationsLatencyGraph @cost(weight: "10")
+  latency(from: DateTime!, operationKinds: [OperationKind!], to: DateTime!): OperationsLatencyGraph
+    @cost(weight: "10")
   summary(from: DateTime!, to: DateTime!): StageOperationMetricsSummary!
     @cost(weight: "10")
-  throughput(
-    from: DateTime!
-    operationKinds: [OperationKind!]
-    to: DateTime!
-  ): OperationsThroughputGraph @cost(weight: "10")
+  throughput(from: DateTime!, operationKinds: [OperationKind!], to: DateTime!): OperationsThroughputGraph
+    @cost(weight: "10")
 }
 
 "A connection to a list of items."
@@ -5773,6 +6414,8 @@ type StagePublishedMcpFeatureCollectionsConnection {
   nodes: [McpFeatureCollection!]
   "Information to aid in pagination."
   pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
 }
 
 "An edge in a connection."
@@ -5809,6 +6452,8 @@ type StagePublishedOpenApiCollectionsConnection {
   nodes: [OpenApiCollection!]
   "Information to aid in pagination."
   pageInfo: PageInfo!
+  "Identifies the total count of items in the connection."
+  totalCount: Int! @cost(weight: "10")
 }
 
 "An edge in a connection."
@@ -5888,7 +6533,20 @@ type StagesHavePublishedDependenciesError implements Error {
   stages: [Stage!]! @cost(weight: "10")
 }
 
+type StageSpansConnection {
+  edges: [StageSpansEdge!]
+  nodes: [OpenTelemetrySpan!]
+  pageInfo: PageInfo!
+}
+
+type StageSpansEdge {
+  cursor: String!
+  node: OpenTelemetrySpan!
+}
+
 type StageSubgraphsMetrics {
+  insight(from: DateTime!, name: String!, to: DateTime!): SubgraphInsight
+    @cost(weight: "10")
   insights(
     "Returns the elements in the list that come after the specified cursor."
     after: String
@@ -5896,6 +6554,7 @@ type StageSubgraphsMetrics {
     first: Int
     from: DateTime!
     orderBy: [SubgraphInsightsOrderByInput!]
+    search: String
     to: DateTime!
   ): SubgraphInsightsConnection
     @listSize(
@@ -5919,20 +6578,12 @@ type StageThroughputSummary {
 type StageTransactionMetrics {
   latency(from: DateTime!, to: DateTime!): OpenTelemetryTransactionLatencyGraph
     @cost(weight: "10")
-  latencyDistribution(
-    from: DateTime!
-    to: DateTime!
-  ): OpenTelemetryTransactionLatencyDistributionGraph @cost(weight: "10")
-  samples(
-    from: DateTime!
-    maxLatency: Float
-    minLatency: Float
-    to: DateTime!
-  ): [OpenTelemetryTransactionTraceSample!]! @cost(weight: "10")
-  throughput(
-    from: DateTime!
-    to: DateTime!
-  ): OpenTelemetryTransactionThroughputGraph @cost(weight: "10")
+  latencyDistribution(from: DateTime!, to: DateTime!): OpenTelemetryTransactionLatencyDistributionGraph
+    @cost(weight: "10")
+  samples(from: DateTime!, maxLatency: Float, minLatency: Float, to: DateTime!): [OpenTelemetryTransactionTraceSample!]!
+    @cost(weight: "10")
+  throughput(from: DateTime!, to: DateTime!): OpenTelemetryTransactionThroughputGraph
+    @cost(weight: "10")
 }
 
 type StageTransactionMetricsSummary {
@@ -5960,11 +6611,8 @@ type StageTransactionsMetrics {
       requireOneSlicingArgument: false
     )
     @cost(weight: "10")
-  latency(
-    from: DateTime!
-    spanKinds: [OpenTelemetrySpanKind!]
-    to: DateTime!
-  ): OpenTelemetryTransactionsLatencyGraph @cost(weight: "10")
+  latency(from: DateTime!, spanKinds: [OpenTelemetrySpanKind!], to: DateTime!): OpenTelemetryTransactionsLatencyGraph
+    @cost(weight: "10")
   summary(from: DateTime!, to: DateTime!): StageTransactionMetricsSummary!
     @cost(weight: "10")
   throughput(
@@ -6048,6 +6696,16 @@ type SubgraphThroughputGraphData {
   totalCountWithError: Long!
 }
 
+type TextMatch {
+  ranges: [TextMatchRange!]!
+}
+
+"Half-open character range [Start, End) within the suggestion text."
+type TextMatchRange {
+  end: Int!
+  start: Int!
+}
+
 type ThemeSettings {
   darkThemeName: String
   lightThemeName: String
@@ -6100,7 +6758,17 @@ type UnexpectedErrorOnDocumentChange implements Error {
   workspaceId: ID!
 }
 
-type UnexpectedProcessingError implements SchemaVersionValidationError & SchemaVersionPublishError & ClientVersionValidationError & ClientVersionPublishError & FusionConfigurationPublishingError & FusionConfigurationValidationError & OpenApiCollectionVersionPublishError & OpenApiCollectionVersionValidationError & McpFeatureCollectionVersionPublishError & McpFeatureCollectionVersionValidationError & ProcessingError {
+type UnexpectedProcessingError implements SchemaVersionValidationError &
+  SchemaVersionPublishError &
+  ClientVersionValidationError &
+  ClientVersionPublishError &
+  FusionConfigurationPublishingError &
+  FusionConfigurationValidationError &
+  OpenApiCollectionVersionPublishError &
+  OpenApiCollectionVersionValidationError &
+  McpFeatureCollectionVersionPublishError &
+  McpFeatureCollectionVersionValidationError &
+  ProcessingError {
   message: String!
 }
 
@@ -6235,7 +6903,11 @@ type ValidationErrorProperty {
   message: String!
 }
 
-type ValidationInProgress implements FusionConfigurationPublishingResult & ClientVersionValidationResult & SchemaVersionValidationResult & OpenApiCollectionVersionValidationResult & McpFeatureCollectionVersionValidationResult {
+type ValidationInProgress implements FusionConfigurationPublishingResult &
+  ClientVersionValidationResult &
+  SchemaVersionValidationResult &
+  OpenApiCollectionVersionValidationResult &
+  McpFeatureCollectionVersionValidationResult {
   state: ProcessingState!
 }
 
@@ -6271,11 +6943,13 @@ type Viewer {
     "Returns the elements in the list that come after the specified cursor."
     after: String
     "Returns the elements in the list that come before the specified cursor."
-    before: String
+    before: String @deprecated(reason: "Backward pagination is deprecated. Use first and after.")
     "Returns the first _n_ elements from the list."
     first: Int
     "Returns the last _n_ elements from the list."
-    last: Int
+    last: Int @deprecated(reason: "Backward pagination is deprecated. Use first and after.")
+    "Filters workspaces by name."
+    search: String
   ): WorkspacesConnection
     @listSize(
       assumedSize: 50
@@ -6287,13 +6961,35 @@ type Viewer {
     @cost(weight: "10")
 }
 
-type WaitForApproval implements SchemaVersionPublishResult & ClientVersionPublishResult & FusionConfigurationPublishingResult & OpenApiCollectionVersionPublishResult & McpFeatureCollectionVersionPublishResult {
+type WaitForApproval implements SchemaVersionPublishResult &
+  ClientVersionPublishResult &
+  FusionConfigurationPublishingResult &
+  OpenApiCollectionVersionPublishResult &
+  McpFeatureCollectionVersionPublishResult {
   deployment: Deployment @cost(weight: "10")
   state: ProcessingState!
 }
 
 type Workspace implements Node {
   actions: WorkspaceActions!
+  """
+  A cross-section activity feed for the workspace: document/API/environment changes and
+  deployments projected onto a single, orderable timeline (most recent first).
+  """
+  activity(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+  ): WorkspaceActivityConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
   apiDocuments(
     "Returns the elements in the list that come after the specified cursor."
     after: Version
@@ -6317,6 +7013,8 @@ type Workspace implements Node {
     first: Int
     "Returns the last _n_ elements from the list."
     last: Int
+    orderBy: [ApiKeyOrderByInput!]
+    search: String
   ): ApiKeysConnection
     @listSize(
       assumedSize: 50
@@ -6333,6 +7031,58 @@ type Workspace implements Node {
     first: Int
   ): ApisConnection
     @authorize(policy: "DocumentsRead")
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  "Gets attribute keys available for filter autocompletion within one telemetry signal."
+  attributeKeys(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "Only include keys from these attribute populations; omit for all populations within the selected signal."
+    kinds: [OpenTelemetryAttributeKind!]
+    "Only suggest keys matching this text; omit for all keys."
+    search: String
+    "The telemetry signal whose attribute keys are queried."
+    signal: OpenTelemetrySignalKind!
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): WorkspaceAttributeKeysConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  "Gets values seen for one attribute key within one telemetry signal for filter autocompletion."
+  attributeValues(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "The attribute key whose values are suggested."
+    key: String!
+    "Only scan this attribute population; omit to scan all populations within the selected signal."
+    kind: OpenTelemetryAttributeKind
+    "Only suggest values matching this text; omit for all values."
+    search: String
+    "The telemetry signal whose attribute values are queried."
+    signal: OpenTelemetrySignalKind!
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): WorkspaceAttributeValuesConnection
     @listSize(
       assumedSize: 50
       slicingArguments: ["first"]
@@ -6407,9 +7157,170 @@ type Workspace implements Node {
     )
     @cost(weight: "10")
   id: ID!
+  "Fetches a single log by the identifier carried on each log returned from logs."
+  logById("The log identifier as returned on OpenTelemetryLog.id." id: String!): OpenTelemetryLog
+    @cost(weight: "10")
+  """
+  Gets log counts per time bucket, optionally split into series by groupBy.
+  Uses the same filter arguments as logs so the chart agrees with the list.
+  """
+  logDistribution(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    "Only include data at or after this point in time."
+    from: DateTime!
+    groupBy: String
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): WorkspaceLogDistributionGraph @cost(weight: "10")
+  logs(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Only include logs seen in one of these environments; omit for all."
+    environments: [String!]
+    "A filter tree narrowing the returned logs."
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): WorkspaceLogsConnection
+    @listSize(
+      assumedSize: 1000
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
   members: [WorkspaceMember!]!
   name: String!
   personal: Boolean!
+  searchApis(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    kind: ApiKind
+    orderBy: [ApiOrderByInput!]
+    search: String
+  ): SearchApisConnection
+    @authorize(policy: "DocumentsRead")
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  "A single service by its service.name; null when unknown or unauthorized."
+  service(
+    "Only include data at or after this point in time."
+    from: DateTime
+    "The service.name resource label to look up."
+    name: String!
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): Service @cost(weight: "10")
+  """
+  Distinct environment names seen across all services' telemetry resources within the
+  queried time range, reusing the exact deprecated-key coalescing behind
+  EnvironmentNames. Source for the Services list environment selector.
+  """
+  serviceEnvironmentNames(
+    "Only include data at or after this point in time."
+    from: DateTime!
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): [String!] @cost(weight: "10")
+  "All services this workspace has telemetry for, within the queried time range."
+  services(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Only services seen in one of these environments; omit for all."
+    environments: [String!]
+    """
+    A span filter. When supplied, only services with at least one of their own spans matching
+    the complete filter within the requested workspace, time range, and environments are
+    returned. The same filter also decides the returned services' metric selections, so rows
+    and metric columns describe the same request population. A bare attribute key matches any
+    applicable span attribute population; explicit prefixes narrow it. This does not expand by
+    trace correlation: a service is only included when its own span matches, not merely because
+    another service's span in the same trace matches. Signal is always span; logs and metrics
+    are not searched by this field. Omitting/clearing the filter preserves the existing
+    resource-only catalog query, including its cursor ordering and cost profile.
+    """
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "Sort order for the returned services; defaults to name ascending."
+    orderBy: [ServiceOrderByInput!]
+    "Only services whose name contains this value (case-insensitive)."
+    search: String
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): WorkspaceServicesConnection
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  """
+  Gets span counts per time bucket, optionally split into series by groupBy.
+  Uses the same filter arguments as spans so the chart agrees with the list.
+  """
+  spanDistribution(
+    environments: [String!]
+    filter: OpenTelemetryFilterInput
+    "Only include data at or after this point in time."
+    from: DateTime!
+    groupBy: String
+    spanKinds: [OpenTelemetrySpanKind!]
+    "Only include data at or before this point in time."
+    to: DateTime!
+  ): WorkspaceSpanDistributionGraph @cost(weight: "10")
+  spans(
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    "Only include spans seen in one of these environments; omit for all."
+    environments: [String!]
+    "A filter tree narrowing the returned spans."
+    filter: OpenTelemetryFilterInput
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Only include data at or after this point in time."
+    from: DateTime
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Only include spans of these kinds; omit for all kinds."
+    spanKinds: [OpenTelemetrySpanKind!]
+    "Only include data at or before this point in time."
+    to: DateTime
+  ): WorkspaceSpansConnection
+    @listSize(
+      assumedSize: 1000
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  traceById(seeker: String, spanId: String, traceId: String!): OpenTelemetryTrace
+    @cost(weight: "10")
   version: Version!
 }
 
@@ -6418,6 +7329,58 @@ type WorkspaceActions {
   canDelete: Boolean! @cost(weight: "10")
   canRename: Boolean! @cost(weight: "10")
   canViewApiKeys: Boolean! @cost(weight: "10")
+}
+
+"A connection to a list of items."
+type WorkspaceActivityConnection {
+  "A list of edges."
+  edges: [WorkspaceActivityEdge!]
+  "A flattened list of the nodes."
+  nodes: [WorkspaceActivity]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+}
+
+"An edge in a connection."
+type WorkspaceActivityEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: WorkspaceActivity
+}
+
+type WorkspaceAttributeKeysConnection {
+  edges: [WorkspaceAttributeKeysEdge!]!
+  nodes: [OpenTelemetryAttributeKey!]!
+  pageInfo: PageInfo!
+}
+
+type WorkspaceAttributeKeysEdge {
+  cursor: String!
+  matches: [TextMatch!]!
+  node: OpenTelemetryAttributeKey!
+}
+
+type WorkspaceAttributeValuesConnection {
+  edges: [WorkspaceAttributeValuesEdge!]!
+  nodes: [OpenTelemetryAttributeValue!]!
+  pageInfo: PageInfo!
+}
+
+type WorkspaceAttributeValuesEdge {
+  cursor: String!
+  matches: [TextMatch!]!
+  node: OpenTelemetryAttributeValue!
+}
+
+"""
+Projects an existing WorkspaceChangeLog entry (document, API, or
+environment change).
+"""
+type WorkspaceChangeActivity implements WorkspaceActivity {
+  change: WorkspaceChangeLog!
+  id: ID!
+  occurredAt: DateTime!
 }
 
 type WorkspaceChangePayload {
@@ -6479,6 +7442,49 @@ type WorkspaceDocumentHttpConnection {
   useTunnel: Boolean!
 }
 
+type WorkspaceLogDistributionGraph {
+  dataset: [WorkspaceLogDistributionGraphBucket!]!
+  groupBy: String
+  "Bucket width in unix milliseconds."
+  interval: Long!
+  series: [WorkspaceLogDistributionGraphSeries!]!
+}
+
+"One histogram bucket; epoch is the bucket start in unix milliseconds."
+type WorkspaceLogDistributionGraphBucket {
+  counts: [WorkspaceLogDistributionGraphSeverityCount!]!
+    @deprecated(reason: "Use `values` together with the graph's `series` list.")
+  epoch: Long!
+  totalCount: Long!
+  values: [WorkspaceLogDistributionGraphBucketValue!]!
+}
+
+type WorkspaceLogDistributionGraphBucketValue {
+  count: Long!
+  seriesKey: String!
+}
+
+type WorkspaceLogDistributionGraphSeries {
+  key: ID!
+  value: OpenTelemetryAttributeValue
+}
+
+type WorkspaceLogDistributionGraphSeverityCount {
+  count: Long!
+  severity: Long!
+}
+
+type WorkspaceLogsConnection {
+  edges: [WorkspaceLogsEdge!]
+  nodes: [OpenTelemetryLog!]
+  pageInfo: PageInfo!
+}
+
+type WorkspaceLogsEdge {
+  cursor: String!
+  node: OpenTelemetryLog!
+}
+
 type WorkspaceMember {
   role: WorkspaceUserRole!
   user: UserInfo! @cost(weight: "10")
@@ -6523,6 +7529,53 @@ type WorkspacesEdge {
   node: Workspace!
 }
 
+type WorkspaceServicesConnection {
+  edges: [WorkspaceServicesEdge!]!
+  nodes: [Service!]!
+  pageInfo: PageInfo!
+}
+
+type WorkspaceServicesEdge {
+  cursor: String!
+  node: Service!
+}
+
+type WorkspaceSpanDistributionGraph {
+  dataset: [WorkspaceSpanDistributionGraphBucket!]!
+  groupBy: String
+  "Bucket width in unix milliseconds."
+  interval: Long!
+  series: [WorkspaceSpanDistributionGraphSeries!]!
+}
+
+"One histogram bucket; epoch is the bucket start in unix milliseconds."
+type WorkspaceSpanDistributionGraphBucket {
+  epoch: Long!
+  totalCount: Long!
+  values: [WorkspaceSpanDistributionGraphBucketValue!]!
+}
+
+type WorkspaceSpanDistributionGraphBucketValue {
+  count: Long!
+  seriesKey: String!
+}
+
+type WorkspaceSpanDistributionGraphSeries {
+  key: ID!
+  value: OpenTelemetryAttributeValue
+}
+
+type WorkspaceSpansConnection {
+  edges: [WorkspaceSpansEdge!]
+  nodes: [OpenTelemetrySpan!]
+  pageInfo: PageInfo!
+}
+
+type WorkspaceSpansEdge {
+  cursor: String!
+  node: OpenTelemetrySpan!
+}
+
 interface ApiChangeLog implements WorkspaceChangeLog {
   apiId: ID!
   changedAt: DateTime!
@@ -6563,22 +7616,10 @@ interface ClientVersionValidationResult {
 }
 
 interface CoordinateMetrics {
-  clientUsage(
-    clientId: ID
-    from: DateTime!
-    to: DateTime!
-  ): CoordinateClientUsage
+  clientUsage(clientId: ID, from: DateTime!, to: DateTime!): CoordinateClientUsage
   clientUsages(from: DateTime!, to: DateTime!): [CoordinateClientUsage!]!
-  requests(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateRequestGraph
-  usages(
-    from: DateTime!
-    resolution: Int! = 300
-    to: DateTime!
-  ): CoordinateUsageGraph
+  requests(from: DateTime!, resolution: Int! = 300, to: DateTime!): CoordinateRequestGraph
+  usages(from: DateTime!, resolution: Int! = 300, to: DateTime!): CoordinateUsageGraph
 }
 
 interface Deployment {
@@ -6587,7 +7628,9 @@ interface Deployment {
   createdAt: DateTime!
   id: ID!
   logs: [DeploymentLog!]!
+  publicationState: DeploymentPublicationState!
   source: SourceMetadata
+  stage: Stage
   status: DeploymentStatus!
   tag: String!
 }
@@ -6647,7 +7690,8 @@ interface GraphQLInputValueDefinition implements GraphQLTypeSystemMember {
   usage(from: DateTime, to: DateTime): CoordinateUsage!
 }
 
-interface GraphQLOutputFieldArgumentDefinition implements GraphQLTypeSystemMember & GraphQLInputValueDefinition {
+interface GraphQLOutputFieldArgumentDefinition implements GraphQLTypeSystemMember &
+  GraphQLInputValueDefinition {
   coordinate: String!
   declaringField: String!
   declaringType: String!
@@ -6751,6 +7795,7 @@ interface OpenTelemetrySpan {
   links: [OpenTelemetryTraceLink!]!
   parentSpanId: String!
   resourceAttributes: [Attribute!]!
+  seeker: String!
   spanAttributes: [Attribute!]!
   spanId: String!
   spanKind: String!
@@ -6813,6 +7858,16 @@ interface Subgraph {
   api: Api
   id: ID!
   name: String!
+}
+
+"""
+A single entry in the workspace's cross-section activity feed (Workspace.activity),
+projecting an existing event from one of the workspace's data sources onto a common,
+orderable point in time.
+"""
+interface WorkspaceActivity {
+  id: ID!
+  occurredAt: DateTime!
 }
 
 interface WorkspaceChangeLog {
@@ -6993,6 +8048,7 @@ union InterfaceChange =
 union McpFeatureCollectionDeploymentError = McpFeatureCollectionValidationError
 
 union ObjectChange =
+  | DeprecatedChange
   | DescriptionChanged
   | FieldAddedChange
   | FieldRemovedChange
@@ -7314,7 +8370,7 @@ input ApiHttpAuthenticationInput {
 
 input ApiHttpConnectionInput {
   authentication: ApiHttpAuthenticationInput
-  endpoint: String!
+  endpoint: String
   headers: [ApiHeaderInput!]
   includeCookies: Boolean!
   sdlEndpoint: String
@@ -7325,9 +8381,21 @@ input ApiHttpConnectionInput {
   useTunnel: Boolean!
 }
 
+input ApiKeyOrderByInput {
+  name: SortEnumType
+}
+
 input ApiKeyPermissionScopeInput @oneOf {
   apiId: ID
   workspaceId: ID
+}
+
+input ApiOrderByInput {
+  clientCount: SortEnumType
+  lastPublishedAt: SortEnumType
+  name: SortEnumType
+  subgraphCount: SortEnumType
+  version: SortEnumType
 }
 
 input ApiUpdateChangeInput {
@@ -7544,6 +8612,10 @@ input GraphQLCoordinateOrderByInput {
   totalUsages: SortEnumType
 }
 
+input GroupOrderByInput {
+  name: SortEnumType
+}
+
 input McpFeatureCollectionInsightsOrderByInput {
   averageLatency: SortEnumType
   errorRate: SortEnumType
@@ -7606,6 +8678,60 @@ input OpenApiModelOrderByInput {
   referencedInCollectionCount: SortEnumType
 }
 
+"A single operator applied to the attribute. Exactly one field must be set."
+input OpenTelemetryAttributeConditionInput @oneOf {
+  "An equality operator."
+  eq: OpenTelemetryAttributeValueInput
+  "An attribute-existence operator."
+  exists: Boolean
+  "A greater-than operator."
+  gt: OpenTelemetryAttributeValueInput
+  "A greater-than-or-equal operator."
+  gte: OpenTelemetryAttributeValueInput
+  "A set-membership operator."
+  in: [OpenTelemetryAttributeValueInput!]
+  "A less-than operator."
+  lt: OpenTelemetryAttributeValueInput
+  "A less-than-or-equal operator."
+  lte: OpenTelemetryAttributeValueInput
+  "A wildcard pattern, for example */api/v1/*."
+  matches: String
+}
+
+"A predicate that matches a telemetry attribute."
+input OpenTelemetryAttributePredicateInput {
+  "The condition that the attribute value must satisfy."
+  condition: OpenTelemetryAttributeConditionInput!
+  """
+  Dotted attribute key, for example service.name or http.status_code, or a
+  registered field key such as status, severity, span.name,
+  log.message, or span.kind. Field keys target their direct column and shadow
+  attributes of the same name; a bare key without a kind matches across all attribute populations
+  (own, resource, scope, event, link, and body).
+  """
+  key: String!
+  """
+  Narrows the predicate to a single attribute population. Set a non-field kind to reach an
+  attribute shadowed by a registered field key.
+  """
+  kind: OpenTelemetryAttributeKind
+}
+
+"A typed scalar literal. Exactly one field must be set."
+input OpenTelemetryAttributeValueInput @oneOf {
+  boolean: Boolean
+  float: Float
+  int: Int
+  string: String
+}
+
+input OpenTelemetryFilterInput @oneOf {
+  and: [OpenTelemetryFilterInput!]
+  attribute: OpenTelemetryAttributePredicateInput
+  not: OpenTelemetryFilterInput
+  or: [OpenTelemetryFilterInput!]
+}
+
 input OpenTelemetryTransactionInsightsOrderByInput {
   averageLatency: SortEnumType
   errorRate: SortEnumType
@@ -7622,6 +8748,10 @@ input OperationInsightsOrderByInput {
   opm: SortEnumType
   totalCount: SortEnumType
   totalCountWithError: SortEnumType
+}
+
+input OrganizationMemberOrderByInput {
+  userName: SortEnumType
 }
 
 input PartialApiSettingsInput {
@@ -7768,6 +8898,10 @@ input RoleAssignmentStageAuthorizationConditionInput {
   name: String!
 }
 
+input ServiceOrderByInput {
+  name: SortEnumType
+}
+
 input SetActiveWorkspaceInput {
   workspaceId: ID!
 }
@@ -7795,6 +8929,7 @@ input SubgraphInsightsOrderByInput {
   averageLatency: SortEnumType
   errorRate: SortEnumType
   impact: SortEnumType
+  name: SortEnumType
   opm: SortEnumType
   totalCount: SortEnumType
   totalCountWithError: SortEnumType
@@ -8058,6 +9193,26 @@ enum CoordinateKind {
   UNION_TYPE
 }
 
+enum DeploymentKind {
+  CLIENT
+  FUSION_CONFIGURATION
+  MCP_FEATURE_COLLECTION
+  OPEN_API_COLLECTION
+  SCHEMA
+}
+
+enum DeploymentPublicationState {
+  NOT_APPLICABLE
+  PUBLISHED
+  SUPERSEDED
+}
+
+"Whether a deployment was made manually or produced by an automated system."
+enum DeploymentSourceKind {
+  AUTOMATED
+  MANUAL
+}
+
 enum DeploymentStatus {
   APPROVED
   CANCELLED
@@ -8120,6 +9275,35 @@ enum DirectiveLocation {
 enum FusionConfigurationFormat {
   FAR
   FGP
+}
+
+"""
+Which attribute population an autocomplete key comes from. Field is a direct fact-table
+column exposed through the direct-field registry; the rest name a JSON attribute scope.
+"""
+enum OpenTelemetryAttributeKind {
+  BODY
+  EVENT
+  FIELD
+  LINK
+  LOG
+  METRIC
+  RESOURCE
+  SCOPE
+  SPAN
+}
+
+enum OpenTelemetryLogBodyKind {
+  EMPTY
+  STRUCTURED
+  TEXT
+}
+
+"The OpenTelemetry signal whose attributes are queried."
+enum OpenTelemetrySignalKind {
+  LOGS
+  METRICS
+  TRACES
 }
 
 enum OpenTelemetrySpanKind {
@@ -8253,7 +9437,13 @@ directive @authorize(
 directive @cost(
   "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
   weight: String!
-) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+) on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM
+  | INPUT_FIELD_DEFINITION
 
 "The `@defer` directive may be provided for fragment spreads and inline fragments to inform the executor to delay the execution of the current fragment to indicate deprioritization of the current fragment. A query with `@defer` directive will cause the request to potentially return multiple responses, where non-deferred data is delivered in the initial response and data deferred is delivered in a subsequent response. `@include` and `@skip` take precedence over `@defer`."
 directive @defer(

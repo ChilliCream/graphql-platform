@@ -1,0 +1,40 @@
+query ListLogCommandQuery(
+  $workspaceId: ID!
+  $filter: OpenTelemetryFilterInput
+  $environments: [String!]
+  $from: DateTime
+  $to: DateTime
+  $first: Int
+  $after: String
+) {
+  workspaceById(workspaceId: $workspaceId) {
+    logs(
+      filter: $filter
+      environments: $environments
+      from: $from
+      to: $to
+      first: $first
+      after: $after
+    ) {
+      edges {
+        cursor
+        node {
+          id
+          epoch
+          severityText
+          severityNumber
+          body
+          traceId
+          spanId
+          resourceAttributes {
+            key
+            value
+          }
+        }
+      }
+      pageInfo {
+        ...PageInfo
+      }
+    }
+  }
+}
