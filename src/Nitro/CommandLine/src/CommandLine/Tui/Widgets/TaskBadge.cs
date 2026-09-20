@@ -79,37 +79,69 @@ internal static class TaskBadge
         var remaining = maxWidth - DisplayWidth.Measure(Ellipsis);
         var line = string.Empty;
 
-        AppendNarrowPart(ref line, ref remaining, prefix, string.Empty);
-        AppendNarrowPart(
-            ref line,
-            ref remaining,
-            glyph,
-            ThemeTokens.GetStyle($"status.glyph.{status}").ToMarkup());
-        AppendNarrowPart(ref line, ref remaining, " ", string.Empty);
-        AppendNarrowPart(
-            ref line,
-            ref remaining,
-            $"[{typeCode}]",
-            ThemeTokens.GetStyle($"badge.type.{type}").ToMarkup());
-        AppendNarrowPart(ref line, ref remaining, " ", string.Empty);
-        AppendNarrowPart(ref line, ref remaining, priority, priorityStyle);
-        AppendNarrowPart(ref line, ref remaining, " ", string.Empty);
-        AppendNarrowPart(ref line, ref remaining, id, string.Empty);
+        if (!AppendNarrowPart(ref line, ref remaining, prefix, string.Empty))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(
+                ref line,
+                ref remaining,
+                glyph,
+                ThemeTokens.GetStyle($"status.glyph.{status}").ToMarkup()))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(ref line, ref remaining, " ", string.Empty))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(
+                ref line,
+                ref remaining,
+                $"[{typeCode}]",
+                ThemeTokens.GetStyle($"badge.type.{type}").ToMarkup()))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(ref line, ref remaining, " ", string.Empty))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(ref line, ref remaining, priority, priorityStyle))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(ref line, ref remaining, " ", string.Empty))
+        {
+            return line + Ellipsis;
+        }
+
+        if (!AppendNarrowPart(ref line, ref remaining, id, string.Empty))
+        {
+            return line + Ellipsis;
+        }
 
         return line + Ellipsis;
     }
 
-    private static void AppendNarrowPart(ref string line, ref int remaining, string value, string styleMarkup)
+    private static bool AppendNarrowPart(ref string line, ref int remaining, string value, string styleMarkup)
     {
         var truncatedValue = DisplayWidth.Slice(value, remaining);
 
         if (truncatedValue.Length == 0)
         {
-            return;
+            return value.Length == 0;
         }
 
         line += Stylize(styleMarkup, Markup.Escape(truncatedValue));
         remaining -= DisplayWidth.Measure(truncatedValue);
+        return truncatedValue.Length == value.Length;
     }
 
     private static string Stylize(string styleMarkup, string content) =>

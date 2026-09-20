@@ -267,6 +267,24 @@ public sealed class TaskBadgeTests
     }
 
     [Fact]
+    public void Render_Should_StopAtPartialTypeSegment_When_Narrow()
+    {
+        // act
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: "Title",
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: "漢",
+            selected: false,
+            maxWidth: 7);
+
+        // assert
+        Assert.Equal("  ○ […", Markup.Remove(line));
+        line.MatchInlineSnapshot("  [grey70]○[/] [[…");
+    }
+
+    [Fact]
     public void Render_Should_RenderAsValidMarkup_When_StatusIsTombstone()
     {
         // arrange

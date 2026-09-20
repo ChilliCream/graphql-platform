@@ -28,6 +28,26 @@ public sealed class TaskDetailRowRendererTests
     }
 
     [Fact]
+    public void Render_Should_StopAtDroppedTypeSegment_When_Narrow()
+    {
+        // arrange
+        var row = new TaskDetailRow(
+            Index: 0,
+            Kind: TaskDetailRowKind.Dependency,
+            Type: "漢",
+            TargetId: "t-1",
+            Status: TaskStates.Open,
+            Title: "Detail");
+
+        // act
+        var line = TaskDetailRowRenderer.Render(row, selected: false, maxWidth: 6);
+
+        // assert
+        Assert.Equal("  ○ …", Markup.Remove(line));
+        line.MatchInlineSnapshot("  [grey70]○[/] …");
+    }
+
+    [Fact]
     public void Render_Should_FitDisplayWidth_When_RowContainsCjkAndEmoji()
     {
         // arrange
