@@ -9,7 +9,7 @@ internal sealed class OptionalOutputFormatOption : Option<OutputFormat?>
 
         Required = false;
 
-        AcceptOnlyFromAmong("json", "ndjson");
+        AcceptOnlyFromAmong("json");
 
         this.DefaultFromEnvironmentValue(EnvironmentVariables.OutputFormat);
     }

@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
-using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
@@ -216,7 +215,7 @@ public sealed class TelemetryTimestampTests
         command.Options.Add(new TelemetrySeverityOption());
         command.Options.Add(new TelemetryTraceIdOption());
         command.Options.Add(new TelemetrySearchOption());
-        command.Options.Add(new OptionalOutputFormatOption());
+        command.Options.Add(new TelemetryOutputFormatOption());
 
         // act
         var result = command.Parse(
