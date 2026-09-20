@@ -357,9 +357,20 @@ function buildMobileWallRows(): ChamberRow[] {
   );
 }
 
-/** `copyRect.right` is `null` only when the `data-hero-copy` block isn't found yet (never observed in practice, since `measure()` runs after mount) -- matches the same-width plateau the real measurement produces below the `sm:px-12` container's own `max-w-6xl` cap. */
+/**
+ * `copyRect.right` is `null` only when the `data-hero-copy` block isn't
+ * found yet (never observed in practice, since `measure()` runs after
+ * mount) -- matches the same-width plateau the real measurement produces
+ * below the `sm:px-12` container's own `max-w-6xl` cap. `computeLayout`
+ * only ever calls this from the `sideBySide` branch (`w >=
+ * SIDE_BY_SIDE_BREAKPOINT`, 1280), where the 1152-wide container always has
+ * real margin on both sides -- hc-0-540 housekeeping (planner comment 287):
+ * removed the `w <= 1152 ? 0 : ...` branch this used to guard with, dead at
+ * every width this function is actually called at (hc-0-wkf review comment
+ * 285's minor note 4).
+ */
 function fallbackZoneRight(w: number): number {
-  const contentLeft = w <= 1152 ? 0 : (w - 1152) / 2;
+  const contentLeft = (w - 1152) / 2;
   return contentLeft + 48 + 576 + 24;
 }
 
@@ -660,4 +671,30 @@ export function computeLayout(
     artLeft: 0,
     artTop,
   };
+}
+
+/**
+ * hc-0-540 housekeeping (planner comment 287): the side-by-side right-limb
+ * containment criterion, ANALYTIC from the layout (the ring's own torus
+ * surface, projected at its near side and base scale -- the same basis
+ * `index.tsx`'s own `ringWidthPx` uses) rather than a rendered-pixel probe.
+ * hc-0-wkf's own review (comment 285) found the pixel-measured right limb
+ * exceeding `w - 16` by about 15px at every side-by-side width, identically
+ * at 1440's own already-shipped, unchanged-by-that-ticket construction: not
+ * a regression, but the rendered ring's stray-streak population (pushed out
+ * to 1.3-2.2x the tube radius, `plasma.ts`'s `tubeScale`) and its bloom
+ * halo, both bright enough to cross a 25%-luminance threshold well past the
+ * analytic tube surface -- by design (the "hazy outer streaks" look), not a
+ * containment bug. This gives a stable, geometry-only bound to check `w -
+ * 16` against instead: the ring's own analytic surface, excluding the
+ * strays/bloom that pixel-probe past it. `camera.originX` is the projection
+ * origin (band axis on-screen), `(R + a) * baseScale` its analytic radius
+ * at the near side, matching `ringWidthPx`'s own `(R + a) * baseScale * 2`
+ * full-width basis.
+ */
+export function analyticRingRightLimb(layout: TokamakLayout): number {
+  return (
+    layout.camera.originX +
+    (layout.torus.R + layout.torus.a) * layout.camera.baseScale
+  );
 }

@@ -590,6 +590,32 @@ export default function Tokamak() {
     // padding. `null` only if the block genuinely is not in the DOM (never
     // in practice, since `measure()` runs after mount) -- callers fall
     // back to the previous fixed constants.
+    // hc-0-540 housekeeping (planner comment 287) tried a `Range` over the
+    // whole `data-hero-copy` block's own contents here, to replace the
+    // positional `querySelectorAll("p")[length - 1]` / `lastElementChild`
+    // selection below with the `[data-hero-copy]` query alone: a
+    // multi-line range's `getBoundingClientRect()` is the union of every
+    // line's own rect, which should in theory equal the teaser's own right
+    // edge (the widest real line, per hc-0-wkf's own measurement) and the
+    // button row's own bottom (the last line) without picking a specific
+    // child. Measured against the real DOM instead of assumed: it is NOT
+    // equal at `sideBySide` widths (403738 px outside the header-masked
+    // parity gate at 1440, `test-results/540-reduced-diff.cjs`) -- some
+    // sub-pixel/line-box rounding difference between the union rect and
+    // the teaser element's own rect moves `zoneRight` enough to shift the
+    // whole scene, failing the binding pixel-parity requirement this same
+    // ticket's own reduced-motion gate enforces. Kept the positional
+    // selection below instead, the only measurement proven to reproduce
+    // today's shipped `zoneRight`/`artTop` exactly (hc-0-wkf's own
+    // NEEDS-PLANNER comment 283 records the same constraint against a
+    // simpler `copyEl.getBoundingClientRect()` alternative). Recorded as
+    // NEEDS-PLANNER on hc-0-540: the positional dependency on "the copy
+    // block's own last `<p>`/last child" cannot be removed without either
+    // editing `FusionHero.tsx` to add a dedicated attribute (outside this
+    // ticket's file scope) or accepting a parity break; chose to keep it
+    // and only remove the dead `?? copyEl`/`?? bottomEl` fallbacks below
+    // (unreachable for this block's actual markup, which always has a
+    // `<p>` and a last child).
     function measureCopyRect(): CopyRect | null {
       const copyEl = document.querySelector<HTMLElement>("[data-hero-copy]");
       if (!copyEl || !root) {
@@ -597,8 +623,11 @@ export default function Tokamak() {
       }
       const rootBox = root.getBoundingClientRect();
       const paragraphs = copyEl.querySelectorAll("p");
-      const widest = paragraphs[paragraphs.length - 1] ?? copyEl;
-      const bottomEl = copyEl.lastElementChild ?? copyEl;
+      const widest = paragraphs[paragraphs.length - 1];
+      const bottomEl = copyEl.lastElementChild;
+      if (!widest || !bottomEl) {
+        return null;
+      }
       return {
         right: widest.getBoundingClientRect().right - rootBox.left,
         bottom: bottomEl.getBoundingClientRect().bottom - rootBox.top,
