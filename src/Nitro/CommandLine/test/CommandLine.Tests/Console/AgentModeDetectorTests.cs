@@ -13,7 +13,7 @@ public sealed class AgentModeDetectorTests
     [InlineData("CLINE")]
     [InlineData("WINDSURF_AGENT")]
     [InlineData("AIDER")]
-    public void IsEnabled_ShouldReturnTrue_When_HarnessEnvironmentVariableIsSet(string environmentVariable)
+    public void IsEnabled_Should_ReturnTrue_When_HarnessEnvironmentVariableIsSet(string environmentVariable)
     {
         // act
         var isEnabled = AgentModeDetector.IsEnabled(
@@ -25,7 +25,7 @@ public sealed class AgentModeDetectorTests
     }
 
     [Fact]
-    public void IsEnabled_ShouldReturnTrue_When_StandardOutputIsRedirected()
+    public void IsEnabled_Should_ReturnTrue_When_StandardOutputIsRedirected()
     {
         // act
         var isEnabled = AgentModeDetector.IsEnabled(true, _ => null);
@@ -35,7 +35,7 @@ public sealed class AgentModeDetectorTests
     }
 
     [Fact]
-    public void IsEnabled_ShouldReturnFalse_When_NoHarnessEnvironmentVariableIsSet()
+    public void IsEnabled_Should_ReturnFalse_When_NoHarnessEnvironmentVariableIsSet()
     {
         // act
         var isEnabled = AgentModeDetector.IsEnabled(false, _ => null);
@@ -45,7 +45,7 @@ public sealed class AgentModeDetectorTests
     }
 
     [Fact]
-    public void IsInteractive_ShouldReturnFalse_When_AgentModeIsEnabled()
+    public void IsInteractive_Should_ReturnFalse_When_AgentModeIsEnabled()
     {
         // arrange
         var outConsole = new TestConsole();

@@ -12,7 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Rendering;
 public sealed class TelemetryListRendererTests
 {
     [Fact]
-    public void Render_ShouldWriteEnvelope_When_AgentModeIsEnabled()
+    public void Render_Should_WriteEnvelope_When_AgentModeIsEnabled()
     {
         // arrange
         var (console, output, _) = CreateConsole(isAgentMode: true);
@@ -39,7 +39,7 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_ShouldWriteOneItemPerLine_When_OutputIsNdjson()
+    public void Render_Should_WriteOneItemPerLine_When_OutputIsNdjson()
     {
         // arrange
         var (console, output, _) = CreateConsole();
@@ -64,7 +64,7 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_ShouldWriteEnvelope_When_OutputIsJson()
+    public void Render_Should_WriteEnvelope_When_OutputIsJson()
     {
         // arrange
         var (console, output, _) = CreateConsole();
@@ -87,7 +87,7 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Truncate_ShouldUseEllipsis_When_TableValueExceedsMaximumLength()
+    public void Truncate_Should_UseEllipsis_When_TableValueExceedsMaximumLength()
     {
         // arrange
         var value = new string('a', 121);
@@ -103,7 +103,7 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_ShouldTruncateValues_When_RenderingTable()
+    public void Render_Should_TruncateValues_When_RenderingTable()
     {
         // arrange
         var (console, output, _) = CreateConsole();
@@ -129,7 +129,7 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_ShouldWriteHintLine_When_TtyOutputHasMoreItems()
+    public void Render_Should_WriteHintLine_When_TtyOutputHasMoreItems()
     {
         // arrange
         var (console, output, _) = CreateConsole();
@@ -155,7 +155,7 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_ShouldWriteEmptyEnvelope_When_AgentModeHasNoItems()
+    public void Render_Should_WriteEmptyEnvelope_When_AgentModeHasNoItems()
     {
         // arrange
         var (console, output, _) = CreateConsole(isAgentMode: true);
@@ -178,7 +178,7 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_ShouldWriteEmptyMessage_When_TtyHasNoItems()
+    public void Render_Should_WriteEmptyMessage_When_TtyHasNoItems()
     {
         // arrange
         var (console, output, _) = CreateConsole();
@@ -201,7 +201,7 @@ public sealed class TelemetryListRendererTests
     }
 
     [Fact]
-    public void Render_ShouldWriteHintToStandardError_When_RenderingError()
+    public void Render_Should_WriteHintToStandardError_When_RenderingError()
     {
         // arrange
         var (console, _, error) = CreateConsole();
