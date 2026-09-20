@@ -311,6 +311,18 @@ export function paintWall(
  * envelope could on the flare route's more foreshortened limb tiles
  * (`buildColumnSilhouette`'s own doc).
  *
+ * The "nonzero" rule only unions correctly when every quad in the path
+ * winds the same way (review 3's F1-new): `rawPoly`'s corner order follows
+ * each tile's own row/column projection, which flips orientation (signed
+ * area changes sign) for a real subset of tiles on the flare route's more
+ * foreshortened limbs (40 of 504 at 1440, 34 of 396 at 375) -- where such a
+ * reversed-winding quad overlapped a normally-wound neighbour, the two
+ * windings summed to 0 and the "nonzero" rule left that pixel UNPAINTED, a
+ * see-through hole in the base rather than a filled union. `orientQuad`
+ * below reverses any quad whose signed area is negative before it is added
+ * to the path, so every quad contributes the same winding direction and
+ * the fill is a genuine union with no cancellation.
+ *
  * The wall gets its own opaque backing once, for the whole canvas, from
  * the navy `fillRect` under all its tiles; the column has no such backdrop
  * of its own on this transparent canvas. Every column tile's own poly is
@@ -327,6 +339,29 @@ export function paintWall(
  * and the column's own mean luminance still drops below its pre-edit
  * level because the seams/gaps are black, not lifted.
  */
+/**
+ * Returns `quad` with its corners in the same winding direction every
+ * time, by sign of its shoelace-formula signed area: a negative area means
+ * the quad winds the opposite way from the convention this picks (reverse
+ * the corner order, which keeps the same four points/edges and only flips
+ * which way the path traces them), a non-negative area is left as-is. Used
+ * to normalise every quad `paintColumnLayer` adds to the base path so the
+ * canvas' "nonzero" winding rule never cancels two overlapping,
+ * oppositely-wound quads down to an unpainted hole (review 3's F1-new).
+ */
+function orientQuad(
+  quad: readonly [Pt, Pt, Pt, Pt],
+): readonly [Pt, Pt, Pt, Pt] {
+  const [a, b, c, d] = quad;
+  const signedArea2 =
+    a.x * b.y -
+    b.x * a.y +
+    (b.x * c.y - c.x * b.y) +
+    (c.x * d.y - d.x * c.y) +
+    (d.x * a.y - a.x * d.y);
+  return signedArea2 < 0 ? [a, d, c, b] : quad;
+}
+
 export function paintColumnLayer(
   ctx: CanvasRenderingContext2D,
   w: number,
@@ -349,10 +384,11 @@ export function paintColumnLayer(
     let minY = columnSilhouette[0][0].y;
     let maxY = columnSilhouette[0][0].y;
     for (const quad of columnSilhouette) {
-      ctx.moveTo(quad[0].x, quad[0].y);
-      ctx.lineTo(quad[1].x, quad[1].y);
-      ctx.lineTo(quad[2].x, quad[2].y);
-      ctx.lineTo(quad[3].x, quad[3].y);
+      const oriented = orientQuad(quad);
+      ctx.moveTo(oriented[0].x, oriented[0].y);
+      ctx.lineTo(oriented[1].x, oriented[1].y);
+      ctx.lineTo(oriented[2].x, oriented[2].y);
+      ctx.lineTo(oriented[3].x, oriented[3].y);
       ctx.closePath();
       for (const p of quad) {
         if (p.y < minY) minY = p.y;
