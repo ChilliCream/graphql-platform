@@ -1,6 +1,7 @@
 using HotChocolate.Execution.Caching;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
+using ExecutionThrowHelper = HotChocolate.Execution.ThrowHelper;
 
 namespace HotChocolate.Execution.Pipeline;
 
@@ -29,7 +30,7 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
 
         var documentInfo = context.OperationDocumentInfo;
         var document = documentInfo.Document
-            ?? throw HotChocolate.Execution.ThrowHelper.OperationDocumentNotAvailable();
+            ?? throw ExecutionThrowHelper.OperationDocumentNotAvailable();
 
         var operationId = context.GetOperationId();
 
@@ -50,7 +51,7 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
     /// <summary>
     /// Normalizes a document directly, bypassing the normalized-document cache, for callers
     /// that do not have a <see cref="RequestContext"/> at hand, such as the
-    /// <see cref="HotChocolate.Execution.Processing.OperationCompiler"/> convenience overloads.
+    /// <see cref="Processing.OperationCompiler"/> convenience overloads.
     /// </summary>
     public static DocumentNode NormalizeDocument(
         ISchemaDefinition schema,

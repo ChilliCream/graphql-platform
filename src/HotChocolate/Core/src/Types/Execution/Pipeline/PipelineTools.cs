@@ -1,24 +1,24 @@
+using System.Buffers;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
+using static HotChocolate.Language.GraphQLCharacters;
 
 namespace HotChocolate.Execution.Pipeline;
 
 internal static class PipelineTools
 {
-    private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
+    // The two '-' separators, the optional '+' before the operation name and the
+    // at most 20 digits of the ulong executor version.
+    private const int CacheIdSeparatorLength = 23;
 
-    public static string CreateOperationId(string documentId, string? operationName)
-        => operationName is null
-            ? documentId
-            : $"{documentId}+{operationName}";
+    private static readonly ImmutableArray<IVariableValueCollection> s_noVariables = [VariableValueCollection.Empty];
 
     public static string CreateCacheId(this RequestContext context)
     {
         var documentId = context.GetOperationDocumentId();
-        var operationName = context.Request.OperationName;
 
         if (documentId.IsEmpty)
         {
@@ -27,9 +27,49 @@ internal static class PipelineTools
                 + "in order to create a cache ID.");
         }
 
-        var operationId = CreateOperationId(documentId.Value, operationName);
+        var schemaName = context.Schema.Name;
+        var documentIdValue = documentId.Value;
+        var operationName = context.Request.OperationName;
+        var maxLength =
+            schemaName.Length
+            + documentIdValue.Length
+            + (operationName?.Length ?? 0)
+            + CacheIdSeparatorLength;
 
-        return $"{context.Schema.Name}-{context.ExecutorVersion}-{operationId}";
+        char[]? rented = null;
+        var buffer = maxLength <= StackallocThreshold
+            ? stackalloc char[maxLength]
+            : rented = ArrayPool<char>.Shared.Rent(maxLength);
+
+        try
+        {
+            schemaName.CopyTo(buffer);
+            var length = schemaName.Length;
+            buffer[length++] = '-';
+
+            context.ExecutorVersion.TryFormat(buffer[length..], out var versionLength);
+            length += versionLength;
+            buffer[length++] = '-';
+
+            documentIdValue.CopyTo(buffer[length..]);
+            length += documentIdValue.Length;
+
+            if (operationName is not null)
+            {
+                buffer[length++] = '+';
+                operationName.CopyTo(buffer[length..]);
+                length += operationName.Length;
+            }
+
+            return new string(buffer[..length]);
+        }
+        finally
+        {
+            if (rented is not null)
+            {
+                ArrayPool<char>.Shared.Return(rented);
+            }
+        }
     }
 
     public static void CoerceVariables(
