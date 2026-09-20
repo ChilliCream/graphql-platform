@@ -81,6 +81,42 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task List_Should_RenderFilterDiagnostic_When_FilterIsInvalid()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "traces",
+            "list",
+            "--filter",
+            "service.name:");
+
+        // assert
+        result.AssertError(
+            """
+            filter: Missing value in key:value pair at column 13
+            service.name:
+                        ^
+            hint: examples: `status:error`, `duration:>=100`, or `@resource.service.name:checkout`
+            """);
+        TelemetryClientMock.Verify(
+            x => x.ListTracesAsync(
+                It.IsAny<string>(),
+                It.IsAny<OpenTelemetryFilterInput?>(),
+                It.IsAny<IReadOnlyList<string>?>(),
+                It.IsAny<IReadOnlyList<OpenTelemetrySpanKind>?>(),
+                It.IsAny<DateTimeOffset?>(),
+                It.IsAny<DateTimeOffset?>(),
+                It.IsAny<int>(),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
     public async Task List_Should_DefaultToEntrySpanKinds_When_NoneAreSpecified()
     {
         // arrange
@@ -173,7 +209,24 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             "list");
 
         // assert
-        result.AssertSuccess();
+        result.AssertSuccess(
+            mode switch
+            {
+                InteractionMode.Interactive =>
+                    """
+                    ┌──────────────┬──────────┬───────────────┬───────────────┬────────┬──────────┐
+                    │ Start        │ Service  │ Name          │ Duration (ms) │ Status │ Trace ID │
+                    ├──────────────┼──────────┼───────────────┼───────────────┼────────┼──────────┤
+                    │ 23:30:00.123 │ products │ GET /products │ 125.5         │ Error  │ trace-1  │
+                    └──────────────┴──────────┴───────────────┴───────────────┴────────┴──────────┘
+                    """,
+                _ =>
+                    """
+                    {"items":[
+                    {"start":"2025-12-31T23:30:00.123+00:00","service":"products","name":"GET /products","durationMs":125.5,"status":"Error","traceId":"trace-1","spanId":"span-1","seeker":"seeker-1"}
+                    ],"returned":1,"total":null,"hasMore":false}
+                    """
+            });
     }
 
     [Fact]

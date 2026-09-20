@@ -57,15 +57,19 @@ internal sealed class ListTraceCommand : Command
             return ExitCodes.Error;
         }
 
-        var filter = FilterFlags.Compile(
-            parseResult.GetValue(Opt<TelemetryFilterOption>.Instance),
-            TelemetryFilterSignal.Traces,
+        var filterText = parseResult.GetValue(Opt<TelemetryFilterOption>.Instance);
+        if (!TryCompileFilter(
+            console,
+            filterText,
             parseResult.GetValue(Opt<TelemetryHasErrorOption>.Instance),
             parseResult.GetValue(Opt<TelemetryMinDurationOption>.Instance),
-            severity: null,
-            traceId: null,
             parseResult.GetValue(Opt<TelemetrySearchOption>.Instance),
-            parseResult.GetValue(Opt<TelemetryServiceOption>.Instance));
+            parseResult.GetValue(Opt<TelemetryServiceOption>.Instance),
+            out var filter))
+        {
+            return ExitCodes.Error;
+        }
+
         var environments = parseResult.GetValue(Opt<TelemetryEnvironmentOption>.Instance);
         var requestedSpanKinds = parseResult.GetValue(Opt<TelemetrySpanKindOption>.Instance);
         var spanKinds = requestedSpanKinds is { Length: > 0 }
@@ -105,6 +109,54 @@ internal sealed class ListTraceCommand : Command
             new TelemetryListColumn<TraceListItem>("Trace ID", item => item.TraceId));
 
         return ExitCodes.Success;
+    }
+
+    private static bool TryCompileFilter(
+        INitroConsole console,
+        string? filterText,
+        bool hasError,
+        int? minDurationMs,
+        string? search,
+        string? service,
+        out OpenTelemetryFilterInput? filter)
+    {
+        try
+        {
+            filter = FilterFlags.Compile(
+                filterText,
+                TelemetryFilterSignal.Traces,
+                hasError,
+                minDurationMs,
+                severity: null,
+                traceId: null,
+                search,
+                service);
+            return true;
+        }
+        catch (FilterParseException exception)
+        {
+            RenderFilterParseError(console, filterText!, exception);
+            filter = null;
+            return false;
+        }
+    }
+
+    private static void RenderFilterParseError(
+        INitroConsole console,
+        string filter,
+        FilterParseException exception)
+    {
+        console.Error.Write(new Text($"filter: {exception.Message} at column {exception.Column}"));
+        console.Error.WriteLine();
+        console.Error.Write(new Text(filter));
+        console.Error.WriteLine();
+        console.Error.Write(new Text($"{new string(' ', exception.Column - 1)}^"));
+        console.Error.WriteLine();
+        console.Error.Write(
+            new Text(
+                "hint: examples: `status:error`, `duration:>=100`, "
+                + "or `@resource.service.name:checkout`"));
+        console.Error.WriteLine();
     }
 
     private static string FormatStart(DateTimeOffset start)

@@ -269,7 +269,7 @@ public abstract class CommandTestBase
             outConsole,
             errConsole,
             new SnapshotActivitySinkFactory(),
-            _isAgentMode);
+            isAgentMode: _isAgentMode || _interactionMode is InteractionMode.NonInteractive);
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
 
