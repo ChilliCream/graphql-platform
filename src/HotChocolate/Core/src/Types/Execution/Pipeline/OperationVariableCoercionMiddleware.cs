@@ -30,14 +30,11 @@ internal sealed class OperationVariableCoercionMiddleware
             ? operation.Definition.VariableDefinitions
             : context.GetNormalizedOperation().VariableDefinitions;
 
-        if (!context.IsWarmupRequest())
-        {
-            CoerceVariables(
-                context,
-                _coercionHelper,
-                variableDefinitions,
-                _diagnosticEvents);
-        }
+        CoerceVariables(
+            context,
+            _coercionHelper,
+            variableDefinitions,
+            _diagnosticEvents);
 
         await _next(context).ConfigureAwait(false);
     }
