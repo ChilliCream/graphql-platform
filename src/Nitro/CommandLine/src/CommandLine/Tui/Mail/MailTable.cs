@@ -1,4 +1,3 @@
-using System.Text;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Theming;
 
@@ -9,8 +8,6 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 /// </summary>
 internal static class MailTable
 {
-    private const string Ellipsis = "…";
-    private const char EllipsisChar = '…';
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
     private const string ExpandedFoldGlyph = "▾";
@@ -289,132 +286,9 @@ internal static class MailTable
     private static string Stylize(string styleMarkup, string content) =>
         styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
 
-    /// <summary>
-    /// The lowest code point of every contiguous run of terminal-wide code
-    /// points this table measures at 2 cells wide. Paired with
-    /// <see cref="s_wideRangeEnds"/> at the same index.
-    /// </summary>
-    private static readonly int[] s_wideRangeStarts =
-    [
-        0x1100, 0x2E80, 0x3041, 0x3400, 0x4E00, 0xA000, 0xAC00, 0xF900, 0xFE30,
-        0xFF00, 0xFFE0, 0x1F1E6, 0x1F200, 0x1F300, 0x1F600, 0x1F680, 0x1F900,
-        0x1FA70, 0x20000, 0x30000
-    ];
+    private static string Pad(string value, int width) => DisplayWidth.PadRight(value, width);
 
-    private static readonly int[] s_wideRangeEnds =
-    [
-        0x115F, 0x303E, 0x33FF, 0x4DBF, 0x9FFF, 0xA4CF, 0xD7A3, 0xFAFF, 0xFE4F,
-        0xFF60, 0xFFE6, 0x1F1FF, 0x1F2FF, 0x1F5FF, 0x1F64F, 0x1F6FF, 0x1F9FF,
-        0x1FAFF, 0x2FFFD, 0x3FFFD
-    ];
+    private static string PadLeft(string value, int width) => DisplayWidth.PadLeft(value, width);
 
-    /// <summary>
-    /// A single Unicode scalar's terminal cell width: 2 for a code point in
-    /// <see cref="s_wideRangeStarts"/>/<see cref="s_wideRangeEnds"/>, 1 for everything else.
-    /// </summary>
-    private static int GetRuneWidth(Rune rune)
-    {
-        var value = rune.Value;
-
-        if (value < 0x1100)
-        {
-            return 1;
-        }
-
-        for (var i = 0; i < s_wideRangeStarts.Length; i++)
-        {
-            if (value < s_wideRangeStarts[i])
-            {
-                return 1;
-            }
-
-            if (value <= s_wideRangeEnds[i])
-            {
-                return 2;
-            }
-        }
-
-        return 1;
-    }
-
-    /// <summary>
-    /// Returns the sum of the terminal widths assigned to the string's Unicode scalars.
-    /// </summary>
-    private static int MeasureWidth(string value)
-    {
-        var width = 0;
-
-        foreach (var rune in value.EnumerateRunes())
-        {
-            width += GetRuneWidth(rune);
-        }
-
-        return width;
-    }
-
-    private static string Pad(string value, int width)
-    {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
-
-        var truncated = Truncate(value, width);
-        var truncatedWidth = MeasureWidth(truncated);
-        return truncatedWidth >= width ? truncated : truncated + new string(' ', width - truncatedWidth);
-    }
-
-    private static string PadLeft(string value, int width)
-    {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
-
-        var truncated = Truncate(value, width);
-        var truncatedWidth = MeasureWidth(truncated);
-        return truncatedWidth >= width ? truncated : new string(' ', width - truncatedWidth) + truncated;
-    }
-
-    /// <summary>
-    /// Truncates to the requested terminal-cell width without splitting Unicode
-    /// scalars, adding an ellipsis when text is omitted. A non-positive width returns
-    /// an empty string.
-    /// </summary>
-    private static string Truncate(string value, int width)
-    {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
-
-        if (MeasureWidth(value) <= width)
-        {
-            return value;
-        }
-
-        if (width == 1)
-        {
-            return Ellipsis;
-        }
-
-        var budget = width - 1;
-        var used = 0;
-        var builder = new StringBuilder();
-
-        foreach (var rune in value.EnumerateRunes())
-        {
-            var runeWidth = GetRuneWidth(rune);
-
-            if (used + runeWidth > budget)
-            {
-                break;
-            }
-
-            builder.Append(rune);
-            used += runeWidth;
-        }
-
-        return builder.Append(EllipsisChar).ToString();
-    }
+    private static string Truncate(string value, int width) => DisplayWidth.Truncate(value, width);
 }
