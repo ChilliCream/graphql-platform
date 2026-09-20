@@ -1,5 +1,5 @@
 import { BRAND } from "../../tokens";
-import type { InstrumentLight, Tile } from "./chamber";
+import type { ColumnBaseCell, InstrumentLight, Tile } from "./chamber";
 import { hexToRgba, mixHexToRgba, whiteToRgba } from "./colors";
 import type { ShadedPoint } from "./plasma";
 
@@ -249,41 +249,52 @@ export function paintWall(
 }
 
 /**
- * Static COLUMN layer: the central column's own tiles, painted into a
- * transparent-background canvas (never touching navy, ambient wash,
- * instrument lights or the vignette, which are the wall's job) so it can be
- * stamped with `drawImage` on top of the far arc and under the near arc
- * every live frame -- real occlusion from actual tile geometry and draw
- * order, not a destination-out mask or a dimming factor. Painted once on
- * mount and again on resize, same as the wall; the
+ * Static COLUMN layer: the central column's own opaque backing plus its
+ * tiles, painted into a transparent-background canvas (never touching navy,
+ * ambient wash, instrument lights or the vignette, which are the wall's
+ * job) so it can be stamped with `drawImage` on top of the far arc and
+ * under the near arc every live frame -- real occlusion from actual tile
+ * geometry and draw order, not a destination-out mask or a dimming factor.
+ * Painted once on mount and again on resize, same as the wall; the
  * per-frame cost is one cheap `drawImage`, not a re-paint of the tiles.
  *
- * Each tile gets an opaque navy backing, in its own polygon, BEFORE its
- * usual low-alpha specular gradient: the wall gets its opaque backing once,
- * for the whole canvas, from the navy `fillRect` under all its tiles, but
- * the column has no such backdrop of its own on this transparent canvas --
- * without it, `tile.poly`'s low-alpha gradient blended `'source-over'`
- * straight onto the bright far-arc streaks underneath (stamped into the
- * live canvas first) reads as a pale translucent veil, not a solid tile
- * standing in front of them. The seam gaps between tiles (`insetQuad`'s own
- * inset) get no backing, so they stay genuinely transparent -- the far arc
- * still shows faintly through the seams, exactly as "seams are gaps".
+ * `columnBase` (see `chamber.ts`'s `buildColumnSilhouette`) is the union of
+ * the column's own UNINSET cells -- it covers both the area the real
+ * (inset) tiles occupy AND the seam gaps between them -- filled first, at
+ * alpha 1, with a vertical cylinder shading darkest at the silhouette edge
+ * (`cell.rim`). The wall gets its own opaque backing once, for the whole
+ * canvas, from the navy `fillRect` under all its tiles; the column has no
+ * such backdrop of its own on this transparent canvas, so without this
+ * base, `tile.poly`'s low-alpha gradient blended `'source-over'` straight
+ * onto the bright far-arc streaks underneath (stamped into the live canvas
+ * first) reads as a pale translucent veil with visible gaps at the seams,
+ * not a solid tile standing in front of them. The real tiles are then
+ * painted on top of the opaque base, unchanged; the seam gap `insetQuad`
+ * leaves between neighbouring tile faces is now backed by the base's own
+ * darker paint instead of being genuinely transparent -- the far arc can no
+ * longer show through a tile or a seam.
  */
 export function paintColumnLayer(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
+  columnBase: readonly ColumnBaseCell[],
   columnTiles: readonly Tile[],
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.globalCompositeOperation = "source-over";
-  ctx.fillStyle = hexToRgba(BRAND.navy, 0.94);
-  for (const tile of columnTiles) {
+  for (const cell of columnBase) {
+    // A small, fixed range of slate mixed into the navy (never alpha, which
+    // stays 1 throughout): distinguishable from the page's own bare navy at
+    // every point, but still dark enough to hold the chamber's overall
+    // luminance budget outside the plasma band.
+    const lit = 0.08 + cell.rim * 0.14;
+    ctx.fillStyle = mixHexToRgba(BRAND.navy, BRAND.slate, lit, 1);
     ctx.beginPath();
-    ctx.moveTo(tile.poly[0].x, tile.poly[0].y);
-    ctx.lineTo(tile.poly[1].x, tile.poly[1].y);
-    ctx.lineTo(tile.poly[2].x, tile.poly[2].y);
-    ctx.lineTo(tile.poly[3].x, tile.poly[3].y);
+    ctx.moveTo(cell.poly[0].x, cell.poly[0].y);
+    ctx.lineTo(cell.poly[1].x, cell.poly[1].y);
+    ctx.lineTo(cell.poly[2].x, cell.poly[2].y);
+    ctx.lineTo(cell.poly[3].x, cell.poly[3].y);
     ctx.closePath();
     ctx.fill();
   }

@@ -212,6 +212,59 @@ export function buildChamberTiles(
   return tiles;
 }
 
+export interface ColumnBaseCell {
+  /** The cell's four uninset screen-space corners -- no seam gap, unlike `Tile.poly`. */
+  readonly poly: readonly [Pt, Pt, Pt, Pt];
+  /** 0 at the column's own silhouette edge (`theta` = pi or 2*pi), 1 at its front-facing centre (`theta` = 3*pi/2) -- the base's vertical cylinder shading, darkest at the limb, independent of the tile grid's own directional-light `shade`. */
+  readonly rim: number;
+}
+
+/**
+ * The column's opaque backing: one uninset quad per (row, theta-segment)
+ * cell, sharing the exact row/theta grid (including the brick stagger and
+ * back-face cull) `buildChamberTiles(..., "column")` uses for the real
+ * tiles, so the two line up cell-for-cell. Because these quads are never
+ * inset toward their own centre, their union exactly covers both the area
+ * the real (inset) tiles occupy AND the seam gaps between them -- painting
+ * this first, at alpha 1, then the real tiles on top (see
+ * `paint.ts`'s `paintColumnLayer`), leaves every seam backed by this base's
+ * own darker paint instead of transparent, so nothing drawn behind the
+ * column (the far arc's streaks) is ever visible through a tile or a seam.
+ */
+export function buildColumnSilhouette(
+  rows: readonly ChamberRow[],
+  thetaSegments: number,
+  camera: Camera,
+): ColumnBaseCell[] {
+  const cells: ColumnBaseCell[] = [];
+  for (let r = 0; r < rows.length - 1; r++) {
+    const rowA = rows[r];
+    const rowB = rows[r + 1];
+    const rowStagger = r % 2 === 1 ? 0.5 / thetaSegments : 0;
+    for (let s = 0; s < thetaSegments; s++) {
+      const t0 = (s / thetaSegments + rowStagger) * Math.PI * 2;
+      const t1 = ((s + 1) / thetaSegments + rowStagger) * Math.PI * 2;
+      const midTheta = (t0 + t1) / 2;
+      if (facingAway(midTheta, camera)) {
+        continue;
+      }
+      const wA0 = ringPoint(rowA.radius, t0, rowA.y, rowA.z);
+      const wA1 = ringPoint(rowA.radius, t1, rowA.y, rowA.z);
+      const wB1 = ringPoint(rowB.radius, t1, rowB.y, rowB.z);
+      const wB0 = ringPoint(rowB.radius, t0, rowB.y, rowB.z);
+      const c0 = project(wA0, camera);
+      const c1 = project(wA1, camera);
+      const c2 = project(wB1, camera);
+      const c3 = project(wB0, camera);
+      if (c0.depth <= 1 || c1.depth <= 1 || c2.depth <= 1 || c3.depth <= 1) {
+        continue;
+      }
+      cells.push({ poly: [c0, c1, c2, c3], rim: Math.abs(Math.sin(midTheta)) });
+    }
+  }
+  return cells;
+}
+
 /**
  * A handful of small cyan instrument lights fixed to wall tiles, scattered
  * around the chamber but weighted toward the outer/near rows so they read

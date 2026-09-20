@@ -6,6 +6,7 @@ import { BRAND } from "../../tokens";
 import { useElementMotion } from "../../visuals/hooks";
 import {
   buildChamberTiles,
+  buildColumnSilhouette,
   buildInstrumentLights,
   type InstrumentLight,
 } from "./chamber";
@@ -187,6 +188,16 @@ export default function Tokamak() {
     /** The column's own projected half-width at the plasma's height, in px -- see `occludeHelixBehindColumn`. Recomputed in `buildScene` whenever the layout changes. */
     let columnHalfWidthPx = 0;
     let disposed = false;
+    // Debug-only escape hatch (`?tokamakDebugColumn` on the URL): skips
+    // every plasma draw in `drawLive` (the far/near cached blits, glow,
+    // tint, bloom, core, live streaks, the helix) so the live canvas shows
+    // only the wall and the opaque column layer, with nothing to bleed
+    // through it -- used to sample the column's own silhouette in
+    // isolation. Never active without the query param, so normal rendering
+    // is untouched.
+    const hidePlasmaForDebug =
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).has("tokamakDebugColumn");
 
     // Erases the LIVE (plasma) canvas's own copy-clear zone -- the
     // ring/streaks/filament/bloom must never render under the copy, so
@@ -378,6 +389,11 @@ export default function Tokamak() {
         layout.torus,
         "column",
       );
+      const columnBase = buildColumnSilhouette(
+        layout.columnRows,
+        layout.columnThetaSegments,
+        layout.camera,
+      );
       const lights: InstrumentLight[] = buildInstrumentLights(
         layout.wallRows,
         layout.camera,
@@ -385,7 +401,38 @@ export default function Tokamak() {
         6,
       );
       paintWall(wallCtx!, w, h, wallTiles, lights);
-      paintColumnLayer(columnCtx!, w, h, columnTiles);
+      paintColumnLayer(columnCtx!, w, h, columnBase, columnTiles);
+
+      // Debug-only (see `hidePlasmaForDebug`): the column layer's own
+      // non-transparent pixel bbox, read from its own transparent-
+      // background offscreen canvas (never the composited live canvas,
+      // where the wall's opaque backdrop leaves no transparency to bound
+      // by) -- lets a test script sample the column's on-screen silhouette
+      // exactly, at any viewport, without duplicating this scene's own
+      // projection math.
+      if (hidePlasmaForDebug && typeof window !== "undefined") {
+        const cW = columnCanvas.width;
+        const cH = columnCanvas.height;
+        const px = columnCtx!.getImageData(0, 0, cW, cH).data;
+        let minX = cW;
+        let maxX = 0;
+        let minY = cH;
+        let maxY = 0;
+        for (let y = 0; y < cH; y += 2) {
+          for (let x = 0; x < cW; x += 2) {
+            if (px[(cW * y + x) * 4 + 3] === 0) {
+              continue;
+            }
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+          }
+        }
+        (
+          window as unknown as { __tokamakDebugColumnBox?: unknown }
+        ).__tokamakDebugColumnBox = { minX, maxX, minY, maxY, w: cW, h: cH };
+      }
 
       // The ring's projected width uses the camera's own base scale (the
       // scale at its aim depth), the same basis the ring's actual
@@ -642,109 +689,116 @@ export default function Tokamak() {
       // ----- FAR step: the far half of the band (its cached static
       // majority, its live subset, its own glow and the filament's far
       // run) draws first, desaturated and dimmer, so the column layer
-      // (stamped next) reads as standing in front of it.
-      liveCtx!.globalCompositeOperation = "lighter";
-      blit(liveCtx!, farCanvas);
-      drawGlowGroup(farLive, helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
-      strokeGroup(farLive, BRAND.coralSoft, FAR_ALPHA_MUL);
-      strokeHelixRuns(helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
+      // (stamped next) reads as standing in front of it. Skipped entirely
+      // under `hidePlasmaForDebug` (see its own doc comment).
+      if (!hidePlasmaForDebug) {
+        liveCtx!.globalCompositeOperation = "lighter";
+        blit(liveCtx!, farCanvas);
+        drawGlowGroup(farLive, helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
+        strokeGroup(farLive, BRAND.coralSoft, FAR_ALPHA_MUL);
+        strokeHelixRuns(helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
+      }
 
       // ----- COLUMN: the dark tiled column, cached once per `measure()`,
       // stamped fresh every frame so it always paints over the far arc and
       // under the near arc -- real occlusion from draw order, not a
-      // dimming factor.
+      // dimming factor. Always drawn, debug or not.
       liveCtx!.globalCompositeOperation = "source-over";
       blit(liveCtx!, columnCanvas);
 
-      // The column's own coral tint: a `'lighter'` radial pass drawn right
-      // after the column layer so it visibly lands on the column and the
-      // nearest wall tiles, not baked into the cache underneath it.
-      const torusCenter = bandCenter();
-      const breathe =
-        0.86 + 0.14 * Math.sin((timeSec / BREATHE_PERIOD_S) * Math.PI * 2);
-      liveCtx!.globalCompositeOperation = "lighter";
-      const wallLiftScale =
-        layout.mode === "mobile" ? MOBILE_WALL_LIFT_SCALE : 1;
-      const tintR = Math.max(1, bandHalfHeightPx() * 0.9 * wallLiftScale);
-      const tint = liveCtx!.createRadialGradient(
-        torusCenter.x,
-        torusCenter.y,
-        0,
-        torusCenter.x,
-        torusCenter.y,
-        tintR,
-      );
-      tint.addColorStop(0, hexToRgba(BRAND.coral, 0.14 * breathe));
-      tint.addColorStop(1, hexToRgba(BRAND.coral, 0));
-      liveCtx!.fillStyle = tint;
-      liveCtx!.beginPath();
-      liveCtx!.arc(torusCenter.x, torusCenter.y, tintR, 0, Math.PI * 2);
-      liveCtx!.fill();
+      if (!hidePlasmaForDebug) {
+        // The column's own coral tint: a `'lighter'` radial pass drawn
+        // right after the column layer so it visibly lands on the column
+        // and the nearest wall tiles, not baked into the cache underneath
+        // it.
+        const torusCenter = bandCenter();
+        const breathe =
+          0.86 + 0.14 * Math.sin((timeSec / BREATHE_PERIOD_S) * Math.PI * 2);
+        liveCtx!.globalCompositeOperation = "lighter";
+        const wallLiftScale =
+          layout.mode === "mobile" ? MOBILE_WALL_LIFT_SCALE : 1;
+        const tintR = Math.max(1, bandHalfHeightPx() * 0.9 * wallLiftScale);
+        const tint = liveCtx!.createRadialGradient(
+          torusCenter.x,
+          torusCenter.y,
+          0,
+          torusCenter.x,
+          torusCenter.y,
+          tintR,
+        );
+        tint.addColorStop(0, hexToRgba(BRAND.coral, 0.14 * breathe));
+        tint.addColorStop(1, hexToRgba(BRAND.coral, 0));
+        liveCtx!.fillStyle = tint;
+        liveCtx!.beginPath();
+        liveCtx!.arc(torusCenter.x, torusCenter.y, tintR, 0, Math.PI * 2);
+        liveCtx!.fill();
 
-      // ----- NEAR step: the breathing bloom, the near half of the band
-      // (cached majority + live subset + glow), the filament's near run
-      // and the white-hot core all draw on top of the column, full
-      // brightness.
-      const bloomR =
-        (layout.torus.R + layout.torus.a) *
-        torusCenter.scale *
-        0.4 *
-        wallLiftScale;
-      const bloom = liveCtx!.createRadialGradient(
-        torusCenter.x,
-        torusCenter.y,
-        0,
-        torusCenter.x,
-        torusCenter.y,
-        bloomR,
-      );
-      bloom.addColorStop(0, hexToRgba(BRAND.coral, 0.16 * breathe));
-      bloom.addColorStop(0.45, hexToRgba(BRAND.coral, 0.06 * breathe));
-      bloom.addColorStop(1, hexToRgba(BRAND.coral, 0));
-      liveCtx!.fillStyle = bloom;
-      liveCtx!.beginPath();
-      liveCtx!.arc(
-        torusCenter.x,
-        torusCenter.y,
-        Math.max(1, bloomR),
-        0,
-        Math.PI * 2,
-      );
-      liveCtx!.fill();
+        // ----- NEAR step: the breathing bloom, the near half of the band
+        // (cached majority + live subset + glow), the filament's near run
+        // and the white-hot core all draw on top of the column, full
+        // brightness.
+        const bloomR =
+          (layout.torus.R + layout.torus.a) *
+          torusCenter.scale *
+          0.4 *
+          wallLiftScale;
+        const bloom = liveCtx!.createRadialGradient(
+          torusCenter.x,
+          torusCenter.y,
+          0,
+          torusCenter.x,
+          torusCenter.y,
+          bloomR,
+        );
+        bloom.addColorStop(0, hexToRgba(BRAND.coral, 0.16 * breathe));
+        bloom.addColorStop(0.45, hexToRgba(BRAND.coral, 0.06 * breathe));
+        bloom.addColorStop(1, hexToRgba(BRAND.coral, 0));
+        liveCtx!.fillStyle = bloom;
+        liveCtx!.beginPath();
+        liveCtx!.arc(
+          torusCenter.x,
+          torusCenter.y,
+          Math.max(1, bloomR),
+          0,
+          Math.PI * 2,
+        );
+        liveCtx!.fill();
 
-      blit(liveCtx!, nearCanvas);
-      drawGlowGroup(nearLive, helixNear, BRAND.coral, NEAR_ALPHA_MUL);
-      strokeGroup(nearLive, BRAND.coral, NEAR_ALPHA_MUL);
-      strokeHelixRuns(helixNear, BRAND.coral, NEAR_ALPHA_MUL);
+        blit(liveCtx!, nearCanvas);
+        drawGlowGroup(nearLive, helixNear, BRAND.coral, NEAR_ALPHA_MUL);
+        strokeGroup(nearLive, BRAND.coral, NEAR_ALPHA_MUL);
+        strokeHelixRuns(helixNear, BRAND.coral, NEAR_ALPHA_MUL);
 
-      // `torusCenter` sits at the band's near-side point, not the torus'
-      // axis point, so the core radius is derived from its own scale.
-      const coreR = torusCenter.scale * layout.torus.a * 0.8 * breathe;
-      const coreDensityScale = layout.mode === "mobile" ? MOBILE_CORE_SCALE : 1;
-      const core = liveCtx!.createRadialGradient(
-        torusCenter.x,
-        torusCenter.y,
-        0,
-        torusCenter.x,
-        torusCenter.y,
-        Math.max(1, coreR),
-      );
-      core.addColorStop(0, whiteToRgba(0.35 * coreDensityScale));
-      core.addColorStop(
-        0.5,
-        hexToRgba(BRAND.coral, 0.25 * breathe * coreDensityScale),
-      );
-      core.addColorStop(1, hexToRgba(BRAND.coral, 0));
-      liveCtx!.fillStyle = core;
-      liveCtx!.beginPath();
-      liveCtx!.arc(
-        torusCenter.x,
-        torusCenter.y,
-        Math.max(1, coreR),
-        0,
-        Math.PI * 2,
-      );
-      liveCtx!.fill();
+        // `torusCenter` sits at the band's near-side point, not the torus'
+        // axis point, so the core radius is derived from its own scale.
+        const coreR = torusCenter.scale * layout.torus.a * 0.8 * breathe;
+        const coreDensityScale =
+          layout.mode === "mobile" ? MOBILE_CORE_SCALE : 1;
+        const core = liveCtx!.createRadialGradient(
+          torusCenter.x,
+          torusCenter.y,
+          0,
+          torusCenter.x,
+          torusCenter.y,
+          Math.max(1, coreR),
+        );
+        core.addColorStop(0, whiteToRgba(0.35 * coreDensityScale));
+        core.addColorStop(
+          0.5,
+          hexToRgba(BRAND.coral, 0.25 * breathe * coreDensityScale),
+        );
+        core.addColorStop(1, hexToRgba(BRAND.coral, 0));
+        liveCtx!.fillStyle = core;
+        liveCtx!.beginPath();
+        liveCtx!.arc(
+          torusCenter.x,
+          torusCenter.y,
+          Math.max(1, coreR),
+          0,
+          Math.PI * 2,
+        );
+        liveCtx!.fill();
+      }
 
       liveCtx!.globalCompositeOperation = "source-over";
       featherCopyClearZone(liveCtx!);
