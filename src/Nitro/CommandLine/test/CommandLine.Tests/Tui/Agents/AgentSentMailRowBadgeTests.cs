@@ -22,6 +22,25 @@ public sealed class AgentSentMailRowBadgeTests
     }
 
     [Fact]
+    public void Render_Should_PreserveRecipientAllocation_When_SubjectAndRecipientOverflow()
+    {
+        // arrange
+        const int maxWidth = 19;
+        var now = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            subject: "ABCDEFGHIJK",
+            createdAt: now,
+            recipients: [MailMessageBuilder.ToRecipient("abcdefghijk")]);
+
+        // act
+        var line = AgentSentMailRowBadge.Render(message, now, maxWidth);
+
+        // assert
+        Assert.Equal("now ABCD… -> abcde…", line);
+    }
+
+    [Fact]
     public void Render_Should_FitDisplayWidth_When_SubjectAndRecipientsContainCjkAndEmoji()
     {
         // arrange

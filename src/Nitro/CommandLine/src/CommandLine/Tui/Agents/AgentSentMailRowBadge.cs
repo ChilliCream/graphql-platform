@@ -38,7 +38,7 @@ internal static class AgentSentMailRowBadge
         // Terminal-cell width of everything but the subject and recipients.
         var fixedPlainWidth = DisplayWidth.Measure(age) + 2 + DisplayWidth.Measure(Arrow);
         var remaining = Math.Max(0, maxWidth - fixedPlainWidth);
-        var recipientsBudget = Math.Min(MaxRecipientsBudget, remaining / 2);
+        var recipientsBudget = Math.Min(MaxRecipientsBudget, (remaining + 1) / 2);
         var truncatedRecipients = DisplayWidth.Truncate(recipientsText, recipientsBudget);
 
         var subjectBudget = Math.Max(0, remaining - DisplayWidth.Measure(truncatedRecipients));
