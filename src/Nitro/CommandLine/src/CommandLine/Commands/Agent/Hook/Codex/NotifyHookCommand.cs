@@ -32,7 +32,7 @@ internal sealed class NotifyHookCommand : Command
         var payloadJson = parseResult.GetRequiredValue(Opt<NotifyPayloadArgument>.Instance);
         return await CodexNotifyExecutor.RunAsync(
             environmentVariables,
-            (payload, ct) => handler.HandleNotifyAsync(payload, false, ct),
+            handler.HandleNotifyAsync,
             ct => ExecForeignAsync(sidecarStore, pathResolver, foreignRunner, payloadJson, ct),
             payloadJson,
             cancellationToken);

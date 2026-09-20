@@ -44,7 +44,7 @@ internal sealed class CodexHookHandler(
     }
 
     public async Task<CodexHookOutcome> HandleSessionStartAsync(
-        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        CodexHookPayload payload, CancellationToken cancellationToken)
     {
         var resolved = await ResolveAsync(payload, cancellationToken);
 
@@ -85,7 +85,7 @@ internal sealed class CodexHookHandler(
     }
 
     public async Task<CodexHookOutcome> HandleUserPromptSubmitAsync(
-        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        CodexHookPayload payload, CancellationToken cancellationToken)
     {
         var resolved = await ResolveAsync(payload, cancellationToken);
 
@@ -129,7 +129,7 @@ internal sealed class CodexHookHandler(
     }
 
     public async Task<CodexHookOutcome> HandleSessionEndAsync(
-        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        CodexHookPayload payload, CancellationToken cancellationToken)
     {
         var resolved = await ResolveAsync(payload, cancellationToken);
 
@@ -142,7 +142,7 @@ internal sealed class CodexHookHandler(
     }
 
     public async Task<CodexNotifyOutcome> HandleNotifyAsync(
-        CodexNotifyPayload payload, bool dryRun, CancellationToken cancellationToken)
+        CodexNotifyPayload payload, CancellationToken cancellationToken)
     {
         if (payload.Type != CodexNotifyPayload.AgentTurnComplete)
         {

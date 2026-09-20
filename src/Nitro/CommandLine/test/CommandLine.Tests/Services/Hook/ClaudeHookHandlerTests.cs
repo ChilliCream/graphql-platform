@@ -77,7 +77,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
 
         // act
-        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         var row = await FindRowAsync(cancellationToken);
@@ -95,10 +95,10 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var first = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var first = await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // act
-        var second = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var second = await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         var row = await FindRowAsync(cancellationToken);
@@ -121,7 +121,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         await _sessions.SetRoleAsync(CurrentGeneration(), string.Empty, cancellationToken);
 
         // act
-        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
@@ -144,7 +144,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         await _sessions.SetRoleAsync(CurrentGeneration(), "planner", cancellationToken);
 
         // act
-        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
@@ -167,7 +167,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var handler = CreateHandler(agentRegistry.Object);
 
         // act
-        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
 
         // assert
@@ -190,7 +190,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var handler = CreateHandler(agentRegistry.Object);
 
         // act
-        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
 
         // assert
@@ -214,7 +214,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             var payload = new ClaudeHookPayload { SessionId = SessionId, Cwd = noWorkspaceRoot.FullName };
 
             // act
-            var outcome = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+            var outcome = await _handler.HandleSessionStartAsync(payload, skipSessionFileLookup: true, cancellationToken);
 
             // assert
             Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
@@ -235,7 +235,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var payload = new ClaudeHookPayload { SessionId = SessionId, Cwd = null };
 
         // act
-        var outcome = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionStartAsync(payload, skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
@@ -249,8 +249,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var payload = new ClaudeHookPayload { SessionId = null, Cwd = _workspaceRoot };
 
         // act
-        var first = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
-        var second = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+        var first = await _handler.HandleSessionStartAsync(payload, skipSessionFileLookup: true, cancellationToken);
+        var second = await _handler.HandleSessionStartAsync(payload, skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, first);
@@ -276,8 +276,8 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
         // act
-        // dryRun: false enables the session-file lookup.
-        await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: false, cancellationToken);
+        // skipSessionFileLookup: false enables the session-file lookup.
+        await handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: false, cancellationToken);
 
         // assert
         var row = await FindRowAsync(cancellationToken);
@@ -285,15 +285,15 @@ public sealed class ClaudeHookHandlerTests : IDisposable
     }
 
     [Fact]
-    public async Task HandleSessionStartAsync_Should_LeaveHarnessVersionBlank_When_TheResolverReturnsNone()
+    public async Task HandleSessionStartAsync_Should_LeaveHarnessVersionBlank_When_SessionFileLookupIsSkipped()
     {
         // arrange
-        // Dry-run resolution omits session-file metadata.
+        // Skipping the session-file lookup omits session metadata.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
         // act
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         var row = await FindRowAsync(cancellationToken);
@@ -308,12 +308,12 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
-        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
@@ -326,11 +326,11 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // act
         var outcome = await _handler.HandleUserPromptSubmitAsync(
-            Payload(SessionId), dryRun: true, cancellationToken);
+            Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
@@ -347,7 +347,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
         // act
         var outcome = await _handler.HandleUserPromptSubmitAsync(
-            Payload(SessionId), dryRun: true, cancellationToken);
+            Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         outcome.AdditionalContext!
@@ -391,7 +391,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var unreadBefore = await _mail.CountUnreadAsync(actor, cancellationToken);
 
         // act
-        var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Contains("\"read\": false", outcome.AdditionalContext);
@@ -406,11 +406,11 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
-        var first = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var first = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         Assert.NotNull(first.AdditionalContext);
 
         // act
-        var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, second);
@@ -424,12 +424,12 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         var message = await SendMailAsync("bob", actor, cancellationToken);
-        var first = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var first = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         Assert.NotNull(first.AdditionalContext);
         await _mail.MarkUnreadAsync([message.Id], actor, cancellationToken);
 
         // act
-        var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, second);
@@ -446,14 +446,14 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         for (var i = 0; i < ClaudeHookHandler.MaxBlocksPerTurn; i++)
         {
             await SendMailAsync($"bob-{i}", actor, cancellationToken);
-            await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+            await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         }
 
         var exhaustedRow = await FindRowAsync(cancellationToken);
         Assert.Equal(ClaudeHookHandler.MaxBlocksPerTurn, exhaustedRow!.BlockBudgetUsed);
 
         // act
-        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         var resetRow = await FindRowAsync(cancellationToken);
@@ -468,12 +468,12 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
         // act
-        await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
@@ -491,7 +491,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
         // act
         var outcome = await _handler.HandleStopAsync(
-            Payload(SessionId, stopHookActive: true), dryRun: true, cancellationToken);
+            Payload(SessionId, stopHookActive: true), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
@@ -507,7 +507,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var message = await SendMailAsync("bob", actor, cancellationToken);
 
         // act
-        var outcome = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.True(outcome.Block);
@@ -529,7 +529,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var unreadBefore = await _mail.CountUnreadAsync(actor, cancellationToken);
 
         // act
-        var outcome = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.True(outcome.Block);
@@ -546,7 +546,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var actor = await StartAndGetActorAsync(cancellationToken);
         var firstMessage = await SendMailAsync("bob", actor, cancellationToken);
 
-        var first = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var first = await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         Assert.True(first.Block);
         Assert.Contains(firstMessage.Id, first.BlockReason);
 
@@ -561,7 +561,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             cancellationToken);
 
         // act
-        var outcome = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.True(outcome.Block);
@@ -579,11 +579,11 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
-        var first = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var first = await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         Assert.True(first.Block);
 
         // act
-        var second = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var second = await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, second);
@@ -601,14 +601,14 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         for (var i = 0; i < ClaudeHookHandler.MaxBlocksPerTurn; i++)
         {
             await SendMailAsync($"bob-{i}", actor, cancellationToken);
-            var outcome = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+            var outcome = await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
             Assert.True(outcome.Block);
         }
 
         await SendMailAsync("bob-over-budget", actor, cancellationToken);
 
         // act
-        var overBudget = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var overBudget = await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, overBudget);
@@ -626,15 +626,15 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         for (var i = 0; i < ClaudeHookHandler.MaxBlocksPerTurn; i++)
         {
             await SendMailAsync($"bob-{i}", actor, cancellationToken);
-            await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+            await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         }
 
         var pending = await SendMailAsync("bob-pending", actor, cancellationToken);
-        await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken); // over budget, no-op
+        await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken); // over budget, no-op
 
         // act
-        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
-        var afterReset = await _handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
+        var afterReset = await _handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.True(afterReset.Block);
@@ -662,7 +662,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
         // act
-        var outcome = await handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
@@ -694,7 +694,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot));
 
         // act
-        var outcome = await handler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await handler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.True(outcome.Block);
@@ -710,13 +710,13 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var sessionStartHandler = CreateHandler();
-        await sessionStartHandler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await sessionStartHandler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
         await SendMailAsync("bob", actor, cancellationToken);
 
         // act
         var stopHandler = CreateHandler();
-        var outcome = await stopHandler.HandleStopAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await stopHandler.HandleStopAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.True(outcome.Block);
@@ -731,11 +731,11 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         Assert.NotNull(await FindRowAsync(cancellationToken));
 
         // act
-        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
@@ -750,7 +750,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
 
         // act
-        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
 
         // assert
         Assert.Equal(ClaudeHookOutcome.Neutral, outcome);
@@ -779,7 +779,7 @@ public sealed class ClaudeHookHandlerTests : IDisposable
 
     private async Task<string> StartAndGetActorAsync(CancellationToken cancellationToken)
     {
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), skipSessionFileLookup: true, cancellationToken);
         var row = await FindRowAsync(cancellationToken);
 
         return row!.AgentName!;

@@ -28,9 +28,9 @@ internal sealed class ClaudeHookHandler(
         "Unread nitro mail is waiting; handle it before ending this turn, or ignore this once if it is not actionable right now.";
 
     public async Task<ClaudeHookOutcome> HandleSessionStartAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, skipSessionFileLookup, cancellationToken);
 
         if (resolved is null)
         {
@@ -67,9 +67,9 @@ internal sealed class ClaudeHookHandler(
     }
 
     public async Task<ClaudeHookOutcome> HandleUserPromptSubmitAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, skipSessionFileLookup, cancellationToken);
 
         if (resolved is null)
         {
@@ -114,14 +114,14 @@ internal sealed class ClaudeHookHandler(
     }
 
     public async Task<ClaudeHookOutcome> HandleStopAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
         if (payload.StopHookActive)
         {
             return ClaudeHookOutcome.Neutral;
         }
 
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, skipSessionFileLookup, cancellationToken);
 
         if (resolved is null)
         {
@@ -169,9 +169,9 @@ internal sealed class ClaudeHookHandler(
     }
 
     public async Task<ClaudeHookOutcome> HandleSessionEndAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
-        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+        var resolved = await ResolveAsync(payload, skipSessionFileLookup, cancellationToken);
 
         if (resolved is not null)
         {
@@ -230,10 +230,10 @@ internal sealed class ClaudeHookHandler(
     /// <summary>
     /// Resolves the session identity and workspace, or null when the session id or cwd
     /// is missing, no workspace is found, or the payload and process workspaces differ.
-    /// A dry run skips reading the session file.
+    /// The session-file lookup is skipped when <paramref name="skipSessionFileLookup"/> is true.
     /// </summary>
     private async Task<ResolvedGeneration?> ResolveAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(payload.Cwd) || string.IsNullOrWhiteSpace(payload.SessionId))
         {
@@ -250,7 +250,7 @@ internal sealed class ClaudeHookHandler(
 
         // A session with no file still resolves; the file only supplies the peer
         // address and the harness version.
-        var session = dryRun ? null : sessionFileReader.Find(payload.SessionId);
+        var session = skipSessionFileLookup ? null : sessionFileReader.Find(payload.SessionId);
 
         var host = await instanceIdProvider.GetIdAsync(
             globalConfigDirectoryProvider.GetDirectory(), cancellationToken);

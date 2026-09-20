@@ -10,7 +10,7 @@ internal interface ICodexHookHandler
     /// Registers the session and returns its actor context.
     /// </summary>
     Task<CodexHookOutcome> HandleSessionStartAsync(
-        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+        CodexHookPayload payload, CancellationToken cancellationToken);
 
     /// <summary>
     /// Returns an unread-mail digest or count reminder for
@@ -18,13 +18,13 @@ internal interface ICodexHookHandler
     /// no context is available.
     /// </summary>
     Task<CodexHookOutcome> HandleUserPromptSubmitAsync(
-        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+        CodexHookPayload payload, CancellationToken cancellationToken);
 
     /// <summary>
     /// Conditionally deletes the session's presence row.
     /// </summary>
     Task<CodexHookOutcome> HandleSessionEndAsync(
-        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+        CodexHookPayload payload, CancellationToken cancellationToken);
 
     /// <summary>
     /// The idle-turn gate: resolves the workspace from <paramref name="payload"/>'s
@@ -33,5 +33,5 @@ internal interface ICodexHookHandler
     /// channel. A message already claimed is not re-queued.
     /// </summary>
     Task<CodexNotifyOutcome> HandleNotifyAsync(
-        CodexNotifyPayload payload, bool dryRun, CancellationToken cancellationToken);
+        CodexNotifyPayload payload, CancellationToken cancellationToken);
 }

@@ -196,7 +196,7 @@ public sealed class ClaudeHookExecutorTests
             }
 
             var payload = new ClaudeHookPayload { SessionId = "session-1", Cwd = workspaceRoot };
-            await handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+            await handler.HandleSessionStartAsync(payload, skipSessionFileLookup: true, cancellationToken);
             await mail.SendMessageAsync(
                 new MailMessageCreation { Sender = "bob", Subject = "status", Body = "check", To = ["alice"] },
                 cancellationToken);
@@ -223,7 +223,7 @@ public sealed class ClaudeHookExecutorTests
                 input,
                 output,
                 error,
-                (p, ct) => handler.HandleStopAsync(p, dryRun: true, ct),
+                (p, ct) => handler.HandleStopAsync(p, skipSessionFileLookup: true, ct),
                 "Stop",
                 TimeSpan.FromMilliseconds(200),
                 cancellationToken);
@@ -299,7 +299,7 @@ public sealed class ClaudeHookExecutorTests
                 input,
                 output,
                 error,
-                (p, ct) => handler.HandleSessionStartAsync(p, dryRun: true, ct),
+                (p, ct) => handler.HandleSessionStartAsync(p, skipSessionFileLookup: true, ct),
                 "SessionStart",
                 cancellationToken);
 

@@ -79,7 +79,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
-        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
         // assert
         var row = await FindRowAsync(cancellationToken);
@@ -96,9 +96,9 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        var first = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var first = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
-        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
@@ -120,7 +120,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         await _sessions.SetRoleAsync(CurrentGeneration(), string.Empty, cancellationToken);
 
         // act
-        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
         // assert
         outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
@@ -143,7 +143,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         await _sessions.SetRoleAsync(CurrentGeneration(), "planner", cancellationToken);
 
         // act
-        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
         // assert
         outcome.AdditionalContext!.Replace(actor, "<actor>").MatchInlineSnapshot(
@@ -166,7 +166,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         var handler = CreateHandler(agentRegistry.Object);
 
         // act
-        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
         var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
 
         // assert
@@ -189,7 +189,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         var handler = CreateHandler(agentRegistry.Object);
 
         // act
-        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
         var actor = (await FindRowAsync(cancellationToken))!.AgentName!;
 
         // assert
@@ -205,7 +205,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
         var row = await FindRowAsync(cancellationToken);
         Assert.NotNull(row);
@@ -224,7 +224,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         {
             var payload = new CodexHookPayload { SessionId = SessionId, Cwd = noWorkspaceRoot.FullName };
 
-            var outcome = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+            var outcome = await _handler.HandleSessionStartAsync(payload, cancellationToken);
 
             Assert.Equal(CodexHookOutcome.Neutral, outcome);
             Assert.Null(await FindRowAsync(cancellationToken));
@@ -243,7 +243,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var payload = new CodexHookPayload { SessionId = SessionId, Cwd = null };
 
-        var outcome = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionStartAsync(payload, cancellationToken);
 
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
     }
@@ -256,8 +256,8 @@ public sealed class CodexHookHandlerTests : IDisposable
         var payload = new CodexHookPayload { SessionId = null, Cwd = _workspaceRoot };
 
         // act
-        var first = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
-        var second = await _handler.HandleSessionStartAsync(payload, dryRun: true, cancellationToken);
+        var first = await _handler.HandleSessionStartAsync(payload, cancellationToken);
+        var second = await _handler.HandleSessionStartAsync(payload, cancellationToken);
 
         // assert
         Assert.Equal(CodexHookOutcome.Neutral, first);
@@ -283,7 +283,7 @@ public sealed class CodexHookHandlerTests : IDisposable
             new FixedGlobalConfigDirectoryProvider(_workspaceRoot),
             _queueClient);
 
-        await handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
         var row = await FindRowAsync(cancellationToken);
         Assert.Equal("0.101.0", row!.HarnessVersion);
@@ -295,7 +295,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
         var row = await FindRowAsync(cancellationToken);
         Assert.Equal("", row!.HarnessVersion);
@@ -308,11 +308,11 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
         var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
-        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
 
         var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
         Assert.True(after > before);
@@ -323,9 +323,9 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
-        var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
 
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
     }
@@ -338,7 +338,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         var actor = await StartAndGetActorAsync(cancellationToken);
         var message = await SendMailAsync("bob", actor, cancellationToken);
 
-        var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
 
         outcome.AdditionalContext!
             .Replace(actor, "<actor>")
@@ -376,10 +376,10 @@ public sealed class CodexHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
-        var first = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var first = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
         Assert.NotNull(first.AdditionalContext);
 
-        var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var second = await _handler.HandleUserPromptSubmitAsync(Payload(SessionId), cancellationToken);
 
         Assert.Equal(CodexHookOutcome.Neutral, second);
     }
@@ -391,10 +391,10 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
         Assert.NotNull(await FindRowAsync(cancellationToken));
 
-        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), cancellationToken);
 
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
         Assert.Null(await FindRowAsync(cancellationToken));
@@ -406,7 +406,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
-        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleSessionEndAsync(Payload(SessionId), cancellationToken);
 
         Assert.Equal(CodexHookOutcome.Neutral, outcome);
     }
@@ -418,11 +418,11 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
         var before = (await FindRowAsync(cancellationToken))!.LastBeatAt;
         _timeProvider.Advance(TimeSpan.FromMinutes(5));
 
-        await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
         var after = (await FindRowAsync(cancellationToken))!.LastBeatAt;
         Assert.True(after > before);
@@ -437,7 +437,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         await SendMailAsync("bob", actor, cancellationToken);
 
         var outcome = await _handler.HandleNotifyAsync(
-            NotifyPayload(SessionId, type: "something-else"), dryRun: true, cancellationToken);
+            NotifyPayload(SessionId, type: "something-else"), cancellationToken);
 
         Assert.Equal(CodexNotifyOutcome.Neutral, outcome);
         Assert.Empty(_queueClient.Calls);
@@ -448,9 +448,9 @@ public sealed class CodexHookHandlerTests : IDisposable
     {
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
 
-        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
         Assert.Equal(CodexNotifyOutcome.Neutral, outcome);
         Assert.Empty(_queueClient.Calls);
@@ -464,7 +464,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         var actor = await StartAndGetActorAsync(cancellationToken);
         var message = await SendMailAsync("bob", actor, cancellationToken);
 
-        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
         Assert.True(outcome.Queued);
         var call = Assert.Single(_queueClient.Calls);
@@ -485,7 +485,7 @@ public sealed class CodexHookHandlerTests : IDisposable
         var unreadBefore = await _mail.CountUnreadAsync(actor, cancellationToken);
 
         // act
-        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
         // assert
         Assert.True(outcome.Queued);
@@ -515,7 +515,7 @@ public sealed class CodexHookHandlerTests : IDisposable
             cancellationToken);
 
         // act
-        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
         // assert
         Assert.True(outcome.Queued);
@@ -535,11 +535,11 @@ public sealed class CodexHookHandlerTests : IDisposable
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
 
-        var first = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        var first = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
         Assert.True(first.Queued);
 
         // act
-        var second = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        var second = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
         // assert
         Assert.Equal(CodexNotifyOutcome.Neutral, second);
@@ -554,10 +554,10 @@ public sealed class CodexHookHandlerTests : IDisposable
         await InitializeWorkspaceAsync(cancellationToken);
         var actor = await StartAndGetActorAsync(cancellationToken);
         await SendMailAsync("bob", actor, cancellationToken);
-        await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
         await SendMailAsync("carol", actor, cancellationToken);
-        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
         Assert.True(outcome.Queued);
         Assert.Equal(2, _queueClient.Calls.Count);
@@ -572,12 +572,12 @@ public sealed class CodexHookHandlerTests : IDisposable
         await SendMailAsync("bob", actor, cancellationToken);
         _queueClient.NextResult = CodexQueueResult.Error;
 
-        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        var outcome = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
 
         Assert.False(outcome.Queued);
 
         // Retry the same message after the failed queue attempt.
-        var retried = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), dryRun: true, cancellationToken);
+        var retried = await _handler.HandleNotifyAsync(NotifyPayload(SessionId), cancellationToken);
         Assert.Equal(CodexNotifyOutcome.Neutral, retried);
         Assert.Single(_queueClient.Calls);
     }
@@ -603,7 +603,7 @@ public sealed class CodexHookHandlerTests : IDisposable
 
     private async Task<string> StartAndGetActorAsync(CancellationToken cancellationToken)
     {
-        await _handler.HandleSessionStartAsync(Payload(SessionId), dryRun: true, cancellationToken);
+        await _handler.HandleSessionStartAsync(Payload(SessionId), cancellationToken);
         var row = await FindRowAsync(cancellationToken);
 
         return row!.AgentName!;

@@ -7,11 +7,11 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 internal interface IClaudeHookHandler
 {
     /// <summary>
-    /// Registers the session and returns its actor context; <paramref name="dryRun"/>
+    /// Registers the session and returns its actor context; <paramref name="skipSessionFileLookup"/>
     /// skips the session-file lookup while retaining workspace database writes.
     /// </summary>
     Task<ClaudeHookOutcome> HandleSessionStartAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
 
     /// <summary>
     /// Resets the Stop block budget and returns an unread-mail digest or count reminder for
@@ -19,7 +19,7 @@ internal interface IClaudeHookHandler
     /// no context is available.
     /// </summary>
     Task<ClaudeHookOutcome> HandleUserPromptSubmitAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
 
     /// <summary>
     /// Blocks the turn from ending when unread mail not yet delivered on the
@@ -28,11 +28,11 @@ internal interface IClaudeHookHandler
     /// per-turn block budget.
     /// </summary>
     Task<ClaudeHookOutcome> HandleStopAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
 
     /// <summary>
     /// Conditionally deletes the session's presence row.
     /// </summary>
     Task<ClaudeHookOutcome> HandleSessionEndAsync(
-        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+        ClaudeHookPayload payload, bool skipSessionFileLookup, CancellationToken cancellationToken);
 }
