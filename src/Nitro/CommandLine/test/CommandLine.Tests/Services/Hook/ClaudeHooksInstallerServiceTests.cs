@@ -149,8 +149,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
-        // Complete serviceB's install before the second sidecar read returns.
-        var injectingFileSystem = new RunOnSecondReadFileSystem(
+        // Complete serviceB's install after serviceA reads the sidecar, but before it writes.
+        var injectingFileSystem = new RunOnFirstReadFileSystem(
             _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
 
         var serviceA = new ClaudeHooksInstallerService(
@@ -191,8 +191,8 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
             new ClaudeHooksSidecarStore(_fileSystem, new FixedSidecarDirectoryProvider(_sidecarDirectory)),
             _timeProvider);
 
-        // Complete serviceB's install before the second sidecar read returns.
-        var injectingFileSystem = new RunOnSecondReadFileSystem(
+        // Complete serviceB's install after serviceA reads the sidecar, but before it writes.
+        var injectingFileSystem = new RunOnFirstReadFileSystem(
             _fileSystem, sidecarPath, () => serviceB.InstallAsync(HookInstallScopes.User, ct));
 
         var serviceA = new ClaudeHooksInstallerService(
@@ -297,12 +297,12 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
     }
 
     /// <summary>
-    /// Runs <paramref name="onSecondRead"/> before the second
-    /// <see cref="ReadAllTextAsync"/> call for <paramref name="watchedPath"/> reads
-    /// the content. Delegates all other operations.
+    /// Runs <paramref name="onFirstRead"/> before the first
+    /// <see cref="ReadAllTextAsync"/> call for <paramref name="watchedPath"/> returns.
+    /// Delegates all other operations.
     /// </summary>
-    private sealed class RunOnSecondReadFileSystem(
-        IFileSystem inner, string watchedPath, Func<Task> onSecondRead) : IFileSystem
+    private sealed class RunOnFirstReadFileSystem(
+        IFileSystem inner, string watchedPath, Func<Task> onFirstRead) : IFileSystem
     {
         private int _readCount;
 
@@ -314,12 +314,14 @@ public sealed class ClaudeHooksInstallerServiceTests : IDisposable
 
         public async Task<string> ReadAllTextAsync(string path, CancellationToken ct)
         {
-            if (string.Equals(path, watchedPath, StringComparison.Ordinal) && Interlocked.Increment(ref _readCount) == 2)
+            var text = await inner.ReadAllTextAsync(path, ct);
+
+            if (string.Equals(path, watchedPath, StringComparison.Ordinal) && Interlocked.Increment(ref _readCount) == 1)
             {
-                await onSecondRead();
+                await onFirstRead();
             }
 
-            return await inner.ReadAllTextAsync(path, ct);
+            return text;
         }
 
         public Stream CreateFile(string path) => inner.CreateFile(path);
