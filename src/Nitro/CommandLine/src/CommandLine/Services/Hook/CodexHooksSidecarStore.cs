@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Hook;
@@ -11,28 +13,35 @@ internal sealed class CodexHooksSidecarStore(
 
     public async Task<CodexHooksSidecarFile> ReadAsync(CancellationToken cancellationToken)
     {
-        var path = ResolvePath();
+        var (file, _) = await ReadWithHashAsync(cancellationToken);
 
-        if (!fileSystem.FileExists(path))
-        {
-            return CodexHooksSidecarFile.Empty;
-        }
-
-        try
-        {
-            var json = await fileSystem.ReadAllTextAsync(path, cancellationToken);
-
-            return JsonSerializer.Deserialize(json, CodexHooksSidecarJsonContext.Default.CodexHooksSidecarFile)
-                ?? CodexHooksSidecarFile.Empty;
-        }
-        catch (JsonException)
-        {
-            return CodexHooksSidecarFile.Empty;
-        }
+        return file;
     }
 
-    public async Task WriteAsync(CodexHooksSidecarFile file, CancellationToken cancellationToken)
+    public async Task<(CodexHooksSidecarFile File, string Hash)> ReadWithHashAsync(
+        CancellationToken cancellationToken)
     {
+        var path = ResolvePath();
+        var text = fileSystem.FileExists(path) ? await fileSystem.ReadAllTextAsync(path, cancellationToken) : null;
+
+        return (Parse(text), Hash(text));
+    }
+
+    public async Task<bool> WriteIfUnchangedAsync(
+        CodexHooksSidecarFile file,
+        string hashAtRead,
+        CancellationToken cancellationToken)
+    {
+        var path = ResolvePath();
+        var currentText = fileSystem.FileExists(path)
+            ? await fileSystem.ReadAllTextAsync(path, cancellationToken)
+            : null;
+
+        if (Hash(currentText) != hashAtRead)
+        {
+            return false;
+        }
+
         var directory = globalConfigDirectoryProvider.GetDirectory();
 
         if (!fileSystem.DirectoryExists(directory))
@@ -42,8 +51,31 @@ internal sealed class CodexHooksSidecarStore(
 
         var json = JsonSerializer.Serialize(file, CodexHooksSidecarJsonContext.Default.CodexHooksSidecarFile);
 
-        await fileSystem.ReplaceFileAtomicAsync(ResolvePath(), json, cancellationToken);
+        await fileSystem.ReplaceFileAtomicAsync(path, json, cancellationToken);
+
+        return true;
     }
+
+    private static CodexHooksSidecarFile Parse(string? text)
+    {
+        if (text is null)
+        {
+            return CodexHooksSidecarFile.Empty;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize(text, CodexHooksSidecarJsonContext.Default.CodexHooksSidecarFile)
+                ?? CodexHooksSidecarFile.Empty;
+        }
+        catch (JsonException)
+        {
+            return CodexHooksSidecarFile.Empty;
+        }
+    }
+
+    private static string Hash(string? text)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text ?? string.Empty)));
 
     private string ResolvePath() => Path.Combine(globalConfigDirectoryProvider.GetDirectory(), FileName);
 }

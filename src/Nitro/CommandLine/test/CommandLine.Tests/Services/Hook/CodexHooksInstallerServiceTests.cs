@@ -144,6 +144,25 @@ public sealed class CodexHooksInstallerServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task InstallAsync_ConcurrentSidecarChanges_ReportsFailureWithoutOverwriting()
+    {
+        // arrange
+        var ct = TestContext.Current.CancellationToken;
+        var sidecarPath = Path.Combine(_sidecarDirectory, "codex-hooks-sidecar.json");
+        Directory.CreateDirectory(_sidecarDirectory);
+        await File.WriteAllTextAsync(sidecarPath, """{"version":2,"notifyFiles":{}}""", ct);
+        var injectingFileSystem = new InjectSidecarChangesOnReadFileSystem(_fileSystem, sidecarPath);
+        var service = CreateService(injectingFileSystem);
+
+        // act
+        var exception = await Assert.ThrowsAsync<ExitException>(() => service.InstallAsync(ct));
+
+        // assert
+        Assert.Contains("codex-hooks-sidecar.json", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(injectingFileSystem.LastInjectedContent, await File.ReadAllTextAsync(sidecarPath, ct));
+    }
+
+    [Fact]
     public async Task StatusAsync_DoesNotWriteAnything()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -169,6 +188,70 @@ public sealed class CodexHooksInstallerServiceTests : IDisposable
         var json = await File.ReadAllTextAsync(path);
 
         return JsonSerializer.Deserialize(json, CodexHooksSidecarJsonContext.Default.CodexHooksSidecarFile)!;
+    }
+
+    /// <summary>
+    /// Replaces the watched sidecar after each read returns its prior content.
+    /// </summary>
+    private sealed class InjectSidecarChangesOnReadFileSystem(IFileSystem inner, string watchedPath) : IFileSystem
+    {
+        private int _readCount;
+
+        public string LastInjectedContent { get; private set; } = string.Empty;
+
+        public bool FileExists(string path) => inner.FileExists(path);
+
+        public Stream OpenReadStream(string path) => inner.OpenReadStream(path);
+
+        public Task<byte[]> ReadAllBytesAsync(string path, CancellationToken ct) => inner.ReadAllBytesAsync(path, ct);
+
+        public async Task<string> ReadAllTextAsync(string path, CancellationToken ct)
+        {
+            var content = await inner.ReadAllTextAsync(path, ct);
+
+            if (string.Equals(path, watchedPath, StringComparison.Ordinal))
+            {
+                LastInjectedContent = $$"""{"version":2,"notifyFiles":{},"external":{{Interlocked.Increment(ref _readCount)}}}""";
+                await inner.ReplaceFileAtomicAsync(path, LastInjectedContent, ct);
+            }
+
+            return content;
+        }
+
+        public Stream CreateFile(string path) => inner.CreateFile(path);
+
+        public Task WriteAllTextAsync(string path, string content, CancellationToken ct)
+            => inner.WriteAllTextAsync(path, content, ct);
+
+        public Task CreateFileAtomicAsync(string path, string content, CancellationToken ct)
+            => inner.CreateFileAtomicAsync(path, content, ct);
+
+        public Task ReplaceFileAtomicAsync(string path, string content, CancellationToken ct)
+            => inner.ReplaceFileAtomicAsync(path, content, ct);
+
+        public void CleanupAbandonedTempFiles(string directory, TimeSpan olderThan)
+            => inner.CleanupAbandonedTempFiles(directory, olderThan);
+
+        public void DeleteFile(string path) => inner.DeleteFile(path);
+
+        public bool DirectoryExists(string path) => inner.DirectoryExists(path);
+
+        public void CreateDirectory(string path) => inner.CreateDirectory(path);
+
+        public void MoveDirectory(string sourcePath, string targetPath)
+            => inner.MoveDirectory(sourcePath, targetPath);
+
+        public void DeleteDirectory(string path, bool recursive)
+            => inner.DeleteDirectory(path, recursive);
+
+        public string GetCurrentDirectory() => inner.GetCurrentDirectory();
+
+        public IEnumerable<string> GetFiles(string directory, string pattern, SearchOption searchOption)
+            => inner.GetFiles(directory, pattern, searchOption);
+
+        public IEnumerable<string> GlobMatch(
+            IEnumerable<string> patterns, IEnumerable<string>? excludes = null, string? workingDirectory = null)
+            => inner.GlobMatch(patterns, excludes, workingDirectory);
     }
 
     private sealed class FixedCodexPathResolver(string hooksJsonPath, string configTomlPath) : ICodexPathResolver

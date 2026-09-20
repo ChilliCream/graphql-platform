@@ -16,7 +16,7 @@ internal sealed class CodexHooksInstallerService(
         var configTomlPath = pathResolver.ResolveConfigToml();
         var descriptor = launchDescriptorResolver.Resolve();
 
-        var sidecar = await sidecarStore.ReadAsync(cancellationToken);
+        var (sidecar, sidecarHashAtRead) = await sidecarStore.ReadWithHashAsync(cancellationToken);
 
         var (hooksTextAtRead, hooksHashAtRead) = await ReadWithHashAsync(hooksJsonPath, cancellationToken);
         var hooksResult = CodexHooksEditor.Install(hooksTextAtRead, descriptor);
@@ -32,7 +32,10 @@ internal sealed class CodexHooksInstallerService(
 
         sidecar.NotifyFiles[configTomlPath] = new CodexNotifySidecarEntry(
             ourArgv, notifyResult.NewPriorForeign, timeProvider.GetUtcNow());
-        await sidecarStore.WriteAsync(sidecar, cancellationToken);
+        if (!await sidecarStore.WriteIfUnchangedAsync(sidecar, sidecarHashAtRead, cancellationToken))
+        {
+            throw SidecarChanged();
+        }
 
         return new CodexHooksInstallReport(
             hooksJsonPath,
@@ -68,7 +71,7 @@ internal sealed class CodexHooksInstallerService(
         var configTomlPath = pathResolver.ResolveConfigToml();
         var descriptor = launchDescriptorResolver.Resolve();
 
-        var sidecar = await sidecarStore.ReadAsync(cancellationToken);
+        var (sidecar, sidecarHashAtRead) = await sidecarStore.ReadWithHashAsync(cancellationToken);
 
         var (hooksTextAtRead, hooksHashAtRead) = await ReadWithHashAsync(hooksJsonPath, cancellationToken);
         var hooksResult = CodexHooksEditor.Uninstall(hooksTextAtRead);
@@ -83,7 +86,10 @@ internal sealed class CodexHooksInstallerService(
             configTomlPath, tomlHashAtRead, notifyResult.ConfigToml, cancellationToken);
 
         sidecar.NotifyFiles.Remove(configTomlPath);
-        await sidecarStore.WriteAsync(sidecar, cancellationToken);
+        if (!await sidecarStore.WriteIfUnchangedAsync(sidecar, sidecarHashAtRead, cancellationToken))
+        {
+            throw SidecarChanged();
+        }
 
         return new CodexHooksUninstallReport(
             hooksJsonPath,
@@ -138,6 +144,11 @@ internal sealed class CodexHooksInstallerService(
             await fileSystem.ReplaceFileAtomicAsync(path, newText, cancellationToken);
         }
     }
+
+    private static ExitException SidecarChanged()
+        => new(
+            "The Codex hook configuration was updated, but codex-hooks-sidecar.json changed concurrently. "
+            + "Re-run the command to repair the record.");
 
     private static string Hash(string? text)
         => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text ?? string.Empty)));
