@@ -495,7 +495,8 @@ internal sealed class TaskStore(
 
     private static async Task<IReadOnlyList<TaskEpicStatus>> QueryEpicStatusesAsync(
         SqliteConnection connection,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        DbTransaction? transaction = null)
     {
         var rows = await connection.QueryAsync<TaskEpicStatus>(
             """
@@ -519,7 +520,8 @@ internal sealed class TaskStore(
                 tombstone = TaskStates.Tombstone,
                 epic = TaskTypes.Epic,
                 cancellationToken
-            });
+            },
+            transaction);
 
         return rows.ToList();
     }
@@ -1654,8 +1656,9 @@ internal sealed class TaskStore(
         var now = timeProvider.GetUtcNow();
 
         await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        var epics = await QueryEpicStatusesAsync(connection, cancellationToken);
+        var epics = await QueryEpicStatusesAsync(connection, cancellationToken, transaction);
         var eligible = epics.Where(epic => epic.IsEligibleForClose).ToList();
 
         if (eligible.Count == 0)
@@ -1663,14 +1666,11 @@ internal sealed class TaskStore(
             return eligible;
         }
 
-        // Every epic is validated up front (IsEligibleForClose, checked
-        // against data read before the transaction opens); the update loop
-        // below is then all-or-nothing, matching CloseTaskCommand's pattern.
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var closed = new List<TaskEpicStatus>(eligible.Count);
 
         foreach (var epic in eligible)
         {
-            await connection.ExecuteAsync(
+            var affected = await connection.ExecuteAsync(
                 """
                 UPDATE tasks
                 SET status = @status,
@@ -1678,6 +1678,21 @@ internal sealed class TaskStore(
                     close_reason = @closeReason,
                     updated_at = @updatedAt
                 WHERE id = @id
+                  AND status = @currentStatus
+                  AND EXISTS (
+                      SELECT 1
+                      FROM dependencies d
+                      INNER JOIN tasks c ON c.id = d.task_id
+                      WHERE d.depends_on_id = tasks.id
+                        AND d.dependency_type = @parentChild
+                        AND c.status != @tombstone)
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM dependencies d
+                      INNER JOIN tasks c ON c.id = d.task_id
+                      WHERE d.depends_on_id = tasks.id
+                        AND d.dependency_type = @parentChild
+                        AND c.status NOT IN (@closed, @archived, @tombstone))
                 """,
                 new
                 {
@@ -1686,9 +1701,19 @@ internal sealed class TaskStore(
                     closeReason,
                     updatedAt = now,
                     id = epic.Id,
+                    currentStatus = epic.Status,
+                    parentChild = TaskDependencyTypes.ParentChild,
+                    closed = TaskStates.Closed,
+                    archived = TaskStates.Archived,
+                    tombstone = TaskStates.Tombstone,
                     cancellationToken
                 },
                 transaction);
+
+            if (affected == 0)
+            {
+                continue;
+            }
 
             await RecordEventAsync(
                 connection,
@@ -1704,13 +1729,15 @@ internal sealed class TaskStore(
                 },
                 cancellationToken,
                 transaction);
+
+            closed.Add(epic with { Status = TaskStates.Closed });
         }
 
         await transaction.CommitAsync(cancellationToken);
 
         await ArchiveExcessClosedTasksAsync(connection, actor, cancellationToken);
 
-        return eligible.Select(epic => epic with { Status = TaskStates.Closed }).ToList();
+        return closed;
     }
 
     // Enforces TaskStates.ClosedTaskCap: when the closed count exceeds the
@@ -1722,37 +1749,46 @@ internal sealed class TaskStore(
         string actor,
         CancellationToken cancellationToken)
     {
-        var closedCount = await connection.ExecuteScalarAsync<int>(
-            "SELECT COUNT(*) FROM tasks WHERE status = @status",
-            new { status = TaskStates.Closed, cancellationToken });
-
-        var excess = closedCount - TaskStates.ClosedTaskCap;
-
-        if (excess <= 0)
-        {
-            return;
-        }
-
-        var idsToArchive = (await connection.QueryAsync<string>(
-            """
-            SELECT id FROM tasks
-            WHERE status = @status
-            ORDER BY closed_at ASC, id ASC
-            LIMIT @limit
-            """,
-            new { status = TaskStates.Closed, limit = excess, cancellationToken })).ToList();
-
         var now = timeProvider.GetUtcNow();
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
+        var idsToArchive = (await connection.QueryAsync<string>(
+            """
+            WITH excess AS (
+                SELECT CASE
+                    WHEN COUNT(*) > @closedTaskCap THEN COUNT(*) - @closedTaskCap
+                    ELSE 0
+                END AS count
+                FROM tasks
+                WHERE status = @closed
+            ),
+            tasks_to_archive AS (
+                SELECT id
+                FROM tasks
+                WHERE status = @closed
+                ORDER BY closed_at ASC, id ASC
+                LIMIT (SELECT count FROM excess)
+            )
+            UPDATE tasks
+            SET status = @archived,
+                updated_at = @updatedAt
+            WHERE status = @closed
+              AND id IN (SELECT id FROM tasks_to_archive)
+            RETURNING id
+            """,
+            new
+            {
+                closed = TaskStates.Closed,
+                archived = TaskStates.Archived,
+                closedTaskCap = TaskStates.ClosedTaskCap,
+                updatedAt = now,
+                cancellationToken
+            },
+            transaction)).ToList();
+
         foreach (var id in idsToArchive)
         {
-            await connection.ExecuteAsync(
-                "UPDATE tasks SET status = @status, updated_at = @updatedAt WHERE id = @id",
-                new { status = TaskStates.Archived, updatedAt = now, id, cancellationToken },
-                transaction);
-
             await RecordEventAsync(
                 connection,
                 new TaskEvent
