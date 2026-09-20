@@ -162,6 +162,28 @@ public sealed class TaskBadgeTests
         Assert.True(Markup.Remove(line).GetCellWidth() <= maxWidth);
     }
 
+    [Theory]
+    [InlineData("\aABCDE")]
+    [InlineData("\aABCDEF")]
+    public void Render_Should_FitDisplayWidth_When_TitleContainsControlCharacter(string title)
+    {
+        // arrange
+        const int maxWidth = 19;
+
+        // act
+        var line = TaskBadge.Render(
+            id: "T-1",
+            title: title,
+            status: TaskStates.Open,
+            priority: TaskPriorities.Medium,
+            type: TaskTypes.Task,
+            selected: false,
+            maxWidth: maxWidth);
+
+        // assert
+        Assert.True(Markup.Remove(line).Replace("\a", string.Empty).GetCellWidth() <= maxWidth);
+    }
+
     [Fact]
     public void Render_Should_ReturnEmpty_When_MaxWidthIsZero()
     {

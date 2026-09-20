@@ -124,5 +124,5 @@ internal static class DisplayWidth
         return truncatedWidth >= width ? truncated : new string(' ', width - truncatedWidth) + truncated;
     }
 
-    private static int GetTextElementWidth(string element) => element.GetCellWidth();
+    private static int GetTextElementWidth(string element) => Math.Max(0, element.GetCellWidth());
 }
