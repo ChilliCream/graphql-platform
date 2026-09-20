@@ -21,6 +21,7 @@ internal sealed class TelemetryCommand : Command
         Description = "Inspect workspace telemetry.";
 
         Subcommands.Add(new AttributesCommand());
+        Subcommands.Add(new Logs.LogsCommand());
         Subcommands.Add(new ServicesCommand());
     }
 }
