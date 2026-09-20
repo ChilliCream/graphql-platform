@@ -308,9 +308,12 @@ public sealed class TuiEffectQueueTests
         Assert.False(drainTask.IsCompleted); // the drain has entered its wait for the blocked effect
         release.SetResult();
         await drainTask;
+        var completions = queue.DrainCompletions();
 
         // assert
         Assert.Equal(0, queue.PendingCount);
+        var completed = Assert.IsType<TuiEffectCompletion<string>.Completed>(Assert.Single(completions));
+        Assert.Equal("done", completed.Result);
     }
 
     [Fact]

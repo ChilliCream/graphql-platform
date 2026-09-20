@@ -204,6 +204,7 @@ public sealed class TuiShellQuitGateTests
         var effectEntered = new TaskCompletionSource();
         var release = new TaskCompletionSource();
         var gateEntered = new TaskCompletionSource();
+        IReadOnlyList<TuiEffectCompletion<string>> completions = [];
 
         async Task<string> Effect(TuiOperationId id, CancellationToken ct)
         {
@@ -217,7 +218,10 @@ public sealed class TuiShellQuitGateTests
             queue.StopAccepting();
             gateEntered.SetResult();
             await queue.DrainPendingAsync(bound, ct);
-            return new TuiQuitGateReport(queue.PendingCount, 0, queue.PendingOperationIds);
+            completions = queue.DrainCompletions();
+            var outcomeUnknownCount = completions.Count(
+                completion => completion is TuiEffectCompletion<string>.Faulted or TuiEffectCompletion<string>.Cancelled);
+            return new TuiQuitGateReport(queue.PendingCount, outcomeUnknownCount, queue.PendingOperationIds);
         };
 
         queue.TrySubmit("compose", Effect, testToken, out _);
@@ -237,7 +241,8 @@ public sealed class TuiShellQuitGateTests
         // assert
         Assert.True(dirty);
         Assert.True(confirmed);
-        Assert.DoesNotContain("stored-but-pending", RenderToText(shell));
+        var completed = Assert.IsType<TuiEffectCompletion<string>.Completed>(Assert.Single(completions));
+        Assert.Equal("done", completed.Result);
     }
 
     [Fact]
