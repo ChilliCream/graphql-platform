@@ -9,6 +9,14 @@ interface Pt {
 export interface Tile {
   /** The four screen-space corners, already inset from the true tile edges so the gap between tiles reads as a dark seam, never a stroke. */
   readonly poly: readonly [Pt, Pt, Pt, Pt];
+  /**
+   * The four screen-space corners BEFORE the seam inset -- the tile's true
+   * edge-to-edge silhouette. Column tiles only consume this
+   * (`paint.ts`'s `buildColumnSilhouette`, checkpoint 1's "black base
+   * confined to the column silhouette" as the exact union of the drawn
+   * tiles, not an inset or margined approximation of them).
+   */
+  readonly rawPoly: readonly [Pt, Pt, Pt, Pt];
   /** Diagonal corners for the specular gradient (unfaded). */
   readonly hi: Pt;
   readonly lo: Pt;
@@ -28,6 +36,14 @@ export interface Tile {
    * by `paint.ts`'s `paintColumnLayer` as a per-tile `globalAlpha`.
    */
   readonly bandFade: number;
+  /**
+   * The row-pair index this tile came from (`r` in `buildChamberTiles`'s
+   * own loop). Column tiles only consume this (`paint.ts`'s
+   * `paintColumnLayer`, checkpoint 1's per-rim edge fade: the first and
+   * last row pairs' own `bandFade`, not a blanket minimum over every
+   * tile).
+   */
+  readonly rowPair: number;
 }
 
 export interface InstrumentLight {
@@ -37,14 +53,26 @@ export interface InstrumentLight {
 }
 
 /**
- * Shared by both the wall and the column (checkpoint 1's "seam width...
- * shared with the wall"): the column's own opaque black base
- * (`buildColumnSilhouette`/`paintColumnLayer`) sits under every column
- * seam gap regardless of the inset fraction, so widening the column's
- * seams to match the wall's no longer risks a brighter layer showing
- * through them the way it would have before that base existed.
+ * The WALL's own inset (frozen, pixel-parity gate -- checkpoint 1's "wall
+ * painter untouched"): a FRACTION of each tile's own size, toward its
+ * centroid.
  */
 const SEAM_INSET = 0.09;
+/**
+ * The COLUMN's own inset (checkpoint 1's "seam width... shared with the
+ * wall" -- matched to the wall's own measured gap, not to the wall's
+ * fractional formula): a FIXED pixel offset toward the tile's centroid,
+ * `COLUMN_SEAM_GAP_PX` split evenly between the two tiles sharing a seam.
+ * A fractional inset (the wall's own `SEAM_INSET`) leaves a 20-28px gap on
+ * the column's own tallest waist tiles (F4c's mobile "black shelf") and a
+ * sub-1px, anti-aliased gap on its smallest rim tiles (F3's failed
+ * alpha-255 seam scan) -- the SAME fraction cannot fit both. A fixed pixel
+ * offset, capped so it can never invert a genuinely tiny tile, keeps every
+ * column seam the same rendered width regardless of the tile's own size,
+ * matching the wall's own measured seam gap at its pair 16->17 (2.5-3px,
+ * `test-results/wqa-rim-search.cjs`'s `refTop.meanGap`) within 1px.
+ */
+const COLUMN_SEAM_GAP_PX = 2.7;
 const LIGHT_DIR = normalize3({ x: 0.4, y: 0.7, z: -0.6 });
 /**
  * The column's near half faces `LIGHT_DIR` almost head-on (its outward
@@ -94,6 +122,36 @@ function insetQuad(
     lerpPt(p[2], center, inset),
     lerpPt(p[3], center, inset),
   ];
+}
+
+/**
+ * The COLUMN's own pixel-based inset (see `COLUMN_SEAM_GAP_PX`'s own doc):
+ * moves each corner toward the quad's centroid by a FIXED px distance
+ * (`gapPx / 2`, half the target gap -- the tile sharing the other side of
+ * the seam moves in by the same amount, so the two faces end up
+ * `gapPx` apart) along the corner-to-centroid line, instead of `insetQuad`'s
+ * fraction-of-size lerp. Capped at 45% of the corner's own distance to the
+ * centroid so a tile smaller than the target gap is never inverted (its
+ * corners never cross the centroid) -- it just reads as a smaller, still
+ * legible face with a slightly narrower seam, the same graceful floor
+ * `insetQuad`'s own small-tile branch uses.
+ */
+function insetQuadPx(
+  p: readonly [Pt, Pt, Pt, Pt],
+  gapPx: number,
+): readonly [Pt, Pt, Pt, Pt] {
+  const cx = (p[0].x + p[1].x + p[2].x + p[3].x) / 4;
+  const cy = (p[0].y + p[1].y + p[2].y + p[3].y) / 4;
+  const center: Pt = { x: cx, y: cy };
+  const insetPx = gapPx / 2;
+  const move = (corner: Pt): Pt => {
+    const dx = center.x - corner.x;
+    const dy = center.y - corner.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    const t = Math.min(0.45, insetPx / dist);
+    return lerpPt(corner, center, t);
+  };
+  return [move(p[0]), move(p[1]), move(p[2]), move(p[3])];
 }
 
 /**
@@ -214,13 +272,17 @@ export function buildChamberTiles(
       const wPx = Math.hypot(c1.x - c0.x, c1.y - c0.y);
       const hPx = Math.hypot(c3.x - c0.x, c3.y - c0.y);
       const size = Math.min(wPx, hPx);
-      const poly = insetQuad([c0, c1, c2, c3], size, SEAM_INSET);
+      const poly =
+        kind === "column"
+          ? insetQuadPx([c0, c1, c2, c3], COLUMN_SEAM_GAP_PX)
+          : insetQuad([c0, c1, c2, c3], size, SEAM_INSET);
       const normal = { x: Math.cos(midTheta), y: 0, z: Math.sin(midTheta) };
       const rawShade = clamp(dot3(normal, LIGHT_DIR) * 0.5 + 0.5, 0.16, 1);
       const shade =
         kind === "column" ? rawShade * COLUMN_SHADE_CEILING : rawShade;
       tiles.push({
         poly,
+        rawPoly: [c0, c1, c2, c3],
         hi: poly[0],
         lo: poly[2],
         shade,
@@ -228,6 +290,7 @@ export function buildChamberTiles(
         fastener: size > 18 && (r * thetaSegments + s) % 3 === 0,
         size,
         bandFade: bandFadeAt((rowA.y + rowB.y) / 2, maxY, bandFadeFloor),
+        rowPair: r,
       });
     }
   }

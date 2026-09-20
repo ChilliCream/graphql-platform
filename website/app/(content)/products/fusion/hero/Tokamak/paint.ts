@@ -1,47 +1,12 @@
 import { BRAND } from "../../tokens";
 import type { InstrumentLight, Tile } from "./chamber";
 import { blackToRgba, hexToRgba, mixHexToRgba, whiteToRgba } from "./colors";
-import { project, ringPoint, type Camera } from "./geometry";
 import type { ShadedPoint } from "./plasma";
-import type { ChamberRow } from "./sceneLayout";
 
 interface Pt {
   readonly x: number;
   readonly y: number;
 }
-
-/** Half a theta segment beyond `chamber.ts`'s own worst-case row stagger
- * (`0.5 / thetaSegments`, at the smallest `thetaSegments` this scene ever
- * builds), plus headroom: `buildChamberTiles` keeps a cell by its
- * MIDPOINT theta only, so a staggered cell straddling the front/back
- * cutoff (`theta` = pi or 2*pi) can have one real corner just past that
- * cutoff and still be a kept, painted tile -- `rowFrontArc`'s own sampled
- * domain has to reach that corner too, not stop exactly at the cutoff. */
-const FRONT_ARC_MARGIN = (15 * Math.PI) / 180;
-
-/** One row's front-facing arc (`theta` = pi -> 2*pi, the same front-face
- * half `chamber.ts`'s `facingAway` back-face-culls the real tiles to,
- * widened by `FRONT_ARC_MARGIN` on both ends), densely sampled -- the raw
- * material `buildColumnSilhouette` walks to trace the hourglass's
- * outline. */
-function rowFrontArc(row: ChamberRow, camera: Camera, segments: number): Pt[] {
-  const pts: Pt[] = [];
-  const start = Math.PI - FRONT_ARC_MARGIN;
-  const span = Math.PI + 2 * FRONT_ARC_MARGIN;
-  for (let k = 0; k <= segments; k++) {
-    const theta = start + (k / segments) * span;
-    const p = project(ringPoint(row.radius, theta, row.y, row.z), camera);
-    pts.push({ x: p.x, y: p.y });
-  }
-  return pts;
-}
-
-/** Dense enough that the envelope `buildColumnSilhouette` builds from
- * these samples never leaves a real tile corner more than a sub-pixel
- * outside the outline (checked by `rv2-limb.cjs`'s overhang measure),
- * without a per-frame cost -- this runs once per `measure()` (mount/
- * resize), not per animation frame. */
-const SILHOUETTE_ARC_SAMPLES = 720;
 
 /**
  * The column's opaque backing, as ONE simple outline polygon of the whole
@@ -50,48 +15,26 @@ const SILHOUETTE_ARC_SAMPLES = 720;
  * the user's own report of a dark half-moon/hairlines on the shipped
  * pillar).
  *
- * A row's own front arc is not a simple bulge: past its own left/right
- * projected extremum, `x(theta)` folds back inward WHILE `y(theta)` keeps
- * moving further from the row's own centre -- most visibly on the rim
- * rows, where the curvature (sagitta) is largest -- so a real tile corner
- * in that fold can sit further from the band, in SCREEN Y, than either
- * that row's own extremum or a straight chord to the next row's extremum.
- * Neither a single limb point per row nor a per-flare convex hull (the
- * first two attempts at this fix) bounds that fold correctly: a hull's
- * own "narrowest point" is the front-centre apex (screen `x` close to the
- * axis there too), not the waist, so it cannot be told apart from the
- * waist by position alone.
+ * Built directly from the DRAWN column tiles' own `rawPoly` (the un-inset
+ * corner quads `buildChamberTiles` computes before the seam gap is cut
+ * in): the exact same kept, `depth > 1`, near-facing tiles the column
+ * layer actually paints, not a separately sampled row arc. Checkpoint 1's
+ * F1 transfer ("the base must be the exact union of the tile polygons")
+ * is then true by construction -- there is no approximating envelope or
+ * margin left to overshoot the tiles (a stray fringe/crescent) or fall
+ * short of them (a hairline gap): every tile's own 4 edges are fed into
+ * the same scanline min/max-x envelope `buildColumnSilhouette` used to
+ * build from the row arcs, so two neighbouring tiles' shared edge (and
+ * any row-to-row edge) still closes the scanline gaps between separately
+ * sampled points the same way the row-arc version's own doc described,
+ * just anchored to the real tile geometry instead of a widened arc
+ * sample.
  *
- * The outline instead builds a screen-space ENVELOPE directly: sample
- * every row's front arc densely (`rowFrontArc`, every row at the SAME
- * theta grid), and for every screen-space scanline (`y`, rounded to the
- * pixel) that any sampled point, or any segment between two of them,
- * crosses, record the smallest and largest `x` reached there
- * (`addSegment` interpolates along a segment so no scanline in its own
- * `y`-span is skipped). Two kinds of segment feed this: a row's own
- * WITHIN-ROW consecutive samples (its fold-back, above), and, same
- * importance, BETWEEN-ROW segments joining two adjacent rows' samples at
- * the SAME theta index -- a real tile's own edge is exactly one such
- * segment, and two adjacent rows' own `y` ranges do not always overlap
- * (each is its own local hump), so a tile can cross a `y` band that
- * NEITHER row's own within-row arc ever visits; the within-row pass alone
- * leaves that band a genuine gap (found as a several-pixel-tall,
- * pixel-wide crack in the rendered base, not explained by antialiasing).
- * The polygon is the right envelope (`max x` at each `y`, top to bottom)
- * followed by the left envelope (`min x` at each `y`, bottom to top) --
- * by construction, no sampled point (and so no real tile corner, whose
- * own `(x, y)` is on one of these same segments at a coarser `theta`) can
- * fall outside it (checked directly against `buildChamberTiles`'s own
- * output: 0 corners outside at both 1440 and 375), and the band's own
- * narrow radius still pinches the waist because at the waist's own `y`
- * range only the waist row's points (and any other row's rare, narrow
- * fold-back through that same `y`) contribute to the envelope. Filling
- * this once at alpha 1 (see
- * `paintColumnLayer`) covers both the area the real (inset) tiles occupy
- * AND every seam gap between them, so nothing drawn behind the column (the
- * far arc's streaks) is ever visible through a tile or a seam, and the top
- * rim's own front edge -- where the ceiling begins -- is the polygon's own
- * top edge, always solid.
+ * Filling this once at alpha 1 (see `paintColumnLayer`) covers both the
+ * area the real (inset) tiles occupy AND every seam gap between them, so
+ * nothing drawn behind the column (the far arc's streaks) is ever visible
+ * through a tile or a seam, and the top rim's own front edge -- where the
+ * ceiling begins -- is the polygon's own top edge, always solid.
  */
 
 interface YExtent {
@@ -131,35 +74,23 @@ function addSegment(map: Map<number, YExtent>, a: Pt, b: Pt): void {
 }
 
 export function buildColumnSilhouette(
-  rows: readonly ChamberRow[],
-  camera: Camera,
-  segments = SILHOUETTE_ARC_SAMPLES,
+  columnTiles: readonly Tile[],
 ): readonly Pt[] {
-  if (rows.length < 2) {
+  if (columnTiles.length === 0) {
     return [];
   }
-  const arcs = rows.map((row) => rowFrontArc(row, camera, segments));
   const extents = new Map<number, YExtent>();
-  // Within-row segments: a row's own fold-back (see this function's doc).
-  for (const arc of arcs) {
-    for (let i = 0; i < arc.length - 1; i++) {
-      addSegment(extents, arc[i], arc[i + 1]);
-    }
-  }
-  // Between-row segments, same theta index on two adjacent rows (every
-  // `rowFrontArc` call above uses the SAME theta grid, so `arcs[r][k]` and
-  // `arcs[r + 1][k]` share theta exactly): a real tile's own vertical-ish
-  // edge connects exactly these two points, and two rows can leave a `y`
-  // GAP that neither row's own arc ever visits (each row's Y range is its
-  // own local hump, and adjacent rows' humps don't always overlap) while a
-  // tile spanning them still draws straight through that gap -- the
-  // within-row segments alone miss it, so it needs its own pass.
-  for (let r = 0; r < arcs.length - 1; r++) {
-    const arcA = arcs[r];
-    const arcB = arcs[r + 1];
-    for (let k = 0; k < arcA.length; k++) {
-      addSegment(extents, arcA[k], arcB[k]);
-    }
+  // Every drawn tile's own 4 edges (its true, un-inset corners): a
+  // neighbouring tile's matching edge contributes the same segment (up to
+  // floating-point noise), so the union naturally closes without a
+  // separate "between-row" pass -- unlike the row-arc version, these
+  // segments already ARE real tile edges, not samples approximating them.
+  for (const tile of columnTiles) {
+    const [c0, c1, c2, c3] = tile.rawPoly;
+    addSegment(extents, c0, c1);
+    addSegment(extents, c1, c2);
+    addSegment(extents, c2, c3);
+    addSegment(extents, c3, c0);
   }
   const ys = [...extents.keys()].sort((a, b) => a - b);
   if (ys.length === 0) {
@@ -470,6 +401,14 @@ export function paintColumnLayer(
   h: number,
   columnSilhouette: readonly Pt[],
   columnTiles: readonly Tile[],
+  /**
+   * `project({x: 0, y: torus.y, z: torus.z}, camera).y` -- the band's own
+   * screen `y`, not the silhouette bbox's midpoint (F9): once the two
+   * rims flare independently (checkpoint 1's asymmetric spans), the
+   * silhouette's own vertical midpoint no longer sits at the band, so a
+   * fixed `0.5` stop anchors the opaque core off-centre.
+   */
+  bandY: number,
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.globalCompositeOperation = "source-over";
@@ -494,19 +433,43 @@ export function paintColumnLayer(
       if (p.y < minY) minY = p.y;
       if (p.y > maxY) maxY = p.y;
     }
-    const edgeFade = columnTiles.reduce(
-      (min, t) => Math.min(min, t.bandFade),
-      1,
-    );
+    // The two edge fades come from the FIRST and LAST row pairs' own
+    // `bandFade` (F10), not a blanket minimum over every tile: with the
+    // two rims flaring independently, the two ends fade at different
+    // rates, and a single shared minimum would flatten that asymmetry.
+    // Row-pair 0 and the highest `rowPair` index are each one rim's own
+    // nearest pair; which one lands at the gradient's `minY` end (screen
+    // top) vs `maxY` end depends on the camera's own projection, not row
+    // index, so it is resolved here from each pair's own mean screen `y`
+    // rather than assumed.
+    let maxRowPair = 0;
+    for (const t of columnTiles) {
+      if (t.rowPair > maxRowPair) maxRowPair = t.rowPair;
+    }
+    const pairFade = (pair: number): { fade: number; avgY: number } => {
+      let fade = 1;
+      let ySum = 0;
+      let n = 0;
+      for (const t of columnTiles) {
+        if (t.rowPair !== pair) continue;
+        fade = Math.min(fade, t.bandFade);
+        ySum += (t.rawPoly[0].y + t.rawPoly[2].y) / 2;
+        n++;
+      }
+      return { fade, avgY: n > 0 ? ySum / n : minY };
+    };
+    const first = pairFade(0);
+    const last = pairFade(maxRowPair);
+    const topFade = first.avgY <= last.avgY ? first.fade : last.fade;
+    const bottomFade = first.avgY <= last.avgY ? last.fade : first.fade;
     const grad = ctx.createLinearGradient(0, minY, 0, maxY);
-    grad.addColorStop(0, blackToRgba(edgeFade));
-    grad.addColorStop(0.5, blackToRgba(1));
-    grad.addColorStop(1, blackToRgba(edgeFade));
+    const span = maxY - minY || 1;
+    const bandStop = Math.min(0.999, Math.max(0.001, (bandY - minY) / span));
+    grad.addColorStop(0, blackToRgba(topFade));
+    grad.addColorStop(bandStop, blackToRgba(1));
+    grad.addColorStop(1, blackToRgba(bottomFade));
     ctx.fillStyle = grad;
     ctx.fill();
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = grad;
-    ctx.stroke();
   }
   for (const tile of columnTiles) {
     ctx.globalAlpha = tile.bandFade;
