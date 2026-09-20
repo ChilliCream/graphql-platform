@@ -32,11 +32,21 @@ public static class Program
         services.AddSingleton<INitroClientContextProvider>(sp => sp.GetRequiredService<NitroClientContext>());
         services.AddNitroClients();
 
+        var isAgentMode = AgentModeDetector.IsEnabled(
+            Console.IsOutputRedirected,
+            Environment.GetEnvironmentVariable);
+
         var outConsole = AnsiConsole.Console;
         var errorConsole = AnsiConsole.Create(new AnsiConsoleSettings
         {
             Out = new AnsiConsoleOutput(Console.Error)
         });
+
+        if (isAgentMode)
+        {
+            outConsole.Profile.Capabilities.ColorSystem = ColorSystem.NoColors;
+            errorConsole.Profile.Capabilities.ColorSystem = ColorSystem.NoColors;
+        }
 
         // When output is not a terminal (CI, pipes), Spectre.Console defaults
         // to 80 chars width. Use a wide width so the consumer handles wrapping.
@@ -55,7 +65,8 @@ public static class Program
                 new NitroConsole(
                     outConsole,
                     errorConsole,
-                    new ActivitySinkFactory()));
+                    new ActivitySinkFactory(),
+                    isAgentMode));
 
         await using var provider = services.BuildServiceProvider();
 
