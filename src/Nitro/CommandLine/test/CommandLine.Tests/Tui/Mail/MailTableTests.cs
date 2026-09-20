@@ -1,3 +1,4 @@
+using System.Globalization;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Tui.Mail;
 using Spectre.Console;
@@ -71,6 +72,23 @@ public sealed class MailTableTests
             >= 0x1F300 and <= 0x1FAFF => 2, // emoji blocks
             _ => 1
         });
+
+    private static int MeasureEmojiPresentationWidth(string value)
+    {
+        var width = 0;
+        var elements = StringInfo.GetTextElementEnumerator(value);
+
+        while (elements.MoveNext())
+        {
+            width += (string)elements.Current switch
+            {
+                "⌚" or "❤️" or "1️⃣" => 2,
+                _ => 1
+            };
+        }
+
+        return width;
+    }
 
     /// <summary>
     /// True when <paramref name="value"/> contains a UTF-16 surrogate half with no matching
@@ -546,6 +564,31 @@ public sealed class MailTableTests
 
         // assert
         Assert.Equal(contentWidth, MeasureCellWidth(row));
+    }
+
+    [Theory]
+    [InlineData("⌚")]
+    [InlineData("❤️")]
+    [InlineData("1️⃣")]
+    public void RenderMessageRow_Should_FitContentWidth_When_ContentUsesEmojiPresentation(string emoji)
+    {
+        // arrange
+        const int contentWidth = 80;
+        var columns = MailTable.ComputeColumns(contentWidth, showCount: false);
+        var message = MailMessageBuilder.Create(
+            "m-1",
+            sender: string.Concat(Enumerable.Repeat(emoji, 60)),
+            subject: string.Concat(Enumerable.Repeat(emoji, 60)),
+            body: string.Concat(Enumerable.Repeat(emoji, 60)),
+            createdAt: s_now,
+            recipients: [MailMessageBuilder.ToRecipient(string.Concat(Enumerable.Repeat(emoji, 60)))]);
+
+        // act
+        var row = RenderPlain(MailTable.RenderMessageRow(
+            message, threadChild: false, unreadToMe: false, selected: false, "alice", s_now, columns));
+
+        // assert
+        Assert.Equal(contentWidth, MeasureEmojiPresentationWidth(row));
     }
 
     [Theory]

@@ -85,6 +85,7 @@ internal static class AgentRowBadge
         var roleText = DisplayWidth.PadRight(RoleText(session), widths.Role);
         var roleBudget = Math.Max(0, maxWidth - fixedPlainWidth);
         var truncatedRole = DisplayWidth.Truncate(roleText, roleBudget);
+        var minimumPlainWidth = fixedPlainWidth - 1;
 
         var actorStyle = ThemeTokens.GetStyle("agents.list.name").ToMarkup();
         var presenceStyle = PresenceStyle(row.Participant.State).ToMarkup();
@@ -92,14 +93,28 @@ internal static class AgentRowBadge
         var roleStyle = RoleStyle(session.Role).ToMarkup();
         var ageStyle = ThemeTokens.GetStyle("agents.list.age").ToMarkup();
 
-        var line =
-            $"{Markup.Escape(prefix)}{Markup.Escape(marker)} "
-            + $"{Stylize(actorStyle, Markup.Escape(actor))} "
-            + $"{Stylize(presenceStyle, Markup.Escape(presenceBadge))} "
-            + $"{Stylize(harnessStyle, Markup.Escape(harness))} "
-            + $"{Stylize(roleStyle, Markup.Escape(truncatedRole))} "
-            + $"{Stylize(ageStyle, $"started {Markup.Escape(startedAge)}")} "
-            + $"{Stylize(ageStyle, $"heard {Markup.Escape(lastHeardAge)}")}";
+        var line = minimumPlainWidth > maxWidth
+            ? RenderNarrow(
+                prefix,
+                marker,
+                maxWidth,
+                actor,
+                actorStyle,
+                presenceBadge,
+                presenceStyle,
+                harness,
+                harnessStyle,
+                $"started {startedAge}",
+                ageStyle,
+                $"heard {lastHeardAge}",
+                ageStyle)
+            : $"{Markup.Escape(prefix)}{Markup.Escape(marker)} "
+                + $"{Stylize(actorStyle, Markup.Escape(actor))} "
+                + $"{Stylize(presenceStyle, Markup.Escape(presenceBadge))} "
+                + $"{Stylize(harnessStyle, Markup.Escape(harness))} "
+                + $"{Stylize(roleStyle, Markup.Escape(truncatedRole))} "
+                + $"{Stylize(ageStyle, $"started {Markup.Escape(startedAge)}")} "
+                + $"{Stylize(ageStyle, $"heard {Markup.Escape(lastHeardAge)}")}";
 
         if (isImplicit)
         {
@@ -173,6 +188,62 @@ internal static class AgentRowBadge
     }
 
     private static string RoleText(AgentSessionRecord session) => session.Role.Length == 0 ? EmptyRole : session.Role;
+
+    private static string RenderNarrow(
+        string prefix,
+        string marker,
+        int maxWidth,
+        string actor,
+        string actorStyle,
+        string presence,
+        string presenceStyle,
+        string harness,
+        string harnessStyle,
+        string startedAge,
+        string ageStyle,
+        string lastHeardAge,
+        string lastHeardAgeStyle)
+    {
+        var prefixText = DisplayWidth.Slice($"{prefix}{marker} ", maxWidth);
+        var line = Markup.Escape(prefixText);
+        var remaining = maxWidth - DisplayWidth.Measure(prefixText);
+        var hasColumn = false;
+
+        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, actor, actorStyle);
+        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, presence, presenceStyle);
+        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, harness, harnessStyle);
+        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, startedAge, ageStyle);
+        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, lastHeardAge, lastHeardAgeStyle);
+
+        return line;
+    }
+
+    private static void AppendNarrowColumn(
+        ref string line,
+        ref int remaining,
+        ref bool hasColumn,
+        string value,
+        string styleMarkup)
+    {
+        var separatorWidth = hasColumn ? 1 : 0;
+        var valueBudget = remaining - separatorWidth;
+
+        if (valueBudget <= 0)
+        {
+            return;
+        }
+
+        var truncatedValue = DisplayWidth.Truncate(value, valueBudget);
+
+        if (truncatedValue.Length == 0)
+        {
+            return;
+        }
+
+        line += (hasColumn ? " " : string.Empty) + Stylize(styleMarkup, Markup.Escape(truncatedValue));
+        remaining -= separatorWidth + DisplayWidth.Measure(truncatedValue);
+        hasColumn = true;
+    }
 
     private static string Stylize(string styleMarkup, string content) =>
         styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";

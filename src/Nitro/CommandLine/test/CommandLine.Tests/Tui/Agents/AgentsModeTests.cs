@@ -493,20 +493,26 @@ public sealed class AgentsModeTests
     }
 
     [Fact]
-    public void Render_Should_FitDisplayWidth_When_RoleContainsCjkAndEmoji()
+    public void Render_Should_FitTheListContentBudget_When_RoleContainsCjkAndEmoji()
     {
         // arrange
-        const int maxWidth = 60;
-        var row = new AgentParticipantRow(
-            AgentSessionParticipantBuilder.Participant(agentName: "agent-a", role: "漢😀 a-very-long-mutable-role-value"),
-            Activity: null);
+        const int terminalWidth = 30;
+        const int listContentWidth = 11;
+        var sessions = new FakeAgentSessionRegistry();
+        sessions.Participants.Add(AgentSessionParticipantBuilder.Participant(
+            agentName: "agent-a", role: "漢⌚❤️1️⃣ a-very-long-mutable-role-value"));
+        var mode = CreateMode(sessions);
+        mode.OnEnter();
+        var row = mode.State.Rows[0];
         var widths = AgentRowBadge.ComputeWidths([row], s_now);
 
         // act
-        var line = AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths);
+        var output = RenderToText(mode, terminalWidth);
+        var line = AgentRowBadge.Render(row, s_now, selected: true, listContentWidth, widths);
 
         // assert
-        Assert.True(Markup.Remove(line).GetCellWidth() <= maxWidth);
+        Assert.Contains("agent-a", output);
+        Assert.True(Markup.Remove(line).GetCellWidth() <= listContentWidth);
     }
 
     [Fact]
