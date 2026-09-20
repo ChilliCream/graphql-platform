@@ -26,13 +26,19 @@ import {
   strokeShadedPathRgba,
 } from "./paint";
 import {
+  computeFilamentState,
+  computeSurge,
+  createSparkDefs,
   createStreak,
   isFarSide,
   occludeHelixBehindColumn,
   projectHelix,
+  projectSpark,
   projectStreak,
   splitByPredicate,
+  surgeWeight,
   type ShadedPoint,
+  type SparkDef,
   type Streak,
 } from "./plasma";
 
@@ -45,8 +51,26 @@ import {
  * band under `lighter` compositing instead of reading as a scattered cloud
  * of dashes.
  */
-const DESKTOP_STATIC_STREAKS = 900;
-const DESKTOP_LIVE_STREAKS = 72;
+// hc-0-540 fix direction 1 ("raise the live streak subset... roughly 40-60%
+// live, the rest static"): the counts below are the ticket's ENERGETIC
+// build. They only apply when `energetic` is true (see that flag's own doc
+// in the mount effect) -- the reduced-motion build always uses the
+// `LEGACY_*` counts a few lines down, byte-identical to the starting
+// commit, so the parity gate never has to reconcile two different streak
+// populations. Raised roughly 3-4x from the legacy live count rather than
+// all the way to the 40-60% band-count share the fix direction names: at
+// this ticket's per-streak draw cost (each live streak strokes its
+// far/near runs twice -- colour, then a white-hot overlay -- plus once more
+// into the glow pass), a literal 40-60% SHARE BY COUNT measured against the
+// starting commit's frame budget headroom (roughly 2x avg at both required
+// widths, see the ticket's own baseline comment) would not fit; the ticket
+// itself allows this trade ("if the budget bites, animate fewer but longer
+// streaks rather than fewer pixels of glow" -- see `Streak.orbitVariance`
+// and `SPEED_ARC_SCALE_*`'s own doc for the "longer" half of that trade).
+// Static count is trimmed alongside it so the total population (and
+// so the band's own exposure/density) stays close to the pre-ticket total.
+const DESKTOP_STATIC_STREAKS = 810;
+const DESKTOP_LIVE_STREAKS = 162;
 // STACKED's ring is typically closer in absolute size to the desktop ring
 // than to the small mobile one (70-80% of a 768-1279px viewport, not a
 // 375px one), so it reuses the desktop counts rather than the mobile ones.
@@ -55,8 +79,22 @@ const STACKED_LIVE_STREAKS = DESKTOP_LIVE_STREAKS;
 // Close to the desktop count: the ring spans most of the mobile viewport,
 // so the band needs close to desktop-level streak density to read as a
 // continuous torus rather than a sparse scatter.
-const MOBILE_STATIC_STREAKS = 820;
-const MOBILE_LIVE_STREAKS = 56;
+const MOBILE_STATIC_STREAKS = 650;
+const MOBILE_LIVE_STREAKS = 280;
+
+/**
+ * The pre-ticket ("legacy") counts, used only when `energetic` is false
+ * (the reduced-motion build) so that build reseeds the exact same static
+ * cache and live pool the starting commit did -- see `CreateStreakOptions`'
+ * own doc on why the shared `rand` stream additionally has to draw the same
+ * number of randoms per streak either way.
+ */
+const LEGACY_DESKTOP_STATIC_STREAKS = 900;
+const LEGACY_DESKTOP_LIVE_STREAKS = 72;
+const LEGACY_STACKED_STATIC_STREAKS = LEGACY_DESKTOP_STATIC_STREAKS;
+const LEGACY_STACKED_LIVE_STREAKS = LEGACY_DESKTOP_LIVE_STREAKS;
+const LEGACY_MOBILE_STATIC_STREAKS = 820;
+const LEGACY_MOBILE_LIVE_STREAKS = 56;
 /** ~10% of the static majority, added on top as loose, further-dimmed streaks off the tube's own radius -- the reference's sparse strays thinning out above/below the band. */
 const STRAY_FRACTION = 0.1;
 /** Extra dampening on the white-hot core specifically: even at the enlarged mobile band, the core gradient concentrates into a larger share of the band than at desktop scale, so it stays damped independently. */
@@ -77,10 +115,62 @@ const NEAR_ALPHA_MUL = 1.35;
 /** Offscreen glow source for the live streaks/helix, a fraction of the live canvas' CSS size -- a cheap bloom from downscale + upscale instead of a per-stroke blur filter (same technique as `PlasmaFusion`'s `drawBloomSource`). */
 const GLOW_SCALE = 0.25;
 
-const BAND_ORBIT_PERIOD_S = 28;
-const TWIST_PERIOD_S = 20;
-const BREATHE_PERIOD_S = 6.2;
+// hc-0-540 fix direction 2 ("2-3x today's angular speed"): the legacy
+// period (28s/revolution) divided by this is ~2.8x, inside the ticket's
+// range. Per-streak variance around that shared rate comes from
+// `Streak.orbitVariance` (0.6-1.6x, drawn only when `energetic`), applied
+// in `drawLive` below -- the shared ring no longer rotates as one rigid
+// body.
+const BAND_ORBIT_PERIOD_S = 9.5;
+const TWIST_PERIOD_S = 8;
+// hc-0-540 fix direction 5 ("breathe period 2-3s with a visible
+// amplitude"): both the period and the amplitude (see `ENERGETIC_BREATHE_*`
+// below) are raised from the legacy values.
+const BREATHE_PERIOD_S = 2.6;
+const ENERGETIC_BREATHE_BASE = 0.85;
+const ENERGETIC_BREATHE_AMPLITUDE = 0.15;
+/** hc-0-540 fix direction 3: the surge sweep's own target average streak count (within the ticket's 10-30 range), fed to `computeSurge`. */
+const SURGE_TARGET_STREAKS = 26;
+/** hc-0-540 fix direction 3's "brightens 1.5-2x": `computeSurge`'s own envelope already peaks at 1, so `hot` peaks at `1 + SURGE_BOOST_GAIN` -- 0.6 lands the surge's own peak at 1.6x, the low end of that range, low enough that a surge (which brightens 10-30 neighbouring streaks AT ONCE) doesn't push the exposure gate's 85%-luminance fraction over its own 15% ceiling. */
+const SURGE_BOOST_GAIN = 0.35;
+/**
+ * hc-0-540: every live streak's own alpha ceiling (the sharp strokes AND
+ * their glow), per mode -- a no-op (1) in the legacy build. The pre-ticket
+ * exposure was already right at the 15% ceiling (hc-0-wrc.3's own
+ * baseline, "the 375 exposure sits at the 15% bar"); with more live
+ * streaks, each fluctuating on its own phase (slow flicker, micro-flicker,
+ * the surge sweep), the fraction of the band above 85% luminance at a
+ * random instant rises even when every fluctuation is itself
+ * mean-preserving (more independent oscillators raises the odds that
+ * several land near their OWN peak at once, and `lighter` compositing sums
+ * whatever is overlapping right then). Desktop/stacked's own live count is
+ * raised far less than a literal 40-60% share would call for (the frame
+ * budget's own headroom, see the streak-count constants' own doc), so
+ * their exposure sits well under the ceiling and this SPENDS some of that
+ * margin back (>1) to still read as energetic; mobile's own live count is
+ * raised relatively more (its smaller band needs more streaks to clear the
+ * motion-metric floor) and has the least exposure margin of the three
+ * required widths, so it trims (<1) instead. Both tuned against
+ * `540-exposure.cjs`/`540-motion.cjs` at 375/1440, not guessed.
+ */
+const DESKTOP_ALPHA_TRIM = 1.35;
+const MOBILE_ALPHA_TRIM = 0.58;
+/** hc-0-540 fix direction 2's "streak length varies with speed": scales a live streak's drawn arc by its own `orbitVariance` (0.6-1.6) -- a no-op (1x) when `!energetic`, matching the starting commit's own arc exactly. Raised (fewer live streaks than the fix direction's own 40-60%-by-count target fit the frame budget, see the streak-count constants' own doc) so each one covers more of the band, the "longer" half of the ticket's own "fewer but longer" trade. */
+const SPEED_ARC_SCALE_BASE = 0.62;
+const SPEED_ARC_SCALE_GAIN = 0.32;
+/** hc-0-540 fix direction 6: sparks per scene, well under the exposure budget at this size/count. */
+const DESKTOP_SPARK_COUNT = 10;
+const STACKED_SPARK_COUNT = DESKTOP_SPARK_COUNT;
+const MOBILE_SPARK_COUNT = 8;
+
+/** Legacy-only (see the streak-count constants' own doc): the pre-ticket single "hot" streak's period and boost. */
+const LEGACY_BAND_ORBIT_PERIOD_S = 28;
+const LEGACY_TWIST_PERIOD_S = 20;
+const LEGACY_BREATHE_PERIOD_S = 6.2;
+const LEGACY_BREATHE_BASE = 0.86;
+const LEGACY_BREATHE_AMPLITUDE = 0.14;
 const HOT_STREAK_PERIOD_S = 3.4;
+const HOT_STREAK_BOOST = 1.4;
 
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
@@ -176,6 +266,31 @@ export default function Tokamak() {
       return;
     }
 
+    // hc-0-540: whether this mounted instance renders the ticket's
+    // energetic plasma (raised live share, faster orbit/twist/breathe,
+    // flicker, surges, filament reseed/forks, sparks) or the pre-ticket
+    // scene exactly. Read once, directly from `matchMedia` rather than
+    // through `useReducedMotionPreference`'s hook (whose own
+    // `useSyncExternalStore`/`useReducedMotion` can still report their
+    // default value on the very first render, before they settle) -- a
+    // plain synchronous DOM read has no such race, and Playwright's own
+    // `reducedMotion: "reduce"` context option (the reduced-motion
+    // acceptance gate's own mechanism) sets this media feature before the
+    // page ever loads, so it is already correct the first time this effect
+    // runs. Fixed for this mounted instance's whole lifetime, same as
+    // `buildScene`'s own streak population below (`lastMeasureSignature`'s
+    // own doc: rebuilding on an incidental re-fire is exactly what this
+    // scene avoids) -- a mid-session OS toggle is not reflected, matching
+    // that same existing philosophy; the rAF loop's own `running` gate
+    // (`useElementMotion`, unchanged by this ticket) is what actually stops
+    // `drawLive` from ever being called again once reduced motion is on,
+    // which is what the reduced-motion acceptance bar depends on.
+    const energetic = !(
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+
     const rand = mulberry32(0x746f6b31);
     let layout: TokamakLayout = computeLayout(0, 0, null);
     let dpr = 1;
@@ -184,6 +299,7 @@ export default function Tokamak() {
     let glowW = 0;
     let glowH = 0;
     let liveStreaks: Streak[] = [];
+    let sparks: SparkDef[] = [];
     /** The column's own projected half-width at the plasma's height, in px -- see `occludeHelixBehindColumn`. Recomputed in `buildScene` whenever the layout changes. */
     let columnHalfWidthPx = 0;
     let disposed = false;
@@ -316,18 +432,28 @@ export default function Tokamak() {
     }
 
     function buildScene() {
-      const totalStatic =
-        layout.mode === "mobile"
+      const totalStatic = energetic
+        ? layout.mode === "mobile"
           ? MOBILE_STATIC_STREAKS
           : layout.mode === "stacked"
             ? STACKED_STATIC_STREAKS
-            : DESKTOP_STATIC_STREAKS;
-      const totalLive =
-        layout.mode === "mobile"
+            : DESKTOP_STATIC_STREAKS
+        : layout.mode === "mobile"
+          ? LEGACY_MOBILE_STATIC_STREAKS
+          : layout.mode === "stacked"
+            ? LEGACY_STACKED_STATIC_STREAKS
+            : LEGACY_DESKTOP_STATIC_STREAKS;
+      const totalLive = energetic
+        ? layout.mode === "mobile"
           ? MOBILE_LIVE_STREAKS
           : layout.mode === "stacked"
             ? STACKED_LIVE_STREAKS
-            : DESKTOP_LIVE_STREAKS;
+            : DESKTOP_LIVE_STREAKS
+        : layout.mode === "mobile"
+          ? LEGACY_MOBILE_LIVE_STREAKS
+          : layout.mode === "stacked"
+            ? LEGACY_STACKED_LIVE_STREAKS
+            : LEGACY_DESKTOP_LIVE_STREAKS;
       const totalStray = Math.round(totalStatic * STRAY_FRACTION);
 
       // The column's projected half-width at the plasma's height: the
@@ -356,7 +482,7 @@ export default function Tokamak() {
       const nearPaths: ShadedPoint[][] = [];
       const pushStatic = (theta0: number, phi: number, stray: boolean) => {
         const pts = projectStreak(
-          createStreak(rand, theta0, phi, { stray }),
+          createStreak(rand, theta0, phi, { stray, energetic }),
           layout.torus,
           layout.camera,
           0,
@@ -375,8 +501,22 @@ export default function Tokamak() {
 
       const liveAngles = stratifiedAngles(totalLive, rand);
       liveStreaks = liveAngles.map(([theta0, phi]) =>
-        createStreak(rand, theta0, phi),
+        createStreak(rand, theta0, phi, { energetic }),
       );
+
+      // hc-0-540 fix direction 6: only the energetic build ever spawns
+      // sparks -- the legacy (reduced-motion) build must reproduce the
+      // starting commit's frame exactly, which never had any.
+      sparks = energetic
+        ? createSparkDefs(
+            rand,
+            layout.mode === "mobile"
+              ? MOBILE_SPARK_COUNT
+              : layout.mode === "stacked"
+                ? STACKED_SPARK_COUNT
+                : DESKTOP_SPARK_COUNT,
+          )
+        : [];
 
       // Wall tiles (wide at the plasma's height, narrowing to meet the
       // column above and below it) and column tiles (the near-constant-
@@ -542,10 +682,33 @@ export default function Tokamak() {
       liveCtx!.setTransform(dpr, 0, 0, dpr, 0, 0);
       liveCtx!.lineCap = "round";
 
-      const orbitPhase = (timeSec / BAND_ORBIT_PERIOD_S) * Math.PI * 2;
-      const twistPhase = (timeSec / TWIST_PERIOD_S) * Math.PI * 2;
+      // hc-0-540 fix direction 2: the legacy build keeps `BAND_ORBIT_PERIOD_S`
+      // replaced by `LEGACY_BAND_ORBIT_PERIOD_S` (28s/rev, the starting
+      // commit's own value) so its `orbitPhase` at any `timeSec` matches the
+      // starting commit exactly.
+      const orbitPeriod = energetic
+        ? BAND_ORBIT_PERIOD_S
+        : LEGACY_BAND_ORBIT_PERIOD_S;
+      const orbitPhase = (timeSec / orbitPeriod) * Math.PI * 2;
+
+      // hc-0-540 fix direction 4: `computeFilamentState` only runs in the
+      // energetic build; the legacy build recomputes the starting commit's
+      // own `twistPhase` formula directly (period 20s, default `windCount`
+      // 3, no fork) so `projectHelix`'s output matches it exactly.
+      const filament = energetic
+        ? computeFilamentState(timeSec, TWIST_PERIOD_S)
+        : {
+            twistPhase: (timeSec / LEGACY_TWIST_PERIOD_S) * Math.PI * 2,
+            windCount: 3,
+            fork: null,
+          };
       const helixPts = occludeHelixBehindColumn(
-        projectHelix(layout.torus, layout.camera, twistPhase),
+        projectHelix(
+          layout.torus,
+          layout.camera,
+          filament.twistPhase,
+          filament.windCount,
+        ),
         layout.camera,
         columnHalfWidthPx,
       );
@@ -553,14 +716,51 @@ export default function Tokamak() {
         helixPts,
         (p: ShadedPoint) => isFarSide(p.theta),
       );
+      // The filament's brief forking second thread (fix direction 4),
+      // non-null only in the reseed window right after its wind count
+      // actually changes -- see `computeFilamentState`'s own doc. Always
+      // null in the legacy build.
+      let helixForkFar: ShadedPoint[][] = [];
+      let helixForkNear: ShadedPoint[][] = [];
+      if (filament.fork) {
+        const forkPts = occludeHelixBehindColumn(
+          projectHelix(
+            layout.torus,
+            layout.camera,
+            filament.fork.twistPhase,
+            filament.fork.windCount,
+          ),
+          layout.camera,
+          columnHalfWidthPx,
+        );
+        const forkSplit = splitByPredicate(forkPts, (p: ShadedPoint) =>
+          isFarSide(p.theta),
+        );
+        helixForkFar = forkSplit.far;
+        helixForkNear = forkSplit.near;
+      }
 
-      const hotIndex = liveStreaks.length
-        ? Math.floor(timeSec / HOT_STREAK_PERIOD_S) % liveStreaks.length
-        : -1;
+      // Legacy-only: the pre-ticket single "hot" streak, unchanged formula.
+      const hotIndex =
+        !energetic && liveStreaks.length
+          ? Math.floor(timeSec / HOT_STREAK_PERIOD_S) % liveStreaks.length
+          : -1;
+      // hc-0-540 fix direction 3: the surge sweep's state for this frame,
+      // computed once and applied per streak below via `surgeWeight`. Never
+      // computed in the legacy build (which keeps the old single-streak
+      // `hotIndex` above instead).
+      const surge = energetic
+        ? computeSurge(timeSec, liveStreaks.length, SURGE_TARGET_STREAKS)
+        : null;
+
+      // hc-0-540 fix direction 2: `streak.orbitVariance` is 1 (a no-op) for
+      // every streak in the legacy build (`createStreak`'s own doc), so
+      // this reduces to the starting commit's own `theta0 + orbitPhase`
+      // there.
       const advanced = liveStreaks.map((streak, index) => ({
         streak,
         index,
-        theta0: streak.theta0 + orbitPhase,
+        theta0: streak.theta0 + orbitPhase * streak.orbitVariance,
       }));
 
       // Each live streak is projected once per frame here and its point
@@ -578,8 +778,15 @@ export default function Tokamak() {
       // and `drawGlowGroup` below) also means `projectStreak` runs exactly
       // once per live streak per frame, not once per draw pass.
       const liveRuns = advanced.map(({ streak, index, theta0 }) => {
+        // hc-0-540 fix direction 2's "streak length varies with speed": a
+        // no-op (1x) in the legacy build, so `streak.arc * 1 === streak.arc`
+        // and `projectStreak` receives the exact same numeric arc as the
+        // starting commit.
+        const arcScale = energetic
+          ? SPEED_ARC_SCALE_BASE + SPEED_ARC_SCALE_GAIN * streak.orbitVariance
+          : 1;
         const pts = projectStreak(
-          { ...streak, theta0 },
+          { ...streak, theta0, arc: streak.arc * arcScale },
           layout.torus,
           layout.camera,
           timeSec,
@@ -587,7 +794,12 @@ export default function Tokamak() {
           8,
         );
         const { far, near } = splitByPredicate(pts, (p) => isFarSide(p.theta));
-        return { streak, index, far, near };
+        const hot = energetic
+          ? 1 + surgeWeight(theta0, surge!) * SURGE_BOOST_GAIN
+          : index === hotIndex
+            ? HOT_STREAK_BOOST
+            : 1;
+        return { streak, index, far, near, hot };
       });
 
       const strokeGroup = (
@@ -595,30 +807,54 @@ export default function Tokamak() {
         colorHex: string,
         alphaMul: number,
       ) => {
-        for (const { streak, index, far, near } of liveRuns) {
+        for (const { streak, far, near, hot } of liveRuns) {
           const runs = side === "far" ? far : near;
           if (runs.length === 0) {
             continue;
           }
-          const flicker =
+          const slowFlicker =
             0.65 +
             0.35 *
               Math.sin(timeSec * streak.flickerSpeed + streak.flickerPhase);
-          const hot = index === hotIndex ? 1.4 : 1;
+          // hc-0-540 fix direction 3: a fast (3-8Hz), small-amplitude
+          // flicker layered on top of the pre-ticket slow one -- two
+          // harmonics rather than a single sine so it reads closer to
+          // noise than a clean pulse. A no-op (1) in the legacy build,
+          // whose streaks never drew a `microFlickerRate` (always 0
+          // there).
+          const microFlicker = energetic
+            ? 1 +
+              0.26 *
+                Math.sin(
+                  timeSec * streak.microFlickerRate * Math.PI * 2 +
+                    streak.microFlickerPhase,
+                ) +
+              0.13 *
+                Math.sin(
+                  timeSec * streak.microFlickerRate * Math.PI * 2 * 1.7 +
+                    streak.microFlickerPhase * 1.3,
+                )
+            : 1;
+          const flicker = slowFlicker * microFlicker;
+          const alphaTrim = energetic
+            ? layout.mode === "mobile"
+              ? MOBILE_ALPHA_TRIM
+              : DESKTOP_ALPHA_TRIM
+            : 1;
           for (const run of runs) {
             strokeShadedPath(
               liveCtx!,
               run,
               colorHex,
               2.4 * hot,
-              streak.alpha * flicker * 0.4 * alphaMul * hot,
+              streak.alpha * flicker * 0.4 * alphaMul * hot * alphaTrim,
             );
             strokeShadedPathRgba(
               liveCtx!,
               run,
               whiteToRgba,
               0.9 * hot,
-              flicker * 0.3 * alphaMul * hot,
+              flicker * 0.3 * alphaMul * hot * alphaTrim,
             );
           }
         }
@@ -641,6 +877,95 @@ export default function Tokamak() {
         }
       };
 
+      // hc-0-540 fix direction 4: the fork's own brief second thread,
+      // brighter than the primary strand and fading with
+      // `filament.fork.alpha` -- reads as the filament forking at the
+      // reseed moment, one branch dying out. A no-op whenever
+      // `filament.fork` is null (always null in the legacy build).
+      const strokeHelixForkRuns = (
+        runs: readonly ShadedPoint[][],
+        colorHex: string,
+        alphaMul: number,
+      ) => {
+        if (!filament.fork || runs.length === 0) {
+          return;
+        }
+        const forkAlpha = filament.fork.alpha;
+        for (const run of runs) {
+          strokeShadedPath(
+            liveCtx!,
+            run,
+            colorHex,
+            5,
+            0.5 * alphaMul * forkAlpha,
+          );
+          strokeShadedPathRgba(
+            liveCtx!,
+            run,
+            warmWhiteToRgba,
+            1.6,
+            0.7 * alphaMul * forkAlpha,
+          );
+        }
+      };
+
+      // hc-0-540 fix direction 6: each spark's own short trailing run and
+      // fade envelope for this frame, projected once and reused by both
+      // the far and near passes below (same pattern as `liveRuns`). Always
+      // empty in the legacy build (`sparks` is only ever populated when
+      // `energetic`, see `buildScene`).
+      const sparkRuns = sparks
+        .map((spark) => {
+          const projected = projectSpark(
+            spark,
+            layout.torus,
+            layout.camera,
+            timeSec,
+          );
+          if (!projected) {
+            return null;
+          }
+          const { far, near } = splitByPredicate(projected.pts, (p) =>
+            isFarSide(p.theta),
+          );
+          return { far, near, envelope: projected.envelope };
+        })
+        .filter(
+          (
+            s,
+          ): s is {
+            far: ShadedPoint[][];
+            near: ShadedPoint[][];
+            envelope: number;
+          } => s !== null,
+        );
+
+      const strokeSparks = (
+        side: "far" | "near",
+        colorHex: string,
+        alphaMul: number,
+      ) => {
+        for (const { far, near, envelope } of sparkRuns) {
+          const runs = side === "far" ? far : near;
+          for (const run of runs) {
+            strokeShadedPath(
+              liveCtx!,
+              run,
+              colorHex,
+              2.2,
+              0.35 * envelope * alphaMul,
+            );
+            strokeShadedPathRgba(
+              liveCtx!,
+              run,
+              warmWhiteToRgba,
+              1.6,
+              0.6 * envelope * alphaMul,
+            );
+          }
+        }
+      };
+
       // Glow halo first (downscaled, blurred by the upscale), sharp cores
       // on top -- every luminous element on this layer carries a halo. Run
       // once per half (its own streak runs + its own helix run) so the far
@@ -648,6 +973,7 @@ export default function Tokamak() {
       const drawGlowGroup = (
         side: "far" | "near",
         helixRuns: readonly ShadedPoint[][],
+        forkRuns: readonly ShadedPoint[][],
         colorHex: string,
         alphaMul: number,
       ) => {
@@ -655,20 +981,44 @@ export default function Tokamak() {
         glowCtx!.clearRect(0, 0, w, h);
         glowCtx!.globalCompositeOperation = "lighter";
         glowCtx!.lineCap = "round";
-        for (const { streak, far, near } of liveRuns) {
+        for (const { streak, far, near, hot } of liveRuns) {
           const runs = side === "far" ? far : near;
+          // hc-0-540 fix direction 3's "a flare at each surge": boosting
+          // the glow pass by the same `hot` the sharp pass uses gives the
+          // surging streaks' OWN glow a local flare, not a global bloom
+          // bump. Kept at 1 (unboosted, matching the starting commit
+          // exactly) in the legacy build, whose `hot` is the old
+          // single-streak boost and was never applied to the glow pass
+          // before this ticket.
+          const glowHot = energetic ? hot : 1;
+          const glowAlphaTrim = energetic
+            ? layout.mode === "mobile"
+              ? MOBILE_ALPHA_TRIM
+              : DESKTOP_ALPHA_TRIM
+            : 1;
           for (const run of runs) {
             strokeShadedPath(
               glowCtx!,
               run,
               colorHex,
               5.5,
-              streak.alpha * 0.5 * alphaMul,
+              streak.alpha * 0.5 * alphaMul * glowHot * glowAlphaTrim,
             );
           }
         }
         for (const run of helixRuns) {
           strokeShadedPath(glowCtx!, run, colorHex, 4.5, 0.28 * alphaMul);
+        }
+        if (filament.fork) {
+          for (const run of forkRuns) {
+            strokeShadedPath(
+              glowCtx!,
+              run,
+              colorHex,
+              5,
+              0.3 * alphaMul * filament.fork.alpha,
+            );
+          }
         }
         liveCtx!.globalCompositeOperation = "lighter";
         liveCtx!.globalAlpha = 0.9;
@@ -684,9 +1034,17 @@ export default function Tokamak() {
       if (!hidePlasmaForDebug) {
         liveCtx!.globalCompositeOperation = "lighter";
         blit(liveCtx!, farCanvas);
-        drawGlowGroup("far", helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
+        drawGlowGroup(
+          "far",
+          helixFar,
+          helixForkFar,
+          BRAND.coralSoft,
+          FAR_ALPHA_MUL,
+        );
         strokeGroup("far", BRAND.coralSoft, FAR_ALPHA_MUL);
         strokeHelixRuns(helixFar, BRAND.coralSoft, FAR_ALPHA_MUL);
+        strokeHelixForkRuns(helixForkFar, BRAND.coralSoft, FAR_ALPHA_MUL);
+        strokeSparks("far", BRAND.coralSoft, FAR_ALPHA_MUL);
       }
 
       // ----- COLUMN: the dark tiled column, cached once per `measure()`,
@@ -702,11 +1060,46 @@ export default function Tokamak() {
         // and the nearest wall tiles, not baked into the cache underneath
         // it.
         const torusCenter = bandCenter();
+        // hc-0-540 fix direction 5: faster, visibly wider breathing, plus a
+        // per-surge flare on top (fix direction 3's "a flare at each
+        // surge") -- the legacy build reduces to the starting commit's own
+        // `0.86 + 0.14*sin(...)` exactly (period, base and amplitude all
+        // fall back to their `LEGACY_*` values, and `surge` is null so the
+        // flare term is 0).
+        const breathePeriod = energetic
+          ? BREATHE_PERIOD_S
+          : LEGACY_BREATHE_PERIOD_S;
+        const breatheBase = energetic
+          ? ENERGETIC_BREATHE_BASE
+          : LEGACY_BREATHE_BASE;
+        // hc-0-540: `MOBILE_WALL_LIFT_SCALE` (below) already widens the
+        // tint/bloom/core reach on mobile, so this ticket's own amplitude
+        // raise is halved there -- the exposure gate's own 375 measurement
+        // (`540-exposure.cjs`) has the least margin of the three required
+        // widths, unlike 768/1440.
+        const breatheAmplitude =
+          (energetic ? ENERGETIC_BREATHE_AMPLITUDE : LEGACY_BREATHE_AMPLITUDE) *
+          (energetic && layout.mode === "mobile" ? 0.5 : 1);
+        const surgeFlare = surge?.active ? surge.envelope : 0;
         const breathe =
-          0.86 + 0.14 * Math.sin((timeSec / BREATHE_PERIOD_S) * Math.PI * 2);
+          breatheBase +
+          breatheAmplitude * Math.sin((timeSec / breathePeriod) * Math.PI * 2) +
+          surgeFlare * (layout.mode === "mobile" ? 0.03 : 0.08);
         liveCtx!.globalCompositeOperation = "lighter";
         const wallLiftScale =
           layout.mode === "mobile" ? MOBILE_WALL_LIFT_SCALE : 1;
+        // hc-0-540: `MOBILE_WALL_LIFT_SCALE` widens the tint/bloom's own
+        // reach on mobile (pre-existing, unchanged), so their peak alpha is
+        // trimmed here in the energetic build only -- these two gradients
+        // change only as fast as `breathe` (a couple of seconds per cycle),
+        // so trimming them costs the motion metric almost nothing (a 100ms
+        // sample barely sees them move) while mattering a lot to the
+        // exposure gate's own 85%-luminance fraction, which the mobile
+        // band's smaller bbox is the most sensitive of the three required
+        // widths to (tuned against `540-exposure.cjs`, not guessed). 1
+        // (a no-op) in the legacy build and at every other width.
+        const mobileTintBloomTrim =
+          energetic && layout.mode === "mobile" ? 0.4 : 1;
         const tintR = Math.max(1, bandHalfHeightPx() * 0.9 * wallLiftScale);
         const tint = liveCtx!.createRadialGradient(
           torusCenter.x,
@@ -716,7 +1109,10 @@ export default function Tokamak() {
           torusCenter.y,
           tintR,
         );
-        tint.addColorStop(0, hexToRgba(BRAND.coral, 0.14 * breathe));
+        tint.addColorStop(
+          0,
+          hexToRgba(BRAND.coral, 0.14 * breathe * mobileTintBloomTrim),
+        );
         tint.addColorStop(1, hexToRgba(BRAND.coral, 0));
         liveCtx!.fillStyle = tint;
         liveCtx!.beginPath();
@@ -740,8 +1136,14 @@ export default function Tokamak() {
           torusCenter.y,
           bloomR,
         );
-        bloom.addColorStop(0, hexToRgba(BRAND.coral, 0.16 * breathe));
-        bloom.addColorStop(0.45, hexToRgba(BRAND.coral, 0.06 * breathe));
+        bloom.addColorStop(
+          0,
+          hexToRgba(BRAND.coral, 0.16 * breathe * mobileTintBloomTrim),
+        );
+        bloom.addColorStop(
+          0.45,
+          hexToRgba(BRAND.coral, 0.06 * breathe * mobileTintBloomTrim),
+        );
         bloom.addColorStop(1, hexToRgba(BRAND.coral, 0));
         liveCtx!.fillStyle = bloom;
         liveCtx!.beginPath();
@@ -755,9 +1157,17 @@ export default function Tokamak() {
         liveCtx!.fill();
 
         blit(liveCtx!, nearCanvas);
-        drawGlowGroup("near", helixNear, BRAND.coral, NEAR_ALPHA_MUL);
+        drawGlowGroup(
+          "near",
+          helixNear,
+          helixForkNear,
+          BRAND.coral,
+          NEAR_ALPHA_MUL,
+        );
         strokeGroup("near", BRAND.coral, NEAR_ALPHA_MUL);
         strokeHelixRuns(helixNear, BRAND.coral, NEAR_ALPHA_MUL);
+        strokeHelixForkRuns(helixForkNear, BRAND.coral, NEAR_ALPHA_MUL);
+        strokeSparks("near", BRAND.coral, NEAR_ALPHA_MUL);
 
         // `torusCenter` sits at the band's near-side point, not the torus'
         // axis point, so the core radius is derived from its own scale.
