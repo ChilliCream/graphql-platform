@@ -332,6 +332,62 @@ public sealed class SearchModeTests
     }
 
     [Fact]
+    public async Task Render_Should_ReloadDetailValues_When_SelectedTaskIsEdited()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        var originalTask = TaskItemBuilder.Create("t-1", "Task title");
+        originalTask.Description = "Original description";
+        store.Tasks.Add(originalTask);
+        var mode = new SearchMode(store);
+        mode.OnEnter();
+        await mode.TickAsync(s_now, CancellationToken.None);
+
+        var initialConsole = new TestConsole().Width(100);
+        initialConsole.Write(mode.Render(100, 24));
+        var updatedTask = TaskItemBuilder.Create(
+            "t-1",
+            "Task title",
+            updatedAt: s_now + TimeSpan.FromSeconds(1));
+        updatedTask.Description = "Updated description";
+        store.Tasks[0] = updatedTask;
+
+        // act
+        mode.Handle(new TuiMessage.RefreshRequested());
+        await mode.TickAsync(s_now, CancellationToken.None);
+        var refreshedConsole = new TestConsole().Width(100);
+        refreshedConsole.Write(mode.Render(100, 24));
+
+        // assert
+        Assert.Equal("t-1", mode.SelectedTaskId);
+        Assert.Contains("Original description", initialConsole.Output);
+        Assert.Contains("Updated description", refreshedConsole.Output);
+    }
+
+    [Fact]
+    public async Task TickAsync_Should_ApplyPendingQuery_When_ReenteringSearch()
+    {
+        // arrange
+        var store = new FakeTaskStore();
+        store.Tasks.Add(TaskItemBuilder.Create("t-1", "Alpha"));
+        store.Tasks.Add(TaskItemBuilder.Create("t-2", "Beta"));
+        var mode = new SearchMode(store);
+        mode.OnEnter();
+        await mode.TickAsync(s_now, CancellationToken.None);
+
+        TypeText(mode, "Beta", s_now);
+
+        // act
+        mode.OnEnter();
+        var ran = await mode.TickAsync(s_now + SearchMode.DebounceWindow, CancellationToken.None);
+
+        // assert
+        Assert.True(ran);
+        Assert.Equal("Beta", store.LastFilter!.Text);
+        Assert.Equal(["t-2"], mode.Results.Select(t => t.Id));
+    }
+
+    [Fact]
     public void KeyMap_Should_MirrorEscapeToMoveLeft_And_TabToOpenSelected()
     {
         // arrange

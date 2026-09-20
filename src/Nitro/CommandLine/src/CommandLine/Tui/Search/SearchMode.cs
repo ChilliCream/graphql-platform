@@ -32,6 +32,7 @@ internal sealed class SearchMode : ITuiMode
     private TaskQuery? _pendingQuery;
     private DateTimeOffset? _pendingQueryDueAt;
     private bool _refreshRequested;
+    private bool _detailReloadRequested;
 
     public SearchMode(ITaskStore store)
     {
@@ -98,8 +99,11 @@ internal sealed class SearchMode : ITuiMode
 
     public void OnEnter()
     {
-        _pendingQuery = _lastAppliedQuery;
-        _pendingQueryDueAt = null;
+        if (_pendingQuery is null && ParseError is null)
+        {
+            _pendingQuery = _lastAppliedQuery;
+            _pendingQueryDueAt = null;
+        }
     }
 
     public void OnResize(int width, int height)
@@ -347,6 +351,7 @@ internal sealed class SearchMode : ITuiMode
         var filter = query.ToFilter(now);
         var tasks = await _store.QueryTasksAsync(filter, cancellationToken).ConfigureAwait(false);
         _results.SetTasks(tasks);
+        _detailReloadRequested = true;
     }
 
     private IRenderable RenderInput()
@@ -410,9 +415,10 @@ internal sealed class SearchMode : ITuiMode
             };
         }
 
-        if (_detailModel.CurrentTaskId != id)
+        if (_detailModel.CurrentTaskId != id || _detailReloadRequested)
         {
             _detailModel.LoadAsync(id, CancellationToken.None).GetAwaiter().GetResult();
+            _detailReloadRequested = false;
         }
 
         return _detailView.Render(width, height, focused);
