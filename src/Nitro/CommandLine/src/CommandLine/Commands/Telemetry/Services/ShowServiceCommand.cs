@@ -1,0 +1,117 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using ChilliCream.Nitro.Client.Telemetry;
+using ChilliCream.Nitro.Client.Telemetry.Models;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
+using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
+
+namespace ChilliCream.Nitro.CommandLine.Commands.Telemetry.Services;
+
+internal sealed class ShowServiceCommand : Command
+{
+    public ShowServiceCommand() : base("show")
+    {
+        Description = "Show a telemetry service.";
+
+        Arguments.Add(Opt<ServiceNameArgument>.Instance);
+        Options.Add(Opt<TelemetryEnvironmentOption>.Instance);
+        Options.Add(Opt<TelemetrySinceOption>.Instance);
+        Options.Add(Opt<TelemetryUntilOption>.Instance);
+
+        TelemetryCommandOptions.AddOptions(this);
+
+        this.AddExamples("telemetry services show \"<name>\"");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
+    }
+
+    private static async Task<int> ExecuteAsync(
+        ICommandServices services,
+        ParseResult parseResult,
+        CancellationToken cancellationToken)
+    {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<ITelemetryClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
+        TelemetryCommandOptions.ConfigureOutput(console, parseResult);
+
+        if (!TelemetryCommandOptions.TryGetWorkspaceId(console, parseResult, sessionService, out var workspaceId))
+        {
+            return ExitCodes.Error;
+        }
+
+        var name = parseResult.GetRequiredValue(Opt<ServiceNameArgument>.Instance);
+        var environments = parseResult.GetValue(Opt<TelemetryEnvironmentOption>.Instance);
+        var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);
+        var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
+        var service = await client.GetServiceAsync(
+            workspaceId,
+            name,
+            environments,
+            since,
+            until,
+            cancellationToken);
+
+        if (service is null)
+        {
+            return TelemetryErrorRenderer.Render(
+                console,
+                $"The service '{name}' was not found.",
+                "run nitro telemetry services list");
+        }
+
+        var detail = ServiceDetail.From(service);
+
+        if (console.IsAgentMode || !console.IsHumanReadable)
+        {
+            console.WriteRawLine(JsonSerializer.Serialize(detail, ServiceDetailJsonContext.Default.ServiceDetail));
+            return ExitCodes.Success;
+        }
+
+        var table = new Table();
+        table.AddColumn("Name");
+        table.AddColumn("Environments");
+        table.AddColumn("Version markers");
+        table.AddRow(
+            detail.Name,
+            string.Join(", ", detail.Environments),
+            string.Join(
+                Environment.NewLine,
+                detail.VersionMarkers.Select(static marker => $"{marker.Version} ({marker.FirstSeenAt:u})")));
+        console.Write(table);
+
+        return ExitCodes.Success;
+    }
+
+    internal sealed record ServiceDetail(
+        string Name,
+        IReadOnlyList<string> Environments,
+        IReadOnlyList<ServiceVersionMarkerDetail> VersionMarkers)
+    {
+        public static ServiceDetail From(ServiceRow service)
+            => new(
+                service.Name,
+                service.EnvironmentNames,
+                service.VersionMarkers
+                    .Select(static marker => new ServiceVersionMarkerDetail(marker.Version, marker.FirstSeenAt))
+                    .ToArray());
+    }
+
+    internal sealed record ServiceVersionMarkerDetail(string Version, DateTimeOffset FirstSeenAt);
+}
+
+internal sealed class ServiceNameArgument : Argument<string>
+{
+    public ServiceNameArgument() : base("name")
+    {
+        Description = "The service name";
+        Arity = ArgumentArity.ExactlyOne;
+    }
+}
+
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(ShowServiceCommand.ServiceDetail))]
+internal partial class ServiceDetailJsonContext : JsonSerializerContext;

@@ -1,0 +1,173 @@
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Services;
+
+public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
+    : TelemetryCommandTestBase(fixture)
+{
+    [Fact]
+    public async Task ListHelp_Should_ReturnSuccess()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "list",
+            "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              List telemetry services in the current workspace.
+
+            Usage:
+              nitro telemetry services list [options]
+
+            Options:
+              --search <search>        Search span names or log messages
+              --env <env>              Limit results to an environment; can be used multiple times [env: NITRO_ENV]
+              --filter <filter>        Filter results using the telemetry filter grammar
+              --since <since>          The earliest timestamp to include [env: NITRO_SINCE] [default: 12/31/2025 23:30:00 +00:00]
+              --until <until>          The latest timestamp to include [env: NITRO_UNTIL] [default: 01/01/2026 00:00:00 +00:00]
+              --limit <limit>          The maximum number of results to show [env: NITRO_LIMIT]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL]
+              --api-key <api-key>      The API key or PAT used for authentication [env: NITRO_API_KEY]
+              --output <json|ndjson>   The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help           Show help and usage information
+
+            Example:
+              nitro telemetry services list
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_ReturnError_When_AuthenticationIsUnavailable(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "list");
+
+        // assert
+        result.AssertError(
+            """
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
+            hint: run `nitro login`.
+            """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_ReturnSuccess_When_ServicesExist(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupListServices(services: [CreateService()]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "list");
+
+        // assert
+        result.AssertSuccess();
+    }
+
+    [Fact]
+    public async Task List_Should_WriteNdjson_When_Requested()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupListServices(services: [CreateService()]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "list",
+            "--output",
+            "ndjson");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {"name":"products","environments":"production","lastVersion":"1.1.0"}
+            """);
+    }
+
+    [Fact]
+    public async Task List_Should_ReturnEmptyResult_When_NoServicesExist()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSessionWithWorkspace();
+        SetupListServices();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "list");
+
+        // assert
+        result.AssertSuccess(
+            """
+            No services found.
+            """);
+    }
+
+    [Fact]
+    public async Task Show_Should_ReturnError_When_ServiceDoesNotExist()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupGetService(null);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "show",
+            ServiceName);
+
+        // assert
+        result.AssertError(
+            """
+            The service 'products' was not found.
+            hint: run nitro telemetry services list
+            """);
+    }
+
+    [Fact]
+    public async Task Show_Should_WriteServiceDetail_When_JsonOutputIsRequested()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        SetupSessionWithWorkspace();
+        SetupGetService(CreateService());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "show",
+            ServiceName);
+
+        // assert
+        result.AssertSuccess(
+            """
+            {"name":"products","environments":["production"],"versionMarkers":[{"version":"1.0.0","firstSeenAt":"2025-12-31T22:00:00+00:00"},{"version":"1.1.0","firstSeenAt":"2025-12-31T23:00:00+00:00"}]}
+            """);
+    }
+}
