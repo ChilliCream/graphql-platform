@@ -3,66 +3,22 @@ using ChilliCream.Nitro.CommandLine.Services.Hook;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
-public sealed class CodexHooksSidecarStoreTests : IDisposable
+public sealed class OpencodeHooksSidecarStoreTests : IDisposable
 {
     private readonly DirectoryInfo _tempRoot;
     private readonly string _sidecarDirectory;
     private readonly string _sidecarPath;
     private readonly TestFileSystem _fileSystem;
 
-    public CodexHooksSidecarStoreTests()
+    public OpencodeHooksSidecarStoreTests()
     {
-        _tempRoot = Directory.CreateTempSubdirectory("nitro-codex-hooks-sidecar-store-tests");
+        _tempRoot = Directory.CreateTempSubdirectory("nitro-opencode-hooks-sidecar-store-tests");
         _sidecarDirectory = Path.Combine(_tempRoot.FullName, "app-data");
-        _sidecarPath = Path.Combine(_sidecarDirectory, "codex-hooks-sidecar.json");
+        _sidecarPath = Path.Combine(_sidecarDirectory, "opencode-hooks-sidecar.json");
         _fileSystem = new TestFileSystem(_tempRoot.FullName);
     }
 
     public void Dispose() => _tempRoot.Delete(recursive: true);
-
-    [Fact]
-    public async Task WriteIfUnchangedAsync_UnchangedSnapshot_WritesSidecar()
-    {
-        // arrange
-        var ct = TestContext.Current.CancellationToken;
-        var store = CreateStore();
-        var (_, hashAtRead) = await store.ReadWithHashAsync(ct);
-        var file = CreateFile("/codex/config.toml");
-
-        // act
-        var written = await store.WriteIfUnchangedAsync(file, hashAtRead, ct);
-        var (actual, _) = await store.ReadWithHashAsync(ct);
-
-        // assert
-        Assert.True(written);
-        Assert.True(File.Exists(_sidecarPath));
-        Assert.Equal(["nitro", "agent", "hook"], actual.NotifyFiles["/codex/config.toml"].OurArgv);
-    }
-
-    [Fact]
-    public async Task WriteIfUnchangedAsync_StaleSnapshot_ReturnsFalseAndReleasesTheLock()
-    {
-        // arrange
-        var ct = TestContext.Current.CancellationToken;
-        const string originalContent = """{"version":2,"notifyFiles":{}}""";
-        const string changedContent = """{"version":2,"notifyFiles":{},"external":true}""";
-        Directory.CreateDirectory(_sidecarDirectory);
-        await File.WriteAllTextAsync(_sidecarPath, originalContent, ct);
-        var store = CreateStore();
-        var (file, hashAtRead) = await store.ReadWithHashAsync(ct);
-        await File.WriteAllTextAsync(_sidecarPath, changedContent, ct);
-
-        // act
-        var written = await store.WriteIfUnchangedAsync(file, hashAtRead, ct);
-        var contentAfterRejectedWrite = await File.ReadAllTextAsync(_sidecarPath, ct);
-        var (_, currentHash) = await store.ReadWithHashAsync(ct);
-        var recovered = await store.WriteIfUnchangedAsync(file, currentHash, ct);
-
-        // assert
-        Assert.False(written);
-        Assert.Equal(changedContent, contentAfterRejectedWrite);
-        Assert.True(recovered);
-    }
 
     [Fact]
     public async Task WriteIfUnchangedAsync_ConcurrentWriters_RejectsTheContendingWriter()
@@ -70,7 +26,7 @@ public sealed class CodexHooksSidecarStoreTests : IDisposable
         // arrange
         var ct = TestContext.Current.CancellationToken;
         Directory.CreateDirectory(_sidecarDirectory);
-        await File.WriteAllTextAsync(_sidecarPath, """{"version":2,"notifyFiles":{}}""", ct);
+        await File.WriteAllTextAsync(_sidecarPath, """{"version":1,"files":{}}""", ct);
 
         var firstFileSystem = new ControlledSidecarReplaceFileSystem(
             new TestFileSystem(_tempRoot.FullName),
@@ -80,8 +36,8 @@ public sealed class CodexHooksSidecarStoreTests : IDisposable
         var secondStore = CreateStore(new TestFileSystem(_tempRoot.FullName));
         var (firstFile, firstHash) = await firstStore.ReadWithHashAsync(ct);
         var (secondFile, secondHash) = await secondStore.ReadWithHashAsync(ct);
-        firstFile.NotifyFiles["/codex/first.toml"] = CreateEntry();
-        secondFile.NotifyFiles["/codex/second.toml"] = CreateEntry();
+        firstFile.Files["first"] = CreateEntry();
+        secondFile.Files["second"] = CreateEntry();
 
         // act
         var results = await ConcurrentTestHarness.RunAsync<(bool Succeeded, string? Failure)>(2, async writer =>
@@ -112,7 +68,7 @@ public sealed class CodexHooksSidecarStoreTests : IDisposable
         Assert.Equal(firstHash, secondHash);
         Assert.Equal(1, results.Count(result => result.Succeeded));
         Assert.Contains("locked by another nitro process", results[1].Failure, StringComparison.Ordinal);
-        Assert.Equal(["/codex/first.toml"], persistedFile.NotifyFiles.Keys);
+        Assert.Equal(["first"], persistedFile.Files.Keys);
     }
 
     [Fact]
@@ -120,7 +76,7 @@ public sealed class CodexHooksSidecarStoreTests : IDisposable
     {
         // arrange
         var ct = TestContext.Current.CancellationToken;
-        const string content = """{"version":2,"notifyFiles":{}}""";
+        const string content = """{"version":1,"files":{}}""";
         Directory.CreateDirectory(_sidecarDirectory);
         await File.WriteAllTextAsync(_sidecarPath, content, ct);
         var store = CreateStore();
@@ -139,35 +95,36 @@ public sealed class CodexHooksSidecarStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task WriteIfUnchangedAsync_ReplacementFails_ReleasesTheLock()
+    public async Task WriteIfUnchangedAsync_StaleSnapshot_ReleasesTheLockAfterRejectedAndSuccessfulWrites()
     {
         // arrange
         var ct = TestContext.Current.CancellationToken;
+        const string originalContent = """{"version":1,"files":{}}""";
+        const string changedContent = """{"version":1,"files":{},"external":true}""";
         Directory.CreateDirectory(_sidecarDirectory);
-        await File.WriteAllTextAsync(_sidecarPath, """{"version":2,"notifyFiles":{}}""", ct);
-        var failingStore = CreateStore(
-            new ControlledSidecarReplaceFileSystem(
-                new TestFileSystem(_tempRoot.FullName),
-                _sidecarPath,
-                failReplacement: true));
-        var (file, hashAtRead) = await failingStore.ReadWithHashAsync(ct);
+        await File.WriteAllTextAsync(_sidecarPath, originalContent, ct);
+        var store = CreateStore();
+        var (file, hashAtRead) = await store.ReadWithHashAsync(ct);
+        await File.WriteAllTextAsync(_sidecarPath, changedContent, ct);
 
         // act
-        var exception = await Record.ExceptionAsync(
-            () => failingStore.WriteIfUnchangedAsync(file, hashAtRead, ct));
-        var recovered = await CreateStore().WriteIfUnchangedAsync(file, hashAtRead, ct);
+        var rejected = await store.WriteIfUnchangedAsync(file, hashAtRead, ct);
+        var contentAfterRejectedWrite = await File.ReadAllTextAsync(_sidecarPath, ct);
+        var (_, currentHash) = await store.ReadWithHashAsync(ct);
+        var recovered = await store.WriteIfUnchangedAsync(file, currentHash, ct);
+        var (_, recoveryHash) = await store.ReadWithHashAsync(ct);
+        var rewritten = await store.WriteIfUnchangedAsync(file, recoveryHash, ct);
 
         // assert
-        Assert.IsType<IOException>(exception);
+        Assert.False(rejected);
+        Assert.Equal(changedContent, contentAfterRejectedWrite);
         Assert.True(recovered);
+        Assert.True(rewritten);
     }
 
-    private CodexHooksSidecarStore CreateStore(IFileSystem? fileSystem = null)
+    private OpencodeHooksSidecarStore CreateStore(IFileSystem? fileSystem = null)
         => new(fileSystem ?? _fileSystem, new SidecarTestDirectoryProvider(_sidecarDirectory));
 
-    private static CodexHooksSidecarFile CreateFile(string path)
-        => new(CodexHooksSidecarFile.CurrentVersion, new Dictionary<string, CodexNotifySidecarEntry> { [path] = CreateEntry() });
-
-    private static CodexNotifySidecarEntry CreateEntry()
-        => new(["nitro", "agent", "hook"], null, DateTimeOffset.UnixEpoch);
+    private static OpencodeHooksSidecarEntry CreateEntry()
+        => new("nitro agent hook", "content-hash", DateTimeOffset.UnixEpoch);
 }
