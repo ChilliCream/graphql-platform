@@ -131,8 +131,8 @@ const ENERGETIC_BREATHE_BASE = 0.85;
 const ENERGETIC_BREATHE_AMPLITUDE = 0.15;
 /** hc-0-540 fix direction 3: the surge sweep's own target average streak count (within the ticket's 10-30 range), fed to `computeSurge`. */
 const SURGE_TARGET_STREAKS = 26;
-/** hc-0-540 fix direction 3's "brightens 1.5-2x": `computeSurge`'s own envelope already peaks at 1, so `hot` peaks at `1 + SURGE_BOOST_GAIN` -- 0.6 lands the surge's own peak at 1.6x, the low end of that range, low enough that a surge (which brightens 10-30 neighbouring streaks AT ONCE) doesn't push the exposure gate's 85%-luminance fraction over its own 15% ceiling. */
-const SURGE_BOOST_GAIN = 0.35;
+/** hc-0-540 fix direction 3's "brightens 1.5-2x": `computeSurge`'s own envelope already peaks at 1, so `hot` peaks at `1 + SURGE_BOOST_GAIN` -- 0.5 lands the surge's own peak at 1.5x, the low end of that range, paired with a small `DESKTOP_ALPHA_TRIM` reduction so a surge (which brightens 10-30 neighbouring streaks AT ONCE) still doesn't push the exposure gate's 85%-luminance fraction over its own 15% ceiling at 1440. */
+const SURGE_BOOST_GAIN = 0.5;
 /**
  * hc-0-540: every live streak's own alpha ceiling (the sharp strokes AND
  * their glow), per mode -- a no-op (1) in the legacy build. The pre-ticket
@@ -153,7 +153,7 @@ const SURGE_BOOST_GAIN = 0.35;
  * required widths, so it trims (<1) instead. Both tuned against
  * `540-exposure.cjs`/`540-motion.cjs` at 375/1440, not guessed.
  */
-const DESKTOP_ALPHA_TRIM = 1.35;
+const DESKTOP_ALPHA_TRIM = 1.25;
 const MOBILE_ALPHA_TRIM = 0.58;
 /** hc-0-540 fix direction 2's "streak length varies with speed": scales a live streak's drawn arc by its own `orbitVariance` (0.6-1.6) -- a no-op (1x) when `!energetic`, matching the starting commit's own arc exactly. Raised (fewer live streaks than the fix direction's own 40-60%-by-count target fit the frame budget, see the streak-count constants' own doc) so each one covers more of the band, the "longer" half of the ticket's own "fewer but longer" trade. */
 const SPEED_ARC_SCALE_BASE = 0.62;
@@ -575,62 +575,48 @@ export default function Tokamak() {
       });
     }
 
-    // The copy block's own rendered rect (`data-hero-copy` on
-    // `FusionHero.tsx`'s copy block), relative to the section, used to
+    // The copy block's own rendered rect, relative to the section, used to
     // choose STACKED's `artTop` and SIDE-BY-SIDE's `zoneRight` from the
     // real layout instead of magic widths. `right` reads the teaser
-    // paragraph's own rect -- the copy block's LAST `<p>` (its first is the
-    // `Eyebrow`'s own label, which is as wide as the block's own box and
-    // would defeat the point of measuring); the teaser is narrower than
-    // the block's own box at `xl:max-w-2xl` widths (where the box reserves
-    // more room than the current teaser text uses) and wider than the
-    // `text-balance` h1 and the left-aligned buttons, so it is the copy's
-    // own real rightmost content. `bottom` reads the button row's own
-    // bottom (the block's last child), not the block's own `py-24` bottom
-    // padding. `null` only if the block genuinely is not in the DOM (never
+    // paragraph's own rect (`data-hero-teaser` on `FusionHero.tsx`'s `<p>`)
+    // -- narrower than the copy block's own box at `xl:max-w-2xl` widths
+    // (where the box reserves more room than the current teaser text uses)
+    // and wider than the `text-balance` h1 and the left-aligned buttons,
+    // so it is the copy's own real rightmost content. `bottom` reads the
+    // button row's own bottom (`data-hero-actions` on `FusionHero.tsx`'s
+    // wrapper around the `ButtonRow`), not the block's own `py-24` bottom
+    // padding. `null` if either element genuinely is not in the DOM (never
     // in practice, since `measure()` runs after mount) -- callers fall
     // back to the previous fixed constants.
-    // hc-0-540 housekeeping (planner comment 287) tried a `Range` over the
-    // whole `data-hero-copy` block's own contents here, to replace the
-    // positional `querySelectorAll("p")[length - 1]` / `lastElementChild`
-    // selection below with the `[data-hero-copy]` query alone: a
-    // multi-line range's `getBoundingClientRect()` is the union of every
-    // line's own rect, which should in theory equal the teaser's own right
-    // edge (the widest real line, per hc-0-wkf's own measurement) and the
-    // button row's own bottom (the last line) without picking a specific
-    // child. Measured against the real DOM instead of assumed: it is NOT
-    // equal at `sideBySide` widths (403738 px outside the header-masked
-    // parity gate at 1440, `test-results/540-reduced-diff.cjs`) -- some
-    // sub-pixel/line-box rounding difference between the union rect and
-    // the teaser element's own rect moves `zoneRight` enough to shift the
-    // whole scene, failing the binding pixel-parity requirement this same
-    // ticket's own reduced-motion gate enforces. Kept the positional
-    // selection below instead, the only measurement proven to reproduce
-    // today's shipped `zoneRight`/`artTop` exactly (hc-0-wkf's own
-    // NEEDS-PLANNER comment 283 records the same constraint against a
-    // simpler `copyEl.getBoundingClientRect()` alternative). Recorded as
-    // NEEDS-PLANNER on hc-0-540: the positional dependency on "the copy
-    // block's own last `<p>`/last child" cannot be removed without either
-    // editing `FusionHero.tsx` to add a dedicated attribute (outside this
-    // ticket's file scope) or accepting a parity break; chose to keep it
-    // and only remove the dead `?? copyEl`/`?? bottomEl` fallbacks below
-    // (unreachable for this block's actual markup, which always has a
-    // `<p>` and a last child).
+    // hc-0-540 housekeeping (planner comment 287, ratified option (b) in
+    // ticket comments 370/371): a positional `querySelectorAll("p")[length
+    // - 1]` / `lastElementChild` selection here used to be needed because
+    // nothing in `FusionHero.tsx` identified the teaser paragraph or the
+    // button row directly, and a `Range` over the whole `data-hero-copy`
+    // block (tried first) does not reproduce the shipped rect exactly
+    // (sub-pixel/line-box rounding moves `zoneRight` enough to fail the
+    // header-masked reduced-motion parity gate, `test-results/
+    // 540-reduced-diff.cjs`). The two dedicated attributes below replace
+    // both the positional selection and that Range attempt: each query
+    // resolves to the exact same element the positional selection always
+    // picked (the teaser `<p>` and the button row), so the measured rect
+    // is unchanged and reduced-motion parity stays exact.
     function measureCopyRect(): CopyRect | null {
-      const copyEl = document.querySelector<HTMLElement>("[data-hero-copy]");
-      if (!copyEl || !root) {
+      if (!root) {
+        return null;
+      }
+      const teaserEl =
+        document.querySelector<HTMLElement>("[data-hero-teaser]");
+      const actionsEl = document.querySelector<HTMLElement>(
+        "[data-hero-actions]",
+      );
+      if (!teaserEl || !actionsEl) {
         return null;
       }
       const rootBox = root.getBoundingClientRect();
-      const paragraphs = copyEl.querySelectorAll("p");
-      const widest = paragraphs[paragraphs.length - 1];
-      const bottomEl = copyEl.lastElementChild;
-      if (!widest || !bottomEl) {
-        return null;
-      }
       return {
-        right: widest.getBoundingClientRect().right - rootBox.left,
-        bottom: bottomEl.getBoundingClientRect().bottom - rootBox.top,
+        right: teaserEl.getBoundingClientRect().right - rootBox.left,
+        bottom: actionsEl.getBoundingClientRect().bottom - rootBox.top,
       };
     }
 
@@ -1003,6 +989,11 @@ export default function Tokamak() {
         side: "far" | "near",
         helixRuns: readonly ShadedPoint[][],
         forkRuns: readonly ShadedPoint[][],
+        sparkRuns: readonly {
+          far: ShadedPoint[][];
+          near: ShadedPoint[][];
+          envelope: number;
+        }[],
         colorHex: string,
         alphaMul: number,
       ) => {
@@ -1049,6 +1040,22 @@ export default function Tokamak() {
             );
           }
         }
+        // hc-0-540 fix (review 1 major 1): spark motes must carry a halo
+        // like every other luminous element on this layer -- mirrors the
+        // fork branch just above, scaled by each spark's own envelope so
+        // the halo fades with the mote instead of a flat alpha.
+        for (const { far, near, envelope } of sparkRuns) {
+          const runs = side === "far" ? far : near;
+          for (const run of runs) {
+            strokeShadedPath(
+              glowCtx!,
+              run,
+              colorHex,
+              4.5,
+              0.3 * envelope * alphaMul,
+            );
+          }
+        }
         liveCtx!.globalCompositeOperation = "lighter";
         liveCtx!.globalAlpha = 0.9;
         liveCtx!.drawImage(glow, 0, 0, glowW, glowH, 0, 0, w, h);
@@ -1067,6 +1074,7 @@ export default function Tokamak() {
           "far",
           helixFar,
           helixForkFar,
+          sparkRuns,
           BRAND.coralSoft,
           FAR_ALPHA_MUL,
         );
@@ -1190,6 +1198,7 @@ export default function Tokamak() {
           "near",
           helixNear,
           helixForkNear,
+          sparkRuns,
           BRAND.coral,
           NEAR_ALPHA_MUL,
         );

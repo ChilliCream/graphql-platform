@@ -21,17 +21,22 @@ export function FusionHero() {
             <h1 className="font-heading text-cc-heading text-h2 sm:text-h1 text-balance">
               {HERO.title}
             </h1>
-            <p className="text-cc-ink mt-6 max-w-xl text-base sm:text-lg">
+            <p
+              data-hero-teaser
+              className="text-cc-ink mt-6 max-w-xl text-base sm:text-lg"
+            >
               {HERO.teaser}
             </p>
-            <ButtonRow align="start" className="mt-9">
-              <SolidButton href={HERO.buttons[0].href}>
-                {HERO.buttons[0].label}
-              </SolidButton>
-              <OutlineButton href={HERO.buttons[1].href}>
-                {HERO.buttons[1].label}
-              </OutlineButton>
-            </ButtonRow>
+            <div data-hero-actions>
+              <ButtonRow align="start" className="mt-9">
+                <SolidButton href={HERO.buttons[0].href}>
+                  {HERO.buttons[0].label}
+                </SolidButton>
+                <OutlineButton href={HERO.buttons[1].href}>
+                  {HERO.buttons[1].label}
+                </OutlineButton>
+              </ButtonRow>
+            </div>
           </div>
         </div>
       </section>

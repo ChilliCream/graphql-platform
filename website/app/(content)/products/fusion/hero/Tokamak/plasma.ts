@@ -462,7 +462,7 @@ export function projectSpark(
   for (let i = 0; i < samples; i++) {
     const pp = Math.max(0, p - (i / (samples - 1)) * 0.12);
     const theta = spark.theta0 + spark.direction * pp * 0.5;
-    const tubeScale = 1 + pp * 1.6;
+    const tubeScale = 1 + pp * 0.6;
     const world = torusPoint(
       torus.R,
       torus.a * tubeScale,
