@@ -405,10 +405,7 @@ export default function Tokamak() {
         "column",
         columnBandFadeFloor,
       );
-      const columnBase = buildColumnSilhouette(
-        layout.columnRows,
-        layout.camera,
-      );
+      const columnBase = buildColumnSilhouette(columnTiles);
       const lights: InstrumentLight[] = buildInstrumentLights(
         layout.wallRows,
         layout.camera,
@@ -416,7 +413,11 @@ export default function Tokamak() {
         6,
       );
       paintWall(wallCtx!, w, h, wallTiles, lights);
-      paintColumnLayer(columnCtx!, w, h, columnBase, columnTiles);
+      const bandY = project(
+        { x: 0, y: layout.torus.y, z: layout.torus.z },
+        layout.camera,
+      ).y;
+      paintColumnLayer(columnCtx!, w, h, columnBase, columnTiles, bandY);
 
       // The ring's projected width uses the camera's own base scale (the
       // scale at its aim depth), the same basis the ring's actual
@@ -791,6 +792,30 @@ export default function Tokamak() {
 
       liveCtx!.globalCompositeOperation = "source-over";
       featherCopyClearZone(liveCtx!);
+
+      // Checkpoint 3 (mobile/stacked as one continuous scene): the erase
+      // above erases the WHOLE live canvas above the band on mobile/
+      // stacked (`featherMobileTop`'s own gradient is opaque for every `y`
+      // up to `artTop`, not just its own 24px feather strip), including
+      // the column this frame just stamped in -- so it never reads as
+      // structure continuing behind the copy, only ending abruptly at the
+      // band. Re-stamping the column UNDER the erased result
+      // (`destination-over`, only inside the erased band-and-above region)
+      // brings it back there at its own low `bandFade` alpha (checkpoint
+      // 1's `paintColumnLayer`), without touching the far/near plasma
+      // split at the band (unaffected, drawn earlier) or reopening the
+      // plasma's own copy-clear guarantee (the plasma layers are never
+      // re-stamped here, only the column).
+      if (layout.mode !== "sideBySide") {
+        liveCtx!.save();
+        liveCtx!.beginPath();
+        liveCtx!.rect(0, 0, w, layout.artTop + 24);
+        liveCtx!.clip();
+        liveCtx!.globalCompositeOperation = "destination-over";
+        blit(liveCtx!, columnCanvas);
+        liveCtx!.restore();
+        liveCtx!.globalCompositeOperation = "source-over";
+      }
     }
 
     drawLiveRef.current = drawLive;
