@@ -25,11 +25,11 @@ const LIST = { x: 292, y: 44, w: 332 } as const;
 const CONFLICT = 2;
 
 const CHECKS = [
-  "SOURCE SCHEMAS READ",
+  "SUBGRAPHS READ",
   "KEYS AND LOOKUPS DECLARED",
   "TYPE COMPATIBILITY",
   "ENUM COMPATIBILITY",
-  "COMPOSITE SCHEMA SIGNED",
+  "COHERENT GRAPH SIGNED",
 ] as const;
 
 const KEYFRAMES = `
@@ -255,7 +255,7 @@ export function PreflightChecklist() {
       >
         {aborted
           ? "Product.price: Float (Catalog) vs String (Billing)"
-          : "validating source schemas against one another"}
+          : "validating subgraphs against one another"}
       </text>
 
       <rect

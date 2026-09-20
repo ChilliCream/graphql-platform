@@ -44,7 +44,7 @@ interface Row {
 const ROWS: readonly Row[] = [
   {
     label: "GATEWAY",
-    meta: "composite schema",
+    meta: "coherent graph",
     latency: "42 ms",
     load: 0.86,
     errors: "0.01%",

@@ -140,7 +140,7 @@ export function FlightRecorder() {
         letterSpacing="0.16em"
         textAnchor="middle"
       >
-        COMPOSITION: GREEN · SOURCE SCHEMAS STILL COMPOSE
+        COMPOSITION: GREEN · SUBGRAPHS STILL COMPOSE
       </text>
 
       <rect

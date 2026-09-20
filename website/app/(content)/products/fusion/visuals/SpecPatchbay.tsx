@@ -6,7 +6,7 @@ import { MC, SOURCES, STATIONS, specTag } from "../palette";
 import type { StationSpec } from "../palette";
 
 /**
- * Animated console that patches every station into one composite schema bus
+ * Animated console that patches every station into one graph bus
  * regardless of source specification, then re-patches one channel from Apollo
  * Federation to the GraphQL Federation specification while its link stays green.
  */
@@ -76,7 +76,7 @@ export function SpecPatchbay() {
         fontSize={TYPE.label}
         letterSpacing="0.2em"
       >
-        SOURCE SCHEMA CHANNELS
+        SUBGRAPH CHANNELS
       </text>
 
       {CHANNELS.map((channel, i) => {
@@ -190,7 +190,7 @@ export function SpecPatchbay() {
         letterSpacing="0.16em"
         textAnchor="middle"
       >
-        COMPOSITE
+        COHERENT
       </text>
       <text
         x={BUS.x + BUS.w / 2}
@@ -201,7 +201,7 @@ export function SpecPatchbay() {
         letterSpacing="0.16em"
         textAnchor="middle"
       >
-        SCHEMA
+        GRAPH
       </text>
       <text
         x={BUS.x + BUS.w / 2}

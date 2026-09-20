@@ -69,7 +69,7 @@ export const SPEC_LEGEND: readonly StationSpec[] = [
 ];
 
 /** What the gateway readout says about the schema it serves. */
-export const COMPOSITE_LINE = `Composite schema · ${STATIONS.length} subgraphs · OpenAPI and gRPC sources`;
+export const COMPOSITE_LINE = `Coherent graph · ${STATIONS.length} subgraphs · OpenAPI and gRPC sources`;
 
 export interface Request {
   /** Index into `CLIENT_NODES`. */
