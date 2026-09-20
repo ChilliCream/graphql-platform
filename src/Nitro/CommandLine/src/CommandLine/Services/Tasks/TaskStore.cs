@@ -31,6 +31,12 @@ internal sealed class TaskStore(
         TaskStates.Tombstone
     ];
 
+    internal Func<SqliteConnection, DbTransaction?, CancellationToken, Task>? AfterEligibleEpicsReadAsync
+    {
+        get;
+        init;
+    }
+
     public async Task<SqliteConnection> InitializeAsync(
         string workspaceDirectory,
         CancellationToken cancellationToken)
@@ -1660,6 +1666,11 @@ internal sealed class TaskStore(
 
         var epics = await QueryEpicStatusesAsync(connection, cancellationToken, transaction);
         var eligible = epics.Where(epic => epic.IsEligibleForClose).ToList();
+
+        if (AfterEligibleEpicsReadAsync is { } afterEligibleEpicsReadAsync)
+        {
+            await afterEligibleEpicsReadAsync(connection, transaction, cancellationToken);
+        }
 
         if (eligible.Count == 0)
         {
