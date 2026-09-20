@@ -451,9 +451,14 @@ public sealed class TaskEditorFormTests
             var fieldStart = Array.FindIndex(lines, line => line.Contains($"╭─{label}"));
             Assert.True(fieldStart >= 0, $"Missing {label} field frame header.");
 
+            var nextFieldStart = Array.FindIndex(
+                lines,
+                fieldStart + 1,
+                line => line.Contains("╭─", StringComparison.Ordinal));
             var fieldEnd = Array.FindIndex(
                 lines,
                 fieldStart + 1,
+                (nextFieldStart < 0 ? lines.Length : nextFieldStart) - fieldStart - 1,
                 line => line.StartsWith("│ ╰", StringComparison.Ordinal));
             Assert.True(fieldEnd > fieldStart, $"Missing {label} field frame footer.");
 
