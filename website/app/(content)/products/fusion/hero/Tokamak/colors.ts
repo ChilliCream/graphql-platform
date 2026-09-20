@@ -36,6 +36,13 @@ export function hexToRgba(hex: string, alpha: number): string {
 const WHITE_RGB: readonly [number, number, number] = [255, 255, 255];
 /** The streak/filament near-white core, with a faint warm cast. */
 const WARM_WHITE_RGB: readonly [number, number, number] = [255, 244, 240];
+/**
+ * The Tokamak column's opaque base (see `paint.ts`'s `buildColumnSilhouette`
+ * / `paintColumnLayer`): a user ruling for this one element overrides the
+ * README's "black only encodes transparency" convention, so this lives
+ * next to `WHITE_RGB` rather than as an ad hoc literal at the call site.
+ */
+const BLACK_RGB: readonly [number, number, number] = [0, 0, 0];
 
 export function whiteToRgba(alpha: number): string {
   const [r, g, b] = WHITE_RGB;
@@ -44,6 +51,11 @@ export function whiteToRgba(alpha: number): string {
 
 export function warmWhiteToRgba(alpha: number): string {
   const [r, g, b] = WARM_WHITE_RGB;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+export function blackToRgba(alpha: number): string {
+  const [r, g, b] = BLACK_RGB;
   return `rgba(${r},${g},${b},${alpha})`;
 }
 

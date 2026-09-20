@@ -404,7 +404,6 @@ export default function Tokamak() {
       );
       const columnBase = buildColumnSilhouette(
         layout.columnRows,
-        layout.columnThetaSegments,
         layout.camera,
       );
       const lights: InstrumentLight[] = buildInstrumentLights(

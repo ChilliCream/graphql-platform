@@ -1,6 +1,6 @@
 import { BRAND } from "../../tokens";
 import type { InstrumentLight, Tile } from "./chamber";
-import { hexToRgba, mixHexToRgba, whiteToRgba } from "./colors";
+import { blackToRgba, hexToRgba, mixHexToRgba, whiteToRgba } from "./colors";
 import { project, ringPoint, type Camera } from "./geometry";
 import type { ShadedPoint } from "./plasma";
 import type { ChamberRow } from "./sceneLayout";
@@ -10,73 +10,72 @@ interface Pt {
   readonly y: number;
 }
 
-export interface ColumnBaseCell {
-  /** The cell's four uninset screen-space corners -- no seam gap, unlike `Tile.poly`. */
-  readonly poly: readonly [Pt, Pt, Pt, Pt];
-  /** 0 at the column's own silhouette edge (`theta` = pi or 2*pi), 1 at its front-facing centre (`theta` = 3*pi/2) -- the base's vertical cylinder shading, darkest at the limb, independent of the tile grid's own directional-light `shade`. */
-  readonly rim: number;
+/** One row's front-facing arc (`theta` = pi -> 2*pi, the same front-face
+ * half `chamber.ts`'s `facingAway` back-face-culls the real tiles to),
+ * sampled at a fixed resolution -- the raw material `buildColumnSilhouette`
+ * walks to trace the hourglass's outline and to locate each row's own
+ * left/right limb. */
+function rowFrontArc(row: ChamberRow, camera: Camera, segments: number): Pt[] {
+  const pts: Pt[] = [];
+  for (let k = 0; k <= segments; k++) {
+    const theta = Math.PI + (k / segments) * Math.PI;
+    const p = project(ringPoint(row.radius, theta, row.y, row.z), camera);
+    pts.push({ x: p.x, y: p.y });
+  }
+  return pts;
 }
 
 /**
- * The same front-face test `chamber.ts`'s own (private) `facingAway` uses
- * for the column's near half: a cylinder cell's outward normal, dotted
- * against the camera's forward vector (from `cosTilt`/`sinTilt`, the world
- * x=0 on-axis camera this scene always uses) -- negative when the normal
- * points back toward the camera (a front face, kept).
+ * A row's own silhouette limb, used as one vertex of the outline polygon's
+ * side walls: `rowFrontArc`'s own first (`theta` = pi, `"left"`) or last
+ * (`theta` = 2*pi, `"right"`) sample -- the exact same point the top/bottom
+ * rows' own full arcs already pass through at that row's height, so the
+ * side walls join the top/bottom arcs with no gap or self-crossing.
+ * (`theta` = pi/2*pi is not always each row's own true extreme-x point --
+ * the tilt shifts that slightly inward -- but using the arc's own endpoint
+ * keeps the polygon simple; the true extremum is captured in full on the
+ * top and bottom rows, whose entire arc is walked.)
  */
-function columnCellFacesCamera(midTheta: number, camera: Camera): boolean {
-  const normal = { x: Math.cos(midTheta), y: 0, z: Math.sin(midTheta) };
-  const forward = { x: 0, y: camera.sinTilt, z: camera.cosTilt };
-  const dot =
-    normal.x * forward.x + normal.y * forward.y + normal.z * forward.z;
-  return dot < 0;
+function rowLimb(arc: readonly Pt[], side: "left" | "right"): Pt {
+  return side === "left" ? arc[0] : arc[arc.length - 1];
 }
 
 /**
- * The column's opaque backing: one uninset quad per (row, theta-segment)
- * cell, sharing the exact row/theta grid (including the brick stagger and
- * back-face cull) `chamber.ts`'s `buildChamberTiles(..., "column")` uses
- * for the real tiles, so the two line up cell-for-cell. Because these
- * quads are never inset toward their own centre, their union exactly
- * covers both the area the real (inset) tiles occupy AND the seam gaps
- * between them -- painting this first, at alpha 1, then the real tiles on
- * top (see `paintColumnLayer` below), leaves every seam backed by this
- * base's own darker paint instead of transparent, so nothing drawn behind
- * the column (the far arc's streaks) is ever visible through a tile or a
- * seam.
+ * The column's opaque backing, as ONE simple outline polygon of the whole
+ * hourglass silhouette (never a union of separately filled cells, which
+ * always leaves antialiased hairlines/gaps at shared edges -- Rule F, and
+ * the user's own report of a dark half-moon/hairlines on the shipped
+ * pillar): the top rim row's own front arc (`theta` pi -> 2*pi, left to
+ * right), down the right limbs of every row in between, the bottom rim
+ * row's front arc reversed (right to left), then up the left limbs back to
+ * the start. Filling this once at alpha 1 (see `paintColumnLayer`) covers
+ * both the area the real (inset) tiles occupy AND every seam gap between
+ * them, so nothing drawn behind the column (the far arc's streaks) is ever
+ * visible through a tile or a seam, and the top rim's own front edge --
+ * where the ceiling begins -- is the polygon's own top edge, always solid.
  */
 export function buildColumnSilhouette(
   rows: readonly ChamberRow[],
-  thetaSegments: number,
   camera: Camera,
-): ColumnBaseCell[] {
-  const cells: ColumnBaseCell[] = [];
-  for (let r = 0; r < rows.length - 1; r++) {
-    const rowA = rows[r];
-    const rowB = rows[r + 1];
-    const rowStagger = r % 2 === 1 ? 0.5 / thetaSegments : 0;
-    for (let s = 0; s < thetaSegments; s++) {
-      const t0 = (s / thetaSegments + rowStagger) * Math.PI * 2;
-      const t1 = ((s + 1) / thetaSegments + rowStagger) * Math.PI * 2;
-      const midTheta = (t0 + t1) / 2;
-      if (!columnCellFacesCamera(midTheta, camera)) {
-        continue;
-      }
-      const wA0 = ringPoint(rowA.radius, t0, rowA.y, rowA.z);
-      const wA1 = ringPoint(rowA.radius, t1, rowA.y, rowA.z);
-      const wB1 = ringPoint(rowB.radius, t1, rowB.y, rowB.z);
-      const wB0 = ringPoint(rowB.radius, t0, rowB.y, rowB.z);
-      const c0 = project(wA0, camera);
-      const c1 = project(wA1, camera);
-      const c2 = project(wB1, camera);
-      const c3 = project(wB0, camera);
-      if (c0.depth <= 1 || c1.depth <= 1 || c2.depth <= 1 || c3.depth <= 1) {
-        continue;
-      }
-      cells.push({ poly: [c0, c1, c2, c3], rim: Math.abs(Math.sin(midTheta)) });
-    }
+  segments = 32,
+): readonly Pt[] {
+  if (rows.length < 2) {
+    return [];
   }
-  return cells;
+  const arcs = rows.map((row) => rowFrontArc(row, camera, segments));
+  const top = arcs[arcs.length - 1];
+  const bottom = arcs[0];
+  const path: Pt[] = [...top];
+  for (let i = arcs.length - 2; i >= 1; i--) {
+    path.push(rowLimb(arcs[i], "right"));
+  }
+  for (let i = bottom.length - 1; i >= 0; i--) {
+    path.push(bottom[i]);
+  }
+  for (let i = 1; i <= arcs.length - 2; i++) {
+    path.push(rowLimb(arcs[i], "left"));
+  }
+  return path;
 }
 
 /**
@@ -334,43 +333,42 @@ export function paintWall(
  * Painted once on mount and again on resize, same as the wall; the
  * per-frame cost is one cheap `drawImage`, not a re-paint of the tiles.
  *
- * `columnBase` (see `buildColumnSilhouette` above) is the union of
- * the column's own UNINSET cells -- it covers both the area the real
- * (inset) tiles occupy AND the seam gaps between them -- filled first, at
- * alpha 1, with a vertical cylinder shading darkest at the silhouette edge
- * (`cell.rim`). The wall gets its own opaque backing once, for the whole
- * canvas, from the navy `fillRect` under all its tiles; the column has no
- * such backdrop of its own on this transparent canvas, so without this
- * base, `tile.poly`'s low-alpha gradient blended `'source-over'` straight
- * onto the bright far-arc streaks underneath (stamped into the live canvas
- * first) reads as a pale translucent veil with visible gaps at the seams,
- * not a solid tile standing in front of them. The real tiles are then
- * painted on top of the opaque base, unchanged; the seam gap `insetQuad`
- * leaves between neighbouring tile faces is now backed by the base's own
- * darker paint instead of being genuinely transparent -- the far arc can no
- * longer show through a tile or a seam.
+ * `columnSilhouette` (see `buildColumnSilhouette` above) is ONE simple
+ * outline polygon of the whole hourglass -- not a union of separately
+ * filled cells, which always leaves antialiased hairlines at shared edges
+ * -- filled ONCE, at alpha 1, with the local `blackToRgba` helper (a user
+ * ruling for this one element: the README's "black only encodes
+ * transparency" convention is overridden here). The wall gets its own
+ * opaque backing once, for the whole canvas, from the navy `fillRect`
+ * under all its tiles; the column has no such backdrop of its own on this
+ * transparent canvas, so without this base, `tile.poly`'s low-alpha
+ * gradient blended `'source-over'` straight onto the bright far-arc
+ * streaks underneath (stamped into the live canvas first) reads as a pale
+ * translucent veil with visible gaps at the seams, not a solid tile
+ * standing in front of them. The real tiles are then painted on top of
+ * the opaque base, unchanged, keeping their own dark slate specular; the
+ * seam gap `insetQuad` leaves between neighbouring tile faces is now
+ * backed by solid black instead of being genuinely transparent -- the far
+ * arc can no longer show through a tile or a seam, and the column's own
+ * mean luminance drops below its pre-edit level because the base itself
+ * is black, not lifted.
  */
 export function paintColumnLayer(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
-  columnBase: readonly ColumnBaseCell[],
+  columnSilhouette: readonly Pt[],
   columnTiles: readonly Tile[],
 ): void {
   ctx.clearRect(0, 0, w, h);
   ctx.globalCompositeOperation = "source-over";
-  for (const cell of columnBase) {
-    // A small, fixed range of slate mixed into the navy (never alpha, which
-    // stays 1 throughout): distinguishable from the page's own bare navy at
-    // every point, but still dark enough to hold the chamber's overall
-    // luminance budget outside the plasma band.
-    const lit = 0.08 + cell.rim * 0.14;
-    ctx.fillStyle = mixHexToRgba(BRAND.navy, BRAND.slate, lit, 1);
+  if (columnSilhouette.length >= 3) {
+    ctx.fillStyle = blackToRgba(1);
     ctx.beginPath();
-    ctx.moveTo(cell.poly[0].x, cell.poly[0].y);
-    ctx.lineTo(cell.poly[1].x, cell.poly[1].y);
-    ctx.lineTo(cell.poly[2].x, cell.poly[2].y);
-    ctx.lineTo(cell.poly[3].x, cell.poly[3].y);
+    ctx.moveTo(columnSilhouette[0].x, columnSilhouette[0].y);
+    for (let i = 1; i < columnSilhouette.length; i++) {
+      ctx.lineTo(columnSilhouette[i].x, columnSilhouette[i].y);
+    }
     ctx.closePath();
     ctx.fill();
   }
