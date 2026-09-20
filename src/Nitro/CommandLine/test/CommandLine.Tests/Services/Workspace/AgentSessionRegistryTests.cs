@@ -902,6 +902,114 @@ public sealed class AgentSessionRegistryTests : IDisposable
     }
 
     [Fact]
+    public async Task ReapAsync_Should_KeepReplacement_When_HarnessChangesAfterSelection()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var staleGeneration = Generation("session-stale");
+        var replacementGeneration = staleGeneration with { Harness = AgentSessionHarness.Codex };
+        await _sessions.StartAsync(
+            staleGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromDays(2));
+        await _sessions.StartAsync(
+            replacementGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        var reaper = CreateSessionRegistry(async (candidate, token) =>
+        {
+            await _sessions.EndAsync(staleGeneration, token);
+            await SetSessionLastBeatAtAsync(replacementGeneration, candidate.LastBeatAt, token);
+        });
+
+        // act
+        var reaped = await reaper.ReapAsync(cancellationToken);
+
+        // assert
+        Assert.Empty(reaped);
+        Assert.Equal(1, await CountSessionRowsAsync(replacementGeneration, cancellationToken));
+    }
+
+    [Fact]
+    public async Task ReapAsync_Should_KeepReplacement_When_SessionIdChangesAfterSelection()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var staleGeneration = Generation("session-stale");
+        var replacementGeneration = Generation("session-replacement");
+        await _sessions.StartAsync(
+            staleGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromDays(2));
+        await _sessions.StartAsync(
+            replacementGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        var reaper = CreateSessionRegistry(async (candidate, token) =>
+        {
+            await _sessions.EndAsync(staleGeneration, token);
+            await SetSessionLastBeatAtAsync(replacementGeneration, candidate.LastBeatAt, token);
+        });
+
+        // act
+        var reaped = await reaper.ReapAsync(cancellationToken);
+
+        // assert
+        Assert.Empty(reaped);
+        Assert.Equal(1, await CountSessionRowsAsync(replacementGeneration, cancellationToken));
+    }
+
+    [Fact]
+    public async Task ReapAsync_Should_KeepSupersedingGeneration_When_HostChangesAfterSelection()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var staleGeneration = Generation("session-stale");
+        var replacementGeneration = staleGeneration with { Host = OtherHost };
+        await _sessions.StartAsync(
+            staleGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromDays(2));
+        var reaper = CreateSessionRegistry(async (candidate, token) =>
+        {
+            await _sessions.StartAsync(
+                replacementGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+                envActor: null, token);
+            await SetSessionLastBeatAtAsync(replacementGeneration, candidate.LastBeatAt, token);
+        });
+
+        // act
+        var reaped = await reaper.ReapAsync(cancellationToken);
+
+        // assert
+        Assert.Empty(reaped);
+        Assert.Equal(1, await CountSessionRowsAsync(replacementGeneration, cancellationToken));
+    }
+
+    [Fact]
+    public async Task ReapAsync_Should_KeepNewlyBeatenGeneration_When_HeartbeatChangesAfterSelection()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitializeWorkspaceAsync(cancellationToken);
+        var staleGeneration = Generation("session-stale");
+        await _sessions.StartAsync(
+            staleGeneration, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromDays(2));
+        var reaper = CreateSessionRegistry(
+            (candidate, token) => _sessions.TouchAsync(staleGeneration, token));
+
+        // act
+        var reaped = await reaper.ReapAsync(cancellationToken);
+
+        // assert
+        Assert.Empty(reaped);
+        Assert.Equal(1, await CountSessionRowsAsync(staleGeneration, cancellationToken));
+    }
+
+    [Fact]
     public async Task ListAsync_Should_ComputeStates_When_MixOfOnlineUnreachableAndRemoteRows()
     {
         // arrange
@@ -1381,14 +1489,18 @@ public sealed class AgentSessionRegistryTests : IDisposable
     private static AgentSessionGeneration Generation(string sessionId)
         => new(Harness, sessionId, CurrentHost);
 
-    private AgentSessionRegistry CreateSessionRegistry()
+    private AgentSessionRegistry CreateSessionRegistry(
+        Func<AgentSessionRecord, CancellationToken, Task>? onStaleReapCandidateCapturedAsync = null)
         => new(
             _fileSystem,
             _timeProvider,
             _database,
             new AgentRegistry(_fileSystem, _timeProvider, _database),
             new FixedInstanceIdProvider(CurrentHost),
-            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName));
+            new FixedGlobalConfigDirectoryProvider(_tempRoot.FullName))
+        {
+            OnStaleReapCandidateCapturedAsync = onStaleReapCandidateCapturedAsync
+        };
 
     private async Task InitializeWorkspaceAsync(CancellationToken cancellationToken)
     {
@@ -1430,6 +1542,24 @@ public sealed class AgentSessionRegistryTests : IDisposable
             + "WHERE harness = $harness AND session_id = $sessionId AND host = $host;";
         command.Parameters.AddWithValue("$role", role);
         command.Parameters.AddWithValue("$harnessVersion", harnessVersion);
+        command.Parameters.AddWithValue("$harness", generation.Harness);
+        command.Parameters.AddWithValue("$sessionId", generation.SessionId);
+        command.Parameters.AddWithValue("$host", generation.Host);
+
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private async Task SetSessionLastBeatAtAsync(
+        AgentSessionGeneration generation,
+        DateTimeOffset lastBeatAt,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await _database.ConnectAsync(_workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            "UPDATE agent_sessions SET last_beat_at = $lastBeatAt "
+            + "WHERE harness = $harness AND session_id = $sessionId AND host = $host;";
+        command.Parameters.AddWithValue("$lastBeatAt", lastBeatAt);
         command.Parameters.AddWithValue("$harness", generation.Harness);
         command.Parameters.AddWithValue("$sessionId", generation.SessionId);
         command.Parameters.AddWithValue("$host", generation.Host);

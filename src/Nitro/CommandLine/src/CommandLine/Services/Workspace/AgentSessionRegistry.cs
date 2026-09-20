@@ -19,6 +19,11 @@ internal sealed class AgentSessionRegistry(
     /// </summary>
     private static readonly TimeSpan s_staleAfter = TimeSpan.FromHours(24);
 
+    /// <summary>
+    /// Invoked after a stale reap candidate is read and before its guarded delete.
+    /// </summary>
+    internal Func<AgentSessionRecord, CancellationToken, Task>? OnStaleReapCandidateCapturedAsync { get; init; }
+
     public Task<AgentSessionRecord> StartAsync(
         AgentSessionGeneration generation,
         string cwd,
@@ -911,6 +916,11 @@ internal sealed class AgentSessionRegistry(
             if (record.LastBeatAt > cutoff)
             {
                 continue;
+            }
+
+            if (OnStaleReapCandidateCapturedAsync is { } onStaleReapCandidateCapturedAsync)
+            {
+                await onStaleReapCandidateCapturedAsync(record, cancellationToken);
             }
 
             // Delete only if the recorded host and heartbeat still match.
