@@ -69,16 +69,17 @@ public sealed class ContextMemoryCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task NeverIncludesJournal()
     {
-        // arrange: pins that context stays curated-only, never including journal entries.
+        // arrange
         await InitWorkspaceAsync();
-        await SeedMemoryAsync("Curated note.");
+        var curated = await SeedMemoryAsync("Curated note.");
+        await SeedJournalEntryAsync("Journal-only payload.");
 
         // act
         var result = await ExecuteCommandAsync("agent", "memory", "context");
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.DoesNotContain("journal", result.StdOut, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(MemoryContextRenderer.Render([curated]), result.StdOut);
     }
 
     [Fact]
@@ -132,16 +133,17 @@ public sealed class ContextMemoryCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         await InitWorkspaceAsync();
-        await SeedMemoryAsync("Older note.");
+        var smaller = await SeedMemoryAsync("x");
+        FakeTime.Advance(TimeSpan.FromMinutes(1));
+        await SeedMemoryAsync(new string('a', 100));
         FakeTime.Advance(TimeSpan.FromMinutes(1));
         var newest = await SeedMemoryAsync("Newer note.");
         SetupInteractionMode(InteractionMode.JsonOutput);
+        var maxChars = MemoryContextRenderer.RenderEntry(newest).Length
+            + MemoryContextRenderer.Separator.Length
+            + MemoryContextRenderer.RenderEntry(smaller).Length;
 
-        // A budget that fits the newest (rank-first) entry exactly, with no room for a second.
-        var maxChars = MemoryContextRenderer.RenderEntry(newest).Length;
-
-        // act: the budget admits exactly the first-ranked entry and stops rather than
-        // truncating it or skipping ahead to a smaller one.
+        // act
         var result = await ExecuteCommandAsync(
             "agent", "memory", "context", "--max-chars", maxChars.ToString());
 

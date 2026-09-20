@@ -1176,6 +1176,13 @@ public sealed class AgentSessionRegistryTests : IDisposable
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
 
+        var dead = Generation("session-dead");
+        await _sessions.StartAsync(
+            dead, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
+            envActor: null, cancellationToken);
+        await _sessions.ClaimAsync(dead, "pascal", forceRebind: false, cancellationToken);
+        _timeProvider.Advance(TimeSpan.FromDays(2));
+
         var mine = Generation("session-mine");
         await _sessions.StartAsync(
             mine, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.CodexThread, "thread-1",
@@ -1192,16 +1199,12 @@ public sealed class AgentSessionRegistryTests : IDisposable
         await _sessions.StartAsync(
             remote, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
             envActor: null, cancellationToken);
-
-        var dead = Generation("session-dead");
-        await _sessions.StartAsync(
-            dead, "/work", "/work/.nitro/agents", AgentSessionEndpointKind.None, "",
-            envActor: null, cancellationToken);
+        await _sessions.ClaimAsync(remote, "pascal", forceRebind: false, cancellationToken);
 
         // act
         var live = await _sessions.FindLiveClaimedByAgentNameAsync("pascal", cancellationToken);
 
-        // assert: the remote row, the dead current-host row, and codex's own session are all excluded.
+        // assert: only liveness excludes the dead local row.
         var row = Assert.Single(live);
         Assert.Equal("session-mine", row.SessionId);
     }
