@@ -129,7 +129,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_TraverseFocus_When_DownArrowOnSelectField()
     {
-        // arrange: the select field moves with left/right, so down arrow is left for the form to traverse fields.
+        // arrange
         var form = CreateForm();
         form.HandleKey(Key(ConsoleKey.Tab));
 
@@ -199,7 +199,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_ReturnNull_When_EnterWhileFieldFocused()
     {
-        // arrange: Enter only activates a button, so it must not submit while focus is on a field.
+        // arrange
         var form = CreateForm();
 
         // act
@@ -261,7 +261,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_Submit_When_CtrlSWhileFieldFocused()
     {
-        // arrange: Ctrl+S is the fallback chord when a terminal delivers Ctrl+Enter as a plain Enter.
+        // arrange
         var form = CreateForm();
         form.HandleKey(Key('h'));
 
@@ -276,7 +276,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_NotInsertNewline_When_CtrlEnterInTextAreaField()
     {
-        // arrange: a plain Enter in a text area inserts a newline, but the save chord takes priority.
+        // arrange
         var fields = new FormField[] { new TextAreaField("notes", "Notes") };
         var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
         var form = new FormUnderTest("Edit Task", fields, buttons);
@@ -293,7 +293,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_NotSubmit_When_PlainEnterInTextAreaField()
     {
-        // arrange: confirms the save chord is Ctrl-gated, not a change to plain-Enter newline behavior.
+        // arrange
         var fields = new FormField[] { new TextAreaField("notes", "Notes") };
         var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
         var form = new FormUnderTest("Edit Task", fields, buttons);
@@ -325,7 +325,7 @@ public sealed class FormTests
     [Fact]
     public void HandleKey_Should_IgnoreSelectedButton_When_CtrlEnterOnSecondaryButton()
     {
-        // arrange: focus sits on Cancel, but the save chord always targets the primary action.
+        // arrange
         var form = CreateForm();
         form.HandleKey(Key('h'));
         form.HandleKey(Key(ConsoleKey.Tab));
@@ -383,7 +383,7 @@ public sealed class FormTests
         // act
         console.Write(form.Render(80, 20));
 
-        // assert: the field is untouched and no submit was attempted, so the error stays hidden.
+        // assert
         Assert.DoesNotContain("Title is required.", console.Output);
     }
 
@@ -394,7 +394,7 @@ public sealed class FormTests
         var form = CreateForm(titleValidator: _ => "always invalid");
         var console = new TestConsole().Width(80).Height(20);
 
-        // act: typing into the title field touches it even though the validator still fails.
+        // act
         form.HandleKey(Key('h'));
         console.Write(form.Render(80, 20));
 
@@ -446,7 +446,7 @@ public sealed class FormTests
         // act
         console.Write(form.Render(160, 20));
 
-        // assert: the outer panel border is centered and never wider than 80 columns.
+        // assert
         var borderLine = console.Output
             .Split('\n')
             .First(line => line.Contains("Edit Task"));
@@ -523,7 +523,7 @@ public sealed class FormTests
         // act
         console.Write(form.Render(80, 23));
 
-        // assert: the focused field's label is visible though it's the seventh of seven fields.
+        // assert
         Assert.Contains("Field 6", console.Output);
     }
 
@@ -551,7 +551,7 @@ public sealed class FormTests
         // act
         console.Write(form.Render(10, 5));
 
-        // assert: the frame wraps the notice onto several lines; only a surviving fragment is checked.
+        // assert
         Assert.Contains("too small", console.Output);
     }
 

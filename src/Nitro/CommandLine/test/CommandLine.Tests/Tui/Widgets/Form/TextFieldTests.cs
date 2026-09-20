@@ -147,7 +147,7 @@ public sealed class TextFieldTests
         // act
         console.Write(field.Render(14, focused: true));
 
-        // assert: the cursor sits at the end, so the earliest characters scrolled out of view.
+        // assert
         Assert.DoesNotContain("0123456789", console.Output);
         Assert.Contains("j", console.Output);
     }

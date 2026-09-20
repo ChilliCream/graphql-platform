@@ -85,7 +85,7 @@ public sealed class SelectFieldTests
     [InlineData(ConsoleKey.DownArrow)]
     public void HandleKey_Should_ReturnFalse_When_VerticalArrow(ConsoleKey key)
     {
-        // arrange: up and down are left for the form to traverse fields; options move with left/right.
+        // arrange
         var field = CreateField();
 
         // act

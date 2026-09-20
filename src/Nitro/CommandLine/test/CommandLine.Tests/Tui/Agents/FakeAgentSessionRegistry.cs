@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
-/// In-memory <see cref="IAgentSessionRegistry"/> stub; only <see cref="ListParticipantsAsync"/> and
-/// <see cref="FindLiveClaimedByAgentNameAsync"/> are implemented, every other member throws
-/// <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="IAgentSessionRegistry"/> supporting <see cref="ListParticipantsAsync"/>
+/// and <see cref="FindLiveClaimedByAgentNameAsync"/>. All other methods throw <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeAgentSessionRegistry : IAgentSessionRegistry
 {

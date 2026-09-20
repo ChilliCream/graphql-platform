@@ -3,7 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
-/// In-memory <see cref="IClaudeSessionActivityReader"/> stub returning a fixed status per session id.
+/// An in-memory <see cref="IClaudeSessionActivityReader"/> returning the configured status
+/// for a session id, or null when no status is configured.
 /// </summary>
 internal sealed class FakeClaudeSessionActivityReader : IClaudeSessionActivityReader
 {

@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Details;
 
 /// <summary>
-/// In-memory <see cref="ITaskStore"/> stub implementing only the read surface (task by id, labels,
-/// dependencies both directions, comments, blocked set); every other member throws
-/// <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="ITaskStore"/> supporting reads of tasks by id, labels, dependencies,
+/// dependents, comments, and the blocked set. All other methods throw <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
 {

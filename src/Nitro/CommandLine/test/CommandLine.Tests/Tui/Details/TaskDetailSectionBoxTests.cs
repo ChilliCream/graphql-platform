@@ -23,7 +23,7 @@ public sealed partial class TaskDetailSectionBoxTests
         // act
         var lines = TaskDetailSectionBox.Render("Notes", "hi", 10);
 
-        // assert: a rounded border carries the title, a padded content row holds the text, closed by a bottom row.
+        // assert
         Assert.Equal(
             [
                 new TaskDetailBodyLine("╭─Notes──╮", IsMarkup: true),
@@ -36,7 +36,8 @@ public sealed partial class TaskDetailSectionBoxTests
     [Fact]
     public void Render_Should_WrapContent_AtInteriorWidth_NotBoxWidth()
     {
-        // act: a 10-column box has a 6-column interior after border/padding, so "alpha beta gamma" wraps to three rows.
+        // act
+        // Border and padding leave six columns for content.
         var lines = TaskDetailSectionBox.Render("Notes", "alpha beta gamma", 10);
 
         // assert
@@ -84,7 +85,7 @@ public sealed partial class TaskDetailSectionBoxTests
     [Fact]
     public void Render_Should_PreserveBracketsInContent_When_RenderedThroughSpectre()
     {
-        // arrange: the content row is plain, unescaped text; Spectre.Console escapes it same as any plain-text line.
+        // arrange
         var lines = TaskDetailSectionBox.Render("Notes", "[greeting]", 20);
         var console = new TestConsole().Width(20);
 

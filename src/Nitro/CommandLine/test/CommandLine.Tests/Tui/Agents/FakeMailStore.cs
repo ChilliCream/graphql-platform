@@ -3,8 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
-/// In-memory <see cref="IMailStore"/> stub; only <see cref="QuerySentAsync"/> is implemented, every
-/// other member throws <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="IMailStore"/> supporting <see cref="QuerySentAsync"/>.
+/// All other methods throw <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeMailStore : IMailStore
 {

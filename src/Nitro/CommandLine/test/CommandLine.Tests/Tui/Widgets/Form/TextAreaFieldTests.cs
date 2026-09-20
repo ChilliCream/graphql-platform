@@ -55,7 +55,7 @@ public sealed class TextAreaFieldTests
     [Fact]
     public void HandleKey_Should_MoveToPreviousLine_When_UpArrowNotOnFirstLine()
     {
-        // arrange: the cursor starts at the end of "b" (col 1); moving up clamps to the same column on "a".
+        // arrange
         var field = new TextAreaField("notes", "Notes", initialValue: "a\nb");
 
         // act

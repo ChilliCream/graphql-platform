@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
-/// In-memory <see cref="ITaskStore"/> stub; only <see cref="QueryTasksAsync"/> is implemented, filtered
-/// by assignee and the default open/non-terminal set. Every other member throws
-/// <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="ITaskStore"/> supporting <see cref="QueryTasksAsync"/> with status,
+/// assignee, and limit filters. All other methods throw <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeTaskStore : ITaskStore
 {

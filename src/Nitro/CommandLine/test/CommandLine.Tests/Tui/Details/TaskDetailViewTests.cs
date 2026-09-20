@@ -72,7 +72,8 @@ public sealed class TaskDetailViewTests
             "t-1", notes: string.Join('\n', Enumerable.Range(1, 30).Select(i => $"line {i}")));
         var view = await CreateViewAsync(store, "t-1");
 
-        // act: an initial render establishes the viewport height/line count that scrolling depends on.
+        // act
+        // Render once to establish the viewport before scrolling.
         RenderToText(view, width: 110, height: 10);
 
         for (var i = 0; i < 10; i++)
@@ -89,7 +90,7 @@ public sealed class TaskDetailViewTests
     [Fact]
     public async Task Render_Should_KeepSelectedRow_Visible_When_CursorMovesPastTheViewport()
     {
-        // arrange: ten dependency rows in a body panel too short to show them all at once.
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["t-1"] = TaskItemBuilder.Create("t-1");
         store.Dependencies["t-1"] = Enumerable.Range(0, 10)
@@ -112,7 +113,7 @@ public sealed class TaskDetailViewTests
 
         var text = RenderToText(view, width: 110, height: 10, focused: true);
 
-        // assert: the now-selected last row scrolled into view; the viewport reports rows hidden above it.
+        // assert
         Assert.Contains("d-9", text);
         Assert.Contains("more above", text);
     }
@@ -120,7 +121,7 @@ public sealed class TaskDetailViewTests
     [Fact]
     public async Task Render_Should_KeepScrollOffset_When_TaskHasDependencyRows_And_BodyScrolledToBottom()
     {
-        // arrange: a dependency row (fixed selected-row line) plus enough notes/comments to overflow the viewport.
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["t-1"] = TaskItemBuilder.Create(
             "t-1", notes: string.Join('\n', Enumerable.Range(1, 30).Select(i => $"line {i}")));
@@ -147,11 +148,11 @@ public sealed class TaskDetailViewTests
         var view = await CreateViewAsync(store, "t-1");
         RenderToText(view, width: 110, height: 10);
 
-        // act: scroll to the bottom, past the dependency row's fixed line index, then render again.
+        // act
         view.ScrollToBottom();
         var text = RenderToText(view, width: 110, height: 10);
 
-        // assert: the bottom of the body stays in view instead of snapping back to the dependency row.
+        // assert
         Assert.Contains("comment 5", text);
         Assert.Contains("more above", text);
     }
@@ -159,7 +160,8 @@ public sealed class TaskDetailViewTests
     [Fact]
     public async Task Render_Should_NotClipLastSidebarGroup_When_StackedAndAFieldWraps()
     {
-        // arrange: a width narrow enough the Created line wraps, so the Blocked by panel below must grow, not clip.
+        // arrange
+        // The Created line wraps within the sidebar above the Blocked by group.
         var store = new FakeTaskStore();
         store.Tasks["t-1"] = TaskItemBuilder.Create(
             "t-1", createdAt: DateTimeOffset.UnixEpoch, createdBy: "e2e-agent");

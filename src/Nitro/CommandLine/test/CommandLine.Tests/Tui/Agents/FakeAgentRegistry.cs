@@ -3,8 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
-/// In-memory <see cref="IAgentRegistry"/> stub; only <see cref="ListAsync"/> and
-/// <see cref="GetAsync"/> are implemented, every other member throws <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="IAgentRegistry"/> supporting <see cref="ListAsync"/> and
+/// <see cref="GetAsync"/>. All other methods throw <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeAgentRegistry : IAgentRegistry
 {
