@@ -19,6 +19,11 @@ internal sealed class ClaudeSessionFileReader : IClaudeSessionFileReader
 
     internal ClaudeSessionFile? Find(string directory, string sessionId)
     {
+        if (string.IsNullOrWhiteSpace(sessionId))
+        {
+            return null;
+        }
+
         try
         {
             foreach (var path in Directory.EnumerateFiles(directory, "*.json"))

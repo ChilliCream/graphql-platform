@@ -21,7 +21,7 @@ internal sealed class CodexHarnessVersionResolver(
             var root = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".codex", "sessions");
 
-            return ReadRolloutVersion(root, sessionId);
+            return ReadRolloutVersionCore(root, sessionId);
         }
         catch (IOException)
         {
@@ -38,6 +38,26 @@ internal sealed class CodexHarnessVersionResolver(
     }
 
     internal static string? ReadRolloutVersion(string root, string sessionId)
+    {
+        try
+        {
+            return ReadRolloutVersionCore(root, sessionId);
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static string? ReadRolloutVersionCore(string root, string sessionId)
     {
         if (!Directory.Exists(root))
         {

@@ -35,6 +35,25 @@ public sealed class ClaudeSessionActivityReaderTests
     }
 
     [Fact]
+    public void GetStatus_Should_ReturnTheStatus_When_DiscoveredSessionFileIsValid()
+    {
+        // arrange
+        using var directory = new TemporaryDirectory();
+        File.WriteAllText(
+            Path.Combine(directory.Root.FullName, "session.json"),
+            "{\"sessionId\":\"session-1\",\"status\":\"working\"}");
+        var reader = new ClaudeSessionActivityReader(
+            sessionFileReader: sessionId =>
+                ClaudeSessionActivityReader.ReadSessionFile(directory.Root.FullName, sessionId));
+
+        // act
+        var status = reader.GetStatus("session-1");
+
+        // assert
+        Assert.Equal("working", status);
+    }
+
+    [Fact]
     public void GetStatus_Should_ReturnNull_When_SessionFileRootIsAnArray()
     {
         // arrange

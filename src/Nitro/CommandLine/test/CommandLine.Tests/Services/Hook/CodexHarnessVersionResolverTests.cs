@@ -49,6 +49,21 @@ public sealed class CodexHarnessVersionResolverTests
     }
 
     [Fact]
+    public void Resolve_Should_ReturnEmpty_When_ExplicitRolloutFileIsMalformed()
+    {
+        // arrange
+        using var directory = new TemporaryDirectory();
+        WriteRolloutFile(directory, "{");
+        var resolver = CreateResolver(directory);
+
+        // act
+        var version = resolver.Resolve("session-1");
+
+        // assert
+        Assert.Equal("", version);
+    }
+
+    [Fact]
     public void Resolve_Should_ReturnEmpty_When_RolloutRecordTypeIsNotAString()
     {
         // arrange
@@ -93,6 +108,21 @@ public sealed class CodexHarnessVersionResolverTests
 
         // assert
         Assert.Equal("", version);
+    }
+
+    [Fact]
+    public void Resolve_Should_ReadRolloutVersion_When_ExplicitDirectoryContainsAMatch()
+    {
+        // arrange
+        using var directory = new TemporaryDirectory();
+        WriteRolloutFile(directory, "{\"type\":\"session_meta\",\"payload\":{\"cli_version\":\"0.101.0\"}}");
+        var resolver = CreateResolver(directory);
+
+        // act
+        var version = resolver.Resolve("session-1");
+
+        // assert
+        Assert.Equal("0.101.0", version);
     }
 
     private static CodexHarnessVersionResolver CreateResolver(TemporaryDirectory directory)
