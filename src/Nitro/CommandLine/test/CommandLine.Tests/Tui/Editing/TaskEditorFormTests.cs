@@ -449,8 +449,16 @@ public sealed class TaskEditorFormTests
             console.Write(form.Render(80, 23));
             var lines = console.Output.Split('\n');
             var fieldStart = Array.FindIndex(lines, line => line.Contains($"╭─{label}"));
-            var fieldEnd = Array.FindIndex(lines, fieldStart, line => line.Contains("╰"));
-            focusedFieldFrames.Add(string.Join("\n", lines[fieldStart..(fieldEnd + 1)]));
+            Assert.True(fieldStart >= 0, $"Missing {label} field frame header.");
+
+            var fieldEnd = Array.FindIndex(
+                lines,
+                fieldStart + 1,
+                line => line.StartsWith("│ ╰", StringComparison.Ordinal));
+            Assert.True(fieldEnd > fieldStart, $"Missing {label} field frame footer.");
+
+            var fieldFrame = string.Join("\n", lines[fieldStart..(fieldEnd + 1)]);
+            focusedFieldFrames.Add($"focused: {form.FocusedField?.Id ?? "null"}\n{fieldFrame}");
             form.HandleKey(Key(ConsoleKey.Tab));
         }
 
@@ -459,38 +467,52 @@ public sealed class TaskEditorFormTests
         buttonConsole.Write(form.Render(80, 23));
         var buttonLines = buttonConsole.Output.Split('\n');
         var buttonLineIndex = Array.FindIndex(buttonLines, line => line.Contains("Save"));
+        Assert.True(
+            buttonLineIndex > 0
+            && buttonLineIndex < buttonLines.Length - 1
+            && buttonLines[buttonLineIndex - 1].StartsWith("│", StringComparison.Ordinal)
+            && buttonLines[buttonLineIndex + 1].StartsWith("╰", StringComparison.Ordinal),
+            "Missing Save button frame.");
+
         var buttonFrame = string.Join("\n", buttonLines[(buttonLineIndex - 1)..(buttonLineIndex + 2)]);
+        buttonFrame = $"focused: {form.FocusedField?.Id ?? "null"}\n{buttonFrame}";
 
         // assert
         focusedFieldFrames.MatchInlineSnapshots(
             [
                 """
+                focused: title
                 │ ╭─Title *──────────────────────────────────────────────────────────────────╮ │
                 │ │ Title                                                                    │ │
                 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
                 """,
                 """
+                focused: status
                 │ ╭─Status───────────────────────────────────────────────────────────────────╮ │
                 │ │ (o) Open  ( ) In Progress  ( ) Blocked  ( ) Deferred                     │ │
                 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
                 """,
                 """
+                focused: priority
                 │ ╭─Priority─────────────────────────────────────────────────────────────────╮ │
                 │ │ ( ) P0  ( ) P1  (o) P2  ( ) P3  ( ) P4                                   │ │
                 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
                 """,
                 """
+                focused: type
                 │ ╭─Type─────────────────────────────────────────────────────────────────────╮ │
                 │ │ (o) Task  ( ) Bug  ( ) Feature  ( ) Epic  ( ) Chore  ( ) Docs            │ │
                 │ │ ( ) Question                                                             │ │
                 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
                 """,
                 """
+                focused: labels
                 │ ╭─Labels───────────────────────────────────────────────────────────────────╮ │
                 │ │ - alpha                                                                  │ │
                 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
                 """,
                 """
+                focused: description
                 │ ╭─Description──────────────────────────────────────────────────────────────╮ │
                 │ │                                                                          │ │
                 │ │                                                                          │ │
@@ -498,6 +520,7 @@ public sealed class TaskEditorFormTests
                 │ ╰──────────────────────────────────────────────────────────────────────────╯ │
                 """,
                 """
+                focused: notes
                 │ ╭─Notes────────────────────────────────────────────────────────────────────╮ │
                 │ │                                                                          │ │
                 │ │                                                                          │ │
@@ -507,6 +530,7 @@ public sealed class TaskEditorFormTests
             ]);
         buttonFrame.MatchInlineSnapshot(
             """
+            focused: null
             │                                                                              │
             │  Save                           Cancel                                       │
             ╰──────────────────────────────────────────────────────────────────────────────╯
