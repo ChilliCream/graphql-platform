@@ -379,6 +379,30 @@ public sealed class MailWakeBatchStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task TryReleaseAsync_Should_ReturnFalseAndLeaveDueAtUnchanged_When_LeaseHasExpired()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
+        var claim = await SeedClaimedBatchAsync(now, TimeSpan.FromSeconds(10), cancellationToken);
+        var releaseTime = now + TimeSpan.FromSeconds(11);
+        var retryAt = releaseTime + TimeSpan.FromMinutes(1);
+
+        // act
+        var released = await _batches.TryReleaseAsync(
+            claim.BatchId, "owner-1", "attempt-1", releaseTime, retryAt, "offered", cancellationToken);
+
+        // assert
+        Assert.False(released);
+        await using var connection = await ConnectAsync(cancellationToken);
+        var dueAt = await ExecuteScalarStringAsync(
+            connection,
+            $"SELECT due_at FROM mail_wake_outbox WHERE nitro_instance_id = '{InstanceId}' AND actor = '{Actor}'",
+            cancellationToken);
+        Assert.Equal(now, DateTimeOffset.Parse(dueAt!, System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
     public async Task TryReleaseAsync_Should_LeaveDueAtUnchanged_When_RetryAtIsNull()
     {
         // arrange

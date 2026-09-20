@@ -195,10 +195,11 @@ internal sealed class MailWakeBatchStore(IFileSystem fileSystem, AgentDatabase d
         var released = await connection.QueryFirstOrDefaultAsync<ReleasedBatchRow>(
             """
             UPDATE mail_wake_batches SET status = 'released', last_error = @lastError
-            WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId AND status = 'active'
+            WHERE batch_id = @batchId AND owner_id = @ownerId AND attempt_id = @attemptId
+              AND status = 'active' AND expires_at > @now
             RETURNING nitro_instance_id AS NitroInstanceId, actor AS Actor
             """,
-            new { batchId, ownerId, attemptId, lastError, cancellationToken },
+            new { batchId, ownerId, attemptId, now, lastError, cancellationToken },
             transaction);
 
         if (released is null)
