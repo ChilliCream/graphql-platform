@@ -159,9 +159,10 @@ public sealed class SessionDeliveryLedgerTests : IDisposable
         await InitializeWorkspaceAndSessionAsync(cancellationToken, SessionId);
 
         // act
-        var results = await Task.WhenAll(
-            _ledger.ReserveAsync(s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken),
-            _ledger.ReserveAsync(s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken));
+        var results = await ConcurrentTestHarness.RunAsync(
+            2,
+            _ => new SessionDeliveryLedger(_fileSystem, _database)
+                .ReserveAsync(s_generation, ["m-1"], "gate", DateTimeOffset.UtcNow, cancellationToken));
 
         // assert
         var totalReserved = results.Sum(r => r.Count);
