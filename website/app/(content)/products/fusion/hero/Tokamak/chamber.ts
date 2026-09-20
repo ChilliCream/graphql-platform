@@ -124,17 +124,50 @@ function insetQuad(
   ];
 }
 
+interface Line {
+  readonly p: Pt;
+  readonly d: Pt;
+}
+
+/** Signed perpendicular distance from `pt` to the (infinite) line through `a`->`b`, positive on the side `n` points to. */
+function sideDist(pt: Pt, a: Pt, n: Pt): number {
+  return (pt.x - a.x) * n.x + (pt.y - a.y) * n.y;
+}
+
+/** Intersects two infinite lines; `null` when (near-)parallel. */
+function intersectLines(l1: Line, l2: Line): Pt | null {
+  const denom = l1.d.x * l2.d.y - l1.d.y * l2.d.x;
+  if (Math.abs(denom) < 1e-9) {
+    return null;
+  }
+  const t = ((l2.p.x - l1.p.x) * l2.d.y - (l2.p.y - l1.p.y) * l2.d.x) / denom;
+  return { x: l1.p.x + l1.d.x * t, y: l1.p.y + l1.d.y * t };
+}
+
 /**
- * The COLUMN's own pixel-based inset (see `COLUMN_SEAM_GAP_PX`'s own doc):
- * moves each corner toward the quad's centroid by a FIXED px distance
- * (`gapPx / 2`, half the target gap -- the tile sharing the other side of
- * the seam moves in by the same amount, so the two faces end up
- * `gapPx` apart) along the corner-to-centroid line, instead of `insetQuad`'s
- * fraction-of-size lerp. Capped at 45% of the corner's own distance to the
- * centroid so a tile smaller than the target gap is never inverted (its
- * corners never cross the centroid) -- it just reads as a smaller, still
- * legible face with a slightly narrower seam, the same graceful floor
- * `insetQuad`'s own small-tile branch uses.
+ * The COLUMN's own pixel-based inset (verifier 2 item 4, hc-0-wqa fix 2):
+ * a proper per-edge inward offset (a small Minkowski erosion), not a
+ * corner-to-centroid lerp -- `insetQuadPx`'s old centroid-lerp moved each
+ * corner by a fixed px distance ALONG THE CORNER-TO-CENTROID LINE, which on
+ * a foreshortened, elongated tile (the column's own limb tiles, seen at a
+ * grazing angle) barely moves the corner perpendicular to the seam it is
+ * supposed to open (most of that lerp distance runs along the tile's long
+ * axis instead), leaving the seam narrower than `gapPx` -- reviewer 2's F2
+ * (108 of 115 in-band misses were vertical seams, median lum 0.0275, "dark
+ * but not black").
+ *
+ * Each of the quad's 4 edges is offset inward, along its own normal, by
+ * `gapPx / 2` (the tile sharing the other side of a seam offsets its
+ * matching edge by the same amount, so the two faces end up `gapPx` apart
+ * regardless of either tile's own shape) -- the new corners are the
+ * intersections of each pair of adjacent offset edges, so every edge of the
+ * resulting face sits exactly `gapPx / 2` in from the true edge, measured
+ * perpendicular to that edge, not toward some unrelated centroid point.
+ *
+ * Clamped per OPPOSITE edge pair (0<->2, the row-direction edges; 1<->3,
+ * the seam/radial edges) so a tile narrower than `gapPx` across a pair
+ * still keeps a `>= 1px` face on that axis, instead of the two offset edges
+ * crossing past each other and inverting the quad.
  */
 function insetQuadPx(
   p: readonly [Pt, Pt, Pt, Pt],
@@ -143,15 +176,62 @@ function insetQuadPx(
   const cx = (p[0].x + p[1].x + p[2].x + p[3].x) / 4;
   const cy = (p[0].y + p[1].y + p[2].y + p[3].y) / 4;
   const center: Pt = { x: cx, y: cy };
-  const insetPx = gapPx / 2;
-  const move = (corner: Pt): Pt => {
-    const dx = center.x - corner.x;
-    const dy = center.y - corner.y;
-    const dist = Math.hypot(dx, dy) || 1;
-    const t = Math.min(0.45, insetPx / dist);
-    return lerpPt(corner, center, t);
+  const halfGap = gapPx / 2;
+
+  // Per-edge inward unit normal, oriented toward the quad's centroid.
+  const normals: Pt[] = [];
+  for (let i = 0; i < 4; i++) {
+    const a = p[i];
+    const b = p[(i + 1) % 4];
+    const ex = b.x - a.x;
+    const ey = b.y - a.y;
+    const len = Math.hypot(ex, ey) || 1;
+    let nx = -ey / len;
+    let ny = ex / len;
+    const mid: Pt = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    if ((center.x - mid.x) * nx + (center.y - mid.y) * ny < 0) {
+      nx = -nx;
+      ny = -ny;
+    }
+    normals.push({ x: nx, y: ny });
+  }
+
+  // Opposite-pair thickness (perpendicular distance from one edge's line
+  // to the opposite edge's far corner), clamped so both edges of a pair
+  // never offset past each other -- a `>= 1px` face always survives.
+  const pairInset = (edgeA: number, edgeB: number): number => {
+    const a = p[edgeA];
+    const nA = normals[edgeA];
+    const farCorner = p[(edgeB + 1) % 4];
+    const thickness = Math.max(0, sideDist(farCorner, a, nA));
+    return Math.min(halfGap, Math.max(0, (thickness - 1) / 2));
   };
-  return [move(p[0]), move(p[1]), move(p[2]), move(p[3])];
+  const inset02 = pairInset(0, 2);
+  const inset13 = pairInset(1, 3);
+  const insets = [inset02, inset13, inset02, inset13];
+
+  const lines: Line[] = [];
+  for (let i = 0; i < 4; i++) {
+    const a = p[i];
+    const b = p[(i + 1) % 4];
+    const n = normals[i];
+    lines.push({
+      p: { x: a.x + n.x * insets[i], y: a.y + n.y * insets[i] },
+      d: { x: b.x - a.x, y: b.y - a.y },
+    });
+  }
+
+  const corners: Pt[] = [];
+  for (let i = 0; i < 4; i++) {
+    const prev = lines[(i + 3) % 4];
+    const cur = lines[i];
+    const hit = intersectLines(prev, cur);
+    // Degenerate (near-parallel adjacent edges, a vanishingly thin tile):
+    // fall back to the old centroid-lerp for this corner alone rather than
+    // producing an undefined/NaN vertex.
+    corners.push(hit ?? lerpPt(p[i], center, 0.3));
+  }
+  return corners as unknown as readonly [Pt, Pt, Pt, Pt];
 }
 
 /**

@@ -414,71 +414,100 @@ export function computeLayout(
     const originY = h * 0.5;
     const camera = makeCamera(originX, originY, 650 * s, 300, 8);
     // WALL row-builder parameters and painter are FROZEN at their
-    // 8c545c43e1 values (planner comment 327, ratified 328/329): the wall
-    // is verified by pixel parity outside the column's bbox and the
-    // bridging row, never re-tuned. `base` is the baseline's full 19-row
-    // array; only its two outermost rows (0 and 18, the wall's own literal
-    // "innermost ceiling/floor ring" -- a tiny far ring at depth, comments
-    // 328/329) are replaced below by the column's own rim rows, and
-    // `base[17]`/`base[1]` (still frozen wall rows) become the bridging
-    // rows into those rims.
+    // 8c545c43e1 values for rows 2-16 (planner comment 327/345/346): pixel
+    // parity outside the column's bbox and the two bridging rows, never
+    // re-tuned. `base` is the baseline's full 19-row array; its two
+    // outermost rows (0 and 18, the wall's own literal "innermost
+    // ceiling/floor ring") are replaced below by the column's own rim
+    // rows, and `base[1]`/`base[17]` (the bridging rows) are ALSO replaced
+    // -- planner ruling comment 345/346 (option B on the flare): only
+    // these two rows may move (radius, z, y-spacing) to meet a larger rim
+    // able to clear the F1 bar against the column's own rim-adjacent pair,
+    // keeping the wall's tile-size progression, seam width, fastener
+    // rhythm and painter (the substituted rows are still plain
+    // `ChamberRow`s consumed by the same frozen `buildChamberTiles`/wall
+    // painter -- nothing about the rendering pipeline changes, only these
+    // two rows' own position).
     const base = buildTaperedRows(1500 * s, 132 * s, 780 * s, 920 * s, 2.2);
     const SIDE_WALL_SEGMENTS = 56;
 
-    // The column's own waist, set here per planner comment 315 (about
-    // 360px at 1440 -- landed at 79*s so `R - a` below gives gap 0 with
-    // `a` unchanged, and the ring's own outer edge stays inside the 648
-    // band with margin instead of touching the frame's right edge).
+    // The column's own waist, unchanged since checkpoint 1 (planner
+    // comment 345: "the waist (about 79 canonical) ... stay as at
+    // checkpoint 1" -- verifier 2's waist-narrowing item is rejected).
     const SIDE_COLUMN_WAIST = 79;
 
-    // Top and bottom rim points (canonical units, `*s` scales them like
-    // the rest of this branch), chosen by `test-results/wqa-rim-search.cjs`
-    // against `base[17]`/`base[1]` (the bridging rows): front arc inside
-    // the canvas (top rim additionally below the 72px header at 1440), no
-    // `depth<=1` corner in the bridging pair, and the bridging pair's own
-    // mean drawn-tile height within 15% of the reference pair
-    // `base[16]->base[17]`.
-    const SIDE_TOP_RIM_Y = 346;
-    const SIDE_TOP_RIM_Z = 540;
-    const SIDE_TOP_RIM_R = 236;
+    // TOP rim (canonical units, `*s` scales them like the rest of this
+    // branch): planner comment 341/342/345/346's numeric flare target --
+    // rim projected width >= 1.5x the waist's at 1440/1920, >= 1.4x at
+    // 1280 -- chosen by `test-results/wqa-flare-search2.cjs`'s two-stage
+    // search (stage A: rim front-arc in canvas at 1280/1920, below the
+    // 72px header AND in canvas at 1440, flare bar met at all three
+    // widths, real project()/ringPoint(); stage B: the bridging row below
+    // matched to the column's own rim-adjacent pair). Landed comfortably
+    // inside the reference's "near 2x" read (measured flare 1.90/1.77/1.63
+    // at 1280/1440/1920, front arc y 241.8/202.3/150.3 -- all with margin)
+    // rather than at the search's outer edge (some passing candidates
+    // reach 2.5-3x, read as oversized against the reference).
+    const SIDE_TOP_RIM_Y = 140;
+    const SIDE_TOP_RIM_Z = 420;
+    const SIDE_TOP_RIM_R = 320;
+    // TOP bridging row (replaces the FROZEN `base[17]`, planner ruling
+    // comment 345/346): chosen by the same search so the bridging pair
+    // (`SIDE_TOP_ROW17 -> topRim`) matches the column's own rim-adjacent
+    // pair (`columnRows[len-2] -> columnRows[len-1]`) within 15% tile
+    // height and 1px seam gap at 1280/1440/1920 jointly (landed within
+    // 1.2% / 0.4px at every width -- comfortably inside the bar). Row 16
+    // (`base[16]`, still frozen) stays the reference point on the wall
+    // side, so the drawn `base[16] -> SIDE_TOP_ROW17` pair is the visible
+    // "ceiling shelf" that widens before diving to the rim -- part of it
+    // projects outside the column's own silhouette (reported by the
+    // fixer's ticket comment), which is what answers the reviewer's "does
+    // the ceiling visibly converge into the rim" question.
+    const SIDE_TOP_ROW17_Y = 200;
+    const SIDE_TOP_ROW17_Z = 825;
+    const SIDE_TOP_ROW17_R = 560;
     // OPTION B (planner ruling, ticket comment 334, orchestrator relay
-    // 335, superseding the interim "front arc in canvas" reading of
-    // comment 333): `base[1]`'s own back arc is already off-canvas at
-    // 1440 (y 801 on an `h=792` canvas), so the bottom rim's front arc is
-    // allowed to sit below the canvas too -- the wall's own floor is
-    // already cut by the section bottom the same way. What the ruling
-    // requires instead is that the VISIBLE part of the bottom junction is
-    // geometrically true: on every IN-CANVAS tile of the bridging row
-    // (`base[1] -> bottom rim`, a tile counts as in-canvas if any of its 4
-    // un-inset corners projects inside the canvas), mean tile height
-    // within 15% of the reference pair `base[1]->base[2]`, seam gap within
-    // 1px of that pair's own seam gap, and no `depth<=1` corner. Chosen by
-    // `test-results/wqa-rim-search.cjs`'s extended search (dropped the
-    // "front arc in canvas" bottom-rim constraint, computes the three
-    // stats over in-canvas tiles only, canonical `(y, z, r)` triple
-    // checked jointly at 1280/1440/1920): `R0 = 236` ties the top rim's
-    // own radius exactly (`dR = 0`, the smallest reachable on the search
-    // grid), keeping the hourglass symmetric-looking; `Y0`/`Z0` chosen
-    // among the `dR = 0` candidates for the best worst-case margin across
-    // the three widths (worst height ratio 12.4% at 1280, worst seam-gap
-    // diff 0.96px at 1920, in-canvas coverage 28/28, 28/28, 17/28 of the
-    // 28 drawn bridging tiles at 1280/1440/1920). Numbers reported in the
-    // fixer's ticket comment.
+    // 335, reaffirmed 345/346 "bottom rim per the earlier option B" --
+    // superseding the interim "front arc in canvas" reading of comment
+    // 333): the bottom rim's front arc MAY sit below the canvas at
+    // side-by-side widths, exactly as the wall's own floor already is.
+    // These three constants are UNCHANGED from the accepted option B fix
+    // (ticket comment 338, commit ed62382170) -- this run only re-verifies
+    // them against the new column row spacing below, it does not re-search
+    // them.
     const SIDE_BOTTOM_RIM_Y = -270;
     const SIDE_BOTTOM_RIM_Z = 230;
     const SIDE_BOTTOM_RIM_R = 236;
+    // BOTTOM bridging row (replaces the FROZEN `base[1]`, planner ruling
+    // comment 345/346): the new column row spacing below (5 rows/side,
+    // near-linear) changes the column's own first pair's drawn height, so
+    // `base[1]` needed its own re-match to it (same search as the top,
+    // mirrored) -- within 0.6% / 0.6px at every width.
+    const SIDE_BOTTOM_ROW1_Y = -320;
+    const SIDE_BOTTOM_ROW1_Z = 410;
+    const SIDE_BOTTOM_ROW1_R = 460.2;
 
     // Hourglass: waist at the band, flaring independently to each chosen
     // rim point above -- the column's own row 0/18 land exactly on those
     // rim points (same y/z/radius `buildColumnRows` always gives its
     // endpoints), so substituting them in for the wall's own rows 0/18
     // below introduces no kink/step by construction.
-    // `rowsPerSide`/`spacingPower` retuned together (checkpoint 2,
-    // `test-results/dbg-spacing`, not checked in) against the real
-    // projected pair heights so every adjacent near-facing pair is within
-    // 1.5x its neighbour end to end (max ratio 1.50 at 1440) -- 9 rows per
-    // side could not clear that bar for this hourglass's own asymmetric
-    // rim spans without a >2x jump somewhere near the waist.
+    // `rowsPerSide`/`spacingPower` (verifier 2 item 3, `test-results/
+    // wqa-flare-search2.cjs`): near-linear (1.2, close to the wall's own
+    // row-index spacing) replaces the prior 1.3, and 9 rows/side (not the
+    // originally-suggested 5-6) -- a first pass at 5 rows/side matched the
+    // bridging-row bar (colLast/colFirst within <1.2% of the bridging
+    // pairs) but, at this run's much larger rim (planner comment 345/346's
+    // numeric flare target, a bigger radius jump per row than the "about
+    // 5-6 rows" guidance was tuned against), left visible SCALLOPING in
+    // `buildColumnSilhouette`'s own scanline envelope near the limb --
+    // successive rows' projected rings didn't nest closely enough for the
+    // envelope to stay convex, exposing black base beyond any tile's own
+    // face (`test-results/rv3-fringe.cjs`'s "left" edge read up to 86px,
+    // against the ~2.7px seam-width bar). 9 rows/side (closer to the
+    // wall's own frozen 9-per-side rhythm) keeps the per-row radius/z step
+    // small enough for the envelope to stay smooth at the limb while still
+    // matching the (re-searched) bridging rows within 1.2%/0.6px.
     const columnRows = buildColumnRows({
       waistRadius: SIDE_COLUMN_WAIST * s,
       rimRadiusTop: SIDE_TOP_RIM_R * s,
@@ -487,16 +516,29 @@ export function computeLayout(
       ySpanBottom: -SIDE_BOTTOM_RIM_Y * s,
       zSpreadTop: SIDE_TOP_RIM_Z * s,
       zSpreadBottom: SIDE_BOTTOM_RIM_Z * s,
-      spacingPower: 1.3,
-      rowsPerSide: 14,
+      spacingPower: 1.2,
+      rowsPerSide: 9,
     });
-    // The desktop substitution (comments 328-330): the column's rim rows
-    // REPLACE the wall's own two far-ring rows (`base[0]`/`base[18]`), and
-    // `base[1]`/`base[17]` bridge from the frozen wall into those rims.
-    // Every other row is the untouched, frozen baseline wall row.
+    // The desktop substitution (comments 328-330, un-frozen bridging rows
+    // per 345/346): the column's rim rows REPLACE the wall's own two
+    // far-ring rows (`base[0]`/`base[18]`); the NEW bridging rows above
+    // replace `base[1]`/`base[17]` (rows 2-16, `base.slice(2, 17)`, stay
+    // the untouched, frozen baseline wall rows -- pixel parity).
+    const topRow17: ChamberRow = {
+      y: SIDE_TOP_ROW17_Y * s,
+      z: SIDE_TOP_ROW17_Z * s,
+      radius: SIDE_TOP_ROW17_R * s,
+    };
+    const bottomRow1: ChamberRow = {
+      y: SIDE_BOTTOM_ROW1_Y * s,
+      z: SIDE_BOTTOM_ROW1_Z * s,
+      radius: SIDE_BOTTOM_ROW1_R * s,
+    };
     const wallRows: ChamberRow[] = [
       columnRows[0],
-      ...base.slice(1, 18),
+      bottomRow1,
+      ...base.slice(2, 17),
+      topRow17,
       columnRows[columnRows.length - 1],
     ];
     // R - a = the column's own waist radius exactly (D(1)'s "gap of at
