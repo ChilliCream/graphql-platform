@@ -42,7 +42,7 @@ internal abstract class FormField
     public bool Required { get; }
 
     /// <summary>
-    /// Whether <see cref="Render"/> should surface this field's validation error, if any. The hosting
+    /// Whether <see cref="Render(int, bool)"/> should surface this field's validation error, if any. The hosting
     /// <see cref="Form"/> sets this once the field has been touched or a submit was attempted.
     /// </summary>
     public bool ShowErrors { get; set; }
@@ -64,6 +64,13 @@ internal abstract class FormField
     /// state, at most <paramref name="width"/> display columns wide.
     /// </summary>
     public abstract IRenderable Render(int width, bool focused);
+
+    /// <summary>
+    /// Renders the field within the supplied visual-row budget. Fields that cannot
+    /// adapt their own content return their natural rendering.
+    /// </summary>
+    public virtual IRenderable Render(int width, bool focused, int maxHeight)
+        => Render(width, focused);
 
     /// <summary>
     /// Runs the field's validator against its current value, returning the error

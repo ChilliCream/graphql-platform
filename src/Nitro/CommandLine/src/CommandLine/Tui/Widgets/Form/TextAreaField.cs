@@ -12,6 +12,8 @@ internal sealed class TextAreaField : FormField
 {
     private const int MinRenderWidth = 4;
 
+    private const int PanelBorderHeight = 2;
+
     private const string CursorStyle = "black on white";
 
     /// <summary>
@@ -110,10 +112,21 @@ internal sealed class TextAreaField : FormField
     }
 
     public override IRenderable Render(int width, bool focused)
+        => RenderWithVisibleLines(width, focused, _visibleLines);
+
+    public override IRenderable Render(int width, bool focused, int maxHeight)
+    {
+        var errorHeight = ShowErrors && Validate() is not null ? 1 : 0;
+        var visibleLines = Math.Clamp(maxHeight - PanelBorderHeight - errorHeight, 1, _visibleLines);
+
+        return RenderWithVisibleLines(width, focused, visibleLines);
+    }
+
+    private IRenderable RenderWithVisibleLines(int width, bool focused, int visibleLines)
     {
         var innerWidth = Math.Max(1, width - MinRenderWidth);
 
-        _rowViewport.Update(_lines.Count, _visibleLines);
+        _rowViewport.Update(_lines.Count, visibleLines);
         _rowViewport.EnsureVisible(_lineIndex);
 
         var (start, count) = _rowViewport.Slice();
@@ -132,8 +145,8 @@ internal sealed class TextAreaField : FormField
             rows.Add(new Markup(markup));
         }
 
-        // Pads short content up to the configured visible-lines height.
-        while (rows.Count < _visibleLines)
+        // Pads short content to its allocated height.
+        while (rows.Count < visibleLines)
         {
             rows.Add(new Markup(" "));
         }

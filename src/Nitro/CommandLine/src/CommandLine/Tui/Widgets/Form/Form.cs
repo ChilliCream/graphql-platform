@@ -181,12 +181,24 @@ internal sealed class Form
         var availableFieldsHeight = Math.Max(0, maxPanelHeight - chrome);
         var needsScrolling = totalFieldsHeight > availableFieldsHeight;
 
-        // Reserve two indicator rows when the fields exceed the available height.
-        var windowBudget = needsScrolling
+        // Reserve two indicator rows when multiple fields exceed the available height.
+        var windowBudget = needsScrolling && _fields.Count > 1
             ? Math.Max(0, availableFieldsHeight - 2)
             : availableFieldsHeight;
 
         var anchorIndex = IsFieldFocused ? _focusIndex : _fields.Count - 1;
+
+        if (fieldHeights[anchorIndex] > windowBudget)
+        {
+            var renderable = _fields[anchorIndex].Render(
+                formWidth,
+                focused: IsFieldFocused,
+                maxHeight: windowBudget);
+
+            fieldRenderables[anchorIndex] = renderable;
+            fieldHeights[anchorIndex] = FormMeasurement.MeasureHeight(renderable, formWidth);
+        }
+
         var (startIndex, endIndex) = SelectVisibleFieldRange(fieldHeights, anchorIndex, windowBudget);
         var hiddenAbove = startIndex > 0;
         var hiddenBelow = endIndex < _fields.Count - 1;
@@ -212,11 +224,16 @@ internal sealed class Form
         sections.Add(new Markup(" "));
         sections.Add(buttonsRenderable);
 
-        var panel = new Panel(new Rows(sections))
+        var content = new Rows(sections);
+        var panelHeight = Math.Min(
+            maxPanelHeight,
+            PanelBorderHeight + FormMeasurement.MeasureHeight(content, formWidth));
+        var panel = new Panel(content)
         {
             Header = new PanelHeader(Markup.Escape(_title)),
             Border = BoxBorder.Rounded,
-            Width = formWidth + 4
+            Width = formWidth + 4,
+            Height = panelHeight
         };
 
         return new Align(panel, HorizontalAlignment.Center, VerticalAlignment.Middle)
@@ -225,8 +242,7 @@ internal sealed class Form
     }
 
     /// <summary>
-    /// Selects a contiguous range of whole fields around the anchor within the
-    /// budget. The anchor is included even when it alone exceeds the budget.
+    /// Selects a contiguous range of fields around the anchor within the budget.
     /// </summary>
     private static (int Start, int End) SelectVisibleFieldRange(
         IReadOnlyList<int> heights, int anchorIndex, int budget)

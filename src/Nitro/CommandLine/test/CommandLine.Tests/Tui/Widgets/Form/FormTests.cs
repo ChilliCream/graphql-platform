@@ -509,6 +509,31 @@ public sealed class FormTests
     }
 
     [Fact]
+    public void Render_Should_KeepFocusedTextAreaWithinFrameHeight_When_FieldExceedsAvailableHeight()
+    {
+        // arrange: the cursor starts on the last line of a text area taller than the form's field budget.
+        var fields = new FormField[]
+        {
+            new TextAreaField(
+                "notes",
+                "Notes",
+                initialValue: "first\nsecond\nthird\nfourth\nfifth\nsixth\nseventh\neighth\nninth\ntenth\neleventh\ntwelfth\nthirteenth\nfourteenth\nfifteenth\nsixteenth\nseventeenth\neighteenth\nnineteenth\ncursor line",
+                visibleLines: 20)
+        };
+        var buttons = new FormButtons([new FormButtonSpec("save", "Save", ButtonKind.Primary)]);
+        var form = new FormUnderTest("Edit Task", fields, buttons);
+        var console = new TestConsole().Width(80).Height(30);
+
+        // act
+        console.Write(form.Render(80, 10));
+
+        // assert
+        var lines = console.Output.Split('\n');
+        Assert.True(lines.Length <= 10, $"expected at most 10 lines, got {lines.Length}.");
+        Assert.Contains("cursor line", console.Output);
+    }
+
+    [Fact]
     public void Render_Should_ShowFocusedField_When_ScrolledPastTheFirstScreen()
     {
         // arrange: the same oversized form, focus moved to the last field.
