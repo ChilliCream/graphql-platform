@@ -172,7 +172,8 @@ public sealed class TreeBuilderTests
     [Fact]
     public void Build_Should_NotExpandBeyond_CycleRow()
     {
-        // arrange: d is reached a second time as a cycle row, so its own child e must never appear
+        // arrange
+        // Both branches reach d, which has child e.
         var edges = new List<TaskDependency>
         {
             Edge("a", "b"),

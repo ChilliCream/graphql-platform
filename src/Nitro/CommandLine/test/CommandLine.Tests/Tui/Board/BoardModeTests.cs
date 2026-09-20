@@ -218,7 +218,7 @@ public sealed class BoardModeTests
     [Fact]
     public void OpenSelected_Should_ReturnEmpty()
     {
-        // arrange: TuiShell intercepts OpenSelected before BoardMode.Handle runs; here it is a no-op
+        // arrange
         var store = new FakeTaskStore();
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
@@ -527,7 +527,7 @@ public sealed class BoardModeTests
         // act
         console.Write(mode.Render(80, 24));
 
-        // assert: every column's bottom border reaches the last requested row, no blank gap below it
+        // assert
         var lines = TrimTrailingNewline(console.Output.Split('\n'));
         Assert.Equal(24, lines.Length);
         Assert.Contains('╰', lines[^1]);
@@ -555,7 +555,7 @@ public sealed class BoardModeTests
     [Fact]
     public void Render_Should_FillRequestedHeight_When_Stacked()
     {
-        // arrange: width/columnCount below the stacked threshold forces stacked layout
+        // arrange
         var store = new FakeTaskStore();
         var mode = CreateMode(store, TwoColumnView());
         mode.OnEnter();
@@ -564,7 +564,7 @@ public sealed class BoardModeTests
         // act
         console.Write(mode.Render(40, 24));
 
-        // assert: 23 distributable rows split 12/11, so row 11 closes the first column and row 12 is the separator
+        // assert
         var lines = TrimTrailingNewline(console.Output.Split('\n'));
         Assert.Equal(24, lines.Length);
         Assert.Contains('╰', lines[11]);
@@ -573,8 +573,7 @@ public sealed class BoardModeTests
     }
 
     /// <summary>
-    /// Strips the trailing empty entry that splitting console output on '\n' can leave,
-    /// so line counts are comparable across layout kinds.
+    /// Removes the last entry when it is empty; otherwise returns the supplied lines unchanged.
     /// </summary>
     private static string[] TrimTrailingNewline(string[] lines) =>
         lines.Length > 0 && lines[^1].Length == 0 ? lines[..^1] : lines;

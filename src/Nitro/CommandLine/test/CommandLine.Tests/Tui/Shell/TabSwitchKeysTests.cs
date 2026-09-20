@@ -183,7 +183,7 @@ public sealed class TabSwitchKeysTests
     [InlineData('A')]
     public void ResolveMnemonic_Should_NotCollide_WithTheGlobalTaskKeyMap(char mnemonic)
     {
-        // arrange: the global table must not already bind Shift+T/M/A, the hosted mnemonics
+        // arrange
         var keyMap = KeyMap.CreateDefaultGlobal();
         var chord = new KeyChord(ConsoleKey.A, ConsoleModifiers.Shift, mnemonic);
 

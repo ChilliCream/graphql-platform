@@ -51,7 +51,7 @@ public sealed class BoardLayoutTests
     [Fact]
     public void Decide_Should_RouteToStacked_When_WidthIsLessThanColumnCount()
     {
-        // act: width below the column count routes to stacked instead of grid
+        // act
         var decision = BoardLayout.Decide(3, 20, 5, focusedColumnIndex: 0, maximized: false);
 
         // assert
@@ -76,7 +76,7 @@ public sealed class BoardLayoutTests
     [Fact]
     public void Decide_Should_ExpandEveryColumn_When_StackedWithRoomToShareEqually()
     {
-        // act: 30 rows over 3 columns clears the equal-share minimum, so every column expands
+        // act
         var decision = BoardLayout.Decide(40, 30, 3, focusedColumnIndex: 1, maximized: false);
 
         // assert
@@ -87,7 +87,8 @@ public sealed class BoardLayoutTests
     [Fact]
     public void Decide_Should_ShareHeightEqually_When_StackedWithRoomToShareEqually()
     {
-        // act: 32 rows minus 2 separator rows leaves 30, which divides evenly across 3 columns
+        // act
+        // Two separator rows leave 30 rows for three columns.
         var decision = BoardLayout.Decide(40, 32, 3, focusedColumnIndex: 1, maximized: false);
 
         // assert
@@ -98,7 +99,8 @@ public sealed class BoardLayoutTests
     [Fact]
     public void Decide_Should_GiveRemainderRowsToFirstColumns_When_StackedHeightDoesNotDivideEvenly()
     {
-        // act: 31 rows minus 2 separator rows leaves 29, a remainder of 2 across 3 columns
+        // act
+        // Two separator rows leave 29 rows for three columns.
         var decision = BoardLayout.Decide(40, 31, 3, focusedColumnIndex: 0, maximized: false);
 
         // assert
@@ -111,7 +113,7 @@ public sealed class BoardLayoutTests
     [Fact]
     public void Decide_Should_ExpandFocusedColumnOnly_When_StackedTooShortToShareEqually()
     {
-        // act: 12 rows over 3 columns falls below the 5-row equal-share minimum, so only the focused column expands
+        // act
         var decision = BoardLayout.Decide(40, 12, 3, focusedColumnIndex: 1, maximized: false);
 
         // assert
@@ -125,7 +127,7 @@ public sealed class BoardLayoutTests
     [Fact]
     public void Decide_Should_FallBackDeterministically_When_SeparatorRowsMakeFiveColumnsTooTightAt24Rows()
     {
-        // act: 24 rows is below what 5 columns need to share equally, so only the focused column expands
+        // act
         var decision = BoardLayout.Decide(40, 24, 5, focusedColumnIndex: 2, maximized: false);
 
         // assert

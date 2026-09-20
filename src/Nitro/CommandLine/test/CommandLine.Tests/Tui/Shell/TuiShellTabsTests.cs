@@ -66,7 +66,7 @@ public sealed class TuiShellTabsTests
         // act
         _ = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
 
-        // assert: the inactive tab's mode is entered too, so its title (an unread badge) is accurate up front
+        // assert
         Assert.True(tab1Mode.EnterCalled);
         Assert.True(tab2Mode.EnterCalled);
     }
@@ -89,7 +89,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Render_Should_BracketEachTabsMnemonic_InBothActiveAndInactiveState()
     {
-        // arrange: covers the mnemonic bracket in both the active (tasks) and inactive (agents) tab style
+        // arrange
         var shell = new TuiShell(
             [
                 CreateTasksTab("Tasks", new FakeTuiMode()),
@@ -134,7 +134,7 @@ public sealed class TuiShellTabsTests
         // act: Shift+M jumps from agents straight to mail, skipping tasks.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('M', ConsoleKey.M, ConsoleModifiers.Shift)));
 
-        // assert: tasks was never switched back to, so it has no resize call beyond its constructor-time OnEnter
+        // assert
         Assert.Single(mailMode.ResizeCalls);
         Assert.Empty(tasksMode.ResizeCalls);
 
@@ -156,7 +156,7 @@ public sealed class TuiShellTabsTests
         // act
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('T', ConsoleKey.T, ConsoleModifiers.Shift)));
 
-        // assert: the mnemonic resolves to the already-active tasks tab, so the switch is a no-op
+        // assert
         Assert.False(dirty);
         Assert.Empty(tasksMode.ResizeCalls);
     }
@@ -164,7 +164,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_StillReachTheModeKey_When_ItsLowercaseCounterpartIsNotAMnemonic()
     {
-        // arrange: 'r' (refresh) stays reachable on the global table even with tab mnemonics installed
+        // arrange
         var tasksMode = new FakeTuiMode();
         var shell = new TuiShell(
             [
@@ -185,7 +185,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_ReserveOneExtraRow_ForTheTabStrip_When_MultipleTabsHosted()
     {
-        // arrange: isolates the tab strip's own reserved row from the status row TuiShellTests covers
+        // arrange
         var mode = new FakeTuiMode();
         var shell = new TuiShell([CreateTasksTab("Tasks", mode), CreateMailTab("Mail", new FakeTuiMode())], 80, 24);
 
@@ -199,7 +199,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_RouteKeysOnlyToTheActiveTabsDispatcherAndMode()
     {
-        // arrange: 'r' means refresh on the tasks tab's global table but reply on the mail tab's own table
+        // arrange
         var tasksMode = new FakeTuiMode();
         var mailMode = new FakeTuiMode();
         var shell = new TuiShell([CreateTasksTab("Tasks", tasksMode), CreateMailTab("Mail", mailMode)], 80, 24);
@@ -216,7 +216,7 @@ public sealed class TuiShellTabsTests
         tasksMode.HandledMessages.Clear();
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('r', ConsoleKey.R)));
 
-        // assert: the mail tab's own table wins now, the inactive tasks tab receives nothing
+        // assert
         Assert.Contains(mailMode.HandledMessages, m => m is TuiMessage.ReplyRequested);
         Assert.Empty(tasksMode.HandledMessages);
     }
@@ -245,7 +245,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_SwitchTab_When_TheKeyCarriesNoConsoleKey()
     {
-        // arrange: covers ConsoleKey.None, which Linux's Console.ReadKey reports for '['/']' (see TabSwitchKeysTests)
+        // arrange
         var tab1Mode = new FakeTuiMode();
         var tab2Mode = new FakeTuiMode();
         var shell = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
@@ -270,7 +270,8 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void HandleDataChanged_Should_NotRouteAnInactiveTabsFollowUp_ToTheActiveTab()
     {
-        // arrange: the inactive mail tab's RefreshRequested follow-up must reach only its own mode
+        // arrange
+        // The inactive mail mode returns a toast when refreshed.
         var mailFollowUp = new TuiMessage.ShowToast("mail refreshed", ToastStyle.Info);
         var tasksMode = new FakeTuiMode();
         var mailMode = new FakeTuiMode
@@ -284,7 +285,7 @@ public sealed class TuiShellTabsTests
         // act
         shell.Handle(new TuiEvent.DataChangedEvent());
 
-        // assert: neither mode saw the mail tab's follow-up, only their own RefreshRequested
+        // assert
         Assert.Equal([new TuiMessage.RefreshRequested()], mailMode.HandledMessages);
         Assert.Equal([new TuiMessage.RefreshRequested()], tasksMode.HandledMessages);
     }
@@ -313,10 +314,11 @@ public sealed class TuiShellTabsTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('e', ConsoleKey.E)));
         Assert.Contains("Edit Task", RenderToText(shell));
 
-        // act: ']' is swallowed by the editor form's focused text field, not routed to tab switching
+        // act
+        // ']' is swallowed by the editor form's focused text field, not routed to tab switching.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
 
-        // assert: the other tab was never activated, the editor is still open
+        // assert
         Assert.Empty(otherMode.ResizeCalls);
         Assert.Contains("Edit Task", RenderToText(shell));
     }
@@ -354,7 +356,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_RefreshEveryTabsActiveMode_When_DataChangedEventFires()
     {
-        // arrange: a single watcher notification must reach every tab, not only the active one
+        // arrange
         var tab1Mode = new FakeTuiMode();
         var tab2Mode = new FakeTuiMode();
         var shell = new TuiShell([CreateTasksTab("Tasks", tab1Mode), CreateMailTab("Mail", tab2Mode)], 80, 24);
@@ -385,7 +387,7 @@ public sealed class TuiShellTabsTests
             new KeyDispatcher(MailKeyMap.CreateDefault()));
         var shell = new TuiShell([CreateTasksTab("Tasks", new FakeTuiMode()), mailTab], 80, 24);
 
-        // assert: computed at construction, before the mail tab is ever active
+        // assert
         Assert.Contains("[M]ail (1)", RenderToText(shell));
 
         // act
@@ -399,7 +401,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public async Task HandleDataChanged_Should_ShowTheMailTabsSendOutcomeToast_When_TheTasksTabIsActive()
     {
-        // arrange: the tasks tab stays active; the mail tab's send outcome toast must still reach the shell's toaster
+        // arrange
         var testToken = TestContext.Current.CancellationToken;
         var mailStore = new FakeMailStore();
         var mailMode = new MailMode(
@@ -431,7 +433,8 @@ public sealed class TuiShellTabsTests
 
         mailMode.HandleRawKey(KeyInfo('\0', ConsoleKey.S, ConsoleModifiers.Control));
 
-        // act: poll DataChangedEvent, ticking first each poll to expire any intermediate toast, until the terminal toast renders
+        // act
+        // Expire the current toast before each refresh until the terminal toast renders.
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(testToken);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(5));
         var dirty = false;
@@ -457,7 +460,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_OpenTaskDetail_When_EnterPressedOnBoardSelection_ThroughATabbedShell()
     {
-        // arrange: an existing single-mode board interaction, exercised through a tabbed shell for parity
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["a-1"] = TaskItemBuilder.Create("a-1", "Board task");
         var view = new BoardView
@@ -486,7 +489,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_AlwaysShowSelectedAgentDetail_WithoutOpeningAnything_ThroughATabbedShell()
     {
-        // arrange: the detail pane sits next to the list, so the selected participant is on screen up front
+        // arrange
         var sessions = new Agents.FakeAgentSessionRegistry();
         sessions.Participants.Add(
             Agents.AgentSessionParticipantBuilder.Participant(
@@ -506,7 +509,8 @@ public sealed class TuiShellTabsTests
             store: taskStore);
         Assert.Contains("backend", RenderToText(shell, width: 100));
 
-        // act: Enter focuses the already-visible detail pane instead of pushing a full-screen mode
+        // act
+        // Enter focuses the already-visible detail pane instead of pushing a full-screen mode.
         var dirty = shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\r', ConsoleKey.Enter)));
 
         // assert
@@ -520,7 +524,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void Handle_Should_LeaveAgentsListSelectionUntouched_When_EscapePressed()
     {
-        // arrange: there is no pushed mode to pop, so Escape on the Agents tab is inert
+        // arrange
         var sessions = new Agents.FakeAgentSessionRegistry();
         sessions.Participants.Add(
             Agents.AgentSessionParticipantBuilder.Participant(
@@ -551,7 +555,7 @@ public sealed class TuiShellTabsTests
     [Fact]
     public void TaskOverlayGesture_Should_DoNothing_When_TheTasksTabIsNotActive()
     {
-        // arrange: a store is present, but the active tab is not the one that owns it
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks["a"] = TaskItemBuilder.Create("a");
         var otherMode = new FakeTuiMode { SelectedTaskId = "a" };
@@ -591,17 +595,19 @@ public sealed class TuiShellTabsTests
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('/', ConsoleKey.Oem2)));
         Assert.Contains("Results", RenderToText(shell));
 
-        // act: move focus off the query input (Tab), then switch to the other tab and back
+        // act
+        // Move focus off the query input (Tab), then switch to the other tab and back.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('\t', ConsoleKey.Tab)));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo(']', ConsoleKey.Oem6)));
         Assert.Contains("other", RenderToText(shell));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('[', ConsoleKey.Oem4)));
 
-        // assert: the tasks tab is still on search, its nested focus untouched by the trip through the other tab
+        // assert
         Assert.Contains("Results", RenderToText(shell));
         Assert.Equal(SearchFocus.List, searchMode.Focus);
 
-        // act: Escape walks focus List -> Input (mirroring h), a second Escape leaves search to the board root
+        // act
+        // Escape walks focus List -> Input (mirroring h), a second Escape leaves search to the board root.
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
         shell.Handle(new TuiEvent.KeyEvent(KeyInfo('', ConsoleKey.Escape)));
 

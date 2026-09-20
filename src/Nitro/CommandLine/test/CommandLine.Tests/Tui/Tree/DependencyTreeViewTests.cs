@@ -391,7 +391,7 @@ public sealed class DependencyTreeViewTests
     [InlineData(10, "aaa… z")]
     public void Render_Should_DegradeBreadcrumbHeader_When_PanelIsNarrow(int width, string expectedHeader)
     {
-        // arrange: a long breadcrumb overflows the panel, the long title row keeps the panel width from binding
+        // arrange
         var longRootId = new string('a', 30);
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create(longRootId));
@@ -408,14 +408,14 @@ public sealed class DependencyTreeViewTests
         var console = new TestConsole().Width(120);
         console.Write(panel);
 
-        // assert: the header degrades deterministically (id chain, edge mode, direction), not via Spectre's ellipsis
+        // assert
         Assert.Contains(expectedHeader, console.Lines[0]);
     }
 
     [Fact]
     public void Render_Should_TruncateHeaderToPanelWidth_When_ContentRowsAreNarrowerThanHeader()
     {
-        // arrange: the visible row is short, so the panel's width is 36 columns, forcing the header to self-truncate
+        // arrange
         var store = new FakeTaskStore();
         store.Tasks.Add(TaskItemBuilder.Create("acme-epic1"));
         store.Tasks.Add(TaskItemBuilder.Create("acme-epic1.1"));
