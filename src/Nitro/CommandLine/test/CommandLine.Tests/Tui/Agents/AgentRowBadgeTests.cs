@@ -68,9 +68,6 @@ public sealed class AgentRowBadgeTests
         var line = Markup.Remove(AgentRowBadge.Render(row, s_now, selected: false, maxWidth, widths));
 
         // assert
-        Assert.Contains("agent-a", line);
-        Assert.Contains("developer", line);
-        Assert.Contains("started", line);
-        Assert.Contains("heard", line);
+        Assert.Equal("    agent-a ● claude-code developer started now heard now", line);
     }
 }
