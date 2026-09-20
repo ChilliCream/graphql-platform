@@ -3,6 +3,7 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Memory;
+using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
@@ -35,7 +36,8 @@ public sealed class MemoryModeTests : MemoryTestBase
         }
     }
 
-    private MemoryMode CreateMode() => new(_store, TimeProvider);
+    private MemoryMode CreateMode(Func<bool>? hasIdentity = null)
+        => new(_store, TimeProvider, hasIdentity ?? (static () => true));
 
     private Task<MemoryRecord> SaveAsync(string text = "Some text.", string type = "fact")
         => _store.SaveAsync(
@@ -162,11 +164,50 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
-    public async Task ForgetRequested_Should_OpenConfirmation_Without_DeletingYet()
+    public async Task ForgetRequested_Should_RefuseWithoutDeleting_When_IdentityIsUnavailable()
     {
         // arrange
         var saved = await SaveAsync("First.");
-        var mode = CreateMode();
+        var mode = new MemoryMode(_store, TimeProvider);
+        mode.OnEnter();
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ForgetRequested());
+
+        // assert
+        var shown = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal((BoardIdentity.NoIdentityMessage, ToastStyle.Warn), (shown.Text, shown.Style));
+        Assert.False(mode.IsInputCapturing);
+        Assert.NotNull(await _store.FindAsync(saved.Id, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ForgetConfirmation_Should_RefuseWithoutDeleting_When_IdentityIsRemoved()
+    {
+        // arrange
+        var saved = await SaveAsync("First.");
+        var hasIdentity = true;
+        var mode = CreateMode(() => hasIdentity);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ForgetRequested());
+        hasIdentity = false;
+
+        // act
+        var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
+
+        // assert
+        var shown = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal((BoardIdentity.NoIdentityMessage, ToastStyle.Warn), (shown.Text, shown.Style));
+        Assert.True(mode.IsInputCapturing);
+        Assert.NotNull(await _store.FindAsync(saved.Id, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ForgetRequested_Should_OpenConfirmation_When_IdentityIsAvailable()
+    {
+        // arrange
+        var saved = await SaveAsync("First.");
+        var mode = CreateMode(static () => true);
         mode.OnEnter();
 
         // act
@@ -253,11 +294,53 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
-    public async Task PromoteRequested_Should_OpenForm_When_JournalEntrySelected()
+    public async Task PromoteRequested_Should_RefuseWithoutOpening_When_IdentityIsUnavailable()
     {
         // arrange
         await LogAsync("Note one.");
-        var mode = CreateMode();
+        var mode = new MemoryMode(_store, TimeProvider);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.CycleView(1));
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.PromoteRequested());
+
+        // assert
+        var shown = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal((BoardIdentity.NoIdentityMessage, ToastStyle.Warn), (shown.Text, shown.Style));
+        Assert.False(mode.IsInputCapturing);
+        Assert.Empty(mode.State.CuratedRecords);
+    }
+
+    [Fact]
+    public async Task PromoteSubmission_Should_RefuseWithoutWriting_When_IdentityIsRemoved()
+    {
+        // arrange
+        var entry = await LogAsync("Note one.");
+        var hasIdentity = true;
+        var mode = CreateMode(() => hasIdentity);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.CycleView(1));
+        mode.Handle(new TuiMessage.PromoteRequested());
+        Type(mode, "decision");
+        hasIdentity = false;
+
+        // act
+        var followUp = mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // assert
+        var shown = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal((BoardIdentity.NoIdentityMessage, ToastStyle.Warn), (shown.Text, shown.Style));
+        Assert.True(mode.IsInputCapturing);
+        Assert.Null(await _store.FindAsync(MemoryPromotedId.Derive(entry.Id), TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task PromoteRequested_Should_OpenForm_When_IdentityIsAvailable()
+    {
+        // arrange
+        await LogAsync("Note one.");
+        var mode = CreateMode(static () => true);
         mode.OnEnter();
         mode.Handle(new TuiMessage.CycleView(1));
 

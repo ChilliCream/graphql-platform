@@ -26,6 +26,7 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private readonly MemoryState _state;
     private readonly MemoryDetailView _detailView = new();
     private readonly TimeProvider _timeProvider;
+    private readonly Func<bool> _hasIdentity;
     private readonly Viewport _listViewport = new(0, 0);
 
     private MemorySearchForm? _searchForm;
@@ -35,13 +36,17 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private ConfirmDialog? _discardDialog;
     private bool _pendingRefresh;
 
-    public MemoryMode(IMemoryStore store, TimeProvider? timeProvider = null)
+    public MemoryMode(
+        IMemoryStore store,
+        TimeProvider? timeProvider = null,
+        Func<bool>? hasIdentity = null)
     {
         ArgumentNullException.ThrowIfNull(store);
 
         _store = store;
         _state = new MemoryState(new MemoryDataLoader(store));
         _timeProvider = timeProvider ?? TimeProvider.System;
+        _hasIdentity = hasIdentity ?? (static () => false);
     }
 
     /// <summary>
@@ -287,6 +292,11 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     private IReadOnlyList<TuiMessage> OpenPromoteForm()
     {
+        if (RefuseIfIdentityUnavailable() is { } refusal)
+        {
+            return refusal;
+        }
+
         if (_state.SelectedJournalEntry is not { } entry)
         {
             return [new TuiMessage.ShowToast("No journal entry selected.", ToastStyle.Warn)];
@@ -324,6 +334,11 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     private IReadOnlyList<TuiMessage> SubmitPromote(FormResult.Submitted submitted)
     {
+        if (RefuseIfIdentityUnavailable() is { } refusal)
+        {
+            return refusal;
+        }
+
         var outcome = _promoteForm!.SubmitAsync(_store, submitted.Values, CancellationToken.None)
             .GetAwaiter().GetResult();
 
@@ -340,6 +355,11 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     private IReadOnlyList<TuiMessage> OpenForgetDialog()
     {
+        if (RefuseIfIdentityUnavailable() is { } refusal)
+        {
+            return refusal;
+        }
+
         if (_state.SelectedCuratedRecord is not { } record)
         {
             return [new TuiMessage.ShowToast("No curated memory selected.", ToastStyle.Warn)];
@@ -372,6 +392,11 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     private IReadOnlyList<TuiMessage> SubmitForget()
     {
+        if (RefuseIfIdentityUnavailable() is { } refusal)
+        {
+            return refusal;
+        }
+
         var target = _forgetTarget!;
         _forgetDialog = null;
         _forgetTarget = null;
@@ -383,6 +408,11 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
         return [outcome.ToShowToast()];
     }
+
+    private IReadOnlyList<TuiMessage>? RefuseIfIdentityUnavailable() =>
+        _hasIdentity()
+            ? null
+            : [new TuiMessage.ShowToast(BoardIdentity.NoIdentityMessage, ToastStyle.Warn)];
 
     private IReadOnlyList<TuiMessage> HandleDiscardDialogKey(ConsoleKeyInfo info)
     {

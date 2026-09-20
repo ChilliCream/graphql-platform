@@ -9,7 +9,6 @@ namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 /// </summary>
 internal static class MemoryJournalRowBadge
 {
-    private const string Ellipsis = "…";
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
 
@@ -24,7 +23,7 @@ internal static class MemoryJournalRowBadge
 
         foreach (var entry in rows)
         {
-            dayWidth = Math.Max(dayWidth, FormatDay(entry.CreatedAt).Length);
+            dayWidth = Math.Max(dayWidth, DisplayWidth.Measure(FormatDay(entry.CreatedAt)));
         }
 
         return new Widths(dayWidth);
@@ -46,19 +45,20 @@ internal static class MemoryJournalRowBadge
         }
 
         var prefix = selected ? SelectedPrefix : UnselectedPrefix;
-        var day = FormatDay(entry.CreatedAt).PadRight(widths.Day);
+        var day = DisplayWidth.PadRight(FormatDay(entry.CreatedAt), widths.Day);
         var preview = FirstLine(entry.Body);
 
-        var fixedPlainLength = prefix.Length + day.Length + 1;
-        var previewBudget = Math.Max(0, maxWidth - fixedPlainLength);
-        var truncatedPreview = Truncate(preview, previewBudget);
+        var fixedPlainWidth = DisplayWidth.Measure(prefix) + DisplayWidth.Measure(day) + 1;
+        var previewBudget = Math.Max(0, maxWidth - fixedPlainWidth);
+        var truncatedPreview = DisplayWidth.Truncate(preview, previewBudget);
 
         var ageStyle = ThemeTokens.GetStyle("memory.list.age").ToMarkup();
 
-        var line =
-            $"{Markup.Escape(prefix)}"
-            + $"{Stylize(ageStyle, Markup.Escape(day))} "
-            + Markup.Escape(truncatedPreview);
+        var line = fixedPlainWidth > maxWidth
+            ? RenderNarrow(prefix, maxWidth, day, ageStyle)
+            : $"{Markup.Escape(prefix)}"
+                + $"{Stylize(ageStyle, Markup.Escape(day))} "
+                + Markup.Escape(truncatedPreview);
 
         if (selected)
         {
@@ -81,23 +81,12 @@ internal static class MemoryJournalRowBadge
     private static string Stylize(string styleMarkup, string content) =>
         styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
 
-    private static string Truncate(string value, int width)
+    private static string RenderNarrow(string prefix, int maxWidth, string day, string ageStyle)
     {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
+        var prefixText = DisplayWidth.Slice(prefix, maxWidth);
+        var remaining = maxWidth - DisplayWidth.Measure(prefixText);
+        var truncatedDay = DisplayWidth.Truncate(day, remaining);
 
-        if (value.Length <= width)
-        {
-            return value;
-        }
-
-        if (width == 1)
-        {
-            return Ellipsis;
-        }
-
-        return string.Concat(value.AsSpan(0, width - 1), Ellipsis);
+        return Markup.Escape(prefixText) + Stylize(ageStyle, Markup.Escape(truncatedDay));
     }
 }

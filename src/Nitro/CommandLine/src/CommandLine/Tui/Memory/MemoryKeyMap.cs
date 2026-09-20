@@ -55,10 +55,6 @@ internal static class MemoryKeyMap
             () => new TuiMessage.CycleView(1),
             new KeyHint("f", "curated/journal")),
         new KeyBinding(
-            new KeyChord(ConsoleKey.S, ConsoleModifiers.None, 's'),
-            () => new TuiMessage.CycleScopeRequested(),
-            new KeyHint("s", "scope")),
-        new KeyBinding(
             new KeyChord(ConsoleKey.Oem2, ConsoleModifiers.None, '/'),
             () => new TuiMessage.SearchRequested(),
             new KeyHint("/", "search")),
