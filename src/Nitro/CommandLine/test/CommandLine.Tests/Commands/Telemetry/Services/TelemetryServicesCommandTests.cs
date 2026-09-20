@@ -6,7 +6,7 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task ListHelp_Should_ReturnSuccess()
     {
-        // arrange & act
+        // act
         var result = await ExecuteCommandAsync(
             "telemetry",
             "services",
@@ -81,7 +81,92 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
             "list");
 
         // assert
-        result.AssertSuccess();
+        result.AssertSuccess(
+            mode == InteractionMode.JsonOutput
+                ? """
+                  {"items":[
+                  {"name":"products","environments":"production","lastVersion":"1.1.0"}
+                  ],"returned":1,"total":null,"hasMore":false}
+                  """
+                : """
+                  ┌──────────┬──────────────┬──────────────┐
+                  │ Name     │ Environments │ Last version │
+                  ├──────────┼──────────────┼──────────────┤
+                  │ products │ production   │ 1.1.0        │
+                  └──────────┴──────────────┴──────────────┘
+                  """);
+    }
+
+    [Fact]
+    public async Task List_Should_WriteEnvelope_When_AgentModeIsEnabled()
+    {
+        // arrange
+        SetupAgentMode();
+        SetupSessionWithWorkspace();
+        SetupListServices(services: [CreateService()]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "list");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {"items":[
+            {"name":"products","environments":"production","lastVersion":"1.1.0"}
+            ],"returned":1,"total":null,"hasMore":false}
+            """);
+    }
+
+    [Fact]
+    public async Task List_Should_ForwardCompiledFilter_When_FilterIsSpecified()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupListServices(
+            filter =>
+                filter?.Attribute?.Key == "status"
+                && filter.Attribute.Condition.Eq?.String == "error");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "list",
+            "--filter",
+            "status:error");
+
+        // assert
+        result.AssertSuccess(
+            """
+            No services found.
+            """);
+    }
+
+    [Fact]
+    public async Task List_Should_RenderFilterParseError_When_FilterIsInvalid()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "list",
+            "--filter",
+            "status:!");
+
+        // assert
+        result.AssertError(
+            """
+            filter: Unexpected character '!' at column 8
+            status:!
+                   ^
+            hint: status:error http.status_code:>=500; -service.version:"1.0.0" duration:>=1000; @event.exception.type:"TimeoutError"
+            """);
     }
 
     [Fact]

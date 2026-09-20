@@ -10,13 +10,14 @@ public abstract class TelemetryCommandTestBase(NitroCommandFixture fixture) : Co
     protected const string ServiceName = "products";
 
     protected void SetupListServices(
+        Func<OpenTelemetryFilterInput?, bool>? filterPredicate = null,
         bool hasNextPage = false,
         params ServiceRow[] services)
     {
         TelemetryClientMock.Setup(x => x.ListServicesAsync(
                 WorkspaceId,
                 It.IsAny<string?>(),
-                null,
+                It.Is<OpenTelemetryFilterInput?>(filter => MatchesFilter(filter, filterPredicate)),
                 It.IsAny<IReadOnlyList<string>?>(),
                 It.IsAny<DateTimeOffset>(),
                 It.IsAny<DateTimeOffset>(),
@@ -25,6 +26,11 @@ public abstract class TelemetryCommandTestBase(NitroCommandFixture fixture) : Co
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ConnectionPage<ServiceRow>(services, null, hasNextPage));
     }
+
+    private static bool MatchesFilter(
+        OpenTelemetryFilterInput? filter,
+        Func<OpenTelemetryFilterInput?, bool>? filterPredicate)
+        => filterPredicate?.Invoke(filter) ?? filter is null;
 
     protected void SetupGetService(ServiceRow? service)
     {

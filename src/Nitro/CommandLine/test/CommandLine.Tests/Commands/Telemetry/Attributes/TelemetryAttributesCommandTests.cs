@@ -8,7 +8,7 @@ public sealed class TelemetryAttributesCommandTests(NitroCommandFixture fixture)
     [Fact]
     public async Task KeysHelp_Should_ReturnSuccess()
     {
-        // arrange & act
+        // act
         var result = await ExecuteCommandAsync(
             "telemetry",
             "attributes",

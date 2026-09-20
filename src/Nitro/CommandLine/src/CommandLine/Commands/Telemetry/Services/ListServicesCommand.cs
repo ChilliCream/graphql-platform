@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
+using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Filtering;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Options;
 using ChilliCream.Nitro.CommandLine.Commands.Telemetry.Rendering;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -45,15 +47,21 @@ internal sealed class ListServicesCommand : Command
         }
 
         var search = parseResult.GetValue(Opt<TelemetrySearchOption>.Instance);
+        var filterText = parseResult.GetValue(Opt<TelemetryFilterOption>.Instance);
         var environments = parseResult.GetValue(Opt<TelemetryEnvironmentOption>.Instance);
         var since = parseResult.GetValue(Opt<TelemetrySinceOption>.Instance);
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 50;
 
+        if (!TryCompileFilter(console, filterText, out var filter))
+        {
+            return ExitCodes.Error;
+        }
+
         var page = await client.ListServicesAsync(
             workspaceId,
             search,
-            filter: null,
+            filter,
             environments,
             since,
             until,
@@ -74,6 +82,47 @@ internal sealed class ListServicesCommand : Command
             new TelemetryListColumn<ServiceListItem>("Last version", item => item.LastVersion));
 
         return ExitCodes.Success;
+    }
+
+    private static bool TryCompileFilter(
+        INitroConsole console,
+        string? filterText,
+        out OpenTelemetryFilterInput? filter)
+    {
+        try
+        {
+            filter = FilterFlags.Compile(
+                filterText,
+                TelemetryFilterSignal.Traces,
+                hasError: false,
+                minDurationMs: null,
+                severity: null,
+                traceId: null,
+                search: null,
+                service: null);
+            return true;
+        }
+        catch (FilterParseException exception)
+        {
+            filter = null;
+            RenderFilterParseError(console, filterText!, exception);
+            return false;
+        }
+    }
+
+    private static void RenderFilterParseError(
+        INitroConsole console,
+        string filterText,
+        FilterParseException exception)
+    {
+        console.Error.WriteErrorLine(
+            $"filter: {exception.Message.EscapeMarkup()} at column {exception.Column}{Environment.NewLine}"
+            + filterText.EscapeMarkup()
+            + Environment.NewLine
+            + new string(' ', exception.Column - 1)
+            + "^"
+            + Environment.NewLine
+            + "hint: status:error http.status_code:>=500; -service.version:\"1.0.0\" duration:>=1000; @event.exception.type:\"TimeoutError\"");
     }
 
     internal sealed record ServiceListItem(string Name, string Environments, string? LastVersion)

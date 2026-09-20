@@ -67,6 +67,7 @@ public abstract class CommandTestBase
     internal readonly Mock<IBrowserLauncher> _browserLauncherMock = new();
     protected readonly Mock<IWorkspacesClient> WorkspacesClientMock = new(MockBehavior.Strict);
     private InteractionMode _interactionMode = InteractionMode.NonInteractive;
+    private bool _isAgentMode;
     private bool _authenticated = true;
     private bool _useSession;
     private bool _useSessionWithWorkspace;
@@ -82,6 +83,11 @@ public abstract class CommandTestBase
     protected void SetupInteractionMode(InteractionMode mode)
     {
         _interactionMode = mode;
+    }
+
+    protected void SetupAgentMode()
+    {
+        _isAgentMode = true;
     }
 
     /// <summary>
@@ -262,7 +268,8 @@ public abstract class CommandTestBase
         var console = new NitroConsole(
             outConsole,
             errConsole,
-            new SnapshotActivitySinkFactory());
+            new SnapshotActivitySinkFactory(),
+            _isAgentMode);
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
 
