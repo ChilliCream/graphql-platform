@@ -2,6 +2,8 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
+using Spectre.Console;
+using Spectre.Console.Rendering;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Editing;
@@ -13,6 +15,13 @@ public sealed class TaskEditorFormTests
     private static ConsoleKeyInfo Key(ConsoleKey key) => new('\0', key, false, false, false);
 
     private static ConsoleKeyInfo CtrlKey(ConsoleKey key) => new('\0', key, false, false, true);
+
+    private static IReadOnlyList<Segment> RenderSegments(IRenderable renderable, TestConsole console, int width)
+    {
+        var options = RenderOptions.Create(console, console.Profile.Capabilities);
+
+        return [.. renderable.Render(options, width)];
+    }
 
     private static void Type(TaskEditorForm form, string text)
     {
@@ -402,6 +411,24 @@ public sealed class TaskEditorFormTests
         // assert
         Assert.Equal("rejected", toast.Text);
         Assert.Equal(ToastStyle.Error, toast.Style);
+    }
+
+    [Fact]
+    public void Render_Should_KeepSelectedQuestionAndSaveVisible_When_TypeFieldExceedsFrameBudget()
+    {
+        // arrange
+        var task = TaskItemBuilder.Create("a1", "Title", type: TaskTypes.Question);
+        var form = new TaskEditorForm(task, []);
+        var console = new TestConsole().Width(24).Height(10);
+        TabTo(form, 3);
+
+        // act
+        var segments = RenderSegments(form.Render(24, 10), console, 24);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.Contains(segments, segment => segment.Text.Contains("Question", StringComparison.Ordinal));
+        Assert.Contains(segments, segment => segment.Text.Contains("Save", StringComparison.Ordinal));
     }
 
     [Fact]

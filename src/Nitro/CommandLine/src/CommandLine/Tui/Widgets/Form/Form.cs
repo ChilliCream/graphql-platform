@@ -189,12 +189,11 @@ internal sealed class Form
 
         RenderAnchorWithinBudget(windowBudget);
 
-        // The field's minimum bounded rendering takes priority over scroll indicators,
-        // so its caret and the pinned button row remain visible.
         if (reserveIndicators && fieldHeights[anchorIndex] > windowBudget)
         {
-            reserveIndicators = false;
-            windowBudget = availableFieldsHeight;
+            maxPanelHeight = Math.Max(maxPanelHeight, height - (FrameMargin - 1));
+            availableFieldsHeight = Math.Max(0, maxPanelHeight - chrome);
+            windowBudget = Math.Max(0, availableFieldsHeight - 2);
             RenderAnchorWithinBudget(windowBudget);
         }
 

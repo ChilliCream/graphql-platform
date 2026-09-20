@@ -1,4 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
+using Spectre.Console;
+using Spectre.Console.Rendering;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Widgets.Form;
@@ -6,6 +8,13 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Widgets.Form;
 public sealed class SelectFieldTests
 {
     private static ConsoleKeyInfo Key(ConsoleKey key) => new('\0', key, false, false, false);
+
+    private static IReadOnlyList<Segment> RenderSegments(IRenderable renderable, TestConsole console, int width)
+    {
+        var options = RenderOptions.Create(console, console.Profile.Capabilities);
+
+        return [.. renderable.Render(options, width)];
+    }
 
     private static SelectField CreateField(string? initialSelectedId = null) => new(
         "status",
@@ -109,6 +118,35 @@ public sealed class SelectFieldTests
         // assert
         Assert.Contains("(o) Closed", console.Output);
         Assert.Contains("( ) Open", console.Output);
+    }
+
+    [Fact]
+    public void Render_Should_KeepSelectedOptionVisible_When_FocusedFieldHasHeightBudget()
+    {
+        // arrange
+        var field = new SelectField(
+            "type",
+            "Type",
+            [
+                new SelectOption("task", "Task"),
+                new SelectOption("bug", "Bug"),
+                new SelectOption("feature", "Feature"),
+                new SelectOption("epic", "Epic"),
+                new SelectOption("chore", "Chore"),
+                new SelectOption("docs", "Docs"),
+                new SelectOption("question", "Question")
+            ],
+            initialSelectedId: "question");
+        var console = new TestConsole().Width(20);
+        var rendered = field.Render(20, focused: true, maxHeight: 3);
+
+        // act
+        console.Write(rendered);
+        var segments = RenderSegments(rendered, console, 20);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 3);
+        Assert.Contains("(o) Question", console.Output);
     }
 
     [Fact]

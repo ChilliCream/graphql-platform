@@ -600,6 +600,8 @@ public sealed class FormTests
 
         // assert
         Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.Contains("▲ more fields above", console.Output);
+        Assert.Contains("▼ more fields below", console.Output);
         Assert.Contains("Save", console.Output);
         Assert.Contains(segments, segment =>
             segment.Text == "c"
