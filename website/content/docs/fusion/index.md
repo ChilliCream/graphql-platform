@@ -7,7 +7,7 @@ Fusion lets you split one GraphQL API into multiple smaller services, without ch
 
 # What Is Fusion
 
-Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple upstream services. Those upstream services can be GraphQL, OpenAPI-based REST, or gRPC. Each service owns its contract and implementation. Fusion composes those contracts at build time, and the gateway orchestrates execution at runtime. Fusion implements the [GraphQL Federation specification](https://graphql.github.io/composite-schemas-spec/draft/), an open standard being developed under the GraphQL Foundation.
+Fusion is ChilliCream's API gateway for exposing one GraphQL API over multiple upstream services. Those upstream services can be GraphQL, OpenAPI-based REST, or gRPC. Each service owns its contract and implementation. Fusion composes those contracts at build time, and the gateway orchestrates execution at runtime. Fusion implements the [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/) (formerly the GraphQL Composite Schemas specification), an open standard being developed under the GraphQL Foundation.
 
 The architecture has three parts:
 
@@ -21,7 +21,7 @@ A **source schema** is the contract document for a subgraph, such as a GraphQL s
 
 The **gateway** receives client requests, determines which subgraphs to call, executes those calls, and merges the results.
 
-**GraphQL subgraphs stay standard GraphQL servers.** The [GraphQL Federation specification](https://graphql.github.io/composite-schemas-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common Hot Chocolate setup, subgraphs remain normal Hot Chocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
+**GraphQL subgraphs stay standard GraphQL servers.** The [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/) is designed so a standard GraphQL server can already act as a compatible subgraph. In a common Hot Chocolate setup, subgraphs remain normal Hot Chocolate servers with regular resolvers, without a separate distributed-runtime package or vendor-specific protocol layer.
 
 The result: clients send one request to one endpoint and receive one unified response, while Fusion handles routing and aggregation across upstream services.
 
