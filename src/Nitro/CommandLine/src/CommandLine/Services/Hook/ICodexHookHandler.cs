@@ -3,9 +3,10 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <summary>
 /// Implements the Codex turn-boundary event state machine: presence upsert
 /// on <c>SessionStart</c>, the unread-mail digest on <c>UserPromptSubmit</c>
-/// (both via <c>hooks.json</c>'s <c>additionalContext</c>), presence teardown on
-/// <c>SessionEnd</c>, and the idle-turn gate on the separate <c>notify</c>
-/// mechanism. Unlike Claude's <c>Stop</c> hook, Codex has no way
+/// (both via <c>hooks.json</c>'s <c>additionalContext</c>), the telemetry
+/// nudge on <c>PreToolUse</c>, presence teardown on <c>SessionEnd</c>, and
+/// the idle-turn gate on the separate <c>notify</c> mechanism. Unlike
+/// Claude's <c>Stop</c> hook, Codex has no way
 /// to block a turn from ending, so the gate instead queues the digest into
 /// the thread's next turn via <c>codex queue</c>, with the delivery ledger's
 /// message-id-keyed reservation as the loop guard. Every member is fail-open by

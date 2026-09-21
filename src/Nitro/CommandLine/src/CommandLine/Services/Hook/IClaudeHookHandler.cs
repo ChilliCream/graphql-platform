@@ -3,10 +3,11 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <summary>
 /// Implements the Claude Code turn-boundary event state machine: presence
 /// upsert on <c>SessionStart</c>, the unread-mail digest on
-/// <c>UserPromptSubmit</c>, the Stop gate, and presence teardown on
-/// <c>SessionEnd</c>. Every member is fail-open by contract: it never
-/// throws for a condition the command layer's caller cannot act on
-/// (unresolvable workspace, unclaimed session, contended database), instead
+/// <c>UserPromptSubmit</c>, the telemetry nudge on <c>PreToolUse</c>, the
+/// Stop gate, and presence teardown on <c>SessionEnd</c>. Every member is
+/// fail-open by contract: it never throws for a condition the command
+/// layer's caller cannot act on (unresolvable workspace, unclaimed session,
+/// contended database), instead
 /// returning <see cref="ClaudeHookOutcome.Neutral"/>. The command layer
 /// wraps every call in an additional catch-all and timeout regardless, so
 /// this type does not have to be exhaustive about it.

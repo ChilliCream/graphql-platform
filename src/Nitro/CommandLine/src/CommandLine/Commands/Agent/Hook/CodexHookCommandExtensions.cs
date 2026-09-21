@@ -9,7 +9,8 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Agent.Hook;
 /// <see cref="ClaudeHookCommandExtensions.SetHookAction"/>: a hook adapter
 /// reports failure to Codex through its own JSON protocol, never through
 /// stderr or a nonzero exit code. Covers <c>session-start</c>,
-/// <c>user-prompt-submit</c>, and <c>session-end</c> only - <c>notify</c>
+/// <c>user-prompt-submit</c>, <c>pre-tool-use</c>, and <c>session-end</c>
+/// only - <c>notify</c>
 /// reads argv, not stdin, and is wired separately in
 /// <c>NotifyHookCommand</c>.
 /// <para>

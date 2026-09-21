@@ -4,8 +4,8 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// The desired Codex CLI <c>hooks.json</c> hook entry for each turn-boundary
 /// event this CLI adapts, built from a <see cref="LaunchDescriptor"/>. The
 /// Codex analog of <see cref="ClaudeHooksTemplate"/>: the same command-line
-/// group, command, and timeout structure, with three events instead of
-/// four (Codex has no <c>Stop</c>-equivalent hooks.json event - its idle-turn
+/// group, command, and timeout structure, with four events instead of
+/// five (Codex has no <c>Stop</c>-equivalent hooks.json event - its idle-turn
 /// gate is the separate <c>notify</c> mechanism, see
 /// <see cref="CodexNotifyTemplate"/>).
 /// </summary>

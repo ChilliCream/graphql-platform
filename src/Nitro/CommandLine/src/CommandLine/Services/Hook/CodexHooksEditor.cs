@@ -9,7 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// no-side-effects contract. The one structural difference from
 /// <c>settings.json</c>: both files use a top-level <c>"hooks"</c> map.
 /// Foreign structure (other
-/// events, other hook groups under our three managed events, e.g. the
+/// events, other hook groups under our four managed events, e.g. the
 /// pre-existing <c>herdr</c> <c>SessionStart</c> entry S1 observed
 /// live) round-trips through <see cref="JsonNode"/> untouched; only the
 /// group(s) this installer owns are added, replaced, or removed.

@@ -8,7 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <c>hooks</c> section: no file I/O, no sidecar persistence, so golden
 /// fixture tests can feed a "before" text and a prior sidecar snapshot in
 /// and assert the exact "after" text and outcomes out. Foreign structure
-/// (other top-level keys, other events, other hook groups under our four
+/// (other top-level keys, other events, other hook groups under our five
 /// events) round-trips through <see cref="JsonNode"/> untouched; only the
 /// group(s) this installer owns are added, replaced, or removed.
 /// </summary>
