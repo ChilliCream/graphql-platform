@@ -9,6 +9,12 @@ public sealed class ValidationOptions
     , IIntrospectionOptionsAccessor
 {
     /// <summary>
+    /// Specifies whether fields whose return types differ only in nullability can be merged.
+    /// Defaults to <c>false</c>.
+    /// </summary>
+    public bool EnableCovariantFieldMerging { get; set; }
+
+    /// <summary>
     /// Specifies whether empty selection sets are valid. Defaults to <c>false</c>.
     /// </summary>
     public bool EnableEmptySelectionSets { get; set; }
