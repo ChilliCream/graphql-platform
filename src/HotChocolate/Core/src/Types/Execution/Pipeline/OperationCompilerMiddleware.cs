@@ -49,7 +49,8 @@ internal sealed class OperationCompilerMiddleware
                         operationId ?? Guid.NewGuid().ToString("N"),
                         documentInfo.Hash.Value,
                         context.Request.OperationName,
-                        normalizedDocument);
+                        normalizedDocument,
+                        context);
 
                     context.SetOperation(operation);
                     inFlightOperation?.TrySetResult(operation);
