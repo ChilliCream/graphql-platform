@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Pipeline;
 using HotChocolate.Features;
@@ -106,11 +107,10 @@ public sealed partial class OperationCompiler
 
         var operationDefinition = document.GetOperation(operationName);
 
-        // The normalized selection set is the source of truth for whether the operation still
-        // has incremental parts once statically excluded @defer/@stream selections are taken
-        // into account, so we derive the flag from it instead of trusting the normalizer result,
-        // which does not evaluate a literal "if: false" condition on the directive itself.
-        var hasIncrementalParts = ContainsIncrementalDirectives(operationDefinition.SelectionSet);
+        // The normalizer appends the marker directive to the operation definition when the
+        // document still has incremental delivery parts, so the compiled operation can read
+        // the flag directly instead of re-walking the selection set on every compile.
+        var hasIncrementalParts = HasIncrementalPartsMarker(operationDefinition.Directives);
 
         return CompileOperation(id, hash, document, operationDefinition, hasIncrementalParts);
     }
@@ -719,77 +719,15 @@ public sealed partial class OperationCompiler
         }
     }
 
-    // A normalized document only ever contains fields and inline fragments (fragment spreads
-    // are always inlined away by the rewriter), so walking the selection set is sufficient to
-    // determine whether the operation still has incremental parts once statically excluded
-    // @defer/@stream selections are accounted for. Selections removed outright by the rewriter
-    // (a statically skipped field or fragment) never reach this walk; a directive with a
-    // literal "if: false" argument survives the rewrite, so it is checked explicitly.
-    private static bool ContainsIncrementalDirectives(SelectionSetNode selectionSet)
-    {
-        foreach (var selection in selectionSet.Selections)
-        {
-            switch (selection)
-            {
-                case FieldNode field:
-                    if (HasIncrementalDirective(
-                            field.Directives,
-                            DirectiveNames.Stream.Name,
-                            DirectiveNames.Stream.Arguments.If)
-                        || (field.SelectionSet is not null
-                            && ContainsIncrementalDirectives(field.SelectionSet)))
-                    {
-                        return true;
-                    }
-                    break;
-
-                case InlineFragmentNode inlineFragment:
-                    if (HasIncrementalDirective(
-                            inlineFragment.Directives,
-                            DirectiveNames.Defer.Name,
-                            DirectiveNames.Defer.Arguments.If)
-                        || ContainsIncrementalDirectives(inlineFragment.SelectionSet))
-                    {
-                        return true;
-                    }
-                    break;
-            }
-        }
-
-        return false;
-    }
-
-    // Finds the named incremental delivery directive (@defer or @stream) and reports whether
-    // it is still active after static evaluation. A literal "if: false" argument makes the
-    // directive a compile-time no-op, so it must not count towards the operation having
-    // incremental parts; a missing "if" argument, a literal "if: true", or a variable
-    // reference (only resolvable at runtime) all count.
-    private static bool HasIncrementalDirective(
-        IReadOnlyList<DirectiveNode> directives,
-        string directiveName,
-        string ifArgumentName)
+    private static bool HasIncrementalPartsMarker(IReadOnlyList<DirectiveNode> directives)
     {
         for (var i = 0; i < directives.Count; i++)
         {
-            var directive = directives[i];
-
-            if (!directive.Name.Value.Equals(directiveName, StringComparison.Ordinal))
+            if (directives[i].Name.Value.Equals(
+                InternalDirectiveNames.HasIncrementalParts, StringComparison.Ordinal))
             {
-                continue;
+                return true;
             }
-
-            for (var j = 0; j < directive.Arguments.Count; j++)
-            {
-                var argument = directive.Arguments[j];
-
-                if (argument.Name.Value.Equals(ifArgumentName, StringComparison.Ordinal)
-                    && argument.Value is BooleanValueNode { Value: false })
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         return false;
