@@ -111,12 +111,9 @@ public abstract class MailCommandTestBase : CommandTestBase
             TestContext.Current.CancellationToken);
 
     /// <summary>
-    /// Seeds an alive, explicitly-claimed <c>codex-thread</c> session for
-    /// <paramref name="agentName"/> directly against the workspace database,
-    /// on the host id <see cref="CommandTestBase.SetupInstanceId"/> was pointed at (a test
-    /// calling this must call that first, so the notifier's own host
-    /// resolution matches this row). Used to exercise auto-ping through the
-    /// CLI without a live harness process.
+    /// Seeds a fresh <c>codex-thread</c> session explicitly bound to <paramref name="agentName"/>
+    /// on <paramref name="host"/>. Configure <see cref="CommandTestBase.SetupInstanceId"/>
+    /// with the same host when the command must discover this session.
     /// </summary>
     private protected Task SeedAliveCodexThreadSessionAsync(string agentName, string threadId, string host)
         => SeedAliveSessionAsync(
@@ -125,8 +122,6 @@ public abstract class MailCommandTestBase : CommandTestBase
 
     /// <summary>
     /// Configures successful foreground wake delivery for each named agent.
-    /// Use this in command tests whose primary concern requires a successful
-    /// send but is unrelated to the wake transport itself.
     /// </summary>
     private protected async Task<FakeCodexQueueClient> SetupSuccessfulWakeAsync(
         string host,
@@ -183,13 +178,10 @@ public abstract class MailCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Seeds an alive <c>agent_sessions</c> row directly against the
-    /// workspace database, on the host id <see cref="CommandTestBase.SetupInstanceId"/> was
-    /// pointed at (a test calling this must call that first, so the
-    /// notifier's own host resolution matches this row). A null
-    /// <paramref name="agentName"/> seeds an unbound row. Used to exercise
-    /// role-targeted mail discovery and auto-ping through the CLI without a
-    /// live harness process.
+    /// Seeds a fresh session on <paramref name="host"/>, explicitly bound to
+    /// <paramref name="agentName"/> or unbound when it is <see langword="null"/>.
+    /// Configure <see cref="CommandTestBase.SetupInstanceId"/> with the same host
+    /// when the command must discover this session.
     /// </summary>
     private protected async Task SeedAliveSessionAsync(
         string sessionId,
@@ -258,9 +250,7 @@ public abstract class MailCommandTestBase : CommandTestBase
     }
 
     /// <summary>
-    /// Runs a non-query statement against the workspace database, for
-    /// mutating a seeded row mid-test (e.g. simulating a role change or a
-    /// session ending between discovery and send).
+    /// Runs a non-query SQL statement against the workspace database.
     /// </summary>
     protected async Task ExecuteAsync(string sql)
     {

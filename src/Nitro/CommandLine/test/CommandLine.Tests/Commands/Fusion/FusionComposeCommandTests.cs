@@ -695,8 +695,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         var archiveFileName = CreateTempFile();
         var workDir = Path.Combine(s_resourcesDir, "valid-extensions");
 
-        // Set up the directory mock to return both the primary and extensions file.
-        // Discovery must pick the primary schema, not the extensions sidecar.
+        // Expose both the primary schema and its extensions sidecar to directory discovery.
         SetupDirectory(workDir,
             Path.Combine(workDir, "source-schema-1.graphqls"),
             Path.Combine(workDir, "source-schema-1-extensions.graphqls"));
@@ -1258,7 +1257,8 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
             "source-schema-1.graphqls",
             "source-schema-2.graphqls");
 
-        // act - no --source-schema-file specified, should auto-discover
+        // act
+        // Omit --source-schema-file to discover schemas in the working directory.
         var result = await ExecuteCommandAsync(
             "fusion",
             "compose",

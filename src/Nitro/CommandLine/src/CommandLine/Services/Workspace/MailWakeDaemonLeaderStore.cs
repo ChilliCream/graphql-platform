@@ -15,10 +15,6 @@ internal sealed class MailWakeDaemonLeaderStore(
     {
         await using var connection = await ConnectAsync(cancellationToken);
 
-        // Same steal-if-expired shape as SessionPingGateStore.TryAcquireAsync:
-        // the DO UPDATE's WHERE clause makes a live, unexpired lease a
-        // complete no-op, so RETURNING yields no row and this call returns
-        // null without needing to inspect who currently holds it.
         return await connection.QueryFirstOrDefaultAsync<long?>(
             """
             INSERT INTO mail_wake_daemons (nitro_instance_id, owner_id, epoch, leased_at, expires_at)

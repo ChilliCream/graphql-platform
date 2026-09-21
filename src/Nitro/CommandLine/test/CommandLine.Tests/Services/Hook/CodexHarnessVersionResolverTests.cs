@@ -1,10 +1,11 @@
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
+using ChilliCream.Nitro.CommandLine.Tests.HookRuntime;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Hook;
 
 /// <summary>
-/// Exercises <see cref="CodexHarnessVersionResolver"/> against an injected
-/// rollout-version reader (no real filesystem access).
+/// Exercises <see cref="CodexHarnessVersionResolver"/> against injected readers
+/// and temporary rollout files.
 /// </summary>
 public sealed class CodexHarnessVersionResolverTests
 {
@@ -45,5 +46,91 @@ public sealed class CodexHarnessVersionResolverTests
 
         // assert
         Assert.Equal("", version);
+    }
+
+    [Fact]
+    public void Resolve_Should_ReturnEmpty_When_ExplicitRolloutFileIsMalformed()
+    {
+        // arrange
+        using var directory = new TemporaryDirectory();
+        WriteRolloutFile(directory, "{");
+        var resolver = CreateResolver(directory);
+
+        // act
+        var version = resolver.Resolve("session-1");
+
+        // assert
+        Assert.Equal("", version);
+    }
+
+    [Fact]
+    public void Resolve_Should_ReturnEmpty_When_RolloutRecordTypeIsNotAString()
+    {
+        // arrange
+        using var directory = new TemporaryDirectory();
+        WriteRolloutFile(directory, "{\"type\":1}");
+        var resolver = CreateResolver(directory);
+
+        // act
+        var version = resolver.Resolve("session-1");
+
+        // assert
+        Assert.Equal("", version);
+    }
+
+    [Fact]
+    public void Resolve_Should_ReturnEmpty_When_RolloutFileRootIsAnArray()
+    {
+        // arrange
+        using var directory = new TemporaryDirectory();
+        WriteRolloutFile(directory, "[]");
+        var resolver = CreateResolver(directory);
+
+        // act
+        var version = resolver.Resolve("session-1");
+
+        // assert
+        Assert.Equal("", version);
+    }
+
+    [Theory]
+    [InlineData("{\"type\":\"session_meta\",\"payload\":[]}")]
+    [InlineData("{\"type\":\"session_meta\",\"payload\":{\"cli_version\":1}}")]
+    public void Resolve_Should_ReturnEmpty_When_RolloutPayloadIsNotWellFormed(string json)
+    {
+        // arrange
+        using var directory = new TemporaryDirectory();
+        WriteRolloutFile(directory, json);
+        var resolver = CreateResolver(directory);
+
+        // act
+        var version = resolver.Resolve("session-1");
+
+        // assert
+        Assert.Equal("", version);
+    }
+
+    [Fact]
+    public void Resolve_Should_ReadRolloutVersion_When_ExplicitDirectoryContainsAMatch()
+    {
+        // arrange
+        using var directory = new TemporaryDirectory();
+        WriteRolloutFile(directory, "{\"type\":\"session_meta\",\"payload\":{\"cli_version\":\"0.101.0\"}}");
+        var resolver = CreateResolver(directory);
+
+        // act
+        var version = resolver.Resolve("session-1");
+
+        // assert
+        Assert.Equal("0.101.0", version);
+    }
+
+    private static CodexHarnessVersionResolver CreateResolver(TemporaryDirectory directory)
+        => new(rolloutVersionReader: sessionId =>
+            CodexHarnessVersionResolver.ReadRolloutVersion(directory.Root.FullName, sessionId));
+
+    private static void WriteRolloutFile(TemporaryDirectory directory, string json)
+    {
+        File.WriteAllText(Path.Combine(directory.Root.FullName, "rollout-test-session-1.jsonl"), json);
     }
 }

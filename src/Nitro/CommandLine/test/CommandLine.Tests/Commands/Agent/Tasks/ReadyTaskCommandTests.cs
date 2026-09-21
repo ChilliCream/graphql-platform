@@ -301,9 +301,7 @@ public sealed class ReadyTaskCommandTests(NitroCommandFixture fixture)
     }
 
     /// <summary>
-    /// Pulls the task ID out of a `task create` confirmation line
-    /// ("Created task 'ID': Title.") so dependent commands can use it
-    /// without predicting the hash-derived ID ahead of time.
+    /// Extracts the task ID from the human-readable <c>agent tasks create</c> confirmation.
     /// </summary>
     private static string ExtractTaskId(CommandResult result)
     {

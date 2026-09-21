@@ -42,6 +42,7 @@ builder
 | `EnableFlagEnums`                         | `bool`                       | `false`             | Treats `[Flags]` enums as flag enums in GraphQL.                                                             |
 | `EnableDefer`                             | `bool`                       | `false`             | Enables the `@defer` directive.                                                                              |
 | `EnableStream`                            | `bool`                       | `false`             | Enables the `@stream` directive.                                                                             |
+| `EnableCovariantFieldMerging`             | `bool`                       | `false`             | Allows fields whose return types differ only in nullability to be merged in a selection set.                 |
 | `EnableEmptySelectionSets`                | `bool`                       | `false`             | Enables empty selection sets (`{ }`) on composite fields and on query and mutation roots.                    |
 | `EnableSemanticNonNull`                   | `bool`                       | `false`             | Enables the semantic non-null feature.                                                                       |
 | `StripLeadingIFromInterface`              | `bool`                       | `false`             | Strips the leading `I` from C# interface names when generating GraphQL interface type names.                 |

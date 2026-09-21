@@ -2,6 +2,8 @@ using ChilliCream.Nitro.CommandLine.Services.Tasks;
 using ChilliCream.Nitro.CommandLine.Tui.Editing;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Widgets.Form;
+using Spectre.Console;
+using Spectre.Console.Rendering;
 using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Editing;
@@ -13,6 +15,13 @@ public sealed class TaskEditorFormTests
     private static ConsoleKeyInfo Key(ConsoleKey key) => new('\0', key, false, false, false);
 
     private static ConsoleKeyInfo CtrlKey(ConsoleKey key) => new('\0', key, false, false, true);
+
+    private static IReadOnlyList<Segment> RenderSegments(IRenderable renderable, TestConsole console, int width)
+    {
+        var options = RenderOptions.Create(console, console.Profile.Capabilities);
+
+        return [.. renderable.Render(options, width)];
+    }
 
     private static void Type(TaskEditorForm form, string text)
     {
@@ -101,8 +110,7 @@ public sealed class TaskEditorFormTests
     [Fact]
     public void Constructor_Should_RoundTripCustomStatus_When_NotAmongWellKnownOptions()
     {
-        // arrange: a closed task opened for editing keeps its own status
-        // selected instead of silently defaulting to "open".
+        // arrange
         var task = TaskItemBuilder.Create("a1", status: TaskStates.Closed);
 
         // act
@@ -153,7 +161,7 @@ public sealed class TaskEditorFormTests
         // act
         var result = form.HandleKey(Key(ConsoleKey.Enter));
 
-        // assert: the form stays open because the required title is empty.
+        // assert
         Assert.Null(result);
     }
 
@@ -170,15 +178,14 @@ public sealed class TaskEditorFormTests
         // act
         var result = form.HandleKey(Key(ConsoleKey.Enter));
 
-        // assert: the form stays open because a whitespace-only title is
-        // rejected, matching TaskCreateForm's title validator.
+        // assert
         Assert.Null(result);
     }
 
     [Fact]
     public void HandleKey_Should_Submit_When_CtrlEnterFromTitleField()
     {
-        // arrange: focus never leaves the title field, no Tab to Save.
+        // arrange
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, []);
         Type(form, "!");
@@ -194,8 +201,7 @@ public sealed class TaskEditorFormTests
     [Fact]
     public void HandleKey_Should_Submit_When_CtrlSFromTitleField()
     {
-        // arrange: Ctrl+S is the fallback save chord for terminals that
-        // deliver Ctrl+Enter identically to a plain Enter.
+        // arrange
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, []);
         Type(form, "!");
@@ -219,8 +225,7 @@ public sealed class TaskEditorFormTests
         // act
         var result = form.HandleKey(CtrlKey(ConsoleKey.Enter));
 
-        // assert: the form stays open and focus moves to the invalid title
-        // field instead of closing.
+        // assert
         Assert.Null(result);
         Assert.Equal(TaskEditorForm.TitleFieldId, form.FocusedField?.Id);
     }
@@ -292,9 +297,54 @@ public sealed class TaskEditorFormTests
     }
 
     [Fact]
+    public async Task SubmitAsync_Should_ReportUpdated_When_OnlyStatusChanged()
+    {
+        // arrange
+        var task = TaskItemBuilder.Create("a1", "Title", TaskStates.Open, priority: TaskPriorities.Medium);
+        var form = new TaskEditorForm(task, []);
+        TabTo(form, 1);
+        form.HandleKey(Key(ConsoleKey.RightArrow));
+        var submitted = Save(form);
+        var store = new FakeTaskStore();
+
+        // act
+        var outcome = await form.SubmitAsync(store, submitted.Values, "me", CancellationToken.None);
+
+        // assert
+        Assert.True(store.UpdateReceived!.StatusGiven);
+        Assert.False(store.UpdateReceived.PriorityGiven);
+        var succeeded = Assert.IsType<TaskEditorOutcome.Succeeded>(outcome);
+        Assert.Equal(["status"], succeeded.ChangedFields);
+        Assert.Equal("Updated task 'a1'.", succeeded.ToastText);
+    }
+
+    [Fact]
+    public async Task SubmitAsync_Should_ReportUpdated_When_OnlyPriorityChanged()
+    {
+        // arrange
+        var task = TaskItemBuilder.Create("a1", "Title", TaskStates.Open, priority: TaskPriorities.Medium);
+        var form = new TaskEditorForm(task, []);
+        TabTo(form, 2);
+        form.HandleKey(Key(ConsoleKey.RightArrow));
+        var submitted = Save(form);
+        var store = new FakeTaskStore();
+
+        // act
+        var outcome = await form.SubmitAsync(store, submitted.Values, "me", CancellationToken.None);
+
+        // assert
+        Assert.False(store.UpdateReceived!.StatusGiven);
+        Assert.True(store.UpdateReceived.PriorityGiven);
+        var succeeded = Assert.IsType<TaskEditorOutcome.Succeeded>(outcome);
+        Assert.Equal(["priority"], succeeded.ChangedFields);
+        Assert.Equal("Updated task 'a1'.", succeeded.ToastText);
+    }
+
+    [Fact]
     public async Task SubmitAsync_Should_AddAndRemoveLabels_When_LabelsEdited()
     {
-        // arrange: remove "b", add "c", keep "a".
+        // arrange
+        // Remove "b", add "c", and keep "a".
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, ["a", "b"]);
         TabTo(form, 4);
@@ -364,33 +414,138 @@ public sealed class TaskEditorFormTests
     }
 
     [Fact]
+    public void Render_Should_KeepSelectedQuestionAndSaveVisible_When_TypeFieldExceedsFrameBudget()
+    {
+        // arrange
+        var task = TaskItemBuilder.Create("a1", "Title", type: TaskTypes.Question);
+        var form = new TaskEditorForm(task, []);
+        var console = new TestConsole().Width(24).Height(10);
+        TabTo(form, 3);
+
+        // act
+        var segments = RenderSegments(form.Render(24, 10), console, 24);
+
+        // assert
+        Assert.True(Segment.SplitLines(segments).Count <= 10);
+        Assert.Contains(segments, segment => segment.Text.Contains("Question", StringComparison.Ordinal));
+        Assert.Contains(segments, segment => segment.Text.Contains("Save", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void HandleKey_Should_ReachEveryFieldAndSave_When_FrameIsMinimumViableSize()
     {
-        // arrange: the 80x24 frame (23 content rows once the status row is
-        // reserved) the UX spec requires to stay fully operable, with the
-        // default seven-field set.
+        // arrange
+        // the 80x24 frame (23 content rows once the status row is reserved) must stay fully operable
         var task = TaskItemBuilder.Create("a1", "Title");
         var form = new TaskEditorForm(task, ["alpha"]);
-        var console = new TestConsole().Width(80).Height(23);
         var fieldLabels = new[] { "Title", "Status", "Priority", "Type", "Labels", "Description", "Notes" };
+        var focusedFieldFrames = new List<string>();
 
-        // act & assert: every field is reachable by Tab and, once focused,
-        // scrolled fully into view.
+        // act
+        // every field is reachable by Tab and, once focused, is fully rendered in a fresh frame
         foreach (var label in fieldLabels)
         {
+            var console = new TestConsole().Width(80).Height(23);
             console.Write(form.Render(80, 23));
-            Assert.Contains(label, console.Output);
+            var lines = console.Output.Split('\n');
+            var fieldStart = Array.FindIndex(lines, line => line.Contains($"╭─{label}"));
+            Assert.True(fieldStart >= 0, $"Missing {label} field frame header.");
+
+            var nextFieldStart = Array.FindIndex(
+                lines,
+                fieldStart + 1,
+                line => line.Contains("╭─", StringComparison.Ordinal));
+            var fieldEnd = Array.FindIndex(
+                lines,
+                fieldStart + 1,
+                (nextFieldStart < 0 ? lines.Length : nextFieldStart) - fieldStart - 1,
+                line => line.StartsWith("│ ╰", StringComparison.Ordinal));
+            Assert.True(fieldEnd > fieldStart, $"Missing {label} field frame footer.");
+
+            var fieldFrame = string.Join("\n", lines[fieldStart..(fieldEnd + 1)]);
+            focusedFieldFrames.Add($"focused: {form.FocusedField?.Id ?? "null"}\n{fieldFrame}");
             form.HandleKey(Key(ConsoleKey.Tab));
         }
 
-        // act: the button row is the next and final stop.
-        console.Write(form.Render(80, 23));
-        Assert.Contains("Save", console.Output);
+        // the button row is the next and final stop
+        var buttonConsole = new TestConsole().Width(80).Height(23);
+        buttonConsole.Write(form.Render(80, 23));
+        var buttonLines = buttonConsole.Output.Split('\n');
+        var buttonLineIndex = Array.FindIndex(buttonLines, line => line.Contains("Save"));
+        Assert.True(
+            buttonLineIndex > 0
+            && buttonLineIndex < buttonLines.Length - 1
+            && buttonLines[buttonLineIndex - 1].StartsWith("│", StringComparison.Ordinal)
+            && buttonLines[buttonLineIndex + 1].StartsWith("╰", StringComparison.Ordinal),
+            "Missing Save button frame.");
+
+        var buttonFrame = string.Join("\n", buttonLines[(buttonLineIndex - 1)..(buttonLineIndex + 2)]);
+        buttonFrame = $"focused: {form.FocusedField?.Id ?? "null"}\n{buttonFrame}";
+
+        // assert
+        focusedFieldFrames.MatchInlineSnapshots(
+            [
+                """
+                focused: title
+                │ ╭─Title *──────────────────────────────────────────────────────────────────╮ │
+                │ │ Title                                                                    │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                focused: status
+                │ ╭─Status───────────────────────────────────────────────────────────────────╮ │
+                │ │ (o) Open  ( ) In Progress  ( ) Blocked  ( ) Deferred                     │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                focused: priority
+                │ ╭─Priority─────────────────────────────────────────────────────────────────╮ │
+                │ │ ( ) P0  ( ) P1  (o) P2  ( ) P3  ( ) P4                                   │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                focused: type
+                │ ╭─Type─────────────────────────────────────────────────────────────────────╮ │
+                │ │ (o) Task  ( ) Bug  ( ) Feature  ( ) Epic  ( ) Chore  ( ) Docs            │ │
+                │ │ ( ) Question                                                             │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                focused: labels
+                │ ╭─Labels───────────────────────────────────────────────────────────────────╮ │
+                │ │ - alpha                                                                  │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                focused: description
+                │ ╭─Description──────────────────────────────────────────────────────────────╮ │
+                │ │                                                                          │ │
+                │ │                                                                          │ │
+                │ │                                                                          │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """,
+                """
+                focused: notes
+                │ ╭─Notes────────────────────────────────────────────────────────────────────╮ │
+                │ │                                                                          │ │
+                │ │                                                                          │ │
+                │ │                                                                          │ │
+                │ ╰──────────────────────────────────────────────────────────────────────────╯ │
+                """
+            ]);
+        buttonFrame.MatchInlineSnapshot(
+            """
+            focused: null
+            │                                                                              │
+            │  Save                           Cancel                                       │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+            """);
 
         // act
         var result = form.HandleKey(Key(ConsoleKey.Enter));
 
-        // assert: save works from the fully-scrolled button row.
+        // assert
+        // save works from the fully-scrolled button row
         Assert.IsType<FormResult.Submitted>(result);
     }
 }

@@ -3,12 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Tests.Agents;
 
 /// <summary>
-/// Exercises <see cref="SessionPingGateStore"/>'s atomic
-/// claim-or-steal-expired upsert directly against a real workspace database:
-/// mutual exclusion for one exact session generation, stealing an expired
-/// gate, renewal and its expiry fencing, release by attempt id, and the
-/// exclusion holding across genuinely concurrent processes (separate
-/// connections racing the same database file).
+/// Exercises <see cref="SessionPingGateStore"/>'s atomic claim-or-steal-expired
+/// upsert directly against a real workspace database.
 /// </summary>
 public sealed class SessionPingGateStoreTests : IDisposable
 {
@@ -67,8 +63,8 @@ public sealed class SessionPingGateStoreTests : IDisposable
     [Fact]
     public async Task TryAcquireAsync_Should_AllowDifferentGenerations_When_SameSessionIdOnDifferentPid()
     {
-        // arrange: a stale generation (an older pid the OS has since reused)
-        // must never contend with the current one.
+        // arrange
+        // Use the same harness and session id on a different host.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -114,8 +110,7 @@ public sealed class SessionPingGateStoreTests : IDisposable
         var renewed = await _gates.TryRenewAsync(
             s_generation, "attempt-1", justBeforeExpiry, TimeSpan.FromSeconds(10), cancellationToken);
 
-        // assert: a caller trying to steal right after the original lease
-        // would have expired now fails, proving the renewal took effect.
+        // assert
         Assert.True(renewed);
         var stillHeld = await _gates.TryAcquireAsync(
             s_generation, "attempt-2", acquiredAt + TimeSpan.FromSeconds(11), TimeSpan.FromSeconds(10), cancellationToken);
@@ -176,9 +171,7 @@ public sealed class SessionPingGateStoreTests : IDisposable
     [Fact]
     public async Task ReleaseAsync_Should_BeANoOp_When_AttemptIdDoesNotMatch()
     {
-        // arrange: a late release from an attempt whose gate was already
-        // stolen as expired (or already released) must never free a
-        // DIFFERENT attempt's currently-held gate.
+        // arrange
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
@@ -193,18 +186,18 @@ public sealed class SessionPingGateStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task TryAcquireAsync_Should_ClaimExactlyOnce_When_SixConcurrentProcessesRaceTheSameGeneration()
+    public async Task TryAcquireAsync_Should_ClaimExactlyOnce_When_SixConcurrentCallersRaceTheSameGeneration()
     {
-        // arrange: separate connections (Pooling=False, matching production)
-        // racing the same file for the same session generation.
+        // arrange: separate connections racing the same generation, Pooling=False as in production.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitializeWorkspaceAsync(cancellationToken);
         var now = new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero);
 
         // act
-        var results = await Task.WhenAll(Enumerable.Range(1, 6).Select(i =>
-            new SessionPingGateStore(_fileSystem, _database)
-                .TryAcquireAsync(s_generation, $"attempt-{i}", now, TimeSpan.FromSeconds(30), cancellationToken)));
+        var results = await ConcurrentTestHarness.RunAsync(
+            6,
+            i => new SessionPingGateStore(_fileSystem, _database)
+                .TryAcquireAsync(s_generation, $"attempt-{i}", now, TimeSpan.FromSeconds(30), cancellationToken));
 
         // assert: exactly one caller claimed the gate.
         Assert.Equal(1, results.Count(claimed => claimed));

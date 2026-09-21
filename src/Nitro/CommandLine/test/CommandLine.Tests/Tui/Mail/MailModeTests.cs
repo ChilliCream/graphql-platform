@@ -270,9 +270,7 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
-        // Threads mode (the default) already defaults a single-message
-        // thread's row to Thread view; flip to Flat mode so this exercises
-        // the message-selected-then-toggle-to-thread path.
+        // flip to Flat mode, so a message row (not a thread row) is selected
         mode.State.ToggleListMode();
 
         // act
@@ -308,9 +306,7 @@ public sealed class MailModeTests
         AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
         mode.OnEnter();
-        // Threads mode (the default) already defaults a single-message
-        // thread's row to Thread view; flip to Flat mode first so the
-        // arrange toggle is the one that enters Thread view.
+        // flip to Flat mode first, so the arrange toggle is the one that enters Thread view
         mode.State.ToggleListMode();
         mode.Handle(new TuiMessage.ToggleMaximize());
 
@@ -370,8 +366,7 @@ public sealed class MailModeTests
         // act
         console.Write(mode.Render(100, 20));
 
-        // assert: the default mailbox is Workspace, rendered as a threaded
-        // table with a heading row above the sender/subject/etc. columns.
+        // assert
         Assert.Contains("Workspace (1)", console.Output);
         Assert.Contains("From", console.Output);
         Assert.Contains("Subject", console.Output);
@@ -395,18 +390,15 @@ public sealed class MailModeTests
         // act
         console.Write(mode.Render(100, 20));
 
-        // assert: RefreshBlocking loaded the registry once and MailMode
-        // threaded the lookup into the detail pane without a per-row query.
+        // assert
         Assert.Contains("From: bob (codex)", console.Output);
     }
 
     [Fact]
     public void OnEnter_Should_NotThrow_When_RegistryHasCaseVariantDuplicateNames()
     {
-        // arrange - an externally written registry could hold "bob" and
-        // "Bob" side by side; the case-insensitive lookup used elsewhere
-        // means these collide as one key, so building it must not throw on
-        // the duplicate the way ToDictionary would.
+        // arrange
+        // a registry can hold "bob" and "Bob" side by side; the case-insensitive lookup must not throw
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
@@ -437,7 +429,7 @@ public sealed class MailModeTests
         // act
         console.Write(mode.Render(100, 20));
 
-        // assert: bob is not even in the registry, so no attribution shows.
+        // assert
         Assert.Contains("From: bob", console.Output);
         Assert.DoesNotContain("From: bob (", console.Output);
     }
@@ -460,9 +452,8 @@ public sealed class MailModeTests
     [Fact]
     public void OnEnter_Should_DefaultToWorkspaceMailbox()
     {
-        // arrange: Workspace shows every agent's mail, unlike Inbox which
-        // would show only alice's; this is the epic's user ruling that
-        // Workspace, not Inbox, is the mail board's default mailbox.
+        // arrange
+        // Workspace shows every agent's mail, unlike Inbox which would show only alice's
         var store = new FakeMailStore();
         AddMessage(store, "m-1", s_now);
         AddMessage(store, "m-2", s_now, actor: "bob");
@@ -612,7 +603,8 @@ public sealed class MailModeTests
         mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
         mode.Handle(new TuiMessage.ArchiveRequested());
 
-        // act: Enter confirms from the dialog's initially focused (empty) reason field.
+        // act
+        // Enter confirms from the dialog's initially focused, empty reason field
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
 
         // assert
@@ -663,10 +655,8 @@ public sealed class MailModeTests
     [Fact]
     public void ComposeForm_Submit_Should_ShowSendingToast_Immediately_And_CloseTheForm()
     {
-        // arrange: the store-plus-wake workflow runs off the input thread
-        // (see MailMode.SubmitCompose), so the synchronous return from the
-        // submit key is only ever the immediate "Sending" toast, never the
-        // eventual outcome.
+        // arrange
+        // the submit key's synchronous return is only ever the immediate "Sending" toast, never the outcome
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
@@ -691,12 +681,8 @@ public sealed class MailModeTests
     [Fact]
     public async Task ComposeForm_Submit_Should_ShowErrorToast_And_WriteNothing_When_StoreRejectsTheWrite()
     {
-        // arrange: FakeMailStore.SendMessageAsync throws when there are no
-        // recipients; the form's own validator normally prevents an empty
-        // To field, so this exercises the write-failure toast path the same
-        // way a store-level rejection (for example an unknown recipient
-        // against the real store) would surface. A rejected write creates no
-        // wake generation.
+        // arrange
+        // A comma passes the nonempty To-field check but produces no recipient names.
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore();
         var mode = CreateMode(store);
@@ -713,8 +699,7 @@ public sealed class MailModeTests
         // act
         var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
 
-        // assert: the compose form reopens with the typed subject intact
-        // behind the error toast, rather than losing the draft.
+        // assert
         Assert.Equal(ToastStyle.Error, toast.Style);
         Assert.Empty(store.Messages);
         Assert.True(mode.IsInputCapturing);
@@ -726,11 +711,8 @@ public sealed class MailModeTests
     [Fact]
     public async Task ReplyForm_Submit_Should_ShowErrorToast_And_ReopenTheForm_When_StoreRejectsTheWrite()
     {
-        // arrange: the replied-to message is removed from the store between
-        // opening the reply form and submitting it, so
-        // FakeMailStore.ReplyMessageAsync rejects the write with an
-        // ExitException the same way an unknown message id would against
-        // the real store.
+        // arrange
+        // the replied-to message is removed from the store between opening the form and submitting it
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
@@ -747,8 +729,7 @@ public sealed class MailModeTests
         // act
         var toast = await WaitForOutcomeToastAsync(mode, cancellationToken);
 
-        // assert: the reply form reopens with the typed body intact behind
-        // the error toast, rather than losing the draft.
+        // assert
         Assert.Equal(ToastStyle.Error, toast.Style);
         Assert.Empty(store.Messages);
         Assert.True(mode.IsInputCapturing);
@@ -760,9 +741,8 @@ public sealed class MailModeTests
     [Fact]
     public async Task ComposeForm_Submit_Should_RefuseADuplicateSubmit_While_TheFirstIsStillInFlight()
     {
-        // arrange: the second compose is submitted while the first send's
-        // store write is still gated open, so exactly one transactional
-        // send may be in flight at a time (TuiEffectQueue's dedupe key).
+        // arrange
+        // the second compose is submitted while the first send's store write is still gated open
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore { SendGate = new TaskCompletionSource() };
         var mode = CreateMode(store);
@@ -787,15 +767,13 @@ public sealed class MailModeTests
         // act
         var followUp = mode.HandleRawKey(CtrlKey(ConsoleKey.S));
 
-        // assert: refused with a warning, the second form stays open with
-        // its values intact, and only the first message was ever stored.
+        // assert
         var toast = Assert.Single(followUp);
         Assert.Equal(ToastStyle.Warn, Assert.IsType<TuiMessage.ShowToast>(toast).Style);
         Assert.True(mode.IsInputCapturing);
         Assert.Empty(store.Messages); // the first write is still held open
 
-        // release the gated write: only the first send ever reaches the
-        // store, so the refused second one left nothing behind.
+        // Release the first write and wait for completion.
         store.SendGate!.SetResult();
         await WaitForOutcomeToastAsync(mode, cancellationToken);
         Assert.Single(store.Messages);
@@ -821,7 +799,8 @@ public sealed class MailModeTests
 
         var gate = mode.CreateQuitGate();
 
-        // act: bounded drain while the store write is still gated open.
+        // act
+        // bounded drain while the store write is still gated open
         var reportWhilePending = await gate(TimeSpan.FromMilliseconds(50), cancellationToken);
 
         // assert
@@ -829,8 +808,8 @@ public sealed class MailModeTests
         Assert.Equal(0, reportWhilePending.OutcomeUnknownCount);
         Assert.True(reportWhilePending.HasUnresolvedWork);
 
-        // cleanup: release the gate, resume accepting (mirroring
-        // TuiShell.QuitCancelled), and confirm the effect drains cleanly.
+        // cleanup
+        // release the gate and resume accepting, then confirm the effect drains cleanly
         store.SendGate!.SetResult();
         await WaitForOutcomeToastAsync(mode, cancellationToken);
         mode.ResumeSendAcceptance();
@@ -839,10 +818,8 @@ public sealed class MailModeTests
     [Fact]
     public async Task CreateQuitGate_Should_LeaveTheStashedToastForTheNextHandle_AfterACancelledQuit()
     {
-        // arrange: mirrors TuiShell.QuitCancelled - the gate reports the
-        // send still in flight, so a cancelled second confirmation resuming
-        // the live TUI must still show that send's toast once it lands,
-        // rather than losing it to the gate's own drain.
+        // arrange
+        // a cancelled second confirmation resuming the live TUI must still show the send's toast once it lands
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore { SendGate = new TaskCompletionSource() };
         var mode = CreateMode(store);
@@ -859,8 +836,8 @@ public sealed class MailModeTests
         var report = await mode.CreateQuitGate()(TimeSpan.FromMilliseconds(50), cancellationToken);
         Assert.True(report.HasUnresolvedWork); // the second confirmation the shell would show
 
-        // act: mirrors TuiShell.QuitCancelled firing after the user declines
-        // the second confirmation, and the held send then landing.
+        // act
+        // the user declines the second confirmation, and the held send then lands
         mode.ResumeSendAcceptance();
         store.SendGate!.SetResult();
 
@@ -873,12 +850,8 @@ public sealed class MailModeTests
     [Fact]
     public async Task ComposeForm_Submit_Should_ShowOutcomeUnknownToast_Without_AssertingNotStored_When_TheSendEffectFaults()
     {
-        // arrange: a non-ExitException from the store write itself (a
-        // genuine bug, not a rejected write) reaches the send effect as
-        // Faulted. Only an observed ExitException proves a rejected write
-        // (see MailSendOutcome.Failed), so this toast must state the
-        // commit's outcome as unknown rather than asserting the message was
-        // not stored (perles-net-4mn comment 211, step 3).
+        // arrange
+        // a non-ExitException from the store write reaches the send effect as Faulted, an unknown outcome
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore { SendFault = new InvalidOperationException("boom") };
         var mode = CreateMode(store);
@@ -902,24 +875,8 @@ public sealed class MailModeTests
     }
 
     /// <summary>
-    /// Polls <see cref="MailMode.Handle"/> with a <see cref="TuiMessage.RefreshRequested"/>
-    /// (the same message the workspace database watcher's <c>DataChangedEvent</c>
-    /// drives in the real TUI loop) until a compose/reply outcome toast
-    /// drains, mirroring how <see cref="MailMode"/>'s own send effect
-    /// surfaces asynchronously in production.
-    /// </summary>
-    /// <summary>
-    /// Polls <see cref="MailMode.Handle"/> until a terminal outcome toast
-    /// (<see cref="MailSendOutcome.Succeeded"/>, <see cref="MailSendOutcome.Reconciled"/>,
-    /// or <see cref="MailSendOutcome.Failed"/>) surfaces, skipping over the
-    /// intermediate <see cref="MailSendOutcome.Stored"/> notice, which can
-    /// land in the same drain as, on its own ahead of, or (for a write the
-    /// store rejects outright) never at all relative to the terminal toast.
-    /// Every terminal outcome shows <see cref="ToastStyle.Success"/>,
-    /// <see cref="ToastStyle.Warn"/>, or <see cref="ToastStyle.Error"/>; only
-    /// the transient "Sending…" and "Stored" toasts ever show
-    /// <see cref="ToastStyle.Info"/>, so that style alone distinguishes them
-    /// without depending on drain timing.
+    /// Refreshes <see cref="MailMode"/> until a non-<see cref="ToastStyle.Info"/> outcome toast
+    /// is returned. Cancels the wait after five seconds or when the supplied token is cancelled.
     /// </summary>
     private static async Task<TuiMessage.ShowToast> WaitForOutcomeToastAsync(
         MailMode mode, CancellationToken cancellationToken)
@@ -959,11 +916,8 @@ public sealed class MailModeTests
     [Fact]
     public async Task ShieldPendingSendsAsync_Should_LetACommittedWriteLand_When_TheEffectTokenIsCancelled()
     {
-        // arrange: the store commit is gated open when the effect token
-        // cancels, mirroring a Ctrl+C landing strictly after a submitted
-        // send's store write has already started; ShieldPendingSendsAsync
-        // is the only drain a host-cancelled exit gets, and the write
-        // itself is never cancelled by the effect token.
+        // arrange
+        // the store commit is gated open when the effect token cancels; the write itself is never cancelled
         var cancellationToken = TestContext.Current.CancellationToken;
         var gate = new TaskCompletionSource();
         var store = new FakeMailStore { SendGate = gate };
@@ -983,11 +937,14 @@ public sealed class MailModeTests
         mode.HandleRawKey(Key(ConsoleKey.Tab));
         Type(mode, "Body");
         mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+        await WaitUntilAsync(() => store.SendGateEntered, cancellationToken);
 
         // act
         await effectCts.CancelAsync();
+        var shieldTask = mode.ShieldPendingSendsAsync(TimeSpan.FromSeconds(2), cancellationToken);
+        Assert.False(shieldTask.IsCompleted); // the shield waits for the committed write already in flight
         gate.SetResult();
-        await mode.ShieldPendingSendsAsync(TimeSpan.FromSeconds(2), cancellationToken);
+        await shieldTask;
 
         // assert
         Assert.Single(store.Messages);
@@ -996,9 +953,8 @@ public sealed class MailModeTests
     [Fact]
     public async Task ShieldPendingSendsAsync_Should_ReturnWithinTheBound_When_TheWriteHasNotLanded()
     {
-        // arrange: the gate is never released before the bound elapses, so
-        // ShieldPendingSendsAsync must still return promptly rather than
-        // blocking a host-cancelled exit indefinitely.
+        // arrange
+        // the gate is never released before the bound elapses
         var cancellationToken = TestContext.Current.CancellationToken;
         var gate = new TaskCompletionSource();
         var store = new FakeMailStore { SendGate = gate };
@@ -1022,17 +978,16 @@ public sealed class MailModeTests
         Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(2));
         Assert.Empty(store.Messages);
 
-        // cleanup: release the gate so the still-running write can finish.
+        // cleanup
+        // release the gate so the still-running write can finish
         gate.SetResult();
     }
 
     [Fact]
     public async Task RunSendEffectEventsAsync_Should_EmitAnEffectCompletedEvent_ThatHandleDrainsIntoTheOutcomeToast()
     {
-        // arrange: proves the wiring registered at AgentTuiLauncher.cs
-        // (mailMode.RunSendEffectEventsAsync feeding the hosting shell's own
-        // event channel) delivers a send completion
-        // without a keypress or db-watcher tick to drive it.
+        // arrange
+        // Run the send-effect event source and submit a message.
         var cancellationToken = TestContext.Current.CancellationToken;
         var store = new FakeMailStore();
         var mode = CreateMode(store);
@@ -1049,11 +1004,8 @@ public sealed class MailModeTests
         Type(mode, "Body");
         mode.HandleRawKey(CtrlKey(ConsoleKey.S));
 
-        // act: the intermediate "Stored" notice now signals its own wake, so
-        // the channel can deliver an EffectCompletedEvent for it strictly
-        // ahead of the terminal completion's own event; poll channel events
-        // into Handle until a non-Info (terminal) toast surfaces, rather
-        // than assuming the first event read is already the terminal one.
+        // act
+        // Handle completion events until a non-Info toast appears.
         using var readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         readCts.CancelAfter(TimeSpan.FromSeconds(5));
         TuiMessage.ShowToast? toast = null;
@@ -1115,7 +1067,7 @@ public sealed class MailModeTests
         // act
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Escape));
 
-        // assert: still capturing input (now the discard confirmation).
+        // assert
         Assert.Empty(followUp);
         Assert.True(mode.IsInputCapturing);
     }
@@ -1155,7 +1107,7 @@ public sealed class MailModeTests
         // act
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Escape));
 
-        // assert: back to the compose form, still capturing, nothing sent.
+        // assert
         Assert.Empty(followUp);
         Assert.True(mode.IsInputCapturing);
         Assert.Empty(store.Messages);
@@ -1204,11 +1156,8 @@ public sealed class MailModeTests
     [Fact]
     public void Render_Should_ShowTheFilterName_When_MailboxIsInboxAndListModeIsThreads()
     {
-        // arrange: cycling f/F must stay visible in Threads mode too, not
-        // just Flat - MailState.RefreshAsync applies Unread to Threads
-        // client-side now, and even Archived (which still has no row-level
-        // effect there - the store exposes no filtered thread query) at
-        // least names itself in the header.
+        // arrange
+        // the filter name must stay visible in Threads mode too, not just Flat
         var store = new FakeMailStore();
         AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
@@ -1228,8 +1177,8 @@ public sealed class MailModeTests
     [Fact]
     public async Task CycleView_Should_HideFullyReadThreads_When_MailboxIsInboxAndListModeIsThreads()
     {
-        // arrange: m-1's thread is unread for alice; m-2's thread is already
-        // read for her.
+        // arrange
+        // m-1's thread is unread for alice; m-2's thread is already read for her
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
@@ -1272,8 +1221,8 @@ public sealed class MailModeTests
     [Fact]
     public void ToggleReadRequested_Should_ShowWarnToast_NotAnError_When_ActorIsNotARecipient_InSentMailbox()
     {
-        // arrange: alice sent m-1 to bob, so alice has no message_recipients
-        // row on it and the store would reject a read/unread write.
+        // arrange
+        // alice sent m-1 to bob, so alice has no recipient row on it and the store would reject the write
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
@@ -1312,8 +1261,8 @@ public sealed class MailModeTests
     [Fact]
     public void ToggleReadRequested_Should_Succeed_When_TheSentMessageIsSelfAddressed()
     {
-        // arrange: alice addressed the message to herself, so a real
-        // message_recipients row exists and the write should go through.
+        // arrange
+        // alice addressed the message to herself, so a recipient row exists and the write goes through
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
@@ -1390,9 +1339,8 @@ public sealed class MailModeTests
     [Fact]
     public void ToggleReadRequested_Should_ShowReadOnlyToast_And_NotMutate_When_MailboxIsWorkspace()
     {
-        // arrange: alice is a genuine recipient of m-1, so the write would
-        // otherwise succeed; Workspace refuses it anyway, regardless of
-        // recipient status, since it shows every agent's mail.
+        // arrange
+        // alice is a genuine recipient of m-1, but Workspace refuses the write regardless of recipient status
         var store = new FakeMailStore();
         AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
@@ -1413,9 +1361,8 @@ public sealed class MailModeTests
     [Fact]
     public void OpenSelected_Should_NotMarkRead_When_MailboxIsWorkspace()
     {
-        // arrange: alice is an unread recipient of m-1, so the write would
-        // otherwise succeed; Workspace must stay inert regardless, since
-        // opening a message there is an implicit side effect, not a gesture.
+        // arrange
+        // alice is an unread recipient of m-1, but Workspace must stay inert regardless
         var store = new FakeMailStore();
         AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
@@ -1429,9 +1376,8 @@ public sealed class MailModeTests
         Assert.Empty(followUp);
         Assert.Null(MailRecipientView.FindRecipient(store.Messages[0], "alice")!.ReadAt);
 
-        // act: flip back to List, then Right again so the MoveCursor(Right)
-        // TogglePane path (List -> Detail) reaches the same
-        // MaybeMarkSelectedRead gate and must stay inert too.
+        // act
+        // flip back to List, then Right again, which must stay inert too
         mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Left));
         var moveFollowUp = mode.Handle(new TuiMessage.MoveCursor(CursorDirection.Right));
 
@@ -1482,10 +1428,8 @@ public sealed class MailModeTests
     [Fact]
     public void ReplyRequested_Should_ShowReadOnlyToast_And_NotOpenForm_When_MailboxIsWorkspace_EvenForTheActorsOwnThread()
     {
-        // arrange: alice sent m-1, so she participates in the thread and the
-        // store's ResolveReplyAsync check would otherwise allow the reply;
-        // Workspace refuses it anyway rather than special-casing threads
-        // the actor participates in.
+        // arrange
+        // alice sent m-1, but Workspace refuses the reply regardless of the actor's own participation
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
@@ -1505,10 +1449,8 @@ public sealed class MailModeTests
     [Fact]
     public void Render_Should_CarryTwoRedundantWorkspaceIndicators_When_MailboxIsWorkspace()
     {
-        // arrange: the header names the mailbox, and the list pane's border
-        // token is distinct from the plain board tokens every other
-        // mailbox uses, so neither is the only signal the mode has
-        // changed meaning.
+        // arrange
+        // the header names the mailbox, and the list pane's border token is distinct from other mailboxes
         var store = new FakeMailStore();
         AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
@@ -1528,9 +1470,7 @@ public sealed class MailModeTests
             ThemeTokens.GetStyle("board.column.border.focused"),
             ThemeTokens.GetStyle(MailMode.ResolveListBorderToken(MailMailbox.Workspace, focused: true)));
 
-        // assert: the border pane's output actually carries the ANSI
-        // sequence for the Workspace-focused border style, not just an
-        // unequal token in the abstract.
+        // assert
         var borderStyle = ThemeTokens.GetStyle(MailMode.ResolveListBorderToken(MailMailbox.Workspace, focused: true));
         var styleConsole = new TestConsole().Colors(ColorSystem.TrueColor).EmitAnsiSequences().Width(1).Height(1);
         styleConsole.Write(new Markup("x", borderStyle));
@@ -1555,17 +1495,16 @@ public sealed class MailModeTests
         mode.OnEnter();
         mode.Handle(new TuiMessage.SelectInboxRequested()); // Workspace (the default) is read-only
 
-        // act & assert: outside Workspace, u/a/r/c stay live and their
-        // footer hints stay visible.
+        // act & assert
+        // outside Workspace, u/a/r/c stay live and their footer hints stay visible
         Assert.Empty(mode.SuppressedGlobalHints);
     }
 
     [Fact]
     public void SuppressedGlobalHints_Should_HideToggleReadArchiveReplyAndCompose_When_MailboxIsWorkspace()
     {
-        // arrange: the same four gestures RefuseIfReadOnly refuses with a
-        // toast in Workspace (see ToggleReadRequested_Should_ShowReadOnlyToast_...
-        // and its siblings above), so their footer hints must go with them.
+        // arrange
+        // the same four gestures refused with a toast in Workspace must also have their footer hints hidden
         var store = new FakeMailStore();
         var mode = CreateMode(store);
         mode.OnEnter();
@@ -1641,7 +1580,7 @@ public sealed class MailModeTests
         // act
         console.Write(mode.Render(100, 20));
 
-        // assert: bob's client is shown, carol's empty client shows nothing
+        // assert
         Assert.Contains("bob (codex)", console.Output);
         Assert.Contains("carol", console.Output);
         Assert.DoesNotContain("carol (", console.Output);
@@ -1665,12 +1604,12 @@ public sealed class MailModeTests
         mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
         mode.Handle(new TuiMessage.AgentFilterPickerRequested());
 
-        // act: move down from "All agents" to "bob", then apply
+        // act
+        // move down from "All agents" to "bob", then apply
         mode.HandleRawKey(Key(ConsoleKey.DownArrow));
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
 
-        // assert: m-1 (bob sent it) and m-2 (bob received it), not m-3
-        // (bob is neither sender nor recipient)
+        // assert
         Assert.Empty(followUp);
         Assert.False(mode.IsInputCapturing);
         Assert.Equal("bob", mode.State.AgentFilter);
@@ -1696,8 +1635,8 @@ public sealed class MailModeTests
         mode.HandleRawKey(Key(ConsoleKey.Enter));
         Assert.Equal(["m-1"], mode.State.Messages.Select(m => m.Id));
 
-        // act: reopen the picker (pre-selected on "bob") and move back up to
-        // "All agents", the picker's first row, then apply
+        // act
+        // reopen the picker (pre-selected on "bob") and move back up to "All agents", then apply
         mode.Handle(new TuiMessage.AgentFilterPickerRequested());
         mode.HandleRawKey(Key(ConsoleKey.UpArrow));
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
@@ -1775,7 +1714,8 @@ public sealed class MailModeTests
         mode.HandleRawKey(Key(ConsoleKey.Enter));
         Assert.Equal("bob", mode.State.AgentFilter);
 
-        // act: leave Workspace for Inbox, then come back
+        // act
+        // leave Workspace for Inbox, then come back
         mode.Handle(new TuiMessage.SelectInboxRequested());
         mode.Handle(new TuiMessage.SelectWorkspaceMailRequested());
 
@@ -1786,12 +1726,8 @@ public sealed class MailModeTests
     [Fact]
     public void Render_Should_ApplyAnsiStyling_ToRowGlyphFromToAndAgeTokens_When_MessageReceived()
     {
-        // arrange: alice receives two messages, each as its sole recipient,
-        // so both rows carry the direct glyph and the From/To/age tokens. A
-        // second message so at least one row is unselected: the
-        // default-selected row 0 merges its token color with
-        // selection.highlight's background into one ANSI sequence, which
-        // would not match a token's style checked in isolation.
+        // arrange
+        // two messages so at least one row is unselected; a selected row merges its color with the highlight
         var store = new FakeMailStore();
         AddMessage(store, "m-1", s_now);
         AddMessage(store, "m-2", s_now.AddMinutes(1));
@@ -1802,9 +1738,7 @@ public sealed class MailModeTests
         // act
         console.Write(mode.Render(100, 20));
 
-        // assert: a plain TestConsole strips markup entirely, so a wrong or
-        // missing token name on any of these columns would still leave
-        // every plain-text Contains assertion elsewhere green.
+        // assert
         AssertAnsiStyleApplied(console.Output, "mail.row.glyph.direct");
         AssertAnsiStyleApplied(console.Output, "mail.row.from");
         AssertAnsiStyleApplied(console.Output, "mail.row.to");
@@ -1814,12 +1748,8 @@ public sealed class MailModeTests
     [Fact]
     public void Render_Should_ApplyFromMeToken_NotThePlainFromToken_When_ActorSentTheMessage()
     {
-        // arrange: two sent messages so at least one row is unselected; see
-        // Render_Should_ApplyAnsiStyling_ToRowGlyphFromToAndAgeTokens_When_MessageReceived
-        // for why the selected row's merged style would not match. The
-        // table shows literal From/To columns now (no swapped Peer column),
-        // so alice's own name in the From column gets the distinct
-        // mail.row.from.me token instead of the plain mail.row.from one.
+        // arrange
+        // two sent messages so at least one row is unselected; alice's own name in From gets the from-me token
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", sender: "alice", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("bob")]));
@@ -1841,14 +1771,8 @@ public sealed class MailModeTests
     [Fact]
     public void Render_Should_ApplyAnsiStyling_ToWorkspaceHeaderText_When_MailboxIsWorkspace()
     {
-        // arrange: Spectre paints a panel's header text with its
-        // BorderStyle, so the Workspace header text sits inside the same
-        // styled run as the border characters (which
-        // Render_Should_CarryTwoRedundantWorkspaceIndicators_When_MailboxIsWorkspace
-        // already covers) rather than a fresh escape sequence opened right
-        // before the header text; this asserts the styled run reaches the
-        // header text uninterrupted by any escape sequence, rather than
-        // requiring the escape sequence literally right in front of it.
+        // arrange
+        // Spectre paints a panel's header with its BorderStyle, so the header sits inside the border's own styled run
         var store = new FakeMailStore();
         AddMessage(store, "m-1", s_now);
         var mode = CreateMode(store);
@@ -1937,8 +1861,8 @@ public sealed class MailModeTests
     [Fact]
     public void FoldPrefixThenO_Should_ExpandTheSelectedThread()
     {
-        // arrange: a two-message thread so expanding is observable as an
-        // extra row.
+        // arrange
+        // a two-message thread so expanding is observable as an extra row
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", threadId: "t-1", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
@@ -1948,7 +1872,8 @@ public sealed class MailModeTests
         mode.OnEnter();
         Assert.Single(mode.State.Rows); // one collapsed thread row
 
-        // act: z then o (open/expand)
+        // act
+        // z then o (open/expand)
         mode.Handle(new TuiMessage.FoldPrefixRequested());
         mode.HandleRawKey(Key('o'));
 
@@ -1971,7 +1896,8 @@ public sealed class MailModeTests
         mode.State.ExpandThread("t-1");
         Assert.Equal(3, mode.State.Rows.Count);
 
-        // act: z then c (close/collapse)
+        // act
+        // z then c (close/collapse)
         mode.Handle(new TuiMessage.FoldPrefixRequested());
         mode.HandleRawKey(Key('c'));
 
@@ -1991,7 +1917,8 @@ public sealed class MailModeTests
         var mode = CreateMode(store);
         mode.OnEnter();
 
-        // act: z then a (toggle) twice
+        // act
+        // z then a (toggle) twice
         mode.Handle(new TuiMessage.FoldPrefixRequested());
         mode.HandleRawKey(Key('a'));
         Assert.Equal(3, mode.State.Rows.Count);
@@ -2014,18 +1941,19 @@ public sealed class MailModeTests
         mode.OnEnter();
         Assert.Equal(2, mode.State.Rows.Count); // two collapsed singleton threads
 
-        // act: z then Shift+R (unfold all)
+        // act
+        // z then Shift+R (unfold all)
         mode.Handle(new TuiMessage.FoldPrefixRequested());
         mode.HandleRawKey(new ConsoleKeyInfo('R', ConsoleKey.R, shift: true, alt: false, control: false));
 
-        // assert: each thread row now has its one message as an indented
-        // child row too, so the row count doubles.
+        // assert
         Assert.Equal(4, mode.State.Rows.Count);
         var threadRows = mode.State.Rows.OfType<MailListRow.Thread>().ToList();
         Assert.Equal(2, threadRows.Count);
         Assert.All(threadRows, row => Assert.True(row.Expanded));
 
-        // act: z then Shift+M (fold all)
+        // act
+        // z then Shift+M (fold all)
         mode.Handle(new TuiMessage.FoldPrefixRequested());
         mode.HandleRawKey(new ConsoleKeyInfo('M', ConsoleKey.M, shift: true, alt: false, control: false));
 
@@ -2042,8 +1970,8 @@ public sealed class MailModeTests
         var mode = CreateMode(store);
         mode.OnEnter();
 
-        // act: z then Escape - vim's own za/zo/zc/zR/zM has no error toast
-        // for an unrecognized second key.
+        // act
+        // z then Escape, an unrecognized second key that shows no error toast
         mode.Handle(new TuiMessage.FoldPrefixRequested());
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Escape));
 
@@ -2056,11 +1984,8 @@ public sealed class MailModeTests
     [Fact]
     public void Render_Should_ShowUnreadToMeHighlight_InWorkspace_ForAMessageAddressedToTheActor_And_NotForAThirdPartyMessage()
     {
-        // arrange: m-1 is unread and addressed to alice (the actor); m-2 is
-        // unread between two other agents and never addresses alice at all.
-        // Workspace shows both, but only m-1's row may carry the
-        // unread-to-me highlight (epic wi3 convention 8: never another
-        // agent's read state).
+        // arrange
+        // m-1 is unread and addressed to alice; m-2 is unread between two other agents and never addresses her
         var store = new FakeMailStore();
         store.Messages.Add(MailMessageBuilder.Create(
             "m-1", sender: "bob", createdAt: s_now, recipients: [MailMessageBuilder.ToRecipient("alice")]));
@@ -2074,7 +1999,7 @@ public sealed class MailModeTests
         // act
         console.Write(mode.Render(100, 20));
 
-        // assert: exactly one unread-to-me marker, not two.
+        // assert
         var markerCount = console.Output.Split('\u25cf').Length - 1;
         Assert.Equal(1, markerCount);
     }

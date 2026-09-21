@@ -219,12 +219,6 @@ internal abstract record TuiMessage
     public sealed record SearchRequested : TuiMessage;
 
     /// <summary>
-    /// The active mode's secondary scope filter should cycle to its next
-    /// value.
-    /// </summary>
-    public sealed record CycleScopeRequested : TuiMessage;
-
-    /// <summary>
     /// The promote form should open for the active mode's currently selected
     /// journal entry.
     /// </summary>

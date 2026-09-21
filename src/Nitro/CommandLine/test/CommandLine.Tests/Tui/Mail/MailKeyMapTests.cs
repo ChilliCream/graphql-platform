@@ -161,7 +161,7 @@ public sealed class MailKeyMapTests
     [Fact]
     public void CreateDefault_Should_MapShiftR_ToRefreshRequested()
     {
-        // arrange: refresh moves off the bare r chord to make room for reply.
+        // arrange
         var keyMap = MailKeyMap.CreateDefault();
         var shiftR = new KeyChord(ConsoleKey.R, ConsoleModifiers.Shift, 'R');
 
@@ -281,10 +281,7 @@ public sealed class MailKeyMapTests
     [Fact]
     public void CreateDefault_Should_CarryADedicatedInboxHint_Separate_FromTheOtherMailboxJumps()
     {
-        // arrange: Shift+I is the footer's persistent, fixed-position exit
-        // affordance back to Inbox from Workspace's read-only mode, so it
-        // must carry its own hint rather than being folded into one
-        // combined "jump to a mailbox" hint with S/L/W.
+        // arrange
         var keyMap = MailKeyMap.CreateDefault();
 
         // act
@@ -298,8 +295,7 @@ public sealed class MailKeyMapTests
     [Fact]
     public void CreateDefault_Should_NotBind_TaskOnlyGestures()
     {
-        // arrange: the mail board has no edit, delete, or dependency-tree
-        // gestures, unlike the task board's global key table.
+        // arrange
         var keyMap = MailKeyMap.CreateDefault();
         var e = new KeyChord(ConsoleKey.E, ConsoleModifiers.None, 'e');
         var t = new KeyChord(ConsoleKey.X, ConsoleModifiers.Shift, 'X');
@@ -346,8 +342,7 @@ public sealed class MailKeyMapTests
     [Fact]
     public void CreateDefault_Should_KeepLowercaseT_Bound_ToToggleMaximize()
     {
-        // arrange: lowercase t (detail pane thread toggle) and Shift+V (list
-        // mode toggle) are deliberately separate gestures.
+        // arrange
         var keyMap = MailKeyMap.CreateDefault();
         var t = new KeyChord(ConsoleKey.T, ConsoleModifiers.None, 't');
 

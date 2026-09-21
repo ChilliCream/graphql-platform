@@ -10,18 +10,9 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Agents;
 
 /// <summary>
-/// The agents <see cref="ITuiMode"/>: a list pane of every live participant
-/// next to a detail pane for the selected one, modeled on the mail board's
-/// own list/detail split (see <see cref="AgentsFocus"/> and
-/// <c>MailMode</c>/<c>MailFocus</c>). Moving the list selection reloads the
-/// detail pane (session diagnostics, bound identity, assigned tasks, sent
-/// mail) through the same <see cref="AgentDetailModel"/>/<see cref="AgentDetailView"/>
-/// pair the former pushed <c>AgentDetailMode</c> used; that pushed
-/// full-screen mode is gone; there is nothing left for it to do once the
-/// detail is always visible next to the list. Enter and h/l/Left/Right
-/// toggle which pane holds focus, exactly like the mail board: List focus
-/// moves the list selection with j/k, Detail focus scrolls the detail body
-/// instead.
+/// Displays live participants beside the selected participant's details.
+/// Enter focuses the detail pane; horizontal navigation toggles pane focus, and
+/// vertical navigation moves the list selection or scrolls the focused detail pane.
 /// </summary>
 internal sealed class AgentsMode : ITuiMode
 {
@@ -38,18 +29,12 @@ internal sealed class AgentsMode : ITuiMode
     private const int PanelChromeHeight = 2;
 
     /// <summary>
-    /// The number of distinct above/below indicator combinations the
-    /// list's viewport can settle on, bounding how many times reserving
-    /// space for them needs to be recomputed.
+    /// The maximum number of passes used to reserve viewport indicator rows.
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 
     /// <summary>
-    /// The fraction of the frame width the list pane occupies; the detail
-    /// pane takes the remainder. Wider than the mail board's own split
-    /// since a participant row spends its width on several columns (actor,
-    /// presence, harness, role, two ages) rather than one truncated subject
-    /// line.
+    /// The fraction of the frame width the list pane occupies; the detail pane takes the remainder.
     /// </summary>
     private const int ListWidthNumerator = 1;
     private const int ListWidthDenominator = 2;
@@ -93,9 +78,7 @@ internal sealed class AgentsMode : ITuiMode
     /// <inheritdoc />
     public void OnResize(int width, int height)
     {
-        // Render(width, height) recomputes the layout and every pane's
-        // viewport window from its parameters on every frame, so there is
-        // no per-resize state to update ahead of time.
+        // Layout and viewport state are recomputed from Render's parameters every frame.
     }
 
     /// <inheritdoc />
@@ -178,8 +161,7 @@ internal sealed class AgentsMode : ITuiMode
     }
 
     /// <summary>
-    /// Left and Right both flip focus between the two panes: with only two
-    /// panes, direction carries no extra meaning, matching the mail board.
+    /// Left and Right both flip focus between the two panes.
     /// </summary>
     private IReadOnlyList<TuiMessage> TogglePane()
     {
@@ -227,12 +209,9 @@ internal sealed class AgentsMode : ITuiMode
         => _detailView.Render(width, height, _state.Focus == AgentsFocus.Detail);
 
     /// <summary>
-    /// Renders the visible rows: the scrolled participant badges, padded
-    /// with blank lines so the panel reports a stable line count, with "N
-    /// more above/below" indicators reserving their own rows once the
-    /// participants no longer fit <paramref name="interiorHeight"/>. Column
-    /// widths are computed from this call's visible slice, so they track
-    /// whichever rows are actually on screen as the list scrolls.
+    /// Renders the visible rows, padded with blank lines to <paramref name="interiorHeight"/>, with "N
+    /// more above/below" indicators once the participants no longer fit. Column widths are computed
+    /// from this call's visible slice.
     /// </summary>
     private IReadOnlyList<string> RenderListLines(int contentWidth, int interiorHeight, bool focused)
     {
@@ -305,13 +284,8 @@ internal sealed class AgentsMode : ITuiMode
     }
 
     /// <summary>
-    /// Reloads the detail pane through <see cref="AgentDetailModel"/> when
-    /// the selected participant's <see cref="AgentSessionKey"/> differs from
-    /// whichever it last loaded. A no-op when the selection hasn't actually
-    /// changed (for example a clamped move at the list's edge), so
-    /// scrolling doesn't re-issue the tasks/mail queries on every keypress.
-    /// Used only by the selection-move handlers; a data refresh uses
-    /// <see cref="RefreshDetail"/> instead, which reloads unconditionally.
+    /// Loads details when the selected participant differs from the loaded one.
+    /// Does nothing when no participant is selected or its key is unchanged.
     /// </summary>
     private void ReloadDetailIfNeeded()
     {
@@ -326,13 +300,8 @@ internal sealed class AgentsMode : ITuiMode
     }
 
     /// <summary>
-    /// Reloads the detail pane for whichever participant is currently
-    /// selected, unconditionally, or clears it when nothing is selected.
-    /// Used by <see cref="RefreshBlocking"/> so a data refresh always
-    /// re-queries the still-selected participant's tasks and mail, even when
-    /// the selection hasn't changed since the last load, and falls back to
-    /// the "no session selected" state when the selected session has
-    /// vanished from the list.
+    /// Reloads the detail pane for the currently selected participant, unconditionally, or clears it
+    /// when nothing is selected.
     /// </summary>
     private void RefreshDetail()
     {

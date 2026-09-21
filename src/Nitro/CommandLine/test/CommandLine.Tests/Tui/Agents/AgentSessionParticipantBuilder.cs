@@ -43,13 +43,8 @@ internal static class AgentSessionParticipantBuilder
         };
 
     /// <summary>
-    /// Builds a participant with <paramref name="state"/> supplied directly
-    /// (as <see cref="FakeAgentSessionRegistry"/> hands it straight back,
-    /// rather than recomputing it from the host the way the real registry
-    /// does - that computation is covered separately by
-    /// <c>AgentSessionRegistryTests</c>). An unreachable state clears the
-    /// endpoint columns, mirroring how the real registry only reports
-    /// "online" when an endpoint is registered.
+    /// Builds a participant with the given <paramref name="state"/>. When <paramref name="state"/> is
+    /// <see cref="AgentSessionState.Unreachable"/>, the endpoint fields are cleared.
     /// </summary>
     public static AgentSessionParticipant Participant(
         string sessionId = "s-1",

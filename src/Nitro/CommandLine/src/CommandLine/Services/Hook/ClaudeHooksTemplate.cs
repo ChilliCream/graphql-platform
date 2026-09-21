@@ -3,19 +3,13 @@ namespace ChilliCream.Nitro.CommandLine.Services.Hook;
 /// <summary>
 /// The desired Claude Code <c>settings.json</c> hook entry for each
 /// turn-boundary event this CLI adapts, built from a
-/// <see cref="LaunchDescriptor"/>. The single source of truth both
-/// <c>hooks install</c> (what to write) and <c>hooks status</c> (what
-/// "current" means, for drift detection) compare against.
+/// <see cref="LaunchDescriptor"/>.
 /// </summary>
 internal static class ClaudeHooksTemplate
 {
     /// <summary>
     /// Every entry this CLI ever writes contains this literal substring in
-    /// its command text. An installed entry is recognized as Nitro-owned by
-    /// this marker, independent of which machine, install mode, or Nitro
-    /// version wrote it, and independent of the sidecar (which records exact
-    /// provenance for precise, low-risk removal, see
-    /// <c>ClaudeHooksInstallerService</c>).
+    /// its command text.
     /// </summary>
     public const string CommandMarker = "agent hook claude ";
 

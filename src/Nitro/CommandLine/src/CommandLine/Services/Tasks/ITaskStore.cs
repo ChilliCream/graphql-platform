@@ -1,9 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Tasks;
 
 /// <summary>
-/// Backend-agnostic task store used by every task command. No member exposes
-/// ADO.NET or SQLite types, so the backend can change without touching a
-/// command and the interface can be mocked for the TUI.
+/// Stores tasks, dependencies, labels, comments, and their audit events.
 /// </summary>
 internal interface ITaskStore
 {
@@ -22,8 +20,7 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns the task with the given ID, or null. Tombstones are returned;
-    /// callers decide whether they count.
+    /// Returns the task, including a tombstone, or null when its id does not exist.
     /// </summary>
     Task<TaskItem?> GetTaskAsync(
         string id,
@@ -75,7 +72,7 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns every dependency edge in the workspace.
+    /// Returns every dependency edge ordered by task id and target id.
     /// </summary>
     Task<IReadOnlyList<TaskDependency>> GetDependencyEdgesAsync(
         CancellationToken cancellationToken);
@@ -142,8 +139,7 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Creates a workspace database in the given directory, applies the
-    /// schema, and sets the task ID prefix, atomically.
+    /// Initializes the workspace database and schema, then sets its task id prefix.
     /// </summary>
     Task InitializeWorkspaceAsync(
         string workspaceDirectory,
@@ -169,13 +165,9 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Applies the given field changes to every task and records the
-    /// corresponding events for each. Throws <see cref="ExitException"/> when
-    /// any task does not exist, is a tombstone, or a status guard is
-    /// violated. Implementations should validate every task before writing
-    /// any, mirroring <see cref="CloseTaskAsync"/>'s all-or-nothing
-    /// behavior; the default implementation here instead applies the update
-    /// one task at a time via <see cref="UpdateTaskAsync"/>.
+    /// Applies field changes and records events for each task, rejecting missing tasks,
+    /// tombstones, and invalid updates. The default implementation updates tasks
+    /// individually and can leave earlier updates committed if a later update fails.
     /// </summary>
     async Task<IReadOnlyList<TaskItem>> UpdateTasksAsync(
         IReadOnlyList<string> ids,
@@ -194,9 +186,9 @@ internal interface ITaskStore
     }
 
     /// <summary>
-    /// Reassigns active tasks from one assignee to another and adds the given
-    /// comment to each reassigned task. Implementations should apply the
-    /// reassignment atomically.
+    /// Reassigns active tasks and adds the supplied comment to each, returning their ids
+    /// in ascending order. The default implementation processes tasks individually
+    /// without guaranteeing an atomic batch.
     /// </summary>
     async Task<IReadOnlyList<string>> ReassignAsync(
         string from,
@@ -280,8 +272,8 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Tombstones a task and records a deleted event. Throws
-    /// <see cref="ExitException"/> when the task does not exist.
+    /// Tombstones a task and records a deleted event.
+    /// Throws <see cref="ExitException"/> when the task is missing or already tombstoned.
     /// </summary>
     Task<TaskItem> DeleteTaskAsync(
         string id,
@@ -300,9 +292,8 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Adds a comment to a task, bumps its updated_at, and records a
-    /// commented event. Throws <see cref="ExitException"/> when the task does
-    /// not exist or the text is empty.
+    /// Adds a comment, refreshes the task's modification time, and records a commented event.
+    /// Throws <see cref="ExitException"/> for a missing or tombstoned task or blank text.
     /// </summary>
     Task<TaskComment> AddCommentAsync(
         string id,
@@ -360,19 +351,10 @@ internal interface ITaskStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Replaces a task's parent-child edge: removes any existing parent-child
-    /// edge from the task and, when <paramref name="parentId"/> is not null
-    /// or empty, adds a new one to that parent, bumping the task's
-    /// updated_at and recording a dependency-removed event per edge removed
-    /// and a dependency-added event for the new edge. Does nothing when the
-    /// task's parent is already <paramref name="parentId"/>. Throws
-    /// <see cref="ExitException"/> when the task or the new parent does not
-    /// exist, the new parent is the task itself, or the new edge would close
-    /// a blocking-dependency cycle; a rejected write is rolled back before it
-    /// commits. The default implementation here composes
-    /// <see cref="RemoveDependencyAsync"/> and <see cref="AddDependencyAsync"/>,
-    /// non-atomically; implementations should prefer a single-transaction
-    /// override.
+    /// Replaces the task's parent, or removes it for a null or empty parent id, updating
+    /// its modification time and recording edge changes; an unchanged parent is a no-op.
+    /// Invalid tasks, duplicate edges, and blocking cycles are rejected, but the default
+    /// implementation can leave previous parents removed when adding the new parent fails.
     /// </summary>
     async Task<TaskDependencyAddResult> SetParentAsync(
         string id,
@@ -415,23 +397,17 @@ internal interface ITaskStore
     }
 
     /// <summary>
-    /// Creates the workspace database and schema in the given directory when
-    /// it does not already exist. Does nothing when the database already
-    /// exists. Unlike <see cref="InitializeWorkspaceAsync"/>, this does not
-    /// set a task ID prefix.
+    /// Creates the workspace database and schema if the database file is absent,
+    /// without setting a task id prefix. An existing database is unchanged.
     /// </summary>
     Task EnsureWorkspaceAsync(
         string workspaceDirectory,
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Runs the workspace integrity checks used by <c>task doctor</c>: an
-    /// SQLite quick_check, dependency/label/comment rows referencing a
-    /// missing task, and parent-child edges whose parent is a tombstone. The
-    /// default implementation here reports no problems, appropriate for a
-    /// store that cannot become inconsistent through its own API;
-    /// implementations backed by a mutable external store should override
-    /// it.
+    /// Reports database integrity, orphaned dependencies, labels and comments, and
+    /// edges to tombstoned parents. The default implementation returns an empty report
+    /// without performing checks.
     /// </summary>
     Task<TaskIntegrityReport> CheckIntegrityAsync(
         CancellationToken cancellationToken)

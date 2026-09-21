@@ -39,18 +39,31 @@ public sealed class MemoryKeyMapTests
     }
 
     [Fact]
-    public void CreateDefault_Should_MapS_ToCycleScopeRequested()
+    public void CreateDefault_Should_NotMapSOrAdvertiseScope()
     {
         // arrange
         var keyMap = MemoryKeyMap.CreateDefault();
         var s = new KeyChord(ConsoleKey.S, ConsoleModifiers.None, 's');
 
         // act
-        var resolved = keyMap.TryResolve(s, out var message);
+        var resolved = keyMap.TryResolve(s, out _);
 
         // assert
-        Assert.True(resolved);
-        Assert.IsType<TuiMessage.CycleScopeRequested>(message);
+        Assert.False(resolved);
+        Assert.Equal(
+        [
+            new KeyHint("hjkl", "move"),
+            new KeyHint("tab", "switch pane"),
+            new KeyHint("enter", "focus detail"),
+            new KeyHint("f", "curated/journal"),
+            new KeyHint("/", "search"),
+            new KeyHint("p", "promote"),
+            new KeyHint("d", "forget"),
+            new KeyHint("y", "copy id"),
+            new KeyHint("esc", "back"),
+            new KeyHint("q", "quit")
+        ],
+        keyMap.Hints);
     }
 
     [Fact]
