@@ -17,7 +17,7 @@ export function FusionHero() {
         <Tokamak />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 sm:px-12">
           <div data-hero-copy className="max-w-xl py-24 xl:max-w-2xl">
-            <Eyebrow color="accent">{HERO.eyebrow}</Eyebrow>
+            <Eyebrow color="ink-dim">{HERO.eyebrow}</Eyebrow>
             <h1 className="font-heading text-cc-heading text-h2 sm:text-h1 text-balance">
               {HERO.title}
             </h1>
