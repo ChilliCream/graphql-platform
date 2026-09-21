@@ -358,7 +358,7 @@ public sealed class ReadMailCommandTests(NitroCommandFixture fixture)
     }
 
     private sealed record TakeoverHistory(
-        ChilliCream.Nitro.CommandLine.Services.Mail.MailMessage Message,
+        Services.Mail.MailMessage Message,
         string EarliestId,
         string LatestId);
 }
