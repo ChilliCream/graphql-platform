@@ -105,7 +105,7 @@ fragment DashboardTickerItemFragment_asset on Asset {
 
 ---------------------------------------------------------
 
-query DashboardContainerQuery {
+query DashboardContainerQuery @hc__hasIncrementalParts {
   ... on Query {
     ticker: assets(first: 10, order: { price: { tradableMarketCapRank: ASC } })
       @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
