@@ -57,7 +57,7 @@ Update positional construction as follows:
 
 ## Document normalization and cost analyzer placement changed
 
-Document normalization, i.e. flattening the selected operation's fragments into its own selection set, is no longer a pipeline stage. It is a lazy `IOperationDocumentNormalizer` service instead: a middleware that needs the normalized document calls `context.GetNormalizedDocument()`, which normalizes once per request on first access and stores the result on the document info, so an operation cache hit never triggers normalization work. The default, persisted-operation, and automatic-persisted-operation pipelines use this order:
+Document normalization, i.e. flattening the selected operation's fragments into its own selection set, is no longer a pipeline stage. It is a lazy `IOperationDocumentNormalizer` service instead: a middleware that needs the normalized document calls `context.GetNormalizedDocument()`, which normalizes once per request on first access and stores the result on the document info. It is resolved by the first stage that needs it, which is now variable coercion, and cached by operation id in the normalized-document cache, so a later stage or a later request for the same operation never rewrites the document a second time. The default, persisted-operation, and automatic-persisted-operation pipelines use this order:
 
 ```text
 DocumentValidation -> OperationVariableCoercion -> CostAnalyzer -> OperationCache -> OperationCompiler -> SkipWarmupExecution
