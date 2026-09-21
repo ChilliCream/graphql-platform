@@ -1019,6 +1019,62 @@ internal sealed class TaskStore(
         return changes.Select(change => change.Task).ToArray();
     }
 
+    public async Task<IReadOnlyList<string>> ReassignAsync(
+        string from,
+        string to,
+        string actor,
+        string comment,
+        CancellationToken cancellationToken)
+    {
+        if (from == to)
+        {
+            throw new ExitException("The source and target assignees must differ.");
+        }
+
+        if (string.IsNullOrWhiteSpace(comment))
+        {
+            throw new ExitException("The comment text must not be empty.");
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var update = new TaskUpdate { Actor = actor, Assignee = to, AssigneeGiven = true };
+
+        await using var connection = await ConnectAsync(cancellationToken);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+        var tasks = (await connection.QueryAsync<TaskRow>(
+            $"""
+            SELECT {TaskItem.Columns}
+            FROM tasks
+            WHERE assignee = @from
+              AND status NOT IN (@closed, @tombstone, @archived)
+            ORDER BY id ASC
+            """,
+            new
+            {
+                from,
+                closed = TaskStates.Closed,
+                tombstone = TaskStates.Tombstone,
+                archived = TaskStates.Archived,
+                cancellationToken
+            },
+            transaction)).Select(row => row.ToTaskItem()).ToList();
+
+        foreach (var task in tasks)
+        {
+            var change = ApplyUpdate(task, update);
+            task.UpdatedAt = now;
+
+            await WriteUpdateAsync(
+                connection, transaction, task, change, actor, now, cancellationToken);
+            await AddCommentAsync(
+                connection, transaction, task, comment, actor, now, cancellationToken);
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return tasks.Select(task => task.Id).ToArray();
+    }
+
     /// <summary>
     /// Validates the given update against the task's current state and
     /// applies the resulting field changes to <paramref name="task"/> in
@@ -1782,6 +1838,23 @@ internal sealed class TaskStore(
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         var task = await GetRequiredTaskAsync(connection, id, cancellationToken, transaction);
 
+        var comment = await AddCommentAsync(
+            connection, transaction, task, text, actor, now, cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return comment;
+    }
+
+    private async Task<TaskComment> AddCommentAsync(
+        SqliteConnection connection,
+        DbTransaction transaction,
+        TaskItem task,
+        string text,
+        string actor,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
         var commentId = await connection.ExecuteScalarAsync<long>(
             """
             INSERT INTO comments (
@@ -1817,8 +1890,6 @@ internal sealed class TaskStore(
             },
             cancellationToken,
             transaction);
-
-        await transaction.CommitAsync(cancellationToken);
 
         return new TaskComment
         {

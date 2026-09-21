@@ -4,6 +4,48 @@ namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 internal sealed class SessionDeliveryLedger(IFileSystem fileSystem, AgentDatabase database) : ISessionDeliveryLedger
 {
+    public async Task<IReadOnlyList<string>> FindDeliveredAsync(
+        AgentSessionGeneration generation,
+        IReadOnlyList<string> messageIds,
+        CancellationToken cancellationToken)
+    {
+        if (messageIds.Count == 0)
+        {
+            return [];
+        }
+
+        var workspaceDirectory = AgentWorkspace.Find(fileSystem, fileSystem.GetCurrentDirectory())
+            ?? throw new ExitException("No agent workspace found. Run `nitro agent init` first.");
+
+        await using var connection = await database.ConnectAsync(workspaceDirectory, cancellationToken);
+        await using var command = connection.CreateCommand();
+        command.CommandText =
+            """
+            SELECT DISTINCT message_id
+            FROM session_deliveries
+            WHERE harness = @harness AND session_id = @sessionId AND message_id IN (
+            """
+            + string.Join(", ", messageIds.Select((_, index) => $"@messageId{index}"))
+            + ");";
+        command.Parameters.AddWithValue("@harness", generation.Harness);
+        command.Parameters.AddWithValue("@sessionId", generation.SessionId);
+
+        for (var i = 0; i < messageIds.Count; i++)
+        {
+            command.Parameters.AddWithValue($"@messageId{i}", messageIds[i]);
+        }
+
+        var delivered = new HashSet<string>(StringComparer.Ordinal);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            delivered.Add(reader.GetString(0));
+        }
+
+        return messageIds.Where(delivered.Contains).ToArray();
+    }
+
     public async Task<IReadOnlyList<string>> ReserveAsync(
         string harness,
         string sessionId,

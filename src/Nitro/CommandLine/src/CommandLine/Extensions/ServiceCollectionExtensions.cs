@@ -43,6 +43,7 @@ internal static class ServiceCollectionExtensions
         services.TryAddSingleton<ICodexHarnessVersionResolver, CodexHarnessVersionResolver>();
         services.TryAddSingleton<IAgentSessionRegistry, AgentSessionRegistry>();
         services.TryAddSingleton<IActingActorResolver, ActingActorResolver>();
+        services.TryAddSingleton<ITakeoverLedger, TakeoverLedger>();
         services.TryAddSingleton<ISessionDeliveryLedger, SessionDeliveryLedger>();
         services.TryAddSingleton<IPingLeaseStore, PingLeaseStore>();
         services.TryAddSingleton<IClaudePeerClient, ClaudePeerClient>();

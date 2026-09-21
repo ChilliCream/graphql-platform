@@ -867,6 +867,200 @@ public sealed class MailStoreTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task TransferParticipationAsync_Should_MoveRecipientAndPreserveReadState()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        var targetMessage = await SendAsync("claude", "target", ["target"], null, cancellationToken);
+        var unreadMessage = await SendAsync("claude", "unread", ["old"], null, cancellationToken);
+        var readMessage = await SendAsync("claude", "read", ["old"], null, cancellationToken);
+        await _store.MarkReadAsync([targetMessage.Id], "target", cancellationToken);
+        await _store.MarkReadAsync([readMessage.Id], "old", cancellationToken);
+
+        // act
+        var result = await _store.TransferParticipationAsync("OLD", "TARGET", cancellationToken);
+        var inbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "target" }, cancellationToken);
+        var sourceInbox = await _store.QueryInboxAsync(new MailInboxFilter { Actor = "old" }, cancellationToken);
+
+        // assert
+        ($"{result.RecipientsMoved}|{result.SendersMoved}|{result.Dropped}|"
+            + $"{string.Join(",", result.SenderMessageIds)}|"
+            + string.Join(",", result.RecipientMessageIds))
+            .MatchInlineSnapshot(
+                $"2|0|0||{string.Join(",", new[] { readMessage.Id, unreadMessage.Id }.Order())}");
+        Assert.Equal(
+            new[] { readMessage.Id, targetMessage.Id, unreadMessage.Id }.Order(),
+            inbox.Select(t => t.Id).Order());
+        Assert.Equal(
+            [true, true, false],
+            inbox.OrderBy(t => t.Subject).Select(t => t.Recipients.Single().ReadAt is not null));
+        Assert.Empty(sourceInbox);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_AllowThirdPartyReplyToTransferredSentMessage()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var message = await SendAsync("old", "sent", ["bob"], null, cancellationToken);
+        var transfer = await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // act
+        var reply = await _store.ReplyMessageAsync(message.Id, "bob", "reply", cancellationToken);
+
+        // assert
+        ($"{transfer.RecipientsMoved}|{transfer.SendersMoved}|{transfer.Dropped}|"
+            + $"{string.Join(",", transfer.SenderMessageIds)}|"
+            + string.Join(",", transfer.RecipientMessageIds))
+            .MatchInlineSnapshot($"0|1|0|{message.Id}|");
+        Assert.Equal("bob", reply.Sender);
+        Assert.Equal(["target"], reply.Recipients.Select(t => t.Name));
+        Assert.Equal(message.ThreadId, reply.ThreadId);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_AllowTargetReplyToTransferredReceivedMessage()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        var message = await SendAsync("claude", "received", ["old"], null, cancellationToken);
+        await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // act
+        var reply = await _store.ReplyMessageAsync(message.Id, "target", "reply", cancellationToken);
+
+        // assert
+        Assert.Equal("target", reply.Sender);
+        Assert.Equal(["claude"], reply.Recipients.Select(t => t.Name));
+        Assert.Equal(message.ThreadId, reply.ThreadId);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_DropConflictingRecipientAndPreserveTargetState()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        var message = await SendAsync("claude", "shared", ["old", "target"], null, cancellationToken);
+        await _store.MarkReadAsync([message.Id], "target", cancellationToken);
+
+        // act
+        var result = await _store.TransferParticipationAsync("old", "target", cancellationToken);
+        var reloaded = await _store.GetRequiredMessageAsync(message.Id, cancellationToken);
+
+        // assert
+        ($"{result.RecipientsMoved}|{result.SendersMoved}|{result.Dropped}|"
+            + $"{string.Join(",", result.SenderMessageIds)}|"
+            + string.Join(",", result.RecipientMessageIds))
+            .MatchInlineSnapshot("0|0|1||");
+        var recipient = Assert.Single(reloaded.Recipients);
+        Assert.Equal("target", recipient.Name);
+        Assert.NotNull(recipient.ReadAt);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_IncludeTransferredParticipationInThreads()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var sent = await SendAsync("old", "sent", ["bob"], null, cancellationToken);
+        var received = await SendAsync("claude", "received", ["old"], null, cancellationToken);
+        await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // act
+        var threads = await _store.QueryThreadsAsync("target", cancellationToken);
+
+        // assert
+        Assert.Equal(2, threads.Count);
+        Assert.Contains(threads, t => t.ThreadId == sent.ThreadId);
+        Assert.Contains(threads, t => t.ThreadId == received.ThreadId);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_IncludeTransferredParticipationInSearch()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        var sent = await SendAsync("old", "matching", ["bob"], null, cancellationToken);
+        var received = await SendAsync("claude", "matching", ["old"], null, cancellationToken);
+        await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // act
+        var results = await _store.SearchAsync("target", "matching", cancellationToken);
+
+        // assert
+        Assert.Equal(2, results.Count);
+        Assert.Contains(results, m => m.Id == sent.Id);
+        Assert.Contains(results, m => m.Id == received.Id);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_ReturnZeros_WhenRepeated()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+        await SeedAgentAsync("bob", cancellationToken);
+        await SendAsync("old", "sent", ["bob"], null, cancellationToken);
+        await SendAsync("claude", "received", ["old"], null, cancellationToken);
+        await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // act
+        var result = await _store.TransferParticipationAsync("old", "target", cancellationToken);
+
+        // assert
+        Assert.Equal(new MailTransferResult(0, 0, 0), result);
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_Throw_When_AgentsAreTheSame()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("target", cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.TransferParticipationAsync("target", "TARGET", cancellationToken));
+    }
+
+    [Fact]
+    public async Task TransferParticipationAsync_Should_Throw_When_TargetAgentDoesNotExist()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await InitWorkspaceAsync(cancellationToken);
+        await SeedAgentAsync("old", cancellationToken);
+
+        // act & assert
+        await Assert.ThrowsAsync<ExitException>(
+            () => _store.TransferParticipationAsync("old", "target", cancellationToken));
+    }
+
+    [Fact]
     public async Task MarkReadAsync_Should_RollBackAll_When_AnyIdNotAddressedToActor()
     {
         // arrange
