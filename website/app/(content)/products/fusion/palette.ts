@@ -17,8 +17,6 @@ export const MC = {
   panel: `color-mix(in srgb, ${CC.surface} 92%, ${CC.heading})`,
   /** Plate edges and rules: the site's card border. */
   panelEdge: CC.cardBorder,
-  /** Wall-map grid: the brand cyan at a wash. */
-  grid: `color-mix(in srgb, ${BRAND.cyan} 9%, transparent)`,
   /** Plotted lines, unlit links and rings: the brand slate at a wash. */
   line: `color-mix(in srgb, ${BRAND.slate} 45%, transparent)`,
   /** Plate lettering: the brightest ink on the site. */

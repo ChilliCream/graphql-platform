@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 
 import { BRAND, TYPE } from "../tokens";
 import { anim, useCycle, useElementMotion } from "../visuals/hooks";
@@ -28,21 +28,20 @@ import { Card, Elbow, LINE_HEIGHT, Pulse, wash } from "./parts";
  * non-GraphQL sources along the bottom. Each request fans out from a client
  * through the gateway to the sources it needs and merges back into one
  * response. Renders directly inside a panel box of whatever width its
- * caller gives it (a half-width feature-row column, say), so its own
- * measured width — not the viewport's — decides the layout: below
- * `NARROW_CONTAINER_PX` the tiers stack at 2 and 3 columns, at or above it
- * they run at their full 4 and 7.
+ * caller gives it (a half-width feature-row column, say); the tiers collapse
+ * from 4 and 7 columns to 2 and 3 with a CSS container query on the
+ * diagram's own width, not the viewport's, so the layout is right from the
+ * first paint with no measured state.
  */
 
-/**
- * Below this measured panel width the tiers collapse to 2 and 3 columns.
- * The half-width feature-row slot this diagram now lives in tops out
- * around 720px (the page's own `max-w-7xl` content cap, halved), too
- * narrow for the 4/7-column layout to read well, so this sits comfortably
- * above that: the wide layout is there for a slot with more room to give
- * it, not for this one.
- */
-const NARROW_CONTAINER_PX = 760;
+/** Column counts per tier, stacked (below the container query) and wide. */
+const CLIENT_COLUMNS = [2, 4] as const;
+const NODE_COLUMNS = [3, 7] as const;
+
+const LAYOUTS = [
+  { key: "stacked", className: "@min-[760px]:hidden" },
+  { key: "wide", className: "hidden @min-[760px]:block" },
+] as const;
 
 const KEYFRAMES = `
 @keyframes mc-layer-in {
@@ -73,8 +72,8 @@ interface BandProps {
   readonly flow: BandFlow;
   /** Cards in the tier this band joins to the gateway. */
   readonly count: number;
-  /** Columns that tier uses at its current width. */
-  readonly columns: number;
+  /** Columns that tier uses, stacked and wide. */
+  readonly columns: readonly [number, number];
   /** Indexes of the lit cards; their columns carry the traffic. */
   readonly lit: readonly number[];
   readonly tone: string;
@@ -87,49 +86,61 @@ interface BandProps {
 /**
  * The connectors between one tier and the gateway: a rounded elbow per
  * column down to a shared horizontal run, and one stem from there into the
- * gateway.
+ * gateway. Both layouts render; the container query picks one.
  */
 function Band({ flow, count, columns, lit, tone, step, pulse }: BandProps) {
   const bus = BUS_Y[flow];
   const down = flow === "to-gateway";
-  const lanes = columnLanes(count, columns, lit);
-  const active = lanes.filter((lane) => lane.lit);
 
   return (
     <div className="relative h-8 md:h-16 lg:h-20">
-      <div
-        className="absolute inset-x-0"
-        style={
-          down ? { top: 0, height: `${bus}%` } : { top: `${bus}%`, bottom: 0 }
-        }
-      >
-        {lanes.map((lane) => (
-          <Elbow key={lane.key} lane={lane} flow={flow} tone={tone} />
-        ))}
-      </div>
+      {LAYOUTS.map((layout, i) => {
+        const lanes = columnLanes(count, columns[i], lit);
+        const active = lanes.filter((lane) => lane.lit);
 
-      <span
-        className="absolute left-1/2 block border-solid transition-colors duration-500"
-        style={{
-          borderLeftWidth: 1,
-          borderColor: active.length > 0 ? wash(tone, 85) : MC.line,
-          ...(down
-            ? { top: `${bus}%`, bottom: 0 }
-            : { top: 0, height: `${bus}%` }),
-        }}
-      />
+        return (
+          <div
+            key={layout.key}
+            className={`absolute inset-0 ${layout.className}`}
+          >
+            <div
+              className="absolute inset-x-0"
+              style={
+                down
+                  ? { top: 0, height: `${bus}%` }
+                  : { top: `${bus}%`, bottom: 0 }
+              }
+            >
+              {lanes.map((lane) => (
+                <Elbow key={lane.key} lane={lane} flow={flow} tone={tone} />
+              ))}
+            </div>
 
-      {pulse
-        ? active.map((lane, index) => (
-            <Pulse
-              key={`${step}-${lane.key}`}
-              lane={lane}
-              flow={flow}
-              tone={tone}
-              animation={pulse(index)}
+            <span
+              className="absolute left-1/2 block border-solid transition-colors duration-500"
+              style={{
+                borderLeftWidth: 1,
+                borderColor: active.length > 0 ? wash(tone, 85) : MC.line,
+                ...(down
+                  ? { top: `${bus}%`, bottom: 0 }
+                  : { top: 0, height: `${bus}%` }),
+              }}
             />
-          ))
-        : null}
+
+            {pulse
+              ? active.map((lane, index) => (
+                  <Pulse
+                    key={`${step}-${lane.key}`}
+                    lane={lane}
+                    flow={flow}
+                    tone={tone}
+                    animation={pulse(index)}
+                  />
+                ))
+              : null}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -138,23 +149,6 @@ export default function LayeredDiagram() {
   const ref = useRef<HTMLDivElement>(null);
   const running = useElementMotion(ref);
   const step = useCycle(running, STEPS, PHASE_MS, REST_STEP);
-  const [narrow, setNarrow] = useState(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || typeof ResizeObserver === "undefined") return;
-
-    const measure = () =>
-      setNarrow(node.getBoundingClientRect().width < NARROW_CONTAINER_PX);
-    measure();
-
-    const observer = new ResizeObserver(measure);
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
-  const clientColumns = narrow ? 2 : 4;
-  const nodeColumns = narrow ? 3 : 7;
 
   const phase = step % PHASE_LABEL.length;
   const request = REQUESTS[Math.floor(step / PHASE_LABEL.length)];
@@ -185,7 +179,7 @@ export default function LayeredDiagram() {
   return (
     <div
       ref={ref}
-      className="relative w-full"
+      className="@container relative w-full"
       aria-hidden="true"
       style={{ background: MC.bg }}
     >
@@ -194,9 +188,7 @@ export default function LayeredDiagram() {
 
       <div className="px-4 py-4 sm:px-8 sm:py-8 md:px-12">
         <div className="mx-auto w-full max-w-7xl">
-          <div
-            className={`grid gap-2 ${narrow ? "grid-cols-2" : "grid-cols-4"}`}
-          >
+          <div className="grid grid-cols-2 gap-2 @min-[760px]:grid-cols-4">
             {CLIENT_NODES.map((client, i) => (
               <Card
                 key={client.key}
@@ -211,7 +203,7 @@ export default function LayeredDiagram() {
           <Band
             flow="to-gateway"
             count={CLIENT_NODES.length}
-            columns={clientColumns}
+            columns={CLIENT_COLUMNS}
             lit={[request.client]}
             tone={tone}
             step={step}
@@ -303,16 +295,14 @@ export default function LayeredDiagram() {
           <Band
             flow="from-gateway"
             count={TIER_NODES.length}
-            columns={nodeColumns}
+            columns={NODE_COLUMNS}
             lit={litNodes}
             tone={tone}
             step={step}
             pulse={downstream}
           />
 
-          <div
-            className={`grid gap-2 ${narrow ? "grid-cols-3" : "grid-cols-7"}`}
-          >
+          <div className="grid grid-cols-3 gap-2 @min-[760px]:grid-cols-7">
             {TIER_NODES.map((node, i) => (
               <Card
                 key={node.name}
