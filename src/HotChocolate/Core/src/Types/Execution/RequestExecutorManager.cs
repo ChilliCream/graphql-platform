@@ -452,7 +452,11 @@ internal sealed partial class RequestExecutorManager
                 DocumentValidatorBuilder.New()
                     .SetServices(rootServices)
                     .AddDefaultRules()
-                    .ModifyOptions(o => o.EnableEmptySelectionSets = options.EnableEmptySelectionSets);
+                    .ModifyOptions(o =>
+                    {
+                        o.EnableCovariantFieldMerging = options.EnableCovariantFieldMerging;
+                        o.EnableEmptySelectionSets = options.EnableEmptySelectionSets;
+                    });
 
             foreach (var hook in hooks)
             {
