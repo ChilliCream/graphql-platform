@@ -127,6 +127,10 @@ When you add a value to `ExecutionNodeType`, map it in two places:
 
 `KindValues` supplies the `graphql.operation.step.kind` tag on the step span. An unmapped type does not fail execution. `ExecutePlanNodeSpan.Start` falls back to an untagged span, so the node silently loses its kind in traces. The guard test `StepSpan_Should_MapEveryExecutionNodeTypeToAKindValue` in `src/HotChocolate/Fusion/test/Fusion.Diagnostics.Tests/FusionActivityExecutionDiagnosticListenerTests.cs` fails until the mapping exists.
 
+#### Operation planner version
+
+`OperationPlanner.Version` identifies planning behavior and is independent of the package version. Bump the minor version when an existing operation can plan differently, the major version when consumers must react to a new plan structure. Refactors, performance work and fixes that cannot change a plan do not bump it.
+
 #### Operation plan JSON format
 
 `JsonOperationPlanFormatter` in `src/HotChocolate/Fusion/src/Fusion.Execution/Execution/Nodes/Serialization/JsonOperationPlanFormatter.cs` writes the plan document that tooling consumes. Its shape is published as a JSON schema, so any change to the emitted JSON is a two part change:

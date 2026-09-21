@@ -110,10 +110,11 @@ public sealed class NotifierTests
             var batches = new MailWakeBatchStore(fileSystem, database);
             var gates = new SessionPingGateStore(fileSystem, database);
             var leases = new PingLeaseStore(fileSystem, database);
+            var ledger = new SessionDeliveryLedger(fileSystem, database);
             var gateCoordinator = new SessionGateCoordinator(gates, leases);
             var queueClient = new FakeCodexQueueClient();
             var executor = new PingSessionExecutor(
-                mail, queueClient, new NoopClaudePeerClient(), sessions, leases, timeProvider);
+                mail, ledger, queueClient, new NoopClaudePeerClient(), sessions, leases, timeProvider);
             var dispatcher = new ActorWakeDispatcher(
                 batches,
                 sessions,
@@ -153,8 +154,12 @@ public sealed class NotifierTests
 
             // assert
             var call = Assert.Single(queueClient.Calls);
-            Assert.Equal("thread-1", call.ThreadId);
-            Assert.Contains("1 unread nitro message.", call.Message);
+            using var document = System.Text.Json.JsonDocument.Parse(
+                call.Message[(call.Message.IndexOf('\n') + 1)..]);
+            var item = document.RootElement.GetProperty("items")[0];
+            Assert.Equal(
+                ("thread-1", message.Id, "check"),
+                (call.ThreadId, item.GetProperty("id").GetString(), item.GetProperty("body").GetString()));
         }
         finally
         {

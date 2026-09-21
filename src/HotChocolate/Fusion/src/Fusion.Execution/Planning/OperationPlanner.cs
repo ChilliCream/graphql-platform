@@ -56,6 +56,8 @@ public sealed partial class OperationPlanner
         _options = options;
     }
 
+    public static Version Version { get; } = new(2, 0, 0);
+
     internal OperationPlannerOptions Options => _options;
 
     /// <summary>

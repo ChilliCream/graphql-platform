@@ -57,29 +57,30 @@ Update positional construction as follows:
 
 ## Document normalization and cost analyzer placement changed
 
-Document normalization, i.e. flattening the selected operation's fragments into its own selection set, is no longer a pipeline stage. It is a lazy `IOperationDocumentNormalizer` service instead: a middleware that needs the normalized document calls `context.GetNormalizedDocument()`, which normalizes once per request on first access and stores the result on the document info, so an operation cache hit never triggers normalization work. The default, persisted-operation, and automatic-persisted-operation pipelines use this order:
+Document normalization, i.e. flattening the selected operation's fragments into its own selection set, is no longer a pipeline stage. It is a lazy `IOperationDocumentNormalizer` service instead: a middleware that needs the normalized document calls `context.GetNormalizedDocument()`, which normalizes once per request on first access and stores the result on the document info. It is resolved by the first stage that needs it, which is now variable coercion, and cached by operation id in the normalized-document cache, so a later stage or a later request for the same operation never rewrites the document a second time. The default, persisted-operation, and automatic-persisted-operation pipelines use this order:
 
 ```text
-DocumentValidation -> OperationCache -> OperationCompiler -> OperationVariableCoercion -> CostAnalyzer -> SkipWarmupExecution
+DocumentValidation -> OperationVariableCoercion -> CostAnalyzer -> OperationCache -> OperationCompiler -> SkipWarmupExecution
 ```
 
 The `CostAnalyzer` stage is present once `AddCostAnalyzer()` has run, which `AddGraphQLServer()` does.
 
 `OperationResolverMiddleware`/`UseOperationResolver()` are renamed to `OperationCompilerMiddleware`/`UseOperationCompiler()`; the compiler now asks the normalizer service for the normalized document itself on an operation cache miss, instead of relying on a prior pipeline stage. The old names remain available as `[Obsolete]` forwarders that resolve to the same middleware key, so an existing `before:`/`after:` insertion that references `WellKnownRequestMiddleware.OperationResolverMiddleware` keeps working.
 
-In 16.6, `OperationVariableCoercion` already ran after the operation cache and the resolver, but it also ran after `SkipWarmupExecution`. In 16.7 it moves ahead of `SkipWarmupExecution`, directly after `OperationCompiler`. In 16.6 `AddCostAnalyzer()` inserted the analyzer directly after `DocumentValidation`, ahead of the operation cache, the operation resolver and variable coercion; in 16.7 it inserts after the keyed variable-coercion middleware, so it runs behind the operation cache, the operation compiler and variable coercion, and ahead of `SkipWarmupExecution`. Consequence: an over-budget request has already been compiled and cached when it is rejected, and enforcement now sees coerced variables. A custom pipeline that used `before:`/`after:` relative to the analyzer must account for the new anchor. A custom pipeline applies this delta:
+In 16.6, the default order was `OperationCache -> OperationResolver -> SkipWarmupExecution -> OperationVariableCoercion`, with `AddCostAnalyzer()` inserting directly after `DocumentValidation`, ahead of everything else. In 16.7, HotChocolate aligns its stage order with Fusion's: variable coercion now runs directly after document validation, ahead of the operation cache and the operation compiler, and `AddCostAnalyzer()` still inserts after the keyed variable-coercion middleware, so it lands between coercion and the operation cache. Consequence: a request that cost analysis rejects is never compiled and never enters the operation cache, and enforcement still sees coerced variables. Because the operation compiler now runs after coercion, `OperationVariableCoercionMiddleware` reads `context.GetNormalizedDocument()` directly instead of the compiled operation; a custom middleware inserted `before:`/`after:` the coercion stage can no longer rely on `context.TryGetOperation()` succeeding there. A custom pipeline that used `before:`/`after:` relative to any of these stages must account for the new anchors. A custom pipeline applies this delta:
 
 ```diff
  builder
      .AddGraphQL()
      .AddCostAnalyzer()
      // ... parsing, validation ...
-     .UseOperationCache()
+-    .UseOperationCache()
 -    .UseOperationResolver()
 -    .UseSkipWarmupExecution()
 -    .UseOperationVariableCoercion()
-+    .UseOperationCompiler()
 +    .UseOperationVariableCoercion()
++    .UseOperationCache()
++    .UseOperationCompiler()
 +    .UseSkipWarmupExecution()
      .UseConcurrencyGate()
      .UseOperationExecution();

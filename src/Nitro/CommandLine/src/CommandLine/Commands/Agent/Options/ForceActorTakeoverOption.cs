@@ -4,6 +4,6 @@ internal sealed class ForceActorTakeoverOption : Option<bool>
 {
     public ForceActorTakeoverOption() : base("--force")
     {
-        Description = "Take the actor from another session and remove that session";
+        Description = "Take over even when the source actor still has a live session";
     }
 }

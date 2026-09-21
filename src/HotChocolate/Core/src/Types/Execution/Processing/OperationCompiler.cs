@@ -62,9 +62,7 @@ public sealed partial class OperationCompiler
         string? operationName,
         DocumentNode document,
         Schema schema,
-#pragma warning disable RCS1163 // Unused parameter
         IFeatureProvider? context = null)
-#pragma warning restore RCS1163 // Unused parameter
     {
         ArgumentNullException.ThrowIfNull(schema);
 
@@ -82,7 +80,7 @@ public sealed partial class OperationCompiler
             new OperationCompilerOptimizers(),
             RequestExecutorOptions.DefaultMaxAllowedConditions,
             RequestExecutorOptions.DefaultMaxAllowedConditions)
-            .Compile(id, hash, operationName, normalizedDocument);
+            .Compile(id, hash, operationName, normalizedDocument, context ?? EmptyFeatureProvider.Instance);
     }
 
     /// <summary>
@@ -93,11 +91,15 @@ public sealed partial class OperationCompiler
     /// <param name="hash">The document hash.</param>
     /// <param name="operationName">The name of the operation to compile.</param>
     /// <param name="document">The already normalized document.</param>
+    /// <param name="context">The request's feature provider.</param>
     public Operation Compile(
         string id,
         string hash,
         string? operationName,
-        DocumentNode document)
+        DocumentNode document,
+#pragma warning disable RCS1163 // Unused parameter
+        IFeatureProvider context)
+#pragma warning restore RCS1163 // Unused parameter
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(document);

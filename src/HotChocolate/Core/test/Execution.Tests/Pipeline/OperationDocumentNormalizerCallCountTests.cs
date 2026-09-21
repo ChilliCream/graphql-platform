@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Caching;
+using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -10,22 +11,31 @@ namespace HotChocolate.Execution.Pipeline;
 public sealed class OperationDocumentNormalizerCallCountTests
 {
     [Fact]
-    public async Task Operation_Cache_Hit_Skips_The_Normalizer_And_A_Miss_Calls_It_Exactly_Once()
+    public async Task Fully_Cached_Request_Rewrites_Zero_Times_And_Compiles_Zero_Times()
     {
-        // arrange
-        var normalizeCallCount = 0;
+        // arrange: variable coercion now reads the normalized operation unconditionally, so
+        // it reaches the normalizer on every request, cached or not. What must stay at zero
+        // on a fully cached request (an operation cache hit whose document is already
+        // normalized) is the actual rewrite work and the operation compilation, not the call
+        // into the normalizer.
+        var lookupCount = 0;
+        var rewriteCount = 0;
+        var compileCount = 0;
 
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType(d => d.Field("foo").Resolve("bar"))
             .UseDefaultPipeline()
+            .AddDiagnosticEventListener(_ => new CompileCountListener(() => Interlocked.Increment(ref compileCount)))
             .ConfigureSchemaServices(
                 services => services.AddSingleton<IOperationDocumentNormalizer>(
-                    sp => new CountingNormalizer(
+                    sp => new RewriteCountingNormalizer(
                         new OperationDocumentNormalizer(
                             sp.GetRequiredService<ISchemaDefinition>(),
                             sp.GetRequiredService<NormalizedDocumentCache>()),
-                        () => Interlocked.Increment(ref normalizeCallCount))))
+                        sp.GetRequiredService<NormalizedDocumentCache>(),
+                        onLookup: () => Interlocked.Increment(ref lookupCount),
+                        onRewrite: () => Interlocked.Increment(ref rewriteCount))))
             .Services
             .BuildServiceProvider()
             .GetRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -39,16 +49,28 @@ public sealed class OperationDocumentNormalizerCallCountTests
 
         // act
         var missResult = await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
-        var countAfterMiss = Volatile.Read(ref normalizeCallCount);
+        var lookupCountAfterMiss = Volatile.Read(ref lookupCount);
+        var rewriteCountAfterMiss = Volatile.Read(ref rewriteCount);
+        var compileCountAfterMiss = Volatile.Read(ref compileCount);
 
         var hitResult = await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
-        var countAfterHit = Volatile.Read(ref normalizeCallCount);
+        var lookupCountAfterHit = Volatile.Read(ref lookupCount);
+        var rewriteCountAfterHit = Volatile.Read(ref rewriteCount);
+        var compileCountAfterHit = Volatile.Read(ref compileCount);
 
         // assert
         Assert.Empty(Assert.IsType<OperationResult>(missResult).Errors);
         Assert.Empty(Assert.IsType<OperationResult>(hitResult).Errors);
-        Assert.Equal(1, countAfterMiss);
-        Assert.Equal(1, countAfterHit);
+        Assert.Equal(1, lookupCountAfterMiss);
+        Assert.Equal(1, rewriteCountAfterMiss);
+        Assert.Equal(1, compileCountAfterMiss);
+
+        // the fully cached request still reaches the normalizer, from variable coercion, but
+        // its document is already normalized and its operation is already compiled, so
+        // neither a rewrite nor a compile happens a second time.
+        Assert.Equal(2, lookupCountAfterHit);
+        Assert.Equal(1, rewriteCountAfterHit);
+        Assert.Equal(1, compileCountAfterHit);
     }
 
     [Fact]
@@ -112,16 +134,6 @@ public sealed class OperationDocumentNormalizerCallCountTests
         Assert.Equal(1, rewriteCountAfterSecond);
     }
 
-    private sealed class CountingNormalizer(IOperationDocumentNormalizer inner, Action onNormalize)
-        : IOperationDocumentNormalizer
-    {
-        public DocumentNode NormalizeDocument(RequestContext context)
-        {
-            onNormalize();
-            return inner.NormalizeDocument(context);
-        }
-    }
-
     private sealed class RewriteCountingNormalizer(
         IOperationDocumentNormalizer inner,
         NormalizedDocumentCache normalizedDocumentCache,
@@ -132,8 +144,11 @@ public sealed class OperationDocumentNormalizerCallCountTests
         {
             onLookup();
 
-            context.TryGetOperationId(out var operationId);
-            var hadCachedDocument = normalizedDocumentCache.TryGet(operationId!, out var documentCachedBefore);
+            // Variable coercion may reach the normalizer before the operation cache stage
+            // has run, so the operation id is not necessarily set yet; GetOperationId
+            // creates and stores it on first access, exactly as the real normalizer does.
+            var operationId = context.GetOperationId();
+            var hadCachedDocument = normalizedDocumentCache.TryGet(operationId, out var documentCachedBefore);
 
             var normalizedDocument = inner.NormalizeDocument(context);
 
@@ -160,6 +175,15 @@ public sealed class OperationDocumentNormalizerCallCountTests
 
         public void TryAddOperation(string operationId, Operation operation)
         {
+        }
+    }
+
+    private sealed class CompileCountListener(Action onCompile) : ExecutionDiagnosticEventListener
+    {
+        public override IDisposable CompileOperation(RequestContext context)
+        {
+            onCompile();
+            return EmptyScope;
         }
     }
 }

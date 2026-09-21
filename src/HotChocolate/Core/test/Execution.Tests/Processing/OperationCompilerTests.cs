@@ -1060,13 +1060,15 @@ public class OperationCompilerTests
             "opid-1",
             "opid-1",
             operationName: null,
-            deferIfFalseDocument);
+            deferIfFalseDocument,
+            executor);
 
         var incremental = operationCompiler.Compile(
             "opid-2",
             "opid-2",
             operationName: null,
-            deferDocument);
+            deferDocument,
+            executor);
 
         // assert
         Assert.False(notIncremental.HasIncrementalParts);
@@ -1077,10 +1079,12 @@ public class OperationCompilerTests
     public void Compile_TakesOnlyNormalizedDocuments_OnTheInstanceOverload()
     {
         // arrange
-        // The static entry points keep accepting a raw document and an optional, unused
+        // The static entry points keep accepting a raw document and an optional
         // context for source compatibility with existing callers, normalizing the document
         // themselves before delegating to the single instance overload, which only ever
-        // accepts an already normalized document.
+        // accepts an already normalized document. The instance overload keeps the same
+        // feature provider parameter as the static entry points for source compatibility;
+        // it is currently unused there as well.
         var actualSignatures = typeof(OperationCompiler)
             .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.Name == nameof(OperationCompiler.Compile))
@@ -1095,7 +1099,7 @@ public class OperationCompilerTests
             "static(String, String, String, DocumentNode, Schema, IFeatureProvider)",
 
             // the single instance overload, which only accepts a normalized document.
-            "instance(String, String, String, DocumentNode)"
+            "instance(String, String, String, DocumentNode, IFeatureProvider)"
         };
 
         // act & assert

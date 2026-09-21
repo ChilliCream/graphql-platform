@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Pipeline;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Http;
@@ -206,19 +207,17 @@ internal sealed class ActivityExecutionDiagnosticListener : ExecutionDiagnosticE
         OperationType operationType;
         string? operationName;
 
-        if (context.TryGetOperation(out var operation))
-        {
-            operationType = operation.Kind;
-            operationName = operation.Name;
-        }
-        else if (context.OperationDocumentInfo.NormalizedDocument
+        if (context.OperationDocumentInfo.NormalizedDocument
             is { Definitions: [OperationDefinitionNode normalizedOperation] })
         {
-            // Variable coercion now runs before the operation is compiled, so the compiled
-            // operation is not available yet; the normalized document carries the same
-            // operation type and name.
             operationType = normalizedOperation.Operation;
             operationName = normalizedOperation.Name?.Value;
+        }
+        else if (context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
+            && document.TryGetOperationDefinition(context.Request.OperationName, out var operationDefinition))
+        {
+            operationType = operationDefinition.Operation;
+            operationName = operationDefinition.Name?.Value;
         }
         else
         {

@@ -41,13 +41,16 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
-        if (!context.TryGetOperationId(out var operationId)
-            || !context.TryGetOperationDocument(out var document, out var documentId)
-            || documentId.IsEmpty)
+        if (!context.TryGetOperationDocument(out var document, out var documentId) || documentId.IsEmpty)
         {
             context.Result = ErrorHelper.StateInvalidForCostAnalysis();
             return;
         }
+
+        // Cost analysis now runs ahead of the operation cache, so nothing upstream is
+        // guaranteed to have computed the operation id yet; self-compute it here, the same
+        // way the operation cache and the normalizer do.
+        var operationId = context.GetOperationId();
 
         ImmutableArray<CostMetrics> costMetrics;
 
