@@ -119,6 +119,23 @@ export function QueryTrack() {
    * fixed slot at the card's own bottom) shift down by the same amount.
    */
   const gateSubtitleWrapGap = crowded ? svgLabelGap(18, label, TYPE.label) : 0;
+  /**
+   * A station card's own status line ("PARTIAL RESULT RETURNED" /
+   * "SUBGRAPH STANDING BY") can overflow its 158-unit-wide card at
+   * `label`'s native 11px floor already, before any `crowded` boost
+   * engages — unlike the GATE subtitle and the spec line, which only
+   * overflow once boosted. Estimating each status line's width against the
+   * card's own available room (its right edge less the text's 12-unit
+   * left inset) decides whether it needs to wrap at any width, not only a
+   * boosted one. The per-character rate is the mono face's measured
+   * natural advance (about 0.601em, the same rate TelemetryStrip's own
+   * `LIVE`-width estimate uses) plus this line's own 0.02em
+   * letter-spacing.
+   */
+  const stationTextRoom = STATION_X + 158 - (STATION_X + 12);
+  const stationTextAdvance = label * (0.601 + 0.02);
+  const stationTextOverflows = (text: string) =>
+    text.length * stationTextAdvance > stationTextRoom;
 
   const client = mobile ? MOBILE_CLIENT : CLIENT;
   const gate = mobile ? MOBILE_GATE : GATE;
@@ -481,7 +498,10 @@ export function QueryTrack() {
         const resultText =
           phase >= 4 ? "PARTIAL RESULT RETURNED" : "SUBGRAPH STANDING BY";
         const resultGap = svgLabelGap(14, label, TYPE.label);
-        const resultLines = crowded ? wrapWords(resultText, 14) : [resultText];
+        const resultLines =
+          crowded || stationTextOverflows(resultText)
+            ? wrapWords(resultText, 14)
+            : [resultText];
         const specText = `${row.language} · ${specTag(row.spec)}`;
         const specLines = crowded ? dotLines(specText) : [specText];
         return (
