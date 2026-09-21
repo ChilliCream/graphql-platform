@@ -7,5 +7,6 @@ internal sealed class TracesCommand : Command
         Description = "Inspect telemetry traces.";
 
         Subcommands.Add(new ListTraceCommand());
+        Subcommands.Add(new ShowTraceCommand());
     }
 }
