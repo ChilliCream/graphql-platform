@@ -1,4 +1,5 @@
 using HotChocolate.Execution.Caching;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Language;
 using ExecutionThrowHelper = HotChocolate.Execution.ThrowHelper;
@@ -42,7 +43,8 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
         // Before we can plan an operation, we must de-fragmentize it and remove static
         // include conditions. The resulting document always has the operation as its
         // only definition, at Definitions[0].
-        normalizedDocument = _documentRewriter.RewriteDocument(document, context.Request.OperationName).Document;
+        var rewriteResult = _documentRewriter.RewriteDocument(document, context.Request.OperationName);
+        normalizedDocument = ApplyIncrementalPartsMarker(rewriteResult);
         _normalizedDocumentCache.TryAdd(operationId, normalizedDocument);
 
         return normalizedDocument;
@@ -66,6 +68,32 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
             removeStaticallyExcludedSelections: true,
             includeTypeNameToEmptySelectionSets: false);
 
-        return documentRewriter.RewriteDocument(document, operationName).Document;
+        return ApplyIncrementalPartsMarker(documentRewriter.RewriteDocument(document, operationName));
+    }
+
+    /// <summary>
+    /// Appends the internal marker directive to the operation definition of a rewritten
+    /// document that still has incremental delivery parts, so the marker travels with the
+    /// document and a cache hit already carries it. A document without incremental parts is
+    /// returned unchanged.
+    /// </summary>
+    private static DocumentNode ApplyIncrementalPartsMarker(
+        InlineFragmentOperationRewriterResult rewriteResult)
+    {
+        if (!rewriteResult.HasIncrementalParts)
+        {
+            return rewriteResult.Document;
+        }
+
+        // The rewriter always produces a document whose only definition, at Definitions[0],
+        // is the operation.
+        var operationDefinition = (OperationDefinitionNode)rewriteResult.Document.Definitions[0];
+        var directives = new List<DirectiveNode>(operationDefinition.Directives)
+        {
+            new(InternalDirectiveNames.HasIncrementalParts)
+        };
+        var markedOperationDefinition = operationDefinition.WithDirectives(directives);
+
+        return rewriteResult.Document.WithDefinitions([markedOperationDefinition]);
     }
 }

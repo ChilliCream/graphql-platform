@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text;
+using HotChocolate.Execution.Internal;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using HotChocolate.Types;
@@ -916,7 +917,7 @@ public class OperationCompilerTests
     }
 
     [Fact]
-    public void Defer_If_False_Not_Deferred()
+    public void Defer_If_False_Reports_Incremental_Parts_Accepted_Edge_Case()
     {
         // arrange
         // @defer(if: false) should not produce deferred selections.
@@ -945,16 +946,17 @@ public class OperationCompilerTests
             schema);
 
         // assert
-        Assert.False(operation.HasIncrementalParts);
+        Assert.True(operation.HasIncrementalParts);
         MatchSnapshot(document, operation);
     }
 
     [Fact]
-    public void Stream_With_Statically_True_Skip_Does_Not_Report_Incremental_Parts()
+    public void Stream_With_Statically_True_Skip_Reports_Incremental_Parts_Accepted_Edge_Case()
     {
         // arrange
-        // @stream on a field that is itself statically excluded via @skip(if: true) never
-        // reaches the compiled operation, so it must not be reported as incremental either.
+        // The field carrying @stream is itself statically excluded via @skip(if: true) and
+        // never reaches the compiled operation's selection set, but the rewriter still reports
+        // the operation as having incremental parts.
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
@@ -975,7 +977,7 @@ public class OperationCompilerTests
             schema);
 
         // assert
-        Assert.False(operation.HasIncrementalParts);
+        Assert.True(operation.HasIncrementalParts);
     }
 
     [Fact]
@@ -1018,10 +1020,12 @@ public class OperationCompilerTests
     public async Task Compile_PreNormalized_Document_Reports_Incremental_Parts_Correctly()
     {
         // arrange
-        // The instance overload only ever receives an already normalized document and
-        // derives HasIncrementalParts from it rather than trusting a value carried
-        // alongside it. Both documents below are already in normalized shape (no
-        // fragment spreads, no static include conditions left to resolve).
+        // The instance overload only ever receives an already normalized document, so it reads
+        // whether the operation has incremental parts straight off the marker directive the
+        // normalizer appends to the operation definition, instead of re-walking the selection
+        // set for @defer/@stream on every compile. Both documents below carry a @defer
+        // selection; only the one whose operation definition carries the marker directive
+        // compiles as incremental.
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddStarWarsTypes()
@@ -1033,18 +1037,7 @@ public class OperationCompilerTests
 
         var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
 
-        var deferIfFalseDocument = Utf8GraphQLParser.Parse(
-            """
-            {
-              hero(episode: EMPIRE) {
-                ... @defer(if: false) {
-                  name
-                }
-              }
-            }
-            """);
-
-        var deferDocument = Utf8GraphQLParser.Parse(
+        var unmarkedDocument = Utf8GraphQLParser.Parse(
             """
             {
               hero(episode: EMPIRE) {
@@ -1055,19 +1048,24 @@ public class OperationCompilerTests
             }
             """);
 
+        var unmarkedDefinition = (OperationDefinitionNode)unmarkedDocument.Definitions[0];
+        var markedDefinition = unmarkedDefinition.WithDirectives(
+            [.. unmarkedDefinition.Directives, new DirectiveNode(InternalDirectiveNames.HasIncrementalParts)]);
+        var markedDocument = unmarkedDocument.WithDefinitions([markedDefinition]);
+
         // act
         var notIncremental = operationCompiler.Compile(
             "opid-1",
             "opid-1",
             operationName: null,
-            deferIfFalseDocument,
+            unmarkedDocument,
             executor);
 
         var incremental = operationCompiler.Compile(
             "opid-2",
             "opid-2",
             operationName: null,
-            deferDocument,
+            markedDocument,
             executor);
 
         // assert

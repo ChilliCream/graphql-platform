@@ -12,7 +12,7 @@
 
 ---------------------------------------------------------
 
-{
+query @hc__hasIncrementalParts {
   ... on Query {
     hero(episode: EMPIRE) @__execute(id: 2, kind: PURE, type: COMPOSITE) {
       ... on Human {
