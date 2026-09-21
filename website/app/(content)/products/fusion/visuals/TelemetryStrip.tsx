@@ -1,7 +1,9 @@
 "use client";
 
-import { TYPE } from "../tokens";
-import { anim, useSceneMotion } from "./hooks";
+import { useRef } from "react";
+
+import { TYPE, svgLabelSize, svgLabelWidth } from "../tokens";
+import { anim, useSceneMotion, useSvgLabelScale } from "./hooks";
 import { MC, STATIONS } from "../palette";
 
 /**
@@ -70,19 +72,32 @@ const KEYFRAMES = `
 
 export function TelemetryStrip() {
   const running = useSceneMotion();
+  const svgRef = useRef<SVGSVGElement>(null);
+  const scale = useSvgLabelScale(svgRef, W);
+  const label = svgLabelSize(TYPE.label, scale);
+  /** The header row's baseline, nudged down so its boosted ascent clears
+   * the SVG's own top edge instead of clipping against it. */
+  const headerY = 18 + Math.max(0, label - TYPE.label) * 0.3;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
+    <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
       <style>{KEYFRAMES}</style>
       <rect width={W} height={H} fill={MC.bg} />
 
       <text
         x={TRACE.x}
-        y={18}
+        y={headerY}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.2em"
+        textLength={svgLabelWidth(
+          "GATEWAY LATENCY · LAST 60 s",
+          TYPE.label,
+          scale,
+          0.2,
+        )}
+        lengthAdjust="spacingAndGlyphs"
       >
         GATEWAY LATENCY · LAST 60 s
       </text>
@@ -97,11 +112,13 @@ export function TelemetryStrip() {
       />
       <text
         x={W - 50}
-        y={18}
+        y={headerY}
         fill={MC.phosphor}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.2em"
+        textLength={svgLabelWidth("LIVE", TYPE.label, scale, 0.2)}
+        lengthAdjust="spacingAndGlyphs"
       >
         LIVE
       </text>
@@ -136,8 +153,10 @@ export function TelemetryStrip() {
               y={y}
               fill={gateway ? MC.ink : MC.dim}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               letterSpacing="0.08em"
+              textLength={svgLabelWidth(row.label, TYPE.label, scale, 0.08)}
+              lengthAdjust="spacingAndGlyphs"
             >
               {row.label}
             </text>
@@ -146,7 +165,9 @@ export function TelemetryStrip() {
               y={y}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
+              textLength={svgLabelWidth(row.meta, TYPE.label, scale)}
+              lengthAdjust="spacingAndGlyphs"
             >
               {row.meta}
             </text>
@@ -155,8 +176,10 @@ export function TelemetryStrip() {
               y={y}
               fill={MC.ink}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               textAnchor="end"
+              textLength={svgLabelWidth(row.latency, TYPE.label, scale)}
+              lengthAdjust="spacingAndGlyphs"
             >
               {row.latency}
             </text>
@@ -189,8 +212,10 @@ export function TelemetryStrip() {
               y={y}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               textAnchor="end"
+              textLength={svgLabelWidth(row.errors, TYPE.label, scale)}
+              lengthAdjust="spacingAndGlyphs"
             >
               {row.errors}
             </text>
@@ -203,8 +228,15 @@ export function TelemetryStrip() {
         y={H - 14}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.16em"
+        textLength={svgLabelWidth(
+          "LATENCY · THROUGHPUT · ERROR RATE, PER SUBGRAPH",
+          TYPE.label,
+          scale,
+          0.16,
+        )}
+        lengthAdjust="spacingAndGlyphs"
       >
         LATENCY · THROUGHPUT · ERROR RATE, PER SUBGRAPH
       </text>

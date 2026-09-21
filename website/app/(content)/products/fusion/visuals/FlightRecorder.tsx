@@ -1,7 +1,9 @@
 "use client";
 
-import { TYPE } from "../tokens";
-import { anim, useCycle, useSceneMotion } from "./hooks";
+import { useRef } from "react";
+
+import { TYPE, svgLabelGap, svgLabelSize, svgLabelWidth } from "../tokens";
+import { anim, useCycle, useSceneMotion, useSvgLabelScale } from "./hooks";
 import { MC } from "../palette";
 
 /**
@@ -103,9 +105,14 @@ export function FlightRecorder() {
   const phase = useCycle(running, PHASES, BEAT, REST);
   const classified = Math.max(0, Math.min(phase - 1, REPLAYS.length));
   const blocked = classified >= REPLAYS.length;
+  const svgRef = useRef<SVGSVGElement>(null);
+  const scale = useSvgLabelScale(svgRef, W);
+  const label = svgLabelSize(TYPE.label, scale);
+  /** Gap between a replay row's operation line and its detail line. */
+  const rowGap = svgLabelGap(15, label, TYPE.label, 1.15);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
+    <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
       <style>{KEYFRAMES}</style>
       <rect width={W} height={H} fill={MC.bg} />
 
@@ -125,9 +132,16 @@ export function FlightRecorder() {
         y={30}
         fill={MC.ink}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.16em"
         textAnchor="middle"
+        textLength={svgLabelWidth(
+          "SCHEMA CHANGE · REMOVE Product.rating",
+          TYPE.label,
+          scale,
+          0.16,
+        )}
+        lengthAdjust="spacingAndGlyphs"
       >
         SCHEMA CHANGE · REMOVE Product.rating
       </text>
@@ -136,9 +150,16 @@ export function FlightRecorder() {
         y={78}
         fill={MC.phosphor}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.16em"
         textAnchor="middle"
+        textLength={svgLabelWidth(
+          "COMPOSITION: GREEN · SUBGRAPHS STILL COMPOSE",
+          TYPE.label,
+          scale,
+          0.16,
+        )}
+        lengthAdjust="spacingAndGlyphs"
       >
         COMPOSITION: GREEN · SUBGRAPHS STILL COMPOSE
       </text>
@@ -157,20 +178,29 @@ export function FlightRecorder() {
         y={DECK.y + 24}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.16em"
+        textLength={svgLabelWidth(
+          "NITRO REPLAY · OPERATIONS PUBLISHED BY REGISTERED CLIENTS",
+          TYPE.label,
+          scale,
+          0.16,
+        )}
+        lengthAdjust="spacingAndGlyphs"
       >
         NITRO REPLAY · OPERATIONS PUBLISHED BY REGISTERED CLIENTS
       </text>
 
       {REPLAYS.map((replay, i) => {
-        const y = DECK.y + 52 + i * ROW_H;
+        const y = DECK.y + 52 + i * (ROW_H + (rowGap - 15));
         const done = i < classified;
         const color = done ? VERDICT_COLOR[replay.verdict] : MC.dim;
+        const nameText = `${replay.client}  ${replay.operation}`;
+        const verdictText = done ? replay.verdict : "REPLAYING";
         return (
           <g key={replay.client}>
             <path
-              d={`M${DECK.x + 16} ${y + 26}H${DECK.x + DECK.w - 16}`}
+              d={`M${DECK.x + 16} ${y + 11 + rowGap}H${DECK.x + DECK.w - 16}`}
               stroke={MC.panelEdge}
               strokeOpacity="0.6"
             />
@@ -186,18 +216,22 @@ export function FlightRecorder() {
               y={y}
               fill={done ? MC.ink : MC.dim}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
+              textLength={svgLabelWidth(nameText, TYPE.label, scale)}
+              lengthAdjust="spacingAndGlyphs"
               style={{ transition: "fill 400ms ease" }}
             >
-              {`${replay.client}  ${replay.operation}`}
+              {nameText}
             </text>
             <text
               x={DECK.x + 40}
-              y={y + 15}
+              y={y + rowGap}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               letterSpacing="0.1em"
+              textLength={svgLabelWidth(replay.detail, TYPE.label, scale, 0.1)}
+              lengthAdjust="spacingAndGlyphs"
             >
               {replay.detail}
             </text>
@@ -206,9 +240,11 @@ export function FlightRecorder() {
               y={y + 4}
               fill={color}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               letterSpacing="0.16em"
               textAnchor="end"
+              textLength={svgLabelWidth(verdictText, TYPE.label, scale, 0.16)}
+              lengthAdjust="spacingAndGlyphs"
               style={{
                 transition: "fill 400ms ease",
                 animation: anim(
@@ -217,7 +253,7 @@ export function FlightRecorder() {
                 ),
               }}
             >
-              {done ? replay.verdict : "REPLAYING"}
+              {verdictText}
             </text>
           </g>
         );
@@ -239,9 +275,18 @@ export function FlightRecorder() {
         y={H - 31}
         fill={blocked ? MC.alert : MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.18em"
         textAnchor="middle"
+        textLength={svgLabelWidth(
+          blocked
+            ? "1 BREAKING · 1 RISKY · FLAGGED BEFORE THE MERGE"
+            : "REPLAYING REAL CLIENT OPERATIONS",
+          TYPE.label,
+          scale,
+          0.18,
+        )}
+        lengthAdjust="spacingAndGlyphs"
         style={{ transition: "fill 400ms ease" }}
       >
         {blocked

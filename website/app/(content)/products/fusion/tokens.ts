@@ -116,3 +116,60 @@ export const TYPE = {
   /** Only for scenes that render above 1x, where 10 lands at 11px or more. */
   labelTight: 10,
 } as const;
+
+/**
+ * A `TYPE` size in SVG viewBox units, boosted so its rendered pixel size
+ * never drops below `base` once the SVG's `viewBox` is scaled down to fit a
+ * narrower box. `scale` is the SVG's own rendered-width / viewBox-width
+ * ratio (`useSvgLabelScale` in `visuals/hooks.ts` measures it). At
+ * `scale >= 1` this returns `base` unchanged, so a visual's rendering at its
+ * native size or larger is untouched; below that, the viewBox size grows by
+ * the same factor the box shrinks by, holding the rendered pixel size at
+ * `base`.
+ */
+export function svgLabelSize(base: number, scale: number): number {
+  return scale > 0 ? Math.max(base / scale, base) : base;
+}
+
+/**
+ * Per-character advance of the site's mono stack (`FONTS.mono`), as a
+ * fraction of font-size; measured against this environment's rendering.
+ * Monospace faces keep this ratio fixed across sizes, which is what makes
+ * `svgLabelWidth` a reliable (not just approximate) footprint estimate.
+ */
+const MONO_ADVANCE = 0.6;
+
+/**
+ * The width, in SVG viewBox units, `text` should occupy once
+ * `svgLabelSize(base, scale)` has boosted its font-size — namely, the width
+ * it occupies at `base` today, so the boost grows its glyph height without
+ * growing its rendered footprint. Pass as a boosted `<text>`'s `textLength`
+ * (with `lengthAdjust="spacingAndGlyphs"`). At `scale >= 1` (no boost, e.g.
+ * at 1440) this returns `undefined`, so the attribute is left off entirely
+ * and that text renders exactly as it does today — an approximation here
+ * can never nudge an already-correct desktop render.
+ */
+export function svgLabelWidth(
+  text: string,
+  base: number,
+  scale: number,
+  letterSpacingEm = 0,
+): number | undefined {
+  if (scale >= 1) return undefined;
+  return text.length * base * (MONO_ADVANCE + letterSpacingEm);
+}
+
+/**
+ * A gap between two stacked `<text>` lines (or a line and the next row),
+ * widened only by however far `size` has grown past `base`, so two labels
+ * `svgLabelSize` boosted keep clear of each other. At `size === base` (today
+ * at 1440) this returns `originalGap` unchanged.
+ */
+export function svgLabelGap(
+  originalGap: number,
+  size: number,
+  base: number,
+  factor = 1.15,
+): number {
+  return originalGap + Math.max(0, size - base) * factor;
+}

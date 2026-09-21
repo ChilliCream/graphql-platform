@@ -1,7 +1,9 @@
 "use client";
 
-import { TYPE } from "../tokens";
-import { anim, useCycle, useSceneMotion } from "./hooks";
+import { useRef } from "react";
+
+import { TYPE, svgLabelGap, svgLabelSize, svgLabelWidth } from "../tokens";
+import { anim, useCycle, useSceneMotion, useSvgLabelScale } from "./hooks";
 import { MC, STATIONS } from "../palette";
 
 /**
@@ -66,9 +68,26 @@ export function PreflightChecklist() {
   const phase = useCycle(running, PHASES, BEAT, REST);
   const aborted = phase - 1 >= CONFLICT;
   const countdown = Math.max(5 - Math.min(phase, CONFLICT + 1), 0);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const scale = useSvgLabelScale(svgRef, W);
+  const label = svgLabelSize(TYPE.label, scale);
+  const caption = svgLabelSize(TYPE.caption, scale);
+  const h5 = svgLabelSize(TYPE.h5, scale);
+  /**
+   * The roster row name's size: `caption` everywhere there's room, capped at
+   * `label`'s floor inside the five-row roster, whose fixed-height column
+   * has no slack for `caption`'s full, proportionally larger boost.
+   */
+  const rosterNameSize = scale >= 1 ? caption : label;
+  /** Gap between a roster row's name and its meta line, below the boost. */
+  const rosterGap = scale >= 1 ? 16 : svgLabelGap(16, label, TYPE.label, 1.3);
+  const rosterStride = 54 + (rosterGap - 16);
+  /** Gap between a check row's label baseline and its divider rule. */
+  const checkDividerGap = svgLabelGap(10, label, TYPE.label, 0.6);
+  const checkStride = 40 + (checkDividerGap - 10);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
+    <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
       <style>{KEYFRAMES}</style>
       <rect width={W} height={H} fill={MC.bg} />
 
@@ -77,8 +96,10 @@ export function PreflightChecklist() {
         y={26}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.2em"
+        textLength={svgLabelWidth("STATION ROSTER", TYPE.label, scale, 0.2)}
+        lengthAdjust="spacingAndGlyphs"
       >
         STATION ROSTER
       </text>
@@ -96,7 +117,9 @@ export function PreflightChecklist() {
         y={ROSTER.y + 24}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
+        textLength={svgLabelWidth("SUBGRAPH · LANGUAGE", TYPE.label, scale)}
+        lengthAdjust="spacingAndGlyphs"
       >
         SUBGRAPH · LANGUAGE
       </text>
@@ -105,13 +128,17 @@ export function PreflightChecklist() {
         y={ROSTER.y + 24}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         textAnchor="end"
+        textLength={svgLabelWidth("RUNTIME PLUGIN", TYPE.label, scale)}
+        lengthAdjust="spacingAndGlyphs"
       >
         RUNTIME PLUGIN
       </text>
       {STATIONS.map((station, i) => {
-        const y = ROSTER.y + 56 + i * 54;
+        const y = ROSTER.y + 56 + i * rosterStride;
+        const nameText = station.name.toUpperCase();
+        const metaText = `${station.language} · STOCK GRAPHQL SERVER`;
         return (
           <g key={station.name}>
             <text
@@ -119,29 +146,35 @@ export function PreflightChecklist() {
               y={y}
               fill={MC.ink}
               fontFamily={MC.mono}
-              fontSize={TYPE.caption}
+              fontSize={rosterNameSize}
               letterSpacing="0.12em"
+              textLength={svgLabelWidth(nameText, TYPE.caption, scale, 0.12)}
+              lengthAdjust="spacingAndGlyphs"
             >
-              {station.name.toUpperCase()}
+              {nameText}
             </text>
             <text
               x={ROSTER.x + 14}
-              y={y + 16}
+              y={y + rosterGap}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               letterSpacing="0.06em"
+              textLength={svgLabelWidth(metaText, TYPE.label, scale, 0.06)}
+              lengthAdjust="spacingAndGlyphs"
             >
-              {`${station.language} · STOCK GRAPHQL SERVER`}
+              {metaText}
             </text>
             <text
               x={ROSTER.x + ROSTER.w - 14}
               y={y}
               fill={MC.phosphor}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               letterSpacing="0.14em"
               textAnchor="end"
+              textLength={svgLabelWidth("NONE", TYPE.label, scale, 0.14)}
+              lengthAdjust="spacingAndGlyphs"
             >
               NONE
             </text>
@@ -154,8 +187,15 @@ export function PreflightChecklist() {
         y={26}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.2em"
+        textLength={svgLabelWidth(
+          "COMPOSITION PRE-FLIGHT",
+          TYPE.label,
+          scale,
+          0.2,
+        )}
+        lengthAdjust="spacingAndGlyphs"
       >
         COMPOSITION PRE-FLIGHT
       </text>
@@ -175,7 +215,7 @@ export function PreflightChecklist() {
         y={LIST.y + 32}
         fill={aborted ? MC.alert : MC.phosphor}
         fontFamily={MC.mono}
-        fontSize={TYPE.h5}
+        fontSize={h5}
         letterSpacing="0.14em"
         style={{
           transition: "fill 400ms ease",
@@ -192,9 +232,16 @@ export function PreflightChecklist() {
         y={LIST.y + 32}
         fill={aborted ? MC.alert : MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.16em"
         textAnchor="end"
+        textLength={svgLabelWidth(
+          aborted ? "COUNTDOWN HELD" : "BUILD STEP RUNNING",
+          TYPE.label,
+          scale,
+          0.16,
+        )}
+        lengthAdjust="spacingAndGlyphs"
         style={{ transition: "fill 400ms ease" }}
       >
         {aborted ? "COUNTDOWN HELD" : "BUILD STEP RUNNING"}
@@ -202,7 +249,8 @@ export function PreflightChecklist() {
 
       {CHECKS.map((check, i) => {
         const state = checkState(i, phase);
-        const y = LIST.y + 74 + i * 40;
+        const y =
+          LIST.y + 74 + (svgLabelGap(0, h5, TYPE.h5) - 0) + i * checkStride;
         return (
           <g key={check}>
             <text
@@ -210,8 +258,10 @@ export function PreflightChecklist() {
               y={y}
               fill={state === "pending" ? MC.dim : MC.ink}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               letterSpacing="0.1em"
+              textLength={svgLabelWidth(check, TYPE.label, scale, 0.1)}
+              lengthAdjust="spacingAndGlyphs"
               style={{ transition: "fill 400ms ease" }}
             >
               {check}
@@ -221,15 +271,22 @@ export function PreflightChecklist() {
               y={y}
               fill={STATE_COLOR[state]}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               letterSpacing="0.14em"
               textAnchor="end"
+              textLength={svgLabelWidth(
+                STATE_LABEL[state],
+                TYPE.label,
+                scale,
+                0.14,
+              )}
+              lengthAdjust="spacingAndGlyphs"
               style={{ transition: "fill 400ms ease" }}
             >
               {STATE_LABEL[state]}
             </text>
             <path
-              d={`M${LIST.x + 16} ${y + 10}H${LIST.x + LIST.w - 16}`}
+              d={`M${LIST.x + 16} ${y + checkDividerGap}H${LIST.x + LIST.w - 16}`}
               stroke={state === "failed" ? MC.alert : MC.panelEdge}
               strokeOpacity={state === "failed" ? 0.6 : 0.7}
               style={{
@@ -246,11 +303,26 @@ export function PreflightChecklist() {
 
       <text
         x={LIST.x + LIST.w / 2}
-        y={LIST.y + 292}
+        y={
+          LIST.y +
+          74 +
+          (svgLabelGap(0, h5, TYPE.h5) - 0) +
+          (CHECKS.length - 1) * checkStride +
+          checkDividerGap +
+          svgLabelGap(48, label, TYPE.label, 0.8)
+        }
         fill={aborted ? MC.alert : MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         textAnchor="middle"
+        textLength={svgLabelWidth(
+          aborted
+            ? "Product.price: Float (Catalog) vs String (Billing)"
+            : "validating subgraphs against one another",
+          TYPE.label,
+          scale,
+        )}
+        lengthAdjust="spacingAndGlyphs"
         style={{ transition: "fill 400ms ease" }}
       >
         {aborted
@@ -274,9 +346,18 @@ export function PreflightChecklist() {
         y={H - 29}
         fill={aborted ? MC.alert : MC.phosphor}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.2em"
         textAnchor="middle"
+        textLength={svgLabelWidth(
+          aborted
+            ? "COMPOSITION FAILED · PIPELINE STOPPED · NOTHING DEPLOYED"
+            : "COMPOSITION RUNNING · IN THE BUILD, NOT AT RUNTIME",
+          TYPE.label,
+          scale,
+          0.2,
+        )}
+        lengthAdjust="spacingAndGlyphs"
         style={{ transition: "fill 400ms ease" }}
       >
         {aborted

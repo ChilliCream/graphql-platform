@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import type { RefObject } from "react";
 
 import { useReducedMotionPreference, useSceneActive } from "./Scene";
@@ -9,6 +9,56 @@ import { useReducedMotionPreference, useSceneActive } from "./Scene";
  * Motion gates for the Fusion page's console visuals. Every visual renders
  * its rest frame first and only starts moving once the gate is open.
  */
+
+/**
+ * Below this viewport width a panel can legitimately render narrower than
+ * its own SVG `viewBox` by desktop layout choice alone (a sidebar visual's
+ * `viewBox` sized for a wider slot than the aside it actually sits in, say)
+ * — that is a design ratio, not the viewport shrinking. `useSvgLabelScale`
+ * only boosts once the viewport itself has narrowed past this point, so a
+ * panel's desktop layout can never nudge its own desktop-width render.
+ */
+const DESKTOP_BREAKPOINT_PX = 1024;
+
+/**
+ * An SVG's rendered-width / viewBox-width ratio, kept current across
+ * resizes. Pairs with `svgLabelSize` (`../tokens`) so a visual's `<text>`
+ * sizes hold their minimum pixel size once the viewBox scales down for a
+ * narrow viewport. Defaults to `1` (no boost) until the first client
+ * measurement lands, so server-rendered markup matches the common desktop
+ * case.
+ */
+export function useSvgLabelScale(
+  ref: RefObject<SVGSVGElement | null>,
+  viewBoxWidth: number,
+): number {
+  const [scale, setScale] = useState(1);
+
+  useLayoutEffect(() => {
+    const node = ref.current;
+    if (!node || viewBoxWidth <= 0) return;
+
+    const measure = () => {
+      const width = node.getBoundingClientRect().width;
+      if (width <= 0) return;
+      const rendered = width / viewBoxWidth;
+      const atDesktop = window.innerWidth >= DESKTOP_BREAKPOINT_PX;
+      setScale(atDesktop ? Math.max(rendered, 1) : rendered);
+    };
+    measure();
+
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [ref, viewBoxWidth]);
+
+  return scale;
+}
 
 /** True while the enclosing `Scene` is in view, the tab is visible and motion is allowed. */
 export function useSceneMotion(): boolean {

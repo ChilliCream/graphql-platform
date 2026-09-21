@@ -1,7 +1,9 @@
 "use client";
 
-import { TYPE } from "../tokens";
-import { useCycle, useSceneMotion } from "./hooks";
+import { useRef } from "react";
+
+import { TYPE, svgLabelGap, svgLabelSize, svgLabelWidth } from "../tokens";
+import { useCycle, useSceneMotion, useSvgLabelScale } from "./hooks";
 import { MC, specTag } from "../palette";
 
 /**
@@ -63,13 +65,17 @@ function motionStyle(phase: number, x: number, y: number, shown: boolean) {
 export function QueryTrack() {
   const running = useSceneMotion();
   const phase = useCycle(running, PHASES, BEAT, REST);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const scale = useSvgLabelScale(svgRef, W);
+  const label = svgLabelSize(TYPE.label, scale);
+  const caption = svgLabelSize(TYPE.caption, scale);
 
   const inbound = phase === 0 ? CLIENT : GATE_IN;
   const outbound = phase >= 5 ? CLIENT : GATE_OUT;
   const latency = phase >= 4 ? "42" : phase >= 2 ? "18" : "--";
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
+    <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
       <style>{KEYFRAMES}</style>
       <rect width={W} height={H} fill={MC.bg} />
 
@@ -83,7 +89,7 @@ export function QueryTrack() {
         y={CLIENT.y - 22}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.16em"
       >
         MOBILE
@@ -93,7 +99,7 @@ export function QueryTrack() {
         y={CLIENT.y + 32}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.14em"
       >
         ONE QUERY
@@ -114,25 +120,36 @@ export function QueryTrack() {
         y={GATE.y + 26}
         fill={MC.ink}
         fontFamily={MC.mono}
-        fontSize={TYPE.caption}
+        fontSize={caption}
         letterSpacing="0.2em"
       >
         GATEWAY
       </text>
       <text
         x={GATE.x + 16}
-        y={GATE.y + 44}
+        y={GATE.y + 26 + svgLabelGap(18, label, TYPE.label)}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.04em"
+        textLength={svgLabelWidth(
+          "ONE ENDPOINT · QUERY PLAN",
+          TYPE.label,
+          scale,
+          0.04,
+        )}
+        lengthAdjust="spacingAndGlyphs"
       >
         ONE ENDPOINT · QUERY PLAN
       </text>
 
       {PLAN.map((row, i) => {
         const resolved = phase >= 2;
-        const y = GATE.y + 78 + i * 62;
+        const y =
+          GATE.y + 78 + (svgLabelGap(18, label, TYPE.label) - 18) + i * 62;
+        const arrowText = resolved
+          ? `→ ${row.station.toUpperCase()}`
+          : "→ RESOLVING";
         return (
           <g key={row.field}>
             <text
@@ -140,20 +157,24 @@ export function QueryTrack() {
               y={y}
               fill={MC.ink}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
+              textLength={svgLabelWidth(row.field, TYPE.label, scale)}
+              lengthAdjust="spacingAndGlyphs"
             >
               {row.field}
             </text>
             <text
               x={GATE.x + 16}
-              y={y + 18}
+              y={y + svgLabelGap(18, label, TYPE.label)}
               fill={resolved ? MC.phosphor : MC.dim}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               letterSpacing="0.14em"
+              textLength={svgLabelWidth(arrowText, TYPE.label, scale, 0.14)}
+              lengthAdjust="spacingAndGlyphs"
               style={{ transition: "fill 400ms ease" }}
             >
-              {resolved ? `→ ${row.station.toUpperCase()}` : "→ RESOLVING"}
+              {arrowText}
             </text>
           </g>
         );
@@ -164,8 +185,15 @@ export function QueryTrack() {
         y={GATE.y + GATE.h - 18}
         fill={MC.phosphor}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.14em"
+        textLength={svgLabelWidth(
+          `LATENCY ${latency} ms`,
+          TYPE.label,
+          scale,
+          0.14,
+        )}
+        lengthAdjust="spacingAndGlyphs"
       >
         {`LATENCY ${latency} ms`}
       </text>
@@ -173,6 +201,8 @@ export function QueryTrack() {
       {PLAN.map((row, i) => {
         const y = stationY(i);
         const called = phase >= 3;
+        const resultText =
+          phase >= 4 ? "PARTIAL RESULT RETURNED" : "SUBGRAPH STANDING BY";
         return (
           <g key={row.station}>
             <path
@@ -186,7 +216,13 @@ export function QueryTrack() {
               x={STATION_X}
               y={y - 30}
               width="158"
-              height="60"
+              height={
+                60 +
+                svgLabelGap(18, label, TYPE.label) -
+                18 +
+                svgLabelGap(14, label, TYPE.label) -
+                14
+              }
               rx="8"
               fill={MC.panel}
               stroke={called ? MC.phosphor : MC.panelEdge}
@@ -198,31 +234,52 @@ export function QueryTrack() {
               y={y - 8}
               fill={MC.ink}
               fontFamily={MC.mono}
-              fontSize={TYPE.caption}
+              fontSize={caption}
               letterSpacing="0.14em"
+              textLength={svgLabelWidth(
+                row.station.toUpperCase(),
+                TYPE.caption,
+                scale,
+                0.14,
+              )}
+              lengthAdjust="spacingAndGlyphs"
             >
               {row.station.toUpperCase()}
             </text>
             <text
               x={STATION_X + 12}
-              y={y + 10}
+              y={y - 8 + svgLabelGap(18, label, TYPE.label)}
               fill={MC.dim}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               letterSpacing="0.06em"
+              textLength={svgLabelWidth(
+                `${row.language} · ${specTag(row.spec)}`,
+                TYPE.label,
+                scale,
+                0.06,
+              )}
+              lengthAdjust="spacingAndGlyphs"
             >
               {`${row.language} · ${specTag(row.spec)}`}
             </text>
             <text
               x={STATION_X + 12}
-              y={y + 24}
+              y={
+                y -
+                8 +
+                svgLabelGap(18, label, TYPE.label) +
+                svgLabelGap(14, label, TYPE.label)
+              }
               fill={phase >= 4 ? MC.phosphor : MC.dim}
               fontFamily={MC.mono}
-              fontSize={TYPE.label}
+              fontSize={label}
               letterSpacing="0.02em"
+              textLength={svgLabelWidth(resultText, TYPE.label, scale, 0.02)}
+              lengthAdjust="spacingAndGlyphs"
               style={{ transition: "fill 400ms ease" }}
             >
-              {phase >= 4 ? "PARTIAL RESULT RETURNED" : "SUBGRAPH STANDING BY"}
+              {resultText}
             </text>
 
             <circle
@@ -269,7 +326,7 @@ export function QueryTrack() {
         y={H - 16}
         fill={MC.dim}
         fontFamily={MC.mono}
-        fontSize={TYPE.label}
+        fontSize={label}
         letterSpacing="0.16em"
         textAnchor="end"
       >
