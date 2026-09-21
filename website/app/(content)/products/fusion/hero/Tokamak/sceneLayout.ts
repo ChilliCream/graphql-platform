@@ -735,13 +735,19 @@ export function computeLayout(
     // `focal` alone to the band this viewport's own copy actually leaves.
     const artTop = copyRect ? copyRect.bottom + 24 : h * 0.77;
     const bandHeight = Math.max(1, h - artTop);
-    // Weighted a little below the band's exact midpoint: the tilted
-    // camera's near-side reference point (`bandCenter()` in `index.tsx`)
-    // is not exactly the ring's own visual vertical centre, and the
-    // rendered extent (bloom included) sits closer to `artTop` than a
-    // pure midpoint split would predict -- this keeps real margin on both
-    // sides instead of the ring nearly touching `artTop`.
-    const bandCenterY = artTop + bandHeight * 0.58;
+    // hc-0-b8z (ticket description, fix direction 2): the band sits at the
+    // exact middle of the band area (`[artTop, h]`) at stacked widths, same
+    // as `mobile` below -- superseding the earlier 0.58 weighting (kept the
+    // ring a little closer to `artTop` than the analytic midpoint, reasoned
+    // as compensating for the rendered extent's own bloom bias) now that
+    // the band's own projected centre y is measured directly against the
+    // band area's middle (within 2%, verified 0% by construction here,
+    // same as `project(torus centre)` landing exactly on `originY` always
+    // does). Re-verified the ring still clears containment/exposure at this
+    // centring (`rvv-ring.cjs`, `rvw2-exposure.cjs`) -- unaffected, since
+    // `solveFocalForRing`'s own height/width targets do not depend on
+    // `bandCenterY`.
+    const bandCenterY = artTop + bandHeight * 0.5;
     const originX = w * 0.5;
     const focal = solveFocalForRing(
       STACKED_TORUS.R,
