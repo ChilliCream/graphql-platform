@@ -3,7 +3,14 @@
 import { useRef } from "react";
 
 import { TYPE, svgLabelGap, svgLabelSize } from "../tokens";
-import { anim, useCycle, useSceneMotion, useSvgLabelScale } from "./hooks";
+import {
+  anim,
+  useCycle,
+  useNarrowViewport,
+  useSceneMotion,
+  useSvgLabelScale,
+} from "./hooks";
+import { dotLines, wrapWords } from "./lines";
 import { useSceneRatio } from "./Scene";
 import { MC } from "../palette";
 
@@ -74,30 +81,6 @@ const KEYFRAMES = `
 `;
 
 /**
- * Greedily wraps `text` at word boundaries so each line stays within
- * `maxChars` characters (an estimate of the mono face's natural width at
- * the mobile label size). The break space is kept as the next line's
- * leading character, so the lines' concatenated content is `text` again,
- * byte for byte.
- */
-function wrapWords(text: string, maxChars: number): readonly string[] {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let line = words[0] ?? "";
-  for (let i = 1; i < words.length; i++) {
-    const word = words[i];
-    if (line.length + 1 + word.length <= maxChars) {
-      line += ` ${word}`;
-    } else {
-      lines.push(line);
-      line = ` ${word}`;
-    }
-  }
-  lines.push(line);
-  return lines;
-}
-
-/**
  * Below 1024px the deck re-flows to a single narrow column: the schema/
  * composition banners split at their word boundaries instead of pinning to
  * their desktop footprint, the reel/tape header art drops out (no room),
@@ -118,22 +101,7 @@ const DECK_HEADER_TEXT =
   "NITRO REPLAY · OPERATIONS PUBLISHED BY REGISTERED CLIENTS";
 /** The deck header's wrapped lines, computed once so the row cursor below
  * starts below however many lines it actually takes. */
-const DECK_HEADER_LINES = ((): readonly string[] => {
-  const words = DECK_HEADER_TEXT.split(" ");
-  const lines: string[] = [];
-  let line = words[0] ?? "";
-  for (let i = 1; i < words.length; i++) {
-    const word = words[i];
-    if (line.length + 1 + word.length <= 28) {
-      line += ` ${word}`;
-    } else {
-      lines.push(line);
-      line = ` ${word}`;
-    }
-  }
-  lines.push(line);
-  return lines;
-})();
+const DECK_HEADER_LINES = wrapWords(DECK_HEADER_TEXT, 28);
 
 interface RowLayout {
   readonly replay: Replay;
@@ -179,13 +147,6 @@ const MOBILE_FOOTER_Y = MOBILE_DECK_BOTTOM + 40;
 const MOBILE_FOOTER_H = 76;
 const MOBILE_H = MOBILE_FOOTER_Y + MOBILE_FOOTER_H + 16;
 const MOBILE_RATIO = `${MOBILE_W} / ${MOBILE_H}`;
-
-/** Splits `text` at every ` · ` separator, each line keeping its leading
- * separator so the lines' concatenated content is `text` again. */
-function dotLines(text: string): readonly string[] {
-  const parts = text.split(" · ");
-  return parts.map((part, i) => (i === 0 ? part : ` · ${part}`));
-}
 
 interface StackedTextProps {
   readonly x: number;
@@ -263,7 +224,7 @@ export function FlightRecorder() {
   const blocked = classified >= REPLAYS.length;
   const svgRef = useRef<SVGSVGElement>(null);
   const desktopScale = useSvgLabelScale(svgRef, W);
-  const mobile = desktopScale < 1;
+  const mobile = useNarrowViewport();
   const mobileScale = useSvgLabelScale(svgRef, MOBILE_W);
   const scale = mobile ? mobileScale : desktopScale;
   useSceneRatio(mobile ? MOBILE_RATIO : null);

@@ -3,7 +3,13 @@
 import { useRef } from "react";
 
 import { TYPE, svgLabelGap, svgLabelSize } from "../tokens";
-import { anim, useCycle, useSceneMotion, useSvgLabelScale } from "./hooks";
+import {
+  anim,
+  useCycle,
+  useNarrowViewport,
+  useSceneMotion,
+  useSvgLabelScale,
+} from "./hooks";
 import { useSceneRatio } from "./Scene";
 import { MC, SOURCES, STATIONS, specTag } from "../palette";
 import type { StationSpec } from "../palette";
@@ -42,7 +48,13 @@ const BUS_M = {
   x: 16,
   y: STRIP_M_BOTTOM + 40,
   w: MOBILE_W - 32,
-  h: 400,
+  /**
+   * Tight to its own content (title, "ONE GATEWAY", the four-line spec
+   * legend, the footer caption): the desktop `BUS.h` (400) is sized for a
+   * bus that sits beside a taller channel strip, which this stacked mobile
+   * column doesn't have, so reusing it left an empty band above the footer.
+   */
+  h: 300,
 } as const;
 const MOBILE_H = BUS_M.y + BUS_M.h + 20;
 const MOBILE_RATIO = `${MOBILE_W} / ${MOBILE_H}`;
@@ -85,7 +97,7 @@ export function SpecPatchbay() {
   const repatched = phase >= 3;
   const svgRef = useRef<SVGSVGElement>(null);
   const desktopScale = useSvgLabelScale(svgRef, W);
-  const mobile = desktopScale < 1;
+  const mobile = useNarrowViewport();
   const mobileScale = useSvgLabelScale(svgRef, MOBILE_W);
   const scale = mobile ? mobileScale : desktopScale;
   useSceneRatio(mobile ? MOBILE_RATIO : null);
