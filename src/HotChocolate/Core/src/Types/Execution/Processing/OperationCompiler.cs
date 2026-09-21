@@ -723,8 +723,7 @@ public sealed partial class OperationCompiler
     {
         for (var i = 0; i < directives.Count; i++)
         {
-            if (directives[i].Name.Value.Equals(
-                InternalDirectiveNames.HasIncrementalParts, StringComparison.Ordinal))
+            if (directives[i].Name.Value.Equals(InternalDirectiveNames.HasIncrementalParts, StringComparison.Ordinal))
             {
                 return true;
             }
