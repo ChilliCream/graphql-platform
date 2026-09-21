@@ -317,6 +317,7 @@ internal sealed class FusionRequestExecutorManager
         features.Set(parserOptions);
         features.Set(CreateTypeResolverInterceptors(options));
         features.Set(new SchemaCancellationFeature());
+        features.Set(new OperationPlannerFeature(OperationPlanner.Version));
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
         {

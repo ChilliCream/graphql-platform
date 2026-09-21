@@ -302,7 +302,7 @@ public sealed class ShowTaskCommandTests(NitroCommandFixture fixture)
         var result = await ExecuteCommandAsync("agent", "tasks", "show", dependentId);
 
         // assert
-        using var document = System.Text.Json.JsonDocument.Parse(result.StdOut);
+        using var document = JsonDocument.Parse(result.StdOut);
         var root = document.RootElement;
 
         Assert.Empty(result.StdErr);

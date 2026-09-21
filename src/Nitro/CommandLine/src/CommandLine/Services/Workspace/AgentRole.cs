@@ -12,7 +12,7 @@ internal static class AgentRole
     public const string Reviewer = "reviewer";
     public const string Researcher = "researcher";
 
-    public static IReadOnlyList<string> WellKnown { get; } = Array.AsReadOnly<string>(
+    public static IReadOnlyList<string> WellKnown { get; } = Array.AsReadOnly(
     [
         Orchestrator,
         Planner,
