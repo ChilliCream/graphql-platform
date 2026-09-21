@@ -17,7 +17,7 @@ public sealed class CodexHooksEditorTests
         new("/home/agent/.dotnet/tools/nitro", []);
 
     [Fact]
-    public void Install_MissingFile_CreatesAllThreeEventsAsInstalled()
+    public void Install_MissingFile_CreatesAllManagedEventsAsInstalled()
     {
         var result = CodexHooksEditor.Install(null, s_descriptor);
 
@@ -30,6 +30,7 @@ public sealed class CodexHooksEditorTests
         {
             var group = SingleGroup(root, codexEvent);
             AssertCommand(group, CodexHooksTemplate.BuildCommand(s_descriptor, codexEvent), 10);
+            Assert.Equal(codexEvent == "PreToolUse" ? "^Bash$" : null, group["matcher"]?.GetValue<string>());
         }
 
         Assert.NotNull(root["hooks"]);
@@ -155,7 +156,47 @@ public sealed class CodexHooksEditorTests
         Assert.Equal(HookStatusOutcome.Outdated, sessionStart.Outcome);
         Assert.Equal("/opt/old/nitro agent hook codex session-start", sessionStart.InstalledCommand);
         Assert.All(
-            outdated.Where(r => r.Event != "SessionStart"), r => Assert.Equal(HookStatusOutcome.Missing, r.Outcome));
+            outdated.Where(r => r.Event is not "SessionStart"),
+            r => Assert.Equal(HookStatusOutcome.Missing, r.Outcome));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Install_PreToolUseWithMissingOrIncorrectMatcher_RepairsTheMatcher(bool removeMatcher)
+    {
+        var installed = CodexHooksEditor.Install(null, s_descriptor);
+        var root = Parse(installed.HooksJson);
+        var group = SingleGroup(root, "PreToolUse");
+
+        if (removeMatcher)
+        {
+            group.Remove("matcher");
+        }
+        else
+        {
+            group["matcher"] = "^Write$";
+        }
+
+        var repaired = CodexHooksEditor.Install(root.ToJsonString(), s_descriptor);
+
+        Assert.Equal(HookInstallOutcome.Updated, Assert.Single(repaired.Outcomes, o => o.Event == "PreToolUse").Outcome);
+        var repairedRoot = Parse(repaired.HooksJson);
+        Assert.Equal("^Bash$", SingleGroup(repairedRoot, "PreToolUse")["matcher"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void Status_PreToolUseWithChangedMatcher_IsOutdated()
+    {
+        var installed = CodexHooksEditor.Install(null, s_descriptor);
+        var root = Parse(installed.HooksJson);
+        var group = SingleGroup(root, "PreToolUse");
+        group["matcher"] = "^Write$";
+
+        var status = Assert.Single(
+            CodexHooksEditor.Status(root.ToJsonString(), s_descriptor), result => result.Event == "PreToolUse");
+
+        Assert.Equal(HookStatusOutcome.Outdated, status.Outcome);
     }
 
     [Fact]
@@ -172,6 +213,7 @@ public sealed class CodexHooksEditorTests
         var before = CodexHooksInstallFixtures.Read("uninstall", "with-foreign.json");
         var beforeRoot = Parse(before);
         var herdrBefore = ((JsonArray)Hooks(beforeRoot)["SessionStart"]!)[0];
+        var foreignPreToolUseBefore = ((JsonArray)Hooks(beforeRoot)["PreToolUse"]!)[0];
 
         var result = CodexHooksEditor.Uninstall(before);
 
@@ -182,9 +224,13 @@ public sealed class CodexHooksEditorTests
         Assert.Equal(["hooks"], afterRoot.Select(kv => kv.Key));
         var sessionStart = (JsonArray)Hooks(afterRoot)["SessionStart"]!;
         var herdrAfter = Assert.Single(sessionStart);
+        var preToolUse = (JsonArray)Hooks(afterRoot)["PreToolUse"]!;
+        var foreignPreToolUseAfter = Assert.Single(preToolUse);
 
         Assert.True(JsonNode.DeepEquals(herdrBefore, herdrAfter));
         Assert.Equal(herdrBefore!.ToJsonString(), herdrAfter!.ToJsonString());
+        Assert.True(JsonNode.DeepEquals(foreignPreToolUseBefore, foreignPreToolUseAfter));
+        Assert.Equal(foreignPreToolUseBefore!.ToJsonString(), foreignPreToolUseAfter!.ToJsonString());
     }
 
     [Fact]

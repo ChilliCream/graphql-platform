@@ -43,6 +43,18 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/agent/.dotnet/tools/nitro agent hook claude pre-tool-use",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   }
 }

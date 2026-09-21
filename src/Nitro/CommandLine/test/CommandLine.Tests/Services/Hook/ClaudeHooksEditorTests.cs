@@ -18,7 +18,7 @@ public sealed class ClaudeHooksEditorTests
         new("/home/agent/.dotnet/tools/nitro", []);
 
     [Fact]
-    public void Install_MissingFile_CreatesAllFourEventsAsInstalled()
+    public void Install_MissingFile_CreatesAllManagedEventsAsInstalled()
     {
         var result = ClaudeHooksEditor.Install(null, s_descriptor, DateTimeOffset.UnixEpoch);
 
@@ -32,9 +32,10 @@ public sealed class ClaudeHooksEditorTests
         {
             var group = SingleGroup(hooks, claudeEvent);
             AssertCommand(group, ClaudeHooksTemplate.BuildCommand(s_descriptor, claudeEvent), 10);
+            Assert.Equal(claudeEvent == "PreToolUse" ? "^Bash$" : null, group["matcher"]?.GetValue<string>());
         }
 
-        Assert.Equal(4, result.Sidecar.Count);
+        Assert.Equal(ClaudeHooksTemplate.Events.Count, result.Sidecar.Count);
         Assert.All(result.Sidecar.Values, e => Assert.Equal(DateTimeOffset.UnixEpoch, e.InstalledAt));
     }
 
@@ -167,11 +168,52 @@ public sealed class ClaudeHooksEditorTests
         var sessionStart = Assert.Single(outdated, r => r.Event == "SessionStart");
         Assert.Equal(HookStatusOutcome.Outdated, sessionStart.Outcome);
         Assert.Equal("/opt/old/nitro agent hook claude session-start", sessionStart.InstalledCommand);
-        Assert.All(outdated.Where(r => r.Event != "SessionStart"), r => Assert.Equal(HookStatusOutcome.Missing, r.Outcome));
+        Assert.All(
+            outdated.Where(r => r.Event is not "SessionStart"),
+            r => Assert.Equal(HookStatusOutcome.Missing, r.Outcome));
 
         var manuallyEdited = ClaudeHooksEditor.Status(
             ClaudeHooksInstallFixtures.Read("install", "manually-edited.json"), s_descriptor);
         Assert.Equal(HookStatusOutcome.Outdated, Assert.Single(manuallyEdited, r => r.Event == "SessionStart").Outcome);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Install_PreToolUseWithMissingOrIncorrectMatcher_RepairsTheMatcher(bool removeMatcher)
+    {
+        var installed = ClaudeHooksEditor.Install(null, s_descriptor, DateTimeOffset.UnixEpoch);
+        var root = Parse(installed.SettingsJson);
+        var group = SingleGroup((JsonObject)root["hooks"]!, "PreToolUse");
+
+        if (removeMatcher)
+        {
+            group.Remove("matcher");
+        }
+        else
+        {
+            group["matcher"] = "^Write$";
+        }
+
+        var repaired = ClaudeHooksEditor.Install(root.ToJsonString(), s_descriptor, DateTimeOffset.UnixEpoch);
+
+        Assert.Equal(HookInstallOutcome.Updated, Assert.Single(repaired.Outcomes, o => o.Event == "PreToolUse").Outcome);
+        var repairedRoot = Parse(repaired.SettingsJson);
+        Assert.Equal("^Bash$", SingleGroup((JsonObject)repairedRoot["hooks"]!, "PreToolUse")["matcher"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public void Status_PreToolUseWithChangedMatcher_IsOutdated()
+    {
+        var installed = ClaudeHooksEditor.Install(null, s_descriptor, DateTimeOffset.UnixEpoch);
+        var root = Parse(installed.SettingsJson);
+        var group = SingleGroup((JsonObject)root["hooks"]!, "PreToolUse");
+        group["matcher"] = "^Write$";
+
+        var status = Assert.Single(
+            ClaudeHooksEditor.Status(root.ToJsonString(), s_descriptor), result => result.Event == "PreToolUse");
+
+        Assert.Equal(HookStatusOutcome.Outdated, status.Outcome);
     }
 
     [Fact]
@@ -190,6 +232,7 @@ public sealed class ClaudeHooksEditorTests
         var beforeRoot = Parse(before);
         var beforeHooks = (JsonObject)beforeRoot["hooks"]!;
         var herdrBefore = ((JsonArray)beforeHooks["SessionStart"]!)[0];
+        var foreignPreToolUseBefore = ((JsonArray)beforeHooks["PreToolUse"]!)[0];
 
         var sidecar = SidecarFor(before);
 
@@ -201,13 +244,17 @@ public sealed class ClaudeHooksEditorTests
         var afterRoot = Parse(result.SettingsJson);
         var afterHooks = (JsonObject)afterRoot["hooks"]!;
 
-        // Only the herdr-owning event survives, and only the herdr group in it.
-        Assert.Equal(["SessionStart"], afterHooks.Select(kv => kv.Key));
+        // Only foreign hook groups survive.
+        Assert.Equal(["SessionStart", "PreToolUse"], afterHooks.Select(kv => kv.Key));
         var sessionStart = (JsonArray)afterHooks["SessionStart"]!;
         var herdrAfter = Assert.Single(sessionStart);
+        var preToolUse = (JsonArray)afterHooks["PreToolUse"]!;
+        var foreignPreToolUseAfter = Assert.Single(preToolUse);
 
         Assert.True(JsonNode.DeepEquals(herdrBefore, herdrAfter));
         Assert.Equal(herdrBefore!.ToJsonString(), herdrAfter!.ToJsonString());
+        Assert.True(JsonNode.DeepEquals(foreignPreToolUseBefore, foreignPreToolUseAfter));
+        Assert.Equal(foreignPreToolUseBefore!.ToJsonString(), foreignPreToolUseAfter!.ToJsonString());
     }
 
     [Fact]
