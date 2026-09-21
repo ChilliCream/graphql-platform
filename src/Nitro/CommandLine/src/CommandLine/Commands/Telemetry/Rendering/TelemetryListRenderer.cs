@@ -21,8 +21,20 @@ internal sealed class TelemetryListRenderer(INitroConsole console)
         string things,
         JsonTypeInfo<TItem> jsonTypeInfo,
         params TelemetryListColumn<TItem>[] columns)
+        => Render(items, total, hasMore, things, jsonTypeInfo, emptyResultHint: null, columns);
+
+    public void Render<TItem>(
+        IReadOnlyList<TItem> items,
+        int? total,
+        bool hasMore,
+        string things,
+        JsonTypeInfo<TItem> jsonTypeInfo,
+        string? emptyResultHint,
+        params TelemetryListColumn<TItem>[] columns)
     {
-        var hint = CreateHint(items.Count, total, hasMore);
+        var hint = items.Count == 0 && emptyResultHint is not null
+            ? emptyResultHint
+            : CreateHint(items.Count, total, hasMore);
 
         if (console.OutputFormat is OutputFormat.Ndjson)
         {
@@ -36,7 +48,7 @@ internal sealed class TelemetryListRenderer(INitroConsole console)
             return;
         }
 
-        RenderTable(items, things, columns, hint);
+        RenderTable(items, things, columns, hint, emptyResultHint);
     }
 
     private static string? CreateHint(int returned, int? total, bool hasMore)
@@ -141,11 +153,18 @@ internal sealed class TelemetryListRenderer(INitroConsole console)
         IReadOnlyList<TItem> items,
         string things,
         IReadOnlyList<TelemetryListColumn<TItem>> columns,
-        string? hint)
+        string? hint,
+        string? emptyResultHint)
     {
         if (items.Count == 0)
         {
             console.WriteLine($"No {things} found.");
+
+            if (emptyResultHint is not null)
+            {
+                console.WriteLine(emptyResultHint);
+            }
+
             return;
         }
 

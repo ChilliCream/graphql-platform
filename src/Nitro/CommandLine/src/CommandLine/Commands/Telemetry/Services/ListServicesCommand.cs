@@ -53,7 +53,7 @@ internal sealed class ListServicesCommand : Command
         var until = parseResult.GetValue(Opt<TelemetryUntilOption>.Instance);
         var limit = parseResult.GetValue(Opt<TelemetryLimitOption>.Instance) ?? 50;
 
-        if (!TryCompileFilter(console, filterText, out var filter))
+        if (!TryCompileFilter(console, filterText, out var filter, out var parsedFilter))
         {
             return ExitCodes.Error;
         }
@@ -70,6 +70,16 @@ internal sealed class ListServicesCommand : Command
             cancellationToken);
 
         var items = page.Items.Select(ServiceListItem.From).ToArray();
+        var emptyResultHint = await GetEmptyResultHintAsync(
+            client,
+            workspaceId,
+            items,
+            filterText,
+            search,
+            parsedFilter,
+            since,
+            until,
+            cancellationToken);
         var renderer = new TelemetryListRenderer(console);
         renderer.Render(
             items,
@@ -77,6 +87,7 @@ internal sealed class ListServicesCommand : Command
             page.HasNextPage,
             "services",
             ServiceListJsonContext.Default.ServiceListItem,
+            emptyResultHint,
             new TelemetryListColumn<ServiceListItem>("Name", item => item.Name),
             new TelemetryListColumn<ServiceListItem>("Environments", item => item.Environments),
             new TelemetryListColumn<ServiceListItem>("Last version", item => item.LastVersion));
@@ -84,10 +95,48 @@ internal sealed class ListServicesCommand : Command
         return ExitCodes.Success;
     }
 
+    private static async Task<string?> GetEmptyResultHintAsync(
+        ITelemetryClient client,
+        string workspaceId,
+        IReadOnlyList<ServiceListItem> items,
+        string? filterText,
+        string? search,
+        FilterNode? parsedFilter,
+        DateTimeOffset? since,
+        DateTimeOffset? until,
+        CancellationToken cancellationToken)
+    {
+        if (items.Count != 0
+            || (string.IsNullOrWhiteSpace(filterText) && string.IsNullOrWhiteSpace(search)))
+        {
+            return null;
+        }
+
+        try
+        {
+            var attributeKeys = await client.ListAttributeKeysAsync(
+                workspaceId,
+                OpenTelemetrySignalKind.Traces,
+                kinds: null,
+                search: null,
+                since,
+                until,
+                first: 50,
+                after: null,
+                cancellationToken);
+            return KeySuggestions.CreateHint(parsedFilter, attributeKeys.Items, OpenTelemetrySignalKind.Traces);
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            return null;
+        }
+    }
+
     private static bool TryCompileFilter(
         INitroConsole console,
         string? filterText,
-        out OpenTelemetryFilterInput? filter)
+        out OpenTelemetryFilterInput? filter,
+        out FilterNode? parsedFilter)
     {
         try
         {
@@ -99,12 +148,14 @@ internal sealed class ListServicesCommand : Command
                 severity: null,
                 traceId: null,
                 search: null,
-                service: null);
+                service: null,
+                out parsedFilter);
             return true;
         }
         catch (FilterParseException exception)
         {
             filter = null;
+            parsedFilter = null;
             RenderFilterParseError(console, filterText!, exception);
             return false;
         }

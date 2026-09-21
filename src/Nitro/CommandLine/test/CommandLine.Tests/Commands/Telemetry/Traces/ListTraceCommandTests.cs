@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Telemetry;
 using ChilliCream.Nitro.Client.Telemetry.Models;
 using Moq;
 
@@ -157,7 +158,9 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
             "timeout",
             "--service",
             "checkout");
-        var filter = (OpenTelemetryFilterInput?)TelemetryClientMock.Invocations.Single().Arguments[1];
+        var filter = (OpenTelemetryFilterInput?)TelemetryClientMock.Invocations
+            .Single(invocation => invocation.Method.Name == nameof(ITelemetryClient.ListTracesAsync))
+            .Arguments[1];
 
         // assert
         result.AssertSuccess();
@@ -256,23 +259,66 @@ public sealed class ListTraceCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task List_Should_ReturnEmptyResult_When_NoTracesExist()
+    public async Task List_Should_WriteSuggestionHintInAgentEnvelope_When_FilteredResultHasAnUnknownKey()
     {
         // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
+        SetupAgentMode();
         SetupSessionWithWorkspace();
         SetupListTraces();
+        SetupListAttributeKeys(
+            keys:
+            [
+                new AttributeKeyRow("Span", "http.response.status_code"),
+                new AttributeKeyRow("Span", "http.status_code")
+            ]);
 
         // act
         var result = await ExecuteCommandAsync(
             "telemetry",
             "traces",
-            "list");
+            "list",
+            "--filter",
+            "http.statuscode:>=500");
 
         // assert
         result.AssertSuccess(
             """
-            No traces found.
+            {"items":[],"returned":0,"total":null,"hasMore":false,"hint":"no results; unknown key \u0027http.statuscode\u0027, did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal traces to list keys."}
+            """);
+        TelemetryClientMock.Verify(
+            x => x.ListAttributeKeysAsync(
+                WorkspaceId,
+                OpenTelemetrySignalKind.Traces,
+                null,
+                null,
+                It.IsAny<DateTimeOffset?>(),
+                It.IsAny<DateTimeOffset?>(),
+                50,
+                null,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task List_Should_NotWriteSuggestionHint_When_FilterKeyIsKnown()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupListTraces();
+        SetupListAttributeKeys(keys: [new AttributeKeyRow("Span", "http.statuscode")]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "traces",
+            "list",
+            "--filter",
+            "http.statuscode:>=500");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {"items":[],"returned":0,"total":null,"hasMore":false}
             """);
     }
 

@@ -15,10 +15,32 @@ internal static class FilterFlags
         string? traceId,
         string? search,
         string? service)
+        => Compile(
+            filter,
+            signal,
+            hasError,
+            minDurationMs,
+            severity,
+            traceId,
+            search,
+            service,
+            out _);
+
+    public static OpenTelemetryFilterInput? Compile(
+        string? filter,
+        TelemetryFilterSignal signal,
+        bool hasError,
+        int? minDurationMs,
+        string? severity,
+        string? traceId,
+        string? search,
+        string? service,
+        out FilterNode? parsedFilter)
     {
         var freeTextKey = signal == TelemetryFilterSignal.Traces ? "span.name" : "log.message";
         var clauses = new List<OpenTelemetryFilterInput>();
-        var parsed = FilterCompiler.Compile(filter, freeTextKey, signal);
+        parsedFilter = string.IsNullOrWhiteSpace(filter) ? null : FilterParser.Parse(filter, signal);
+        var parsed = FilterCompiler.Compile(parsedFilter, freeTextKey);
         if (parsed is not null)
         {
             clauses.Add(parsed);

@@ -115,6 +115,26 @@ public sealed class FilterFlagsTests
             """);
     }
 
+    [Fact]
+    public void Compile_Should_ReturnTheParsedFilter_When_FilterIsProvided()
+    {
+        // act
+        _ = FilterFlags.Compile(
+            "http.statuscode:>=500",
+            TelemetryFilterSignal.Traces,
+            hasError: false,
+            minDurationMs: null,
+            severity: null,
+            traceId: null,
+            search: null,
+            service: null,
+            out var parsedFilter);
+
+        // assert
+        var predicate = Assert.IsType<FilterPredicateNode>(parsedFilter);
+        Assert.Equal("http.statuscode", predicate.Field);
+    }
+
     [Theory]
     [InlineData("trace", 6)]
     [InlineData("debug", 5)]

@@ -58,14 +58,17 @@ internal sealed class ListTraceCommand : Command
         }
 
         var filterText = parseResult.GetValue(Opt<TelemetryFilterOption>.Instance);
+        var search = parseResult.GetValue(Opt<TelemetrySearchOption>.Instance);
+        var service = parseResult.GetValue(Opt<TelemetryServiceOption>.Instance);
         if (!TryCompileFilter(
             console,
             filterText,
             parseResult.GetValue(Opt<TelemetryHasErrorOption>.Instance),
             parseResult.GetValue(Opt<TelemetryMinDurationOption>.Instance),
-            parseResult.GetValue(Opt<TelemetrySearchOption>.Instance),
-            parseResult.GetValue(Opt<TelemetryServiceOption>.Instance),
-            out var filter))
+            search,
+            service,
+            out var filter,
+            out var parsedFilter))
         {
             return ExitCodes.Error;
         }
@@ -94,6 +97,16 @@ internal sealed class ListTraceCommand : Command
             .OrderByDescending(static trace => trace.Start)
             .Select(TraceListItem.From)
             .ToArray();
+        var emptyResultHint = await GetEmptyResultHintAsync(
+            client,
+            workspaceId,
+            items,
+            filterText,
+            search,
+            parsedFilter,
+            since,
+            until,
+            cancellationToken);
         var renderer = new TelemetryListRenderer(console);
         renderer.Render(
             items,
@@ -101,6 +114,7 @@ internal sealed class ListTraceCommand : Command
             page.HasNextPage,
             "traces",
             TraceListJsonContext.Default.TraceListItem,
+            emptyResultHint,
             new TelemetryListColumn<TraceListItem>("Start", item => FormatStart(item.Start)),
             new TelemetryListColumn<TraceListItem>("Service", item => item.Service),
             new TelemetryListColumn<TraceListItem>("Name", item => item.Name),
@@ -111,6 +125,43 @@ internal sealed class ListTraceCommand : Command
         return ExitCodes.Success;
     }
 
+    private static async Task<string?> GetEmptyResultHintAsync(
+        ITelemetryClient client,
+        string workspaceId,
+        IReadOnlyList<TraceListItem> items,
+        string? filterText,
+        string? search,
+        FilterNode? parsedFilter,
+        DateTimeOffset? since,
+        DateTimeOffset? until,
+        CancellationToken cancellationToken)
+    {
+        if (items.Count != 0
+            || (string.IsNullOrWhiteSpace(filterText) && string.IsNullOrWhiteSpace(search)))
+        {
+            return null;
+        }
+
+        try
+        {
+            var attributeKeys = await client.ListAttributeKeysAsync(
+                workspaceId,
+                OpenTelemetrySignalKind.Traces,
+                kinds: null,
+                search: null,
+                since,
+                until,
+                first: 50,
+                after: null,
+                cancellationToken);
+            return KeySuggestions.CreateHint(parsedFilter, attributeKeys.Items, OpenTelemetrySignalKind.Traces);
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            return null;
+        }
+    }
+
     private static bool TryCompileFilter(
         INitroConsole console,
         string? filterText,
@@ -118,7 +169,8 @@ internal sealed class ListTraceCommand : Command
         int? minDurationMs,
         string? search,
         string? service,
-        out OpenTelemetryFilterInput? filter)
+        out OpenTelemetryFilterInput? filter,
+        out FilterNode? parsedFilter)
     {
         try
         {
@@ -130,13 +182,15 @@ internal sealed class ListTraceCommand : Command
                 severity: null,
                 traceId: null,
                 search,
-                service);
+                service,
+                out parsedFilter);
             return true;
         }
         catch (FilterParseException exception)
         {
             RenderFilterParseError(console, filterText!, exception);
             filter = null;
+            parsedFilter = null;
             return false;
         }
     }

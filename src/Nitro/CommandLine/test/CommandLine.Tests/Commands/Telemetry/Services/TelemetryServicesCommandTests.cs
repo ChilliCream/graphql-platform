@@ -1,3 +1,7 @@
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Telemetry.Models;
+using Moq;
+
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Telemetry.Services;
 
 public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
@@ -209,6 +213,71 @@ public sealed class TelemetryServicesCommandTests(NitroCommandFixture fixture)
         result.AssertSuccess(
             """
             No services found.
+            """);
+    }
+
+    [Fact]
+    public async Task List_Should_WriteSuggestionHint_When_FilteredResultHasAnUnknownKey()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSessionWithWorkspace();
+        SetupListServices(_ => true);
+        SetupListAttributeKeys(
+            keys:
+            [
+                new AttributeKeyRow("Span", "http.response.status_code"),
+                new AttributeKeyRow("Span", "http.status_code")
+            ]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "list",
+            "--filter",
+            "http.statuscode:>=500");
+
+        // assert
+        result.AssertSuccess(
+            """
+            No services found.
+            no results; unknown key 'http.statuscode', did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal traces to list keys.
+            """);
+        TelemetryClientMock.Verify(
+            x => x.ListAttributeKeysAsync(
+                WorkspaceId,
+                OpenTelemetrySignalKind.Traces,
+                null,
+                null,
+                It.IsAny<DateTimeOffset?>(),
+                It.IsAny<DateTimeOffset?>(),
+                50,
+                null,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task List_Should_NotWriteSuggestionHint_When_FilterKeyIsKnown()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupListServices(_ => true);
+        SetupListAttributeKeys(keys: [new AttributeKeyRow("Span", "http.statuscode")]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "services",
+            "list",
+            "--filter",
+            "http.statuscode:>=500");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {"items":[],"returned":0,"total":null,"hasMore":false}
             """);
     }
 

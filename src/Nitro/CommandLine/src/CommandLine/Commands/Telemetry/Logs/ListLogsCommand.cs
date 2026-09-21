@@ -63,7 +63,8 @@ internal sealed class ListLogsCommand : Command
             traceId,
             search,
             service,
-            out var filter))
+            out var filter,
+            out var parsedFilter))
         {
             return ExitCodes.Error;
         }
@@ -86,6 +87,16 @@ internal sealed class ListLogsCommand : Command
             .OrderByDescending(static log => log.Start)
             .Select(LogListItem.From)
             .ToArray();
+        var emptyResultHint = await GetEmptyResultHintAsync(
+            client,
+            workspaceId,
+            items,
+            filterText,
+            search,
+            parsedFilter,
+            since,
+            until,
+            cancellationToken);
         var renderer = new TelemetryListRenderer(console);
         renderer.Render(
             items,
@@ -93,6 +104,7 @@ internal sealed class ListLogsCommand : Command
             page.HasNextPage,
             "logs",
             LogListJsonContext.Default.LogListItem,
+            emptyResultHint,
             new TelemetryListColumn<LogListItem>("Time", item => LogPresentation.FormatTime(item.Epoch)),
             new TelemetryListColumn<LogListItem>("Severity", item => item.SeverityText),
             new TelemetryListColumn<LogListItem>("Service", item => item.ServiceName),
@@ -102,6 +114,43 @@ internal sealed class ListLogsCommand : Command
         return ExitCodes.Success;
     }
 
+    private static async Task<string?> GetEmptyResultHintAsync(
+        ITelemetryClient client,
+        string workspaceId,
+        IReadOnlyList<LogListItem> items,
+        string? filterText,
+        string? search,
+        FilterNode? parsedFilter,
+        DateTimeOffset? since,
+        DateTimeOffset? until,
+        CancellationToken cancellationToken)
+    {
+        if (items.Count != 0
+            || (string.IsNullOrWhiteSpace(filterText) && string.IsNullOrWhiteSpace(search)))
+        {
+            return null;
+        }
+
+        try
+        {
+            var attributeKeys = await client.ListAttributeKeysAsync(
+                workspaceId,
+                OpenTelemetrySignalKind.Logs,
+                kinds: null,
+                search: null,
+                since,
+                until,
+                first: 50,
+                after: null,
+                cancellationToken);
+            return KeySuggestions.CreateHint(parsedFilter, attributeKeys.Items, OpenTelemetrySignalKind.Logs);
+        }
+        catch (Exception) when (!cancellationToken.IsCancellationRequested)
+        {
+            return null;
+        }
+    }
+
     private static bool TryCompileFilter(
         INitroConsole console,
         string? filterText,
@@ -109,7 +158,8 @@ internal sealed class ListLogsCommand : Command
         string? traceId,
         string? search,
         string? service,
-        out OpenTelemetryFilterInput? filter)
+        out OpenTelemetryFilterInput? filter,
+        out FilterNode? parsedFilter)
     {
         try
         {
@@ -121,13 +171,15 @@ internal sealed class ListLogsCommand : Command
                 severity?.ToString(),
                 traceId,
                 search,
-                service);
+                service,
+                out parsedFilter);
             return true;
         }
         catch (FilterParseException exception)
         {
             RenderFilterParseError(console, filterText!, exception);
             filter = null;
+            parsedFilter = null;
             return false;
         }
     }

@@ -190,6 +190,105 @@ public sealed class TelemetryLogsCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
+    public async Task List_Should_WriteSuggestionHint_When_FilteredResultHasAnUnknownKey()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSessionWithWorkspace();
+        SetupListLogs();
+        SetupListAttributeKeys(
+            keys:
+            [
+                new AttributeKeyRow("Log", "http.response.status_code"),
+                new AttributeKeyRow("Log", "http.status_code")
+            ]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "logs",
+            "list",
+            "--filter",
+            "http.statuscode:>=500");
+
+        // assert
+        result.AssertSuccess(
+            """
+            No logs found.
+            no results; unknown key 'http.statuscode', did you mean http.status_code, http.response.status_code? Run nitro telemetry attributes keys --signal logs to list keys.
+            """);
+        TelemetryClientMock.Verify(
+            x => x.ListAttributeKeysAsync(
+                WorkspaceId,
+                OpenTelemetrySignalKind.Logs,
+                null,
+                null,
+                It.IsAny<DateTimeOffset?>(),
+                It.IsAny<DateTimeOffset?>(),
+                50,
+                null,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task List_Should_NotWriteSuggestionHint_When_FilterKeyIsKnown()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupListLogs();
+        SetupListAttributeKeys(keys: [new AttributeKeyRow("Log", "http.statuscode")]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "logs",
+            "list",
+            "--filter",
+            "http.statuscode:>=500");
+
+        // assert
+        result.AssertSuccess(
+            """
+            {"items":[],"returned":0,"total":null,"hasMore":false}
+            """);
+    }
+
+    [Fact]
+    public async Task List_Should_ReturnOrdinaryEmptyResult_When_AttributeKeyLookupFails()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSessionWithWorkspace();
+        SetupListLogs();
+        TelemetryClientMock.Setup(x => x.ListAttributeKeysAsync(
+                WorkspaceId,
+                OpenTelemetrySignalKind.Logs,
+                null,
+                null,
+                It.IsAny<DateTimeOffset?>(),
+                It.IsAny<DateTimeOffset?>(),
+                50,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "telemetry",
+            "logs",
+            "list",
+            "--filter",
+            "http.statuscode:>=500");
+
+        // assert
+        result.AssertSuccess(
+            """
+            No logs found.
+            """);
+    }
+
+    [Fact]
     public async Task Show_Should_WriteExceptionDetails_When_LogContainsAnException()
     {
         // arrange
