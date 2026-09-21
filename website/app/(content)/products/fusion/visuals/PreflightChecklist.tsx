@@ -3,7 +3,14 @@
 import { useRef } from "react";
 
 import { TYPE, svgLabelGap, svgLabelSize } from "../tokens";
-import { anim, useCycle, useSceneMotion, useSvgLabelScale } from "./hooks";
+import {
+  anim,
+  useCycle,
+  useNarrowViewport,
+  useSceneMotion,
+  useSvgLabelScale,
+} from "./hooks";
+import { dotLines } from "./lines";
 import { useSceneRatio } from "./Scene";
 import { MC, STATIONS } from "../palette";
 
@@ -78,16 +85,6 @@ const STATE_LABEL: Record<CheckState, string> = {
   stopped: "NOT RUN",
 };
 
-/**
- * Splits `text` at every ` · ` separator into lines a `<tspan>` stack can
- * wrap onto their own rows, each line keeping its leading separator so the
- * lines' concatenated content is `text` again, byte for byte.
- */
-function dotLines(text: string): readonly string[] {
-  const parts = text.split(" · ");
-  return parts.map((part, i) => (i === 0 ? part : ` · ${part}`));
-}
-
 interface StackedTextProps {
   readonly x: number;
   readonly y: number;
@@ -137,10 +134,9 @@ export function PreflightChecklist() {
   const countdown = Math.max(5 - Math.min(phase, CONFLICT + 1), 0);
   const svgRef = useRef<SVGSVGElement>(null);
   const desktopScale = useSvgLabelScale(svgRef, W);
-  const mobile = desktopScale < 1;
+  const mobile = useNarrowViewport();
   const mobileScale = useSvgLabelScale(svgRef, MOBILE_W);
   const scale = mobile ? mobileScale : desktopScale;
-  useSceneRatio(mobile ? MOBILE_RATIO : null);
   const label = svgLabelSize(TYPE.label, scale);
   const caption = svgLabelSize(TYPE.caption, scale);
   const h5 = svgLabelSize(TYPE.h5, scale);
@@ -156,11 +152,33 @@ export function PreflightChecklist() {
   /** Gap between a check row's label baseline and its divider rule. */
   const checkDividerGap = svgLabelGap(10, label, TYPE.label, 0.6);
   const checkStride = 40 + (checkDividerGap - 10);
+  /**
+   * A sidebar-narrow desktop slot (a `lg:` two-column row before its own
+   * `W`-wide breakpoint) boosts `label` here the same way a narrow viewport
+   * does. "SUBGRAPH · LANGUAGE" and "RUNTIME PLUGIN" share the roster's
+   * 250-unit header line at `label`'s un-boosted size with room to spare,
+   * but not once boosted; past that, and past 4 chars/unit for the
+   * conflict caption's own longest line, they re-flow the same way the
+   * mobile layout's own headers and captions already do.
+   */
+  const crowded = !mobile && scale < 1;
+  /** The roster header's own gap once its two labels stack instead of
+   * sitting side by side, and the extra room the first roster row needs to
+   * clear it. */
+  const rosterHeaderGap = svgLabelGap(16, label, TYPE.label, 1.2);
+  const rosterHeaderExtra = crowded ? rosterHeaderGap : 0;
 
   const roster = mobile ? ROSTER_M : ROSTER;
   const list = mobile ? LIST_M : LIST;
   const rosterHeight = 332;
   const listHeight = 332;
+  /**
+   * The roster box's own width, widened into the roster/list gap (26 units
+   * of plain whitespace, never the list column's own space) when crowded,
+   * so a boosted row's longest meta line ("STOCK GRAPHQL SERVER" after the
+   * language) still clears the box instead of running past its edge.
+   */
+  const rosterW = crowded ? roster.w + 20 : roster.w;
 
   const bannerText = aborted
     ? "COMPOSITION FAILED · PIPELINE STOPPED · NOTHING DEPLOYED"
@@ -179,22 +197,34 @@ export function PreflightChecklist() {
     checkDividerGap +
     svgLabelGap(48, label, TYPE.label, 0.8);
 
-  const footerY = mobile ? list.y + listHeight + 40 : H - 52;
-  const footerH = mobile ? (aborted ? 84 : 60) : 36;
-  const footerTextY = mobile ? footerY + (aborted ? 30 : 34) : H - 29;
+  /**
+   * `crowded`'s footer banner also stacks onto several lines (the same
+   * `dotLines` split the mobile layout already renders), so it takes the
+   * same taller footer box mobile uses instead of the desktop one-liner's
+   * fixed 36-unit band — and, since the panel is otherwise this same
+   * `W`-wide desktop layout, that taller footer needs the viewBox itself to
+   * grow to still hold it.
+   */
+  const footerY = mobile || crowded ? list.y + listHeight + 40 : H - 52;
+  const footerH = mobile || crowded ? (aborted ? 84 : 60) : 36;
+  const footerTextY =
+    mobile || crowded ? footerY + (aborted ? 30 : 34) : H - 29;
+  const viewBoxH = mobile
+    ? MOBILE_H
+    : crowded
+      ? Math.round(footerY + footerH + 20)
+      : H;
+
+  useSceneRatio(mobile ? MOBILE_RATIO : crowded ? `${W} / ${viewBoxH}` : null);
 
   return (
     <svg
       ref={svgRef}
-      viewBox={`0 0 ${mobile ? MOBILE_W : W} ${mobile ? MOBILE_H : H}`}
+      viewBox={`0 0 ${mobile ? MOBILE_W : W} ${viewBoxH}`}
       className="h-full w-full"
     >
       <style>{KEYFRAMES}</style>
-      <rect
-        width={mobile ? MOBILE_W : W}
-        height={mobile ? MOBILE_H : H}
-        fill={MC.bg}
-      />
+      <rect width={mobile ? MOBILE_W : W} height={viewBoxH} fill={MC.bg} />
 
       <text
         x={roster.x}
@@ -209,7 +239,7 @@ export function PreflightChecklist() {
       <rect
         x={roster.x}
         y={roster.y}
-        width={roster.w}
+        width={rosterW}
         height={rosterHeight}
         rx="9"
         fill={MC.panel}
@@ -225,17 +255,17 @@ export function PreflightChecklist() {
         SUBGRAPH · LANGUAGE
       </text>
       <text
-        x={roster.x + roster.w - 10}
-        y={roster.y + 24}
+        x={crowded ? roster.x + 10 : roster.x + roster.w - 10}
+        y={crowded ? roster.y + 24 + rosterHeaderGap : roster.y + 24}
         fill={MC.dim}
         fontFamily={MC.mono}
         fontSize={label}
-        textAnchor="end"
+        textAnchor={crowded ? "start" : "end"}
       >
         RUNTIME PLUGIN
       </text>
       {STATIONS.map((station, i) => {
-        const y = roster.y + 56 + i * rosterStride;
+        const y = roster.y + 56 + rosterHeaderExtra + i * rosterStride;
         const nameText = station.name.toUpperCase();
         const metaText = `${station.language} · STOCK GRAPHQL SERVER`;
         return (
@@ -261,7 +291,7 @@ export function PreflightChecklist() {
               {metaText}
             </text>
             <text
-              x={roster.x + roster.w - 14}
+              x={roster.x + rosterW - 14}
               y={y}
               fill={MC.phosphor}
               fontFamily={MC.mono}
@@ -370,7 +400,7 @@ export function PreflightChecklist() {
         );
       })}
 
-      {aborted && mobile ? (
+      {aborted && (mobile || crowded) ? (
         <StackedText
           x={list.x + list.w / 2}
           y={captionY}
@@ -405,7 +435,7 @@ export function PreflightChecklist() {
         strokeOpacity="0.55"
         style={{ transition: "stroke 400ms ease" }}
       />
-      {mobile ? (
+      {mobile || crowded ? (
         <StackedText
           x={(mobile ? list.x : 16) + (mobile ? list.w : W - 32) / 2}
           y={footerTextY}

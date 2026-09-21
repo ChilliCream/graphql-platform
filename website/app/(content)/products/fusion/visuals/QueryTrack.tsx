@@ -3,7 +3,13 @@
 import { useRef } from "react";
 
 import { TYPE, svgLabelGap, svgLabelSize } from "../tokens";
-import { useCycle, useSceneMotion, useSvgLabelScale } from "./hooks";
+import {
+  useCycle,
+  useNarrowViewport,
+  useSceneMotion,
+  useSvgLabelScale,
+} from "./hooks";
+import { wrapWords } from "./lines";
 import { useSceneRatio } from "./Scene";
 import { MC, specTag } from "../palette";
 
@@ -93,12 +99,21 @@ export function QueryTrack() {
   const phase = useCycle(running, PHASES, BEAT, REST);
   const svgRef = useRef<SVGSVGElement>(null);
   const desktopScale = useSvgLabelScale(svgRef, W);
-  const mobile = desktopScale < 1;
+  const mobile = useNarrowViewport();
   const mobileScale = useSvgLabelScale(svgRef, MOBILE_W);
   const scale = mobile ? mobileScale : desktopScale;
   useSceneRatio(mobile ? MOBILE_RATIO : null);
   const label = svgLabelSize(TYPE.label, scale);
   const caption = svgLabelSize(TYPE.caption, scale);
+  /**
+   * A sidebar-narrow desktop slot boosts `label` here the same way a narrow
+   * viewport does. The station card's status line ("PARTIAL RESULT
+   * RETURNED") fits this same `W`-wide viewBox's right edge at `label`'s
+   * un-boosted size and above, but not below roughly this scale — past
+   * that it wraps onto two lines instead of running past the SVG's own
+   * boundary.
+   */
+  const crowded = !mobile && scale < 0.9;
 
   const client = mobile ? MOBILE_CLIENT : CLIENT;
   const gate = mobile ? MOBILE_GATE : GATE;
@@ -446,6 +461,8 @@ export function QueryTrack() {
         const called = phase >= 3;
         const resultText =
           phase >= 4 ? "PARTIAL RESULT RETURNED" : "SUBGRAPH STANDING BY";
+        const resultGap = svgLabelGap(14, label, TYPE.label);
+        const resultLines = crowded ? wrapWords(resultText, 14) : [resultText];
         return (
           <g key={row.station}>
             <path
@@ -463,8 +480,9 @@ export function QueryTrack() {
                 60 +
                 svgLabelGap(18, label, TYPE.label) -
                 18 +
-                svgLabelGap(14, label, TYPE.label) -
-                14
+                resultGap -
+                14 +
+                (resultLines.length - 1) * resultGap
               }
               rx="8"
               fill={MC.panel}
@@ -494,19 +512,22 @@ export function QueryTrack() {
             </text>
             <text
               x={STATION_X + 12}
-              y={
-                y -
-                8 +
-                svgLabelGap(18, label, TYPE.label) +
-                svgLabelGap(14, label, TYPE.label)
-              }
+              y={y - 8 + svgLabelGap(18, label, TYPE.label) + resultGap}
               fill={phase >= 4 ? MC.phosphor : MC.dim}
               fontFamily={MC.mono}
               fontSize={label}
               letterSpacing="0.02em"
               style={{ transition: "fill 400ms ease" }}
             >
-              {resultText}
+              {resultLines.map((line, li) => (
+                <tspan
+                  key={li}
+                  x={STATION_X + 12}
+                  dy={li === 0 ? 0 : resultGap}
+                >
+                  {line}
+                </tspan>
+              ))}
             </text>
 
             <circle
