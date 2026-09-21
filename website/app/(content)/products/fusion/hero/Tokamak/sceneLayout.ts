@@ -620,19 +620,27 @@ export function computeLayout(
     // off-canvas at every theta, so a single oversized bridge row there
     // reads as an untextured "buffer" tile again (the exact defect
     // hc-0-gar was built to remove) instead of a graduated fold. Re-ran
-    // hc-0-gar's own front-arc search methodology
-    // (`test-results/b8z-bridge-front-search2.cjs`, `TOP_RIM` retargeted
-    // at the new `Y=227, Z=11, R=174` above) against this rim: minimum
-    // feasible step count dropped to 4 (the rim now sits much closer to
-    // `base[16]` in both `z` and `r` than the withdrawn world-mirrored
-    // rim did), every consecutive front-arc ratio inside [0.77, 1.3] and
-    // every front-arc tile height under 300px (the wall's own established
-    // scale). `steps = 5` (`powerYZ = powerR = 0.9`, worst ratio 1.145,
-    // max height 248.6px) is chosen over the bare minimum (4 steps, worst
-    // 1.174) for a small margin, the same reasoning the prior cycle used.
-    const SIDE_TOP_BRIDGE_STEPS = 5;
-    const SIDE_TOP_BRIDGE_POWER_YZ = 0.9;
-    const SIDE_TOP_BRIDGE_POWER_R = 0.9;
+    // hc-0-gar's own front-arc search methodology, matched EXACTLY to
+    // `rv2g-rhythm.cjs`'s own measurement convention (a single FIXED theta
+    // segment nearest `3*PI/2` over `wallThetaSegments = 56`, `t0`-based
+    // consecutive-row screen heights -- `test-results/
+    // b8z-bridge-search4.cjs`, `TOP_RIM` retargeted at the new `Y=227,
+    // Z=11, R=174` above): an earlier pass tuned against a PER-PAIR
+    // nearest-visible-segment method (`b8z-bridge-front-search2.cjs`,
+    // landing on `steps=5, powerYZ=powerR=0.9`) diverged just enough from
+    // `rv2g-rhythm.cjs`'s own fixed-segment reading to clear [0.77, 1.3]
+    // by the first method but miss it (worst 1.30-1.40) by the second, the
+    // measure the ticket/reviewer actually grades rhythm with -- re-tuned
+    // directly against it instead of assuming the two methods agree.
+    // `steps = 4` (`powerYZ = powerR = 0.82`) is the smallest step count
+    // whose every consecutive front-arc ratio clears [0.77, 1.3] (worst
+    // 1.139) while every front-arc tile height stays under 300px (the
+    // wall's own established scale, max 283.6px at 1920) -- chosen over
+    // fewer steps (3 steps clears the ratio bar too but pushes max height
+    // to 363px) for that margin.
+    const SIDE_TOP_BRIDGE_STEPS = 4;
+    const SIDE_TOP_BRIDGE_POWER_YZ = 0.82;
+    const SIDE_TOP_BRIDGE_POWER_R = 0.82;
 
     // Hourglass: waist at the band, flaring independently to each chosen
     // rim point above -- the column's own row 0/18 land exactly on those
