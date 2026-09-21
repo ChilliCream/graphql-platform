@@ -457,12 +457,13 @@ export function buildChamberTiles(
  */
 export function buildInstrumentLights(
   rows: readonly ChamberRow[],
+  rowRange: readonly [number, number],
   camera: Camera,
   rand: () => number,
   count: number,
 ): InstrumentLight[] {
   const lights: InstrumentLight[] = [];
-  const candidateRows = rows.slice(2, rows.length - 2);
+  const candidateRows = rows.slice(rowRange[0], rowRange[1]);
   for (let i = 0; i < count; i++) {
     const row = candidateRows[Math.floor(rand() * candidateRows.length)];
     const theta = rand() * Math.PI * 2;

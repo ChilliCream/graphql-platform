@@ -548,6 +548,7 @@ export default function Tokamak() {
       const columnBase = buildColumnSilhouette(columnTiles);
       const lights: InstrumentLight[] = buildInstrumentLights(
         layout.wallRows,
+        layout.wallLightRowRange,
         layout.camera,
         rand,
         6,

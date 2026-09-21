@@ -37,6 +37,17 @@ export interface TokamakLayout {
    */
   readonly wallRows: readonly ChamberRow[];
   readonly wallThetaSegments: number;
+  /**
+   * The `wallRows` index range (`[start, end)`) `buildInstrumentLights`
+   * draws its candidate rows from: the wall's own frozen rhythm rows, never
+   * the rim/bridge rows spliced onto either end (so inserting or removing
+   * bridge rows -- e.g. this ticket's junction fix -- cannot change which
+   * rows the light scatter can land on, or its `mulberry32` draw sequence).
+   * `sideBySide`: `base.slice(2, 17)`'s own index range within `wallRows`.
+   * `mobile`/`stacked`: unchanged from the prior `rows.slice(2, rows.length
+   * - 2)` behaviour, since those wall rows are not junction-spliced.
+   */
+  readonly wallLightRowRange: readonly [number, number];
   readonly torus: TorusParams;
   /** `stacked`/`sideBySide`: the x the copy-clear zone ends at (0 off `mobile`). */
   readonly artLeft: number;
@@ -638,6 +649,10 @@ export function computeLayout(
       columnThetaSegments: SIDE_WALL_SEGMENTS,
       wallRows,
       wallThetaSegments: SIDE_WALL_SEGMENTS,
+      // `base.slice(2, 17)`'s own index range within `wallRows` (see
+      // `TokamakLayout.wallLightRowRange`): fixed regardless of the bridge
+      // sequences' own row counts on either side.
+      wallLightRowRange: [2, 17],
       torus,
       artLeft: zoneRight,
       artTop: 0,
@@ -691,6 +706,9 @@ export function computeLayout(
       columnThetaSegments: 44,
       wallRows,
       wallThetaSegments: 44,
+      // Unchanged from the prior `rows.slice(2, rows.length - 2)` reach:
+      // these wall rows are not junction-spliced.
+      wallLightRowRange: [2, wallRows.length - 2],
       torus: STACKED_TORUS,
       artLeft: 0,
       artTop,
@@ -729,6 +747,9 @@ export function computeLayout(
     columnThetaSegments: 44,
     wallRows,
     wallThetaSegments: 44,
+    // Unchanged from the prior `rows.slice(2, rows.length - 2)` reach:
+    // these wall rows are not junction-spliced.
+    wallLightRowRange: [2, wallRows.length - 2],
     torus,
     artLeft: 0,
     artTop,
