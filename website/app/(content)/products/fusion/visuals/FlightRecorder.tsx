@@ -2,8 +2,9 @@
 
 import { useRef } from "react";
 
-import { TYPE, svgLabelGap, svgLabelSize, svgLabelWidth } from "../tokens";
+import { TYPE, svgLabelGap, svgLabelSize } from "../tokens";
 import { anim, useCycle, useSceneMotion, useSvgLabelScale } from "./hooks";
+import { useSceneRatio } from "./Scene";
 import { MC } from "../palette";
 
 /**
@@ -15,6 +16,7 @@ const W = 640;
 const H = 440;
 /** The scene box mirrors the viewBox, so the recorder never letterboxes. */
 export const FLIGHT_RECORDER_RATIO = `${W} / ${H}`;
+
 /** 0 arms the tape; the last phase is the rest frame: every replay classified. */
 const PHASES = 7;
 const REST = PHASES - 1;
@@ -71,6 +73,160 @@ const KEYFRAMES = `
 @keyframes mc-rec-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 `;
 
+/**
+ * Greedily wraps `text` at word boundaries so each line stays within
+ * `maxChars` characters (an estimate of the mono face's natural width at
+ * the mobile label size). The break space is kept as the next line's
+ * leading character, so the lines' concatenated content is `text` again,
+ * byte for byte.
+ */
+function wrapWords(text: string, maxChars: number): readonly string[] {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let line = words[0] ?? "";
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i];
+    if (line.length + 1 + word.length <= maxChars) {
+      line += ` ${word}`;
+    } else {
+      lines.push(line);
+      line = ` ${word}`;
+    }
+  }
+  lines.push(line);
+  return lines;
+}
+
+/**
+ * Below 1024px the deck re-flows to a single narrow column: the schema/
+ * composition banners split at their word boundaries instead of pinning to
+ * their desktop footprint, the reel/tape header art drops out (no room),
+ * and each replay row grows to as many lines as its client, operation and
+ * detail text need. `MOBILE_W` matches this panel's measured rendered width
+ * at 375px; the row geometry below is computed once, from the (static)
+ * replay copy, so `MOBILE_H` always matches what actually renders.
+ */
+const MOBILE_W = 333;
+const MOBILE_INSET = 16;
+const MOBILE_LINE = 16;
+
+const MOBILE_HEADER_Y1 = 26;
+const MOBILE_HEADER_Y2 = 54;
+const MOBILE_DECK_Y = 96;
+
+const DECK_HEADER_TEXT =
+  "NITRO REPLAY · OPERATIONS PUBLISHED BY REGISTERED CLIENTS";
+/** The deck header's wrapped lines, computed once so the row cursor below
+ * starts below however many lines it actually takes. */
+const DECK_HEADER_LINES = ((): readonly string[] => {
+  const words = DECK_HEADER_TEXT.split(" ");
+  const lines: string[] = [];
+  let line = words[0] ?? "";
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i];
+    if (line.length + 1 + word.length <= 28) {
+      line += ` ${word}`;
+    } else {
+      lines.push(line);
+      line = ` ${word}`;
+    }
+  }
+  lines.push(line);
+  return lines;
+})();
+
+interface RowLayout {
+  readonly replay: Replay;
+  readonly opLines: readonly string[];
+  readonly detailLines: readonly string[];
+  readonly nameY: number;
+  readonly opY: number;
+  readonly detailY: number;
+  readonly dividerY: number;
+  readonly nextY: number;
+}
+
+const MOBILE_ROWS: readonly RowLayout[] = (() => {
+  const headerY0 = MOBILE_DECK_Y + 22;
+  const headerLastY = headerY0 + (DECK_HEADER_LINES.length - 1) * MOBILE_LINE;
+  let cursor = headerLastY + 30;
+  return REPLAYS.map((replay) => {
+    const opLines = wrapWords(replay.operation, 36);
+    const detailLines = wrapWords(replay.detail, 32);
+    const nameY = cursor;
+    const opY = nameY + MOBILE_LINE;
+    const detailY = opY + (opLines.length - 1) * MOBILE_LINE + MOBILE_LINE;
+    const lastLineY = detailY + (detailLines.length - 1) * MOBILE_LINE;
+    const dividerY = lastLineY + 14;
+    const nextY = dividerY + 26;
+    cursor = nextY;
+    return {
+      replay,
+      opLines,
+      detailLines,
+      nameY,
+      opY,
+      detailY,
+      dividerY,
+      nextY,
+    };
+  });
+})();
+
+const MOBILE_DECK_BOTTOM =
+  (MOBILE_ROWS[MOBILE_ROWS.length - 1]?.dividerY ?? MOBILE_DECK_Y) + 20;
+const MOBILE_FOOTER_Y = MOBILE_DECK_BOTTOM + 40;
+const MOBILE_FOOTER_H = 76;
+const MOBILE_H = MOBILE_FOOTER_Y + MOBILE_FOOTER_H + 16;
+const MOBILE_RATIO = `${MOBILE_W} / ${MOBILE_H}`;
+
+/** Splits `text` at every ` · ` separator, each line keeping its leading
+ * separator so the lines' concatenated content is `text` again. */
+function dotLines(text: string): readonly string[] {
+  const parts = text.split(" · ");
+  return parts.map((part, i) => (i === 0 ? part : ` · ${part}`));
+}
+
+interface StackedTextProps {
+  readonly x: number;
+  readonly y: number;
+  readonly lines: readonly string[];
+  readonly lineHeight: number;
+  readonly fill: string;
+  readonly fontSize: number;
+  readonly letterSpacing?: string;
+  readonly textAnchor?: "start" | "middle" | "end";
+}
+
+function StackedText({
+  x,
+  y,
+  lines,
+  lineHeight,
+  fill,
+  fontSize,
+  letterSpacing,
+  textAnchor,
+}: StackedTextProps) {
+  return (
+    <text
+      x={x}
+      y={y}
+      fill={fill}
+      fontFamily={MC.mono}
+      fontSize={fontSize}
+      letterSpacing={letterSpacing}
+      textAnchor={textAnchor}
+    >
+      {lines.map((line, i) => (
+        <tspan key={i} x={x} dy={i === 0 ? 0 : lineHeight}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
 interface ReelProps {
   readonly cx: number;
   readonly running: boolean;
@@ -106,10 +262,169 @@ export function FlightRecorder() {
   const classified = Math.max(0, Math.min(phase - 1, REPLAYS.length));
   const blocked = classified >= REPLAYS.length;
   const svgRef = useRef<SVGSVGElement>(null);
-  const scale = useSvgLabelScale(svgRef, W);
+  const desktopScale = useSvgLabelScale(svgRef, W);
+  const mobile = desktopScale < 1;
+  const mobileScale = useSvgLabelScale(svgRef, MOBILE_W);
+  const scale = mobile ? mobileScale : desktopScale;
+  useSceneRatio(mobile ? MOBILE_RATIO : null);
   const label = svgLabelSize(TYPE.label, scale);
   /** Gap between a replay row's operation line and its detail line. */
   const rowGap = svgLabelGap(15, label, TYPE.label, 1.15);
+
+  const schemaText = "SCHEMA CHANGE · REMOVE Product.rating";
+  const compositionText = "COMPOSITION: GREEN · SUBGRAPHS STILL COMPOSE";
+  const deckHeaderText = DECK_HEADER_TEXT;
+  const footerAbortedText = "1 BREAKING · 1 RISKY · FLAGGED BEFORE THE MERGE";
+  const footerRunningText = "REPLAYING REAL CLIENT OPERATIONS";
+
+  if (mobile) {
+    const m = MOBILE_INSET;
+    return (
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${MOBILE_W} ${MOBILE_H}`}
+        className="h-full w-full"
+      >
+        <rect width={MOBILE_W} height={MOBILE_H} fill={MC.bg} />
+
+        <text
+          x={MOBILE_W / 2}
+          y={MOBILE_HEADER_Y1}
+          fill={MC.ink}
+          fontFamily={MC.mono}
+          fontSize={label}
+          letterSpacing="0.16em"
+          textAnchor="middle"
+        >
+          {schemaText}
+        </text>
+        <StackedText
+          x={MOBILE_W / 2}
+          y={MOBILE_HEADER_Y2}
+          lines={dotLines(compositionText)}
+          lineHeight={MOBILE_LINE}
+          fill={MC.phosphor}
+          fontSize={label}
+          letterSpacing="0.16em"
+          textAnchor="middle"
+        />
+
+        <rect
+          x={m}
+          y={MOBILE_DECK_Y}
+          width={MOBILE_W - m * 2}
+          height={MOBILE_DECK_BOTTOM - MOBILE_DECK_Y}
+          rx="9"
+          fill={MC.panel}
+          stroke={MC.panelEdge}
+        />
+        <StackedText
+          x={m + 16}
+          y={MOBILE_DECK_Y + 22}
+          lines={DECK_HEADER_LINES}
+          lineHeight={MOBILE_LINE}
+          fill={MC.dim}
+          fontSize={label}
+          letterSpacing="0.16em"
+        />
+
+        {MOBILE_ROWS.map(
+          ({ replay, opLines, detailLines, nameY, opY, detailY, dividerY }) => {
+            const done = REPLAYS.indexOf(replay) < classified;
+            const color = done ? VERDICT_COLOR[replay.verdict] : MC.dim;
+            const verdictText = done ? replay.verdict : "REPLAYING";
+            return (
+              <g key={replay.client}>
+                <path
+                  d={`M${m + 16} ${dividerY}H${MOBILE_W - m - 16}`}
+                  stroke={MC.panelEdge}
+                  strokeOpacity="0.6"
+                />
+                <circle
+                  cx={m + 26}
+                  cy={nameY - 4}
+                  r="4"
+                  fill={color}
+                  style={{ transition: "fill 400ms ease" }}
+                />
+                <text
+                  x={m + 40}
+                  y={nameY}
+                  fill={done ? MC.ink : MC.dim}
+                  fontFamily={MC.mono}
+                  fontSize={label}
+                  style={{ transition: "fill 400ms ease" }}
+                >
+                  {replay.client}
+                </text>
+                <StackedText
+                  x={m + 40}
+                  y={opY}
+                  lines={opLines}
+                  lineHeight={MOBILE_LINE}
+                  fill={done ? MC.ink : MC.dim}
+                  fontSize={label}
+                />
+                <StackedText
+                  x={m + 40}
+                  y={detailY}
+                  lines={detailLines}
+                  lineHeight={MOBILE_LINE}
+                  fill={MC.dim}
+                  fontSize={label}
+                  letterSpacing="0.1em"
+                />
+                <text
+                  x={MOBILE_W - m - 16}
+                  y={nameY}
+                  fill={color}
+                  fontFamily={MC.mono}
+                  fontSize={label}
+                  letterSpacing="0.16em"
+                  textAnchor="end"
+                  style={{
+                    transition: "fill 400ms ease",
+                    animation: anim(
+                      running && done && replay.verdict === "BREAKING",
+                      "mc-rec-blink 1200ms steps(1, end) infinite",
+                    ),
+                  }}
+                >
+                  {verdictText}
+                </text>
+              </g>
+            );
+          },
+        )}
+
+        <rect
+          x={m}
+          y={MOBILE_FOOTER_Y}
+          width={MOBILE_W - m * 2}
+          height={MOBILE_FOOTER_H}
+          rx="8"
+          fill={MC.panel}
+          stroke={blocked ? MC.alert : MC.panelEdge}
+          strokeOpacity={blocked ? 0.7 : 1}
+          style={{ transition: "stroke 400ms ease" }}
+        />
+        <StackedText
+          x={MOBILE_W / 2}
+          y={MOBILE_FOOTER_Y + 26}
+          lines={
+            blocked
+              ? dotLines(footerAbortedText)
+              : wrapWords(footerRunningText, 32)
+          }
+          lineHeight={MOBILE_LINE}
+          fill={blocked ? MC.alert : MC.dim}
+          fontSize={label}
+          letterSpacing="0.18em"
+          textAnchor="middle"
+        />
+      </svg>
+    );
+  }
 
   return (
     <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
@@ -135,15 +450,8 @@ export function FlightRecorder() {
         fontSize={label}
         letterSpacing="0.16em"
         textAnchor="middle"
-        textLength={svgLabelWidth(
-          "SCHEMA CHANGE · REMOVE Product.rating",
-          TYPE.label,
-          scale,
-          0.16,
-        )}
-        lengthAdjust="spacingAndGlyphs"
       >
-        SCHEMA CHANGE · REMOVE Product.rating
+        {schemaText}
       </text>
       <text
         x={W / 2}
@@ -153,15 +461,8 @@ export function FlightRecorder() {
         fontSize={label}
         letterSpacing="0.16em"
         textAnchor="middle"
-        textLength={svgLabelWidth(
-          "COMPOSITION: GREEN · SUBGRAPHS STILL COMPOSE",
-          TYPE.label,
-          scale,
-          0.16,
-        )}
-        lengthAdjust="spacingAndGlyphs"
       >
-        COMPOSITION: GREEN · SUBGRAPHS STILL COMPOSE
+        {compositionText}
       </text>
 
       <rect
@@ -180,15 +481,8 @@ export function FlightRecorder() {
         fontFamily={MC.mono}
         fontSize={label}
         letterSpacing="0.16em"
-        textLength={svgLabelWidth(
-          "NITRO REPLAY · OPERATIONS PUBLISHED BY REGISTERED CLIENTS",
-          TYPE.label,
-          scale,
-          0.16,
-        )}
-        lengthAdjust="spacingAndGlyphs"
       >
-        NITRO REPLAY · OPERATIONS PUBLISHED BY REGISTERED CLIENTS
+        {deckHeaderText}
       </text>
 
       {REPLAYS.map((replay, i) => {
@@ -217,8 +511,6 @@ export function FlightRecorder() {
               fill={done ? MC.ink : MC.dim}
               fontFamily={MC.mono}
               fontSize={label}
-              textLength={svgLabelWidth(nameText, TYPE.label, scale)}
-              lengthAdjust="spacingAndGlyphs"
               style={{ transition: "fill 400ms ease" }}
             >
               {nameText}
@@ -230,8 +522,6 @@ export function FlightRecorder() {
               fontFamily={MC.mono}
               fontSize={label}
               letterSpacing="0.1em"
-              textLength={svgLabelWidth(replay.detail, TYPE.label, scale, 0.1)}
-              lengthAdjust="spacingAndGlyphs"
             >
               {replay.detail}
             </text>
@@ -243,8 +533,6 @@ export function FlightRecorder() {
               fontSize={label}
               letterSpacing="0.16em"
               textAnchor="end"
-              textLength={svgLabelWidth(verdictText, TYPE.label, scale, 0.16)}
-              lengthAdjust="spacingAndGlyphs"
               style={{
                 transition: "fill 400ms ease",
                 animation: anim(
@@ -278,20 +566,9 @@ export function FlightRecorder() {
         fontSize={label}
         letterSpacing="0.18em"
         textAnchor="middle"
-        textLength={svgLabelWidth(
-          blocked
-            ? "1 BREAKING · 1 RISKY · FLAGGED BEFORE THE MERGE"
-            : "REPLAYING REAL CLIENT OPERATIONS",
-          TYPE.label,
-          scale,
-          0.18,
-        )}
-        lengthAdjust="spacingAndGlyphs"
         style={{ transition: "fill 400ms ease" }}
       >
-        {blocked
-          ? "1 BREAKING · 1 RISKY · FLAGGED BEFORE THE MERGE"
-          : "REPLAYING REAL CLIENT OPERATIONS"}
+        {blocked ? footerAbortedText : footerRunningText}
       </text>
     </svg>
   );

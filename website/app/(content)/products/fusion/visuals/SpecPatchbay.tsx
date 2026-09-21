@@ -2,8 +2,9 @@
 
 import { useRef } from "react";
 
-import { TYPE, svgLabelGap, svgLabelSize, svgLabelWidth } from "../tokens";
+import { TYPE, svgLabelGap, svgLabelSize } from "../tokens";
 import { anim, useCycle, useSceneMotion, useSvgLabelScale } from "./hooks";
+import { useSceneRatio } from "./Scene";
 import { MC, SOURCES, STATIONS, specTag } from "../palette";
 import type { StationSpec } from "../palette";
 
@@ -26,6 +27,25 @@ const MOVED = 3;
 
 const STRIP = { x: 16, w: 286 } as const;
 const BUS = { x: 452, y: 30, w: 172, h: 400 } as const;
+
+/**
+ * Below 1024px the channel strip and the bus stack in a single column
+ * (the bus below the strip instead of beside it) so every label keeps its
+ * natural glyph width; the per-row and per-legend-line arithmetic below is
+ * unchanged, since it was already sized for an unpinned, natural-width
+ * label. `MOBILE_W` matches this panel's measured rendered width at 375px.
+ */
+const MOBILE_W = 333;
+const STRIP_M = { x: 16, w: MOBILE_W - 32 } as const;
+const STRIP_M_BOTTOM = 44 + 7 * 52;
+const BUS_M = {
+  x: 16,
+  y: STRIP_M_BOTTOM + 40,
+  w: MOBILE_W - 32,
+  h: 400,
+} as const;
+const MOBILE_H = BUS_M.y + BUS_M.h + 20;
+const MOBILE_RATIO = `${MOBILE_W} / ${MOBILE_H}`;
 
 interface Channel {
   readonly name: string;
@@ -64,7 +84,11 @@ export function SpecPatchbay() {
   const selected = phase >= 1 && phase <= 4;
   const repatched = phase >= 3;
   const svgRef = useRef<SVGSVGElement>(null);
-  const scale = useSvgLabelScale(svgRef, W);
+  const desktopScale = useSvgLabelScale(svgRef, W);
+  const mobile = desktopScale < 1;
+  const mobileScale = useSvgLabelScale(svgRef, MOBILE_W);
+  const scale = mobile ? mobileScale : desktopScale;
+  useSceneRatio(mobile ? MOBILE_RATIO : null);
   const label = svgLabelSize(TYPE.label, scale);
   const caption = svgLabelSize(TYPE.caption, scale);
   /** The legend's four lines stack readably instead of crowding once boosted. */
@@ -88,20 +112,28 @@ export function SpecPatchbay() {
   const rowStride = rowBoxHeight + interRowGap;
   const stripTop = scale >= 1 ? 44 : 40;
   const rowY = (i: number) => stripTop + i * rowStride;
+  const strip = mobile ? STRIP_M : STRIP;
+  const bus = mobile ? BUS_M : BUS;
 
   return (
-    <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${mobile ? MOBILE_W : W} ${mobile ? MOBILE_H : H}`}
+      className="h-full w-full"
+    >
       <style>{KEYFRAMES}</style>
-      <rect width={W} height={H} fill={MC.bg} />
+      <rect
+        width={mobile ? MOBILE_W : W}
+        height={mobile ? MOBILE_H : H}
+        fill={MC.bg}
+      />
       <text
-        x={STRIP.x}
+        x={strip.x}
         y={24}
         fill={MC.dim}
         fontFamily={MC.mono}
         fontSize={label}
         letterSpacing="0.2em"
-        textLength={svgLabelWidth("SUBGRAPH CHANNELS", TYPE.label, scale, 0.2)}
-        lengthAdjust="spacingAndGlyphs"
       >
         SUBGRAPH CHANNELS
       </text>
@@ -124,9 +156,9 @@ export function SpecPatchbay() {
         return (
           <g key={channel.name}>
             <rect
-              x={STRIP.x}
+              x={strip.x}
               y={y}
-              width={STRIP.w}
+              width={strip.w}
               height={rowBoxHeight}
               rx="7"
               fill={MC.panel}
@@ -136,7 +168,7 @@ export function SpecPatchbay() {
               style={{ transition: "stroke 400ms ease" }}
             />
             <circle
-              cx={STRIP.x + 16}
+              cx={strip.x + 16}
               cy={y + 20}
               r="4"
               fill={MC.phosphor}
@@ -148,52 +180,45 @@ export function SpecPatchbay() {
               }}
             />
             <text
-              x={STRIP.x + 32}
+              x={strip.x + 32}
               y={y + 17}
               fill={MC.ink}
               fontFamily={MC.mono}
               fontSize={rowNameSize}
               letterSpacing="0.12em"
-              textLength={svgLabelWidth(
-                channel.name.toUpperCase(),
-                TYPE.caption,
-                scale,
-                0.12,
-              )}
-              lengthAdjust="spacingAndGlyphs"
             >
               {channel.name.toUpperCase()}
             </text>
             <text
-              x={STRIP.x + 32}
+              x={strip.x + 32}
               y={y + 17 + rowGap}
               fill={active && repatched ? MC.phosphor : MC.dim}
               fontFamily={MC.mono}
               fontSize={label}
               letterSpacing="0.06em"
-              textLength={svgLabelWidth(tag, TYPE.label, scale, 0.06)}
-              lengthAdjust="spacingAndGlyphs"
               style={{ transition: "fill 400ms ease" }}
             >
               {tag}
             </text>
             <text
-              x={STRIP.x + STRIP.w - 10}
+              x={strip.x + strip.w - 10}
               y={y + 17}
               fill={active ? MC.phosphor : MC.dim}
               fontFamily={MC.mono}
               fontSize={label}
               letterSpacing="0.06em"
               textAnchor="end"
-              textLength={svgLabelWidth(statusText, TYPE.label, scale, 0.06)}
-              lengthAdjust="spacingAndGlyphs"
               style={{ transition: "fill 400ms ease" }}
             >
               {statusText}
             </text>
 
             <path
-              d={`M${STRIP.x + STRIP.w} ${y + 20}C${STRIP.x + STRIP.w + 60} ${y + 20} ${BUS.x - 60} ${BUS.y + BUS.h / 2} ${BUS.x} ${BUS.y + BUS.h / 2}`}
+              d={
+                mobile
+                  ? `M${strip.x + strip.w / 2} ${y + rowBoxHeight}V${bus.y}`
+                  : `M${strip.x + strip.w} ${y + 20}C${strip.x + strip.w + 60} ${y + 20} ${bus.x - 60} ${bus.y + bus.h / 2} ${bus.x} ${bus.y + bus.h / 2}`
+              }
               fill="none"
               stroke={active ? MC.phosphor : MC.line}
               strokeOpacity={active ? 0.8 : 0.4}
@@ -211,56 +236,50 @@ export function SpecPatchbay() {
       })}
 
       <rect
-        x={BUS.x}
-        y={BUS.y}
-        width={BUS.w}
-        height={BUS.h}
+        x={bus.x}
+        y={bus.y}
+        width={bus.w}
+        height={bus.h}
         rx="10"
         fill={MC.panel}
         stroke={MC.phosphor}
         strokeOpacity="0.45"
       />
       <text
-        x={BUS.x + BUS.w / 2}
-        y={BUS.y + 40}
+        x={bus.x + bus.w / 2}
+        y={bus.y + 40}
         fill={MC.ink}
         fontFamily={MC.mono}
         fontSize={caption}
         letterSpacing="0.16em"
         textAnchor="middle"
-        textLength={svgLabelWidth("COHERENT", TYPE.caption, scale, 0.16)}
-        lengthAdjust="spacingAndGlyphs"
       >
         COHERENT
       </text>
       <text
-        x={BUS.x + BUS.w / 2}
-        y={BUS.y + 40 + svgLabelGap(20, caption, TYPE.caption)}
+        x={bus.x + bus.w / 2}
+        y={bus.y + 40 + svgLabelGap(20, caption, TYPE.caption)}
         fill={MC.ink}
         fontFamily={MC.mono}
         fontSize={caption}
         letterSpacing="0.16em"
         textAnchor="middle"
-        textLength={svgLabelWidth("GRAPH", TYPE.caption, scale, 0.16)}
-        lengthAdjust="spacingAndGlyphs"
       >
         GRAPH
       </text>
       <text
-        x={BUS.x + BUS.w / 2}
-        y={BUS.y + 92 + (svgLabelGap(20, caption, TYPE.caption) - 20)}
+        x={bus.x + bus.w / 2}
+        y={bus.y + 92 + (svgLabelGap(20, caption, TYPE.caption) - 20)}
         fill={MC.dim}
         fontFamily={MC.mono}
         fontSize={label}
         letterSpacing="0.16em"
         textAnchor="middle"
-        textLength={svgLabelWidth("ONE GATEWAY", TYPE.label, scale, 0.16)}
-        lengthAdjust="spacingAndGlyphs"
       >
         ONE GATEWAY
       </text>
       <path
-        d={`M${BUS.x + 20} ${BUS.y + 112 + (svgLabelGap(20, caption, TYPE.caption) - 20)}H${BUS.x + BUS.w - 20}`}
+        d={`M${bus.x + 20} ${bus.y + 112 + (svgLabelGap(20, caption, TYPE.caption) - 20)}H${bus.x + bus.w - 20}`}
         stroke={MC.panelEdge}
       />
       {["GRAPHQL FED", "APOLLO FED", "OPENAPI", "GRPC"].map((spec, i) => {
@@ -268,9 +287,9 @@ export function SpecPatchbay() {
         return (
           <text
             key={spec}
-            x={BUS.x + BUS.w / 2}
+            x={bus.x + bus.w / 2}
             y={
-              BUS.y +
+              bus.y +
               142 +
               (svgLabelGap(20, caption, TYPE.caption) - 20) +
               i * legendGap
@@ -280,28 +299,19 @@ export function SpecPatchbay() {
             fontSize={label}
             letterSpacing="0.16em"
             textAnchor="middle"
-            textLength={svgLabelWidth(legendText, TYPE.label, scale, 0.16)}
-            lengthAdjust="spacingAndGlyphs"
           >
             {legendText}
           </text>
         );
       })}
       <text
-        x={BUS.x + BUS.w / 2}
-        y={BUS.y + BUS.h - 22}
+        x={bus.x + bus.w / 2}
+        y={bus.y + bus.h - 22}
         fill={MC.phosphor}
         fontFamily={MC.mono}
         fontSize={label}
         letterSpacing="0.06em"
         textAnchor="middle"
-        textLength={svgLabelWidth(
-          repatched ? "NO CUTOVER NEEDED" : "COMPOSED IN THE BUILD",
-          TYPE.label,
-          scale,
-          0.06,
-        )}
-        lengthAdjust="spacingAndGlyphs"
       >
         {repatched ? "NO CUTOVER NEEDED" : "COMPOSED IN THE BUILD"}
       </text>
