@@ -565,24 +565,47 @@ export function computeLayout(
     // pillar (no plinth)". WITHDRAWN: the flared-dome top rim (`Y=140,
     // Z=420, R=320`, wqa's numeric flare target, kept fully inside the
     // canvas below the header) and the "top rim inside the canvas" rule
-    // that produced it -- both explicitly superseded by the ruling. This
-    // rim is now the EXACT MIRROR of `SIDE_BOTTOM_RIM_*` above about the
-    // band's `y = 0`: same `z`, same `r`, `y` negated (`buildColumnRows`
-    // reads `ySpanTop`/`rimRadiusTop`/`zSpreadTop` as magnitudes, so
-    // matching the bottom's own magnitudes here makes the column's
-    // world-space hourglass profile literally symmetric, `kTop === kBottom`).
-    // The camera's tilt makes the SCREEN projection of a world-mirrored
-    // point asymmetric (verified directly: at 1440 this rim's own front
-    // arc projects to y approx -130, i.e. off-canvas ABOVE, the same way
-    // the bottom rim's front arc projects off-canvas BELOW at y approx
-    // 1072) -- the ruling explicitly allows this ("the top rim's front arc
-    // may sit above the canvas exactly as the bottom rim's sits below
-    // it"), so no in-canvas dome/cap renders at the top at any width.
-    const SIDE_TOP_RIM_Y = -SIDE_BOTTOM_RIM_Y;
-    const SIDE_TOP_RIM_Z = SIDE_BOTTOM_RIM_Z;
-    const SIDE_TOP_RIM_R = SIDE_BOTTOM_RIM_R;
+    // that produced it -- both explicitly superseded by the ruling.
+    //
+    // A first correction cycle tried a literal WORLD-space mirror of
+    // `SIDE_BOTTOM_RIM_*` (`y` negated, `z`/`r` copied) reasoning that a
+    // symmetric world hourglass would read as symmetric on screen. It does
+    // not: the camera's own tilt (`makeCamera(..., tiltDeg)`, `project`'s
+    // `y1 = y*cosTilt - z*sinTilt`) is not itself y-symmetric, so a
+    // world-mirrored point does NOT project to the mirror image of the
+    // bottom's own projected point -- verified directly (F1, comment 437):
+    // the column-only half-width sweep (`test-results/
+    // rvB-sym-colonly.cjs`, `COLONLY=1`, the planner-A1-binding measure,
+    // comment 435/436) came out 15.4-62.7% worst-case at 1280/1440/1920
+    // under the literal mirror, because the tilted projection stretches
+    // the top limb wider than the bottom's at matching screen-distance `d`
+    // from the band.
+    //
+    // This rim is instead a PROJECTION-space match, solved directly
+    // against the bottom's own real projected profile rather than against
+    // its world-space numbers: a bounded joint search
+    // (`test-results/b8z-colonly-search.cjs` then `b8z-colonly-refine2.
+    // cjs`) over `SIDE_TOP_RIM_Y/Z/R` (bottom rim, waist=79, 9 rows/side
+    // and `spacingPower=1.2` all held fixed/shared, exactly as the bottom
+    // uses) minimising the column-only per-scanline half-width deviation
+    // (the SAME `rvB-sym-colonly.cjs` measure, `COLONLY=1`, real
+    // `computeLayout`/`buildChamberTiles`/`project`, 5px steps to the
+    // canvas edge) jointly worst-case across 1280/1440/1920. Landed on
+    // `Y=227, Z=11, R=174`: worst-case column-only deviation 2.30-2.34%
+    // (well inside the 5% bar) at every d at every width, front arc
+    // (`theta = 3*PI/2`) projecting to y approx -268/-549/-1016 at
+    // 1280/1440/1920 -- comfortably off-canvas ABOVE (canvas top = y 0),
+    // the same way the bottom rim's front arc sits off-canvas below, so no
+    // in-canvas dome/cap renders at the top at any width. These three
+    // numbers are therefore NOT a mirror of `SIDE_BOTTOM_RIM_*` in world
+    // space (unlike the withdrawn first attempt) -- they are the values
+    // that make the column's own SCREEN silhouette read as a mirror,
+    // which is what "look exactly like the bottom" means for a viewer.
+    const SIDE_TOP_RIM_Y = 227;
+    const SIDE_TOP_RIM_Z = 11;
+    const SIDE_TOP_RIM_R = 174;
     // TOP bridging ROWS: UNLIKE the bottom's own `steps = 2`, this junction
-    // is NOT mirroring a chain that is always fully off-canvas. Verified
+    // is NOT bridging a chain that is always fully off-canvas. Verified
     // directly (`test-results/b8z-wall16.cjs`, not checked in): frozen wall
     // row 16 (`base[16]`, `y` approx 607, `z` approx 557 canonical) already
     // has NEAR-facing tiles at wide theta (away from the front pole, near
@@ -598,16 +621,18 @@ export function computeLayout(
     // reads as an untextured "buffer" tile again (the exact defect
     // hc-0-gar was built to remove) instead of a graduated fold. Re-ran
     // hc-0-gar's own front-arc search methodology
-    // (`test-results/b8z-bridge-front-search.cjs`, a copy of `gar-bridge-
-    // front-search.cjs` retargeted at this rim) against the NEW mirrored
-    // rim: `steps = 8` is the smallest step count whose front-arc tile
-    // heights stay under 300px (the wall's own established scale) while
-    // every consecutive ratio clears [0.77, 1.3] (worst 1.086 at
-    // `powerYZ = powerR = 1.1`, jointly at 1280/1440/1920) -- chosen over
-    // `steps = 7` (the bare minimum feasible count) for a small margin.
-    const SIDE_TOP_BRIDGE_STEPS = 8;
-    const SIDE_TOP_BRIDGE_POWER_YZ = 1.1;
-    const SIDE_TOP_BRIDGE_POWER_R = 1.1;
+    // (`test-results/b8z-bridge-front-search2.cjs`, `TOP_RIM` retargeted
+    // at the new `Y=227, Z=11, R=174` above) against this rim: minimum
+    // feasible step count dropped to 4 (the rim now sits much closer to
+    // `base[16]` in both `z` and `r` than the withdrawn world-mirrored
+    // rim did), every consecutive front-arc ratio inside [0.77, 1.3] and
+    // every front-arc tile height under 300px (the wall's own established
+    // scale). `steps = 5` (`powerYZ = powerR = 0.9`, worst ratio 1.145,
+    // max height 248.6px) is chosen over the bare minimum (4 steps, worst
+    // 1.174) for a small margin, the same reasoning the prior cycle used.
+    const SIDE_TOP_BRIDGE_STEPS = 5;
+    const SIDE_TOP_BRIDGE_POWER_YZ = 0.9;
+    const SIDE_TOP_BRIDGE_POWER_R = 0.9;
 
     // Hourglass: waist at the band, flaring independently to each chosen
     // rim point above -- the column's own row 0/18 land exactly on those
@@ -653,15 +678,14 @@ export function computeLayout(
     // hc-0-b8z: interpolated from the RIM toward wall row 16 -- the SAME
     // `from`/`to` direction `bottomBridge` above uses (rim -> wall), not
     // wall -> rim -- then reversed into wall-to-rim order for splicing into
-    // `wallRows` below. `buildBridgeRows`' own `t = (i/steps)^power` is
-    // measured from `from`, so interpolating from the wall (the old
-    // approach) instead of from the rim would NOT produce a mirror image of
-    // `bottomBridge` even with identical `steps`/powers/endpoints -- the
-    // fractional step positions would fall at different world points on
-    // each side of the band. Interpolating from the same endpoint
-    // (`SIDE_TOP_RIM_*` mirrors `SIDE_BOTTOM_RIM_*` exactly, see above) and
-    // reversing makes `topBridge[i]` the exact `y`-negation of
-    // `bottomBridge[i]` at every step, for any `steps`/`powerYZ`/`powerR`.
+    // `wallRows` below, matching the bottom's own construction (endpoints
+    // land exactly on `from`/`to`, `buildBridgeRows`' own guarantee). Since
+    // the top rim is now a projection-space match rather than a world
+    // mirror (see `SIDE_TOP_RIM_*` above), `topBridge` is no longer a
+    // literal `y`-negation of `bottomBridge` row for row -- its own steps/
+    // powers are independently tuned (`SIDE_TOP_BRIDGE_*` above) against
+    // the new rim's front-arc rhythm, the same methodology the bottom's
+    // own bridge was tuned with.
     const topBridge = [
       ...buildBridgeRows(
         columnRows[columnRows.length - 1],
