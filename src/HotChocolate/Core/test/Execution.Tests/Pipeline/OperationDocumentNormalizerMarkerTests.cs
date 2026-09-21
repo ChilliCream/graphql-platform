@@ -113,7 +113,8 @@ public sealed class OperationDocumentNormalizerMarkerTests
         // it exercises the same normalization the initial payload already went through.
         if (result is IResponseStream stream)
         {
-            await foreach (var part in stream.ReadResultsAsync().WithCancellation(TestContext.Current.CancellationToken))
+            await foreach (var part in stream.ReadResultsAsync()
+                .WithCancellation(TestContext.Current.CancellationToken))
             {
                 await using var partCleanup = part;
                 Assert.Empty(part.Errors);
