@@ -661,9 +661,9 @@ public static partial class RequestExecutorBuilderExtensions
             .UseOnlyPersistedOperationAllowed()
             .UseDocumentParser()
             .UseDocumentValidation()
+            .UseOperationVariableCoercion()
             .UseOperationCache()
             .UseOperationCompiler()
-            .UseOperationVariableCoercion()
             .UseSkipWarmupExecution()
             .UseConcurrencyGate()
             .UseOperationExecution();
@@ -684,9 +684,9 @@ public static partial class RequestExecutorBuilderExtensions
             .UseWritePersistedOperation()
             .UseDocumentParser()
             .UseDocumentValidation()
+            .UseOperationVariableCoercion()
             .UseOperationCache()
             .UseOperationCompiler()
-            .UseOperationVariableCoercion()
             .UseSkipWarmupExecution()
             .UseConcurrencyGate()
             .UseOperationExecution();
@@ -700,9 +700,9 @@ public static partial class RequestExecutorBuilderExtensions
         pipeline.Add(CommonMiddleware.DocumentCache);
         pipeline.Add(CommonMiddleware.DocumentParser);
         pipeline.Add(CommonMiddleware.DocumentValidation);
+        pipeline.Add(OperationVariableCoercionMiddleware.Create());
         pipeline.Add(OperationCacheMiddleware.Create());
         pipeline.Add(OperationCompilerMiddleware.Create());
-        pipeline.Add(OperationVariableCoercionMiddleware.Create());
         pipeline.Add(CommonMiddleware.SkipWarmupExecution);
         pipeline.Add(CommonMiddleware.ConcurrencyGate);
         pipeline.Add(OperationExecutionMiddleware.Create());
