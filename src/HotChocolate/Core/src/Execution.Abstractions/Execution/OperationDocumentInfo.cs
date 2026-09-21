@@ -17,8 +17,8 @@ public sealed class OperationDocumentInfo : RequestFeature
     /// the document after validation, with all fragments inlined into the selected operation.
     /// The normalized document contains exactly one definition, the operation, at
     /// <c>Definitions[0]</c>, and may carry internal marker directives on that definition.
-    /// It is an implementation detail of this executor and is not meant to be forwarded to
-    /// another server.
+    /// The normalized document is an implementation detail of this executor and is not meant
+    /// to be forwarded to another server.
     /// </summary>
     public DocumentNode? NormalizedDocument { get; set; }
 
