@@ -11,22 +11,46 @@ import { useReducedMotionPreference, useSceneActive } from "./Scene";
  */
 
 /**
- * Below this viewport width a panel can legitimately render narrower than
- * its own SVG `viewBox` by desktop layout choice alone (a sidebar visual's
- * `viewBox` sized for a wider slot than the aside it actually sits in, say)
- * — that is a design ratio, not the viewport shrinking. `useSvgLabelScale`
- * only boosts once the viewport itself has narrowed past this point, so a
- * panel's desktop layout can never nudge its own desktop-width render.
+ * Below this viewport width a visual switches from its desktop layout to a
+ * re-flowed, narrower-`viewBox` mobile column (see `MOBILE_W` in each
+ * visual). `useNarrowViewport` is the single source of truth for that
+ * switch, kept separate from `useSvgLabelScale` below: a panel can render
+ * narrower than its own desktop `viewBox` purely by desktop layout choice
+ * (a sidebar slot narrower than the visual's design width, say), and that
+ * must still boost its label size to meet the floor without also flipping
+ * the visual into its mobile re-flow.
  */
 const DESKTOP_BREAKPOINT_PX = 1024;
 
 /**
+ * `true` once the viewport has narrowed under `breakpointPx`, kept current
+ * across resizes. `false` until the first client measurement lands, so
+ * server-rendered markup matches the common desktop case.
+ */
+export function useNarrowViewport(
+  breakpointPx: number = DESKTOP_BREAKPOINT_PX,
+): boolean {
+  const [narrow, setNarrow] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia(`(max-width: ${breakpointPx - 1}px)`);
+    const measure = () => setNarrow(query.matches);
+    measure();
+    query.addEventListener("change", measure);
+    return () => query.removeEventListener("change", measure);
+  }, [breakpointPx]);
+
+  return narrow;
+}
+
+/**
  * An SVG's rendered-width / viewBox-width ratio, kept current across
  * resizes. Pairs with `svgLabelSize` (`../tokens`) so a visual's `<text>`
- * sizes hold their minimum pixel size once the viewBox scales down for a
- * narrow viewport. Defaults to `1` (no boost) until the first client
- * measurement lands, so server-rendered markup matches the common desktop
- * case.
+ * sizes hold their minimum pixel size at every width, whether the viewBox
+ * scales down for a narrow viewport or a panel simply sits in a slot
+ * narrower than its own design width. Defaults to `1` (no boost) until the
+ * first client measurement lands, so server-rendered markup matches the
+ * common desktop case.
  */
 export function useSvgLabelScale(
   ref: RefObject<SVGSVGElement | null>,
@@ -41,9 +65,7 @@ export function useSvgLabelScale(
     const measure = () => {
       const width = node.getBoundingClientRect().width;
       if (width <= 0) return;
-      const rendered = width / viewBoxWidth;
-      const atDesktop = window.innerWidth >= DESKTOP_BREAKPOINT_PX;
-      setScale(atDesktop ? Math.max(rendered, 1) : rendered);
+      setScale(width / viewBoxWidth);
     };
     measure();
 

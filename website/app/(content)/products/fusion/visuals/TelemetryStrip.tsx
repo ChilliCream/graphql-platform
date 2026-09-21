@@ -2,8 +2,14 @@
 
 import { useRef } from "react";
 
-import { TYPE, svgLabelSize } from "../tokens";
-import { anim, useSceneMotion, useSvgLabelScale } from "./hooks";
+import { TYPE, svgLabelGap, svgLabelSize } from "../tokens";
+import {
+  anim,
+  useNarrowViewport,
+  useSceneMotion,
+  useSvgLabelScale,
+} from "./hooks";
+import { dotLines } from "./lines";
 import { useSceneRatio } from "./Scene";
 import { MC, STATIONS } from "../palette";
 
@@ -106,25 +112,72 @@ const KEYFRAMES = `
 @keyframes mc-tele-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 `;
 
-/** Splits `text` at every ` · ` separator, each line keeping its leading
- * separator so the lines' concatenated content is `text` again. */
-function dotLines(text: string): readonly string[] {
-  const parts = text.split(" · ");
-  return parts.map((part, i) => (i === 0 ? part : ` · ${part}`));
-}
-
 export function TelemetryStrip() {
   const running = useSceneMotion();
   const svgRef = useRef<SVGSVGElement>(null);
   const desktopScale = useSvgLabelScale(svgRef, W);
-  const mobile = desktopScale < 1;
+  const mobile = useNarrowViewport();
   const mobileScale = useSvgLabelScale(svgRef, MOBILE_W);
   const scale = mobile ? mobileScale : desktopScale;
-  useSceneRatio(mobile ? MOBILE_RATIO : null);
   const label = svgLabelSize(TYPE.label, scale);
   /** The header row's baseline, nudged down so its boosted ascent clears
    * the SVG's own top edge instead of clipping against it. */
   const headerY = 18 + Math.max(0, label - TYPE.label) * 0.3;
+  /**
+   * How far `label` has grown past its floor, as a factor (>=1). A sidebar
+   * slot narrower than this panel's own `W` (see `TELEMETRY_STRIP_RATIO`'s
+   * callers) boosts `label` the same way a narrow viewport does, even at
+   * desktop widths — that boost needs room the fixed five-column desktop
+   * row (label · meta · latency · bar · error rate) was never laid out for.
+   */
+  const boost = label / TYPE.label;
+  /**
+   * Below this, the row's longest content ("coherent graph" after
+   * "GATEWAY") no longer clears the gap to the next column at any offset —
+   * short of shrinking the panel's own real width back down, the row has to
+   * split into two lines instead. Still this same `W`-wide viewBox: unlike
+   * `mobile`, this never changes what the panel is wide enough to hold,
+   * only how its own five columns lay out inside it.
+   */
+  const CROWDED_SCALE = 0.82;
+  const crowded = !mobile && scale < CROWDED_SCALE;
+  /** The meta column's offset from the row label, widened by the same
+   * factor the label itself grew so a longer, boosted label still clears it
+   * (mild boost only — `crowded` rows use their own two-line layout below). */
+  const metaOffset = 68 * boost + 6;
+  /** The bar/latency/error-rate columns shift right by the same amount the
+   * meta column did, so a widened meta column's own longest text
+   * ("coherent graph") still clears the latency column instead of just
+   * trading one collision for another. */
+  const barX = BAR.x + (metaOffset - 68);
+  /**
+   * "LIVE"'s own rendered width in viewBox units (4 chars, 0.2em
+   * letter-spacing; 0.801 is its measured per-char advance including that
+   * spacing). A boosted `label` grows this past the SVG's own right edge
+   * when left-anchored at a fixed offset, so it's right-anchored against
+   * `W` instead, with the status dot kept a fixed gap to its left.
+   */
+  const liveWidth = 4 * label * 0.801;
+  const liveX = W - 16;
+  const liveDotCx = liveX - liveWidth - 10;
+  /** Two-line row geometry for the crowded layout: label + latency share the
+   * first line, meta + error rate the second, the load bar between — the
+   * same shape `MOBILE_W`'s rows use, at this panel's own `W` instead. */
+  const crowdedLineGap = svgLabelGap(16, label, TYPE.label, 1.2);
+  const crowdedBarGap = svgLabelGap(22, label, TYPE.label, 1.2);
+  const crowdedStride = svgLabelGap(64, label, TYPE.label, 1.8);
+  const crowdedRowY =
+    TRACE.y + TRACE.h + 40 + Math.max(0, label - TYPE.label) * 0.6;
+  /** The footer splits on every ` · ` in "LATENCY · THROUGHPUT · ERROR
+   * RATE, PER SUBGRAPH" (3 lines), so its own height needs two line gaps
+   * on top of its baseline. */
+  const crowdedFooterLines = 3;
+  const crowdedFooterY =
+    crowdedRowY + (ROWS.length - 1) * crowdedStride + crowdedBarGap + 34;
+  const crowdedH = Math.round(
+    crowdedFooterY + (crowdedFooterLines - 1) * crowdedLineGap + 20,
+  );
+  useSceneRatio(mobile ? MOBILE_RATIO : crowded ? `${W} / ${crowdedH}` : null);
 
   if (mobile) {
     const trace = MOBILE_TRACE;
@@ -282,10 +335,16 @@ export function TelemetryStrip() {
     );
   }
 
+  const viewBoxH = crowded ? crowdedH : H;
+
   return (
-    <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${W} ${viewBoxH}`}
+      className="h-full w-full"
+    >
       <style>{KEYFRAMES}</style>
-      <rect width={W} height={H} fill={MC.bg} />
+      <rect width={W} height={viewBoxH} fill={MC.bg} />
 
       <text
         x={TRACE.x}
@@ -298,7 +357,7 @@ export function TelemetryStrip() {
         GATEWAY LATENCY · LAST 60 s
       </text>
       <circle
-        cx={W - 60}
+        cx={liveDotCx}
         cy={14}
         r="3"
         fill={MC.phosphor}
@@ -307,12 +366,13 @@ export function TelemetryStrip() {
         }}
       />
       <text
-        x={W - 50}
+        x={liveX}
         y={headerY}
         fill={MC.phosphor}
         fontFamily={MC.mono}
         fontSize={label}
         letterSpacing="0.2em"
+        textAnchor="end"
       >
         LIVE
       </text>
@@ -337,87 +397,169 @@ export function TelemetryStrip() {
         }}
       />
 
-      {ROWS.map((row, i) => {
-        const y = ROW_Y + i * ROW_H;
-        const gateway = i === 0;
-        return (
-          <g key={row.label}>
-            <text
-              x={TRACE.x}
-              y={y}
-              fill={gateway ? MC.ink : MC.dim}
-              fontFamily={MC.mono}
-              fontSize={label}
-              letterSpacing="0.08em"
-            >
-              {row.label}
-            </text>
-            <text
-              x={TRACE.x + 68}
-              y={y}
-              fill={MC.dim}
-              fontFamily={MC.mono}
-              fontSize={label}
-            >
-              {row.meta}
-            </text>
-            <text
-              x={BAR.x - 6}
-              y={y}
-              fill={MC.ink}
-              fontFamily={MC.mono}
-              fontSize={label}
-              textAnchor="end"
-            >
-              {row.latency}
-            </text>
-            <rect
-              x={BAR.x}
-              y={y - 8}
-              width={BAR.w}
-              height={BAR.h}
-              rx="3"
-              fill={MC.panelEdge}
-            />
-            <rect
-              x={BAR.x}
-              y={y - 8}
-              width={BAR.w * row.load}
-              height={BAR.h}
-              rx="3"
-              fill={gateway ? MC.phosphor : MC.signal}
-              style={{
-                transformBox: "fill-box",
-                transformOrigin: "left center",
-                animation: anim(
-                  running,
-                  `mc-tele-bar ${3200 + i * 260}ms ease-in-out ${i * 180}ms infinite`,
-                ),
-              }}
-            />
-            <text
-              x={W - 16}
-              y={y}
-              fill={MC.dim}
-              fontFamily={MC.mono}
-              fontSize={label}
-              textAnchor="end"
-            >
-              {row.errors}
-            </text>
-          </g>
-        );
-      })}
+      {crowded
+        ? ROWS.map((row, i) => {
+            const y = crowdedRowY + i * crowdedStride;
+            const gateway = i === 0;
+            return (
+              <g key={row.label}>
+                <text
+                  x={TRACE.x}
+                  y={y}
+                  fill={gateway ? MC.ink : MC.dim}
+                  fontFamily={MC.mono}
+                  fontSize={label}
+                  letterSpacing="0.08em"
+                >
+                  {row.label}
+                </text>
+                <text
+                  x={W - 16}
+                  y={y}
+                  fill={MC.ink}
+                  fontFamily={MC.mono}
+                  fontSize={label}
+                  textAnchor="end"
+                >
+                  {row.latency}
+                </text>
+                <text
+                  x={TRACE.x}
+                  y={y + crowdedLineGap}
+                  fill={MC.dim}
+                  fontFamily={MC.mono}
+                  fontSize={label}
+                >
+                  {row.meta}
+                </text>
+                <text
+                  x={W - 16}
+                  y={y + crowdedLineGap}
+                  fill={MC.dim}
+                  fontFamily={MC.mono}
+                  fontSize={label}
+                  textAnchor="end"
+                >
+                  {row.errors}
+                </text>
+                <rect
+                  x={TRACE.x}
+                  y={y + crowdedBarGap}
+                  width={W - 32}
+                  height={BAR.h}
+                  rx="3"
+                  fill={MC.panelEdge}
+                />
+                <rect
+                  x={TRACE.x}
+                  y={y + crowdedBarGap}
+                  width={(W - 32) * row.load}
+                  height={BAR.h}
+                  rx="3"
+                  fill={gateway ? MC.phosphor : MC.signal}
+                  style={{
+                    transformBox: "fill-box",
+                    transformOrigin: "left center",
+                    animation: anim(
+                      running,
+                      `mc-tele-bar ${3200 + i * 260}ms ease-in-out ${i * 180}ms infinite`,
+                    ),
+                  }}
+                />
+              </g>
+            );
+          })
+        : ROWS.map((row, i) => {
+            const y = ROW_Y + i * ROW_H;
+            const gateway = i === 0;
+            return (
+              <g key={row.label}>
+                <text
+                  x={TRACE.x}
+                  y={y}
+                  fill={gateway ? MC.ink : MC.dim}
+                  fontFamily={MC.mono}
+                  fontSize={label}
+                  letterSpacing="0.08em"
+                >
+                  {row.label}
+                </text>
+                <text
+                  x={TRACE.x + metaOffset}
+                  y={y}
+                  fill={MC.dim}
+                  fontFamily={MC.mono}
+                  fontSize={label}
+                >
+                  {row.meta}
+                </text>
+                <text
+                  x={barX - 6}
+                  y={y}
+                  fill={MC.ink}
+                  fontFamily={MC.mono}
+                  fontSize={label}
+                  textAnchor="end"
+                >
+                  {row.latency}
+                </text>
+                <rect
+                  x={barX}
+                  y={y - 8}
+                  width={BAR.w}
+                  height={BAR.h}
+                  rx="3"
+                  fill={MC.panelEdge}
+                />
+                <rect
+                  x={barX}
+                  y={y - 8}
+                  width={BAR.w * row.load}
+                  height={BAR.h}
+                  rx="3"
+                  fill={gateway ? MC.phosphor : MC.signal}
+                  style={{
+                    transformBox: "fill-box",
+                    transformOrigin: "left center",
+                    animation: anim(
+                      running,
+                      `mc-tele-bar ${3200 + i * 260}ms ease-in-out ${i * 180}ms infinite`,
+                    ),
+                  }}
+                />
+                <text
+                  x={W - 16}
+                  y={y}
+                  fill={MC.dim}
+                  fontFamily={MC.mono}
+                  fontSize={label}
+                  textAnchor="end"
+                >
+                  {row.errors}
+                </text>
+              </g>
+            );
+          })}
 
       <text
         x={TRACE.x}
-        y={H - 14}
+        y={crowded ? crowdedFooterY : H - 14}
         fill={MC.dim}
         fontFamily={MC.mono}
         fontSize={label}
         letterSpacing="0.16em"
       >
-        LATENCY · THROUGHPUT · ERROR RATE, PER SUBGRAPH
+        {crowded ? (
+          dotLines("LATENCY · THROUGHPUT · ERROR RATE, PER SUBGRAPH").map(
+            (line, i) => (
+              <tspan key={i} x={TRACE.x} dy={i === 0 ? 0 : crowdedLineGap}>
+                {line}
+              </tspan>
+            ),
+          )
+        ) : (
+          <>LATENCY · THROUGHPUT · ERROR RATE, PER SUBGRAPH</>
+        )}
       </text>
     </svg>
   );
