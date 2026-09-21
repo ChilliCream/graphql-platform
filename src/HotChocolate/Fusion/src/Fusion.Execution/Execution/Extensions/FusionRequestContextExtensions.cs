@@ -1,3 +1,4 @@
+using System.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
@@ -5,6 +6,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using static HotChocolate.Language.GraphQLCharacters;
 using ExecutionThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 // ReSharper disable once CheckNamespace
@@ -17,6 +19,11 @@ namespace HotChocolate.Execution;
 /// </summary>
 public static class FusionRequestContextExtensions
 {
+    // The '.' separator between the operation document hash and the operation name.
+    private const int OperationIdSeparatorLength = 1;
+
+    private const string DefaultOperationName = "Default";
+
     /// <summary>
     /// Gets the unique id for the selected operation and executor version.
     /// </summary>
@@ -50,9 +57,40 @@ public static class FusionRequestContextExtensions
             throw ExecutionThrowHelper.OperationDocumentHashNotAvailable();
         }
 
-        operationId = documentInfo.OperationCount == 1
-            ? documentInfo.Hash.Value
-            : $"{documentInfo.Hash.Value}.{context.Request.OperationName ?? "Default"}";
+        if (documentInfo.OperationCount == 1)
+        {
+            operationId = documentInfo.Hash.Value;
+        }
+        else
+        {
+            var hashValue = documentInfo.Hash.Value;
+            var operationName = context.Request.OperationName ?? DefaultOperationName;
+            var maxLength = hashValue.Length + OperationIdSeparatorLength + operationName.Length;
+
+            char[]? rented = null;
+            var buffer = maxLength <= StackallocThreshold
+                ? stackalloc char[maxLength]
+                : rented = ArrayPool<char>.Shared.Rent(maxLength);
+
+            try
+            {
+                hashValue.CopyTo(buffer);
+                var length = hashValue.Length;
+                buffer[length++] = '.';
+
+                operationName.CopyTo(buffer[length..]);
+                length += operationName.Length;
+
+                operationId = new string(buffer[..length]);
+            }
+            finally
+            {
+                if (rented is not null)
+                {
+                    ArrayPool<char>.Shared.Return(rented);
+                }
+            }
+        }
 
         operationInfo.OperationId = operationId;
         return operationId;
