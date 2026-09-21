@@ -6,7 +6,7 @@ import { RevealOnScroll } from "@/src/components/RevealOnScroll";
 import { SectionHeading } from "@/src/components/SectionHeading";
 
 export const SPEC_URL =
-  "https://graphql.github.io/composite-schemas-spec/draft/";
+  "https://graphql.github.io/graphql-federation-spec/draft/";
 
 export const GRADIENT = "linear-gradient(90deg, #5eead4, #16b9e4)";
 

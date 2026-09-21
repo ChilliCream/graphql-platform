@@ -76,6 +76,6 @@ export const FEDERATION_FAQ_ITEMS: readonly FederationFaqItem[] = [
   {
     question: "What happened to the Composite Schemas Specification?",
     answer:
-      "It was renamed. In 2023 Apollo, ChilliCream, and The Guild formed the Composite Schemas Working Group at the GraphQL Foundation to write a vendor-neutral standard for federated GraphQL schemas. The specification that came out of that work is the GraphQL Federation specification, an open standard under the GraphQL Foundation: the same document and the same working group under a new name.",
+      "It was renamed. In 2023 Apollo, ChilliCream, and The Guild formed the Composite Schemas Working Group at the GraphQL Foundation to write a vendor-neutral standard for federated GraphQL schemas. The specification that came out of that work was renamed to the GraphQL Federation specification: the same document, still developed by the Composite Schemas Working Group at the GraphQL Foundation. Repository: https://github.com/graphql/graphql-federation-spec.",
   },
 ];

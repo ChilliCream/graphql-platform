@@ -49,7 +49,7 @@ const GRAPHQL_FEDERATION_TERM = {
   name: "GraphQL Federation",
   description: FEDERATION_DEFINITION,
   sameAs: [
-    "https://graphql.github.io/composite-schemas-spec/draft/",
+    "https://graphql.github.io/graphql-federation-spec/draft/",
     "https://graphql.org/learn/federation/",
   ],
 };
