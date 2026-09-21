@@ -70,6 +70,14 @@ internal interface IAgentSessionRegistry
         AgentSessionGeneration generation, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Atomically claims this generation's telemetry skill pointer. Returns
+    /// true only for the first matching event on a live row.
+    /// </summary>
+    Task<bool> TryClaimTelemetryNudgeAsync(
+        AgentSessionGeneration generation, CancellationToken cancellationToken)
+        => Task.FromResult(false);
+
+    /// <summary>
     /// Resets <c>block_budget_used</c> to zero for the row matching
     /// <paramref name="generation"/> exactly. A generation that matches no
     /// row is a no-op. Called on <c>UserPromptSubmit</c>, so a lifetime

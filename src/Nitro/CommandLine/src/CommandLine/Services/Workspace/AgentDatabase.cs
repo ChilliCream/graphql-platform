@@ -20,7 +20,7 @@ internal sealed class AgentDatabase
     /// database at a legacy path carrying either of those versions is
     /// migrated, not opened here.
     /// </summary>
-    public const int CurrentVersion = 12;
+    public const int CurrentVersion = 13;
 
     /// <summary>
     /// Schema versions upgraded in place by <see cref="InitializeAsync"/>
@@ -69,7 +69,7 @@ internal sealed class AgentDatabase
     /// constraint also triggers on a surviving <c>pid</c> column and copies
     /// every row across without it.
     /// </summary>
-    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    private static readonly int[] s_upgradableVersions = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
     /// <summary>
     /// True for a schema version <see cref="InitializeAsync"/> upgrades in
@@ -318,6 +318,13 @@ internal sealed class AgentDatabase
                 "ALTER TABLE agent_sessions ADD COLUMN harness_version TEXT NOT NULL DEFAULT '';",
                 transaction: transaction);
         }
+
+        if (!columns.Contains("telemetry_nudge_sent"))
+        {
+            await connection.ExecuteAsync(
+                "ALTER TABLE agent_sessions ADD COLUMN telemetry_nudge_sent INTEGER NOT NULL DEFAULT 0 CHECK (telemetry_nudge_sent IN (0, 1));",
+                transaction: transaction);
+        }
     }
 
     /// <summary>
@@ -468,13 +475,13 @@ internal sealed class AgentDatabase
                     harness, session_id, agent_name, binding_kind, host,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
                     block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
-                    role, harness_version
+                    role, harness_version, telemetry_nudge_sent
                 )
                 SELECT
                     harness, session_id, agent_name, binding_kind, host,
                     cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
                     block_budget_used, last_ping_at, last_ping_attempt, last_ping_result, last_ping_detail,
-                    role, harness_version
+                    role, harness_version, telemetry_nudge_sent
                 FROM agent_sessions;
                 """,
                 transaction: transaction);

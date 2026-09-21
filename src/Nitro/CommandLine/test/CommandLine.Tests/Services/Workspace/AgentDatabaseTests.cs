@@ -122,6 +122,7 @@ public sealed class AgentDatabaseTests : IDisposable
             .ToHashSet(StringComparer.Ordinal);
         Assert.Contains("role", sessionColumns);
         Assert.Contains("harness_version", sessionColumns);
+        Assert.Contains("telemetry_nudge_sent", sessionColumns);
         Assert.DoesNotContain("pid", sessionColumns);
         Assert.DoesNotContain("proc_start", sessionColumns);
     }
@@ -173,6 +174,30 @@ public sealed class AgentDatabaseTests : IDisposable
         // assert
         var version = await QueryScalarLongAsync(second, "PRAGMA user_version;", cancellationToken);
         Assert.Equal(AgentDatabase.CurrentVersion, version);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Should_PreserveTelemetryNudgeState_When_CalledAgainOnCurrentVersion()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = await _database.InitializeAsync(_workspaceDirectory, cancellationToken))
+        {
+            await InsertAgentSessionAsync(connection, "session-telemetry", cancellationToken);
+            await ExecuteAsync(
+                connection,
+                "UPDATE agent_sessions SET telemetry_nudge_sent = 1 WHERE session_id = 'session-telemetry';",
+                cancellationToken);
+        }
+
+        // act
+        await using var reinitialized = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        Assert.Equal(1, await QueryScalarLongAsync(
+            reinitialized,
+            "SELECT telemetry_nudge_sent FROM agent_sessions WHERE session_id = 'session-telemetry'",
+            cancellationToken));
     }
 
     [Fact]
@@ -239,6 +264,73 @@ public sealed class AgentDatabaseTests : IDisposable
             await QueryScalarLongAsync(reopened, "PRAGMA user_version", cancellationToken));
         Assert.Equal(1, await QueryScalarLongAsync(
             reopened, "SELECT COUNT(*) FROM agent_takeovers WHERE id = 'to-current'", cancellationToken));
+    }
+
+    [Fact]
+    public async Task InitializeAsync_Should_StampV13AndPreserveMetadata_When_UpgradingV12()
+    {
+        // arrange
+        var cancellationToken = TestContext.Current.CancellationToken;
+        await using (var connection = new SqliteConnection(
+            $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False"))
+        {
+            await connection.OpenAsync(cancellationToken);
+            await ExecuteAsync(
+                connection,
+                """
+                CREATE TABLE agent_sessions (
+                    harness TEXT NOT NULL CHECK (harness IN ('claude-code', 'codex', 'copilot', 'nitro-board')),
+                    session_id TEXT NOT NULL,
+                    agent_name TEXT NULL,
+                    binding_kind TEXT NOT NULL DEFAULT 'none' CHECK (binding_kind IN ('none', 'env', 'explicit')),
+                    host TEXT NOT NULL,
+                    cwd TEXT NOT NULL,
+                    workspace_path TEXT NOT NULL,
+                    endpoint_kind TEXT NOT NULL CHECK (endpoint_kind IN ('claude-peer', 'codex-thread', 'copilot-extension', 'db-watch', 'none')),
+                    endpoint_addr TEXT NOT NULL,
+                    started_at TEXT NOT NULL,
+                    last_beat_at TEXT NOT NULL,
+                    block_budget_used INTEGER NOT NULL DEFAULT 0 CHECK (block_budget_used >= 0),
+                    last_ping_at TEXT NULL,
+                    last_ping_attempt TEXT NULL,
+                    last_ping_result TEXT NULL CHECK (last_ping_result IN ('ok', 'spawn-failed', 'endpoint-gone', 'timeout', 'capacity-dropped', 'error', 'unsupported') OR last_ping_result IS NULL),
+                    last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
+                    role TEXT NOT NULL DEFAULT '',
+                    harness_version TEXT NOT NULL DEFAULT '',
+                    CHECK ((binding_kind = 'none') = (agent_name IS NULL)),
+                    CHECK ((endpoint_kind = 'none') = (endpoint_addr = '')),
+                    PRIMARY KEY (harness, session_id)
+                );
+                INSERT INTO agent_sessions (
+                    harness, session_id, agent_name, binding_kind, host,
+                    cwd, workspace_path, endpoint_kind, endpoint_addr, started_at, last_beat_at,
+                    role, harness_version
+                ) VALUES (
+                    'claude-code', 'session-v12', NULL, 'none', 'host-1',
+                    '/work', '/work/.nitro/agents', 'none', '', '2026-01-10T12:00:00+00:00', '2026-01-10T12:00:00+00:00',
+                    'backend', '1.2.3'
+                );
+                PRAGMA user_version = 12;
+                """,
+                cancellationToken);
+        }
+
+        // act
+        await using var upgraded = await _database.InitializeAsync(_workspaceDirectory, cancellationToken);
+
+        // assert
+        var columns = (await QueryColumnNamesAsync(upgraded, "agent_sessions", cancellationToken))
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.Contains("telemetry_nudge_sent", columns);
+        Assert.Equal(13, await QueryScalarLongAsync(upgraded, "PRAGMA user_version", cancellationToken));
+        Assert.Equal(0, await QueryScalarLongAsync(
+            upgraded,
+            "SELECT telemetry_nudge_sent FROM agent_sessions WHERE session_id = 'session-v12'",
+            cancellationToken));
+        Assert.Equal("backend", await QueryScalarStringAsync(
+            upgraded, "SELECT role FROM agent_sessions WHERE session_id = 'session-v12'", cancellationToken));
+        Assert.Equal("1.2.3", await QueryScalarStringAsync(
+            upgraded, "SELECT harness_version FROM agent_sessions WHERE session_id = 'session-v12'", cancellationToken));
     }
 
     [Fact]
@@ -477,6 +569,7 @@ public sealed class AgentDatabaseTests : IDisposable
             .ToHashSet(StringComparer.Ordinal);
         Assert.Contains("role", sessionColumns);
         Assert.Contains("harness_version", sessionColumns);
+        Assert.Contains("telemetry_nudge_sent", sessionColumns);
         Assert.DoesNotContain("process_scope", sessionColumns);
 
         var agentName = await QueryScalarStringAsync(
@@ -877,7 +970,9 @@ public sealed class AgentDatabaseTests : IDisposable
         await using var connection = new SqliteConnection(
             $"Data Source={AgentWorkspace.GetDatabasePath(_workspaceDirectory)};Pooling=False");
         await connection.OpenAsync(cancellationToken);
-        Assert.Equal(13, await QueryScalarLongAsync(connection, "PRAGMA user_version", cancellationToken));
+        Assert.Equal(
+            AgentDatabase.CurrentVersion + 1,
+            await QueryScalarLongAsync(connection, "PRAGMA user_version", cancellationToken));
         Assert.Equal("delete", await QueryScalarStringAsync(connection, "PRAGMA journal_mode", cancellationToken));
         Assert.Equal(0, await QueryScalarLongAsync(
             connection,
@@ -1011,7 +1106,7 @@ public sealed class AgentDatabaseTests : IDisposable
     }
 
     /// <summary>
-    /// A v2, v3, v4, v5, v6, or v7 database is only upgraded in place by
+    /// A v2 through v12 database is only upgraded in place by
     /// <see cref="AgentDatabase.InitializeAsync"/>; connecting directly
     /// against it still requires exactly <see cref="AgentDatabase.CurrentVersion"/>.
     /// </summary>
@@ -1022,6 +1117,7 @@ public sealed class AgentDatabaseTests : IDisposable
     [InlineData(5)]
     [InlineData(6)]
     [InlineData(7)]
+    [InlineData(12)]
     public async Task ConnectAsync_Should_Throw_When_VersionIsUpgradable(int upgradableVersion)
     {
         // arrange

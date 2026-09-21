@@ -21,7 +21,8 @@ internal sealed record AgentSessionRecord
         + "endpoint_addr AS EndpointAddr, started_at AS StartedAt, last_beat_at AS LastBeatAt, "
         + "block_budget_used AS BlockBudgetUsed, last_ping_at AS LastPingAt, "
         + "last_ping_attempt AS LastPingAttempt, last_ping_result AS LastPingResult, "
-        + "last_ping_detail AS LastPingDetail, role AS Role, harness_version AS HarnessVersion";
+        + "last_ping_detail AS LastPingDetail, role AS Role, harness_version AS HarnessVersion, "
+        + "telemetry_nudge_sent AS TelemetryNudgeSent";
 
     public required string Harness { get; init; }
     public required string SessionId { get; init; }
@@ -87,4 +88,6 @@ internal sealed record AgentSessionRecord
     /// Blank until a caller captures it.
     /// </summary>
     public required string HarnessVersion { get; init; }
+
+    public bool TelemetryNudgeSent { get; init; }
 }

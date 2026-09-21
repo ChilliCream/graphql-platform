@@ -58,6 +58,7 @@ internal static class AgentSessionSchema
             last_ping_detail TEXT NULL CHECK (last_ping_detail IS NULL OR length(last_ping_detail) <= 200),
             role TEXT NOT NULL DEFAULT '',
             harness_version TEXT NOT NULL DEFAULT '',
+            telemetry_nudge_sent INTEGER NOT NULL DEFAULT 0 CHECK (telemetry_nudge_sent IN (0, 1)),
             -- Table-level CHECK constraints must follow every column
             -- definition (SQLite rejects one interleaved between columns),
             -- so both cross-column checks live here instead of next to the
