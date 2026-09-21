@@ -23,7 +23,6 @@ import {
   PREFLIGHT_CHECKLIST_RATIO,
   PreflightChecklist,
 } from "./visuals/PreflightChecklist";
-import { QUERY_TRACK_RATIO, QueryTrack } from "./visuals/QueryTrack";
 import { Scene } from "./visuals/Scene";
 import { SPEC_PATCHBAY_RATIO, SpecPatchbay } from "./visuals/SpecPatchbay";
 import {
@@ -85,13 +84,25 @@ function InPractice({ links }: InPracticeProps) {
 
 interface Panel {
   readonly visual: ReactNode;
-  /** The visual's own `viewBox` ratio, so the scene box never letterboxes it. */
-  readonly ratio: string;
+  /**
+   * The visual's own `viewBox` ratio, so the scene box never letterboxes it.
+   * Only meaningful for `kind: "svg"` (the default); an `"html"` visual
+   * sizes itself and ignores this.
+   */
+  readonly ratio?: string;
+  /**
+   * `"svg"` (the default) wraps `visual` in a ratio-locked `Scene`, which
+   * every console visual on this page is drawn for. `"html"` renders
+   * `visual` directly in the panel box instead: for a plain HTML component
+   * with its own motion gating, such as `LayeredDiagram`, that already
+   * sizes itself to its container.
+   */
+  readonly kind?: "svg" | "html";
 }
 
 /** One panel per text section, in the order the copy declares them. */
 const VISUALS: Readonly<Record<string, Panel>> = {
-  "what-is-fusion": { visual: <QueryTrack />, ratio: QUERY_TRACK_RATIO },
+  "what-is-fusion": { visual: <LayeredDiagram />, kind: "html" },
   "both-specifications": {
     visual: <SpecPatchbay />,
     ratio: SPEC_PATCHBAY_RATIO,
@@ -110,12 +121,6 @@ export function FusionPage() {
   return (
     <>
       <FusionHero />
-      <div
-        // Below sm the diagram fills and crops the panel so labels keep their minimum size.
-        className={`${PANEL_CLASS} mt-12 aspect-[3/4] overflow-hidden sm:aspect-square md:aspect-[9/8] lg:aspect-[9/4]`}
-      >
-        <LayeredDiagram />
-      </div>
 
       {SECTIONS.map((section, i) => {
         const panel = VISUALS[section.id];
@@ -128,7 +133,11 @@ export function FusionPage() {
               body={withLinks(firstParagraph, section.links)}
               visual={
                 <div className={`${PANEL_CLASS} overflow-hidden`}>
-                  <Scene ratio={panel.ratio}>{panel.visual}</Scene>
+                  {panel.kind === "html" ? (
+                    panel.visual
+                  ) : (
+                    <Scene ratio={panel.ratio}>{panel.visual}</Scene>
+                  )}
                 </div>
               }
               reverse={i % 2 === 1}
