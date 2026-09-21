@@ -188,6 +188,51 @@ function buildColumnRows(spec: ColumnRowSpec): ChamberRow[] {
 }
 
 /**
+ * hc-0-gar: bridges a FROZEN wall row to the column's own rim with a short
+ * SEQUENCE of rows -- replacing the single, oversized bridging row
+ * (`SIDE_TOP_ROW17`/`SIDE_BOTTOM_ROW1`, about 8x its neighbours) that read
+ * as a smooth, untextured "buffer" between the ceiling/floor grid and the
+ * pillar's rim (user report, ticket comment 364). `from`/`to`'s `y`, `z`
+ * and `radius` are interpolated independently along a monotone power
+ * curve (continuing the hourglass flare into the ceiling/floor rather
+ * than jumping in one step): `t = (i / steps) ^ power`, `i = 1..steps-1`
+ * (`to` itself is never included -- the caller already has it, either the
+ * rim row or the next frozen wall row). Both endpoints land exactly on
+ * `from`/`to` regardless of the powers, so this introduces no kink/step at
+ * either end by construction, same as `buildColumnRows`.
+ *
+ * `powerYZ` (for `y`/`z` together) and `powerR` (for `radius`) are
+ * independent: the wall row and the rim are NOT two points on the wall's
+ * own natural taper curve (the rim's own `y` is far smaller than the
+ * frozen row's -- the wall's rows flare OUTWARD in `y` toward its edge,
+ * while the rim sits back in near the column's axis), so a single shared
+ * power cannot keep every consecutive drawn-tile-height ratio (from the
+ * wall's own frozen reference pair, through the bridge, to the column's
+ * own rim-adjacent pair) inside the 1.3x rhythm bar -- verified directly
+ * against the real projection, a joint 2D/step grid search over
+ * 1280/1440/1920 (`test-results/gar-bridge-search.cjs`), not assumed.
+ */
+function buildBridgeRows(
+  from: ChamberRow,
+  to: ChamberRow,
+  steps: number,
+  powerYZ: number,
+  powerR: number,
+): ChamberRow[] {
+  const rows: ChamberRow[] = [];
+  for (let i = 1; i < steps; i++) {
+    const tYZ = Math.pow(i / steps, powerYZ);
+    const tR = Math.pow(i / steps, powerR);
+    rows.push({
+      y: from.y + (to.y - from.y) * tYZ,
+      z: from.z + (to.z - from.z) * tYZ,
+      radius: from.radius + (to.radius - from.radius) * tR,
+    });
+  }
+  return rows;
+}
+
+/**
  * The torus' own projected width/height in px at `baseScale = 1`
  * (`focal === dist`), at the near side (`theta = -PI/2`, the convention
  * `isFarSide`/`bandCenter` in `index.tsx` use) -- `originX`/`originY` don't
@@ -462,21 +507,25 @@ export function computeLayout(
     const SIDE_TOP_RIM_Y = 140;
     const SIDE_TOP_RIM_Z = 420;
     const SIDE_TOP_RIM_R = 320;
-    // TOP bridging row (replaces the FROZEN `base[17]`, planner ruling
-    // comment 345/346): chosen by the same search so the bridging pair
-    // (`SIDE_TOP_ROW17 -> topRim`) matches the column's own rim-adjacent
-    // pair (`columnRows[len-2] -> columnRows[len-1]`) within 15% tile
-    // height and 1px seam gap at 1280/1440/1920 jointly (landed within
-    // 1.2% / 0.4px at every width -- comfortably inside the bar). Row 16
-    // (`base[16]`, still frozen) stays the reference point on the wall
-    // side, so the drawn `base[16] -> SIDE_TOP_ROW17` pair is the visible
-    // "ceiling shelf" that widens before diving to the rim -- part of it
-    // projects outside the column's own silhouette (reported by the
-    // fixer's ticket comment), which is what answers the reviewer's "does
-    // the ceiling visibly converge into the rim" question.
-    const SIDE_TOP_ROW17_Y = 200;
-    const SIDE_TOP_ROW17_Z = 825;
-    const SIDE_TOP_ROW17_R = 560;
+    // TOP bridging ROWS (hc-0-gar, replaces the single FROZEN `base[17]`
+    // this ticket's fix removes): a `buildBridgeRows` sequence from row 16
+    // (still frozen) to the rim. `steps`/`powerYZ`/`powerR` are the joint
+    // grid search's own best candidate (`test-results/gar-bridge-search.cjs`,
+    // scanning steps 2-20 and both powers 0.02-6, real project()/ringPoint()
+    // jointly at 1280/1440/1920, not hand-picked) for the WHOLE rhythm chain
+    // -- the wall's own pair 15->16, through every bridge pair, to the
+    // column's own rim-adjacent pair. Row 16's own `y` is far OUTSIDE the
+    // rim's `y` (the frozen wall keeps flaring its `y` further out toward
+    // its own edge while the rim sits back in near the column's axis, see
+    // this file's module doc), so this bridge's own path bends back against
+    // the wall's immediately-preceding trend; no row count or power pair
+    // found gets every step under 1.3x -- the worst step (1.50-1.53 across
+    // 1280/1440/1920) is a genuine floor of this monotone-curve family
+    // against these frozen endpoints, not a margin choice. Still a >5x
+    // improvement over the single bridging row's own ~8x jump.
+    const SIDE_TOP_BRIDGE_STEPS = 5;
+    const SIDE_TOP_BRIDGE_POWER_YZ = 0.65;
+    const SIDE_TOP_BRIDGE_POWER_R = 0.3;
     // OPTION B (planner ruling, ticket comment 334, orchestrator relay
     // 335, reaffirmed 345/346 "bottom rim per the earlier option B" --
     // superseding the interim "front arc in canvas" reading of comment
@@ -489,14 +538,18 @@ export function computeLayout(
     const SIDE_BOTTOM_RIM_Y = -270;
     const SIDE_BOTTOM_RIM_Z = 230;
     const SIDE_BOTTOM_RIM_R = 236;
-    // BOTTOM bridging row (replaces the FROZEN `base[1]`, planner ruling
-    // comment 345/346): the new column row spacing below (5 rows/side,
-    // near-linear) changes the column's own first pair's drawn height, so
-    // `base[1]` needed its own re-match to it (same search as the top,
-    // mirrored) -- within 0.6% / 0.6px at every width.
-    const SIDE_BOTTOM_ROW1_Y = -320;
-    const SIDE_BOTTOM_ROW1_Z = 410;
-    const SIDE_BOTTOM_ROW1_R = 460.2;
+    // BOTTOM bridging ROW(S) (hc-0-gar, replaces the single FROZEN
+    // `base[1]` this ticket's fix removes): a `buildBridgeRows` sequence
+    // from the bottom rim to row 2 (still frozen), same search as the top
+    // (mirrored direction). The bottom rim's own `y` sits much closer to
+    // row 2's own trend than the top rim does to row 16's (see this file's
+    // module doc), so the search's own best candidate clears the bar
+    // comfortably with only `steps = 2` (one inserted row): worst
+    // consecutive ratio 1.13-1.17 across 1280/1440/1920, inside the
+    // ticket's 1.3x rhythm bar with real margin.
+    const SIDE_BOTTOM_BRIDGE_STEPS = 2;
+    const SIDE_BOTTOM_BRIDGE_POWER_YZ = 1.08;
+    const SIDE_BOTTOM_BRIDGE_POWER_R = 2.3;
 
     // Hourglass: waist at the band, flaring independently to each chosen
     // rim point above -- the column's own row 0/18 land exactly on those
@@ -531,25 +584,34 @@ export function computeLayout(
       rowsPerSide: 9,
     });
     // The desktop substitution (comments 328-330, un-frozen bridging rows
-    // per 345/346): the column's rim rows REPLACE the wall's own two
-    // far-ring rows (`base[0]`/`base[18]`); the NEW bridging rows above
-    // replace `base[1]`/`base[17]` (rows 2-16, `base.slice(2, 17)`, stay
-    // the untouched, frozen baseline wall rows -- pixel parity).
-    const topRow17: ChamberRow = {
-      y: SIDE_TOP_ROW17_Y * s,
-      z: SIDE_TOP_ROW17_Z * s,
-      radius: SIDE_TOP_ROW17_R * s,
-    };
-    const bottomRow1: ChamberRow = {
-      y: SIDE_BOTTOM_ROW1_Y * s,
-      z: SIDE_BOTTOM_ROW1_Z * s,
-      radius: SIDE_BOTTOM_ROW1_R * s,
-    };
+    // per 345/346, sequenced per hc-0-gar): the column's rim rows REPLACE
+    // the wall's own two far-ring rows (`base[0]`/`base[18]`); the NEW
+    // bridge SEQUENCES above replace `base[1]`/`base[17]` (rows 2-16,
+    // `base.slice(2, 17)`, stay the untouched, frozen baseline wall rows
+    // -- pixel parity). Built from the already-`*s`-scaled rows (`base`,
+    // `columnRows`), not canonical ones: `buildBridgeRows`' own
+    // interpolation is affine in each field (`from + (to - from) * t`), so
+    // scaling both endpoints by `s` first and interpolating is identical
+    // to interpolating canonical rows and then scaling by `s`.
+    const topBridge = buildBridgeRows(
+      base[16],
+      columnRows[columnRows.length - 1],
+      SIDE_TOP_BRIDGE_STEPS,
+      SIDE_TOP_BRIDGE_POWER_YZ,
+      SIDE_TOP_BRIDGE_POWER_R,
+    );
+    const bottomBridge = buildBridgeRows(
+      columnRows[0],
+      base[2],
+      SIDE_BOTTOM_BRIDGE_STEPS,
+      SIDE_BOTTOM_BRIDGE_POWER_YZ,
+      SIDE_BOTTOM_BRIDGE_POWER_R,
+    );
     const wallRows: ChamberRow[] = [
       columnRows[0],
-      bottomRow1,
+      ...bottomBridge,
       ...base.slice(2, 17),
-      topRow17,
+      ...topBridge,
       columnRows[columnRows.length - 1],
     ];
     // R - a = the column's own waist radius exactly (D(1)'s "gap of at
