@@ -4,10 +4,9 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Resolves the list multiplier for one field call from the locked
-/// priority chain: inherited <c>sizedFields</c>, slicing arguments present
-/// after coercion, <c>slicingArgumentDefaultValue</c>, <c>assumedSize</c>,
-/// then <see cref="CostSchemaIndexOptions.DefaultListSize"/>.
+/// Resolves list sizes in this order: inherited <c>sizedFields</c> sizes, supplied slicing
+/// arguments, <c>slicingArgumentDefaultValue</c>, <c>assumedSize</c>, then
+/// <see cref="CostSchemaIndexOptions.DefaultListSize"/>.
 /// </summary>
 internal static class ListSizeResolver
 {
@@ -24,9 +23,8 @@ internal static class ListSizeResolver
     /// <c>sizedFields</c> is non-empty never sizes its own field.
     /// </param>
     /// <param name="inheritedSizes">
-    /// The sizes inherited from every possible parent object type whose
-    /// <c>sizedFields</c> names this field, produced per parent by
-    /// <see cref="TryResolveSizedFieldSize"/>, empty when none do.
+    /// The sizes inherited from parent types whose <c>sizedFields</c> names this field.
+    /// Empty when no parent provides a size.
     /// </param>
     /// <param name="slicingArguments">
     /// This field call's slicing arguments, keyed by the argument name as
@@ -132,9 +130,7 @@ internal static class ListSizeResolver
     /// <paramref name="defaultListSize"/>, matching <see cref="Resolve"/>.
     /// </param>
     /// <param name="defaultListSize">
-    /// The fallback list size, read by a variable-bound slicing
-    /// argument on the assumed path when <see cref="ListSizeMetadata.AssumedSize"/>
-    /// is absent, same as <see cref="Resolve"/>.
+    /// The fallback list size when a variable argument has no supplied value or assumed size.
     /// </param>
     /// <param name="size">
     /// The resolved size, clamped to 0 when negative. Undefined when this
@@ -219,15 +215,10 @@ internal static class ListSizeResolver
     }
 
     /// <summary>
-    /// Resolves one slicing argument's numeric value after coercion. An
-    /// omitted argument or an undefined variable falls back to the schema
-    /// default; an explicit null, literal or variable-bound, is present but
-    /// not numeric and so suppresses that fallback (R-NULL-VARIABLE). A
-    /// variable-bound slicing argument reads <paramref name="staticFallback"/>
-    /// on the static path, where <paramref name="variableValues"/> is
-    /// <see langword="null"/>, instead of the schema default, and is treated
-    /// as absent when <paramref name="staticFallback"/> is
-    /// <see langword="null"/>.
+    /// Gets a slicing argument's numeric value. Omitted arguments and undefined variables
+    /// use the schema default; explicit null values do not. When
+    /// <paramref name="variableValues"/> is <see langword="null"/>, variable arguments use
+    /// <paramref name="staticFallback"/> and are absent if that fallback is <see langword="null"/>.
     /// </summary>
     private static bool TryResolveArgumentValue(
         SlicingArgumentValue argument,
@@ -264,9 +255,7 @@ internal static class ListSizeResolver
     }
 
     /// <summary>
-    /// Reads a slicing value, integers only, as the oracle: a
-    /// <see cref="FloatValueNode"/> or any other non-Int value is not a
-    /// slicing value and falls through the priority chain.
+    /// Reads an integer slicing value. Returns <see langword="false"/> for null or non-integer values.
     /// </summary>
     private static bool TryReadNumber(IValueNode? value, out double result)
     {

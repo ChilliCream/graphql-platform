@@ -40,9 +40,7 @@ public sealed class InterceptorTests
     public async Task FilterArgument_With_Own_CostDirective_Keeps_It()
     {
         // arrange
-        // The @cost directive is attached to the filter argument's own configuration right
-        // after UseFiltering() creates it, simulating a user-supplied directive on the
-        // argument itself, before CostTypeInterceptor ever looks at it.
+        // Attach the directive after filtering creates the argument and before the cost interceptor reads it.
         var schema = await CreateSchemaAsync(
             o => o.Filtering.DefaultFilterArgumentCost = 7.0,
             configureField: f => f.Extend().OnBeforeCreate((ctx, def) =>

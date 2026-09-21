@@ -5,9 +5,6 @@ does not match the .NET implementation bit-for-bit. The fixture records the
 seed and case identifier, uses `source: "fuzz-found"`, and stores the oracle
 result as the expected cost.
 
-The generator produces independent small cases, so minimization first isolates
-the disagreement to one schema, operation, variables object, and default list
-size. Copy the workflow artifact into this directory before fixing the
-implementation.
-The fixture must stay vendored after the fix so the conformance theory guards
-the regression without Rust.
+Each fixture contains one schema, operation, variables object, and default list
+size. Copy the workflow artifact into this directory to include it in the
+conformance suite. These fixtures run without Rust.

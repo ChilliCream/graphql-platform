@@ -1257,10 +1257,7 @@ public partial class DemoIntegrationTests
         """;
 
     /// <summary>
-    /// A cost-annotated slice of <see cref="AccountsSchema"/>, scoped to the fields
-    /// Authors_And_Reviews_Query_GetUserReviews_Report_Cost selects, for the GraphQL-Cost:
-    /// report scenario. Kept separate from the shared demo schema constants so annotating it
-    /// does not churn the snapshots of the other Demo* tests that reuse those constants.
+    /// The account fields and cost annotations used by the cost-reporting test.
     /// </summary>
     private const string CostAnnotatedAccountsSchema =
         """
@@ -1284,9 +1281,7 @@ public partial class DemoIntegrationTests
         """;
 
     /// <summary>
-    /// A cost-annotated slice of <see cref="Reviews2Schema"/>, scoped to the fields
-    /// Authors_And_Reviews_Query_GetUserReviews_Report_Cost selects. See
-    /// <see cref="CostAnnotatedAccountsSchema"/> for why it is kept separate.
+    /// The review fields and cost annotations used by the cost-reporting test.
     /// </summary>
     private const string CostAnnotatedReviews2Schema =
         """

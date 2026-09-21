@@ -3,27 +3,25 @@ using System.Diagnostics.CodeAnalysis;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A pluggable analysis evaluated while traversing an operation's condition
-/// trees and type regions.
+/// Defines how field summaries combine into an operation analysis.
 /// </summary>
 /// <remarks>
-/// Laws every implementation must satisfy: the summary type forms a
-/// preorder; <see cref="Combine"/> is a commutative monoid with identity
-/// <see cref="Empty"/> and is monotone with respect to the preorder;
-/// <see cref="Join"/> is an upper bound of both operands. The ExactCases
-/// backend additionally requires sub-distributivity of <see cref="Field"/>
-/// and <see cref="Combine"/> over <see cref="Join"/>. Idempotence, a least
-/// upper bound and full distributivity are not required.
+/// Summary values must have a consistent ordering.
+/// <see cref="Combine"/> must be associative, commutative, preserve that ordering,
+/// and use <see cref="Empty"/> as its identity.
+/// <see cref="Join"/> must return an upper bound of both inputs.
+/// Applying <see cref="Field"/> or <see cref="Combine"/> to joined inputs must produce
+/// an upper bound of the results obtained by applying them to each alternative separately.
+/// <see cref="Join"/> need not be idempotent or return the smallest upper bound.
 /// </remarks>
 /// <typeparam name="TSummary">
-/// The summary value this algebra combines and joins across selection
-/// boundaries.
+/// The result type for fields, selection sets, and operations.
 /// </typeparam>
 [Experimental(CostExperiments.AnalysisAlgebra)]
 public interface IAnalysisAlgebra<TSummary>
 {
     /// <summary>
-    /// Gets the identity element of the <see cref="Combine"/> monoid.
+    /// Gets the summary that leaves another summary unchanged when combined with it.
     /// </summary>
     TSummary Empty { get; }
 
@@ -31,7 +29,7 @@ public interface IAnalysisAlgebra<TSummary>
     /// Computes the summary contributed by one collected field group.
     /// </summary>
     /// <param name="group">
-    /// One collected field occurrence and possible parent-type pair.
+    /// A field selection and its possible parent type.
     /// </param>
     /// <param name="child">
     /// The combined summary of the group's own selection set.
@@ -60,8 +58,7 @@ public interface IAnalysisAlgebra<TSummary>
     /// The root selection set's combined summary.
     /// </param>
     /// <remarks>
-    /// Applied exactly once per operation, after the root selection has been
-    /// fully combined and joined, never nested inside <see cref="Field"/>.
+    /// Applies to the operation's root selection only, not to nested fields.
     /// </remarks>
     TSummary Root(double rootTypeWeight, TSummary selection);
 }

@@ -4,20 +4,13 @@ using HotChocolate.Types;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// The conservative bound <see cref="ExactCasesTraversal"/> falls back to
-/// once the <see cref="CaseBudget"/> is exhausted: every Boolean edge still
-/// unresolved is followed unconditionally into one envelope summary.
-/// Sound for algebras whose <see cref="IAnalysisAlgebra{T}.Field"/> is
-/// monotone in the collected field set and the child summary, a property
-/// both built-in algebras (<c>CostAlgebra</c>, <c>ResponseSizeAlgebra</c>)
-/// satisfy.
+/// Computes a conservative bound when exact analysis exceeds the case budget.
+/// Adding fields or increasing child summaries must not reduce the supplied algebra's result.
 /// </summary>
 internal static class CaseBudgetFallback
 {
     /// <summary>
-    /// Evaluates one region's boundary in envelope mode and returns it as a
-    /// resolved leaf, leaving every still-pending Boolean variable
-    /// unresolved in the envelope rather than split on.
+    /// Returns a bound for one type region covering all unresolved Boolean alternatives.
     /// </summary>
     public static BooleanDecision<TSummary> Evaluate<TSummary>(
         CostSchemaIndex schemaIndex,
@@ -46,9 +39,7 @@ internal static class CaseBudgetFallback
                 parentSizeContext));
 
     /// <summary>
-    /// Evaluates one region's boundary in envelope mode: every Boolean edge
-    /// the assignment does not resolve is followed regardless of its value,
-    /// collapsing the remaining uncertainty into one summary.
+    /// Computes a bound for one type region covering all unresolved Boolean alternatives.
     /// </summary>
     private static TSummary EvaluateCaseEnvelope<TSummary>(
         CostSchemaIndex schemaIndex,
@@ -81,8 +72,7 @@ internal static class CaseBudgetFallback
     }
 
     /// <summary>
-    /// Evaluates a boundary entirely in envelope mode, joining across its
-    /// own type regions the same way the exact backend does.
+    /// Computes a bound for a selection set covering all possible types and Boolean alternatives.
     /// </summary>
     private static TSummary EvaluateBoundaryEnvelope<TSummary>(
         CostSchemaIndex schemaIndex,
@@ -200,8 +190,7 @@ internal static class CaseBudgetFallback
     }
 
     /// <summary>
-    /// Evaluates one child boundary for a field occurrence and parent-type
-    /// pair in envelope mode.
+    /// Computes a bound for a field selection's children under one possible parent type.
     /// </summary>
     private static TSummary EvaluateChildEnvelope<TSummary>(
         CostSchemaIndex schemaIndex,
@@ -231,9 +220,7 @@ internal static class CaseBudgetFallback
     }
 
     /// <summary>
-    /// Like <see cref="ExactCasesTraversal"/>'s reachability walk, except a
-    /// Boolean edge the assignment does not resolve is followed
-    /// unconditionally rather than deferred.
+    /// Collects fields reachable under the assignment, including all unresolved Boolean alternatives.
     /// </summary>
     private static void CollectReachableWildcard(
         ConditionTree tree,

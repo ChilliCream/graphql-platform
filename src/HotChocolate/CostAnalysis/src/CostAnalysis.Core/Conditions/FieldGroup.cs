@@ -33,8 +33,7 @@ internal sealed class FieldGroup(string responseName)
     }
 
     /// <summary>
-    /// Concatenates the selection sets of every field in this group into one
-    /// merged selection list, the shape of the spec's CollectSubfields.
+    /// Returns the combined selections of all fields in this group.
     /// </summary>
     public IReadOnlyList<ISelectionNode> MergedSelectionSet()
     {

@@ -46,9 +46,6 @@ public sealed class AspireCompositionHelperTests
         Assert.Equal(defaultListSize, compositionSettings.Merger.DefaultListSize);
     }
 
-    // Settings-file surface plumbing: a non-null GraphQLCompositionSettings.DefaultListSize
-    // reaches SourceSchemaMergerOptions.DefaultListSize and is emitted as
-    // @fusion__cost_options(defaultListSize:) on the composed schema.
     [Fact]
     public async Task TryComposeAsync_Should_EmitCostOptions_When_DefaultListSizeIsSet()
     {

@@ -13,8 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.Fusion;
 
 /// <summary>
-/// Verifies that cost enforcement runs before planning and caches rejected operations'
-/// <see cref="CostPlan"/> instances for evaluate-only retries.
+/// Tests cost enforcement before planning and cost-plan reuse for rejected requests.
 /// </summary>
 public class CostEnforcementTests : FusionTestBase
 {

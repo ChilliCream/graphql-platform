@@ -3,8 +3,7 @@ using System.Collections.Immutable;
 namespace HotChocolate.Fusion.DirectiveMergers;
 
 /// <summary>
-/// Computes the per-argument fold rules used to derive the public <c>@listSize</c> directive
-/// from the per-source <c>@listSize</c> usages of every serving source.
+/// Combines source list-size settings into a public <c>@listSize</c> directive.
 /// </summary>
 internal static class ListSizeDirectiveFold
 {
@@ -15,15 +14,9 @@ internal static class ListSizeDirectiveFold
     public static int? FoldAssumedSize(IEnumerable<int?> values) => Max(values);
 
     /// <summary>
-    /// Applies the <c>@fusion__cost_options(defaultListSize:)</c> composition setting to an
-    /// already-folded <c>assumedSize</c> for a field that at least one serving source serves
-    /// without a compatible <c>@listSize</c> usage of its own. When
-    /// <paramref name="defaultListSize"/> is set, the sound bound is the greater of the folded
-    /// value (treated as <c>0</c> when absent) and the default. When
-    /// <paramref name="defaultListSize"/> is unbounded (<see langword="null"/>), the
-    /// unannotated source's effective size is unknown, so the result is
-    /// <see langword="null"/> (omitted) rather than the finite folded value, per the
-    /// execution-schema RFC.
+    /// Returns the larger of the folded assumed size and the configured default list size.
+    /// A missing assumed size counts as zero. An unbounded default
+    /// (<see langword="null"/>) returns <see langword="null"/>.
     /// </summary>
     public static int? ApplyDefaultListSize(int? foldedAssumedSize, int? defaultListSize)
         => defaultListSize is { } value ? Math.Max(foldedAssumedSize ?? 0, value) : null;
@@ -58,10 +51,9 @@ internal static class ListSizeDirectiveFold
     }
 
     /// <summary>
-    /// Folds <c>requireOneSlicingArgument</c>: <c>true</c> if any (already-defaulted) source
-    /// value is <c>true</c>, <c>false</c> if all are <c>false</c>, <c>null</c> if all are
-    /// <c>null</c> or the sequence is empty. Callers substitute an omitted source usage with
-    /// that source's own declared definition default before folding (R-REQUIRE-ONE-DEFAULT).
+    /// Returns <see langword="true"/> if any source requires a slicing argument,
+    /// <see langword="false"/> if only false and null values occur, or <see langword="null"/>
+    /// if all values are null or the sequence is empty. Inputs must include each source's applicable default.
     /// </summary>
     public static bool? FoldRequireOneSlicingArgument(IEnumerable<bool?> values)
     {
@@ -72,7 +64,7 @@ internal static class ListSizeDirectiveFold
             switch (value)
             {
                 case true:
-                    return true; // Early exit - true wins regardless of the remaining values.
+                    return true;
                 case false:
                     result = false;
                     break;

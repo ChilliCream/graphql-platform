@@ -124,20 +124,17 @@ public sealed class CostSchemaIndex
     }
 
     /// <summary>
-    /// Gets the number of object types in the schema's dense object-type
-    /// index, the width every <see cref="PossibleTypeSet"/> is built over.
+    /// Gets the number of object types in the schema.
     /// </summary>
     internal int ObjectTypeCount => _objectTypesByIndex.Length;
 
     /// <summary>
-    /// Gets the object type's dense index, used to address its bit in a
-    /// <see cref="PossibleTypeSet"/>.
+    /// Gets the index identifying an object type within this schema.
     /// </summary>
     internal int GetObjectTypeIndex(string objectTypeName) => _objectTypeIndex[objectTypeName];
 
     /// <summary>
-    /// Gets the possible object types of an object, interface or union type,
-    /// as a bitset over the schema index's dense object-type index.
+    /// Gets the possible object types of an object, interface, or union type.
     /// </summary>
     internal PossibleTypeSet GetPossibleTypeSet(string typeName) => _possibleTypes[typeName];
 

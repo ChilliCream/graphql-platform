@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
-# Clones the graphql-static-analysis-rs differential oracle at its pinned
-# commit into ./.oracle (gitignored) and applies oracle.patch, which exposes
-# the fuzz package's shared schema/variables for dump_corpus.rs and wires it
-# in as a cargo example.
-#
-# Prerequisite: rustup with stable Rust >= 1.90, plus a C++ compiler (the
-# fuzz package links libfuzzer-sys 0.4 unconditionally). Install with:
-#   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
-#   . "$HOME/.cargo/env" && rustup toolchain install stable
+# Prepares the pinned Rust oracle and corpus examples in ./.oracle.
+# Requires Rust 1.90 or later and a C++ compiler; see README.md for setup.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

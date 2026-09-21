@@ -3,9 +3,8 @@ using HotChocolate.Language;
 namespace HotChocolate.Execution.Pipeline;
 
 /// <summary>
-/// Normalizes an operation document, i.e. inlines all fragments into the selected
-/// operation and removes statically excluded selections, so that consumers only ever
-/// have to deal with a single, self-contained operation definition.
+/// Produces a document containing only the selected operation, with fragment inlined
+/// and statically excluded selections removed.
 /// </summary>
 public interface IOperationDocumentNormalizer
 {

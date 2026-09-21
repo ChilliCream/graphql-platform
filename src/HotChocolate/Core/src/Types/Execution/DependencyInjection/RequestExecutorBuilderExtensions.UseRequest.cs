@@ -517,8 +517,7 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
-    /// Adds a middleware that will be used to compile the normalized operation
-    /// document into an executable operation.
+    /// Adds middleware that compiles a normalized document into an executable operation.
     /// </summary>
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.

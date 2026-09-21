@@ -3,15 +3,11 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// One node of a condition tree: a cumulative <see cref="Condition"/>, the
-/// response-name field groups collected under it, and the edges to nodes
-/// reached by narrowing it further.
+/// A condition, the fields selected under it, and branches with further conditions.
 /// </summary>
 internal sealed class ConditionTreeNode(Condition condition)
 {
-    // Adaptive response-name lookup: a linear scan over the small groups
-    // list is cheapest for the common few-fields case; past 8 groups an
-    // index is built once and kept in sync with further additions.
+    // Use a linear lookup for small field groups, then build an index for larger groups.
     private const int IndexThreshold = 8;
 
     private readonly List<FieldGroup> _fieldGroups = [];

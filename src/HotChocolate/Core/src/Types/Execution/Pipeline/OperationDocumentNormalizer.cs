@@ -40,9 +40,7 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
             return normalizedDocument;
         }
 
-        // Before we can plan an operation, we must de-fragmentize it and remove static
-        // include conditions. The resulting document always has the operation as its
-        // only definition, at Definitions[0].
+        // Inline fragments and remove statically excluded selections before compilation.
         var rewriteResult = _documentRewriter.RewriteDocument(document, context.Request.OperationName);
         normalizedDocument = ApplyIncrementalPartsMarker(rewriteResult);
         _normalizedDocumentCache.TryAdd(operationId, normalizedDocument);
@@ -51,9 +49,8 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
     }
 
     /// <summary>
-    /// Normalizes a document directly, bypassing the normalized-document cache, for callers
-    /// that do not have a <see cref="RequestContext"/> at hand, such as the
-    /// <see cref="Processing.OperationCompiler"/> convenience overloads.
+    /// Produces a document containing only the selected operation, with fragments inlined
+    /// and statically excluded selections removed.
     /// </summary>
     public static DocumentNode NormalizeDocument(
         ISchemaDefinition schema,
@@ -72,10 +69,8 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
     }
 
     /// <summary>
-    /// Appends the internal marker directive to the operation definition of a rewritten
-    /// document that still has incremental delivery parts, so the marker travels with the
-    /// document and a cache hit already carries it. A document without incremental parts is
-    /// returned unchanged.
+    /// Marks a rewritten operation that has deferred or streamed parts.
+    /// Returns the document unchanged when it has no incremental parts.
     /// </summary>
     private static DocumentNode ApplyIncrementalPartsMarker(
         InlineFragmentOperationRewriterResult rewriteResult)
@@ -85,8 +80,7 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
             return rewriteResult.Document;
         }
 
-        // The rewriter always produces a document whose only definition, at Definitions[0],
-        // is the operation.
+        // The rewritten document contains only the selected operation.
         var operationDefinition = (OperationDefinitionNode)rewriteResult.Document.Definitions[0];
         var directives = new List<DirectiveNode>(operationDefinition.Directives)
         {

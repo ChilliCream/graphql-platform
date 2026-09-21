@@ -4,8 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// One collected field occurrence and possible parent-type pair at a
-/// selection-set boundary.
+/// A field selection and its parent type within a selection set.
 /// </summary>
 [Experimental(CostExperiments.AnalysisAlgebra)]
 public readonly ref struct CollectedFieldGroup
@@ -17,13 +16,13 @@ public readonly ref struct CollectedFieldGroup
     /// The response name of <paramref name="field"/>.
     /// </param>
     /// <param name="field">
-    /// The field occurrence.
+    /// The field selection, or <see langword="null"/> when no selection is available.
     /// </param>
     /// <param name="member">
-    /// The parent-type/field-definition pair for this occurrence.
+    /// The parent type and field definition for this selection.
     /// </param>
     /// <param name="inheritedSize">
-    /// The size inherited from the immediate parent, if applicable.
+    /// The list size inherited from the immediate parent, or <see langword="null"/> when none applies.
     /// </param>
     public CollectedFieldGroup(
         string responseName,
@@ -43,17 +42,17 @@ public readonly ref struct CollectedFieldGroup
     public string ResponseName { get; }
 
     /// <summary>
-    /// Gets the parent-type/field-definition pair for this occurrence.
+    /// Gets the parent type and field definition for this selection.
     /// </summary>
     public CollectedFieldGroupMember Member { get; }
 
     /// <summary>
-    /// Gets the size inherited from the immediate parent, if applicable.
+    /// Gets the list size inherited from the immediate parent, or <see langword="null"/> when none applies.
     /// </summary>
     public double? InheritedSize { get; }
 
     /// <summary>
-    /// Gets the field occurrence.
+    /// Gets the field selection, or <see langword="null"/> when no selection is available.
     /// </summary>
     public FieldNode? Field { get; }
 }

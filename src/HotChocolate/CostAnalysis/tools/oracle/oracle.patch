@@ -41,13 +41,13 @@ index a35318c..d286238 100644
      }
  }
  
-+/// The shared fuzz schema, for callers outside this module (`dump_corpus`).
++/// Returns the shared schema used by fuzz cases.
 +pub fn schema() -> &'static str {
 +    SCHEMA
 +}
 +
-+/// The shared fuzz variable-value fixtures, for callers outside this module
-+/// (`dump_corpus`). Mirrors [`variable_values`].
++/// Returns the variable values for a fuzz case
++/// as a JSON object, or None when the case has no variables.
 +pub fn variables_json(variable_case: u8) -> Option<JsonMap> {
 +    variable_values(variable_case)
 +}

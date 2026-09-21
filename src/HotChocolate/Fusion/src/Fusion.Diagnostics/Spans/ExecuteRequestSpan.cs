@@ -45,12 +45,8 @@ internal sealed class ExecuteRequestSpan(
             return true;
         }
 
-        // Cost analysis and other short-circuits can complete the request before the
-        // operation is planned and, unlike the compiled plan, the source document is never
-        // normalized as a side effect of merely handling the request, so the fallback reads
-        // the operation type and name straight from it. The document must already be
-        // validated, otherwise a request that never reaches a known operation, such as one
-        // that fails document validation, would incorrectly report one.
+        // Cost rejection can finish a request before planning.
+        // Use only validated documents when reporting operation details.
         if (Context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
             && document.TryGetOperationDefinition(Context.Request.OperationName, out var operationDefinition))
         {

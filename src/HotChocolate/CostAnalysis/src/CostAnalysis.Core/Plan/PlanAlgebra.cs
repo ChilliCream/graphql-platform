@@ -119,10 +119,8 @@ internal sealed class PlanAlgebra :
     {
         _batchedFields.Clear();
 
-        // Compile-time only: FieldPlanNode re-resolves the inherited size
-        // live from the request's variableValues (see FieldPlanNode.Evaluate),
-        // so this baked-in value only ever backs the static constant-fold
-        // path and must stay variable-independent here.
+        // Keep this value independent of request variables for constant folding.
+        // FieldPlanNode resolves variable-dependent inherited sizes during evaluation.
         var inheritedSize = InheritedListSizes.InheritedSizeFor(
             inheritedSizeContext,
             field.Name.Value,

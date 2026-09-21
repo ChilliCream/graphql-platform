@@ -5,10 +5,7 @@ using HotChocolate.Types.Mutable.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Unit tests for the generic <see cref="AnalysisPlan"/>/
-/// <see cref="AnalysisPlanCompiler"/> surface: Boolean variable resolution,
-/// agreement with the ExactCases traversal it is built on, and case-budget
-/// behavior shared with the optimized <see cref="CostPlan"/> path.
+/// Tests custom analysis plans, Boolean conditions, and case-budget behavior.
 /// </summary>
 public sealed class AnalysisPlanTests
 {
@@ -42,8 +39,7 @@ public sealed class AnalysisPlanTests
         // act
         var fieldCount = plan.Evaluate(new FieldPresenceAlgebra(), variables);
 
-        // assert: @include(if:$x) and @skip(if:$x) on siblings are
-        // complementary, so exactly one "costly" is active either way.
+        // assert
         Assert.Equal(expectedFieldCount > 0, fieldCount);
     }
 
@@ -54,9 +50,8 @@ public sealed class AnalysisPlanTests
         var (plan, _, _) = Compile(GateSdl, GateOperation);
         var variables = Variables();
 
-        // act: $x is required, but a caller-supplied ICostVariableValues
-        // can still omit it; TryGetValue returning false must behave like
-        // ConditionPlanNode's coercion (false), not throw.
+        // act
+        // A custom variable provider can omit a required variable.
         var gatedIncluded = plan.Evaluate(new FieldPresenceAlgebra(), variables);
 
         // assert
@@ -133,9 +128,8 @@ public sealed class AnalysisPlanTests
     [Fact]
     public void HitCaseBudget_Should_BeAlgebraIndependent_AndMatchCostPlan()
     {
-        // arrange: 10 independently @include-gated sibling fields need
-        // 2^10 - 1 = 1023 splits: too many for the tight budget, comfortably
-        // inside the roomy one.
+        // arrange
+        // Ten independent Boolean conditions require 1,023 splits, between the two budgets.
         var (sdl, operationText) = GenerateIndependentlyGatedOperation(10);
         var document = Utf8GraphQLParser.Parse(operationText);
         var operation = ConditionTreeTestHelpers.ParseOperation(document);
@@ -152,9 +146,7 @@ public sealed class AnalysisPlanTests
         var roomyCostPlan = CostPlanCompiler.Compile(roomySchemaIndex, document, operation, CostAnalyses.Cost);
         var roomyAnalysisPlan = AnalysisPlanCompiler.Compile(roomySchemaIndex, document, operation);
 
-        // assert: case-budget exhaustion depends only on the condition
-        // tree's shape and the schema's case budget, never on the algebra,
-        // so the generic plan must agree with the optimized cost plan.
+        // assert
         Assert.True(tightCostPlan.HitCaseBudget);
         Assert.True(tightAnalysisPlan.HitCaseBudget);
         Assert.False(roomyCostPlan.HitCaseBudget);
@@ -182,8 +174,7 @@ public sealed class AnalysisPlanTests
         var fallback = tightPlan.Evaluate(new FieldCountAlgebra(), allFalse);
         var exact = roomyPlan.Evaluate(new FieldCountAlgebra(), allFalse);
 
-        // assert: the fallback envelope follows every pending Boolean edge
-        // unconditionally, overapproximating the exact (all-excluded) count.
+        // assert
         Assert.True(tightPlan.HitCaseBudget);
         Assert.False(roomyPlan.HitCaseBudget);
         Assert.Equal(6, fallback);
@@ -238,8 +229,7 @@ public sealed class AnalysisPlanTests
     }
 
     /// <summary>
-    /// Counts present fields, ignoring their children: a minimal algebra
-    /// used only to observe which of two mutually gated fields is active.
+    /// Reports whether any field is present, ignoring child selections.
     /// </summary>
     private sealed class FieldPresenceAlgebra : IAnalysisAlgebra<bool>
     {

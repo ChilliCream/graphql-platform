@@ -48,8 +48,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
     }
 
     /// <summary>
-    /// Registers a callback to modify the <see cref="FusionCostOptions"/>
-    /// (cost limits, response size limit, cost plan cache size, etc.).
+    /// Registers a callback to configure the gateway's cost analysis options.
     /// </summary>
     /// <param name="builder">The gateway builder.</param>
     /// <param name="configure">A delegate that configures the cost options.</param>

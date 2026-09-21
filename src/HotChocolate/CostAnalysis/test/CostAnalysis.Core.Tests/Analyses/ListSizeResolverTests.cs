@@ -4,17 +4,12 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Verifies <see cref="ListSizeResolver"/> against the locked list-size
-/// priority chain: inherited sizedFields, slicing arguments present after
-/// coercion, slicingArgumentDefaultValue, assumedSize, then
-/// CostSchemaIndexOptions.DefaultListSize.
+/// Tests list-size precedence, defaults, and variable values.
 /// </summary>
 public class ListSizeResolverTests
 {
     private static readonly IReadOnlyDictionary<string, SlicingArgumentValue> s_noSlicingArguments =
         new Dictionary<string, SlicingArgumentValue>();
-
-    // -- Non-list fields never enter the chain --------------------------------------------------
 
     [Fact]
     public void Resolve_Should_ReturnOne_When_FieldIsNotAList()
@@ -31,8 +26,6 @@ public class ListSizeResolverTests
         // assert
         Assert.Equal(1.0, n);
     }
-
-    // -- Rank 1: inherited sizedFields -----------------------------------------------------------
 
     [Fact]
     public void Resolve_Should_UseInheritedSize_When_ParentSizedFieldsNamesThisField()
@@ -88,8 +81,6 @@ public class ListSizeResolverTests
         // assert
         Assert.Equal(20.0, n);
     }
-
-    // -- Rank 2: slicing arguments present after coercion --------------------------------------
 
     [Fact]
     public void Resolve_Should_UseSuppliedSlicingArgument_When_Present()
@@ -257,7 +248,7 @@ public class ListSizeResolverTests
     [Fact]
     public void Resolve_Should_FallThrough_When_SlicingValueIsAFloat()
     {
-        // arrange: integers only, as the oracle; a Float is not a slicing value
+        // arrange
         var metadata = CreateMetadata(slicingArguments: ["first"], slicingArgumentDefaultValue: 7.0);
         var slicingArguments = new Dictionary<string, SlicingArgumentValue>
         {
@@ -273,11 +264,9 @@ public class ListSizeResolverTests
             variableValues: null,
             defaultListSize: double.PositiveInfinity);
 
-        // assert: falls through rank 2 to rank 3, slicingArgumentDefaultValue
+        // assert
         Assert.Equal(7.0, n);
     }
-
-    // -- Rank 3: slicingArgumentDefaultValue, only when no slicing argument is present ----------
 
     [Fact]
     public void Resolve_Should_UseSlicingArgumentDefaultValue_When_NoSlicingArgumentIsPresent()
@@ -297,8 +286,6 @@ public class ListSizeResolverTests
         // assert
         Assert.Equal(10.0, n);
     }
-
-    // -- Rank 4: assumedSize ----------------------------------------------------------------------
 
     [Fact]
     public void Resolve_Should_UseAssumedSize_When_NoSlicingArgumentOrDefaultValueApply()
@@ -342,8 +329,6 @@ public class ListSizeResolverTests
         Assert.Equal(1.0, n);
     }
 
-    // -- Rank 5: CostSchemaIndexOptions.DefaultListSize ------------------------------------------------
-
     [Fact]
     public void Resolve_Should_UseDefaultListSize_When_FieldCarriesNoListSizeMetadata()
     {
@@ -378,8 +363,6 @@ public class ListSizeResolverTests
         // assert
         Assert.Equal(10.0, n);
     }
-
-    // -- An annotation never sizes its own field --------------------------------------------------
 
     [Fact]
     public void Resolve_Should_UseDefaultListSize_When_OwnSizedFieldsIsNonEmpty_And_SlicingArgumentIsSupplied()
@@ -441,8 +424,6 @@ public class ListSizeResolverTests
         // assert
         Assert.Equal(7.0, n);
     }
-
-    // -- Variable-bound slicing arguments on the static path (variableValues is null) -------------
 
     [Fact]
     public void Resolve_Should_UseAssumedSize_When_SlicingArgumentIsVariableBound_And_VariableValuesAreNull()
@@ -540,8 +521,6 @@ public class ListSizeResolverTests
         Assert.Equal(100.0, n);
     }
 
-    // -- Evaluate mode (variableValues is non-null) resolves the coerced value ---------------------
-
     [Fact]
     public void Resolve_Should_UseCoercedVariableValue_When_VariableIsDefined()
     {
@@ -592,8 +571,6 @@ public class ListSizeResolverTests
         Assert.Equal(25.0, n);
     }
 
-    // -- TryResolveSizedFieldSize: the propagation half of rank 1 -------------------------------
-
     [Fact]
     public void TryResolveSizedFieldSize_Should_ResolveCoercedVariableSlicingArgument_When_ParentSlicesAChildList()
     {
@@ -637,7 +614,7 @@ public class ListSizeResolverTests
     [Fact]
     public void TryResolveSizedFieldSize_Should_ReturnFalse_When_NoSlicingArgumentAndNoAssumedSizeOrDefault()
     {
-        // arrange: "first" is declared but never present, and slicingArgumentDefaultValue/assumedSize are both absent
+        // arrange
         var metadata = CreateMetadata(slicingArguments: ["first"], sizedFields: ["items"]);
 
         // act
@@ -689,7 +666,7 @@ public class ListSizeResolverTests
     [Fact]
     public void TryResolveSizedFieldSize_Should_UseAssumedSize_When_VariableBound_And_PathHasAssumedSize()
     {
-        // arrange: static path, no coercion available; a variable-bound slicing argument reads assumedSize first
+        // arrange
         var metadata = CreateMetadata(slicingArguments: ["first"], assumedSize: 40.0, sizedFields: ["items"]);
         var slicingArguments = new Dictionary<string, SlicingArgumentValue>
         {
@@ -708,8 +685,8 @@ public class ListSizeResolverTests
     [Fact]
     public void TryResolveSizedFieldSize_Should_UseDefaultListSize_When_VariableBound_And_NoAssumedSize()
     {
-        // arrange: spec.md:158 - a variable-bound slicing argument on the static path reads assumedSize then
-        // DefaultListSize, never slicingArgumentDefaultValue, same as Resolve
+        // arrange
+        // Without request values, variable arguments use assumedSize or DefaultListSize.
         var metadata = CreateMetadata(
             slicingArguments: ["first"],
             slicingArgumentDefaultValue: 25.0,

@@ -89,13 +89,13 @@ public record RequestCostOptions
     /// The maximum allowed type cost.
     /// </param>
     /// <param name="enforceCostLimits">
-    /// Defines if the analyzer shall enforce cost limits.
+    /// Whether to enforce cost limits.
     /// </param>
     /// <param name="skipAnalyzer">
-    /// Defines if the cost analyzer shall be skipped.
+    /// Whether to skip cost analysis.
     /// </param>
     /// <param name="maxResponseSize">
-    /// The maximum allowed response size.
+    /// The response-size limit override, or <see langword="null"/> to use the schema's limit.
     /// </param>
     public RequestCostOptions(
         double maxFieldCost,
@@ -188,9 +188,9 @@ public record RequestCostOptions
     }
 
     /// <summary>
-    /// Replaces the schema's maximum response size for this request. Requires the schema
-    /// to enable the response-size analysis; otherwise the request fails.
-    /// A non-null value must be a non-negative finite number or positive infinity.
+    /// Gets or sets the response-size limit override, or <see langword="null"/> to use the schema's limit.
+    /// A non-null value requires response-size analysis to be enabled for the schema, or the request fails.
+    /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
     /// The value is NaN, negative, or negative infinity.
@@ -268,13 +268,13 @@ public record RequestCostOptions
     /// The maximum allowed type cost.
     /// </param>
     /// <param name="enforceCostLimits">
-    /// Defines if the analyzer shall enforce cost limits.
+    /// Whether to enforce cost limits.
     /// </param>
     /// <param name="skipAnalyzer">
-    /// Defines if the cost analyzer shall be skipped.
+    /// Whether to skip cost analysis.
     /// </param>
     /// <param name="maxResponseSize">
-    /// The maximum allowed response size.
+    /// The response-size limit override, or <see langword="null"/> to use the schema's limit.
     /// </param>
     public void Deconstruct(
         out double maxFieldCost,

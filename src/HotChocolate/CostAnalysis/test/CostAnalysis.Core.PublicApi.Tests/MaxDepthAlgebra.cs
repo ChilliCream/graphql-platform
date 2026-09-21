@@ -1,10 +1,7 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A custom <see cref="IAnalysisAlgebra{TSummary}"/> built only against the
-/// public surface: the maximum selection-set depth reached, one level per
-/// field, with siblings and mutually exclusive type regions both resolved
-/// by their deepest branch.
+/// Computes the maximum selection depth, counting one level per field.
 /// </summary>
 public sealed class MaxDepthAlgebra : IAnalysisAlgebra<int>
 {

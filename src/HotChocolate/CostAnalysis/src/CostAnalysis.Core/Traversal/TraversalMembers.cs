@@ -1,18 +1,13 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Builds a response-name group's parent-type/field-definition members
-/// across a type region, shared by the ExactCases backend and its
-/// case-budget fallback.
+/// Provides the parent types and field definitions for a field selected within a type region.
 /// </summary>
 internal static class TraversalMembers
 {
     /// <summary>
-    /// Builds one <see cref="CollectedFieldGroupMember"/> per possible type
-    /// in <paramref name="region"/> that defines <paramref name="fieldName"/>,
-    /// omitting types that do not (for example a meta field such as
-    /// <c>__typename</c> on a schema with no introspection field
-    /// definitions).
+    /// Returns one member per possible type in <paramref name="region"/> that defines
+    /// <paramref name="fieldName"/>. Types without that field are omitted.
     /// </summary>
     public static CollectedFieldGroupMember[] Build(
         CostSchemaIndex schemaIndex,

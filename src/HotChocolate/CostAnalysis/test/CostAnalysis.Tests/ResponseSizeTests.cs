@@ -58,9 +58,7 @@ public sealed class ResponseSizeTests
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         var requestOptions = requestExecutor.GetCostOptions();
 
-        // The schema never enables the response-size analysis (MaxResponseSize stays
-        // null), so a request-level override must fail fast instead of being silently
-        // ignored (2026-09-15 user ruling).
+        // The schema has response-size analysis disabled.
         var request = OperationRequestBuilder.New()
             .SetDocument(Operation)
             .SetCostOptions(requestOptions with { MaxResponseSize = 1_000 })
@@ -91,8 +89,7 @@ public sealed class ResponseSizeTests
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         var requestOptions = requestExecutor.GetCostOptions();
 
-        // The schema allows at most 100, but the request-level override raises it to 1000,
-        // so a response of size 500 (limit: 499) must pass.
+        // The response size of 500 lies between the schema limit and the higher request limit.
         var request = OperationRequestBuilder.New()
             .SetDocument("{ items(limit: 499) { value } }")
             .SetCostOptions(requestOptions with { MaxResponseSize = 1_000 })
@@ -114,8 +111,7 @@ public sealed class ResponseSizeTests
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
         var requestOptions = requestExecutor.GetCostOptions();
 
-        // The schema allows up to 1000, but the request-level override lowers it to 100,
-        // so a response of size 500 (limit: 499) must be rejected.
+        // The response size of 500 lies between the lower request limit and the schema limit.
         var request = OperationRequestBuilder.New()
             .SetDocument("{ items(limit: 499) { value } }")
             .SetCostOptions(requestOptions with { MaxResponseSize = 100 })

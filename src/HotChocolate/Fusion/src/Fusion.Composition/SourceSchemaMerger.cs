@@ -1266,16 +1266,9 @@ internal sealed partial class SourceSchemaMerger
     }
 
     /// <summary>
-    /// Derives the public <c>@cost</c> directive for a merged member by folding the effective
-    /// weight of every serving source (its declared <c>@cost</c> weight, else the spec default
-    /// for <paramref name="kind"/>), and records each declaring, compatible source's own weight
-    /// as a <c>@fusion__cost</c> entry. A partial member (an <c>@fusion__field(partial: true)</c>
-    /// source, for example an Apollo Federation <c>@external</c> field returned through
-    /// <c>@provides</c>) contributes only when it declares its own compatible <c>@cost</c> usage;
-    /// an omitted <c>@cost</c> on such a member does not contribute the coordinate's default
-    /// weight, since that member never resolves the value itself. The public directive is emitted
-    /// only when at least one member declares a compatible <c>@cost</c> usage
-    /// (R-COMPOSITION-WEIGHT-FOLD, R-DERIVATION-DIRECTION).
+    /// Adds a public <c>@cost</c> directive with the largest effective source weight when at least
+    /// one source has a compatible annotation. Unannotated serving sources contribute their
+    /// default weights; partial sources contribute only explicit compatible weights.
     /// </summary>
     private void DeriveCostDirectives(
         IDirectivesProvider member,
@@ -1328,15 +1321,13 @@ internal sealed partial class SourceSchemaMerger
     }
 
     /// <summary>
-    /// Records each declaring, compatible source's own <c>@cost</c> weight as a
-    /// <c>@fusion__cost</c> provenance entry. Called after every public directive on the member
-    /// has been added, so public directives keep preceding <c>fusion__</c> ones on every member.
+    /// Adds each compatible source's explicit cost weight as a <c>@fusion__cost</c> directive.
+    /// Requires the public <c>@cost</c> directive to be present.
     /// </summary>
     private void AddFusionCostDirectives(
         IDirectivesProvider member,
         ImmutableArray<DirectivesProviderInfo> memberGroup)
     {
-        // Avoid adding @fusion__cost if @cost was not derived (not merged).
         if (!member.Directives.ContainsName(DirectiveNames.Cost))
         {
             return;
@@ -1373,11 +1364,8 @@ internal sealed partial class SourceSchemaMerger
     }
 
     /// <summary>
-    /// Returns whether <paramref name="sourceSchema"/>'s own <c>@cost</c> directive definition
-    /// (if it declares one) is compatible with the canonical shape, so its usages can be trusted
-    /// to carry a real <c>weight</c> argument (R-COMPOSITION-COMPAT). A source that does not
-    /// declare its own definition (spec-only or undeclared usage, canonical definition injected
-    /// by the parser) is treated as compatible.
+    /// Checks whether the source's <c>@cost</c> definition matches the canonical definition.
+    /// A source without its own definition is compatible.
     /// </summary>
     private bool IsCostDefinitionCompatible(MutableSchemaDefinition sourceSchema)
     {
@@ -1746,14 +1734,9 @@ internal sealed partial class SourceSchemaMerger
     }
 
     /// <summary>
-    /// Derives the public <c>@listSize</c> directive for a merged output field by folding every
-    /// declaring, compatible source's usage (hc-3-mmh.9 fold rules, R-REQUIRE-ONE-DEFAULT,
-    /// R-COMPOSITION-ARGS), and records each such source's own usage as a <c>@fusion__listSize</c>
-    /// entry. A serving source is a source that resolves the field itself; a partial member (an
-    /// <c>@fusion__field(partial: true)</c> source, for example an Apollo Federation
-    /// <c>@external</c> field returned through <c>@provides</c>) is not a serving source for this
-    /// rule, though its own <c>@listSize</c>, when declared, still folds in. The public directive
-    /// is emitted only when at least one member declares a compatible <c>@listSize</c> usage.
+    /// Adds a public <c>@listSize</c> directive when at least one source has a compatible annotation.
+    /// Partial sources contribute explicit annotations, but their missing annotations do not
+    /// contribute the default list size.
     /// </summary>
     private void DeriveListSizeDirectives(
         MutableOutputFieldDefinition member,
@@ -1810,12 +1793,8 @@ internal sealed partial class SourceSchemaMerger
 
         var argumentAssignments = new List<ArgumentAssignment>();
 
-        // At least one serving source (one that resolves the field itself, excluding partial
-        // members) that does not contribute a compatible @listSize usage: the sound bound must
-        // also account for that source's effective size, which composition only knows through
-        // the configured default list size (@fusion__cost_options(defaultListSize:),
-        // R-COMPOSITION-WEIGHT-FOLD). A partial member's own missing @listSize never triggers
-        // this, since it never resolves the field itself.
+        // Include the default list size for sources that resolve the field without a compatible annotation.
+        // Missing annotations on partial fields do not contribute a default.
         var hasUnannotatedServingSource = annotatedServingSourceCount < servingSourceCount;
 
         var assumedSize = ListSizeDirectiveFold.FoldAssumedSize(assumedSizes);
@@ -1831,13 +1810,7 @@ internal sealed partial class SourceSchemaMerger
                 new ArgumentAssignment(ArgumentNames.AssumedSize, new IntValueNode(assumedSize.Value)));
         }
 
-        // R-COMPOSITION-ARGS would drop a name declared by only one source and not otherwise
-        // present on the composite field, since a client could never supply it. The existing
-        // pinned union-fold fixtures (Merge_ListSizeDirectivesUnionSlicingArguments_MatchesSnapshot,
-        // Merge_ListSizeDirectivesUnionSizedFields_MatchesSnapshot) exercise fields with no
-        // matching arguments/sub-fields at all and require the full union preserved, so this
-        // fold keeps the plain union (matching the byte-identical requirement on those fixtures)
-        // and does not filter by composite existence; see NEEDS-PLANNER comment on the ticket.
+        // Preserve all declared names, including names absent from the composite field.
         var slicingArguments = ListSizeDirectiveFold.FoldNames(slicingArgumentsPerSource);
 
         if (slicingArguments.Length != 0)
@@ -1883,16 +1856,13 @@ internal sealed partial class SourceSchemaMerger
     }
 
     /// <summary>
-    /// Records each declaring, compatible source's own <c>@listSize</c> usage as a
-    /// <c>@fusion__listSize</c> provenance entry. Called after every public directive on the
-    /// member has been added, so public directives keep preceding <c>fusion__</c> ones on every
-    /// member.
+    /// Adds each compatible source's list-size annotation as a <c>@fusion__listSize</c> directive.
+    /// Requires the public <c>@listSize</c> directive to be present.
     /// </summary>
     private void AddFusionListSizeDirectives(
         MutableOutputFieldDefinition member,
         ImmutableArray<DirectivesProviderInfo> memberGroup)
     {
-        // Avoid adding @fusion__listSize if @listSize was not derived (not merged).
         if (!member.Directives.ContainsName(DirectiveNames.ListSize))
         {
             return;
@@ -1926,10 +1896,8 @@ internal sealed partial class SourceSchemaMerger
     }
 
     /// <summary>
-    /// Normalizes a singleton string usage of <c>slicingArguments</c> or <c>sizedFields</c> to
-    /// its coerced one-element list form (GraphQL list input coercion, mirrored by
-    /// <see cref="ListSizeDirective.From"/>), so the <c>@fusion__listSize</c> provenance entry
-    /// agrees with the public <c>@listSize</c> directive, which always reports the coerced list.
+    /// Converts singleton strings for <c>slicingArguments</c> and <c>sizedFields</c> to one-element lists.
+    /// Other values are returned unchanged.
     /// </summary>
     private static IValueNode NormalizeListSizeArgumentValue(string argumentName, IValueNode value)
     {
@@ -1943,11 +1911,8 @@ internal sealed partial class SourceSchemaMerger
     }
 
     /// <summary>
-    /// Reads the declared default of the <c>requireOneSlicingArgument</c> argument from
-    /// <paramref name="sourceSchema"/>'s own <c>@listSize</c> directive definition, so an omitted
-    /// usage contributes that source's runtime default instead of null (R-REQUIRE-ONE-DEFAULT).
-    /// Returns <see langword="null"/> when the source declares no definition, or its definition
-    /// declares no default, for that argument.
+    /// Gets the source's declared default for <c>requireOneSlicingArgument</c>, or
+    /// <see langword="null"/> when no default is declared.
     /// </summary>
     private static bool? GetSourceDeclaredRequireOneSlicingArgumentDefault(MutableSchemaDefinition sourceSchema)
     {
@@ -1962,11 +1927,8 @@ internal sealed partial class SourceSchemaMerger
     }
 
     /// <summary>
-    /// Returns whether <paramref name="sourceSchema"/>'s own <c>@listSize</c> directive
-    /// definition (if it declares one) is compatible with the canonical shape, allowing a
-    /// spec-only source definition that omits the ChilliCream <c>slicingArgumentDefaultValue</c>
-    /// extension argument (R-COMPOSITION-COMPAT). A source that does not declare its own
-    /// definition (canonical definition injected by the parser) is treated as compatible.
+    /// Checks whether the source's <c>@listSize</c> definition matches the canonical definition.
+    /// Sources may omit the <c>slicingArgumentDefaultValue</c> extension or the entire definition.
     /// </summary>
     private bool IsListSizeDefinitionCompatible(MutableSchemaDefinition sourceSchema)
     {

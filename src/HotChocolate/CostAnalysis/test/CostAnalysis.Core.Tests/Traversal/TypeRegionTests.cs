@@ -42,7 +42,7 @@ public class TypeRegionTests
     [Fact]
     public void Partition_Should_Split_Into_Singletons_When_Every_Type_Is_Distinguished()
     {
-        // arrange: {Dog,Cat,Fox} with conditions {Dog,Cat} and {Cat,Fox} -> {Dog},{Cat},{Fox}
+        // arrange
         var schemaIndex = BuildSchemaIndex();
         var scope = Scope(schemaIndex, "Dog", "Cat", "Fox");
         PossibleTypeSet[] conditions = [Scope(schemaIndex, "Dog", "Cat"), Scope(schemaIndex, "Cat", "Fox")];
@@ -60,7 +60,7 @@ public class TypeRegionTests
     [Fact]
     public void Partition_Should_Keep_Untouched_Types_Together_When_A_Condition_Narrows_Only_Part_Of_The_Scope()
     {
-        // arrange: only Dog is ever distinguished, so Cat and Fox stay one region
+        // arrange
         var schemaIndex = BuildSchemaIndex();
         var scope = Scope(schemaIndex, "Dog", "Cat", "Fox");
         PossibleTypeSet[] conditions = [Scope(schemaIndex, "Dog")];
@@ -77,7 +77,7 @@ public class TypeRegionTests
     [Fact]
     public void Partition_Should_Not_Exceed_The_MinScopeConditions_Bound_When_Conditions_Multiply()
     {
-        // arrange: five distinguishing conditions over a 3-member scope
+        // arrange
         var schemaIndex = BuildSchemaIndex();
         var scope = Scope(schemaIndex, "Dog", "Cat", "Fox");
         PossibleTypeSet[] conditions =
@@ -99,7 +99,7 @@ public class TypeRegionTests
     [Fact]
     public void Partition_Should_Ignore_A_Condition_Outside_The_Scope()
     {
-        // arrange: Fox never appears in the scope being partitioned
+        // arrange
         var schemaIndex = BuildSchemaIndex();
         var scope = Scope(schemaIndex, "Dog", "Cat");
         PossibleTypeSet[] conditions = [Scope(schemaIndex, "Fox")];

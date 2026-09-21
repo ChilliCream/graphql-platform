@@ -1,11 +1,8 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Tracks the number of split nodes the operation's decision structure
-/// materializes (exact-case splits and zipped products alike) while
-/// compiling one operation, and reports when the case budget is exhausted;
-/// the structure holds at most <c>2 * limit + 1</c> nodes. One instance is
-/// shared across every boundary of a single compile.
+/// Limits the number of Boolean case splits allowed when compiling an operation.
+/// A non-positive limit is exhausted immediately.
 /// </summary>
 internal sealed class CaseBudget(int limit)
 {

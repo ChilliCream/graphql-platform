@@ -103,14 +103,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
     public async Task Follower_And_Cache_Hit_Never_Rewrite_Leader_Rewrites_Once_On_Cold_Id()
     {
         // arrange
-        // On the default gateway pipeline, variable coercion asks for the normalized
-        // document, and therefore calls the normalizer, for every request, leader and
-        // follower alike; that call only rewrites the document on a NormalizedDocumentCache
-        // miss. So a wrapper that counts normalizer calls would count 1 for the follower
-        // too, even though it never rewrites. This wraps the production normalizer with one
-        // that instead observes whether a call actually rewrote the document, by comparing
-        // its result against whatever the cache already held for that operation id before
-        // the call.
+        // Coercion calls the normalizer for every request; compare cached documents to count only actual rewrites.
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         var operationIds = new ConcurrentBag<string>();
         var leaderGate = new SingleFlightLeaderGate();
@@ -166,9 +159,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             """;
 
         // act
-        // the leader gate sits right after the plan-cache lookup, so by the time it lets us
-        // dispatch the follower, the leader has already run its own coercion, cost analysis,
-        // and plan-cache lookup, rewriting the cold operation once and warming the cache.
+        // Wait until the leader has warmed the normalized-document cache before starting the follower.
         var leaderTask = executor.ExecuteAsync(operationText, cts.Token);
         await leaderGate.WaitForEntryAsync(cts.Token);
 
@@ -182,13 +173,8 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.All(results, t => Assert.Empty(t.ExpectOperationResult().Errors));
         Assert.Single(operationIds.Distinct());
 
-        // the leader rewrote once, on the cold id; the follower's own coercion call found
-        // the document the leader had already cached and never rewrote it, even though it
-        // called the normalizer just like the leader did.
         Assert.Equal(1, Volatile.Read(ref rewriteCount));
 
-        // a later, fully independent request for the same operation is a plain cache hit
-        // and likewise never rewrites.
         var cachedResult = await executor.ExecuteAsync(operationText, cts.Token);
         Assert.Empty(cachedResult.ExpectOperationResult().Errors);
         Assert.Equal(1, Volatile.Read(ref rewriteCount));
@@ -354,10 +340,6 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         using var costlyRequest = CreateVariableCostRequest(1000);
 
         // act
-        // cost analysis now runs before the plan cache, so a burst of concurrent, identical,
-        // over-cost requests can never reach OperationPlanCacheMiddleware and therefore can
-        // never register an in-flight entry that a later, affordable request for the same
-        // operation would incorrectly coalesce onto.
         var rejectedResults = await Task.WhenAll(
             Enumerable.Range(0, rejectedRequestCount)
                 .Select(_ => executor.ExecuteAsync(costlyRequest, cts.Token)));
@@ -369,7 +351,6 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.All(rejectedResults, t => Assert.NotEmpty(t.ExpectOperationResult().Errors));
         Assert.Empty(affordableResult.ExpectOperationResult().Errors);
 
-        // none of the rejected requests ever reached the plan cache / plan middleware
         var operationId = Assert.Single(operationIds);
         Assert.Equal(1, listener.PlanStartCount(operationId));
 
@@ -424,9 +405,8 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var leaderTask = executor.ExecuteAsync(operationText, cts.Token);
         await executionGate.WaitForEntryAsync(cts.Token);
 
-        // the leader has already planned - its plan is cached and every follower's shared
-        // task is already resolved - but is still blocked before its own execution; a
-        // follower for the same operation must not wait on that block.
+        // The leader has published its plan but is blocked before execution.
+        // The follower should finish without waiting for that block.
         var followerResult = await executor.ExecuteAsync(operationText, cts.Token);
         var leaderStillBlocked = !leaderTask.IsCompleted;
 
@@ -503,9 +483,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var followerTask = executor.ExecuteAsync(operationText, testCts.Token);
         await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
 
-        // release planning: the leader plans, caches the plan, resolves the follower's
-        // task, and raises the cache event, all before it is cancelled deep in its own,
-        // still-blocked, post-planning execution.
+        // Allow planning to finish before cancelling the leader during execution.
         planningGate.Release();
         var followerResult = await followerTask;
 
@@ -585,10 +563,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var followerTask = executor.ExecuteAsync(operationText, testCts.Token);
         await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
 
-        // the leader is cancelled before it plans. Releasing it afterward makes the planner
-        // observe an already-cancelled token, so the leader fails without ever producing a
-        // plan. The follower must not observe that cancellation - it becomes the new leader
-        // candidate and plans the operation itself.
+        // Cancel before planning so the follower must take over without a completed plan.
         await leaderCts.CancelAsync();
         planningGate.Release();
 
@@ -662,8 +637,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var followerTask = executor.ExecuteAsync(operationText, followerCts.Token);
         await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
 
-        // the leader short-circuits with a result instead of calling into OperationPlanMiddleware;
-        // the follower must be released by that, not by waiting out its own token.
+        // Let the leader return without a plan to test that the follower is released.
         leaderGate.Release();
         var followerResult = await followerTask;
         followerStopwatch.Stop();
@@ -681,8 +655,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.Equal(0, listener.PlanStartCount(operationId));
         Assert.Equal(0, listener.AddedToCacheCount(operationId));
 
-        // the in-flight entry was removed, so a later request for the same operation plans
-        // normally instead of coalescing onto the dead entry.
+        // A later request must be able to plan after the failed entry is removed.
         var laterResult = await executor.ExecuteAsync(operationText, testCts.Token);
         Assert.Empty(laterResult.ExpectOperationResult().Errors);
         Assert.Equal(1, listener.PlanStartCount(operationId));
@@ -744,9 +717,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var followerTask = executor.ExecuteAsync(operationText, testCts.Token);
         await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
 
-        // the leader observes its own cancellation directly in the middleware, before the
-        // planner ever runs: the OCE is raised right where the leader's path awaits `next`,
-        // not deep inside the planner.
+        // Cancel while the leader is in middleware, before the planner runs.
         await leaderCts.CancelAsync();
 
         var leaderResult = await leaderTask;
@@ -851,12 +822,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             }
             """;
 
-        // A real plan produced independently, on a throwaway executor over the same
-        // schema; used below to stand in for a plan that a custom middleware ahead of
-        // OperationPlanMiddleware set on the context some other way than the normal
-        // CreatePlan path. Its content does not otherwise matter: the plan-capturing
-        // middleware below short-circuits before the plan would ever actually be
-        // executed against it.
+        // Prepare a plan for custom middleware to supply before the normal planning stage.
         var primedPlans = new ConcurrentBag<OperationPlan>();
         var primingExecutor = await new ServiceCollection()
             .AddGraphQLGateway()
@@ -913,9 +879,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var followerTask = executor.ExecuteAsync(operationText, testCts.Token);
         await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
 
-        // the leader never reaches OperationPlanMiddleware's own CreatePlan path: the plan
-        // was already set on its context by the middleware above, which cached it and
-        // released the follower at that moment. Releasing the gate only lets the leader finish.
+        // The custom middleware has already supplied the plan; release the leader to finish.
         leaderGate.Release();
         var results = await Task.WhenAll(leaderTask, followerTask);
 
@@ -949,9 +913,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             }
             """;
 
-        // A real plan produced independently, on a throwaway executor over the same
-        // schema; stands in for the plan a custom middleware ahead of OperationPlanMiddleware
-        // sets on the context some other way than the normal CreatePlan path.
+        // Prepare a plan for custom middleware to supply before the normal planning stage.
         var primedPlans = new ConcurrentBag<OperationPlan>();
         var primingExecutor = await new ServiceCollection()
             .AddGraphQLGateway()
@@ -997,11 +959,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         // act
         var leaderTask = executor.ExecuteAsync(operationText, testCts.Token);
 
-        // the leader signals gate entry only after it has already called SetOperationPlan
-        // (see CreateExternalPlanBeforePlanningMiddleware), so by the time this returns the
-        // plan is already cached and every coalesced follower already released with it,
-        // even though the leader itself remains blocked, deep in its own downstream call,
-        // well short of completing.
+        // The gate opens after SetOperationPlan, while the leader remains blocked in downstream middleware.
         await leaderGate.WaitForEntryAsync(testCts.Token);
 
         var followerResult = await executor.ExecuteAsync(operationText, testCts.Token);
@@ -1039,9 +997,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             }
             """;
 
-        // A real plan produced independently, on a throwaway executor over the same
-        // schema; stands in for the plan a custom middleware ahead of OperationPlanMiddleware
-        // sets on the context some other way than the normal CreatePlan path.
+        // Prepare a plan for custom middleware to supply before the normal planning stage.
         var primedPlans = new ConcurrentBag<OperationPlan>();
         var primingExecutor = await new ServiceCollection()
             .AddGraphQLGateway()
@@ -1098,9 +1054,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         var followerTask = executor.ExecuteAsync(operationText, testCts.Token);
         await secondRequestObserver.WaitForSecondRequestEnteredDownstreamAsync(testCts.Token);
 
-        // release the leader: it sets the plan - caching it and releasing the coalesced
-        // follower above - and only then throws; the follower must complete successfully
-        // with that plan regardless of the leader's own subsequent failure.
+        // The leader publishes the plan and then throws; the follower must still receive the plan.
         leaderGate.Release();
         var followerResult = await followerTask;
         var leaderResult = await leaderTask;
@@ -1135,13 +1089,8 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             }
             """;
 
-        // A real plan for this exact operation, produced independently and up front on a
-        // throwaway executor over the same schema. It stands in below for the plan that a
-        // third, fully-completed request would have cached for this operation while the
-        // follower was coalesced onto the leader: a genuine, concurrently overlapping
-        // third request cannot plan this operation independently here, because as long as
-        // the leader's in-flight entry is registered, any concurrent request for the same
-        // operation coalesces onto it too, instead of planning on its own.
+        // Prepare a plan independently to simulate a cache entry appearing while the follower waits.
+        // Another request on the same executor would join the existing leader.
         var meanwhilePlans = new ConcurrentBag<OperationPlan>();
         var meanwhileExecutor = await new ServiceCollection()
             .AddGraphQLGateway()
@@ -1201,17 +1150,11 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
 
         var operationId = Assert.Single(operationIds.Distinct());
 
-        // While the follower is still coalesced onto the (not yet cancelled) leader, the
-        // plan for this operation becomes available in the cache, exactly as if a third,
-        // already-completed request had planned and cached it in the meantime. Neither the
-        // still-blocked leader nor the still-waiting follower has touched the cache yet.
+        // Populate the cache while the follower is still waiting on the leader.
         var operationPlanCache = executor.Schema.Services.GetRequiredService<Cache<OperationPlan>>();
         operationPlanCache.TryAdd(operationId, meanwhilePlan);
 
-        // the leader is cancelled before it plans. Releasing it afterward makes the
-        // planner observe an already-cancelled token, so the leader fails without ever
-        // producing a plan. On retry, the follower must find the plan that is already
-        // cached instead of becoming a new leader candidate and planning it again.
+        // Cancel before planning so the follower must retry and discover the cached plan.
         await leaderCts.CancelAsync();
         planningGate.Release();
 
@@ -1222,9 +1165,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         Assert.NotEmpty(leaderResult.ExpectOperationResult().Errors);
         Assert.Empty(followerResult.ExpectOperationResult().Errors);
 
-        // the leader's own, doomed attempt still starts planning before it observes its
-        // cancellation; what matters is that the follower's retry does not plan a second
-        // time, since it finds the plan already sitting in the cache instead.
+        // The cancelled leader starts planning once; the follower's retry should use the cache.
         Assert.Equal(1, listener.PlanStartCount(operationId));
         Assert.Equal(0, listener.AddedToCacheCount(operationId));
 
@@ -1249,18 +1190,10 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
               foo
             }
             """;
-        // The plan cache is a fixed-size ring buffer (16 is the minimum); once every slot
-        // is occupied, inserting one more distinct entry evicts whichever slot the clock
-        // hand lands on next, which - since nothing above ever looks the leader's plan
-        // back up - is deterministically the leader's own entry once exactly that many
-        // brand new operations have been planned and cached after it.
+        // Sixteen is the minimum capacity; enough distinct entries will evict the leader's unused plan.
         const int planCacheCapacity = 16;
 
-        // A real plan produced independently, on a throwaway executor over the same
-        // schema; stands in for a plan that a preceding custom middleware set on the
-        // context some other way than the normal CreatePlan path (the same fallback
-        // scenario covered above), this time paired with a diagnostic listener that
-        // throws once the plan reaches the cache.
+        // Prepare a plan for custom middleware to supply with a cache listener that throws.
         var primedPlans = new ConcurrentBag<OperationPlan>();
         var primingExecutor = await new ServiceCollection()
             .AddGraphQLGateway()
@@ -1306,23 +1239,10 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             .GetRequestExecutorAsync(cancellationToken: testCts.Token);
 
         // act
-        // the leader's plan is set by the custom middleware, so OperationPlanMiddleware
-        // never plans it itself; OperationPlanCacheMiddleware's finally caches it and the
-        // faulty listener then throws, before it can TrySetResult. With the fix, the
-        // in-flight entry is still evicted; without it, the entry is leaked and every
-        // later request for this operation would coalesce onto its never-completing task
-        // instead of being served from the cache or planning again. The plan-capturing
-        // middleware above short-circuits before any plan would actually be executed, the
-        // same way the fallback-caching test above does, since the externally-set plan
-        // was produced on a different executor.
+        // The diagnostic listener throws after the custom middleware publishes the plan.
         var leaderResult = await executor.ExecuteAsync(operationText, testCts.Token);
 
-        // evict the leader's cached plan by planning and caching one brand new operation
-        // per remaining slot, then one more: the cache never looks the leader's plan back
-        // up in the meantime, so once every slot has been visited once (clearing its
-        // "recently used" bit) the next new entry deterministically evicts it, forcing
-        // the final request below to actually consult the in-flight map instead of
-        // short-circuiting on the cache.
+        // Evict the cached plan so the next request must consult the in-flight map.
         for (var i = 0; i < planCacheCapacity; i++)
         {
             var fillerOperationText =
@@ -1341,9 +1261,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             operationPlanCache.TryGet(operationId, out _),
             "The leader's plan should have been evicted by the filler operations above.");
 
-        // without the fix, the leader's finally never removed its in-flight entry, so this
-        // request coalesces onto its never-completing task and hangs until its own
-        // cancellation instead of planning again.
+        // A leaked in-flight entry would leave this request waiting until cancellation.
         var secondRequestTask = executor.ExecuteAsync(operationText, testCts.Token);
         var firstToComplete = await Task.WhenAny(
             secondRequestTask,
@@ -1368,13 +1286,11 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         OperationPlan plan)
         => async context =>
         {
-            // Only the leader candidate lacks a plan at this point; a follower already
-            // carries the coalesced plan set by OperationPlanCacheMiddleware.
+            // Followers already have a plan at this stage; only the leader needs one.
             if (context.GetOperationPlan() is null
                 && context.Features.Get<TaskCompletionSource<OperationPlan>>() is not null)
             {
-                // Simulate a plan produced by a preceding custom middleware, entirely
-                // outside OperationPlanMiddleware's own CreatePlan path.
+                // Supply a plan before the normal planning middleware.
                 context.SetOperationPlan(plan);
                 gate.SignalEntry();
                 await gate.WaitForReleaseAsync(context.RequestAborted);
@@ -1389,17 +1305,14 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
         OperationPlan plan)
         => async context =>
         {
-            // Only the leader candidate lacks a plan at this point; a follower already
-            // carries the coalesced plan set by OperationPlanCacheMiddleware.
+            // Followers already have a plan at this stage; only the leader needs one.
             if (context.GetOperationPlan() is null
                 && context.Features.Get<TaskCompletionSource<OperationPlan>>() is not null)
             {
                 gate.SignalEntry();
                 await gate.WaitForReleaseAsync(context.RequestAborted);
 
-                // Simulate a plan produced by a preceding custom middleware, entirely
-                // outside OperationPlanMiddleware's own CreatePlan path, followed by a
-                // failure in that same middleware after the plan has already been set.
+                // Fail after publishing the plan to test that followers retain the result.
                 context.SetOperationPlan(plan);
                 throw new InvalidOperationException("Boom: the leader throws after setting the plan.");
             }
@@ -1477,10 +1390,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
             {
                 gate.SignalEntry();
 
-                // Deliberately does not observe this request's own cancellation: the test
-                // cancels the leader's token before releasing this gate, so the leader's
-                // cancellation is instead observed by the planner itself, right where the
-                // production TCS-resolution logic lives.
+                // Ignore cancellation at this gate so the planner observes the cancelled token.
                 await gate.WaitForReleaseAsync(CancellationToken.None);
             }
 
@@ -1495,8 +1405,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
 
         return async context =>
         {
-            // Only the original leader short-circuits; a later request that becomes the new
-            // leader after the in-flight entry was removed must plan normally.
+            // Only the first leader short-circuits; a replacement must reach planning.
             if (context.Features.Get<TaskCompletionSource<OperationPlan>>() is not null
                 && Interlocked.Exchange(ref shortCircuited, 1) == 0)
             {

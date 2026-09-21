@@ -4,10 +4,7 @@ using HotChocolate.Types;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Builds one <see cref="ConditionTree"/> from a boundary's raw selections,
-/// hash-consing nodes on their canonical <see cref="Condition"/> so
-/// different fragment spellings that reach the same condition share a node
-/// and are grafted onto the tree with the fewest possible edges.
+/// Builds a condition tree from a selection set, combining selections with the same conditions.
 /// </summary>
 internal sealed class ConditionTreeBuilder
 {
@@ -74,9 +71,7 @@ internal sealed class ConditionTreeBuilder
         if (!_fragments.TryGetValue(fragmentName, out var definition)
             || !_fragmentsInProgress.Add(fragmentName))
         {
-            // Extraction assumes a validated document: an unresolved name or a
-            // fragment cycle cannot occur, but skipping instead of throwing
-            // keeps this pass total over whatever it is handed.
+            // Ignore missing or cyclic fragments if an unvalidated document reaches this code.
             return;
         }
 
@@ -233,8 +228,7 @@ internal sealed class ConditionTreeBuilder
     }
 
     /// <summary>
-    /// Inserts <paramref name="field"/> at the node for <paramref name="target"/>, grafting the
-    /// fewest missing edges from the deepest already-existing node along <paramref name="sourcePath"/>.
+    /// Adds a field under its cumulative condition, reusing existing nodes where possible.
     /// </summary>
     private void GraftField(List<PathStep> sourcePath, Condition target, FieldNode field)
     {
@@ -291,9 +285,8 @@ internal sealed class ConditionTreeBuilder
     }
 
     /// <summary>
-    /// Finds the rightmost point along <paramref name="path"/> (starting from
-    /// <paramref name="start"/>, which must already have a node) whose condition already has a
-    /// node, and returns that node, its condition and how many path steps precede it.
+    /// Gets the deepest existing node along <paramref name="path"/>, its condition,
+    /// and the number of preceding steps. <paramref name="start"/> must already have a node.
     /// </summary>
     private (int NodeId, Condition Condition, int Length) DeepestExistingPrefix(
         Condition start,
@@ -317,10 +310,7 @@ internal sealed class ConditionTreeBuilder
     }
 
     /// <summary>
-    /// Drops any branch in <paramref name="source"/> whose removal still reaches
-    /// <paramref name="target"/> from <paramref name="start"/>, then, when the retained branches
-    /// still narrow by type and <paramref name="target"/>'s possible types are a single object,
-    /// tries replacing them with the single edge for that object.
+    /// Returns a shorter branch path with the same target condition.
     /// </summary>
     private List<BranchCondition> ShrinkBranches(Condition start, Condition target, List<BranchCondition> source)
     {

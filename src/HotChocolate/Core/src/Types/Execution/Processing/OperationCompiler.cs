@@ -67,10 +67,7 @@ public sealed partial class OperationCompiler
     {
         ArgumentNullException.ThrowIfNull(schema);
 
-        // The static convenience overloads compile a single, already-known document, so they
-        // rewrite it through the normalizer's uncached static entry point rather than
-        // constructing a normalizer instance and a normalized-document cache that would
-        // never be consulted.
+        // A standalone compilation does not need a document cache.
         var normalizedDocument = OperationDocumentNormalizer.NormalizeDocument(schema, document, operationName);
 
         return new OperationCompiler(
@@ -85,8 +82,8 @@ public sealed partial class OperationCompiler
     }
 
     /// <summary>
-    /// Compiles an operation from a document that has already been de-fragmentized and had
-    /// its static include conditions removed by an <see cref="IOperationDocumentNormalizer"/>.
+    /// Compiles an operation from a document with fragments inlined and statically excluded
+    /// selections removed by an <see cref="IOperationDocumentNormalizer"/>.
     /// </summary>
     /// <param name="id">A unique identifier for the operation.</param>
     /// <param name="hash">The document hash.</param>
@@ -107,9 +104,7 @@ public sealed partial class OperationCompiler
 
         var operationDefinition = document.GetOperation(operationName);
 
-        // The normalizer appends the marker directive to the operation definition when the
-        // document still has incremental delivery parts, so the compiled operation can read
-        // the flag directly instead of re-walking the selection set on every compile.
+        // Normalization records incremental parts in a marker, avoiding another selection scan.
         var hasIncrementalParts = HasIncrementalPartsMarker(operationDefinition.Directives);
 
         return CompileOperation(id, hash, document, operationDefinition, hasIncrementalParts);

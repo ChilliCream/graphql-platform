@@ -74,9 +74,8 @@ already supplied.
 
 Comparison uses the hexadecimal IEEE-754 bit patterns for `typeCost` and
 `fieldCost`. A mismatch exits nonzero and writes one isolated
-`source: "fuzz-found"` fixture under the conformance resources. Vendor it
-before merging the fix so pull-request CI retains the regression case
-without Rust.
+`source: "fuzz-found"` fixture under the conformance resources. Add this
+fixture to the conformance suite to run it without Rust.
 
 ## Regenerating the corpus
 
@@ -87,40 +86,22 @@ cargo run --manifest-path .oracle/fuzz/Cargo.toml --example dump_corpus -- \
     ../../test/CostAnalysis.Core.Conformance.Tests/__resources__/rust-corpus
 ```
 
-This overwrites `exact-case.json` and `manifest.json` in that directory. The
-dump is deterministic: regenerating against the same pinned commit reproduces
-byte-identical output, so `git status` on the output directory should be
-clean after the first commit.
+This overwrites `exact-case.json` and `manifest.json` in that directory.
+The same pinned commit produces byte-identical output.
 
 ## What the dump does
 
-`dump_corpus.rs` iterates `TreeSummaryInput::exhaustive_cases()`, the crate's
-own deterministic 15,840-case matrix (14,400 legacy-family cases plus 1,440
-structural cases; `deterministic_matrix_sizes_are_stable` in the crate pins
-this count). It keeps only the IBM cost observation (`observation == 3`) on
-the ExactCase backend (`mode == 0`): 1,980 rows. Syntactic-backend rows are
-not emitted; this implementation is ExactCase-only.
+The corpus contains the ExactCase IBM-cost cases from the crate's 15,840-case
+matrix. There are 1,980 candidates before invalid-variable exclusions and
+deduplication.
 
 For each row:
 
-- The operation's declared variables (if any) are coerced against the
-  supplied `variable_case` values with `apollo_compiler::request::coerce_variable_values`,
-  the crate's own spec-accurate `CoerceVariableValues()` implementation. A row
-  whose variables real GraphQL coercion would reject (a missing non-null
-  variable without an operation default, an explicit `null` for a non-null
-  variable, or a value of the wrong type) is dropped and counted in the
-  manifest's `excludedInvalidVariables`. The crate's own `TreeSummaryInput`
-  bypasses coercion (`Valid::assume_valid_ref`) to reach more of its
-  analyzer's code paths under fuzzing; this dump does not inherit that
-  bypass, because the .NET conformance suite runs these fixtures through real
-  variable coercion.
-- Rows whose `(operation, variables, defaultListSize)` triple repeats an
-  already-kept row are dropped and counted in `deduplicated`. The most common
-  case is `variable_case` 0 (no variables supplied) and 1 (an empty variables
-  object): the crate's own cost path (`Option::unwrap_or_default`) treats
-  both identically, so they reach the estimator as the same request.
-  Operations that reference neither `$x` nor `$y` collapse further, since the
-  default-value suffix on an unused variable declaration never renders.
+- Rows with variables that fail GraphQL coercion are excluded and counted
+  in the manifest's `excludedInvalidVariables`.
+- Duplicate `(operation, variables, defaultListSize)` rows are excluded and
+  counted in `deduplicated`. Missing variables and an empty variables object
+  are equivalent.
 - The remaining rows are costed with the crate's own `CostEstimator` in
   `ExactCase` mode, with `default_list_size` set to the row's `list_size`
   (0..4 for the legacy-family rows; the structural rows fix it at 2). The
@@ -130,11 +111,8 @@ For each row:
   holds (asserted by the dump itself); the manifest records all four numbers
   plus the pinned commit.
 
-The crate's shared fuzz schema declares
-`directive @tag(flag: Boolean) on FIELD | INLINE_FRAGMENT`, which collides
-with HotChocolate's built-in `@tag` directive. The dump drops that one line
-from the emitted `sdl`; no dumped operation uses `@tag` (the crate only
-applies it inside a named-fragment traversal variant this dump does not use).
+The emitted schema excludes the crate's `@tag` definition. None of the
+emitted operations uses that directive.
 
 ## Rust-free validation
 

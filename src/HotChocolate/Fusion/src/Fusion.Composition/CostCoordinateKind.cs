@@ -1,8 +1,7 @@
 namespace HotChocolate.Fusion;
 
 /// <summary>
-/// The schema-coordinate kind a member being folded for <c>@cost</c> occupies, which selects
-/// its spec default weight under absence (R-COMPOSITION-WEIGHT-FOLD).
+/// The kind of schema member that determines its default cost weight.
 /// </summary>
 internal enum CostCoordinateKind
 {

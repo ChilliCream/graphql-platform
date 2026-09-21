@@ -73,8 +73,7 @@ public sealed class OperationDocumentNormalizerMarkerTests
             }
             """;
 
-        // act: the first request rewrites and caches the document; the second finds the same
-        // operation id already in the normalized-document cache and returns that same document.
+        // act
         await ExecuteAsync(executor, operationText);
         await ExecuteAsync(executor, operationText);
 
@@ -109,8 +108,7 @@ public sealed class OperationDocumentNormalizerMarkerTests
     {
         var result = await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
 
-        // A deferred operation returns a response stream instead of a single result; draining
-        // it exercises the same normalization the initial payload already went through.
+        // Consume deferred results to complete the request.
         if (result is IResponseStream stream)
         {
             await foreach (var part in stream.ReadResultsAsync()

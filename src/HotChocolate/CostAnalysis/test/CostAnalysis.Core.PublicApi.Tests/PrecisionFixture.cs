@@ -4,10 +4,7 @@ using System.Text.Json.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// The subset of a Conformance.Tests precision fixture this project needs:
-/// enough to compile an <see cref="AnalysisPlan"/> and supply a fixed
-/// variable set, without depending on the IBM-cost-specific
-/// <c>expected</c> numbers those fixtures also carry.
+/// A schema, operation, and variable set for testing custom analyses.
 /// </summary>
 public sealed record PrecisionFixture(
     [property: JsonPropertyName("id")] string Id,

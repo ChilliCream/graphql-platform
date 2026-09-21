@@ -20,8 +20,7 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
-/// The one line dropped from the shared fuzz schema: it collides with
-/// HotChocolate's built-in `@tag` directive and no dumped operation uses it.
+/// The unused directive definition excluded from the emitted schema.
 const TAG_DIRECTIVE_LINE: &str = "directive @tag(flag: Boolean) on FIELD | INLINE_FRAGMENT";
 
 const SOURCE: &str = "rust-corpus";
@@ -113,9 +112,7 @@ fn main() {
             match coerce_variable_values(&schema_valid, operation_for_coercion, &raw_variables) {
                 Ok(coerced) => coerced,
                 Err(_) => {
-                    // Bypasses GraphQL coercion by construction (R-CORPUS-VARIABLES);
-                    // a case real coercion would reject never reaches the .NET
-                    // implementation's coerced-variables input, so it is dropped here.
+                    // Exclude invalid variables because the .NET analyzer receives only coerced values.
                     excluded_invalid_variables += 1;
                     continue;
                 }

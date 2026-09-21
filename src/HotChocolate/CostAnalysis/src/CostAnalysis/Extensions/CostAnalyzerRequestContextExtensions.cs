@@ -16,7 +16,7 @@ public static class CostAnalyzerRequestContextExtensions
     /// The request context.
     /// </param>
     /// <param name="result">
-    /// The cost analysis result when cost analysis has completed.
+    /// The cost analysis result, or <see langword="null"/> when no result is available.
     /// </param>
     /// <returns>
     /// <see langword="true"/> when the request has a cost analysis result.

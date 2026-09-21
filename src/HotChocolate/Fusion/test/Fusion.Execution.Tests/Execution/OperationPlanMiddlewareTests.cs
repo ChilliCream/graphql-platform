@@ -14,9 +14,7 @@ public class OperationPlanMiddlewareTests : FusionTestBase
         var builder = services.AddGraphQLGateway();
         FusionSetupUtilities.ClearPipeline(builder);
 
-        // Document validation is deliberately left out of the pipeline: the normalizer
-        // that OperationPlanMiddleware asks for the normalized operation requires the
-        // document to already be validated.
+        // Omit validation to exercise the normalizer's requirement for a validated document.
         var executor = await builder
             .UseDocumentParser()
             .UseOperationPlan()

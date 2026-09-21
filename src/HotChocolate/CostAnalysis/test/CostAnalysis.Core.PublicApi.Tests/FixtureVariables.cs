@@ -4,10 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Converts a precision fixture's flat <c>variables</c> object (Booleans and
-/// integers only, the only shapes this project's fixtures use) into
-/// <see cref="IValueNode"/> literals suitable for
-/// <see cref="LiteralCostVariableValues"/>.
+/// Reads Boolean and integer variables from a precision fixture.
 /// </summary>
 public static class FixtureVariables
 {

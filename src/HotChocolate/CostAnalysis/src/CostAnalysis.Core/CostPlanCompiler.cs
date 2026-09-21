@@ -3,10 +3,8 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Compiles a <see cref="CostPlan"/> for one operation against a
-/// <see cref="CostSchemaIndex"/>. Compilation consumes only
-/// coerced-variable-independent information; everything variable-dependent
-/// survives in the returned plan as an evaluable slot.
+/// Compiles an operation into a cost plan for a schema.
+/// The plan accepts coerced variable values at evaluation time.
 /// </summary>
 public static class CostPlanCompiler
 {
@@ -61,9 +59,7 @@ public static class CostPlanCompiler
         if (budget.IsExhausted
             && schemaIndex.CaseBudgetExceededBehavior == CaseBudgetExceededBehavior.EvaluatePerRequest)
         {
-            // The case budget could not afford an exact compile: discard the partial result
-            // and fall back to traversing the condition tree exactly, per request, instead of
-            // baking a conservative envelope into the compiled plan.
+            // Re-evaluate per request to preserve exact costs after the compilation budget is exhausted.
             return new CostPlan(schemaIndex, fragments, tree, analyses);
         }
 

@@ -5,17 +5,12 @@ using HotChocolate.Types;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// The built-in IBM field/type cost analysis algebra: the lean field rule
-/// (<see cref="CostFieldRule"/>) applied over weights and list multipliers
-/// resolved from a <see cref="CostSchemaIndex"/>
-/// (<see cref="ListSizeResolver"/>).
+/// Computes field and type costs using the IBM GraphQL cost specification.
 /// </summary>
 /// <remarks>
-/// Resolves <c>argumentsCost</c> as the sum of a present argument's own
-/// weight, paid once per call, and <c>directiveArgumentsCost</c> as the sum
-/// of an applied directive's own definition arguments that are supplied or
-/// carry a schema default. Input object fields are priced from their coerced
-/// values.
+/// Supplied arguments and arguments with schema defaults contribute their weights once
+/// per field call, including arguments of applied directives. Input object fields
+/// contribute costs based on their coerced values.
 /// </remarks>
 public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
 {
@@ -23,10 +18,7 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     private readonly ICostVariableValues? _variableValues;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="CostAlgebra"/> for the
-    /// static/assumed path: a variable-bound slicing argument or input value
-    /// falls back to its schema-declared assumption instead of a coerced
-    /// value.
+    /// Creates a cost analysis that uses schema assumptions for variable values.
     /// </summary>
     /// <param name="schemaIndex">
     /// The schema index to resolve weights and list-size metadata
@@ -40,10 +32,7 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="CostAlgebra"/> that resolves
-    /// a variable-bound slicing argument or input value from
-    /// <paramref name="variableValues"/>, the same coerced values the
-    /// optimized <see cref="CostPlan"/> path receives at evaluation time.
+    /// Creates a cost analysis that uses the request's coerced variable values.
     /// </summary>
     /// <param name="schemaIndex">
     /// The schema index to resolve weights and list-size metadata
@@ -100,9 +89,8 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
         => CostFieldRule.Root(rootTypeWeight, selection);
 
     /// <summary>
-    /// Resolves the list multiplier for one member's field call over its own
-    /// <c>@listSize</c> metadata, the group's literal slicing-argument
-    /// values, and the group's inherited <c>sizedFields</c> context.
+    /// Gets a field's list multiplier from its list-size annotation, slicing arguments,
+    /// and inherited size.
     /// </summary>
     private double ResolveListMultiplier(
         string typeName,
@@ -127,11 +115,8 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     }
 
     /// <summary>
-    /// Sums a field's own weight for every argument present after coercion:
-    /// a literal supplied value, or the argument's schema default when it
-    /// was omitted. An explicit literal <c>null</c> is present and charged;
-    /// an argument with neither a supplied value nor a schema default is
-    /// absent and contributes nothing.
+    /// Computes the cost of supplied field arguments and arguments with schema defaults.
+    /// An explicit null is supplied and contributes cost; an omitted argument without a default does not.
     /// </summary>
     private double ComputeArgumentsCost(
         string typeName,
@@ -153,10 +138,8 @@ public sealed class CostAlgebra : IAnalysisAlgebra<CostEstimate>
     }
 
     /// <summary>
-    /// Sums a directive-definition argument's own weight for every argument
-    /// of every directive applied to the field call whose value is supplied
-    /// literally or that carries a schema default; a directive absent from
-    /// the schema contributes nothing.
+    /// Computes the cost of supplied arguments and schema defaults for directives applied to a field.
+    /// Directives absent from the schema contribute no cost.
     /// </summary>
     private double ComputeDirectiveArgumentsCost(IReadOnlyList<DirectiveNode> directives)
     {

@@ -11,10 +11,7 @@ using FusionOperationDocumentNormalizer = HotChocolate.Fusion.Execution.Pipeline
 namespace HotChocolate.Fusion.Diagnostics;
 
 /// <summary>
-/// Pins the invariant that <see cref="FusionActivityExecutionDiagnosticEventListener.CoerceVariables"/>
-/// only reads the request context, it never resolves or triggers document normalization as a
-/// side effect, and it never throws, regardless of what state the request happens to be in when
-/// the event fires.
+/// Tests that variable-coercion diagnostics tolerate incomplete request state without triggering normalization.
 /// </summary>
 [Collection("Instrumentation")]
 public sealed class FusionActivityExecutionDiagnosticEventListenerCoerceVariablesTests : FusionTestBase
@@ -22,12 +19,8 @@ public sealed class FusionActivityExecutionDiagnosticEventListenerCoerceVariable
     [Fact]
     public async Task CoerceVariables_Should_Not_Normalize_Or_Throw_When_Slot_Is_Unset()
     {
-        // arrange: the normalizer is only ever resolved through GetNormalizedDocument, so a
-        // request context whose normalized-document slot was never populated proves the
-        // listener never asks for it, independent of whether some pipeline middleware happens
-        // to normalize eagerly today. The call into the listener happens synchronously inside
-        // the probe middleware itself, because the pooled request context is reset the moment
-        // the request completes and can no longer be inspected afterward.
+        // arrange
+        // Inspect the context inside the middleware before it returns to the pool.
         var normalizeCallCount = 0;
         var invoked = false;
         var wasValidated = false;
@@ -49,11 +42,7 @@ public sealed class FusionActivityExecutionDiagnosticEventListenerCoerceVariable
                 .UseRequest(
                     (_, _) => context =>
                     {
-                        // captured right before OperationVariableCoercionMiddleware would
-                        // eagerly normalize, so the normalized-document slot is still unset.
-                        // The request is short-circuited here, before the real coercion
-                        // middleware runs, so its own eager normalization never reaches the
-                        // shared counter and this stays a test of the listener alone.
+                        // Stop before coercion so only the listener can trigger normalization during this test.
                         if (!invoked && context.OperationDocumentInfo.Document is not null)
                         {
                             invoked = true;
@@ -100,8 +89,7 @@ public sealed class FusionActivityExecutionDiagnosticEventListenerCoerceVariable
     [Fact]
     public void CoerceVariables_Should_Return_EmptyScope_And_Not_Throw_When_No_Document_Is_Available()
     {
-        // arrange: a bare request context, as if the event fired before a document was ever
-        // attached to the request.
+        // arrange
         var context = new PooledRequestContext();
 
         var listenerOptions = new InstrumentationOptions { Scopes = FusionActivityScopes.CoerceVariables };

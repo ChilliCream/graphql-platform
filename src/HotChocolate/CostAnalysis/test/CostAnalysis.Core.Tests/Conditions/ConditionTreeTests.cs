@@ -42,7 +42,7 @@ public class ConditionTreeTests
     [Fact]
     public void ExtractOperation_Should_Split_Nodes_By_Type_Condition_When_Union_Has_Exclusive_Fragments()
     {
-        // arrange: c1-exclusive-types shape, extracting the nested boundary under `result`
+        // arrange
         const string sdl =
             """
             union Result = A | B
@@ -58,7 +58,7 @@ public class ConditionTreeTests
         var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
         var childRoot = new Condition(schemaIndex.GetPossibleTypeSet("Result"), []);
 
-        // act: the field's nested selection set is its own boundary
+        // act
         var childTree = ConditionTreeExtractor.ExtractBoundary(
             schemaIndex,
             ConditionTreeExtractor.IndexFragments(document),
@@ -77,7 +77,7 @@ public class ConditionTreeTests
     [Fact]
     public void ExtractOperation_Should_Dedup_Duplicate_Response_Name_Into_One_Group()
     {
-        // arrange: c4-duplicate-response-name shape
+        // arrange
         const string sdl =
             """
             union Result = A
@@ -99,8 +99,7 @@ public class ConditionTreeTests
             resultGroup.MergedSelectionSet(),
             childRoot);
 
-        // assert: both `... on A` fragments collapse onto one node, and both
-        // `label: a` occurrences land in one response-name group
+        // assert
         Assert.Single(childTree.Nodes);
         Assert.Equal(2, childTree.Root.FieldGroups.Single().Fields.Count);
     }
@@ -115,7 +114,7 @@ public class ConditionTreeTests
         // arrange & act
         var tree = ExtractRoot(BookSchema, operation);
 
-        // assert: no node anywhere in the arena collected the `book` field
+        // assert
         var groupsNamedBook = tree.Nodes.SelectMany(n => n.FieldGroups).Count(g => g.ResponseName == "book");
         Assert.Equal(0, groupsNamedBook);
     }
@@ -142,7 +141,7 @@ public class ConditionTreeTests
             "query($x: Boolean!) { book @include(if: $x) }",
             new Dictionary<string, bool> { ["x"] = false });
 
-        // assert: pruned before any branch is even materialized
+        // assert
         Assert.Single(tree.Nodes);
         Assert.Empty(tree.Root.FieldGroups);
     }
@@ -150,7 +149,7 @@ public class ConditionTreeTests
     [Fact]
     public void ExtractOperation_Should_Keep_Branch_When_Known_Variable_Makes_Include_Active()
     {
-        // arrange & act: known-active edges stay edges, they are not collapsed into the root
+        // arrange & act
         var tree = ExtractRoot(
             BookSchema,
             "query($x: Boolean!) { book @include(if: $x) }",
@@ -165,7 +164,7 @@ public class ConditionTreeTests
     [Fact]
     public void ExtractOperation_Should_Graft_Single_Edge_When_Nested_Fragment_Narrows_To_Object()
     {
-        // arrange: Node={A,B} under the wider Result={A,B,C} scope, narrowed further to A
+        // arrange
         const string sdl =
             """
             interface Node { id: String }
@@ -183,7 +182,7 @@ public class ConditionTreeTests
         var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
         var childRoot = new Condition(schemaIndex.GetPossibleTypeSet("Result"), []);
 
-        // act: the intermediate Node edge is never grafted, only the edge to A is
+        // act
         var childTree = ConditionTreeExtractor.ExtractBoundary(
             schemaIndex,
             ConditionTreeExtractor.IndexFragments(document),
@@ -201,7 +200,7 @@ public class ConditionTreeTests
     [Fact]
     public void ExtractOperation_Should_Label_Edge_With_Object_Name_When_Interface_Narrows_To_Singleton()
     {
-        // arrange: Node={A} under the wider Result={A,B} scope
+        // arrange
         const string sdl =
             """
             interface Node { a: Int }
@@ -217,7 +216,7 @@ public class ConditionTreeTests
         var resultGroup = rootTree.Root.FieldGroups.Single(g => g.ResponseName == "result");
         var childRoot = new Condition(schemaIndex.GetPossibleTypeSet("Result"), []);
 
-        // act: the singleton-object rewrite relabels the Node edge as A
+        // act
         var childTree = ConditionTreeExtractor.ExtractBoundary(
             schemaIndex,
             ConditionTreeExtractor.IndexFragments(document),
@@ -235,7 +234,7 @@ public class ConditionTreeTests
     [Fact]
     public void ExtractOperation_Should_Emit_One_Edge_When_Two_Spellings_Reach_Same_Condition()
     {
-        // arrange: Node={A} under the wider Result={A,B} scope, spelled two different ways
+        // arrange
         const string sdl =
             """
             interface Node { a: Int }
@@ -259,7 +258,7 @@ public class ConditionTreeTests
             resultGroup.MergedSelectionSet(),
             childRoot);
 
-        // assert: both spellings reach the node for A through the same single edge
+        // assert
         var branch = Assert.Single(childTree.Root.Branches);
         var targetNode = childTree.Nodes[branch.TargetNodeId];
         Assert.Equal(2, targetNode.FieldGroups.Single().Fields.Count);

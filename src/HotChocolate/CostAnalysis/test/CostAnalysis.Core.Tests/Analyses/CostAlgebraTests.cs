@@ -4,13 +4,10 @@ using HotChocolate.Types.Mutable.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Verifies <see cref="CostFieldRule"/>, the pure arithmetic of the IBM
-/// cost algebra, against the locked field rule and known oracle numbers
-/// (graphql-static-analysis-rs estimator.rs).
+/// Tests field-cost and type-cost arithmetic.
 /// </summary>
 public class CostAlgebraTests
 {
-    // -- Empty, Combine, Join ----------------------------------------------------------------
 
     [Fact]
     public void Empty_Should_Be_ZeroZero_When_Read()
@@ -79,8 +76,6 @@ public class CostAlgebraTests
         Assert.Equal(4.0, combined.TypeCost);
     }
 
-    // -- Scale: the 0 * Infinity guard -------------------------------------------------------
-
     [Fact]
     public void Scale_Should_ReturnZero_When_CostIsZero_And_MultiplierIsInfinite()
     {
@@ -121,8 +116,6 @@ public class CostAlgebraTests
         Assert.True(double.IsNaN(scaled));
     }
 
-    // -- Clamp0 --------------------------------------------------------------------------------
-
     [Fact]
     public void Clamp0_Should_ClampToZero_When_ValueIsNegative()
     {
@@ -153,14 +146,10 @@ public class CostAlgebraTests
         Assert.Equal(0L, BitConverter.DoubleToInt64Bits(clamped));
     }
 
-    // -- Field: whole-call clamping and signed weights ------------------------------------------
-
     [Fact]
     public void Field_Should_PayArgumentsCostOnce_When_NegativeWeightOffsetsFieldWeight()
     {
         // arrange
-        // graphql-static-analysis-rs estimator.rs: negative_argument_reduces_field_cost_before_clamping,
-        // fieldWithCost @cost(weight: "5") with a present approx: Boolean @cost(weight: "-3") argument.
         var child = CostFieldRule.Empty;
 
         // act
@@ -180,7 +169,6 @@ public class CostAlgebraTests
     public void Field_Should_NotPayArgumentsCost_When_ArgumentsAreOmitted()
     {
         // arrange
-        // estimator.rs: field_call_cost_is_not_multiplied, fieldWithCost called with no arguments.
         var child = CostFieldRule.Empty;
 
         // act
@@ -200,9 +188,6 @@ public class CostAlgebraTests
     public void Field_Should_PriceDirectiveArguments_When_QueryDirectiveCarriesOwnWeight()
     {
         // arrange
-        // estimator.rs: custom_directive_argument_weights_affect_field_cost,
-        // value @cost(weight: "5.0") called with @approx(tolerance: 0.5)
-        // where @approx's tolerance argument carries @cost(weight: "-1.0") (R-DIRECTIVE-ARG-COST).
         var child = CostFieldRule.Empty;
 
         // act
@@ -222,9 +207,7 @@ public class CostAlgebraTests
     public void Field_Should_KeepZeroMultiplier_When_ListIsEmpty_And_StillPayFieldCallOnce()
     {
         // arrange
-        // precision fixture c6-zero-length-list: items(limit: 0) { value }, Item.value @cost(weight: "3"),
-        // Item and the items field both default to composite weight 1.0. A supplied slicing value of
-        // 0 zeroes the multiplier but the field's own call cost is still paid once.
+        // An empty list still incurs the field's call cost.
         var valueField = CostFieldRule.Field(
             n: 1.0,
             fieldWeight: 3.0,
@@ -251,10 +234,7 @@ public class CostAlgebraTests
     public void Field_Should_MatchOracle_When_AbstractReturnTypeWeightIsTheSignedMaxOverMemberTypes()
     {
         // arrange
-        // estimator.rs: abstract_output_uses_the_maximum_possible_object_weight, { publication { title } }
-        // over interface Publication with members Book (default weight 1.0) and Magazine
-        // (@cost(weight: "7")). returnTypeWeight is the schema-wide signed max (7.0, hc-3-mmh.7 edge (d));
-        // title is a leaf on both members and joins to (0, 0).
+        // The abstract return type uses the larger weight of Book and Magazine.
         var titleOnBook = CostFieldRule.Field(1.0, 0.0, 0.0, 0.0, 0.0, CostFieldRule.Empty);
         var titleOnMagazine = CostFieldRule.Field(1.0, 0.0, 0.0, 0.0, 0.0, CostFieldRule.Empty);
         var title = CostFieldRule.Join(titleOnBook, titleOnMagazine);
@@ -273,8 +253,6 @@ public class CostAlgebraTests
         Assert.Equal(new CostEstimate(1.0, 8.0, null), root);
     }
 
-    // -- Root: root type weight added once, never to the field cost ----------------------------
-
     [Fact]
     public void Root_Should_ClampAtZero_When_RootTypeWeightIsNegativeAndUnoffset()
     {
@@ -287,8 +265,6 @@ public class CostAlgebraTests
         // assert
         Assert.Equal(new CostEstimate(4.0, 0.0, null), root);
     }
-
-    // -- CostAlgebra: CostFieldRule and ListSizeResolver wired against a real schema index ---------
 
     [Fact]
     public void CostAlgebra_Should_DelegateToCostFieldRule_When_EmptyCombineJoinRootAreInvoked()
@@ -317,7 +293,6 @@ public class CostAlgebraTests
     public void CostAlgebra_Field_Should_PriceDirectiveArguments_When_QueryDirectiveCarriesOwnWeight()
     {
         // arrange
-        // estimator.rs: custom_directive_argument_weights_affect_field_cost (R-DIRECTIVE-ARG-COST)
         const string sdl =
             """
             directive @approx(tolerance: Float @cost(weight: "-1.0")) on FIELD
@@ -330,7 +305,8 @@ public class CostAlgebraTests
             new CollectedFieldGroup("value", field, members[0], inheritedSize: null),
             algebra.Empty);
 
-        // assert: 5 (field weight) - 1 (tolerance's own weight, charged once) = 4
+        // assert
+        // Field weight 5 plus argument weight -1 gives a total of 4.
         Assert.Equal(4.0, estimate.FieldCost);
     }
 
@@ -353,7 +329,7 @@ public class CostAlgebraTests
     [Fact]
     public void CostAlgebra_Field_Should_UseDefaultListSize_When_FieldCarriesNoListSizeAnnotation()
     {
-        // arrange: an unannotated list of composites costs +Infinity through the default list size
+        // arrange
         const string sdl =
             """
             type Item { value: Int @cost(weight: "3") }
@@ -390,7 +366,7 @@ public class CostAlgebraTests
     [Fact]
     public void CostAlgebra_Field_Should_ResolveListMultiplier_When_SlicingArgumentIsSuppliedAsLiteral()
     {
-        // arrange: rank 2 of the locked list-size priority chain, a literal Int slicing argument
+        // arrange
         const string sdl =
             """
             type Item { value: Int @cost(weight: "3") }
@@ -404,15 +380,15 @@ public class CostAlgebraTests
             new CollectedFieldGroup("items", field, members[0], inheritedSize: null),
             valueField);
 
-        // assert: n = 4, items' own weight 1 (default) + 4 * value's fieldCost 3
+        // assert
+        // The field costs 1, plus 3 for each of the four selected values.
         Assert.Equal(13.0, estimate.FieldCost);
     }
 
     [Fact]
     public void CostAlgebra_Field_Should_UseInheritedSize_When_ParentSizedFieldsNamesTheField()
     {
-        // arrange: rank 1 of the locked list-size priority chain, inherited sizedFields beats the
-        // child field's own (absent) @listSize
+        // arrange
         const string sdl =
             """
             type Node { id: ID }
@@ -426,16 +402,14 @@ public class CostAlgebraTests
             new CollectedFieldGroup("nodes", field, members[0], inheritedSize: 10.0),
             algebra.Empty);
 
-        // assert: n = 10 (inherited from the parent's first: 10), typeCost = 10 * Node's own weight 1
+        // assert
         Assert.Equal(10.0, estimate.TypeCost);
     }
 
     [Fact]
     public void CostAlgebra_Field_Should_PriceOmittedDirectiveArgument_When_DefinitionDeclaresDefault()
     {
-        // arrange: estimator.rs custom_directive_argument_weights_affect_field_cost, an omitted
-        // directive argument still charges its own weight when the definition declares a default
-        // (R-DIRECTIVE-ARG-COST)
+        // arrange
         const string sdl =
             """
             directive @approx(tolerance: Float = 1 @cost(weight: "-1.0")) on FIELD
@@ -448,7 +422,7 @@ public class CostAlgebraTests
             new CollectedFieldGroup("value", field, members[0], inheritedSize: null),
             algebra.Empty);
 
-        // assert: 5 (field weight) - 1 (tolerance's own weight, charged from its declared default) = 4
+        // assert
         Assert.Equal(4.0, estimate.FieldCost);
     }
 
@@ -491,10 +465,7 @@ public class CostAlgebraTests
     }
 
     /// <summary>
-    /// Builds a schema index from <paramref name="sdl"/>, parses
-    /// <paramref name="operationText"/>'s single root field, and returns a
-    /// <see cref="CostAlgebra"/> over that schema index together with the root
-    /// field's one-member <see cref="CollectedFieldGroupMember"/> array.
+    /// Creates a cost algebra and returns the operation's single root field and its schema definition.
     /// </summary>
     private static (CostAlgebra Algebra, CollectedFieldGroupMember[] Members, FieldNode Field) ParseRootField(
         string sdl,

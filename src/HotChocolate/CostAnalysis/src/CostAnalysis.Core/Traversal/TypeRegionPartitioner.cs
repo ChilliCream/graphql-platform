@@ -1,10 +1,7 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Partitions a boundary's scope into type regions: the coarsest partition
-/// such that every type condition appearing in the boundary is constant
-/// (fully inside or fully outside) within each region, so one representative
-/// type per region decides which selections apply for every member.
+/// Groups possible object types that satisfy the same type conditions within a selection set.
 /// </summary>
 internal static class TypeRegionPartitioner
 {
@@ -70,10 +67,8 @@ internal static class TypeRegionPartitioner
     }
 
     /// <summary>
-    /// Partitions <c>members[start..start+length)</c> in place into a
-    /// prefix whose types <paramref name="condition"/> contains and a
-    /// suffix whose types it does not, reusing the input array so neither
-    /// half allocates.
+    /// Partitions the specified range in place, placing types that match <paramref name="condition"/>
+    /// before types that do not. Returns the number of matching types.
     /// </summary>
     private static int PartitionInPlace(int[] members, int start, int length, PossibleTypeSet condition)
     {

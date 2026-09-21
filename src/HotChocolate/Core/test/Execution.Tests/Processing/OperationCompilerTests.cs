@@ -1020,12 +1020,7 @@ public class OperationCompilerTests
     public async Task Compile_PreNormalized_Document_Reports_Incremental_Parts_Correctly()
     {
         // arrange
-        // The instance overload only ever receives an already normalized document, so it reads
-        // whether the operation has incremental parts straight off the marker directive the
-        // normalizer appends to the operation definition, instead of re-walking the selection
-        // set for @defer/@stream on every compile. Both documents below carry a @defer
-        // selection; only the one whose operation definition carries the marker directive
-        // compiles as incremental.
+        // Both documents contain @defer, but only one carries the normalization marker.
         var executor = await new ServiceCollection()
             .AddGraphQL()
             .AddStarWarsTypes()
@@ -1077,12 +1072,6 @@ public class OperationCompilerTests
     public void Compile_TakesOnlyNormalizedDocuments_OnTheInstanceOverload()
     {
         // arrange
-        // The static entry points keep accepting a raw document and an optional
-        // context for source compatibility with existing callers, normalizing the document
-        // themselves before delegating to the single instance overload, which only ever
-        // accepts an already normalized document. The instance overload keeps the same
-        // feature provider parameter as the static entry points for source compatibility;
-        // it is currently unused there as well.
         var actualSignatures = typeof(OperationCompiler)
             .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.Name == nameof(OperationCompiler.Compile))
@@ -1091,12 +1080,10 @@ public class OperationCompilerTests
 
         var expectedSignatures = new HashSet<string>
         {
-            // the three static entry points, unchanged.
             "static(String, DocumentNode, Schema, IFeatureProvider)",
             "static(String, String, DocumentNode, Schema, IFeatureProvider)",
             "static(String, String, String, DocumentNode, Schema, IFeatureProvider)",
 
-            // the single instance overload, which only accepts a normalized document.
             "instance(String, String, String, DocumentNode, IFeatureProvider)"
         };
 

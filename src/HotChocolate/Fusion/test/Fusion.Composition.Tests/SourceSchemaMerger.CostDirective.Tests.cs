@@ -165,9 +165,6 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
             modifySchema: s_removeCostDirective);
     }
 
-    // Weight fold under absence (R-COMPOSITION-WEIGHT-FOLD): a composite output field's
-    // declared weight below the composite default (1) folds up to the default supplied by the
-    // unannotated source.
     [Fact]
     public void Merge_CostDirectiveWeightFold_CompositeOutputField_MatchesSnapshot()
     {
@@ -216,8 +213,6 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
             modifySchema: s_removeCostDirective);
     }
 
-    // Weight fold under absence: a leaf output field's declared weight within [0, 1) folds to
-    // that value when the other source is unannotated (leaf default 0 does not raise it).
     [Fact]
     public void Merge_CostDirectiveWeightFold_LeafOutputFieldPositive_MatchesSnapshot()
     {
@@ -254,8 +249,6 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
             modifySchema: s_removeCostDirective);
     }
 
-    // Weight fold under absence: a leaf output field's declared negative weight folds up to the
-    // leaf default (0) supplied by the unannotated source.
     [Fact]
     public void Merge_CostDirectiveWeightFold_LeafOutputFieldNegative_MatchesSnapshot()
     {
@@ -292,8 +285,6 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
             modifySchema: s_removeCostDirective);
     }
 
-    // Weight fold under absence: a scalar-typed argument's declared negative weight folds up to
-    // the argument default (0) supplied by the unannotated source.
     [Fact]
     public void Merge_CostDirectiveWeightFold_ScalarArgument_MatchesSnapshot()
     {
@@ -328,8 +319,6 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
             modifySchema: s_removeCostDirective);
     }
 
-    // Weight fold under absence: an input-object-typed argument's declared negative weight
-    // folds up to the input-object default (1) supplied by the unannotated source.
     [Fact]
     public void Merge_CostDirectiveWeightFold_InputObjectArgument_MatchesSnapshot()
     {
@@ -376,8 +365,6 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
             modifySchema: s_removeCostDirective);
     }
 
-    // Weight fold under absence: an object type's declared weight below the composite default
-    // (1) folds up to the default supplied by the unannotated source.
     [Fact]
     public void Merge_CostDirectiveWeightFold_ObjectType_MatchesSnapshot()
     {
@@ -426,10 +413,6 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
             modifySchema: s_removeCostDirective);
     }
 
-    // A partial member (@fusion__field(partial: true), for example an Apollo Federation
-    // @external field returned through @provides) never resolves the value itself, so an
-    // omitted @cost on it does not contribute the coordinate's default weight and must not lift
-    // the public weight above what the owner declares.
     [Fact]
     public void Merge_CostDirectiveWeightFold_ExternalPartialMember_UnannotatedContributesNothing_MatchesSnapshot()
     {
@@ -511,8 +494,6 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
             modifySchema: s_removeCostDirective);
     }
 
-    // A partial member's own @cost, when it declares one, still folds in: the larger of the
-    // owner's effective weight and the partial member's declared weight wins.
     [Fact]
     public void Merge_CostDirectiveWeightFold_ExternalPartialMember_OwnDeclaredWeightFoldsIn_MatchesSnapshot()
     {

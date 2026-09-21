@@ -5,9 +5,7 @@ using HotChocolate.Types.Mutable.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Shared helpers for condition-tree extraction tests: building a schema index
-/// from SDL and rendering a tree into a deterministic, human-readable dump
-/// for schema index assertions.
+/// Creates schema indexes and text representations of condition trees for assertions.
 /// </summary>
 internal static class ConditionTreeTestHelpers
 {

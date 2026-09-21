@@ -655,7 +655,7 @@ public class CostReportingTests : FusionTestBase
         using var server = CreateSourceSchema("A", Schema);
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
-            // Overrides the FusionTestBase pin of 1 to exercise the product default.
+            // Use the unbounded product default instead of the test base's list size of one.
             defaultListSize: null);
         var request = new OperationRequest("{ unannotatedItems { value } }");
 

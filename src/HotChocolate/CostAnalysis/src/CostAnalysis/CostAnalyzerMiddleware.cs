@@ -31,10 +31,7 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
-        // A request-level override only ever replaces a limit the schema already enforces
-        // (in either direction). If the schema never enabled the response-size analysis,
-        // honoring the override would silently promise a check that never runs, so this
-        // fails fast instead.
+        // A request can override the response-size limit only if the schema enables the analysis.
         if (requestOptions.MaxResponseSize.HasValue && !options.MaxResponseSize.HasValue)
         {
             context.Result = ErrorHelper.ResponseSizeAnalysisNotEnabled();
@@ -47,9 +44,7 @@ internal sealed class CostAnalyzerMiddleware(
             return;
         }
 
-        // Cost analysis now runs ahead of the operation cache, so nothing upstream is
-        // guaranteed to have computed the operation id yet; self-compute it here, the same
-        // way the operation cache and the normalizer do.
+        // Cost analysis runs before the operation cache, so the operation id may not be set yet.
         var operationId = context.GetOperationId();
 
         ImmutableArray<CostMetrics> costMetrics;
@@ -60,11 +55,7 @@ internal sealed class CostAnalyzerMiddleware(
             {
                 if (!cache.TryGetPlan(operationId, out var plan))
                 {
-                    // The document is normalized here, and nowhere else on this path, because a
-                    // plan cache hit means an earlier request already normalized, planned, and
-                    // validated the very same operation shape. Validation runs before the plan
-                    // is cached so a violation is never masked by a plan a failed request left
-                    // behind: it keeps missing, and keeps failing, on every retry.
+                    // Validate before caching the plan so retries cannot bypass a validation error.
                     var normalizedDocument = context.GetNormalizedDocument();
                     var normalizedOperation = context.GetNormalizedOperation();
 
@@ -194,8 +185,7 @@ internal sealed class CostAnalyzerMiddleware(
         [NotNullWhen(true)]
         out IExecutionResult? error)
     {
-        // A request is one invocation of the request pipeline. A variable batch is one request,
-        // so its allowed field and type cost is the sum over every variable set.
+        // A variable batch shares one field-cost limit and one type-cost limit across all items.
         var fieldCost = 0d;
         var typeCost = 0d;
 

@@ -5,11 +5,7 @@ using HotChocolate.Types;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A minimal IBM-cost-shaped <see cref="IAnalysisAlgebra{T}"/> test double
-/// for the Traversal test suite. Reads <c>@cost</c> weights straight off
-/// the field and type definitions <see cref="CollectedFieldGroup"/> carries
-/// and applies the field rule, ignoring argument and directive-argument
-/// costs.
+/// Computes field and type costs for traversal tests, excluding argument and directive-argument costs.
 /// </summary>
 internal sealed class TestCostAlgebra : IAnalysisAlgebra<(double TypeCost, double FieldCost)>
 {

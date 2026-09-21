@@ -1,10 +1,7 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A persistent, lazily factored decision structure over Boolean variables,
-/// split in the canonical (ordinal) variable order: either a
-/// resolved leaf value or a split on one variable into its false and true
-/// branches.
+/// A result that depends on Boolean variables, with alternatives for their possible values.
 /// </summary>
 /// <typeparam name="T">
 /// The value type held at every leaf.
@@ -24,7 +21,7 @@ internal abstract class BooleanDecision<T>
         => new SplitDecision<T>(variable, whenFalse, whenTrue);
 
     /// <summary>
-    /// Creates a factored join of mutually exclusive alternatives.
+    /// Creates a decision that combines mutually exclusive alternatives using <paramref name="join"/>.
     /// </summary>
     public static BooleanDecision<T> Join(
         BooleanDecision<T> left,
@@ -33,8 +30,7 @@ internal abstract class BooleanDecision<T>
         => new JoinDecision<T>(left, right, join);
 
     /// <summary>
-    /// Resolves this decision against a complete Boolean assignment by
-    /// walking one branch per split.
+    /// Resolves this decision using the supplied Boolean variable values.
     /// </summary>
     public T Resolve(Func<string, bool> values)
         => this switch
@@ -46,9 +42,7 @@ internal abstract class BooleanDecision<T>
         };
 
     /// <summary>
-    /// Folds every leaf into one value by applying <paramref name="join"/>
-    /// bottom-up, the assumed bound of this decision over every possible
-    /// assignment.
+    /// Returns an assumed bound covering every possible Boolean assignment using <paramref name="join"/>.
     /// </summary>
     public T FoldWithJoin(Func<T, T, T> join)
         => this switch
@@ -60,12 +54,9 @@ internal abstract class BooleanDecision<T>
         };
 
     /// <summary>
-    /// Combines two decisions pointwise with <paramref name="op"/>, an
-    /// ordered BDD apply over the single canonical (ordinal)
-    /// variable order that pairs every occurrence of one variable with
-    /// itself. Charges one case per split it materializes against
-    /// <paramref name="budget"/> and collapses both sides with
-    /// <paramref name="join"/> into a leaf once the budget is exhausted.
+    /// Combines the results of two decisions for each Boolean assignment using <paramref name="op"/>.
+    /// Each resulting split consumes one case from <paramref name="budget"/>.
+    /// When the budget is exhausted, <paramref name="join"/> supplies a bound for unresolved alternatives.
     /// </summary>
     public static BooleanDecision<T> ZipWith(
         BooleanDecision<T> left,
@@ -125,9 +116,8 @@ internal abstract class BooleanDecision<T>
     }
 
     /// <summary>
-    /// Restricts <paramref name="node"/> to <paramref name="variable"/>'s
-    /// false and true branches, eliminating every split on that variable
-    /// anywhere in the subtree rather than only at its top.
+    /// Returns the decisions for <paramref name="variable"/> set to false and true,
+    /// with all references to that variable resolved.
     /// </summary>
     private static (BooleanDecision<T> WhenFalse, BooleanDecision<T> WhenTrue) Branches(
         BooleanDecision<T> node,

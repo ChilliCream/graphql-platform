@@ -16,11 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--
-      The six precision cases (plus their named-fragment and merged-control twins) are the
-      single fixture source shared by Core, HC and Fusion. PrecisionCasesTests reads them
-      from the Core conformance suite's __resources__ instead of duplicating them here.
-    -->
     <None Include="..\CostAnalysis.Core.Conformance.Tests\__resources__\precision\*.json"
           Link="__resources__\precision\%(Filename)%(Extension)"
           CopyToOutputDirectory="Always" />

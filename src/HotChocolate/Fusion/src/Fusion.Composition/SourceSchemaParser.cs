@@ -43,9 +43,7 @@ internal sealed class SourceSchemaParser(
         schema.AddBuiltInFusionTypes();
         schema.AddBuiltInFusionDirectives();
 
-        // A source schema may apply @cost/@listSize without declaring its own definition.
-        // Inject the canonical definition only when the combined source text uses the directive
-        // but does not declare it (R-COMPOSITION-COMPAT).
+        // Add canonical definitions for cost directives used without a source definition.
         var requiresInjectedDefinitions = GetRequiredDefinitionInjections(sourceSchemaText);
 
         if (requiresInjectedDefinitions.Contains(DirectiveNames.Cost))
@@ -178,11 +176,8 @@ internal sealed class SourceSchemaParser(
                StringComparison.Ordinal) ?? false);
 
     /// <summary>
-    /// Determines, in one pass over the source schema's combined text, which of the injectable
-    /// directives (<c>@cost</c>, <c>@listSize</c>) must have a canonical definition injected: a
-    /// directive the text applies somewhere but declares no definition for anywhere (main or
-    /// extensions text). A declared definition (any shape) always wins and is never injected
-    /// over; a directive neither used nor declared is left alone.
+    /// Gets cost directives used without a definition in the source schema or its extensions.
+    /// Existing definitions take precedence regardless of their shape.
     /// </summary>
     private static HashSet<string> GetRequiredDefinitionInjections(SourceSchemaText sourceSchemaText)
     {
@@ -209,8 +204,7 @@ internal sealed class SourceSchemaParser(
         }
         catch (SyntaxException)
         {
-            // Malformed text is reported by the real parse further down; injection is skipped
-            // and the underlying error surfaces normally.
+            // Leave malformed text for the main parser to report.
             return null;
         }
     }

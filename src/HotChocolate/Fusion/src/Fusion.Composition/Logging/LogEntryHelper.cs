@@ -700,9 +700,7 @@ internal static class LogEntryHelper
     }
 
     /// <summary>
-    /// Reports a negative <c>defaultListSize</c> composition setting. The source of the invalid
-    /// value is the composition settings, not a schema coordinate, so this entry carries no
-    /// schema or type system member.
+    /// Creates a composition error for a negative default list size, with no associated schema member.
     /// </summary>
     public static LogEntry InvalidDefaultListSizeSettingRange(int value)
     {
@@ -714,11 +712,8 @@ internal static class LogEntryHelper
     }
 
     /// <summary>
-    /// Reports a <c>defaultListSize</c> composition setting read directly from the raw settings
-    /// JSON that is a whole number outside the supported non-negative Int32 range (for example,
-    /// larger than <see cref="int.MaxValue"/>), before the typed deserialize would otherwise
-    /// throw. The source of the invalid value is the composition settings, not a schema
-    /// coordinate, so this entry carries no schema or type system member.
+    /// Creates a composition error for a default list-size literal outside the supported Int32 range,
+    /// with no associated schema member.
     /// </summary>
     public static LogEntry InvalidDefaultListSizeSettingRange(string rawValue)
     {
@@ -730,10 +725,8 @@ internal static class LogEntryHelper
     }
 
     /// <summary>
-    /// Reports a non-integer <c>defaultListSize</c> composition setting read directly from the
-    /// raw settings JSON, before the typed deserialize would otherwise throw. The source of the
-    /// invalid value is the composition settings, not a schema coordinate, so this entry carries
-    /// no schema or type system member.
+    /// Creates a composition error for a non-integer default list-size setting,
+    /// with no associated schema member.
     /// </summary>
     public static LogEntry InvalidDefaultListSizeSettingType(string rawValue)
     {

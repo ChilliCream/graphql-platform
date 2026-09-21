@@ -3,9 +3,7 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Extracts condition trees from raw GraphQL language nodes and a
-/// <see cref="CostSchemaIndex"/>, with no dependency on document
-/// validation or execution types.
+/// Extracts an operation's field selections and conditions from a GraphQL document and schema index.
 /// </summary>
 internal static class ConditionTreeExtractor
 {

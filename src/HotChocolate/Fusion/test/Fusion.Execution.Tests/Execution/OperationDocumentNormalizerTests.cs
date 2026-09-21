@@ -21,9 +21,7 @@ public class OperationDocumentNormalizerTests : FusionTestBase
             .UseRequest(
                 (_, _) => context =>
                 {
-                    // capture the normalized operation once it survived document normalization,
-                    // the plan cache lookup and planning, then short-circuit before execution
-                    // reaches out to a (non-existent) source schema client.
+                    // Capture normalization output, then stop before execution needs a source-schema client.
                     normalizedDocument = context.GetNormalizedDocument();
                     context.Result =
                         new OperationResult(ImmutableOrderedDictionary<string, object?>.Empty.Add("probe", true));
@@ -107,9 +105,6 @@ public class OperationDocumentNormalizerTests : FusionTestBase
             """;
 
         // act
-        // the first request rewrites the document and caches it under the operation id; every
-        // later request for the same operation must reuse that cached instance instead of
-        // rewriting the document again.
         await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
         await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
         await executor.ExecuteAsync(operationText, TestContext.Current.CancellationToken);
@@ -138,9 +133,7 @@ public class OperationDocumentNormalizerTests : FusionTestBase
             .UseRequest(
                 (_, _) => context =>
                 {
-                    // capture the normalized operation once it survived document normalization,
-                    // the plan cache lookup and planning, then short-circuit before execution
-                    // reaches out to a (non-existent) source schema client.
+                    // Capture normalization output, then stop before execution needs a source-schema client.
                     normalizedDocuments.Add(context.GetNormalizedDocument());
                     context.Result =
                         new OperationResult(ImmutableOrderedDictionary<string, object?>.Empty.Add("probe", true));
@@ -170,8 +163,6 @@ public class OperationDocumentNormalizerTests : FusionTestBase
                 .Build();
 
         // act
-        // requests for operation A must never leak a cached normalized body into a later
-        // request for operation B on the same (multi-operation) document.
         var resultA1 = await executor.ExecuteAsync(CreateRequest("A"), TestContext.Current.CancellationToken);
         var resultA2 = await executor.ExecuteAsync(CreateRequest("A"), TestContext.Current.CancellationToken);
         var resultB = await executor.ExecuteAsync(CreateRequest("B"), TestContext.Current.CancellationToken);

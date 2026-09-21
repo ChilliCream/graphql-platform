@@ -58,8 +58,8 @@ public sealed class FusionCostOptions
     } = 1_000;
 
     /// <summary>
-    /// Gets or sets whether the cost analyzer enforces <see cref="MaxFieldCost"/>
-    /// and <see cref="MaxTypeCost"/>. <c>true</c> by default.
+    /// Gets or sets whether to enforce field-cost, type-cost, and response-size limits.
+    /// The default is <see langword="true"/>.
     /// </summary>
     public bool EnforceCostLimits
     {
@@ -88,8 +88,8 @@ public sealed class FusionCostOptions
     }
 
     /// <summary>
-    /// Gets or sets the maximum allowed response size. <c>null</c> disables the check.
-    /// <c>null</c> by default.
+    /// Gets or sets the maximum estimated number of response fields.
+    /// The default, <see langword="null"/>, disables response-size analysis and reporting.
     /// A non-null value must be a non-negative finite number or positive infinity.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
@@ -127,8 +127,8 @@ public sealed class FusionCostOptions
     } = 256;
 
     /// <summary>
-    /// Gets or sets the maximum number of exact cases evaluated for a single
-    /// operation. <c>null</c> uses the default (510).
+    /// Gets or sets the maximum number of Boolean case splits allowed when compiling an operation.
+    /// <see langword="null"/> uses the default of 510; zero or less uses the configured budget fallback immediately.
     /// </summary>
     public int? CaseBudget
     {

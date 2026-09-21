@@ -40,8 +40,7 @@ public class PrecisionCasesTests : FusionTestBase
 
         using var gateway = await CreateCompositeSchemaAsync(
             [("A", server)],
-            // The fixture's DefaultListSize is now a composition-time setting: absence
-            // (unbounded) is expressed as `null`, everything else as its integer value.
+            // Composition represents an unbounded list size as null.
             defaultListSize: double.IsPositiveInfinity(fixture.DefaultListSize)
                 ? null
                 : (int)fixture.DefaultListSize);

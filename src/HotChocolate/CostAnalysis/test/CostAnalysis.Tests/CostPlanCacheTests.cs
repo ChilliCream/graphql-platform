@@ -6,10 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// The dedicated <see cref="Cache{TValue}"/> of <see cref="CostPlan"/>, keyed by operation
-/// id and reachable from the schema services (hc-3-mmh.8 locked). Rejected and warmup
-/// requests populate it exactly like an accepted one; only compilation, never
-/// enforcement, decides whether an entry is written.
+/// Tests cost-plan caching for accepted, rejected, and warmup requests.
 /// </summary>
 public sealed class CostPlanCacheTests
 {
@@ -143,10 +140,8 @@ public sealed class CostPlanCacheTests
     [Fact]
     public async Task Cache_Should_NotRecompile_When_CaseBudgetTrippingOperationExecutesTwice()
     {
-        // arrange: three independently @include-gated fields need 2^3-1 = 7 exact splits to
-        // compile, but the case budget below allows only one, so the default
-        // (EvaluatePerRequest) mode discards the compile on the very first execution and
-        // evaluates every request against the same cached plan afterward.
+        // arrange
+        // Three independent Boolean conditions require seven splits, exceeding the budget of one.
         CostAnalysisResult? firstResult = null;
         CostAnalysisResult? secondResult = null;
 
@@ -182,8 +177,7 @@ public sealed class CostPlanCacheTests
         var countAfterFirstExecution = cache.Count;
         await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
-        // assert: one cache entry, the very same plan instance serving both requests (so
-        // compilation never ran a second time), and both executions report the tripped budget.
+        // assert
         Assert.Equal(1, countAfterFirstExecution);
         Assert.Equal(1, cache.Count);
         Assert.NotNull(firstResult);

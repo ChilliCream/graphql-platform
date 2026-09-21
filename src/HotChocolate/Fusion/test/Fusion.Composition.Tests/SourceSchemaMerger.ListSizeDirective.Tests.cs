@@ -402,9 +402,6 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
             modifySchema: s_removeListSizeDirective);
     }
 
-    // A single value in a list position is coerced to a one-element list (GraphQL list input
-    // coercion), so a singleton string is a valid shorthand for slicingArguments. The public
-    // directive and the @fusion__listSize provenance entry agree: both report the coerced list.
     [Fact]
     public void Merge_ListSizeDirectiveSlicingArgumentsSingleton_MatchesSnapshot()
     {
@@ -490,9 +487,6 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
             modifySchema: s_removeListSizeDirective);
     }
 
-    // A single value in a list position is coerced to a one-element list (GraphQL list input
-    // coercion), so a singleton string is a valid shorthand for sizedFields. The public directive
-    // and the @fusion__listSize provenance entry agree: both report the coerced list.
     [Fact]
     public void Merge_ListSizeDirectiveSizedFieldsSingleton_MatchesSnapshot()
     {
@@ -642,9 +636,6 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
             modifySchema: s_removeListSizeDirective);
     }
 
-    // R-REQUIRE-ONE-DEFAULT: an omitted requireOneSlicingArgument usage contributes the source
-    // definition's own declared default (true here), which then folds true-if-any against a
-    // source that explicitly opts out.
     [Fact]
     public void Merge_ListSizeDirectiveRequireOneSlicingArgument_SourceDefaultAppliesBeforeFold_MatchesSnapshot()
     {
@@ -694,10 +685,6 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
             modifySchema: s_removeListSizeDirective);
     }
 
-    // hc-3-mmh.9 / R-COMPOSITION-WEIGHT-FOLD: when a field is served by an annotated source and
-    // an unannotated one, the composite bound must also cover the unannotated source's effective
-    // size, which composition only knows through the configured DefaultListSize
-    // (@fusion__cost_options(defaultListSize:)). The sound bound is the greater of the two.
     [Fact]
     public void Merge_ListSizeDirective_UnannotatedServingSource_DefaultListSizeRaisesFloor_MatchesSnapshot()
     {
@@ -733,7 +720,6 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
             modifySchema: s_removeListSizeDirective);
     }
 
-    // The default is only a floor: a higher declared assumedSize still wins.
     [Fact]
     public void Merge_ListSizeDirective_UnannotatedServingSource_DeclaredWinsOverLowerDefault_MatchesSnapshot()
     {
@@ -769,9 +755,6 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
             modifySchema: s_removeListSizeDirective);
     }
 
-    // When DefaultListSize is unset (unbounded), the unannotated source's effective size is
-    // unknown, so assumedSize is omitted entirely rather than reporting the lower, unsound,
-    // declared-only value. Other folded arguments (here slicingArguments) are unaffected.
     [Fact]
     public void Merge_ListSizeDirective_UnannotatedServingSource_NoDefaultOmitsAssumedSize_MatchesSnapshot()
     {
@@ -808,8 +791,6 @@ public sealed class SourceSchemaMergerListSizeDirectiveTests : SourceSchemaMerge
             modifySchema: s_removeListSizeDirective);
     }
 
-    // When every serving source declares a compatible @listSize, the fold is unaffected by
-    // DefaultListSize even when one is configured.
     [Fact]
     public void Merge_ListSizeDirective_AllSourcesAnnotated_DefaultListSizeDoesNotApply_MatchesSnapshot()
     {

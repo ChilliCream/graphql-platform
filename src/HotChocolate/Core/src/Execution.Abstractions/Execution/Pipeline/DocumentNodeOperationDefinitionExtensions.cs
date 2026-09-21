@@ -4,9 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Execution.Pipeline;
 
 /// <summary>
-/// Provides a lookup for the operation definition a request selects out of a parsed operation
-/// document, shared by diagnostics spans and listeners that need the operation type and name
-/// before the document is compiled, planned, or normalized.
+/// Provides access to the operation selected from a parsed document.
 /// </summary>
 public static class DocumentNodeOperationDefinitionExtensions
 {
@@ -21,11 +19,11 @@ public static class DocumentNodeOperationDefinitionExtensions
     /// The parsed operation document to search.
     /// </param>
     /// <param name="operationName">
-    /// The name of the operation to select, or <see langword="null"/> to select the document's
+    /// The name of the operation to select, or <see langword="null"/> or empty to select the document's
     /// single anonymous operation.
     /// </param>
     /// <param name="operationDefinition">
-    /// The selected operation definition.
+    /// The selected operation definition, or <see langword="null"/> if no unique match exists.
     /// </param>
     /// <returns>
     /// <see langword="true"/> if an operation definition was selected; otherwise,
@@ -49,8 +47,7 @@ public static class DocumentNodeOperationDefinitionExtensions
 
             if (string.IsNullOrEmpty(operationName))
             {
-                // More than one anonymous candidate makes the request itself ambiguous;
-                // there is no single operation left to report.
+                // Multiple anonymous operations make the selection ambiguous.
                 if (match is not null)
                 {
                     operationDefinition = null;

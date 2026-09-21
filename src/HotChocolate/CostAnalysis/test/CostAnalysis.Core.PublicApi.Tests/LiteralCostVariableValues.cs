@@ -3,9 +3,7 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A minimal <see cref="ICostVariableValues"/> built directly from literal
-/// values, the way a consumer without access to a full request execution
-/// pipeline would supply coerced variables.
+/// Provides coerced variable values from GraphQL literals.
 /// </summary>
 public sealed class LiteralCostVariableValues(IReadOnlyDictionary<string, IValueNode> values)
     : ICostVariableValues

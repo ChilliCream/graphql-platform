@@ -1,16 +1,10 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// The pure field-cost and type-cost arithmetic of the IBM cost algebra:
-/// whole-call clamping, list-multiplier scaling and the double-arithmetic
-/// guards, bit-for-bit against the reference implementation.
+/// Computes field and type costs from field weights, argument costs, and list sizes.
 /// </summary>
 /// <remarks>
-/// Every member is total over <see cref="double"/> and never throws.
-/// Resolving <c>fieldWeight</c>, <c>argumentsCost</c>,
-/// <c>directiveArgumentsCost</c>, <c>returnTypeWeight</c> and the list
-/// multiplier from the schema index and the coerced request is the
-/// caller's job; this type only combines those already-resolved numbers.
+/// All members accept any <see cref="double"/> value and do not throw.
 /// </remarks>
 internal static class CostFieldRule
 {
@@ -20,16 +14,14 @@ internal static class CostFieldRule
     public static CostEstimate Empty { get; } = new(0.0, 0.0, null);
 
     /// <summary>
-    /// Combines two estimates collected within the same selection boundary
-    /// as a componentwise sum.
+    /// Adds the field costs and type costs of two estimates.
     /// </summary>
     public static CostEstimate Combine(CostEstimate left, CostEstimate right)
         => new(left.FieldCost + right.FieldCost, left.TypeCost + right.TypeCost, null);
 
     /// <summary>
-    /// Computes the upper bound of two estimates from mutually exclusive
-    /// type regions or Boolean-decision branches as a componentwise
-    /// maximum-number.
+    /// Takes the larger field cost and the larger type cost from two alternative estimates.
+    /// A numeric value takes precedence over <see cref="double.NaN"/>.
     /// </summary>
     public static CostEstimate Join(CostEstimate left, CostEstimate right)
         => new(
@@ -38,16 +30,13 @@ internal static class CostFieldRule
             null);
 
     /// <summary>
-    /// Multiplies <paramref name="cost"/> by <paramref name="n"/>, treating
-    /// a zero <paramref name="cost"/> as zero regardless of
-    /// <paramref name="n"/> so an infinite list multiplier never turns a
-    /// zero-weight child into <see cref="double.NaN"/>.
+    /// Multiplies <paramref name="cost"/> by <paramref name="n"/>.
+    /// A zero cost returns zero, including when <paramref name="n"/> is infinite.
     /// </summary>
     public static double Scale(double n, double cost) => cost == 0.0 ? 0.0 : n * cost;
 
     /// <summary>
-    /// Clamps a negative value to zero and returns a non-negative value
-    /// unchanged.
+    /// Returns zero for a negative value or <see cref="double.NaN"/>; otherwise returns the value.
     /// </summary>
     public static double Clamp0(double value) => double.MaxNumber(value, 0.0);
 

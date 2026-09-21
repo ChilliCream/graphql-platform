@@ -8,11 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Executes the six hand-written cost-precision cases (plus their named-fragment and
-/// merged-control twins) as HotChocolate operations, from the same JSON fixtures the
-/// Core conformance suite reads. Every fixture's <c>extensions.operationCost</c> must
-/// equal its <c>expected</c> typeCost/fieldCost pair: this is the executable definition
-/// of done for HotChocolate 6/6 (hc-3-mmh.3).
+/// Tests reported operation costs against the shared precision fixtures.
 /// </summary>
 public sealed class PrecisionCasesTests
 {
@@ -128,11 +124,8 @@ public sealed class PrecisionCasesTests
         }
     }
 
-    // The fixture SDL declares `directive @cost`/`directive @listSize` so the Core
-    // conformance suite's raw SchemaParser has something to bind against. HC's schema
-    // builder already registers both directives through AddCostAnalyzer, so the
-    // declarations are stripped here to avoid a duplicate directive definition; only the
-    // directive usages on the fixture's types and fields survive.
+    // Remove definitions already registered by AddCostAnalyzer to avoid duplicates.
+    // Keep the directive usages on types and fields.
     private static string StripBuiltInDirectiveDeclarations(string sdl)
         => string.Join(
             '\n',

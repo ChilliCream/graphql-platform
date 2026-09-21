@@ -6,10 +6,7 @@ using HotChocolate.Types.Mutable.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Pins the case-budget fallback's structural bound: once the budget is
-/// exhausted, the remaining pending variables collapse into one envelope
-/// leaf instead of growing the decision structure exponentially in their
-/// count.
+/// Tests that budget fallback bounds decision growth and does not underestimate costs.
 /// </summary>
 public class CaseBudgetFallbackTests
 {
@@ -18,7 +15,7 @@ public class CaseBudgetFallbackTests
     [Fact]
     public void Evaluate_Should_Produce_A_Leaf_Sized_Independently_Of_Gated_Field_Count_When_The_Budget_Is_Exhausted()
     {
-        // arrange: 14 singly @include-gated Int fields on Query, no exact cases allowed
+        // arrange
         var (sdl, operation) = GenerateOperation();
 
         // act
@@ -29,7 +26,7 @@ public class CaseBudgetFallbackTests
         var budgetedAllFalse = budgeted.Resolve(_ => false);
         var unbudgetedAllFalse = unbudgeted.Resolve(_ => false);
 
-        // assert: one leaf regardless of k, and it overestimates both extreme assignments
+        // assert
         Assert.IsType<LeafDecision<(double TypeCost, double FieldCost)>>(budgeted);
         Assert.True(
             budgetedAllTrue.TypeCost >= unbudgetedAllTrue.TypeCost
@@ -120,7 +117,7 @@ public class CaseBudgetFallbackTests
     [Fact]
     public void Evaluate_Should_Bound_The_Decision_Size_By_The_Budget_When_Variables_Live_In_Sibling_Boundaries()
     {
-        // arrange: 14 sibling object fields, each with its own gated child selection
+        // arrange
         const int caseBudget = 4096;
         var (sdl, operation) = GenerateSiblingBoundaryOperation();
 
@@ -132,7 +129,7 @@ public class CaseBudgetFallbackTests
         var budgetedAllFalse = budgeted.Resolve(_ => false);
         var unbudgetedAllFalse = unbudgeted.Resolve(_ => false);
 
-        // assert: the budgeted structure stays bounded and overestimates both extreme assignments
+        // assert
         Assert.True(CountNodes(budgeted) <= (2 * caseBudget) + 1);
         Assert.True(
             budgetedAllTrue.TypeCost >= unbudgetedAllTrue.TypeCost
@@ -324,10 +321,7 @@ public class CaseBudgetFallbackTests
             : 1;
 
     /// <summary>
-    /// Compiles a plan with <see cref="CaseBudgetExceededBehavior.Overestimate"/>
-    /// selected explicitly, so a tripped case budget bakes today's fallback
-    /// envelope into the compiled plan rather than falling back to a
-    /// per-request traversal.
+    /// Compiles a cost plan with <see cref="CaseBudgetExceededBehavior.Overestimate"/> enabled.
     /// </summary>
     private static CostPlan CompilePlan(
         string sdl,
@@ -384,10 +378,7 @@ public class CaseBudgetFallbackTests
     }
 
     /// <summary>
-    /// Generates a schema with <see cref="VariableCount"/> sibling object
-    /// fields on Query, each returning a type with one Int field gated by
-    /// its own <c>@include</c> variable, so every variable lives in its own
-    /// boundary rather than a shared one.
+    /// Generates sibling object fields, each with a child field controlled by a separate Boolean variable.
     /// </summary>
     private static (string Sdl, string Operation) GenerateSiblingBoundaryOperation()
     {

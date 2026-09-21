@@ -4,19 +4,9 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// An immutable, schema-scoped, thread-safe compiled analysis plan for one
-/// operation, produced by <see cref="AnalysisPlanCompiler.Compile"/>.
-/// Unlike <see cref="CostPlan"/>, this plan is algebra-independent: it holds
-/// only the operation's condition tree and fragments, and evaluates any
-/// <see cref="IAnalysisAlgebra{TSummary}"/> supplied at call time rather
-/// than one fixed set of analyses compiled into slots.
+/// An immutable, thread-safe analysis plan for one operation and schema.
+/// Each evaluation uses the supplied <see cref="IAnalysisAlgebra{TSummary}"/>.
 /// </summary>
-/// <remarks>
-/// Every <see cref="Evaluate{TSummary}"/> and
-/// <see cref="EvaluateAssumedBound{TSummary}"/> call re-runs the ExactCases
-/// traversal for the supplied algebra, unlike <see cref="CostPlan"/>'s
-/// compiled slot tree.
-/// </remarks>
 [Experimental(CostExperiments.AnalysisAlgebra)]
 public sealed class AnalysisPlan
 {
@@ -37,29 +27,17 @@ public sealed class AnalysisPlan
     }
 
     /// <summary>
-    /// Gets a value indicating whether compilation exhausted the schema's
-    /// case budget (<c>CostSchemaIndex.CaseBudget</c>), so every
-    /// evaluation of this plan falls back to the conservative envelope
-    /// bound rather than the exact result. This outcome depends only on the
-    /// operation's condition-tree shape and the schema's case budget, never
-    /// on the algebra an evaluation is called with.
+    /// Gets whether compilation exhausted <see cref="CostSchemaIndexOptions.CaseBudget"/>.
+    /// When exhausted, evaluations may overestimate the result.
+    /// This property is independent of the algebra supplied for evaluation.
     /// </summary>
     public bool HitCaseBudget { get; }
 
     /// <summary>
-    /// Evaluates <paramref name="algebra"/> against coerced variable
-    /// values: a Boolean <c>@include</c>/<c>@skip</c> variable resolves from
-    /// its coerced value, and a <c>@listSize(sizedFields:)</c> inherited
-    /// size (<see cref="CollectedFieldGroup.InheritedSize"/>) resolves
-    /// against <paramref name="variables"/> as well. A field's own direct
-    /// slicing arguments and input-value pricing are resolved by
-    /// <paramref name="algebra"/> itself: the built-in
-    /// <see cref="CostAlgebra"/>, <see cref="ResponseSizeAlgebra"/> and
-    /// <see cref="TupledAlgebra"/> only receive <paramref name="variables"/>
-    /// for that purpose when constructed with their
-    /// <c>(CostSchemaIndex, ICostVariableValues)</c> overload; a custom
-    /// algebra that resolves slicing or input values itself must do the
-    /// same.
+    /// Evaluates the analysis with coerced variable values for Boolean conditions and inherited
+    /// list sizes. The supplied algebra is responsible for direct slicing arguments and input
+    /// values. Construct built-in algebras with the same <paramref name="variables"/> to include
+    /// those values in the result.
     /// </summary>
     /// <typeparam name="TSummary">
     /// The summary type <paramref name="algebra"/> combines and joins.
@@ -83,12 +61,9 @@ public sealed class AnalysisPlan
     }
 
     /// <summary>
-    /// Evaluates <paramref name="algebra"/> under the schema's assumptions:
-    /// every still-open Boolean variable is folded with
-    /// <see cref="IAnalysisAlgebra{TSummary}.Join"/> instead of resolved
-    /// from a coerced value, the same assumed-bound contract
-    /// <see cref="CostPlan.EvaluateAssumedBound"/> documents for the
-    /// built-in cost algebra.
+    /// Evaluates the analysis under schema assumptions, using
+    /// <see cref="IAnalysisAlgebra{TSummary}.Join"/> to cover both outcomes of Boolean variables.
+    /// Actual request values can produce a larger result.
     /// </summary>
     /// <typeparam name="TSummary">
     /// The summary type <paramref name="algebra"/> combines and joins.
@@ -116,10 +91,7 @@ public sealed class AnalysisPlan
     }
 
     /// <summary>
-    /// Resolves one Boolean <c>@include</c>/<c>@skip</c> variable's coerced
-    /// value, matching <see cref="ConditionPlanNode"/>'s coercion exactly:
-    /// an undefined variable or a non-Boolean coerced value is treated as
-    /// <see langword="false"/>.
+    /// Gets a Boolean variable's value. Undefined or non-Boolean values are treated as <see langword="false"/>.
     /// </summary>
     private static bool ResolveBooleanVariable(ICostVariableValues variables, string variableName)
         => variables.TryGetValue(variableName, out var value) && value is BooleanValueNode { Value: true };

@@ -33,8 +33,8 @@ internal static class InheritedListSizes
     }
 
     /// <summary>
-    /// Gets the size <paramref name="context"/> inherits down to
-    /// <paramref name="fieldName"/>, if its sized fields name that field.
+    /// Gets the inherited list size for <paramref name="fieldName"/>, or <see langword="null"/>
+    /// when the parent provides no size for that field.
     /// </summary>
     /// <param name="context">
     /// The parent's resolved <c>sizedFields</c> context.

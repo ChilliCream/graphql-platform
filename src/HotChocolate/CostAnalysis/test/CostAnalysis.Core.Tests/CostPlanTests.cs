@@ -648,9 +648,8 @@ public sealed class CostPlanTests
     [Fact]
     public void Evaluate_Should_MatchUnlimitedBudgetCompileAndAnalysisPlan_When_DefaultModeHitsTheCaseBudget()
     {
-        // arrange: K=9 independently @include-gated sibling fields need
-        // 2^9-1 = 511 exact splits, one more than the default case budget
-        // (510), so the default-configured schema index trips the budget.
+        // arrange
+        // Nine independent Boolean conditions require 511 splits, just above the default budget of 510.
         const int variableCount = 9;
         var (sdl, operationSource) = GenerateIndependentlyGatedOperation(variableCount);
         var schema = SchemaParser.Parse(Directives + sdl);
@@ -673,9 +672,7 @@ public sealed class CostPlanTests
         var unlimited = unlimitedPlan.Evaluate(variables);
         var analysisResult = analysisPlan.Evaluate(new TupledAlgebra(unlimitedSchemaIndex, variables), variables);
 
-        // assert: the default (EvaluatePerRequest) plan hit the budget at compile time yet still
-        // reports the exact result, matching both an unlimited-budget compile and the generic
-        // AnalysisPlan traversal.
+        // assert
         Assert.True(perRequestPlan.HitCaseBudget);
         Assert.False(unlimitedPlan.HitCaseBudget);
         Assert.Equal(unlimited, exact);
@@ -686,8 +683,7 @@ public sealed class CostPlanTests
     [Fact]
     public void Evaluate_Should_ReturnAnEnvelopeThatDominatesTheExactResult_When_OverestimateModeHitsTheCaseBudget()
     {
-        // arrange: the same adversarial shape, compiled once per mode under the same (default,
-        // tripped) case budget.
+        // arrange
         const int variableCount = 9;
         var (sdl, operationSource) = GenerateIndependentlyGatedOperation(variableCount);
         var schema = SchemaParser.Parse(Directives + sdl);
@@ -708,8 +704,7 @@ public sealed class CostPlanTests
         var exact = exactPlan.Evaluate(allFalse);
         var envelope = envelopePlan.Evaluate(allFalse);
 
-        // assert: every field is gated off, so the exact result carries no field cost, while the
-        // envelope follows every still-pending edge unconditionally and so dominates it.
+        // assert
         Assert.True(exactPlan.HitCaseBudget);
         Assert.True(envelopePlan.HitCaseBudget);
         Assert.Equal(0.0, exact.FieldCost);
@@ -720,8 +715,8 @@ public sealed class CostPlanTests
     [Fact]
     public void EvaluateAssumedBound_Should_ComputeTheEnvelopeOnce_When_CalledRepeatedly_OnAPerRequestPlan()
     {
-        // arrange: K=9 trips the default case budget, so this plan discarded its compile and
-        // defers Evaluate to a per-request traversal.
+        // arrange
+        // Nine independent Boolean conditions exceed the default compilation budget.
         const int variableCount = 9;
         var (sdl, operationSource) = GenerateIndependentlyGatedOperation(variableCount);
         var schemaIndex = CostSchemaIndex.Create(SchemaParser.Parse(Directives + sdl), new CostSchemaIndexOptions());
@@ -731,9 +726,8 @@ public sealed class CostPlanTests
         Assert.True(plan.HitCaseBudget);
         var first = plan.EvaluateAssumedBound();
 
-        // act: warm, then call again many times; a second traversal would allocate (a
-        // TraversalCache, lists, hash sets), so zero allocation proves the envelope was computed
-        // exactly once and every later call only returns the cached number.
+        // act
+        // Repeated evaluations should reuse the bound without allocating.
         var before = GC.GetAllocatedBytesForCurrentThread();
 
         for (var i = 0; i < 1_000; i++)
@@ -751,9 +745,8 @@ public sealed class CostPlanTests
     [Fact]
     public void Evaluate_Should_StayBounded_When_TheAdversarialShapeFarExceedsTheCaseBudget()
     {
-        // arrange: K=20 independently @include-gated sibling fields would need 2^20-1 exact
-        // splits to compile, far beyond the default case budget (510), so this plan discarded
-        // its compile and defers Evaluate to the per-request traversal.
+        // arrange
+        // Twenty independent conditions exceed the default compilation budget.
         const int variableCount = 20;
         var (sdl, operationSource) = GenerateIndependentlyGatedOperation(variableCount);
         var schema = SchemaParser.Parse(Directives + sdl);
@@ -763,9 +756,6 @@ public sealed class CostPlanTests
         var plan = CostPlanCompiler.Compile(schemaIndex, document, operation, CostAnalyses.Cost);
         Assert.True(plan.HitCaseBudget);
 
-        // every third variable is included; each field's own weight is (index + 1), and fields
-        // are independently gated, so the exact field cost is the closed-form sum of the
-        // included fields' weights.
         var included = Enumerable.Range(0, variableCount).Where(index => index % 3 == 0).ToArray();
         var variables = Variables(
             Enumerable.Range(0, variableCount)
@@ -775,9 +765,8 @@ public sealed class CostPlanTests
                 .ToArray());
         var expectedFieldCost = included.Sum(index => index + 1.0);
 
-        // act: warm once, then measure a second call — a 2^20 split materialization would
-        // allocate hundreds of megabytes (as it did before this fix), while a bounded, per-request
-        // resolution allocates only O(variableCount).
+        // act
+        // Warm up before measuring allocations for per-request evaluation.
         _ = plan.Evaluate(variables);
         var before = GC.GetAllocatedBytesForCurrentThread();
         var estimate = plan.Evaluate(variables);
@@ -789,10 +778,7 @@ public sealed class CostPlanTests
     }
 
     /// <summary>
-    /// Generates a schema with <paramref name="variableCount"/> independently @include-gated
-    /// sibling Int fields on Query, each with a distinct weight, so the exact backend needs
-    /// <c>2^variableCount - 1</c> splits to answer precisely: the adversarial correlated-Booleans
-    /// shape <c>AdversarialCorrelatedBooleansBenchmark</c> also measures.
+    /// Generates independently conditional sibling fields with distinct weights and an operation selecting them.
     /// </summary>
     private static (string Sdl, string Operation) GenerateIndependentlyGatedOperation(int variableCount)
     {

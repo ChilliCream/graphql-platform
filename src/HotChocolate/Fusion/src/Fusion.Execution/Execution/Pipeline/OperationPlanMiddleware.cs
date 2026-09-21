@@ -39,9 +39,6 @@ internal sealed class OperationPlanMiddleware
             return next(context);
         }
 
-        // Normalizing de-fragmentizes the operation and removes statically excluded
-        // selections; this runs at most once per operation, since the normalizer caches
-        // its result for reuse by later requests.
         PlanOperation(context, operationDocumentInfo, context.GetNormalizedOperation());
 
         return next(context);
@@ -71,10 +68,7 @@ internal sealed class OperationPlanMiddleware
                     context.RequestAborted);
             OnAfterPlanCompleted(operationDocumentInfo, operationPlan);
 
-            // Setting the plan caches it and releases every coalesced follower right away,
-            // before this (the leader's) request continues into execution, if this context
-            // is the leader of an in-flight entry; see SetOperationPlan. A failure further
-            // downstream then affects only the leader.
+            // Publish the plan before execution so downstream failures affect only this request.
             context.SetOperationPlan(operationPlan);
         }
         catch (Exception ex)

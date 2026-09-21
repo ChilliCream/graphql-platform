@@ -6,10 +6,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 namespace HotChocolate.Fusion.Execution.Pipeline;
 
 /// <summary>
-/// Held on the leader's request context for as long as its operation plan is in-flight.
-/// Whenever a plan is assigned to that context, regardless of which middleware assigns it,
-/// this releases every coalesced follower with the plan and caches it, right at that moment
-/// instead of waiting for the leader's own downstream execution to finish.
+/// Makes a completed operation plan available to requests waiting for it.
 /// </summary>
 internal sealed class OperationPlanInFlightRelease
 {
@@ -31,9 +28,8 @@ internal sealed class OperationPlanInFlightRelease
     }
 
     /// <summary>
-    /// Caches <paramref name="plan"/> and releases every follower coalesced onto this
-    /// operation with it. A no-op once the in-flight entry has already been resolved,
-    /// so this is safe to call from more than one place without releasing twice.
+    /// Caches the plan and completes waiting requests with it.
+    /// Does nothing if those requests have already received a result or error.
     /// </summary>
     public void TryRelease(RequestContext context, OperationPlan plan)
     {
@@ -44,8 +40,7 @@ internal sealed class OperationPlanInFlightRelease
 
         _cache.TryAdd(_operationId, plan);
 
-        // Followers are released before the diagnostic event is raised so that a faulty
-        // listener throwing from it cannot re-admit the stacking wait this exists to avoid.
+        // Release waiting requests before diagnostics so a throwing listener cannot leave them blocked.
         _completionSource.TrySetResult(plan);
         _diagnosticEvents.AddedOperationPlanToCache(context, _operationId);
     }

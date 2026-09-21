@@ -13,11 +13,8 @@ public sealed class OperationDocumentNormalizerCallCountTests
     [Fact]
     public async Task Fully_Cached_Request_Rewrites_Zero_Times_And_Compiles_Zero_Times()
     {
-        // arrange: variable coercion now reads the normalized operation unconditionally, so
-        // it reaches the normalizer on every request, cached or not. What must stay at zero
-        // on a fully cached request (an operation cache hit whose document is already
-        // normalized) is the actual rewrite work and the operation compilation, not the call
-        // into the normalizer.
+        // arrange
+        // Count cache lookups separately from document rewrites and operation compilations.
         var lookupCount = 0;
         var rewriteCount = 0;
         var compileCount = 0;
@@ -65,9 +62,6 @@ public sealed class OperationDocumentNormalizerCallCountTests
         Assert.Equal(1, rewriteCountAfterMiss);
         Assert.Equal(1, compileCountAfterMiss);
 
-        // the fully cached request still reaches the normalizer, from variable coercion, but
-        // its document is already normalized and its operation is already compiled, so
-        // neither a rewrite nor a compile happens a second time.
         Assert.Equal(2, lookupCountAfterHit);
         Assert.Equal(1, rewriteCountAfterHit);
         Assert.Equal(1, compileCountAfterHit);
@@ -77,11 +71,7 @@ public sealed class OperationDocumentNormalizerCallCountTests
     public async Task Normalized_Cache_Hit_On_Operation_Cache_Miss_Never_Rewrites()
     {
         // arrange
-        // The prepared-operation cache is replaced with one that always misses, so every
-        // request reaches the normalizer through an operation-cache miss. The normalizer
-        // still keys its own NormalizedDocumentCache by operation id, so the second request
-        // for the same operation finds the document the first request already rewrote and
-        // never rewrites it again, even though the operation itself was never cached.
+        // Force operation-cache misses to test the normalized-document cache independently.
         var lookupCount = 0;
         var rewriteCount = 0;
 
@@ -128,8 +118,6 @@ public sealed class OperationDocumentNormalizerCallCountTests
         Assert.Equal(1, lookupCountAfterFirst);
         Assert.Equal(1, rewriteCountAfterFirst);
 
-        // the second request is still an operation-cache miss, so it reaches the normalizer
-        // exactly once more, but finds its document already cached and rewrites nothing.
         Assert.Equal(2, lookupCountAfterSecond);
         Assert.Equal(1, rewriteCountAfterSecond);
     }
@@ -144,9 +132,7 @@ public sealed class OperationDocumentNormalizerCallCountTests
         {
             onLookup();
 
-            // Variable coercion may reach the normalizer before the operation cache stage
-            // has run, so the operation id is not necessarily set yet; GetOperationId
-            // creates and stores it on first access, exactly as the real normalizer does.
+            // Variable coercion can reach this before the operation cache assigns an id.
             var operationId = context.GetOperationId();
             var hadCachedDocument = normalizedDocumentCache.TryGet(operationId, out var documentCachedBefore);
 

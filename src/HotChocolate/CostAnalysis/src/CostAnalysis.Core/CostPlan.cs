@@ -3,22 +3,12 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// An immutable, schema-scoped, thread-safe compiled cost plan for one
-/// operation. Condition trees, type regions and constants are folded at
-/// compile time; anything that depends on coerced variable values survives
-/// as an evaluable slot.
+/// An immutable, thread-safe cost plan for one operation and schema.
 /// </summary>
 /// <remarks>
-/// Once compiling one operation exhausts the schema's
-/// <see cref="CostSchemaIndexOptions.CaseBudget"/>,
-/// <see cref="CostSchemaIndexOptions.CaseBudgetExceededBehavior"/> decides
-/// what this plan evaluates for the rest of its lifetime:
-/// <see cref="CaseBudgetExceededBehavior.EvaluatePerRequest"/> discards the
-/// partial compile and re-derives the exact result from the operation's
-/// condition tree on every <see cref="Evaluate"/> call, while
-/// <see cref="CaseBudgetExceededBehavior.Overestimate"/> bakes a
-/// conservative envelope for the unaffordable remainder into the compiled
-/// tree once, up front.
+/// When compilation exhausts <see cref="CostSchemaIndexOptions.CaseBudget"/>,
+/// <see cref="CostSchemaIndexOptions.CaseBudgetExceededBehavior"/> determines whether
+/// requests receive exact costs or upper bounds for the remaining part of the operation.
 /// </remarks>
 public sealed class CostPlan
 {
@@ -35,10 +25,7 @@ public sealed class CostPlan
     private object? _lazyAssumedBoundGate;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="CostPlan"/> for a compiled
-    /// plan tree: either the operation's exact compile, or, under
-    /// <see cref="CaseBudgetExceededBehavior.Overestimate"/>, a tree whose
-    /// unaffordable remainder is a baked-in conservative envelope.
+    /// Creates a cost plan that is exact or includes upper bounds for parts that exceeded the case budget.
     /// </summary>
     internal CostPlan(PlanNode root, CostAnalyses analyses, bool hitCaseBudget)
     {
@@ -49,10 +36,7 @@ public sealed class CostPlan
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="CostPlan"/> for
-    /// <see cref="CaseBudgetExceededBehavior.EvaluatePerRequest"/>: the
-    /// compile is discarded, and <see cref="Evaluate"/> instead traverses
-    /// <paramref name="tree"/> exactly, per request.
+    /// Creates a plan that evaluates each request's exact cost after compilation exhausts the case budget.
     /// </summary>
     internal CostPlan(
         CostSchemaIndex schemaIndex,
@@ -67,9 +51,7 @@ public sealed class CostPlan
         _hitCaseBudget = true;
         _lazyAssumedBoundGate = new object();
 
-        // Cached once: the method-group-to-delegate conversion below would otherwise allocate a
-        // fresh delegate on every EvaluateAssumedBound call, defeating the zero-allocation warm
-        // path the cached decision depends on.
+        // Reuse the delegate to avoid allocating it on each assumed-bound evaluation.
         _evaluateAssumedBoundEnvelope = EvaluateAssumedBoundEnvelope;
     }
 
@@ -85,11 +67,9 @@ public sealed class CostPlan
     public bool DependsOnVariables => _root?.DependsOnVariables ?? true;
 
     /// <summary>
-    /// Gets a value indicating whether compilation exhausted the
-    /// <see cref="CostSchemaIndexOptions.CaseBudget"/>, so this plan's estimate
-    /// is either a sound but conservative fallback bound or, under
-    /// <see cref="CaseBudgetExceededBehavior.EvaluatePerRequest"/>, still the
-    /// exact result, re-derived per request instead of compiled once.
+    /// Gets whether compilation exhausted <see cref="CostSchemaIndexOptions.CaseBudget"/>.
+    /// <see cref="CostSchemaIndexOptions.CaseBudgetExceededBehavior"/> determines whether
+    /// the plan evaluates exact costs or upper bounds.
     /// </summary>
     public bool HitCaseBudget => _hitCaseBudget;
 
@@ -128,10 +108,7 @@ public sealed class CostPlan
                 _evaluateAssumedBoundEnvelope!);
 
     /// <summary>
-    /// Runs the variable-free envelope traversal exactly once for a plan
-    /// that discarded its compile: the same fallback envelope
-    /// <see cref="CaseBudgetExceededBehavior.Overestimate"/> would have
-    /// baked in, folded to one summary rather than kept as a tree.
+    /// Computes an upper bound under schema assumptions for a plan that exceeded the compilation budget.
     /// </summary>
     private CostEstimate EvaluateAssumedBoundEnvelope()
     {
@@ -148,10 +125,7 @@ public sealed class CostPlan
     }
 
     /// <summary>
-    /// Traverses the operation's condition tree exactly, resolving every
-    /// still-open Boolean variable from <paramref name="variables"/> rather
-    /// than following both branches, under the schema's case budget as a
-    /// backstop: resolve mode itself never spends it.
+    /// Evaluates the operation's exact cost using the request's coerced variable values.
     /// </summary>
     private CostEstimate EvaluatePerRequest(ICostVariableValues variables)
     {
@@ -169,10 +143,7 @@ public sealed class CostPlan
     }
 
     /// <summary>
-    /// Resolves one Boolean <c>@include</c>/<c>@skip</c> variable's coerced
-    /// value, matching <see cref="ConditionPlanNode"/>'s coercion exactly:
-    /// an undefined variable or a non-Boolean coerced value is treated as
-    /// <see langword="false"/>.
+    /// Gets a Boolean variable's value. Undefined or non-Boolean values are treated as <see langword="false"/>.
     /// </summary>
     private static bool ResolveBooleanVariable(ICostVariableValues variables, string variableName)
         => variables.TryGetValue(variableName, out var value) && value is BooleanValueNode { Value: true };

@@ -92,7 +92,6 @@ public class ResponseSizeAlgebraTests
     public void Evaluate_Should_MultiplySelectedChildrenForEveryListWrapper_When_ListIsNested()
     {
         // arrange
-        // max_response_size.rs: every_list_wrapper_multiplies_selected_children
         const string sdl =
             """
             type Query { nodes: [[Node]] }

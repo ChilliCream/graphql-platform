@@ -7,10 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A <see cref="VariableBatchRequest"/> sums field and type costs across every coerced variable set for request-level
-/// enforcement.
-/// Successful and validate batches keep per-result reporting; a limit violation rejects the whole request
-/// (R-BATCH-REPORTING, R-BATCH-SUM).
+/// Tests per-item cost reporting and whole-request limit enforcement for variable batches.
 /// </summary>
 public sealed class BatchReportingTests
 {

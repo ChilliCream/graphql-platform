@@ -5,7 +5,7 @@ public class ExactCasesTests
     [Fact]
     public void Evaluate_Should_Take_The_Max_Not_The_Sum_When_Type_Branches_Are_Mutually_Exclusive()
     {
-        // arrange: c1-exclusive-types shape, `a` and `b` can never both fire at runtime
+        // arrange
         const string sdl =
             """
             union Result = A | B
@@ -18,15 +18,15 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: 20 (the max of 10/20), not 30 (their sum); typeCost 2 = Query's own root weight (1,
-        // applied once by the Root hook) + the selection's 1
+        // assert
+        // The larger alternative costs 20, plus 1 for the result field; the two object types cost 2.
         Assert.Equal((2.0, 21.0), decision.Resolve(_ => false));
     }
 
     [Fact]
     public void Evaluate_Should_Fire_Exactly_One_Branch_When_Include_And_Skip_Are_Complementary()
     {
-        // arrange: c3-complementary shape, `costly` is charged once regardless of $x
+        // arrange
         const string sdl =
             """
             type Side { costly: Int @cost(weight: "10") }
@@ -38,8 +38,7 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: the same total either way, never both branches' cost at once; typeCost 3 = Query's
-        // own root weight (1, applied once by the Root hook) + the selection's 2
+        // assert
         Assert.Equal((3.0, 12.0), decision.Resolve(_ => true));
         Assert.Equal((3.0, 12.0), decision.Resolve(_ => false));
     }
@@ -47,9 +46,8 @@ public class ExactCasesTests
     [Fact]
     public void Evaluate_Should_Merge_Same_Response_Name_Fields_Before_Weighing_Under_Signed_Weights()
     {
-        // arrange: c5-signed-weights shape, `book` selected twice under different conditions
-        // must be merged into one field call, and the negative Book weight must not be
-        // clamped away before the whole call's sum is taken (collect-then-weigh)
+        // arrange
+        // Merge both book selections before combining the negative type weight with child costs.
         const string sdl =
             """
             scalar Text @cost(weight: "5")
@@ -68,14 +66,15 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: -7 + 5 (title) + 1 + 5 (author.name) = 4, one field call = 2
+        // assert
+        // The type cost is -7 + 5 + 1 + 5 = 4; the two field calls cost 2.
         Assert.Equal((4.0, 2.0), decision.Resolve(name => true));
     }
 
     [Fact]
     public void Evaluate_Should_Match_The_Merged_Control_When_Book_Is_Selected_Unconditionally()
     {
-        // arrange: the c5 control query, both subtrees selected in one place
+        // arrange
         const string sdl =
             """
             scalar Text @cost(weight: "5")
@@ -95,9 +94,7 @@ public class ExactCasesTests
     [Fact]
     public void Evaluate_Should_Correlate_A_Variable_Used_Twice_Under_The_Same_Field()
     {
-        // arrange: `$x` gates two response names on the same type; resolving it once
-        // must decide both, never a mix of one field's true-branch with the other's
-        // false-branch
+        // arrange
         const string sdl =
             """
             type Side { costly: Int @cost(weight: "10") other: Int @cost(weight: "3") }
@@ -109,8 +106,7 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: both fields fire together (1 + 10 + 3 = 14) or neither does (1 + 0 = 1); typeCost
-        // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's
+        // assert
         Assert.Equal((2.0, 14.0), decision.Resolve(_ => true));
         Assert.Equal((2.0, 1.0), decision.Resolve(_ => false));
     }
@@ -118,9 +114,8 @@ public class ExactCasesTests
     [Fact]
     public void Evaluate_Should_Correlate_A_Variable_Used_In_Two_Differently_Nested_Boundaries()
     {
-        // arrange: `$x` gates `m` one level under `p`, and gates `s` two levels under `q`
-        // behind `$y`; the two boundaries discover `$x` at different depths, so a fold
-        // that decorrelates its two occurrences overestimates the bound to 104
+        // arrange
+        // The same variable appears at different depths and must have one value across both branches.
         const string sdl =
             """
             type Query { p: P q: Q }
@@ -142,16 +137,15 @@ public class ExactCasesTests
         var folded = decision.FoldWithJoin(
             (a, b) => (Math.Max(a.TypeCost, b.TypeCost), Math.Max(a.FieldCost, b.FieldCost)));
 
-        // assert: the true bound is the max over the 4 real assignments (103),
-        // never the decorrelated 104 that lets $x read false for `p` and true for `q`; typeCost
-        // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's 4
+        // assert
+        // Allowing different values for $x in each branch would incorrectly raise the bound to 104.
         Assert.Equal((5.0, 103.0), folded);
     }
 
     [Fact]
     public void Evaluate_Should_Take_The_Max_Over_Members_When_A_Field_Is_Selected_Through_An_Interface()
     {
-        // arrange: an interface field priced through each possible object type's own definition
+        // arrange
         const string sdl =
             """
             interface Character { name: String }
@@ -164,16 +158,15 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: name priced at 9 (max of 3/9), hero itself contributes its own weight; typeCost
-        // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's 1
+        // assert
         Assert.Equal((2.0, 10.0), decision.Resolve(_ => false));
     }
 
     [Fact]
     public void Evaluate_Should_Join_Every_Covariant_Return_Type_When_A_Field_Narrows_Per_Implementer()
     {
-        // arrange: Character.friend is covariant, Human.friend: Human and Droid.friend: Droid;
-        // both regions' child boundaries must be evaluated and joined, not just the first
+        // arrange
+        // Covariant return types give each parent type a different child selection to evaluate.
         const string sdl =
             """
             interface Character { friend: Character }
@@ -186,32 +179,31 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: the Droid region (700) is not dropped in favor of the Human region (5); typeCost
-        // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's 2
+        // assert
         Assert.Equal((3.0, 702.0), decision.Resolve(_ => false));
     }
 
     [Fact]
     public void Evaluate_Should_Skip_A_Meta_Field_No_Possible_Type_Defines_When_Selecting_Typename()
     {
-        // arrange: a Types.Mutable schema carries no __typename field definition
+        // arrange
+        // The mutable schema has no __typename field definition.
         const string sdl = "type Query { a: Int }";
         const string operation = "{ __typename }";
 
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: no possible type resolves __typename, so the group contributes nothing; the root
-        // rule still charges Query's own weight (1, applied once by the Root hook) for an empty selection
+        // assert
+        // The missing field contributes no cost; the Query type still contributes 1.
         Assert.Equal((1.0, 0.0), decision.Resolve(_ => false));
     }
 
     [Fact]
     public void Evaluate_Should_ApplyParentSizedFields_When_CostAlgebraResolvesAChildList()
     {
-        // arrange: oracle sized_fields_apply_a_parent_slice_to_a_child_list, a literal first: 3
-        // slices items' own edges list through the parent's sizedFields, not edges' own (absent)
-        // @listSize, and is threaded through the real CostAlgebra rather than the test double
+        // arrange
+        // The parent's slicing argument sets the child list's size through sizedFields.
         const string sdl =
             """
             type Edge { node: String }
@@ -226,16 +218,15 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation, algebra);
 
-        // assert: typeCost 5 = Query's own root weight (1, applied once by the Root hook) + items'
-        // contribution (4, edges sized to 3 by items' sizedFields); fieldCost 2 = items' own weight
-        // (1) + edges' field call cost (1), paid once regardless of the multiplier
+        // assert
+        // Query, the connection, and three edges cost 5 in total; the two field calls cost 2.
         Assert.Equal(new CostEstimate(2.0, 5.0, null), decision.Resolve(_ => false));
     }
 
     [Fact]
     public void Evaluate_Should_Not_Crash_When_Selecting_Typename_Inside_An_Interface_Typed_Boundary()
     {
-        // arrange: __typename selected under an interface-typed field, still absent everywhere
+        // arrange
         const string sdl =
             """
             interface Character { name: String }
@@ -248,8 +239,7 @@ public class ExactCasesTests
         // act
         var decision = TraversalTestHelpers.EvaluateOperation(sdl, operation);
 
-        // assert: hero's own weight is still charged, __typename itself contributes nothing; typeCost
-        // gains Query's own root weight (1, applied once by the Root hook) on top of the selection's 1
+        // assert
         Assert.Equal((2.0, 1.0), decision.Resolve(_ => false));
     }
 

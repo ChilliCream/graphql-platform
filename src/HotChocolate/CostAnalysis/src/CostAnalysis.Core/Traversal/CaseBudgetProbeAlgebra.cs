@@ -1,12 +1,7 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A minimal algebra used only to determine whether compiling an
-/// <see cref="AnalysisPlan"/> exhausts the case budget. Case-budget
-/// consumption depends only on the operation's condition-tree shape and the
-/// schema's case budget, never on the summary values an algebra computes, so
-/// one throwaway traversal with this algebra determines the outcome for
-/// every algebra the compiled plan is later evaluated with.
+/// An analysis that detects whether an operation exceeds its compilation case budget.
 /// </summary>
 internal sealed class CaseBudgetProbeAlgebra : IAnalysisAlgebra<bool>
 {

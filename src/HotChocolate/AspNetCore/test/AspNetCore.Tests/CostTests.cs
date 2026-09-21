@@ -164,7 +164,6 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         using var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        // A request error over the latest transport is a 4xx (R-HTTP-STATUS).
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         Assert.NotNull(result);
@@ -201,8 +200,6 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         using var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
 
         // assert
-        // The same HC0047 body uses a success status for the legacy transport
-        // for a request error (R-HTTP-STATUS).
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         Assert.NotNull(result);
@@ -273,9 +270,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         request.Headers.Add(MaxResponseSizeOverrideInterceptor.OverrideHeader, "true");
 
         // act
-        // Cold cache: this is the first request against this server, so the operation
-        // has no cached plan yet (2026-09-15 user ruling: the override never gets to
-        // silently skip the check, cold or warm).
+        // The first request tests the override before a cost plan has been cached.
         using var httpClient = server.CreateClient();
         using var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
 
@@ -308,8 +303,7 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         using var httpClient = server.CreateClient();
 
         // act
-        // Warm cache: the first request has no override, so it runs the cost-only plan
-        // for this operation to completion and caches it before the override is ever seen.
+        // Cache a cost-only plan before testing the response-size override.
         using var warmupRequest = new HttpRequestMessage(HttpMethod.Post, uri)
         {
             Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
@@ -357,9 +351,6 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         using var response = await httpClient.PostAsync(uri, content, TestContext.Current.CancellationToken);
 
         // assert
-        // `validate` always coerces variables like `execute`/`report`, so a required
-        // variable that was never supplied fails with the ordinary coercion error
-        // instead of reporting a static bound (2026-09-14 user ruling).
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         Assert.NotNull(result);

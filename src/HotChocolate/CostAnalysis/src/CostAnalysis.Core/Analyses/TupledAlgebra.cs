@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Evaluates IBM cost and maximum response-size together in one traversal.
+/// Computes IBM field and type costs together with maximum response size.
 /// </summary>
 public sealed class TupledAlgebra : IAnalysisAlgebra<CostEstimate>
 {
@@ -11,10 +11,7 @@ public sealed class TupledAlgebra : IAnalysisAlgebra<CostEstimate>
     private readonly ResponseSizeAlgebra _responseSize;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="TupledAlgebra"/> for the
-    /// static/assumed path: a variable-bound slicing argument or input value
-    /// falls back to its schema-declared assumption instead of a coerced
-    /// value.
+    /// Creates a combined cost and response-size analysis that uses schema assumptions for variable values.
     /// </summary>
     /// <param name="schemaIndex">
     /// The schema index used by both analyses.
@@ -27,10 +24,7 @@ public sealed class TupledAlgebra : IAnalysisAlgebra<CostEstimate>
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="TupledAlgebra"/> that
-    /// resolves a variable-bound slicing argument or input value from
-    /// <paramref name="variableValues"/>, the same coerced values the
-    /// optimized <see cref="CostPlan"/> path receives at evaluation time.
+    /// Creates a combined cost and response-size analysis that uses the request's coerced variable values.
     /// </summary>
     /// <param name="schemaIndex">
     /// The schema index used by both analyses.

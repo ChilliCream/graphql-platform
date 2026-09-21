@@ -29,12 +29,8 @@ internal sealed class OperationPlanCacheMiddleware
         Lazy<TaskCompletionSource<OperationPlan>>? leaderEntry = null;
         OperationPlanInFlightRelease? inFlightRelease = null;
 
-        // A follower whose leader is cancelled before it produces a plan evicts the
-        // cancelled leader's entry and gets exactly one opportunity to step up as the new
-        // leader candidate instead of failing outright; any cancellation after that
-        // (including one observed on the retry) propagates. Re-checking the cache on every
-        // iteration also covers the plan having been produced and cached by someone else
-        // while this request was coalesced onto the now-cancelled leader.
+        // Retry once if the planning leader was cancelled without producing a plan.
+        // Recheck the cache because another request may have completed the plan in the meantime.
         while (!resolved)
         {
             if (_cache.TryGet(operationId, out var plan))
@@ -72,9 +68,7 @@ internal sealed class OperationPlanCacheMiddleware
             catch (OperationCanceledException ex)
                 when (!retried && ex.CancellationToken != context.RequestAborted)
             {
-                // The leader was cancelled before it produced a plan; this request's own
-                // token was not the cause, so it evicts the cancelled leader's entry and
-                // retries once as a leader candidate.
+                // Remove only the cancelled leader's entry so a replacement leader remains registered.
                 retried = true;
                 _inFlightPlans.TryRemove(
                     new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(operationId, current));
@@ -93,8 +87,7 @@ internal sealed class OperationPlanCacheMiddleware
         }
         catch (Exception ex)
         {
-            // Propagate the failure to followers only if nothing has resolved the TCS yet
-            // (SetOperationPlan releases them the moment any middleware sets a plan).
+            // A downstream failure must not replace a plan already delivered to waiting requests.
             if (!leaderEntry.Value.Task.IsCompleted)
             {
                 if (ex is OperationCanceledException oce)
@@ -111,18 +104,10 @@ internal sealed class OperationPlanCacheMiddleware
         }
         finally
         {
-            // Assigning a plan to the context (SetOperationPlan) already caches it and
-            // releases followers the moment it happens, whichever middleware assigns it;
-            // that is the primary path and this is a no-op then. This is the safety net for
-            // a plan that reached the context some other way, bypassing that hook entirely:
-            // cache whatever plan the context carries when the pipeline returns and release
-            // followers with it. Only when the pipeline returned without producing a plan at
-            // all, and without throwing, does this fault the followers so they do not wait
-            // forever.
+            // Handle plans assigned without SetOperationPlan, or fail waiting requests if no plan was produced.
             try
             {
-                // Guard against a faulty diagnostic event handler preventing cleanup: a throw
-                // from the cache or a listener here must not leak the in-flight entry.
+                // Always remove the in-flight entry, even if caching or a diagnostic listener throws.
                 if (!leaderEntry.Value.Task.IsCompleted)
                 {
                     if (context.GetOperationPlan() is { } operationPlan)
@@ -137,8 +122,7 @@ internal sealed class OperationPlanCacheMiddleware
             }
             finally
             {
-                // The leader alone owns this entry: added it, and removes it here regardless of
-                // whether planning succeeded, failed, or was cancelled.
+                // Remove only this leader's entry; another request may have replaced it.
                 _inFlightPlans.TryRemove(
                     new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(operationId, leaderEntry));
             }

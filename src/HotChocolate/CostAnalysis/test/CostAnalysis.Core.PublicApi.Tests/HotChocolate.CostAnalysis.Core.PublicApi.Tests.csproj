@@ -10,17 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--
-      Deliberately NOT InternalsVisibleTo from HotChocolate.CostAnalysis.Core:
-      this project exercises AnalysisPlan/AnalysisPlanCompiler/IAnalysisAlgebra
-      the way a third-party consumer would, through the public surface only.
-    -->
+    <!-- Keep internal APIs inaccessible so these tests exercise the public contract. -->
     <ProjectReference Include="..\..\src\CostAnalysis.Core\HotChocolate.CostAnalysis.Core.csproj" />
     <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Link the Conformance.Tests precision fixtures instead of duplicating them. -->
     <None Include="..\CostAnalysis.Core.Conformance.Tests\__resources__\precision\*.json"
           Link="__resources__\precision\%(Filename)%(Extension)">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

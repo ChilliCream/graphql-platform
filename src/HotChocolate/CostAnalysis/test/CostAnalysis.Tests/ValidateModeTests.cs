@@ -5,10 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// <c>GraphQL-Cost: validate</c> reports cost without executing an operation. It always runs
-/// variable coercion first, exactly like <c>execute</c>/<c>report</c>; a required variable that
-/// was never supplied fails with the ordinary variable coercion error rather than falling back
-/// to the assumed bound.
+/// Tests cost reporting without execution and variable coercion in validate mode.
 /// </summary>
 public sealed class ValidateModeTests
 {
@@ -216,9 +213,6 @@ public sealed class ValidateModeTests
             .ExpectOperationResult();
 
         // assert
-        // A non-warmup request that reaches the analyzer with zero coerced variable
-        // sets (an explicit empty variable batch) must never fall back to the static
-        // bound; it fails with a state-invalid error instead.
         Assert.Equal(ErrorCodes.Execution.CostStateInvalid, result.Errors[0].Code);
         Assert.Equal(
             "The cost analysis requires at least one coerced variable value set.",

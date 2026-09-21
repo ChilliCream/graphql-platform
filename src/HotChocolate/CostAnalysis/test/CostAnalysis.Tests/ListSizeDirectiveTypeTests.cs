@@ -4,11 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
 
-// A hand-written @listSize usage that omits requireOneSlicingArgument must resolve to the
-// directive's declared default (true, per R-REQUIRE-ONE-DEFAULT), not to the literal parser's
-// former silent false. These tests exercise ListSizeDirectiveType.ParseLiteral directly through
-// schema-first SDL, which is the only path that reaches it (the descriptor extension builds a
-// ListSizeDirective without going through the literal parser).
+// Schema-first SDL exercises the directive's literal parser; descriptor-based configuration bypasses it.
 public sealed class ListSizeDirectiveTypeTests
 {
     [Fact]

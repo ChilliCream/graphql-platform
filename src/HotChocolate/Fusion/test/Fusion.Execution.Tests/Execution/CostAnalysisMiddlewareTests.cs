@@ -455,8 +455,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
     [Fact]
     public async Task CaseBudgetExceededBehavior_Should_PriceExactly_When_DefaultBehaviorIsUsed()
     {
-        // arrange: the case budget affords no exact split, so the default (EvaluatePerRequest)
-        // mode re-derives the exact cost from the operation's condition tree
+        // arrange
         var observation = new CostObservation();
         await using var services = CreateServices(
             o => o.CaseBudget = 0,
@@ -473,15 +472,14 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         // act
         await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
-        // assert: only the included fields (a and c) are billed, the excluded field (b) is not
+        // assert
         Assert.Equal(5.0, observation.Result!.Estimates[0].FieldCost);
     }
 
     [Fact]
     public async Task CaseBudgetExceededBehavior_Should_PriceByEnvelope_When_OverestimateIsConfigured()
     {
-        // arrange: the same operation and variables, but Overestimate bakes a conservative
-        // envelope for the whole operation into the compiled plan instead
+        // arrange
         var observation = new CostObservation();
         await using var services = CreateServices(
             o =>
@@ -502,7 +500,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
         // act
         await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
-        // assert: every field is billed as if included, regardless of the excluded one
+        // assert
         Assert.Equal(7.0, observation.Result!.Estimates[0].FieldCost);
     }
 

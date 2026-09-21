@@ -105,7 +105,7 @@ public static class HotChocolateExecutionRequestContextExtensions
         }
 
         /// <summary>
-        /// Gets the operation id, creating and storing it on first access.
+        /// Gets the unique id for the selected operation and executor version.
         /// </summary>
         /// <returns>
         /// The operation id.

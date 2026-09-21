@@ -17,7 +17,7 @@ namespace HotChocolate.Execution;
 public static class FusionRequestContextExtensions
 {
     /// <summary>
-    /// Gets the operation id, creating and storing it on first access.
+    /// Gets the unique id for the selected operation and executor version.
     /// </summary>
     /// <param name="context">
     /// The request context.
@@ -112,9 +112,7 @@ public static class FusionRequestContextExtensions
         context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
         context.Features.Set<IOperation>(plan.Operation);
 
-        // If this context is the leader of an in-flight plan, assigning the plan releases
-        // every coalesced follower and caches it right here, regardless of which middleware
-        // made the assignment.
+        // Release waiting requests as soon as the plan is available, before the leader finishes execution.
         context.Features.Get<OperationPlanInFlightRelease>()?.TryRelease(context, plan);
     }
 

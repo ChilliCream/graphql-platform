@@ -46,15 +46,9 @@ public class CaseBudgetSoundnessTests
     }
 
     /// <summary>
-    /// Generates a small schema (2-4 object types implementing one shared
-    /// interface, signed weights in [-8, 8]) and an operation with 1-4
-    /// correlated Boolean variables: each type selects, per variable, one
-    /// field gated by <c>@include</c> and one by <c>@skip</c> on that same
-    /// variable, so resolving it decides two fields at once. Each variable's
-    /// field returns its own object type carrying a random signed
-    /// <c>@cost</c> type weight over a cheap scalar child (the c5 shape),
-    /// so collect-then-weigh combines a signed type weight with a signed
-    /// field weight inside the fallback envelope.
+    /// Generates two to four object types sharing an interface, weights from -8 to 8,
+    /// and one to four Boolean variables. Each variable controls complementary include
+    /// and skip selections across fields with signed field and return-type weights.
     /// </summary>
     private static (string Sdl, string Operation, string[] VariableNames) GenerateOperation(Random random)
     {

@@ -1,9 +1,7 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A persistent, singly linked assignment of Boolean variable values.
-/// Extending an assignment shares every earlier entry with the assignment
-/// it was extended from.
+/// An immutable set of Boolean variable assignments.
 /// </summary>
 internal sealed class BooleanAssignment
 {
@@ -30,8 +28,7 @@ internal sealed class BooleanAssignment
     public BooleanAssignment With(string variable, bool value) => new(this, variable, value);
 
     /// <summary>
-    /// Attempts to look up the fixed value of <paramref name="variable"/> in
-    /// this assignment or one it extends.
+    /// Tries to get the value assigned to <paramref name="variable"/>.
     /// </summary>
     public bool TryGetValue(string variable, out bool value)
     {

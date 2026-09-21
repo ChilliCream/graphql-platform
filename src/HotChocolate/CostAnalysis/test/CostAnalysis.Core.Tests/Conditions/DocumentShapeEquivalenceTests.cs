@@ -3,14 +3,10 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Pins that the raw fixture spelling (named fragments) and an equivalent
-/// inline-fragment spelling of the same operation extract identical
-/// condition trees, mirroring the conformance suite's c1/c4 fixture pairs.
+/// Tests that equivalent named and inline fragments produce identical condition trees.
 /// </summary>
 public class DocumentShapeEquivalenceTests
 {
-    // c1-exclusive-types / c1-exclusive-types-fragments: same SDL, same
-    // expected 2/21, one spelled with inline fragments, one with named ones.
     private const string ExclusiveTypesSdl =
         """
         union Result = A | B
@@ -29,8 +25,6 @@ public class DocumentShapeEquivalenceTests
         fragment OnB on B { b }
         """;
 
-    // c4-duplicate-response-name / c4-duplicate-response-name-fragments:
-    // same SDL, same expected 2/11.
     private const string DuplicateResponseNameSdl =
         """
         union Result = A
@@ -70,10 +64,7 @@ public class DocumentShapeEquivalenceTests
     }
 
     /// <summary>
-    /// Extracts the root boundary and, from its single <c>result</c> field
-    /// group, the nested boundary under <paramref name="resultTypeName"/>,
-    /// then dumps both so a spelling-invariant comparison can assert on the
-    /// combined text.
+    /// Returns text representations of the operation's root tree and its single result field's child tree.
     /// </summary>
     private static string ExtractResultBoundary(
         string sdl,

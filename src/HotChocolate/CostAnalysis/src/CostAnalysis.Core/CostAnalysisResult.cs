@@ -3,8 +3,7 @@ using System.Collections.Immutable;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// The compiled plan and per-request estimates a consumer stores on the
-/// request context after cost enforcement.
+/// A compiled cost plan and the estimates for a request.
 /// </summary>
 /// <param name="Plan">
 /// The compiled cost plan that was enforced.

@@ -84,9 +84,7 @@ internal static class FieldGroupMerger
     }
 
     /// <summary>
-    /// Concatenates the selection sets of every field in
-    /// <paramref name="fields"/> into one merged selection list, the shape
-    /// of the spec's CollectSubfields.
+    /// Returns the combined selections of all fields in <paramref name="fields"/>.
     /// </summary>
     public static IReadOnlyList<ISelectionNode> MergedSelections(IReadOnlyList<FieldNode> fields)
     {

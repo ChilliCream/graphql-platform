@@ -9,8 +9,8 @@ namespace HotChocolate.Execution.Pipeline;
 public static class RequestContextNormalizedDocumentExtensions
 {
     /// <summary>
-    /// Gets the normalized operation document from the request context, normalizing the
-    /// operation document on first access and caching the result on the request context.
+    /// Gets the request's document with fragments inlined and statically excluded selections
+    /// removed. The result contains only the selected operation.
     /// </summary>
     /// <param name="context">
     /// The request context.
@@ -51,8 +51,7 @@ public static class RequestContextNormalizedDocumentExtensions
     }
 
     /// <summary>
-    /// Gets the normalized operation definition from the request context. The normalized
-    /// document holds exactly one definition, the operation, at <c>Definitions[0]</c>.
+    /// Gets the selected operation with fragments inlined and statically excluded selections removed.
     /// </summary>
     /// <param name="context">
     /// The request context.

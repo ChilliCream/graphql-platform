@@ -31,11 +31,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
 
-    <!--
-      PrecisionCasesTests reads the same six precision fixtures as
-      CostAnalysis.Core.Conformance.Tests and HotChocolate.CostAnalysis.Tests, so the
-      corpus has one source of truth across Core, HC and Fusion.
-    -->
     <None Include="..\..\..\CostAnalysis\test\CostAnalysis.Core.Conformance.Tests\__resources__\precision\*.json"
           Link="__resources__\precision\%(Filename)%(Extension)">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

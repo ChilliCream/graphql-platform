@@ -3,9 +3,7 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Shared helpers for the Traversal test suite: extracting an operation's
-/// root condition tree and running <see cref="ExactCasesTraversal"/> over it
-/// against a <see cref="TestCostAlgebra"/>.
+/// Evaluates operations for traversal tests using <see cref="TestCostAlgebra"/> or a supplied algebra.
 /// </summary>
 internal static class TraversalTestHelpers
 {

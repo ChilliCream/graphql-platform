@@ -8,12 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Variable coercion now reads the normalized operation unconditionally, ahead of the cost
-/// analyzer, so every request normalizes exactly once, regardless of whether the operation
-/// cache or the cost plan cache hits. What must still never happen is a second normalization
-/// within the same request: a cost plan cache miss reuses the document coercion already
-/// normalized for this request instead of calling
-/// <see cref="IOperationDocumentNormalizer"/> a second time.
+/// Tests that each request obtains its normalized document once across coercion and cost analysis.
 /// </summary>
 public sealed class CostAnalyzerNormalizerCallCountTests
 {
@@ -56,9 +51,7 @@ public sealed class CostAnalyzerNormalizerCallCountTests
         var hitResult = await requestExecutor.ExecuteAsync(OperationA, TestContext.Current.CancellationToken);
         var countAfterHit = Volatile.Read(ref normalizeCallCount);
 
-        // assert: variable coercion normalizes every request, including the second execution,
-        // even though it is both an operation cache hit and a cost plan cache hit; the cost
-        // analyzer itself never normalizes a second time for either request.
+        // assert
         Assert.Empty(missResult.ExpectOperationResult().Errors);
         Assert.Empty(hitResult.ExpectOperationResult().Errors);
         Assert.Equal(1, countAfterMiss);
@@ -68,9 +61,8 @@ public sealed class CostAnalyzerNormalizerCallCountTests
     [Fact]
     public async Task Plan_Cache_Miss_Does_Not_Normalize_A_Second_Time_Within_The_Request()
     {
-        // arrange: a cost plan cache capacity of one means executing a second, different
-        // operation evicts the first operation's plan, while the much larger operation cache
-        // keeps both operations compiled and cached.
+        // arrange
+        // A capacity of one evicts the first cost plan while the operation cache retains both operations.
         var normalizeCallCount = 0;
 
         var requestExecutor = await CreateRequestExecutorBuilder(
@@ -91,11 +83,7 @@ public sealed class CostAnalyzerNormalizerCallCountTests
         await requestExecutor.ExecuteAsync(OperationA, TestContext.Current.CancellationToken);
         var countAfterPlanMiss = Volatile.Read(ref normalizeCallCount);
 
-        // assert: both operations remain in the (much larger) operation cache, only one plan
-        // fits in the cost plan cache, and re-running operation A recomputes its cost plan,
-        // which reads the normalized document again; that read reuses the document variable
-        // coercion already normalized for this request, so the normalizer runs exactly once
-        // per request throughout, never twice for the same request.
+        // assert
         Assert.Equal(2, operationCache.Count);
         Assert.Equal(1, planCache.Count);
         Assert.Equal(1, countAfterFirstMiss);
@@ -113,9 +101,7 @@ public sealed class CostAnalyzerNormalizerCallCountTests
                 services => services.AddSingleton<IOperationDocumentNormalizer>(
                     _ => new CountingNormalizer(onNormalize)));
 
-    // Neither OperationA nor OperationB contains a fragment, so flattening fragments into the
-    // selected operation, the one thing a real normalizer does, is a no-op here: returning the
-    // parsed document unchanged is a valid normalized document for these tests.
+    // Both operations have no fragments or static conditions, so their parsed documents are already normalized.
     private sealed class CountingNormalizer(Action onNormalize) : IOperationDocumentNormalizer
     {
         public DocumentNode NormalizeDocument(RequestContext context)

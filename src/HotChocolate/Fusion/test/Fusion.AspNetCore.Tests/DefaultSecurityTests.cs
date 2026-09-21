@@ -282,7 +282,7 @@ public class DefaultSecurityTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"),
             TestContext.Current.CancellationToken);
 
-        // assert - the over-cost query is rejected with HC0047 regardless of environment
+        // assert
         using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         response.MatchSnapshot(postFix: environment);
     }
@@ -306,7 +306,7 @@ public class DefaultSecurityTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"),
             TestContext.Current.CancellationToken);
 
-        // assert - query passes validation and executes (no HC0047 error)
+        // assert
         using var response = await result.ReadAsResultAsync(TestContext.Current.CancellationToken);
         Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
         Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);

@@ -159,8 +159,8 @@ public sealed class CostOptions
     }
 
     /// <summary>
-    /// Gets or sets the maximum number of exact cases evaluated for a single
-    /// operation. <c>null</c> uses the default (510).
+    /// Gets or sets the maximum number of Boolean case splits allowed when compiling an operation.
+    /// <see langword="null"/> uses the default of 510; zero or less uses the configured budget fallback immediately.
     /// </summary>
     public int? CaseBudget { get; set; }
 

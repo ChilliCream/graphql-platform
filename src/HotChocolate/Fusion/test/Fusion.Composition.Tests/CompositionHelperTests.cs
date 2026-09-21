@@ -452,9 +452,6 @@ public sealed class CompositionHelperTests
             """);
     }
 
-    // Settings-file surface plumbing: a non-null Merger.DefaultListSize on the composition
-    // settings passed into the Nitro CLI compose path reaches SourceSchemaMergerOptions and is
-    // emitted as @fusion__cost_options(defaultListSize:) on the composed schema.
     [Fact]
     public async Task ComposeAsync_Should_EmitCostOptions_When_DefaultListSizeSettingIsSet()
     {
@@ -542,9 +539,6 @@ public sealed class CompositionHelperTests
             entry.Message);
     }
 
-    // Read-direction plumbing: a valid integer defaultListSize in the raw settings-file JSON
-    // stored in the archive (not the typed CompositionSettings passed into ComposeAsync) reaches
-    // SourceSchemaMergerOptions and is emitted as @fusion__cost_options(defaultListSize:).
     [Fact]
     public async Task ComposeAsync_Should_EmitCostOptions_When_ArchiveSettingsJsonHasValidDefaultListSize()
     {
@@ -594,11 +588,6 @@ public sealed class CompositionHelperTests
             """);
     }
 
-    // The raw-JSON guard rejects a negative persisted defaultListSize the same way it rejects
-    // one that is out of the Int32 range: -1 is representable as an Int32, but is not a valid
-    // defaultListSize, so it must be reported here rather than left for the merged-settings
-    // check in ComposeAsync (which only sees CLI/API-provided CompositionSettings, not a
-    // pre-seeded archive settings file read through this guard) to catch it, if at all.
     [Fact]
     public async Task ComposeAsync_Should_ReportCompositionError_When_ArchiveSettingsJsonHasNegativeDefaultListSize()
     {
@@ -687,12 +676,6 @@ public sealed class CompositionHelperTests
             entry.Message);
     }
 
-    // A whole number that does not fit Int32 is still an integer, just out of the supported
-    // range, so it must report the range message rather than the non-integer one. This holds
-    // even for a literal beyond Int64 (TryGetInt64 alone can no longer tell it apart from a
-    // fraction, so the discrimination falls back to a raw-text scan for a fractional part) and
-    // for exponent notation (TryGetInt32/TryGetInt64 never accept it, even for a small
-    // in-range value like 1e1, so it is always classified as out of range rather than parsed).
     [Theory]
     [InlineData("9999999999")]
     [InlineData("18446744073709551616")]

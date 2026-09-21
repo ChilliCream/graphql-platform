@@ -3,9 +3,7 @@ using System.Numerics;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// An order-independent set of object types, represented as a bitset over the
-/// schema index's dense object-type index, with a fingerprint computed from the
-/// final bit content rather than from insertion order.
+/// A set of object types whose equality and fingerprint do not depend on insertion order.
 /// </summary>
 internal readonly struct PossibleTypeSet : IEquatable<PossibleTypeSet>
 {
@@ -24,15 +22,13 @@ internal readonly struct PossibleTypeSet : IEquatable<PossibleTypeSet>
     public int Count { get; }
 
     /// <summary>
-    /// Gets a fingerprint over this set's content. Two sets with the same
-    /// members over the same dense index have the same fingerprint,
-    /// regardless of the order their members were supplied in.
+    /// Gets a fingerprint of the set's members.
+    /// Sets with the same members from the same schema index have the same fingerprint.
     /// </summary>
     public ulong Fingerprint { get; }
 
     /// <summary>
-    /// Determines whether the object type at <paramref name="objectTypeIndex"/>
-    /// (the schema index's own dense index) belongs to this set.
+    /// Determines whether the object type at <paramref name="objectTypeIndex"/> belongs to this set.
     /// </summary>
     public bool Contains(int objectTypeIndex)
     {
@@ -79,10 +75,8 @@ internal readonly struct PossibleTypeSet : IEquatable<PossibleTypeSet>
         => Fingerprint.GetHashCode();
 
     /// <summary>
-    /// Builds a <see cref="PossibleTypeSet"/> over an object-type dense index
-    /// of size <paramref name="objectTypeCount"/> from the given member
-    /// indices. The result does not depend on the order of
-    /// <paramref name="memberIndices"/>.
+    /// Creates a set from object-type indices in a schema containing
+    /// <paramref name="objectTypeCount"/> object types. Member order does not affect the result.
     /// </summary>
     internal static PossibleTypeSet Create(int objectTypeCount, ReadOnlySpan<int> memberIndices)
     {
@@ -121,8 +115,7 @@ internal readonly struct PossibleTypeSet : IEquatable<PossibleTypeSet>
     }
 
     /// <summary>
-    /// A non-allocating, forward-only enumerator over the object-type
-    /// indices a <see cref="PossibleTypeSet"/> contains.
+    /// Enumerates the object-type indices in a <see cref="PossibleTypeSet"/> in ascending order.
     /// </summary>
     public struct Enumerator
     {

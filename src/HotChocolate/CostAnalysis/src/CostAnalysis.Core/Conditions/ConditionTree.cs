@@ -1,9 +1,8 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// The extracted condition tree of one selection-set boundary: a
-/// hash-consed arena of nodes, one per distinct cumulative condition
-/// reachable in that boundary.
+/// The conditions and field selections within one selection set.
+/// Each distinct cumulative condition has one node.
 /// </summary>
 internal sealed class ConditionTree
 {

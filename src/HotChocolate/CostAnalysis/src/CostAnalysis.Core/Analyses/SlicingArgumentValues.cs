@@ -4,21 +4,16 @@ using HotChocolate.Types;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Builds the slicing-argument lookup <see cref="ListSizeResolver"/> needs
-/// from a field's <c>@listSize</c> metadata and its call's literal
-/// arguments, shared by <see cref="CostAlgebra"/> and the ExactCases
-/// traversal.
+/// Provides slicing-argument values from field selections and schema defaults.
 /// </summary>
 internal static class SlicingArgumentValues
 {
     private static readonly Dictionary<string, SlicingArgumentValue> s_empty = [];
 
     /// <summary>
-    /// Builds one slicing-argument entry per name declared in
-    /// <paramref name="metadata"/>'s <c>slicingArguments</c>, pairing its
-    /// literal supplied value with its schema default; an empty lookup when
-    /// <paramref name="metadata"/> is <see langword="null"/> or declares no
-    /// slicing arguments.
+    /// Pairs each slicing argument declared in <paramref name="metadata"/> with its supplied
+    /// value and schema default. Returns an empty lookup when <paramref name="metadata"/>
+    /// is <see langword="null"/> or declares no slicing arguments.
     /// </summary>
     public static IReadOnlyDictionary<string, SlicingArgumentValue> Build(
         ListSizeMetadata? metadata,

@@ -3,8 +3,7 @@ using HotChocolate.Types;
 namespace HotChocolate.Fusion.DirectiveMergers;
 
 /// <summary>
-/// Computes the coordinate-kind default weight and the weight fold used to derive the public
-/// <c>@cost</c> directive from the effective weight of every serving source.
+/// Combines source weights and schema defaults into a public <c>@cost</c> weight.
 /// </summary>
 internal static class CostDirectiveFold
 {
@@ -33,8 +32,7 @@ internal static class CostDirectiveFold
         => inputType.NamedType().Kind == TypeKind.InputObject ? 1 : 0;
 
     /// <summary>
-    /// Folds the effective weight of every serving source into the public weight: the maximum
-    /// over all sources, a true upper bound over whichever source serves the coordinate.
+    /// Returns the largest source weight, or negative infinity when no weights are supplied.
     /// </summary>
     public static double FoldWeights(IReadOnlyList<double> effectiveWeights)
     {

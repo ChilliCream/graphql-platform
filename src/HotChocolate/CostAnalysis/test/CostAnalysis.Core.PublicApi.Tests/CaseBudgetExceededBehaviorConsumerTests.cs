@@ -4,16 +4,11 @@ using HotChocolate.Types.Mutable.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Proves that <see cref="CostSchemaIndexOptions.CaseBudgetExceededBehavior"/>
-/// selects between the two documented <see cref="CostPlan"/> behaviors once
-/// the case budget is exhausted, exercised only through the public option
-/// and the public <see cref="CostPlanCompiler"/>/<see cref="CostPlan"/>
-/// surface, the way a third-party consumer would.
+/// Tests the public case-budget options for exact costs and upper bounds.
 /// </summary>
 public sealed class CaseBudgetExceededBehaviorConsumerTests
 {
-    // Six independently @include-gated, distinctly weighted sibling fields:
-    // 2^6 - 1 = 63 splits, more than the tight case budget below can afford.
+    // Six independent Boolean conditions require 63 splits, exceeding the tight budget.
     private const string Sdl =
         """
         directive @cost(weight: String!) on FIELD_DEFINITION
@@ -45,7 +40,7 @@ public sealed class CaseBudgetExceededBehaviorConsumerTests
     [Fact]
     public void Evaluate_Should_ReturnTheExactResult_When_DefaultBehaviorHitsTheCaseBudget()
     {
-        // arrange: the default option value is EvaluatePerRequest.
+        // arrange
         var schema = SchemaParser.Parse(Sdl);
         var document = Utf8GraphQLParser.Parse(Operation);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -67,8 +62,7 @@ public sealed class CaseBudgetExceededBehaviorConsumerTests
         var exact = tightPlan.Evaluate(allFalse);
         var reference = roomyPlan.Evaluate(allFalse);
 
-        // assert: despite hitting the budget, the default mode still matches an unaffected
-        // (roomy-budget) compile exactly.
+        // assert
         Assert.True(tightPlan.HitCaseBudget);
         Assert.False(roomyPlan.HitCaseBudget);
         Assert.Equal(reference, exact);
@@ -77,7 +71,7 @@ public sealed class CaseBudgetExceededBehaviorConsumerTests
     [Fact]
     public void Evaluate_Should_OverapproximateWithTheFallbackEnvelope_When_OverestimateBehaviorHitsTheCaseBudget()
     {
-        // arrange: selecting Overestimate explicitly restores today's compiled-envelope behavior.
+        // arrange
         var schema = SchemaParser.Parse(Sdl);
         var document = Utf8GraphQLParser.Parse(Operation);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -105,8 +99,7 @@ public sealed class CaseBudgetExceededBehaviorConsumerTests
         var envelope = tightPlan.Evaluate(allFalse);
         var exact = roomyPlan.Evaluate(allFalse);
 
-        // assert: the fallback envelope follows every still-pending Boolean edge unconditionally,
-        // so it overapproximates the exact (all-false) result rather than matching it.
+        // assert
         Assert.True(tightPlan.HitCaseBudget);
         Assert.False(roomyPlan.HitCaseBudget);
         Assert.Equal(0.0, exact.FieldCost);

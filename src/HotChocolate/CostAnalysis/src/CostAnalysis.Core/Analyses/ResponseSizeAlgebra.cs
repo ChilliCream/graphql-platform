@@ -13,9 +13,7 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
     private readonly ICostVariableValues? _variableValues;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ResponseSizeAlgebra"/> for
-    /// the static/assumed path: a variable-bound slicing argument falls back
-    /// to its schema-declared assumption instead of a coerced value.
+    /// Creates a response-size analysis that uses schema assumptions for variable values.
     /// </summary>
     /// <param name="schemaIndex">
     /// The schema index used to resolve list-size metadata.
@@ -28,10 +26,7 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ResponseSizeAlgebra"/> that
-    /// resolves a variable-bound slicing argument from
-    /// <paramref name="variableValues"/>, the same coerced values the
-    /// optimized <see cref="CostPlan"/> path receives at evaluation time.
+    /// Creates a response-size analysis that uses the request's coerced variable values.
     /// </summary>
     /// <param name="schemaIndex">
     /// The schema index used to resolve list-size metadata.
@@ -81,8 +76,8 @@ public sealed class ResponseSizeAlgebra : IAnalysisAlgebra<double>
     public double Root(double rootTypeWeight, double selection) => selection;
 
     /// <summary>
-    /// Resolves the list multiplier for one member's field call using the
-    /// same list-size chain as the cost algebra.
+    /// Gets a field's list multiplier from its list-size annotation, slicing arguments,
+    /// and inherited size.
     /// </summary>
     private double ResolveListMultiplier(
         string typeName,

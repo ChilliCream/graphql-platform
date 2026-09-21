@@ -97,8 +97,6 @@ public sealed class SchemaComposerTests
                 """);
     }
 
-    // hc-3-mmh.9 / R-FUSION-OPTIONS: absence of Merger.DefaultListSize means unbounded, so no
-    // @fusion__cost_options usage is emitted on the merged schema.
     [Fact]
     public void Compose_Should_NotEmitCostOptions_When_DefaultListSizeIsUnset()
     {
@@ -123,8 +121,6 @@ public sealed class SchemaComposerTests
             directive => directive.Name.Value == "fusion__cost_options");
     }
 
-    // Setting Merger.DefaultListSize emits exactly one @fusion__cost_options(defaultListSize:)
-    // usage on the merged schema, alongside @fusion__execution.
     [Fact]
     public void Compose_Should_EmitCostOptions_When_DefaultListSizeIsSet()
     {

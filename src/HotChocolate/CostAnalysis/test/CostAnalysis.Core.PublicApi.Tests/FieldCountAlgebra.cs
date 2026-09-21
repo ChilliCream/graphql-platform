@@ -1,9 +1,7 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// A custom <see cref="IAnalysisAlgebra{TSummary}"/> built only against the
-/// public surface: counts collected fields, one per occurrence plus its own
-/// children, taking the maximum across mutually exclusive type regions.
+/// Counts fields and their children, taking the maximum across mutually exclusive alternatives.
 /// </summary>
 public sealed class FieldCountAlgebra : IAnalysisAlgebra<int>
 {

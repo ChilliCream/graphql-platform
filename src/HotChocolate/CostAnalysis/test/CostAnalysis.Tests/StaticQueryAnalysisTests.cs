@@ -185,8 +185,6 @@ public sealed class StaticQueryAnalysisTests
                 """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",
                 "examples(limit: 10) { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (null limit in query,
-            // with requireOneSlicingArgument: false).
             {
                 3,
                 """
@@ -195,8 +193,6 @@ public sealed class StaticQueryAnalysisTests
                 """,
                 "examples(limit: null) { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (no limit in query,
-            // with requireOneSlicingArgument: false).
             {
                 4,
                 """
@@ -205,8 +201,6 @@ public sealed class StaticQueryAnalysisTests
                 """,
                 "examples { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (null limit in query, with assumedSize
-            // and requireOneSlicingArgument: false).
             {
                 5,
                 """
@@ -219,8 +213,6 @@ public sealed class StaticQueryAnalysisTests
                 """,
                 "examples(limit: null) { field1, field2 }"
             },
-            // @listSize directive with slicing arguments (no limit in query, with assumedSize
-            // and requireOneSlicingArgument: false).
             {
                 6,
                 """
@@ -272,9 +264,7 @@ public sealed class StaticQueryAnalysisTests
                 """,
                 "examples { field1, field2 }"
             },
-            // @listSize directive with slicing arguments, requireOneSlicingArgument omitted.
-            // (no limit in query; the omitted default is `true`, so exactly one slicing
-            // argument is required and none is present).
+            // The default requires one slicing argument, but the query supplies none.
             {
                 10,
                 """examples(limit: Int): [Example!]! @listSize(slicingArguments: ["limit"])""",

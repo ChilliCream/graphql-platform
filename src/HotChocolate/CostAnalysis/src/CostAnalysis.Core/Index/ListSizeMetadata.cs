@@ -3,8 +3,7 @@ using System.Collections.Immutable;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// The <c>@listSize</c> metadata of one output field, with every default
-/// already resolved by the schema index builder.
+/// The list-size settings of an output field, including applicable defaults.
 /// </summary>
 /// <param name="AssumedSize">
 /// The <c>assumedSize</c> argument, or <see langword="null"/> when absent.

@@ -18,9 +18,8 @@ public struct GraphQLCompositionSettings
     public DirectiveMergeBehavior? CacheControlMergeBehavior { get; set; }
 
     /// <summary>
-    /// Gets or sets the default assumed size of a list field that declares no compatible
-    /// <c>@listSize</c> usage, emitted as <c>@fusion__cost_options(defaultListSize:)</c> on the
-    /// composed schema. <see langword="null"/> by default, meaning unbounded.
+    /// Gets or sets the assumed size for list fields without applicable list-size information.
+    /// The default, <see langword="null"/>, means unbounded. Non-null values must be non-negative.
     /// </summary>
     public int? DefaultListSize { get; set; }
 

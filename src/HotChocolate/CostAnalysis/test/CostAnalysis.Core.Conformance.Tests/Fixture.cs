@@ -4,8 +4,7 @@ using System.Text.Json.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// One conformance fixture, deserialized from a file under
-/// <c>__resources__</c> that matches <c>fixture.schema.json</c>.
+/// A conformance test case matching <c>fixture.schema.json</c>.
 /// </summary>
 internal sealed record Fixture(
     [property: JsonPropertyName("id")] string Id,

@@ -10,8 +10,6 @@ public class CostSchemaIndexTests
         return CostSchemaIndex.Create(schema, options ?? new CostSchemaIndexOptions());
     }
 
-    // -- Type weight: kind defaults and @cost overrides ---------------------------------------
-
     [Fact]
     public void GetTypeWeight_Should_Default_By_Kind_When_No_Cost_Directive()
     {
@@ -55,8 +53,6 @@ public class CostSchemaIndexTests
         Assert.Equal(2.5, scalarWeight);
     }
 
-    // -- Field weight: kind defaults and @cost overrides ---------------------------------------
-
     [Fact]
     public void GetFieldWeight_Should_Default_To_One_When_Named_Return_Type_Is_Composite()
     {
@@ -70,7 +66,7 @@ public class CostSchemaIndexTests
             type Address { zipCode: String }
             """);
 
-        // act & assert: unannotated fields returning a composite type default to weight 1
+        // act & assert
         Assert.Equal(1.0, schemaIndex.GetFieldWeight("Query", "book"));
         Assert.Equal(1.0, schemaIndex.GetFieldWeight("Book", "author"));
         Assert.Equal(1.0, schemaIndex.GetFieldWeight("Book", "publisher"));
@@ -87,8 +83,7 @@ public class CostSchemaIndexTests
             type Book { title: String tags: [String!] rating: Int }
             """);
 
-        // act & assert: unannotated fields returning a leaf type, including a list of leaves,
-        // default to weight 0 (no ChilliCream list-of-scalars opinion baked in)
+        // act & assert
         Assert.Equal(0.0, schemaIndex.GetFieldWeight("Book", "title"));
         Assert.Equal(0.0, schemaIndex.GetFieldWeight("Book", "tags"));
         Assert.Equal(0.0, schemaIndex.GetFieldWeight("Book", "rating"));
@@ -112,8 +107,6 @@ public class CostSchemaIndexTests
         Assert.Equal(3.0, fieldWeight);
         Assert.Equal(-1.0, signedWeight);
     }
-
-    // -- Argument and input field weight: kind defaults and @cost overrides ---------------------
 
     [Fact]
     public void GetArgumentWeight_Should_Default_By_Named_Input_Type_Kind()
@@ -191,8 +184,6 @@ public class CostSchemaIndexTests
         Assert.Equal(2.0, weight);
     }
 
-    // -- Directive-definition argument weight (R-DIRECTIVE-ARG-COST) ----------------------------
-
     [Fact]
     public void TryGetDirectiveArguments_Should_ReturnDeclaredArguments_When_DirectiveIsDefined()
     {
@@ -235,8 +226,6 @@ public class CostSchemaIndexTests
         Assert.False(found);
         Assert.True(arguments.IsDefault);
     }
-
-    // -- @listSize metadata -----------------------------------------------------------------
 
     [Fact]
     public void GetListSizeMetadata_Should_Return_Null_When_Field_Has_No_ListSize_Usage()
@@ -384,12 +373,10 @@ public class CostSchemaIndexTests
         Assert.Throws<InvalidOperationException>(Act);
     }
 
-    // -- requireOneSlicingArgument (R-REQUIRE-ONE, R-REQUIRE-ONE-DEFAULT) -----------------------
-
     [Fact]
     public void RequireOneSlicingArgument_Should_Read_Definitions_Declared_Default_When_Omitted()
     {
-        // arrange: the directive definition declares `= true`
+        // arrange
         var schemaIndex = BuildSchemaIndex(
             """
             directive @listSize(
@@ -413,7 +400,7 @@ public class CostSchemaIndexTests
     [Fact]
     public void RequireOneSlicingArgument_Should_Read_False_Declared_Default_When_Omitted()
     {
-        // arrange: the directive definition declares `= false`
+        // arrange
         var schemaIndex = BuildSchemaIndex(
             """
             directive @listSize(
@@ -437,7 +424,7 @@ public class CostSchemaIndexTests
     [Fact]
     public void RequireOneSlicingArgument_Should_Read_Spec_Default_True_When_No_Definition_Present()
     {
-        // arrange: no `directive @listSize(...)` declared at all (R-MUTABLE-SCHEMA)
+        // arrange
         var schemaIndex = BuildSchemaIndex(
             """
             type Query { books(first: Int): [Book] @listSize(slicingArguments: ["first"]) }
@@ -454,7 +441,7 @@ public class CostSchemaIndexTests
     [Fact]
     public void RequireOneSlicingArgument_Should_Use_Usages_Own_Literal_Over_The_Definitions_Default()
     {
-        // arrange: definition default is true, usage explicitly says false
+        // arrange
         var schemaIndex = BuildSchemaIndex(
             """
             directive @listSize(
@@ -493,8 +480,6 @@ public class CostSchemaIndexTests
         Assert.Throws<InvalidOperationException>(Act);
     }
 
-    // -- Abstract type weight: max over member object types (spec 7.2, hc-3-mmh.7 edge rule d) --
-
     [Fact]
     public void GetTypeWeight_Should_Be_Max_Over_Member_Object_Types_For_An_Interface()
     {
@@ -510,7 +495,7 @@ public class CostSchemaIndexTests
         // act
         var weight = schemaIndex.GetTypeWeight("Publication");
 
-        // assert: max(Magazine 7, Book default 1) = 7
+        // assert
         Assert.Equal(7.0, weight);
     }
 
@@ -529,15 +514,15 @@ public class CostSchemaIndexTests
         // act
         var weight = schemaIndex.GetTypeWeight("Result");
 
-        // assert: max(Magazine 7, Book default 1) = 7
+        // assert
         Assert.Equal(7.0, weight);
     }
 
     [Fact]
     public void GetTypeWeight_Should_Ignore_An_Interfaces_Own_Cost_Directive()
     {
-        // arrange: the interface's own @cost is not a valid spec location and is never read; the
-        // oracle's abstract-type weight consults only member object types
+        // arrange
+        // The interface annotation is invalid; only its object types determine the weight.
         var schemaIndex = BuildSchemaIndex(
             """
             type Query { publication: Publication }
@@ -556,7 +541,8 @@ public class CostSchemaIndexTests
     [Fact]
     public void GetTypeWeight_Should_Never_Seed_The_Member_Max_With_Zero()
     {
-        // arrange: every member is negatively weighted, so a max seeded at 0 would be wrong
+        // arrange
+        // Negative member weights expose a maximum calculation incorrectly initialized to zero.
         var schemaIndex = BuildSchemaIndex(
             """
             type Query { neg: Neg }
@@ -588,8 +574,6 @@ public class CostSchemaIndexTests
         // assert
         Assert.Equal(1.0, weight);
     }
-
-    // -- Possible-type sets: object -> [self], interface/union -> members (R-POSSIBLE-TYPES) ----
 
     [Fact]
     public void GetPossibleTypeSet_Should_Contain_Only_Itself_For_An_Object_Type()
@@ -651,8 +635,6 @@ public class CostSchemaIndexTests
         Assert.True(possibleTypes.Contains(schemaIndex.GetObjectTypeIndex("Book")));
     }
 
-    // -- PossibleTypeSet: bitset fingerprint is order-independent --------------------------------
-
     [Fact]
     public void PossibleTypeSet_Fingerprint_Should_Not_Depend_On_Member_Order()
     {
@@ -677,8 +659,6 @@ public class CostSchemaIndexTests
         Assert.NotEqual(left.Fingerprint, right.Fingerprint);
         Assert.NotEqual(left, right);
     }
-
-    // -- Weight literal parsing (R-DIRECTIVE-READING) --------------------------------------------
 
     [Fact]
     public void ReadWeight_Should_Parse_A_String_Literal_With_Invariant_Culture()
@@ -758,8 +738,6 @@ public class CostSchemaIndexTests
         // assert
         Assert.Throws<InvalidOperationException>(Act);
     }
-
-    // -- Options -----------------------------------------------------------------------------
 
     [Fact]
     public void Options_Should_ReturnDetachedValueCopies_When_SchemaIndexIsCreated()

@@ -3,8 +3,7 @@ using HotChocolate.Language;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// One parent member's <c>@listSize(sizedFields:)</c> metadata and slicing
-/// arguments, resolved only when a compiled plan is evaluated.
+/// A parent field's list-size settings and slicing arguments for its named child fields.
 /// </summary>
 /// <param name="Metadata">
 /// The parent's list-size metadata.

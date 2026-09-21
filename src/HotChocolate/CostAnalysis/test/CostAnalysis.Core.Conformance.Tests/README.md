@@ -94,11 +94,6 @@ The dump starts from a 15,840-case matrix and selects the 1,980 ExactCase
 IBM-cost candidates. The committed manifest records how many rows were
 emitted after exclusions and request-equivalent deduplication.
 
-Two deviations are intentional and recorded by the generator:
-
-- The fuzz schema's `directive @tag` declaration is dropped because it
-  collides with HotChocolate's built-in `@tag` directive. No emitted operation
-  uses the dropped declaration.
-- Rows with variables that fail GraphQL coercion are excluded. Every committed
-  row is coerced through the production path and a coercion failure fails its
-  conformance test.
+The generated corpus excludes the unused `@tag` definition and rows whose
+variables fail GraphQL coercion. Each conformance test also validates its
+fixture's variables through production coercion.

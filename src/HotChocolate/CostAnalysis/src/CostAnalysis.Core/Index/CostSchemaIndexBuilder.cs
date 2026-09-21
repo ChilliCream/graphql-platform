@@ -9,9 +9,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Builds a <see cref="CostSchemaIndex"/> from an <see cref="ISchemaDefinition"/>. This is
-/// the only place cost analysis reads the schema directly; everything downstream (compiling
-/// and evaluating a <see cref="CostPlan"/>) touches only the resulting schema index.
+/// Builds an index of the schema metadata used by cost analysis.
 /// </summary>
 internal static class CostSchemaIndexBuilder
 {
@@ -33,9 +31,7 @@ internal static class CostSchemaIndexBuilder
         var typeWeights = new Dictionary<string, double>();
         var possibleTypes = new Dictionary<string, PossibleTypeSet>();
 
-        // Pass 1: object/scalar/enum types can be read directly; object types also get their
-        // trivial possible-type set (an object type's only possible type is itself, so
-        // GetPossibleTypes is never called for them; R-POSSIBLE-TYPES).
+        // Read concrete type weights before computing weights for interfaces and unions.
         foreach (var type in schema.Types)
         {
             switch (type)
@@ -57,12 +53,8 @@ internal static class CostSchemaIndexBuilder
             }
         }
 
-        // Pass 2: interface/union possible-type sets, read through the schema's own
-        // GetPossibleTypes (the public, accessible-only view on Fusion; R-POSSIBLE-TYPES), and
-        // their type weight, the signed max over member object types already read in pass 1.
-        // An interface's or union's own @cost usage is never read: it is not a valid directive
-        // location for the spec directive, and the oracle's abstract-type weight consults only
-        // member object types (hc-3-mmh.7 edge rule (d)).
+        // Abstract types use the largest weight among their possible object types.
+        // Use the schema's possible-type lookup so inaccessible Fusion types are excluded.
         var memberIndices = new List<int>();
 
         foreach (var type in schema.Types)
@@ -95,7 +87,6 @@ internal static class CostSchemaIndexBuilder
                 PossibleTypeSet.Create(objectTypeCount, CollectionsMarshal.AsSpan(memberIndices)));
         }
 
-        // Pass 3: output fields (weight, @listSize, argument weights) and input fields.
         var listSizeRequireOneDefault = ResolveListSizeRequireOneDefault(schema);
         var fieldWeights = new Dictionary<FieldKey, double>();
         var listSizeMetadata = new Dictionary<FieldKey, ListSizeMetadata>();
@@ -142,7 +133,6 @@ internal static class CostSchemaIndexBuilder
             }
         }
 
-        // Pass 4: directive-definition arguments (query-directive pricing; R-DIRECTIVE-ARG-COST).
         var directiveArguments = new Dictionary<string, ImmutableArray<DirectiveArgumentDefinition>>();
         var directiveArgumentMetadata = new Dictionary<string, ImmutableArray<InputValueMetadata>>();
 
@@ -269,8 +259,7 @@ internal static class CostSchemaIndexBuilder
         => new(value.Name, ReadInputValueWeight(value), value.Type.NamedType().Name, value.DefaultValue);
 
     /// <summary>
-    /// Reads a named type's own weight: an explicit <c>@cost</c> usage wins, otherwise the
-    /// caller's kind default (composite 1.0, leaf 0.0; hc-3-mmh.7 item 1).
+    /// Gets a type's explicit cost weight, or <paramref name="defaultWeight"/> when none is declared.
     /// </summary>
     private static double ReadTypeWeight(ITypeDefinition type, double defaultWeight)
     {
@@ -279,9 +268,8 @@ internal static class CostSchemaIndexBuilder
     }
 
     /// <summary>
-    /// Reads an output field's own weight: an explicit <c>@cost</c> usage wins, otherwise 1.0
-    /// when the field's named return type is an object, interface or union, else 0.0 (a list of
-    /// scalars therefore defaults to 0.0; hc-3-mmh.4, hc-3-mmh.7 item 1).
+    /// Gets a field's explicit cost weight, or 1.0 for a composite return type and 0.0 otherwise.
+    /// List fields use the kind of their element type.
     /// </summary>
     private static double ReadFieldWeight(IOutputFieldDefinition field)
     {
@@ -298,10 +286,8 @@ internal static class CostSchemaIndexBuilder
     }
 
     /// <summary>
-    /// Reads an argument's or input field's own weight: an explicit <c>@cost</c> usage wins,
-    /// otherwise 1.0 when the named input type is an input object, else 0.0 (hc-3-mmh.7 item 1).
-    /// Shared by output-field arguments, input-object fields and directive-definition arguments,
-    /// all of which follow the same rule.
+    /// Gets an argument or input field's explicit cost weight.
+    /// The default is 1.0 for input objects and 0.0 otherwise. Lists use their element type.
     /// </summary>
     private static double ReadInputValueWeight(IInputValueDefinition value)
     {
@@ -368,10 +354,8 @@ internal static class CostSchemaIndexBuilder
     }
 
     /// <summary>
-    /// Resolves the effective <c>requireOneSlicingArgument</c> default for an omitted usage:
-    /// the <c>@listSize</c> directive definition's declared default when one exists, else the
-    /// spec default <see langword="true"/> (R-REQUIRE-ONE, R-REQUIRE-ONE-DEFAULT). Computed once
-    /// per schema since it never varies across usages.
+    /// Gets the directive definition's default for <c>requireOneSlicingArgument</c>,
+    /// or <see langword="true"/> when no default is declared.
     /// </summary>
     private static bool ResolveListSizeRequireOneDefault(ISchemaDefinition schema)
     {

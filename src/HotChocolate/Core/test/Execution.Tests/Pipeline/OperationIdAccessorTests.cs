@@ -21,10 +21,7 @@ public sealed class OperationIdAccessorTests
             .UseRequest(
                 (_, next) => async context =>
                 {
-                    // Resolving the normalized document here runs before variable coercion,
-                    // the operation cache and the operation compiler stages have had a
-                    // chance to compute and store the operation id. Getting the normalized
-                    // document must succeed rather than throw.
+                    // Access the document before later middleware can assign an operation id.
                     context.GetNormalizedDocument();
                     idBeforeCoercion = context.GetOperationId();
                     await next(context);

@@ -9,9 +9,7 @@ using static HotChocolate.Fusion.Logging.LogEntryHelper;
 namespace HotChocolate.Fusion.SourceSchemaValidationRules;
 
 /// <summary>
-/// Reports invalid shapes and negative integer values for the arguments on compatible
-/// <c>@listSize</c> directives, so <c>ListSizeDirective.From</c> is never reached with an
-/// invalid node.
+/// Reports invalid argument shapes and negative integer values on compatible <c>@listSize</c> directives.
 /// </summary>
 internal sealed class ListSizeDirectiveArgumentRule : IEventHandler<OutputFieldEvent>
 {
@@ -71,8 +69,7 @@ internal sealed class ListSizeDirectiveArgumentRule : IEventHandler<OutputFieldE
             }
         }
 
-        // A single value in a list position is valid GraphQL: list input coercion turns it into
-        // a one-element list (mirrored by ListSizeDirective.From).
+        // GraphQL permits a single string wherever a list of strings is expected.
         void ValidateStringListArgument(string argumentName)
         {
             if (!directive.Arguments.TryGetValue(argumentName, out var value)

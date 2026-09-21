@@ -5,10 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// End-to-end coverage for <see cref="CostOptions.CaseBudgetExceededBehavior"/>: once an
-/// operation exceeds the case budget, the default behavior prices it exactly per request,
-/// while <see cref="CostAnalysis.CaseBudgetExceededBehavior.Overestimate"/> prices it by the
-/// compiled envelope instead.
+/// Tests exact and overestimated request costs after the compilation case budget is exhausted.
 /// </summary>
 public sealed class CaseBudgetExceededBehaviorTests
 {
@@ -33,8 +30,7 @@ public sealed class CaseBudgetExceededBehaviorTests
     [Fact]
     public async Task CaseBudgetExceededBehavior_Should_PriceExactly_When_DefaultBehaviorIsUsed()
     {
-        // arrange: the case budget affords no exact split, so the default (EvaluatePerRequest)
-        // mode re-derives the exact cost from the operation's condition tree
+        // arrange
         var requestExecutor = await CreateRequestExecutorBuilder()
             .ModifyCostOptions(o => o.CaseBudget = 0)
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -49,15 +45,14 @@ public sealed class CaseBudgetExceededBehaviorTests
             .ExpectOperationResult();
         var operationCost = (IReadOnlyDictionary<string, object?>)result.Extensions!["operationCost"]!;
 
-        // assert: only the included fields (a and c) are billed, the excluded field (b) is not
+        // assert
         Assert.Equal(5d, Convert.ToDouble(operationCost["fieldCost"]));
     }
 
     [Fact]
     public async Task CaseBudgetExceededBehavior_Should_PriceByEnvelope_When_OverestimateIsConfigured()
     {
-        // arrange: the same operation and variables, but Overestimate bakes a conservative
-        // envelope for the whole operation into the compiled plan instead
+        // arrange
         var requestExecutor = await CreateRequestExecutorBuilder()
             .ModifyCostOptions(o =>
             {
@@ -76,7 +71,7 @@ public sealed class CaseBudgetExceededBehaviorTests
             .ExpectOperationResult();
         var operationCost = (IReadOnlyDictionary<string, object?>)result.Extensions!["operationCost"]!;
 
-        // assert: every field is billed as if included, regardless of the excluded one
+        // assert
         Assert.Equal(7d, Convert.ToDouble(operationCost["fieldCost"]));
     }
 

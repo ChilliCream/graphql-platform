@@ -7,10 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Cost analysis runs ahead of the operation cache and the operation compiler, alongside
-/// variable coercion, so a cost-rejected request is never compiled and never added to the
-/// operation cache, and identical concurrent rejected requests never reach the operation
-/// cache's single-flight coalescing at all.
+/// Tests that cost rejection occurs before operation compilation and caching.
 /// </summary>
 public sealed class CostAnalysisPipelineOrderTests
 {
@@ -61,9 +58,7 @@ public sealed class CostAnalysisPipelineOrderTests
     [Fact]
     public async Task Concurrent_Rejected_Requests_Never_Compile_Or_Cache_The_Operation()
     {
-        // arrange: a burst of identical, cost-rejected requests never reaches the operation
-        // cache's single-flight leader/follower coalescing at all, because cost enforcement
-        // now runs, and rejects, before the operation is ever compiled.
+        // arrange
         var compileCount = 0;
 
         var requestExecutor = await CreateRequestExecutorBuilder()

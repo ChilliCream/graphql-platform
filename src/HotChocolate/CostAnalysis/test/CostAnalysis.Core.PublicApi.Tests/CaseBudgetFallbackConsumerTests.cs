@@ -4,16 +4,11 @@ using HotChocolate.Types.Mutable.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Proves that <see cref="AnalysisPlan.HitCaseBudget"/> and the resulting
-/// fallback envelope behave the same as the built-in cost analyses' case
-/// budget, for a custom algebra run only through the public API.
+/// Tests case-budget fallback with a custom analysis through the public API.
 /// </summary>
 public sealed class CaseBudgetFallbackConsumerTests
 {
-    // Six independently @include-gated sibling fields: 2^6 - 1 = 63 splits,
-    // deliberately correlated by all being reachable together at the same
-    // boundary so the exact backend would need to materialize every
-    // combination to answer precisely.
+    // Six independent Boolean conditions require 63 splits, exceeding the tight budget.
     private const string Sdl =
         """
         type Query {
@@ -44,8 +39,7 @@ public sealed class CaseBudgetFallbackConsumerTests
     [Fact]
     public void Evaluate_Should_OverapproximateWithTheFallbackEnvelope_When_TheCaseBudgetIsExhausted()
     {
-        // arrange: a tiny case budget cannot afford the 63 splits six
-        // independent Booleans need, so compilation must fall back.
+        // arrange
         var schema = SchemaParser.Parse(Sdl);
         var document = Utf8GraphQLParser.Parse(Operation);
         var operation = document.Definitions.OfType<OperationDefinitionNode>().Single();
@@ -59,10 +53,8 @@ public sealed class CaseBudgetFallbackConsumerTests
         var fallbackCount = tightPlan.Evaluate(new FieldCountAlgebra(), allFalse);
         var exactCount = roomyPlan.Evaluate(new FieldCountAlgebra(), allFalse);
 
-        // assert: the fallback envelope follows every still-pending Boolean
-        // edge unconditionally, so it counts all six fields despite every
-        // variable being false, a sound (>=) overapproximation of the exact
-        // count, which correctly counts none of them.
+        // assert
+        // The fallback includes unresolved alternatives, even when their variables are false.
         Assert.True(tightPlan.HitCaseBudget);
         Assert.False(roomyPlan.HitCaseBudget);
         Assert.Equal(6, fallbackCount);

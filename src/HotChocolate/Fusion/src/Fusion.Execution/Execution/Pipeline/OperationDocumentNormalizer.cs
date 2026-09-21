@@ -38,9 +38,7 @@ internal sealed class OperationDocumentNormalizer : IOperationDocumentNormalizer
             return normalizedDocument;
         }
 
-        // Before we can plan an operation, we must de-fragmentize it and remove static
-        // include conditions. The resulting document always has the operation as its
-        // only definition, at Definitions[0].
+        // Inline fragments and remove statically excluded selections before planning.
         normalizedDocument = _documentRewriter.RewriteDocument(document, context.Request.OperationName);
         _normalizedDocumentCache.TryAdd(operationId, normalizedDocument);
 

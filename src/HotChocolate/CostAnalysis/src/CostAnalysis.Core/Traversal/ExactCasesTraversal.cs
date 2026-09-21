@@ -6,11 +6,8 @@ using HotChocolate.Types;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// The ExactCases backend: walks a boundary's type regions and Boolean
-/// branches to produce a <see cref="BooleanDecision{T}"/> over an analysis
-/// algebra's summary, collecting fields by response name before weighing
-/// them. Falls back to <see cref="CaseBudgetFallback"/> once the
-/// <see cref="CaseBudget"/> is exhausted.
+/// Evaluates field selections across possible types and Boolean conditions.
+/// Returns a conservative bound for parts that exceed the case budget.
 /// </summary>
 internal static class ExactCasesTraversal
 {
@@ -21,8 +18,7 @@ internal static class ExactCasesTraversal
     /// The schema index to resolve types, fields and weights against.
     /// </param>
     /// <param name="fragments">
-    /// The document's named fragment definitions, needed to extract nested
-    /// boundaries lazily as field groups are collected.
+    /// The document's named fragment definitions.
     /// </param>
     /// <param name="tree">
     /// The root boundary's condition tree.
@@ -36,23 +32,15 @@ internal static class ExactCasesTraversal
     /// static/assumed path.
     /// </param>
     /// <param name="budget">
-    /// The per-operation case budget, shared across every boundary this
-    /// evaluation recurses into.
+    /// The case budget for the entire operation.
     /// </param>
     /// <param name="resolveVariables">
-    /// When <see langword="true"/>, every canonical Boolean variable the
-    /// traversal reaches is resolved from <paramref name="variableValues"/>
-    /// (matching the coercion an unresolved variable is <see langword="false"/>)
-    /// and only its live branch is walked, so the traversal never produces a
-    /// <see cref="SplitDecision{T}"/> and never spends <paramref name="budget"/>
-    /// on a Boolean variable. The default, <see langword="false"/>, is the
-    /// compile-time behavior every other caller relies on: both branches are
-    /// walked and one case is spent per split.
+    /// Whether to resolve Boolean conditions from <paramref name="variableValues"/>
+    /// without consuming the case budget. Undefined or non-Boolean values count as false.
+    /// The default is <see langword="false"/>, which includes both Boolean alternatives.
     /// </param>
     /// <remarks>
-    /// Applies <see cref="IAnalysisAlgebra{T}.Root"/> exactly once, mapped
-    /// over every leaf of the root selection's decision, after the root
-    /// boundary has been fully combined and joined.
+    /// Applies <see cref="IAnalysisAlgebra{T}.Root"/> to each complete root-selection result.
     /// </remarks>
     public static BooleanDecision<TSummary> Evaluate<TSummary>(
         CostSchemaIndex schemaIndex,
@@ -81,8 +69,7 @@ internal static class ExactCasesTraversal
     }
 
     /// <summary>
-    /// Maps <see cref="IAnalysisAlgebra{T}.Root"/> over every leaf of the
-    /// root selection's possibly-split decision.
+    /// Applies the root-type contribution to each alternative root-selection result.
     /// </summary>
     private static BooleanDecision<TSummary> MapRoot<TSummary>(
         IAnalysisAlgebra<TSummary> algebra,
@@ -110,9 +97,7 @@ internal static class ExactCasesTraversal
     }
 
     /// <summary>
-    /// Evaluates one boundary: joins the result of every type region in its
-    /// scope, each factored over the Boolean variables the region's own
-    /// branches and its fields' nested boundaries introduce.
+    /// Evaluates a selection set across its possible types and Boolean conditions.
     /// </summary>
     private static BooleanDecision<TSummary> EvaluateBoundary<TSummary>(
         CostSchemaIndex schemaIndex,
@@ -141,9 +126,8 @@ internal static class ExactCasesTraversal
 
             var representative = FirstIndex(region);
 
-            // In resolve mode every canonical variable resolves outright (see EvaluateCase), so
-            // this budget-driven envelope fast-path never applies: a real backstop budget must
-            // not divert per-request evaluation into the envelope before resolution happens.
+            // Per-request evaluation resolves Boolean values without spending the case budget,
+            // so it must bypass the budget fallback.
             if (!resolveVariables
                 && cache.TryCountIndependentLeafVariables(
                     tree,
@@ -194,10 +178,7 @@ internal static class ExactCasesTraversal
     }
 
     /// <summary>
-    /// Evaluates one type region: follows every branch the current
-    /// assignment already resolves, and splits on the canonically first
-    /// still-unresolved variable it finds reachable, in one canonical order
-    /// shared by the whole selection hierarchy.
+    /// Evaluates one type region under the current Boolean assignment.
     /// </summary>
     private static BooleanDecision<TSummary> EvaluateCase<TSummary>(
         CostSchemaIndex schemaIndex,
@@ -235,9 +216,7 @@ internal static class ExactCasesTraversal
 
         if (resolveVariables)
         {
-            // Extend the assignment with the request's own coerced value (the same coercion
-            // ResolveBooleanVariable applies: undefined or non-Boolean is false) and recurse into
-            // only that live branch. No Split node is produced and no case is spent.
+            // Resolve the request's Boolean value without spending a case on alternative values.
             var resolvedValue = ResolveBooleanVariable(variableValues!, variable);
             return EvaluateCase(
                 schemaIndex,
@@ -303,19 +282,14 @@ internal static class ExactCasesTraversal
     }
 
     /// <summary>
-    /// Resolves one Boolean <c>@include</c>/<c>@skip</c> variable's coerced
-    /// value for resolve-mode traversal, matching <see cref="ConditionPlanNode"/>'s
-    /// coercion exactly: an undefined variable or a non-Boolean coerced value
-    /// is treated as <see langword="false"/>.
+    /// Gets a Boolean variable's value. Undefined or non-Boolean values are treated as <see langword="false"/>.
     /// </summary>
     private static bool ResolveBooleanVariable(ICostVariableValues variableValues, string variableName)
         => variableValues.TryGetValue(variableName, out var value) && value is BooleanValueNode { Value: true };
 
     /// <summary>
-    /// Collects every visited node's field groups by response name, then,
-    /// for each group, prices it through every possible type in
-    /// <paramref name="region"/> and its own nested boundary, combining
-    /// every group's contribution.
+    /// Computes the combined contribution of fields selected in <paramref name="region"/>,
+    /// merging selections with the same response name.
     /// </summary>
     private static BooleanDecision<TSummary> CollectAndWeigh<TSummary>(
         CostSchemaIndex schemaIndex,
@@ -686,8 +660,7 @@ internal static class ExactCasesTraversal
     }
 
     /// <summary>
-    /// Maps <see cref="IAnalysisAlgebra{T}.Field"/> over every leaf of one
-    /// occurrence and parent-type pair's child decision.
+    /// Applies a field's contribution to each alternative result for its child selections.
     /// </summary>
     private static BooleanDecision<TSummary> MapField<TSummary>(
         IAnalysisAlgebra<TSummary> algebra,

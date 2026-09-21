@@ -6,9 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Variable-aware list-size precedence on the <see cref="PagingTests.Query"/> schema:
-/// a supplied slicing-argument variable prices the list at the coerced value, not at
-/// the query's static shape. Expected numbers are the locked, confirmed values.
+/// Tests list-size precedence and cost reporting with coerced variable values.
 /// </summary>
 public sealed class VariableAwareCostTests
 {
@@ -82,9 +80,7 @@ public sealed class VariableAwareCostTests
     public async Task Evaluate_Should_PreferSuppliedValue_When_SlicingArgumentDefaultValueIsAlsoConfigured()
     {
         // arrange
-        // DefaultPageSize (=> slicingArgumentDefaultValue: 10) is configured by
-        // CreateRequestExecutorBuilder, but rank 2 (a present slicing argument) beats
-        // rank 3 (slicingArgumentDefaultValue), so the supplied value of 5 still wins.
+        // The supplied size of five takes precedence over the configured default page size of ten.
         var requestExecutor = await CreateRequestExecutorBuilder()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
@@ -120,8 +116,7 @@ public sealed class VariableAwareCostTests
         // act
         var (typeCost, fieldCost) = await ExecuteAndGetOperationCost(requestExecutor, request);
 
-        // assert: backward pagination prices the same as forward pagination for the same
-        // supplied multiplier.
+        // assert
         Assert.Equal(5, typeCost);
         Assert.Equal(11, fieldCost);
     }
@@ -130,9 +125,7 @@ public sealed class VariableAwareCostTests
     public async Task Evaluate_Should_FallToSlicingArgumentDefaultValue_When_NoSlicingArgumentIsSupplied()
     {
         // arrange
-        // R-NULL-VARIABLE: an undefined variable behaves as an absent argument. With no
-        // real schema argument default on `first`, the field falls through to
-        // slicingArgumentDefaultValue (DefaultPageSize = 10, configured below).
+        // An undefined variable leaves the argument absent, so the default page size applies.
         var requestExecutor = await CreateRequestExecutorBuilder()
             .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
 
@@ -178,8 +171,7 @@ public sealed class VariableAwareCostTests
         // act
         var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
-        // assert: exactly one of the two `books` selections is active for either value of
-        // $x, so the reported cost must be the same as a single `books(first: 3)` call.
+        // assert
         await snapshot
             .Add(operation, "Operation")
             .AddResult(response.ExpectOperationResult(), "Result")
@@ -190,9 +182,7 @@ public sealed class VariableAwareCostTests
     public async Task Evaluate_Should_PriceInterfaceSelectedField_When_ObjectTypeCarriesListSizeAnnotation()
     {
         // arrange
-        // R-INTERFACE-FIELDS: the interceptor annotates object types only, never
-        // interfaces, so a paging field selected through an interface is priced via each
-        // possible object type's own @listSize definition.
+        // The interceptor annotates object fields, so interface selections must use each object's list-size settings.
         var snapshot = new Snapshot();
 
         const string sdl =

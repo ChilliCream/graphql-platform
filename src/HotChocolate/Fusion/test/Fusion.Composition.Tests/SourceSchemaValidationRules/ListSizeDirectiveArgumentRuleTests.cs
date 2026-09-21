@@ -50,8 +50,6 @@ public sealed class ListSizeDirectiveArgumentRuleTests : RuleTestBase
         ]);
     }
 
-    // GraphQL list input coercion: a single value in a list position is valid and means a
-    // one-element list.
     [Fact]
     public void Validate_Should_Succeed_When_SlicingArgumentsIsSingletonString()
     {

@@ -6,9 +6,8 @@ namespace HotChocolate.CostAnalysis;
 public sealed class CostSchemaIndexOptions
 {
     /// <summary>
-    /// Gets or sets the list size used for a list-typed field that carries no
-    /// <c>@listSize</c> annotation and no slicing arguments. The default is
-    /// <see cref="double.PositiveInfinity"/>.
+    /// Gets or sets the assumed size for list fields without applicable list-size information.
+    /// The default is <see cref="double.PositiveInfinity"/>.
     /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
@@ -29,9 +28,9 @@ public sealed class CostSchemaIndexOptions
     } = double.PositiveInfinity;
 
     /// <summary>
-    /// Gets or sets the maximum number of exact splits evaluated while
-    /// compiling one operation before the remainder falls back to a
-    /// conservative bound. The default is 510.
+    /// Gets or sets the maximum number of Boolean case splits allowed when compiling an operation.
+    /// The default is 510. A value of zero or less uses
+    /// <see cref="CaseBudgetExceededBehavior"/> immediately.
     /// </summary>
     public int CaseBudget { get; set; } = 510;
 

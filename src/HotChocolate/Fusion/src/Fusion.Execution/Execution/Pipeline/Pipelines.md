@@ -2,11 +2,9 @@
 
 This document shows the various pre-configured Fusion gateway pipelines.
 
-Document normalization is a lazy service that the coercion, cost analysis and planning
-stages ask for on a cache miss, not a pipeline stage. It de-fragmentizes the operation and
-removes statically excluded selections, and caches the result in the internal
-`NormalizedDocumentCache` keyed by the operation id, so a later request for the same
-operation reuses it instead of rewriting the document again.
+Variable coercion obtains the normalized document before cost analysis and
+operation planning. Normalization inlines fragments into the selected operation
+and removes statically excluded selections.
 
 ## Default Pipeline
 

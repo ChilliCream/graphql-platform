@@ -78,8 +78,8 @@ public sealed class AssumedBoundTests
     [Fact]
     public void EvaluateAssumedBound_Should_BeExceeded_When_SlicingVariableExceedsAssumedSize()
     {
-        // arrange: the assumed bound resolves a variable-bound slicing argument to
-        // assumedSize (4); a runtime value above that is not covered by the bound.
+        // arrange
+        // The supplied list size exceeds the schema assumption of four elements.
         var plan = CompileSimplePlan(
             """
             type Item { value: Int @cost(weight: "2") }
@@ -106,8 +106,8 @@ public sealed class AssumedBoundTests
     [Fact]
     public void EvaluateAssumedBound_Should_BeExceeded_When_VariableInputListSuppliesMoreThanOneElement()
     {
-        // arrange: the assumed bound prices a variable-supplied input list as one
-        // element (InputCost.ComputeStaticShape); three supplied elements are not.
+        // arrange
+        // The assumed bound counts one input element; the request supplies three.
         var plan = CompileSimplePlan(
             """
             input Term { value: String @cost(weight: "3") }

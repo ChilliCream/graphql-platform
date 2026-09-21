@@ -6,10 +6,7 @@ namespace HotChocolate.CostAnalysis;
 
 public sealed class IncrementalPartsMarkerDirectiveTests
 {
-    // Mirrors the internal marker directive the HotChocolate normalizer appends to an
-    // operation definition that still has incremental delivery parts. The cost plan compiler
-    // has no knowledge of this directive, and this test asserts it stays that way: an unknown
-    // directive on the operation definition must never change the compiled plan.
+    // Use the normalizer's marker name to check that it does not affect cost analysis.
     private const string MarkerDirectiveName = "hc__hasIncrementalParts";
 
     private const string Schema =

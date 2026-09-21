@@ -198,9 +198,7 @@ internal sealed class FusionSettingsSetCommand : Command
 
         if (unsetDefaultListSize)
         {
-            // The archive's persisted defaultListSize must be cleared before composing: the
-            // composition settings merge only lets a non-null CLI value win over what is already
-            // persisted, so a null passed through that merge could never clear an existing value.
+            // Clear the persisted value first: merging null settings preserves an existing value.
             await ClearDefaultListSizeSettingAsync(archive, cancellationToken);
         }
 
@@ -252,9 +250,7 @@ internal sealed class FusionSettingsSetCommand : Command
     {
         var compositionLog = new CompositionLog();
 
-        // Reuse the same raw-JSON validation ComposeAsync applies when reading the persisted
-        // settings, so an already-invalid persisted defaultListSize is reported with the same
-        // message here, instead of throwing a JsonException out of a blind Deserialize below.
+        // Validate raw settings so invalid values produce the same composition errors as ComposeAsync.
         var (settingsRead, existingSettings) = await CompositionHelper.TryGetCompositionSettingsAsync(
             archive,
             compositionLog,

@@ -4,18 +4,11 @@ using HotChocolate.Types.Mutable.Serialization;
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Runs two custom algebras built only against the public
-/// <see cref="AnalysisPlan"/>/<see cref="AnalysisPlanCompiler"/> surface
-/// over the Conformance.Tests precision fixtures, for a fixed variable set
-/// per fixture. These fixtures assert IBM cost numbers elsewhere; here they
-/// only supply schemas and operations exercising fragments, exclusive type
-/// regions, duplicate response names and Boolean-gated selections, so a
-/// structural algebra sees the same document shapes the cost algebra does.
+/// Tests field counts and selection depths for the precision fixtures.
 /// </summary>
 public sealed class PrecisionFixtureAlgebraTests
 {
-    // Hand-derived from each fixture's operation for the fixed variable set
-    // the fixture itself supplies (see each JSON file's "variables").
+    // Expected counts use each fixture's supplied variable values.
     private static readonly Dictionary<string, (int FieldCount, int MaxDepth)> s_expected = new(StringComparer.Ordinal)
     {
         ["c1-exclusive-types"] = (2, 2),

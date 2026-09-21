@@ -1,13 +1,7 @@
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
-/// Evaluates a <see cref="CostPlan"/>'s configured <see cref="CostAnalyses"/>
-/// directly against coerced variable values (or, for the assumed bound, the
-/// static/assumed path), combining the built-in <see cref="CostAlgebra"/>
-/// and <see cref="ResponseSizeAlgebra"/> with the same arithmetic
-/// (<see cref="PlanArithmetic"/>) the compiled plan tree uses, without
-/// materializing any <see cref="PlanNode"/>. Used by a <see cref="CostPlan"/>
-/// that discarded its compile after exhausting the case budget.
+/// Computes a plan's configured analyses using coerced variable values or schema assumptions.
 /// </summary>
 internal sealed class PerRequestCostAlgebra : IAnalysisAlgebra<CostEstimate>
 {
