@@ -386,6 +386,30 @@ export function buildChamberTiles(
   torus: TorusParams,
   kind: "column" | "wall",
   bandFadeFloor = 1,
+  /**
+   * hc-0-gar ruling (i): the culling exception for the bridge junction
+   * rows. Every other call site (the full `wallRows`/`columnRows` builds,
+   * rows 2-16 included) omits this and keeps the kind-based rule above
+   * unchanged -- pixel parity intact. `index.tsx` calls this a SECOND time
+   * per junction, with `rows` restricted to the small `topJunctionRows`/
+   * `bottomJunctionRows` arrays only (row 16/2 -> the bridge sequence ->
+   * the rim, never rows 2-16 themselves), `kind: "wall"` and
+   * `faceOverride: "near"` to build the near-facing half of just that
+   * range: normally the wall keeps only the far/inner half (`away`); this
+   * inverts the kept half to the near one (`!away`, the column's own rule)
+   * for that call only, so the ceiling/floor tiles nearest the camera are
+   * also produced. `paint.ts`'s `paintBridgeLayer` paints them with the
+   * same wall tile face (`paintTile`, fasteners/shading included) into
+   * their own layer, which `index.tsx` stamps over the column layer every
+   * frame -- those tiles are nearer the camera than the column's own
+   * top/bottom rows, so they must composite OVER it where they overlap.
+   * The SEAM itself uses `insetQuadPx` (the column's own axis-capped,
+   * pixel-width inset), not the wall's fractional `SEAM_INSET`/`insetQuad`
+   * -- see the `poly` assignment below for why (the wall's own inset was
+   * never exercised at this front pole before, and fails there the same
+   * way `insetQuadPx`'s own `axisCap` doc describes for the column).
+   */
+  faceOverride?: "near" | "far",
 ): Tile[] {
   const tiles: Tile[] = [];
   const maxY = rows.reduce((m, row) => Math.max(m, Math.abs(row.y)), 0);
@@ -408,7 +432,14 @@ export function buildChamberTiles(
       const t1 = ((s + 1) / thetaSegments + rowStagger) * Math.PI * 2;
       const midTheta = (t0 + t1) / 2;
       const away = facingAway(midTheta, camera);
-      if (kind === "column" ? away : !away) {
+      const skip = faceOverride
+        ? faceOverride === "near"
+          ? away
+          : !away
+        : kind === "column"
+          ? away
+          : !away;
+      if (skip) {
         continue;
       }
       const wA0 = ringPoint(rowA.radius, t0, rowA.y, rowA.z);
@@ -425,8 +456,29 @@ export function buildChamberTiles(
       const wPx = Math.hypot(c1.x - c0.x, c1.y - c0.y);
       const hPx = Math.hypot(c3.x - c0.x, c3.y - c0.y);
       const size = Math.min(wPx, hPx);
+      // hc-0-gar ruling (i): the near-facing bridge exception (`kind ===
+      // "wall"` with `faceOverride: "near"`) draws tiles at the column's
+      // own front pole (theta = 3*PI/2), the wall's fractional `SEAM_INSET`
+      // was never exercised there before -- the wall itself only ever
+      // draws its far/away half (kept away from any pole its own culling
+      // never approaches). At the front pole a segment boundary can land
+      // (as it does here: 56 segments, 3*PI/2 = 42/56 of a turn, an exact
+      // boundary) almost perfectly VERTICAL in screen space, and a
+      // fractional inset's perpendicular offset -- same defect
+      // `insetQuadPx`'s own `axisCap` doc already documents for the
+      // column's foreshortened limb tiles -- measured along a FIXED
+      // vertical scanline can run the tile's ENTIRE height instead of a
+      // seam width (confirmed directly: rv3-fringe.cjs's "top" bar read
+      // 202px at x=1115, 1440, a solid alpha=255/lum=0 run from y=0 to
+      // y=200, not a hairline). `insetQuadPx` -- the column's own
+      // per-edge, axis-capped, pixel-width inset, already tuned to the
+      // wall's own measured seam gap within 1px (`COLUMN_SEAM_GAP_PX`'s
+      // own doc) -- reads as the same wall seam width without this
+      // failure mode, so the near-facing exception uses it regardless of
+      // `kind`; the ordinary wall/column builds (no `faceOverride`) are
+      // completely unaffected.
       const poly =
-        kind === "column"
+        kind === "column" || faceOverride
           ? insetQuadPx([c0, c1, c2, c3], COLUMN_SEAM_GAP_PX)
           : insetQuad([c0, c1, c2, c3], size, SEAM_INSET);
       const normal = { x: Math.cos(midTheta), y: 0, z: Math.sin(midTheta) };

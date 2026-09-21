@@ -48,6 +48,23 @@ export interface TokamakLayout {
    * - 2)` behaviour, since those wall rows are not junction-spliced.
    */
   readonly wallLightRowRange: readonly [number, number];
+  /**
+   * hc-0-gar ruling (i): the TOP junction's own small row chain -- frozen
+   * wall row 16, then the `buildBridgeRows` sequence, then the column's own
+   * top rim (`wallRows`' own `base.slice(2,17)[14]`/bridge/`columnRows`
+   * tail, already spliced into `wallRows` above) -- for `chamber.ts`'s
+   * culling exception (`buildChamberTiles(..., "wall", 1, "near")`),
+   * building ONLY the near-facing half of this small range so it can be
+   * stamped OVER the column layer (`index.tsx`'s dedicated bridge layer),
+   * the way the reference's ceiling folds down in front of the pillar.
+   * Never overlaps `wallLightRowRange`'s own frozen index range. Empty on
+   * `mobile`/`stacked`: their column and wall are fully independent
+   * constructs (no bridge splice), and neither rim is ever in frame there
+   * (confirmed at 375/768) -- no near-facing exception needed.
+   */
+  readonly topJunctionRows: readonly ChamberRow[];
+  /** Same as `topJunctionRows`, mirrored at the BOTTOM junction: the column's own bottom rim, the bridge sequence, then frozen wall row 2. */
+  readonly bottomJunctionRows: readonly ChamberRow[];
   readonly torus: TorusParams;
   /** `stacked`/`sideBySide`: the x the copy-clear zone ends at (0 off `mobile`). */
   readonly artLeft: number;
@@ -520,23 +537,54 @@ export function computeLayout(
     const SIDE_TOP_RIM_R = 320;
     // TOP bridging ROWS (hc-0-gar, replaces the single FROZEN `base[17]`
     // this ticket's fix removes): a `buildBridgeRows` sequence from row 16
-    // (still frozen) to the rim. `steps`/`powerYZ`/`powerR` are the joint
-    // grid search's own best candidate (`test-results/gar-bridge-search.cjs`,
-    // scanning steps 2-20 and both powers 0.02-6, real project()/ringPoint()
-    // jointly at 1280/1440/1920, not hand-picked) for the WHOLE rhythm chain
-    // -- the wall's own pair 15->16, through every bridge pair, to the
-    // column's own rim-adjacent pair. Row 16's own `y` is far OUTSIDE the
-    // rim's `y` (the frozen wall keeps flaring its `y` further out toward
-    // its own edge while the rim sits back in near the column's axis, see
-    // this file's module doc), so this bridge's own path bends back against
-    // the wall's immediately-preceding trend; no row count or power pair
-    // found gets every step under 1.3x -- the worst step (1.50-1.53 across
-    // 1280/1440/1920) is a genuine floor of this monotone-curve family
-    // against these frozen endpoints, not a margin choice. Still a >5x
-    // improvement over the single bridging row's own ~8x jump.
-    const SIDE_TOP_BRIDGE_STEPS = 5;
-    const SIDE_TOP_BRIDGE_POWER_YZ = 0.65;
-    const SIDE_TOP_BRIDGE_POWER_R = 0.3;
+    // (still frozen) to the rim. PLANNER RULING (i) (ticket comments
+    // 384/385/386): the FAR-arc rhythm this bridge's `steps`/`powerYZ`/
+    // `powerR` were originally tuned against is moot -- every far-arc
+    // bridge tile, on the column's own centre line, projects BEHIND the
+    // opaque column (verified directly: 1440 row16 far y228, bridge far
+    // arcs 248-374, column top y202) regardless of which curve connects
+    // row 16 to the rim, so the user's own "buffer" complaint was never
+    // answerable on that arc. Route (i): `chamber.ts`'s `faceOverride:
+    // "near"` culling exception (`TokamakLayout.topJunctionRows`) draws
+    // this SAME bridge sequence's NEAR-facing half too, composited OVER
+    // the column (`paint.ts`'s `paintBridgeLayer`) -- the ceiling folds
+    // down in front of the column's top, matching
+    // `reference-tokamak-pillar.png`.
+    //
+    // The rhythm bar is RE-MEASURED on the near arc (row16 -> bridge ->
+    // rim). SELF-CRITIQUE (fixer 1b, round 2): a first pass picked `steps
+    // = 2` from a RING-WIDE MEDIAN across all 56 theta segments per row
+    // pair (mirroring the far-arc search's own method) -- that measure
+    // hid a severe problem specific to this near arc: row 16's own y
+    // (huge, 606 canonical) combines with the near side's much SHORTER
+    // camera depth (close to the lens, not far across the room) to
+    // project its near-facing point far off-screen (theta = 3*PI/2, the
+    // column's own centre line: y approx -1330px at 1440, verified
+    // directly against the real bundle/live browser), unlike the far arc
+    // (gentler depth falloff, y approx 228px, always in frame). With only
+    // one inserted row, the two resulting near-facing tiles each spanned
+    // 600-930px vertically AT THE CENTRE LINE -- the exact spot the
+    // ticket's own crops/rhythm wording point at -- while segments further
+    // around the ring (toward the near/far boundary) stayed small, so the
+    // RING-WIDE median (436-439px) never surfaced it and the ratio between
+    // the two oversized tiles (themselves both huge) still read as
+    // "smooth" (near 1.0). Re-measured on the FRONT ARC specifically (the
+    // single segment nearest theta = 3*PI/2, matching how
+    // `rvw1-gar-rhythm.cjs`'s own "near"/"far" sampling already isolates a
+    // centre-line reading) with `test-results/gar-bridge-front-search.cjs`
+    // (steps 2-40, both powers 0.05-4, real project()/ringPoint() jointly
+    // at 1280/1440/1920): `steps` below is the smallest step count whose
+    // front-arc tile heights land in the wall's own established range
+    // (tens to ~150px, not hundreds) while every consecutive ratio still
+    // clears [0.77, 1.3] with margin (worst 1.044-1.062 across
+    // 1280/1440/1920; front-arc heights 33-158px, the SAME order of
+    // magnitude as the wall's own row-to-row spacing elsewhere in the
+    // chamber) -- both the relative rhythm bar AND the absolute scale the
+    // wall's own tiles read at are satisfied, not just the ratio in
+    // isolation.
+    const SIDE_TOP_BRIDGE_STEPS = 22;
+    const SIDE_TOP_BRIDGE_POWER_YZ = 1.05;
+    const SIDE_TOP_BRIDGE_POWER_R = 1.05;
     // OPTION B (planner ruling, ticket comment 334, orchestrator relay
     // 335, reaffirmed 345/346 "bottom rim per the earlier option B" --
     // superseding the interim "front arc in canvas" reading of comment
@@ -551,16 +599,30 @@ export function computeLayout(
     const SIDE_BOTTOM_RIM_R = 236;
     // BOTTOM bridging ROW(S) (hc-0-gar, replaces the single FROZEN
     // `base[1]` this ticket's fix removes): a `buildBridgeRows` sequence
-    // from the bottom rim to row 2 (still frozen), same search as the top
-    // (mirrored direction). The bottom rim's own `y` sits much closer to
-    // row 2's own trend than the top rim does to row 16's (see this file's
-    // module doc), so the search's own best candidate clears the bar
-    // comfortably with only `steps = 2` (one inserted row): worst
-    // consecutive ratio 1.13-1.17 across 1280/1440/1920, inside the
-    // ticket's 1.3x rhythm bar with real margin.
+    // from the bottom rim to row 2 (still frozen). PLANNER RULING (i)
+    // (comments 384/385/386, "both junctions"): re-tuned against the NEAR
+    // arc (rim -> bridge -> row 2) via `chamber.ts`'s `faceOverride:
+    // "near"` exception (`TokamakLayout.bottomJunctionRows`), composited
+    // over the column so the floor folds up into its bottom.
+    //
+    // UNLIKE the top junction, this near-facing chain is NEVER visible at
+    // any side-by-side width: the bottom rim's own front arc (this
+    // chain's very FIRST point) already projects at y >= 1068px on a
+    // <=900px-tall canvas (verified directly against the real bundle --
+    // the option B acceptance this file's module doc already documents),
+    // and every row further from the rim (the bridge steps, then row 2)
+    // projects further still past the bottom edge, so no near-facing
+    // bottom tile -- regardless of its own size -- ever paints a visible
+    // pixel; the same TOP-junction failure mode (a ring-wide median
+    // masking a huge front-arc tile) cannot produce a visible artifact
+    // here because the front arc itself is off-canvas. `steps = 2` (one
+    // inserted row) is therefore kept: `test-results/
+    // gar-bridge-near-search.cjs`'s own best candidate clears the
+    // (moot but still checked) ratio bar with wide margin, worst
+    // consecutive ratio 1.001-1.007 across 1280/1440/1920.
     const SIDE_BOTTOM_BRIDGE_STEPS = 2;
-    const SIDE_BOTTOM_BRIDGE_POWER_YZ = 1.08;
-    const SIDE_BOTTOM_BRIDGE_POWER_R = 2.3;
+    const SIDE_BOTTOM_BRIDGE_POWER_YZ = 1.15;
+    const SIDE_BOTTOM_BRIDGE_POWER_R = 0.95;
 
     // Hourglass: waist at the band, flaring independently to each chosen
     // rim point above -- the column's own row 0/18 land exactly on those
@@ -625,6 +687,21 @@ export function computeLayout(
       ...topBridge,
       columnRows[columnRows.length - 1],
     ];
+    // hc-0-gar ruling (i): the small near-facing-only chains (see
+    // `TokamakLayout.topJunctionRows`'s own doc) -- built straight from the
+    // same `base[16]`/`topBridge`/`columnRows` values already spliced into
+    // `wallRows` above, so a rim/row/bridge change here can never drift out
+    // of sync with the far-facing wall build.
+    const topJunctionRows: ChamberRow[] = [
+      base[16],
+      ...topBridge,
+      columnRows[columnRows.length - 1],
+    ];
+    const bottomJunctionRows: ChamberRow[] = [
+      columnRows[0],
+      ...bottomBridge,
+      base[2],
+    ];
     // R - a = the column's own waist radius exactly (D(1)'s "gap of at
     // most 0.05 R", landed at 0 here), `a` kept at the pre-ticket tube
     // thickness (21) so the band's thickness/exposure is unchanged; both
@@ -653,6 +730,8 @@ export function computeLayout(
       // `TokamakLayout.wallLightRowRange`): fixed regardless of the bridge
       // sequences' own row counts on either side.
       wallLightRowRange: [2, 17],
+      topJunctionRows,
+      bottomJunctionRows,
       torus,
       artLeft: zoneRight,
       artTop: 0,
@@ -709,6 +788,11 @@ export function computeLayout(
       // Unchanged from the prior `rows.slice(2, rows.length - 2)` reach:
       // these wall rows are not junction-spliced.
       wallLightRowRange: [2, wallRows.length - 2],
+      // No bridge splice on this branch (checkpoint 3, ruling 329/330): the
+      // column's own band hourglass rims sit off canvas, never in frame at
+      // 768 (confirmed) -- no near-facing junction exception applies.
+      topJunctionRows: [],
+      bottomJunctionRows: [],
       torus: STACKED_TORUS,
       artLeft: 0,
       artTop,
@@ -750,6 +834,10 @@ export function computeLayout(
     // Unchanged from the prior `rows.slice(2, rows.length - 2)` reach:
     // these wall rows are not junction-spliced.
     wallLightRowRange: [2, wallRows.length - 2],
+    // Same reasoning as `stacked` above: no bridge splice, rims never in
+    // frame at 375 (confirmed).
+    topJunctionRows: [],
+    bottomJunctionRows: [],
     torus,
     artLeft: 0,
     artTop,

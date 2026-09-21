@@ -19,6 +19,7 @@ import {
 } from "./sceneLayout";
 import {
   buildColumnSilhouette,
+  paintBridgeLayer,
   paintColumnLayer,
   paintPlasmaLayer,
   paintWall,
@@ -250,19 +251,34 @@ export default function Tokamak() {
     const liveCtx = liveCanvas.getContext("2d");
     // The column and the plasma's far/near static caches are never added to
     // the DOM: they exist only as `drawImage` sources the live canvas
-    // stamps every frame, in the order wall -> far arc -> column -> near
-    // arc, so the column's own tiles can sit BETWEEN the two halves of the
-    // orbiting band -- real occlusion from draw order, not a fourth
-    // stacked canvas or a destination-out mask.
+    // stamps every frame, in the order wall -> far arc -> column -> bridge
+    // -> near arc, so the column's own tiles can sit BETWEEN the two
+    // halves of the orbiting band -- real occlusion from draw order, not a
+    // fourth stacked canvas or a destination-out mask.
     const columnCanvas = document.createElement("canvas");
     const farCanvas = document.createElement("canvas");
     const nearCanvas = document.createElement("canvas");
+    // hc-0-gar ruling (i): the junctions' own near-facing bridge tiles,
+    // stamped right after `columnCanvas` every frame (`paintBridgeLayer`'s
+    // own doc) so they always composite OVER the column layer -- its own
+    // cached layer, same convention as `columnCanvas`/`farCanvas`/
+    // `nearCanvas`, never added to the DOM.
+    const bridgeCanvas = document.createElement("canvas");
     const columnCtx = columnCanvas.getContext("2d");
     const farCtx = farCanvas.getContext("2d");
     const nearCtx = nearCanvas.getContext("2d");
+    const bridgeCtx = bridgeCanvas.getContext("2d");
     const glow = document.createElement("canvas");
     const glowCtx = glow.getContext("2d");
-    if (!wallCtx || !liveCtx || !columnCtx || !farCtx || !nearCtx || !glowCtx) {
+    if (
+      !wallCtx ||
+      !liveCtx ||
+      !columnCtx ||
+      !farCtx ||
+      !nearCtx ||
+      !bridgeCtx ||
+      !glowCtx
+    ) {
       return;
     }
 
@@ -560,6 +576,34 @@ export default function Tokamak() {
       ).y;
       paintColumnLayer(columnCtx!, w, h, columnBase, columnTiles, bandY);
 
+      // hc-0-gar ruling (i): the near-facing half of each junction's own
+      // small bridge range (`chamber.ts`'s `faceOverride: "near"` culling
+      // exception, `topJunctionRows`/`bottomJunctionRows` only -- never
+      // `wallRows`, so rows 2-16 and `wallTiles`/the static wall canvas
+      // stay exactly as before). Painted into its own layer and stamped
+      // over `columnCanvas` every frame (`drawLive`, below).
+      const bridgeTiles = [
+        ...buildChamberTiles(
+          layout.topJunctionRows,
+          layout.wallThetaSegments,
+          layout.camera,
+          layout.torus,
+          "wall",
+          1,
+          "near",
+        ),
+        ...buildChamberTiles(
+          layout.bottomJunctionRows,
+          layout.wallThetaSegments,
+          layout.camera,
+          layout.torus,
+          "wall",
+          1,
+          "near",
+        ),
+      ];
+      paintBridgeLayer(bridgeCtx!, w, h, bridgeTiles);
+
       // The ring's projected width uses the camera's own base scale (the
       // scale at its aim depth), the same basis the ring's actual
       // left/right on-screen extent falls out of -- not the band centre's
@@ -652,6 +696,7 @@ export default function Tokamak() {
         columnCanvas,
         farCanvas,
         nearCanvas,
+        bridgeCanvas,
       ]) {
         canvas!.width = Math.max(1, Math.round(w * dpr));
         canvas!.height = Math.max(1, Math.round(h * dpr));
@@ -1091,6 +1136,13 @@ export default function Tokamak() {
       // dimming factor. Always drawn, debug or not.
       liveCtx!.globalCompositeOperation = "source-over";
       blit(liveCtx!, columnCanvas);
+
+      // ----- BRIDGE: hc-0-gar ruling (i), each junction's near-facing
+      // bridge tiles, stamped right after the column so they always
+      // composite OVER it (nearer the camera than the column's own
+      // top/bottom rows) -- static geometry, not plasma, so drawn
+      // unconditionally like the column just above, debug or not.
+      blit(liveCtx!, bridgeCanvas);
 
       if (!hidePlasmaForDebug) {
         // The column's own coral tint: a `'lighter'` radial pass drawn

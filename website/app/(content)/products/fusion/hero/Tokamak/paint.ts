@@ -460,6 +460,59 @@ export function paintColumnLayer(
 }
 
 /**
+ * hc-0-gar ruling (i): the near-facing half of each junction's bridge
+ * range, its own small static layer -- `index.tsx` stamps it with
+ * `drawImage` right after `columnCanvas` every frame (real occlusion from
+ * draw order, matching `paintColumnLayer`'s own convention), so it always
+ * composites OVER the column: those tiles are nearer the camera than the
+ * column's own top/bottom rows, the ceiling/floor folding down/up in front
+ * of the pillar the way `reference-tokamak-pillar.png` shows. `tiles`
+ * comes from `buildChamberTiles`'s own `faceOverride: "near"` culling
+ * exception over the small `topJunctionRows`/`bottomJunctionRows` arrays
+ * only (see that function's doc) -- never `wallTiles`, so rows 2-16 and
+ * the static wall canvas are untouched.
+ *
+ * Same double-fill technique `paintColumnLayer` already uses for its own
+ * opaque backing: every tile's own `rawPoly` (the pre-inset true
+ * footprint, not the seam-inset `poly`) is unioned into ONE path --
+ * `orientQuad` first, so the canvas' "nonzero" winding rule never cancels
+ * two oppositely-wound quads into an unpainted hole -- and filled once,
+ * opaquely, in BLACK (`blackToRgba`, the same "black only encodes
+ * transparency, overridden here" convention `paintColumnLayer` already
+ * uses). Without it, this layer's own translucent `paintTile` gradient
+ * would blend straight onto whatever the column layer drew underneath
+ * ("no see-through", the ruling's own words) instead of reading at the
+ * wall's own tuned specular level. `paintTile` then draws each tile's
+ * usual seam-inset face, fasteners and shading on top -- the wall's own
+ * look, unmodified.
+ */
+export function paintBridgeLayer(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  tiles: readonly Tile[],
+): void {
+  ctx.clearRect(0, 0, w, h);
+  ctx.globalCompositeOperation = "source-over";
+  if (tiles.length > 0) {
+    ctx.beginPath();
+    for (const tile of tiles) {
+      const oriented = orientQuad(tile.rawPoly);
+      ctx.moveTo(oriented[0].x, oriented[0].y);
+      ctx.lineTo(oriented[1].x, oriented[1].y);
+      ctx.lineTo(oriented[2].x, oriented[2].y);
+      ctx.lineTo(oriented[3].x, oriented[3].y);
+      ctx.closePath();
+    }
+    ctx.fillStyle = blackToRgba(1);
+    ctx.fill();
+  }
+  for (const tile of tiles) {
+    paintTile(ctx, tile);
+  }
+}
+
+/**
  * Style for one cached plasma layer (the far half or the near half of the
  * band, see `paintPlasmaLayer`). `alphaMul` scales every alpha in the pass
  * -- the coral core, the white-hot centre and both halo passes together --
