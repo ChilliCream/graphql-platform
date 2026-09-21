@@ -28,6 +28,12 @@ internal interface IClaudeHookHandler
         ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Emits the telemetry skill pointer for the first matching Bash command in a session.
+    /// </summary>
+    Task<ClaudeHookOutcome> HandlePreToolUseAsync(
+        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Resets the Stop gate's per-turn block budget, then returns the unread
     /// mail digest for messages not yet delivered on the digest channel, or
     /// <see cref="ClaudeHookOutcome.Neutral"/> when there is nothing new.

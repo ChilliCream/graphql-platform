@@ -90,6 +90,36 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     }
 
     [Fact]
+    public async Task PreToolUseClaude_Should_WriteTheTelemetryNudgeOnce_When_TheCommandMatches()
+    {
+        // arrange
+        await InitializeWorkspaceDatabaseAsync();
+        await InsertSessionIdentityAsync("maya", "session-1");
+        SetupStandardInput(
+            $$"""{"session_id":"session-1","cwd":{{System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)}}}""");
+        await ExecuteCommandAsync("agent", "hook", "claude", "session-start");
+        SetupStandardInput(
+            """{"session_id":"session-1","cwd":"""
+            + System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)
+            + ""","tool_name":"Bash","tool_input":{"command":"nitro telemetry services list"}}""");
+
+        // act
+        var first = await ExecuteCommandAsync("agent", "hook", "claude", "pre-tool-use");
+        SetupStandardInput(
+            """{"session_id":"session-1","cwd":"""
+            + System.Text.Json.JsonSerializer.Serialize(WorkingDirectory)
+            + ""","tool_name":"Bash","tool_input":{"command":"nitro telemetry services list"}}""");
+        var second = await ExecuteCommandAsync("agent", "hook", "claude", "pre-tool-use");
+
+        // assert
+        Assert.Equal(0, first.ExitCode);
+        first.StdOut.Trim().MatchInlineSnapshot(
+            """{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":"nitro telemetry: the nitro-telemetry skill teaches the investigation order (services list, traces list --has-error, traces show, logs list --trace-id); load it if available."}}""");
+        Assert.Equal(0, second.ExitCode);
+        second.StdOut.Trim().MatchInlineSnapshot("{}");
+    }
+
+    [Fact]
     public async Task Stop_Should_WriteNeutralResponse_When_NoUnreadMailIsUndelivered()
     {
         // arrange: a presence row bound to the actor, with an empty inbox,
@@ -161,6 +191,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     [Theory]
     [InlineData("user-prompt-submit")]
     [InlineData("stop")]
+    [InlineData("pre-tool-use")]
     [InlineData("session-end")]
     public async Task Event_Should_WriteNeutralResponse_When_ThePayloadNamesNoSession(string eventName)
     {
@@ -211,6 +242,7 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
               session-start       Adapt Claude Code's SessionStart hook: upsert this session's presence row.
               user-prompt-submit  Adapt Claude Code's UserPromptSubmit hook: reset the block budget and inject the unread-mail digest.
               stop                Adapt Claude Code's Stop hook: block the turn while unread mail is undelivered.
+              pre-tool-use        Adapt Claude Code's PreToolUse hook: inject the telemetry skill pointer once per session.
               session-end         Adapt Claude Code's SessionEnd hook: delete this session's presence row.
             """);
     }
@@ -225,6 +257,9 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
     [InlineData(
         "stop",
         "Adapt Claude Code's Stop hook: block the turn while unread mail is undelivered.")]
+    [InlineData(
+        "pre-tool-use",
+        "Adapt Claude Code's PreToolUse hook: inject the telemetry skill pointer once per session.")]
     [InlineData(
         "session-end",
         "Adapt Claude Code's SessionEnd hook: delete this session's presence row.")]
@@ -245,6 +280,17 @@ public sealed class ClaudeHookCommandTests(NitroCommandFixture fixture) : AgentC
             Options:
               -?, -h, --help  Show help and usage information
             """);
+    }
+
+    private async Task InitializeWorkspaceDatabaseAsync()
+    {
+        Directory.CreateDirectory(WorkspaceDirectory);
+
+        await using (await new AgentDatabase().InitializeAsync(
+            WorkspaceDirectory,
+            TestContext.Current.CancellationToken))
+        {
+        }
     }
 
     private async Task<MailMessage> SeedMailAsync()

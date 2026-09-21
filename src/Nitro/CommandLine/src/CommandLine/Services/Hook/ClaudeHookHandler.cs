@@ -29,6 +29,11 @@ internal sealed class ClaudeHookHandler(
     private const string BlockDigestPreamble =
         "Unread nitro mail is waiting; handle it before ending this turn, or ignore this once if it is not actionable right now.";
 
+    private const string TelemetryCommand = "nitro telemetry";
+
+    private const string TelemetryNudge =
+        "nitro telemetry: the nitro-telemetry skill teaches the investigation order (services list, traces list --has-error, traces show, logs list --trace-id); load it if available.";
+
     public async Task<ClaudeHookOutcome> HandleSessionStartAsync(
         ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
@@ -66,6 +71,25 @@ internal sealed class ClaudeHookHandler(
         {
             AdditionalContext = AgentActorContext.Format(session.AgentName!, role)
         };
+    }
+
+    public async Task<ClaudeHookOutcome> HandlePreToolUseAsync(
+        ClaudeHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+    {
+        if (payload.ToolName != "Bash" || !IsTelemetryCommand(payload.ToolInput?.Command))
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        var resolved = await ResolveAsync(payload, dryRun, cancellationToken);
+
+        if (resolved is null
+            || !await sessionRegistry.TryClaimTelemetryNudgeAsync(resolved.Generation, cancellationToken))
+        {
+            return ClaudeHookOutcome.Neutral;
+        }
+
+        return new ClaudeHookOutcome { AdditionalContext = TelemetryNudge };
     }
 
     public async Task<ClaudeHookOutcome> HandleUserPromptSubmitAsync(
@@ -190,6 +214,12 @@ internal sealed class ClaudeHookHandler(
 
         return ClaudeHookOutcome.Neutral;
     }
+
+    private static bool IsTelemetryCommand(string? command)
+        => command is not null
+            && command.Length >= TelemetryCommand.Length
+            && command.StartsWith(TelemetryCommand, StringComparison.Ordinal)
+            && (command.Length == TelemetryCommand.Length || char.IsWhiteSpace(command[TelemetryCommand.Length]));
 
     /// <summary>
     /// The unread-mail digest for this session and channel, or null when

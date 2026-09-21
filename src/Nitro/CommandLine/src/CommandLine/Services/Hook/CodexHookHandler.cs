@@ -43,6 +43,11 @@ internal sealed class CodexHookHandler(
         ArgumentNullException.ThrowIfNull(environmentVariableProvider);
     }
 
+    private const string TelemetryCommand = "nitro telemetry";
+
+    private const string TelemetryNudge =
+        "nitro telemetry: the nitro-telemetry skill teaches the investigation order (services list, traces list --has-error, traces show, logs list --trace-id); load it if available.";
+
     public async Task<CodexHookOutcome> HandleSessionStartAsync(
         CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
     {
@@ -83,6 +88,25 @@ internal sealed class CodexHookHandler(
         {
             AdditionalContext = AgentActorContext.Format(session.AgentName!, role)
         };
+    }
+
+    public async Task<CodexHookOutcome> HandlePreToolUseAsync(
+        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken)
+    {
+        if (payload.ToolName != "Bash" || !IsTelemetryCommand(payload.ToolInput?.Command))
+        {
+            return CodexHookOutcome.Neutral;
+        }
+
+        var resolved = await ResolveAsync(payload, cancellationToken);
+
+        if (resolved is null
+            || !await sessionRegistry.TryClaimTelemetryNudgeAsync(resolved.Generation, cancellationToken))
+        {
+            return CodexHookOutcome.Neutral;
+        }
+
+        return new CodexHookOutcome { AdditionalContext = TelemetryNudge };
     }
 
     public async Task<CodexHookOutcome> HandleUserPromptSubmitAsync(
@@ -194,6 +218,12 @@ internal sealed class CodexHookHandler(
 
         return new CodexNotifyOutcome { Queued = queueResult == CodexQueueResult.Ok };
     }
+
+    private static bool IsTelemetryCommand(string? command)
+        => command is not null
+            && command.Length >= TelemetryCommand.Length
+            && command.StartsWith(TelemetryCommand, StringComparison.Ordinal)
+            && (command.Length == TelemetryCommand.Length || char.IsWhiteSpace(command[TelemetryCommand.Length]));
 
     /// <summary>
     /// The unread-mail digest for this session on <paramref name="channel"/>,

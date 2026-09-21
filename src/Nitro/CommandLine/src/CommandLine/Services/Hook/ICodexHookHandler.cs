@@ -24,6 +24,12 @@ internal interface ICodexHookHandler
         CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Emits the telemetry skill pointer for the first matching Bash command in a session.
+    /// </summary>
+    Task<CodexHookOutcome> HandlePreToolUseAsync(
+        CodexHookPayload payload, bool dryRun, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Returns the unread-mail digest for messages not yet delivered on the
     /// digest channel, or <see cref="CodexHookOutcome.Neutral"/> when there
     /// is nothing new. Codex has no per-turn block budget to reset (that

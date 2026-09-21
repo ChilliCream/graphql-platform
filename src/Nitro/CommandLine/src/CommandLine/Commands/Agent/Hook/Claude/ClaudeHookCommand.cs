@@ -9,6 +9,7 @@ internal sealed class ClaudeHookCommand : Command
         Subcommands.Add(new SessionStartHookCommand());
         Subcommands.Add(new UserPromptSubmitHookCommand());
         Subcommands.Add(new StopHookCommand());
+        Subcommands.Add(new PreToolUseHookCommand());
         Subcommands.Add(new SessionEndHookCommand());
     }
 }

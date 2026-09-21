@@ -19,6 +19,18 @@ internal sealed record ClaudeHookPayload
     [JsonPropertyName("cwd")]
     public string? Cwd { get; init; }
 
+    [JsonPropertyName("tool_name")]
+    public string? ToolName { get; init; }
+
+    [JsonPropertyName("tool_input")]
+    public ClaudeHookToolInput? ToolInput { get; init; }
+
     [JsonPropertyName("stop_hook_active")]
     public bool StopHookActive { get; init; }
+}
+
+internal sealed record ClaudeHookToolInput
+{
+    [JsonPropertyName("command")]
+    public string? Command { get; init; }
 }

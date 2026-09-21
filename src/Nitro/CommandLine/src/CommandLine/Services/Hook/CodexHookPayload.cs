@@ -19,4 +19,16 @@ internal sealed record CodexHookPayload
 
     [JsonPropertyName("cwd")]
     public string? Cwd { get; init; }
+
+    [JsonPropertyName("tool_name")]
+    public string? ToolName { get; init; }
+
+    [JsonPropertyName("tool_input")]
+    public CodexHookToolInput? ToolInput { get; init; }
+}
+
+internal sealed record CodexHookToolInput
+{
+    [JsonPropertyName("command")]
+    public string? Command { get; init; }
 }
