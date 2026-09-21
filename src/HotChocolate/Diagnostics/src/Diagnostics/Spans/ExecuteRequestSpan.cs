@@ -5,14 +5,21 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Diagnostics;
 
-internal sealed class ExecuteRequestSpan(
-    Activity activity,
-    RequestContext context,
-    InstrumentationOptionsBase options,
-    ActivityEnricherBase enricher,
-    bool shouldDisposeActivity)
-    : ExecuteRequestSpanBase(activity, context, options, enricher, shouldDisposeActivity)
+internal sealed class ExecuteRequestSpan : ExecuteRequestSpanBase
 {
+    private readonly RequestContext _context;
+
+    public ExecuteRequestSpan(
+        Activity activity,
+        RequestContext context,
+        InstrumentationOptionsBase options,
+        ActivityEnricherBase enricher,
+        bool shouldDisposeActivity)
+        : base(activity, context, options, enricher, shouldDisposeActivity)
+    {
+        _context = context;
+    }
+
     public static ExecuteRequestSpan? Start(
         ActivitySource source,
         RequestContext context,
@@ -51,6 +58,13 @@ internal sealed class ExecuteRequestSpan(
         // fallback reads the operation type and name straight from it. The document must
         // already be validated, otherwise a request that never reaches a known operation,
         // such as one that fails document validation, would incorrectly report one.
+        if (_context.OperationDocumentInfo.NormalizedDocument
+            is { Definitions: [OperationDefinitionNode normalizedOperation] })
+        {
+            operationType = normalizedOperation.Operation;
+            operationName = normalizedOperation.Name?.Value;
+        }
+
         if (Context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
             && document.TryGetOperationDefinition(Context.Request.OperationName, out var operationDefinition))
         {
