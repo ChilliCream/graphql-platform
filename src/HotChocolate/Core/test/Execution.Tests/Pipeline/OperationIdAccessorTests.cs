@@ -7,10 +7,10 @@ namespace HotChocolate.Execution;
 public sealed class OperationIdAccessorTests
 {
     [Fact]
-    public async Task GetOperationId_Before_Operation_Cache_Stage_Is_Reused_By_Later_Stages()
+    public async Task GetOperationId_Before_Variable_Coercion_Stage_Is_Reused_By_Later_Stages()
     {
         // arrange
-        string? idBeforeOperationCache = null;
+        string? idBeforeCoercion = null;
         string? idAfterOperationCache = null;
         string? compiledOperationId = null;
 
@@ -21,15 +21,16 @@ public sealed class OperationIdAccessorTests
             .UseRequest(
                 (_, next) => async context =>
                 {
-                    // Resolving the normalized document here runs before the operation
-                    // cache stage has had a chance to compute and store the operation id.
-                    // Getting the normalized document must succeed rather than throw.
+                    // Resolving the normalized document here runs before variable coercion,
+                    // the operation cache and the operation compiler stages have had a
+                    // chance to compute and store the operation id. Getting the normalized
+                    // document must succeed rather than throw.
                     context.GetNormalizedDocument();
-                    idBeforeOperationCache = context.GetOperationId();
+                    idBeforeCoercion = context.GetOperationId();
                     await next(context);
                 },
-                key: "BeforeOperationCache",
-                before: WellKnownRequestMiddleware.OperationCacheMiddleware,
+                key: "BeforeCoercion",
+                before: WellKnownRequestMiddleware.OperationVariableCoercionMiddleware,
                 allowMultiple: true)
             .UseRequest(
                 (_, next) => async context =>
@@ -47,7 +48,7 @@ public sealed class OperationIdAccessorTests
                     await next(context);
                 },
                 key: "AfterOperationCompiler",
-                before: WellKnownRequestMiddleware.OperationVariableCoercionMiddleware,
+                before: WellKnownRequestMiddleware.SkipWarmupExecutionMiddleware,
                 allowMultiple: true)
             .Services
             .BuildServiceProvider()
@@ -58,8 +59,8 @@ public sealed class OperationIdAccessorTests
 
         // assert
         Assert.Empty(result.ExpectOperationResult().Errors);
-        Assert.NotNull(idBeforeOperationCache);
-        Assert.Equal(idBeforeOperationCache, idAfterOperationCache);
-        Assert.Equal(idBeforeOperationCache, compiledOperationId);
+        Assert.NotNull(idBeforeCoercion);
+        Assert.Equal(idBeforeCoercion, idAfterOperationCache);
+        Assert.Equal(idBeforeCoercion, compiledOperationId);
     }
 }
