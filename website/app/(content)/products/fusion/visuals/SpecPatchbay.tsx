@@ -10,6 +10,7 @@ import {
   useSceneMotion,
   useSvgLabelScale,
 } from "./hooks";
+import { wrapWords } from "./lines";
 import { useSceneRatio } from "./Scene";
 import { MC, SOURCES, STATIONS, specTag } from "../palette";
 import type { StationSpec } from "../palette";
@@ -103,6 +104,13 @@ export function SpecPatchbay() {
   useSceneRatio(mobile ? MOBILE_RATIO : null);
   const label = svgLabelSize(TYPE.label, scale);
   const caption = svgLabelSize(TYPE.caption, scale);
+  /**
+   * A sidebar-narrow desktop slot boosts `label` here the same way a narrow
+   * viewport does. The footer caption fits the bus's own width at `label`'s
+   * un-boosted size, but not once boosted; past that it wraps onto two
+   * lines instead of running past the bus rect's edges.
+   */
+  const crowded = !mobile && scale < 1;
   /** The legend's four lines stack readably instead of crowding once boosted. */
   const legendGap = svgLabelGap(24, label, TYPE.label, 1.5);
   /**
@@ -126,6 +134,16 @@ export function SpecPatchbay() {
   const rowY = (i: number) => stripTop + i * rowStride;
   const strip = mobile ? STRIP_M : STRIP;
   const bus = mobile ? BUS_M : BUS;
+  const footerText = repatched ? "NO CUTOVER NEEDED" : "COMPOSED IN THE BUILD";
+  const footerLines = crowded ? wrapWords(footerText, 12) : [footerText];
+  const footerLineGap = svgLabelGap(16, label, TYPE.label);
+  /**
+   * When crowded, the wrap grows upward from the box's fixed footer slot
+   * (`bus.y + bus.h - 22`) so the last line keeps that same baseline
+   * instead of pushing past the bus rect.
+   */
+  const footerFirstY =
+    bus.y + bus.h - 22 - (footerLines.length - 1) * footerLineGap;
 
   return (
     <svg
@@ -318,14 +336,24 @@ export function SpecPatchbay() {
       })}
       <text
         x={bus.x + bus.w / 2}
-        y={bus.y + bus.h - 22}
+        y={footerFirstY}
         fill={MC.phosphor}
         fontFamily={MC.mono}
         fontSize={label}
         letterSpacing="0.06em"
         textAnchor="middle"
       >
-        {repatched ? "NO CUTOVER NEEDED" : "COMPOSED IN THE BUILD"}
+        {crowded
+          ? footerLines.map((line, li) => (
+              <tspan
+                key={li}
+                x={bus.x + bus.w / 2}
+                dy={li === 0 ? 0 : footerLineGap}
+              >
+                {line}
+              </tspan>
+            ))
+          : footerText}
       </text>
     </svg>
   );

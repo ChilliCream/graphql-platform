@@ -227,14 +227,32 @@ export function FlightRecorder() {
   const mobile = useNarrowViewport();
   const mobileScale = useSvgLabelScale(svgRef, MOBILE_W);
   const scale = mobile ? mobileScale : desktopScale;
-  useSceneRatio(mobile ? MOBILE_RATIO : null);
   const label = svgLabelSize(TYPE.label, scale);
   /** Gap between a replay row's operation line and its detail line. */
   const rowGap = svgLabelGap(15, label, TYPE.label, 1.15);
+  /**
+   * A sidebar-narrow desktop slot boosts `label` here the same way a narrow
+   * viewport does. The deck header's 55 characters fit this same `W`-wide
+   * viewBox at `label`'s un-boosted size and above, but not once boosted
+   * much past it (1024 renders at scale ~0.801) — past roughly this scale
+   * it wraps onto two lines instead of clipping past its own trailing
+   * character.
+   */
+  const crowded = !mobile && scale < 0.9;
+  /**
+   * The extra room the deck header's own wrap onto two lines needs; the
+   * replay rows, the deck's own rendered height and the footer banner all
+   * shift down by this same one-line gap so nothing collides, and the
+   * viewBox grows to still hold it.
+   */
+  const headerWrapGap = crowded ? svgLabelGap(16, label, TYPE.label) : 0;
+  const viewBoxH = crowded ? Math.round(H + headerWrapGap) : H;
+  useSceneRatio(mobile ? MOBILE_RATIO : crowded ? `${W} / ${viewBoxH}` : null);
 
   const schemaText = "SCHEMA CHANGE · REMOVE Product.rating";
   const compositionText = "COMPOSITION: GREEN · SUBGRAPHS STILL COMPOSE";
   const deckHeaderText = DECK_HEADER_TEXT;
+  const deckHeaderLines = crowded ? dotLines(deckHeaderText) : [deckHeaderText];
   const footerAbortedText = "1 BREAKING · 1 RISKY · FLAGGED BEFORE THE MERGE";
   const footerRunningText = "REPLAYING REAL CLIENT OPERATIONS";
 
@@ -388,9 +406,13 @@ export function FlightRecorder() {
   }
 
   return (
-    <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="h-full w-full">
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${W} ${viewBoxH}`}
+      className="h-full w-full"
+    >
       <style>{KEYFRAMES}</style>
-      <rect width={W} height={H} fill={MC.bg} />
+      <rect width={W} height={viewBoxH} fill={MC.bg} />
 
       <Reel cx={56} running={running} delay={0} />
       <Reel cx={W - 56} running={running} delay={260} />
@@ -430,7 +452,7 @@ export function FlightRecorder() {
         x={DECK.x}
         y={DECK.y}
         width={DECK.w}
-        height={DECK.h}
+        height={DECK.h + headerWrapGap}
         rx="9"
         fill={MC.panel}
         stroke={MC.panelEdge}
@@ -443,11 +465,15 @@ export function FlightRecorder() {
         fontSize={label}
         letterSpacing="0.16em"
       >
-        {deckHeaderText}
+        {deckHeaderLines.map((line, li) => (
+          <tspan key={li} x={DECK.x + 16} dy={li === 0 ? 0 : headerWrapGap}>
+            {line}
+          </tspan>
+        ))}
       </text>
 
       {REPLAYS.map((replay, i) => {
-        const y = DECK.y + 52 + i * (ROW_H + (rowGap - 15));
+        const y = DECK.y + 52 + headerWrapGap + i * (ROW_H + (rowGap - 15));
         const done = i < classified;
         const color = done ? VERDICT_COLOR[replay.verdict] : MC.dim;
         const nameText = `${replay.client}  ${replay.operation}`;
@@ -510,7 +536,7 @@ export function FlightRecorder() {
 
       <rect
         x={DECK.x}
-        y={H - 56}
+        y={viewBoxH - 56}
         width={DECK.w}
         height="40"
         rx="8"
@@ -521,7 +547,7 @@ export function FlightRecorder() {
       />
       <text
         x={W / 2}
-        y={H - 31}
+        y={viewBoxH - 31}
         fill={blocked ? MC.alert : MC.dim}
         fontFamily={MC.mono}
         fontSize={label}

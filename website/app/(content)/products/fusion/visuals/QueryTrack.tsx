@@ -9,7 +9,7 @@ import {
   useSceneMotion,
   useSvgLabelScale,
 } from "./hooks";
-import { wrapWords } from "./lines";
+import { dotLines, wrapWords } from "./lines";
 import { useSceneRatio } from "./Scene";
 import { MC, specTag } from "../palette";
 
@@ -107,13 +107,18 @@ export function QueryTrack() {
   const caption = svgLabelSize(TYPE.caption, scale);
   /**
    * A sidebar-narrow desktop slot boosts `label` here the same way a narrow
-   * viewport does. The station card's status line ("PARTIAL RESULT
-   * RETURNED") fits this same `W`-wide viewBox's right edge at `label`'s
-   * un-boosted size and above, but not below roughly this scale — past
-   * that it wraps onto two lines instead of running past the SVG's own
-   * boundary.
+   * viewport does. Any boost at all — not just past some width band —
+   * pushes the GATE subtitle and a station card's spec/status lines past
+   * their own panel: they wrap onto two lines instead once `label` grows
+   * past its floor.
    */
-  const crowded = !mobile && scale < 0.9;
+  const crowded = !mobile && scale < 1;
+  /**
+   * The extra room the GATE subtitle's own wrap onto two lines needs; the
+   * three plan rows below it (and nothing past them — `LATENCY` keeps its
+   * fixed slot at the card's own bottom) shift down by the same amount.
+   */
+  const gateSubtitleWrapGap = crowded ? svgLabelGap(18, label, TYPE.label) : 0;
 
   const client = mobile ? MOBILE_CLIENT : CLIENT;
   const gate = mobile ? MOBILE_GATE : GATE;
@@ -409,13 +414,27 @@ export function QueryTrack() {
         fontSize={label}
         letterSpacing="0.04em"
       >
-        ONE ENDPOINT · QUERY PLAN
+        {crowded
+          ? dotLines("ONE ENDPOINT · QUERY PLAN").map((line, i) => (
+              <tspan
+                key={i}
+                x={GATE.x + 16}
+                dy={i === 0 ? 0 : svgLabelGap(18, label, TYPE.label)}
+              >
+                {line}
+              </tspan>
+            ))
+          : "ONE ENDPOINT · QUERY PLAN"}
       </text>
 
       {PLAN.map((row, i) => {
         const resolved = phase >= 2;
         const y =
-          GATE.y + 78 + (svgLabelGap(18, label, TYPE.label) - 18) + i * 62;
+          GATE.y +
+          78 +
+          (svgLabelGap(18, label, TYPE.label) - 18) +
+          i * 62 +
+          gateSubtitleWrapGap;
         const arrowText = resolved
           ? `→ ${row.station.toUpperCase()}`
           : "→ RESOLVING";
@@ -463,6 +482,8 @@ export function QueryTrack() {
           phase >= 4 ? "PARTIAL RESULT RETURNED" : "SUBGRAPH STANDING BY";
         const resultGap = svgLabelGap(14, label, TYPE.label);
         const resultLines = crowded ? wrapWords(resultText, 14) : [resultText];
+        const specText = `${row.language} · ${specTag(row.spec)}`;
+        const specLines = crowded ? dotLines(specText) : [specText];
         return (
           <g key={row.station}>
             <path
@@ -482,7 +503,8 @@ export function QueryTrack() {
                 18 +
                 resultGap -
                 14 +
-                (resultLines.length - 1) * resultGap
+                (resultLines.length - 1) * resultGap +
+                (specLines.length - 1) * resultGap
               }
               rx="8"
               fill={MC.panel}
@@ -508,11 +530,25 @@ export function QueryTrack() {
               fontSize={label}
               letterSpacing="0.06em"
             >
-              {`${row.language} · ${specTag(row.spec)}`}
+              {specLines.map((line, li) => (
+                <tspan
+                  key={li}
+                  x={STATION_X + 12}
+                  dy={li === 0 ? 0 : resultGap}
+                >
+                  {line}
+                </tspan>
+              ))}
             </text>
             <text
               x={STATION_X + 12}
-              y={y - 8 + svgLabelGap(18, label, TYPE.label) + resultGap}
+              y={
+                y -
+                8 +
+                svgLabelGap(18, label, TYPE.label) +
+                resultGap +
+                (specLines.length - 1) * resultGap
+              }
               fill={phase >= 4 ? MC.phosphor : MC.dim}
               fontFamily={MC.mono}
               fontSize={label}
