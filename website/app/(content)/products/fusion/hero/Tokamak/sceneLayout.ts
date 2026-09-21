@@ -520,80 +520,18 @@ export function computeLayout(
     // checkpoint 1" -- verifier 2's waist-narrowing item is rejected).
     const SIDE_COLUMN_WAIST = 79;
 
-    // TOP rim (canonical units, `*s` scales them like the rest of this
-    // branch): planner comment 341/342/345/346's numeric flare target --
-    // rim projected width >= 1.5x the waist's at 1440/1920, >= 1.4x at
-    // 1280 -- chosen by `test-results/wqa-flare-search2.cjs`'s two-stage
-    // search (stage A: rim front-arc in canvas at 1280/1920, below the
-    // 72px header AND in canvas at 1440, flare bar met at all three
-    // widths, real project()/ringPoint(); stage B: the bridging row below
-    // matched to the column's own rim-adjacent pair). Landed comfortably
-    // inside the reference's "near 2x" read (measured flare 1.90/1.77/1.63
-    // at 1280/1440/1920, front arc y 241.8/202.3/150.3 -- all with margin)
-    // rather than at the search's outer edge (some passing candidates
-    // reach 2.5-3x, read as oversized against the reference).
-    const SIDE_TOP_RIM_Y = 140;
-    const SIDE_TOP_RIM_Z = 420;
-    const SIDE_TOP_RIM_R = 320;
-    // TOP bridging ROWS (hc-0-gar, replaces the single FROZEN `base[17]`
-    // this ticket's fix removes): a `buildBridgeRows` sequence from row 16
-    // (still frozen) to the rim. PLANNER RULING (i) (ticket comments
-    // 384/385/386): the FAR-arc rhythm this bridge's `steps`/`powerYZ`/
-    // `powerR` were originally tuned against is moot -- every far-arc
-    // bridge tile, on the column's own centre line, projects BEHIND the
-    // opaque column (verified directly: 1440 row16 far y228, bridge far
-    // arcs 248-374, column top y202) regardless of which curve connects
-    // row 16 to the rim, so the user's own "buffer" complaint was never
-    // answerable on that arc. Route (i): `chamber.ts`'s `faceOverride:
-    // "near"` culling exception (`TokamakLayout.topJunctionRows`) draws
-    // this SAME bridge sequence's NEAR-facing half too, composited OVER
-    // the column (`paint.ts`'s `paintBridgeLayer`) -- the ceiling folds
-    // down in front of the column's top, matching
-    // `reference-tokamak-pillar.png`.
-    //
-    // The rhythm bar is RE-MEASURED on the near arc (row16 -> bridge ->
-    // rim). SELF-CRITIQUE (fixer 1b, round 2): a first pass picked `steps
-    // = 2` from a RING-WIDE MEDIAN across all 56 theta segments per row
-    // pair (mirroring the far-arc search's own method) -- that measure
-    // hid a severe problem specific to this near arc: row 16's own y
-    // (huge, 606 canonical) combines with the near side's much SHORTER
-    // camera depth (close to the lens, not far across the room) to
-    // project its near-facing point far off-screen (theta = 3*PI/2, the
-    // column's own centre line: y approx -1330px at 1440, verified
-    // directly against the real bundle/live browser), unlike the far arc
-    // (gentler depth falloff, y approx 228px, always in frame). With only
-    // one inserted row, the two resulting near-facing tiles each spanned
-    // 600-930px vertically AT THE CENTRE LINE -- the exact spot the
-    // ticket's own crops/rhythm wording point at -- while segments further
-    // around the ring (toward the near/far boundary) stayed small, so the
-    // RING-WIDE median (436-439px) never surfaced it and the ratio between
-    // the two oversized tiles (themselves both huge) still read as
-    // "smooth" (near 1.0). Re-measured on the FRONT ARC specifically (the
-    // single segment nearest theta = 3*PI/2, matching how
-    // `rvw1-gar-rhythm.cjs`'s own "near"/"far" sampling already isolates a
-    // centre-line reading) with `test-results/gar-bridge-front-search.cjs`
-    // (steps 2-40, both powers 0.05-4, real project()/ringPoint() jointly
-    // at 1280/1440/1920): `steps` below is the smallest step count whose
-    // front-arc tile heights land in the wall's own established range
-    // (tens to ~150px, not hundreds) while every consecutive ratio still
-    // clears [0.77, 1.3] with margin (worst 1.044-1.062 across
-    // 1280/1440/1920; front-arc heights 33-158px, the SAME order of
-    // magnitude as the wall's own row-to-row spacing elsewhere in the
-    // chamber) -- both the relative rhythm bar AND the absolute scale the
-    // wall's own tiles read at are satisfied, not just the ratio in
-    // isolation.
-    const SIDE_TOP_BRIDGE_STEPS = 22;
-    const SIDE_TOP_BRIDGE_POWER_YZ = 1.05;
-    const SIDE_TOP_BRIDGE_POWER_R = 1.05;
-    // OPTION B (planner ruling, ticket comment 334, orchestrator relay
-    // 335, reaffirmed 345/346 "bottom rim per the earlier option B" --
+    // BOTTOM rim (canonical units, `*s` scales them like the rest of this
+    // branch) -- OPTION B (planner ruling, ticket comment 334, orchestrator
+    // relay 335, reaffirmed 345/346 "bottom rim per the earlier option B" --
     // superseding the interim "front arc in canvas" reading of comment
     // 333): the bottom rim's front arc MAY sit below the canvas at
     // side-by-side widths, exactly as the wall's own floor already is.
     // These three constants are UNCHANGED from the accepted option B fix
-    // (ticket comment 338, commit ed62382170) -- this run only re-verifies
-    // them against the new column row spacing below, it does not re-search
-    // them.
+    // (ticket comment 338, commit ed62382170) -- hc-0-b8z's user ruling
+    // ("the bottom of the pillar looks great", ticket comment 426) keeps
+    // this rim's own look "exactly as it is" and mirrors it to build the
+    // TOP rim below, never the reverse. Declared first so the TOP block can
+    // reference these values directly instead of duplicating them.
     const SIDE_BOTTOM_RIM_Y = -270;
     const SIDE_BOTTOM_RIM_Z = 230;
     const SIDE_BOTTOM_RIM_R = 236;
@@ -605,17 +543,16 @@ export function computeLayout(
     // "near"` exception (`TokamakLayout.bottomJunctionRows`), composited
     // over the column so the floor folds up into its bottom.
     //
-    // UNLIKE the top junction, this near-facing chain is NEVER visible at
-    // any side-by-side width: the bottom rim's own front arc (this
-    // chain's very FIRST point) already projects at y >= 1068px on a
-    // <=900px-tall canvas (verified directly against the real bundle --
-    // the option B acceptance this file's module doc already documents),
-    // and every row further from the rim (the bridge steps, then row 2)
-    // projects further still past the bottom edge, so no near-facing
-    // bottom tile -- regardless of its own size -- ever paints a visible
-    // pixel; the same TOP-junction failure mode (a ring-wide median
-    // masking a huge front-arc tile) cannot produce a visible artifact
-    // here because the front arc itself is off-canvas. `steps = 2` (one
+    // This near-facing chain is NEVER visible at any side-by-side width:
+    // the bottom rim's own front arc (this chain's very FIRST point)
+    // already projects at y >= 1068px on a <=900px-tall canvas (verified
+    // directly against the real bundle -- the option B acceptance this
+    // file's module doc already documents), and every row further from the
+    // rim (the bridge steps, then row 2) projects further still past the
+    // bottom edge, so no near-facing bottom tile -- regardless of its own
+    // size -- ever paints a visible pixel; a ring-wide median could
+    // therefore never mask a hidden front-arc blow-up here the way it once
+    // did at the (now-withdrawn) in-canvas top dome. `steps = 2` (one
     // inserted row) is therefore kept: `test-results/
     // gar-bridge-near-search.cjs`'s own best candidate clears the
     // (moot but still checked) ratio bar with wide margin, worst
@@ -623,6 +560,54 @@ export function computeLayout(
     const SIDE_BOTTOM_BRIDGE_STEPS = 2;
     const SIDE_BOTTOM_BRIDGE_POWER_YZ = 1.15;
     const SIDE_BOTTOM_BRIDGE_POWER_R = 0.95;
+    // TOP rim: hc-0-b8z, user ruling (ticket description, planner comment
+    // 426) -- "the pillar top should look exactly like the bottom of the
+    // pillar (no plinth)". WITHDRAWN: the flared-dome top rim (`Y=140,
+    // Z=420, R=320`, wqa's numeric flare target, kept fully inside the
+    // canvas below the header) and the "top rim inside the canvas" rule
+    // that produced it -- both explicitly superseded by the ruling. This
+    // rim is now the EXACT MIRROR of `SIDE_BOTTOM_RIM_*` above about the
+    // band's `y = 0`: same `z`, same `r`, `y` negated (`buildColumnRows`
+    // reads `ySpanTop`/`rimRadiusTop`/`zSpreadTop` as magnitudes, so
+    // matching the bottom's own magnitudes here makes the column's
+    // world-space hourglass profile literally symmetric, `kTop === kBottom`).
+    // The camera's tilt makes the SCREEN projection of a world-mirrored
+    // point asymmetric (verified directly: at 1440 this rim's own front
+    // arc projects to y approx -130, i.e. off-canvas ABOVE, the same way
+    // the bottom rim's front arc projects off-canvas BELOW at y approx
+    // 1072) -- the ruling explicitly allows this ("the top rim's front arc
+    // may sit above the canvas exactly as the bottom rim's sits below
+    // it"), so no in-canvas dome/cap renders at the top at any width.
+    const SIDE_TOP_RIM_Y = -SIDE_BOTTOM_RIM_Y;
+    const SIDE_TOP_RIM_Z = SIDE_BOTTOM_RIM_Z;
+    const SIDE_TOP_RIM_R = SIDE_BOTTOM_RIM_R;
+    // TOP bridging ROWS: UNLIKE the bottom's own `steps = 2`, this junction
+    // is NOT mirroring a chain that is always fully off-canvas. Verified
+    // directly (`test-results/b8z-wall16.cjs`, not checked in): frozen wall
+    // row 16 (`base[16]`, `y` approx 607, `z` approx 557 canonical) already
+    // has NEAR-facing tiles at wide theta (away from the front pole, near
+    // `chamber.ts`'s own away/near culling boundary) that project close to
+    // the canvas' own top edge REGARDLESS of what the junction's other
+    // endpoint is -- a grazing-angle silhouette effect of the frozen row's
+    // own position under this camera's tilt, not something the rim/bridge
+    // choice controls. `SIDE_BOTTOM_BRIDGE_STEPS = 2` is safe for the
+    // bottom because the bottom rim (and therefore its ENTIRE chain,
+    // `columnRows[0]` included) is confirmed off-canvas at every sampled
+    // point; the top's chain has one endpoint (`base[16]`) that is NOT
+    // off-canvas at every theta, so a single oversized bridge row there
+    // reads as an untextured "buffer" tile again (the exact defect
+    // hc-0-gar was built to remove) instead of a graduated fold. Re-ran
+    // hc-0-gar's own front-arc search methodology
+    // (`test-results/b8z-bridge-front-search.cjs`, a copy of `gar-bridge-
+    // front-search.cjs` retargeted at this rim) against the NEW mirrored
+    // rim: `steps = 8` is the smallest step count whose front-arc tile
+    // heights stay under 300px (the wall's own established scale) while
+    // every consecutive ratio clears [0.77, 1.3] (worst 1.086 at
+    // `powerYZ = powerR = 1.1`, jointly at 1280/1440/1920) -- chosen over
+    // `steps = 7` (the bare minimum feasible count) for a small margin.
+    const SIDE_TOP_BRIDGE_STEPS = 8;
+    const SIDE_TOP_BRIDGE_POWER_YZ = 1.1;
+    const SIDE_TOP_BRIDGE_POWER_R = 1.1;
 
     // Hourglass: waist at the band, flaring independently to each chosen
     // rim point above -- the column's own row 0/18 land exactly on those
@@ -631,20 +616,12 @@ export function computeLayout(
     // below introduces no kink/step by construction.
     // `rowsPerSide`/`spacingPower` (verifier 2 item 3, `test-results/
     // wqa-flare-search2.cjs`): near-linear (1.2, close to the wall's own
-    // row-index spacing) replaces the prior 1.3, and 9 rows/side (not the
-    // originally-suggested 5-6) -- a first pass at 5 rows/side matched the
-    // bridging-row bar (colLast/colFirst within <1.2% of the bridging
-    // pairs) but, at this run's much larger rim (planner comment 345/346's
-    // numeric flare target, a bigger radius jump per row than the "about
-    // 5-6 rows" guidance was tuned against), left visible SCALLOPING in
-    // `buildColumnSilhouette`'s own scanline envelope near the limb --
-    // successive rows' projected rings didn't nest closely enough for the
-    // envelope to stay convex, exposing black base beyond any tile's own
-    // face (`test-results/rv3-fringe.cjs`'s "left" edge read up to 86px,
-    // against the ~2.7px seam-width bar). 9 rows/side (closer to the
-    // wall's own frozen 9-per-side rhythm) keeps the per-row radius/z step
-    // small enough for the envelope to stay smooth at the limb while still
-    // matching the (re-searched) bridging rows within 1.2%/0.6px.
+    // row-index spacing) and 9 rows/side -- unchanged by hc-0-b8z's rim
+    // mirroring above (the shared `spec.spacingPower`/`rowsPerSide` apply to
+    // both sides identically already, and 9 rows/side is at least as smooth
+    // at the now-SMALLER, bottom-matched top rim as it was at the larger,
+    // withdrawn dome rim it was originally tuned against -- verified below,
+    // no scalloping at either junction).
     const columnRows = buildColumnRows({
       waistRadius: SIDE_COLUMN_WAIST * s,
       rimRadiusTop: SIDE_TOP_RIM_R * s,
@@ -666,13 +643,6 @@ export function computeLayout(
     // interpolation is affine in each field (`from + (to - from) * t`), so
     // scaling both endpoints by `s` first and interpolating is identical
     // to interpolating canonical rows and then scaling by `s`.
-    const topBridge = buildBridgeRows(
-      base[16],
-      columnRows[columnRows.length - 1],
-      SIDE_TOP_BRIDGE_STEPS,
-      SIDE_TOP_BRIDGE_POWER_YZ,
-      SIDE_TOP_BRIDGE_POWER_R,
-    );
     const bottomBridge = buildBridgeRows(
       columnRows[0],
       base[2],
@@ -680,6 +650,27 @@ export function computeLayout(
       SIDE_BOTTOM_BRIDGE_POWER_YZ,
       SIDE_BOTTOM_BRIDGE_POWER_R,
     );
+    // hc-0-b8z: interpolated from the RIM toward wall row 16 -- the SAME
+    // `from`/`to` direction `bottomBridge` above uses (rim -> wall), not
+    // wall -> rim -- then reversed into wall-to-rim order for splicing into
+    // `wallRows` below. `buildBridgeRows`' own `t = (i/steps)^power` is
+    // measured from `from`, so interpolating from the wall (the old
+    // approach) instead of from the rim would NOT produce a mirror image of
+    // `bottomBridge` even with identical `steps`/powers/endpoints -- the
+    // fractional step positions would fall at different world points on
+    // each side of the band. Interpolating from the same endpoint
+    // (`SIDE_TOP_RIM_*` mirrors `SIDE_BOTTOM_RIM_*` exactly, see above) and
+    // reversing makes `topBridge[i]` the exact `y`-negation of
+    // `bottomBridge[i]` at every step, for any `steps`/`powerYZ`/`powerR`.
+    const topBridge = [
+      ...buildBridgeRows(
+        columnRows[columnRows.length - 1],
+        base[16],
+        SIDE_TOP_BRIDGE_STEPS,
+        SIDE_TOP_BRIDGE_POWER_YZ,
+        SIDE_TOP_BRIDGE_POWER_R,
+      ),
+    ].reverse();
     const wallRows: ChamberRow[] = [
       columnRows[0],
       ...bottomBridge,
