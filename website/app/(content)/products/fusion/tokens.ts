@@ -132,34 +132,6 @@ export function svgLabelSize(base: number, scale: number): number {
 }
 
 /**
- * Per-character advance of the site's mono stack (`FONTS.mono`), as a
- * fraction of font-size; measured against this environment's rendering.
- * Monospace faces keep this ratio fixed across sizes, which is what makes
- * `svgLabelWidth` a reliable (not just approximate) footprint estimate.
- */
-const MONO_ADVANCE = 0.6;
-
-/**
- * The width, in SVG viewBox units, `text` should occupy once
- * `svgLabelSize(base, scale)` has boosted its font-size — namely, the width
- * it occupies at `base` today, so the boost grows its glyph height without
- * growing its rendered footprint. Pass as a boosted `<text>`'s `textLength`
- * (with `lengthAdjust="spacingAndGlyphs"`). At `scale >= 1` (no boost, e.g.
- * at 1440) this returns `undefined`, so the attribute is left off entirely
- * and that text renders exactly as it does today — an approximation here
- * can never nudge an already-correct desktop render.
- */
-export function svgLabelWidth(
-  text: string,
-  base: number,
-  scale: number,
-  letterSpacingEm = 0,
-): number | undefined {
-  if (scale >= 1) return undefined;
-  return text.length * base * (MONO_ADVANCE + letterSpacingEm);
-}
-
-/**
  * A gap between two stacked `<text>` lines (or a line and the next row),
  * widened only by however far `size` has grown past `base`, so two labels
  * `svgLabelSize` boosted keep clear of each other. At `size === base` (today

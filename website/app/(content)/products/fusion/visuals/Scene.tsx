@@ -24,6 +24,27 @@ export function useSceneActive(): boolean {
   return useContext(SceneActiveContext);
 }
 
+const SceneRatioContext = createContext<
+  ((ratio: string | null) => void) | null
+>(null);
+
+/**
+ * Lets a visual rendered inside a `Scene` replace the stage's `aspect-ratio`
+ * at runtime, e.g. a narrower, taller ratio for a mobile-only re-flowed
+ * layout. Call it on every render with the desired ratio, or `null` to
+ * release the override; a `null` override leaves the `Scene`'s own `ratio`
+ * prop in effect, so a visual that never overrides it (or a `Scene` with no
+ * such child) renders exactly as before. Outside a `Scene` this is a no-op.
+ */
+export function useSceneRatio(override: string | null): void {
+  const setOverride = useContext(SceneRatioContext);
+
+  useEffect(() => {
+    setOverride?.(override);
+    return () => setOverride?.(null);
+  }, [setOverride, override]);
+}
+
 interface SceneProps {
   /** CSS `aspect-ratio` value for the box, e.g. "16 / 9" or "4 / 3". */
   readonly ratio?: string;
@@ -54,6 +75,7 @@ export function Scene({
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [visible, setVisible] = useState(true);
+  const [ratioOverride, setRatioOverride] = useState<string | null>(null);
 
   useEffect(() => {
     const node = ref.current;
@@ -83,14 +105,16 @@ export function Scene({
   return (
     <div
       ref={ref}
-      style={{ aspectRatio: ratio }}
+      style={{ aspectRatio: ratioOverride ?? ratio }}
       aria-hidden={label ? undefined : true}
       aria-label={label}
       role={label ? "img" : undefined}
       className={`relative w-full overflow-hidden ${className ?? ""}`.trim()}
     >
       <SceneActiveContext.Provider value={active}>
-        {typeof children === "function" ? children(active) : children}
+        <SceneRatioContext.Provider value={setRatioOverride}>
+          {typeof children === "function" ? children(active) : children}
+        </SceneRatioContext.Provider>
       </SceneActiveContext.Provider>
     </div>
   );
