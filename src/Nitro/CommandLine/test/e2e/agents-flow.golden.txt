@@ -1,7 +1,7 @@
  [T]asks   [M]ail   [A]gents   M[e]mory
 ╭─Agents (1)──────────────────────────────────╮╭─bob──────────────────────────────────────────╮
-│ >   bob ◇ claude-code  started 2026-01-01   ││ Session                                      │
-│ heard 2026-01-01                            ││                                              │
+│ >   bob ◇ claude-code started 2026-01-01 h… ││ Session                                      │
+│                                             ││                                              │
 │                                             ││ Actor: bob                                   │
 │                                             ││ Role: -                                      │
 │                                             ││ State: remote                                │
