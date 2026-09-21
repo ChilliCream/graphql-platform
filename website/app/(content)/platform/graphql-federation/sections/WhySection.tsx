@@ -92,9 +92,9 @@ export function WhySection() {
             Foundation to write one vendor-neutral specification for defining
             and composing GraphQL schemas across services; engineers from
             Graphile, Hasura, Netflix, WunderGraph, and others take part. The
-            Composite Schemas Specification that came out of that work is the
-            GraphQL Federation specification, an open standard under the GraphQL
-            Foundation.
+            GraphQL Federation specification (then called the Composite Schemas
+            Specification) that came out of that work is an open standard under
+            the GraphQL Foundation.
           </p>
           <p>
             The specification keeps the GraphQL type system as it is and adds
