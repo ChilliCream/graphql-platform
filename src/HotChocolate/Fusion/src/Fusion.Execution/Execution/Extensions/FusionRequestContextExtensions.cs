@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using ExecutionThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 // ReSharper disable once CheckNamespace
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -41,12 +42,12 @@ public static class FusionRequestContextExtensions
 
         if (documentInfo.Document is null)
         {
-            throw HotChocolate.Fusion.Execution.ThrowHelper.OperationDocumentNotAvailable();
+            throw ExecutionThrowHelper.OperationDocumentNotAvailable();
         }
 
         if (documentInfo.Hash.IsEmpty)
         {
-            throw HotChocolate.Fusion.Execution.ThrowHelper.OperationDocumentHashNotAvailable();
+            throw ExecutionThrowHelper.OperationDocumentHashNotAvailable();
         }
 
         operationId = documentInfo.OperationCount == 1
