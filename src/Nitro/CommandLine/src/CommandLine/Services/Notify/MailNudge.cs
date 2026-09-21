@@ -20,7 +20,7 @@ internal sealed class MailNudge(
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Best effort: the recipients' next turns report the unread mail.
+            // Notification failure leaves the mail unread.
         }
     }
 
@@ -37,8 +37,7 @@ internal sealed class MailNudge(
 
         foreach (var actor in actors.Distinct(StringComparer.Ordinal))
         {
-            // No liveness check: the nudge is best effort, so trying and
-            // failing costs the same as asking first and is never stale.
+            // Sessions are selected by actor binding without checking their presence state.
             var targets = participants
                 .Where(participant => participant.Session.AgentName == actor)
                 .ToArray();
@@ -93,16 +92,15 @@ internal sealed class MailNudge(
                 }
                 catch (Exception exception) when (exception is not OperationCanceledException)
                 {
-                    // Best effort: the recipient's next turn reports the unread mail.
+                    // Notification failure leaves the mail unread.
                 }
             }
         }
     }
 
     /// <summary>
-    /// Delivers the nudge over whichever transport the session advertises.
-    /// A session with no reachable endpoint, and any transport failure, is
-    /// ignored.
+    /// Sends through a Claude peer or Codex thread endpoint, skipping other endpoint kinds.
+    /// Cancellation propagates; other transport failures are ignored.
     /// </summary>
     private async Task SendAsync(
         AgentSessionRecord session,
@@ -124,7 +122,7 @@ internal sealed class MailNudge(
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Best effort: the recipient's next turn reports the unread mail.
+            // Notification failure leaves the mail unread.
         }
     }
 }

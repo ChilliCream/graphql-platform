@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using ChilliCream.Nitro.CommandLine.Services.Mail;
 using ChilliCream.Nitro.CommandLine.Services.Memory;
 using ChilliCream.Nitro.CommandLine.Services.Workspace;
@@ -5,36 +6,8 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 namespace ChilliCream.Nitro.CommandLine.Services.Notify;
 
 /// <summary>
-/// Claims one actor's outstanding <c>mail_wake_outbox</c> generation as a
-/// frozen <c>mail_wake_batches</c> row and dispatches its one materialized
-/// coding-session target in the foreground, entirely in-process (no detached worker):
-/// <list type="bullet">
-/// <item>Nothing outstanding, not yet due, or another owner already holds a
-/// live batch for this actor: <see cref="DispatchAsync"/> returns null.</item>
-/// <item>The frozen target set is empty (no live claimed session): the
-/// batch completes immediately as skipped: that actor takes no push.</item>
-/// <item>The actor has no unread mail left by dispatch time: the target
-/// settles <see cref="MailWakeTargetStatus.Satisfied"/> without attempting
-/// any transport.</item>
-/// <item>Otherwise, the target is re-resolved against its exact frozen
-/// generation (a session that ended or rebound since the claim disappears
-/// as a failure, not a stale write). Nitro board sessions are never targets;
-/// the board is an alternate dispatcher for work a sandboxed sender leaves
-/// pending. The coding-session target is reserved through
-/// <see cref="ISessionGateCoordinator"/> and dispatched through
-/// <see cref="IPingSessionExecutor"/>. A Claude access-denied outcome leaves
-/// the target pending so a Nitro board daemon can retry the same delivery
-/// outside the sender's sandbox.</item>
-/// </list>
-/// The batch's own lease is renewed periodically while dispatch is in
-/// flight; losing that renewal to a fresher claimant cancels the target,
-/// and this attempt makes no further claim about its outcome (left
-/// <see cref="MailWakeTargetStatus.Pending"/>,
-/// never asserted as failed or delivered) and does not touch the batch row
-/// again, since a newer owner already holds it. When this attempt still
-/// holds the batch at the end, it completes (settles the claimed generation)
-/// unless at least one target was left with durable offered work, in which
-/// case it releases the batch with a rescheduled retry instead.
+/// Dispatches one actor's outstanding wake work to at most one coding session.
+/// Returns null when no batch can be claimed and leaves unresolved work pending for retry.
 /// </summary>
 internal sealed class ActorWakeDispatcher(
     IMailWakeBatchStore batchStore,
@@ -156,10 +129,7 @@ internal sealed class ActorWakeDispatcher(
         }
         finally
         {
-            // Always drained before the `using` CTSs above dispose, even
-            // when Task.WhenAll itself throws (the caller's own token was
-            // cancelled): RenewLoopAsync must never observe a disposed
-            // CancellationTokenSource through lossSource or stopToken.
+            // Stops and awaits lease renewal before disposing its cancellation sources.
             await renewalDoneSource.CancelAsync();
 
             try
@@ -168,8 +138,7 @@ internal sealed class ActorWakeDispatcher(
             }
             catch (OperationCanceledException)
             {
-                // Expected once renewalDoneSource signals dispatch is over,
-                // or the caller's own token was cancelled.
+                // Renewal stops when dispatch completes or the caller cancels.
             }
         }
 
@@ -190,19 +159,14 @@ internal sealed class ActorWakeDispatcher(
             }
         }
 
-        // else: a newer owner already holds the batch (this attempt's
-        // renewal was lost); it owns completing or releasing it now, not
-        // this attempt.
+        // A lost renewal leaves batch completion or release to a later owner.
 
         return new ActorWakeReceipt(actor, receipt.Status, [receipt]);
     }
 
     /// <summary>
-    /// Periodically renews the batch's own lease while its targets are
-    /// still dispatching. A failed renewal (the lease was lost to a fresher
-    /// claimant) cancels <paramref name="lossSource"/>, which every
-    /// in-flight or not-yet-started target's own dispatch observes and
-    /// stops on.
+    /// Renews the batch lease until dispatch stops or the caller cancels.
+    /// A rejected or failed renewal cancels <paramref name="lossSource"/>.
     /// </summary>
     private async Task RenewLoopAsync(
         string batchId,
@@ -233,16 +197,11 @@ internal sealed class ActorWakeDispatcher(
         }
         catch (OperationCanceledException)
         {
-            // Dispatch finished normally (stopToken), or the caller's own
-            // token was cancelled: either way, nothing more to renew.
+            // Dispatch completion or caller cancellation ends renewal.
         }
         catch (Exception)
         {
-            // A renewal whose result is unknown (the store call itself
-            // threw, not merely reported false) is treated the same as a
-            // lost renewal: in-flight targets are left Pending and the
-            // batch row is left for lease-expiry reclaim, so no non-OCE
-            // exception ever escapes RenewLoopAsync past this point.
+            // An unsuccessful renewal cancels dispatch and leaves the batch for expiry.
             await lossSource.CancelAsync();
         }
     }
@@ -275,13 +234,13 @@ internal sealed class ActorWakeDispatcher(
             if (session.EndpointKind is AgentSessionEndpointKind.DbWatch
                 or AgentSessionEndpointKind.CopilotExtension)
             {
-                // Database-watching endpoints observe the committed message
-                // themselves. No direct transport is required.
+                // Database-watching endpoints require no direct transport.
                 return await RecordDeliveredAsync(batchId, target, ownerId, batchAttemptId, claimedGeneration);
             }
 
             if (session.EndpointKind is not AgentSessionEndpointKind.ClaudePeer
-                and not AgentSessionEndpointKind.CodexThread)
+                and not AgentSessionEndpointKind.CodexThread
+                and not AgentSessionEndpointKind.OpencodeServer)
             {
                 return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "unsupported");
             }
@@ -298,18 +257,60 @@ internal sealed class ActorWakeDispatcher(
 
             var held = reservation.Reservation;
             var success = false;
+            var idlePushClaimed = false;
+            var idlePushSettled = false;
 
             try
             {
+                if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer
+                    && !await sessionRegistry.ClaimIdlePushAsync(target, dispatchToken))
+                {
+                    // An unarmed session remains pending for a later attempt.
+                    return await RecordOfferedAsync(
+                        batchId, target, ownerId, batchAttemptId, claimedGeneration, "idle-not-armed");
+                }
+
+                if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer)
+                {
+                    // This attempt holds the session's idle-push claim.
+                    idlePushClaimed = true;
+                }
+
+                // Claims the ping attempt; no transport runs if the claim fails.
+                var stamped = await sessionRegistry.TryClaimPingCooldownAsync(
+                    session, pingAttemptId, now, TimeSpan.Zero, dispatchToken);
+
+                if (!stamped)
+                {
+                    return await RecordFailureAsync(batchId, target, ownerId, batchAttemptId, "session-gone");
+                }
+
                 var attemptDeadline = ClampDeadline(now, batchDeadline);
 
-                var outcome = session.EndpointKind == AgentSessionEndpointKind.ClaudePeer
-                    ? await executor.ExecuteClaudePeerAsync(
+                var outcome = session.EndpointKind switch
+                {
+                    AgentSessionEndpointKind.ClaudePeer => await executor.ExecuteClaudePeerAsync(
                         session.Harness, session.SessionId, actor, pingAttemptId, held.Slot,
-                        attemptDeadline, dispatchToken)
-                    : await executor.ExecuteCodexThreadAsync(
+                        attemptDeadline, dispatchToken),
+                    AgentSessionEndpointKind.CodexThread => await executor.ExecuteCodexThreadAsync(
                         session.Harness, session.SessionId, actor, session.EndpointAddr, pingAttemptId, held.Slot,
-                        attemptDeadline, dispatchToken);
+                        attemptDeadline, dispatchToken),
+                    AgentSessionEndpointKind.OpencodeServer => await executor.ExecuteOpencodeServerAsync(
+                        session.Harness, session.SessionId, actor, session.EndpointAddr, session.EndpointSecret,
+                        pingAttemptId, held.Slot, attemptDeadline, dispatchToken),
+                    _ => throw new UnreachableException(
+                        $"Endpoint kind '{session.EndpointKind}' passed the earlier supported-kind guard.")
+                };
+
+                if (session.EndpointKind == AgentSessionEndpointKind.OpencodeServer
+                    && (outcome.Reason != PingAttemptReason.Ok
+                        || outcome.Detail == PingSessionExecutor.HealthOnlyDetail))
+                {
+                    // An unsuccessful push or health-only check restores the idle-push claim.
+                    await sessionRegistry.RearmIdlePushAsync(target, CancellationToken.None);
+                }
+
+                idlePushSettled = true;
 
                 if (outcome.Reason == PingAttemptReason.AccessDenied)
                 {
@@ -332,21 +333,19 @@ internal sealed class ActorWakeDispatcher(
             }
             finally
             {
-                // Never on dispatchToken: the reservation this attempt holds
-                // must be released (or extended into cooldown) even when
-                // dispatchToken itself is the reason the transport call just
-                // unwound.
+                if (idlePushClaimed && !idlePushSettled)
+                {
+                    // An interrupted attempt restores the idle-push claim.
+                    await sessionRegistry.RearmIdlePushAsync(target, CancellationToken.None);
+                }
+
+                // Reservation cleanup continues after dispatch cancellation.
                 await gateCoordinator.CompleteAsync(held, success, timeProvider.GetUtcNow(), CancellationToken.None);
             }
         }
         catch (OperationCanceledException) when (!callerToken.IsCancellationRequested)
         {
-            // The batch's own lease renewal was lost (or dispatchToken was
-            // otherwise cancelled for a reason other than the caller's own
-            // token): this target was never dispatched, or its dispatch was
-            // aborted mid-flight, possibly after a transport call already
-            // wrote to the wire. Never asserted delivered or failed; its row
-            // stays whatever it already durably was.
+            // A cancelled dispatch leaves the target pending without asserting a transport outcome.
             return new ActorWakeTargetReceipt(target, MailWakeTargetStatus.Pending, null, null, null);
         }
     }
@@ -391,12 +390,9 @@ internal sealed class ActorWakeDispatcher(
     }
 
     /// <summary>
-    /// The earlier of (<see cref="WakeDispatchPolicy.HandoffObservationReserve"/>
-    /// held back from <paramref name="batchDeadline"/>) and one attempt's
-    /// own <see cref="PingPolicy.HardTimeout"/> budget from <paramref name="now"/>,
-    /// so a target dispatched late in the batch's window never gets more
-    /// than what is left, and no target ever gets more than its own hard
-    /// cap regardless of how much budget remains.
+    /// The earlier of <paramref name="batchDeadline"/> less
+    /// <see cref="WakeDispatchPolicy.HandoffObservationReserve"/>, and
+    /// <paramref name="now"/> plus <see cref="PingPolicy.HardTimeout"/>.
     /// </summary>
     private static DateTimeOffset ClampDeadline(DateTimeOffset now, DateTimeOffset batchDeadline)
     {

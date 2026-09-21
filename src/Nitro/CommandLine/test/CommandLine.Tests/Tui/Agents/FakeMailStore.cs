@@ -3,9 +3,8 @@ using ChilliCream.Nitro.CommandLine.Services.Mail;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Agents;
 
 /// <summary>
-/// An in-memory <see cref="IMailStore"/> exercising exactly the surface
-/// <see cref="CommandLine.Tui.Agents.AgentDetailModel"/> consumes (<see cref="QuerySentAsync"/>).
-/// Every other member throws <see cref="NotSupportedException"/>.
+/// An in-memory <see cref="IMailStore"/> supporting <see cref="QuerySentAsync"/>.
+/// All other methods throw <see cref="NotSupportedException"/>.
 /// </summary>
 internal sealed class FakeMailStore : IMailStore
 {

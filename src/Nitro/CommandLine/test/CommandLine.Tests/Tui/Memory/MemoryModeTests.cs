@@ -3,17 +3,14 @@ using ChilliCream.Nitro.CommandLine.Services.Workspace;
 using ChilliCream.Nitro.CommandLine.Tests.Memory;
 using ChilliCream.Nitro.CommandLine.Tui.Input;
 using ChilliCream.Nitro.CommandLine.Tui.Memory;
+using ChilliCream.Nitro.CommandLine.Tui.Shell;
 using Spectre.Console.Testing;
 using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Memory;
 
 /// <summary>
-/// Exercises <see cref="MemoryMode"/> and its overlays against a real
-/// <see cref="MemoryStore"/>, the same way <c>MailModeRealStoreTests</c>
-/// does for the mail board: memory has no fake store double, so every
-/// memory TUI component test runs against the real store, matching
-/// <c>MemoryStoreTests</c>'s own convention.
+/// Exercises <see cref="MemoryMode"/> and its overlays against a real <see cref="MemoryStore"/>.
 /// </summary>
 public sealed class MemoryModeTests : MemoryTestBase
 {
@@ -39,7 +36,8 @@ public sealed class MemoryModeTests : MemoryTestBase
         }
     }
 
-    private MemoryMode CreateMode() => new(_store, TimeProvider);
+    private MemoryMode CreateMode(Func<bool>? hasIdentity = null)
+        => new(_store, TimeProvider, hasIdentity ?? (static () => true));
 
     private Task<MemoryRecord> SaveAsync(string text = "Some text.", string type = "fact")
         => _store.SaveAsync(
@@ -54,9 +52,7 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public async Task OnEnter_Should_LoadCuratedMemories()
     {
-        // arrange: OnEnter only marks a refresh pending; the actual store
-        // read happens lazily on the first Render or Handle call, so a
-        // manual refresh stands in for the shell rendering the tab.
+        // arrange
         await SaveAsync("First.");
         var mode = CreateMode();
 
@@ -168,11 +164,50 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
-    public async Task ForgetRequested_Should_OpenConfirmation_Without_DeletingYet()
+    public async Task ForgetRequested_Should_RefuseWithoutDeleting_When_IdentityIsUnavailable()
     {
         // arrange
         var saved = await SaveAsync("First.");
-        var mode = CreateMode();
+        var mode = new MemoryMode(_store, TimeProvider);
+        mode.OnEnter();
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.ForgetRequested());
+
+        // assert
+        var shown = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal((BoardIdentity.NoIdentityMessage, ToastStyle.Warn), (shown.Text, shown.Style));
+        Assert.False(mode.IsInputCapturing);
+        Assert.NotNull(await _store.FindAsync(saved.Id, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ForgetConfirmation_Should_RefuseWithoutDeleting_When_IdentityIsRemoved()
+    {
+        // arrange
+        var saved = await SaveAsync("First.");
+        var hasIdentity = true;
+        var mode = CreateMode(() => hasIdentity);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.ForgetRequested());
+        hasIdentity = false;
+
+        // act
+        var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
+
+        // assert
+        var shown = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal((BoardIdentity.NoIdentityMessage, ToastStyle.Warn), (shown.Text, shown.Style));
+        Assert.True(mode.IsInputCapturing);
+        Assert.NotNull(await _store.FindAsync(saved.Id, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ForgetRequested_Should_OpenConfirmation_When_IdentityIsAvailable()
+    {
+        // arrange
+        var saved = await SaveAsync("First.");
+        var mode = CreateMode(static () => true);
         mode.OnEnter();
 
         // act
@@ -188,8 +223,7 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public void ForgetRequested_Should_ShowWarnToast_When_NoCuratedMemorySelected()
     {
-        // arrange: the journal collection has no notion of a selected
-        // curated memory to forget.
+        // arrange
         var mode = CreateMode();
         mode.OnEnter();
         mode.Handle(new TuiMessage.CycleView(1));
@@ -211,7 +245,8 @@ public sealed class MemoryModeTests : MemoryTestBase
         mode.OnEnter();
         mode.Handle(new TuiMessage.ForgetRequested());
 
-        // act: Enter confirms from the dialog's initially focused (empty) reason field.
+        // act
+        // Confirm with the reason field empty.
         var followUp = mode.HandleRawKey(Key(ConsoleKey.Enter));
 
         // assert
@@ -246,8 +281,7 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public void PromoteRequested_Should_ShowWarnToast_When_NoJournalEntrySelected()
     {
-        // arrange: default collection is curated, which has no notion of a
-        // selected journal entry to promote.
+        // arrange
         var mode = CreateMode();
         mode.OnEnter();
 
@@ -260,11 +294,53 @@ public sealed class MemoryModeTests : MemoryTestBase
     }
 
     [Fact]
-    public async Task PromoteRequested_Should_OpenForm_When_JournalEntrySelected()
+    public async Task PromoteRequested_Should_RefuseWithoutOpening_When_IdentityIsUnavailable()
     {
         // arrange
         await LogAsync("Note one.");
-        var mode = CreateMode();
+        var mode = new MemoryMode(_store, TimeProvider);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.CycleView(1));
+
+        // act
+        var followUp = mode.Handle(new TuiMessage.PromoteRequested());
+
+        // assert
+        var shown = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal((BoardIdentity.NoIdentityMessage, ToastStyle.Warn), (shown.Text, shown.Style));
+        Assert.False(mode.IsInputCapturing);
+        Assert.Empty(mode.State.CuratedRecords);
+    }
+
+    [Fact]
+    public async Task PromoteSubmission_Should_RefuseWithoutWriting_When_IdentityIsRemoved()
+    {
+        // arrange
+        var entry = await LogAsync("Note one.");
+        var hasIdentity = true;
+        var mode = CreateMode(() => hasIdentity);
+        mode.OnEnter();
+        mode.Handle(new TuiMessage.CycleView(1));
+        mode.Handle(new TuiMessage.PromoteRequested());
+        Type(mode, "decision");
+        hasIdentity = false;
+
+        // act
+        var followUp = mode.HandleRawKey(CtrlKey(ConsoleKey.S));
+
+        // assert
+        var shown = Assert.IsType<TuiMessage.ShowToast>(Assert.Single(followUp));
+        Assert.Equal((BoardIdentity.NoIdentityMessage, ToastStyle.Warn), (shown.Text, shown.Style));
+        Assert.True(mode.IsInputCapturing);
+        Assert.Null(await _store.FindAsync(MemoryPromotedId.Derive(entry.Id), TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task PromoteRequested_Should_OpenForm_When_IdentityIsAvailable()
+    {
+        // arrange
+        await LogAsync("Note one.");
+        var mode = CreateMode(static () => true);
         mode.OnEnter();
         mode.Handle(new TuiMessage.CycleView(1));
 
@@ -304,9 +380,8 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public async Task PromoteForm_Submit_Should_ReportAlreadyPromoted_When_TheJournalEntryWasPromotedBefore()
     {
-        // arrange: the entry was already promoted outside the tab (for
-        // example via the CLI); promoting it again from the tab must be
-        // idempotent, not an error.
+        // arrange
+        // Promote the journal entry before opening the tab.
         var entry = await LogAsync("Note one.");
         await _store.PromoteAsync(entry.Id, "fact", [], TestContext.Current.CancellationToken);
 
@@ -386,10 +461,8 @@ public sealed class MemoryModeTests : MemoryTestBase
     [Fact]
     public async Task SearchForm_Apply_Should_ShowTypeTagIgnoredMarker_When_JournalCollectionSearchedWithType()
     {
-        // arrange: type: and tag: prefixes narrow the curated list, but the
-        // journal collection has no type or tags to filter by; the list
-        // title must surface that the qualifier was ignored rather than
-        // silently dropping it.
+        // arrange
+        // Apply a type qualifier while viewing the journal.
         await LogAsync("Note one.");
         var mode = CreateMode();
         mode.OnEnter();

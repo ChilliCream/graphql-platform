@@ -25,8 +25,7 @@ internal static class AgentTuiLauncher
 
     /// <summary>
     /// Runs the TUI and owns its mail wake daemon. The board is an
-    /// observer: it never takes an actor, so it registers no session and
-    /// refuses every write.
+    /// observer: it takes no actor and refuses every write.
     /// </summary>
     public static Task<int> RunAsync(
         INitroConsole console,
@@ -60,7 +59,7 @@ internal static class AgentTuiLauncher
         var searchMode = new SearchMode(taskStore);
         var treeView = new DependencyTreeView(taskStore, rootId: "");
 
-        // The event loop and Mail send effects share one shutdown signal.
+        // Pass the host shutdown token to the event loop and Mail tab.
         using var quitCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         var tabs = BuildTabs(
@@ -159,9 +158,8 @@ internal static class AgentTuiLauncher
     }
 
     /// <summary>
-    /// Builds the Mail tab with no actor, so it opens on the workspace-wide
-    /// mailbox and refuses every write. Wake dispatch belongs to the shared
-    /// daemon; the tab enqueues work and observes its result.
+    /// Builds the Mail tab without an acting identity, showing the workspace-wide
+    /// mailbox and refusing writes.
     /// </summary>
     internal static TuiTab BuildMailTab(
         IMailStore mailStore,

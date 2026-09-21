@@ -8,9 +8,7 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Board;
 
 /// <summary>
-/// The kanban board <see cref="ITuiMode"/>: renders a board view as equal-width
-/// columns and turns navigation, refresh, and selection intents into changes on
-/// a <see cref="BoardState"/>.
+/// Displays and navigates a task board with grid, stacked, and maximized layouts.
 /// </summary>
 internal sealed class BoardMode : ITuiMode
 {
@@ -27,9 +25,7 @@ internal sealed class BoardMode : ITuiMode
     private const int PanelChromeHeight = 2;
 
     /// <summary>
-    /// The number of distinct above/below indicator combinations a column's
-    /// viewport can settle on, bounding how many times reserving space for
-    /// them needs to be recomputed.
+    /// The maximum number of passes used to reserve viewport indicator rows.
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 
@@ -42,9 +38,8 @@ internal sealed class BoardMode : ITuiMode
     private bool _maximized;
 
     /// <summary>
-    /// Creates the board mode over <paramref name="loader"/>, starting on the
-    /// first of <paramref name="views"/>. Defaults to the single v1 built-in
-    /// view when <paramref name="views"/> is not given.
+    /// Creates a board using the first supplied view.
+    /// A null or empty view list selects <see cref="BoardView.Default"/>.
     /// </summary>
     public BoardMode(BoardDataLoader loader, IReadOnlyList<BoardView>? views = null)
     {
@@ -93,9 +88,7 @@ internal sealed class BoardMode : ITuiMode
     /// <inheritdoc />
     public void OnResize(int width, int height)
     {
-        // Render(width, height) recomputes the layout decision and every
-        // column's viewport window from its parameters on every frame, so
-        // there is no per-resize state to update ahead of time.
+        // Layout and viewport state are recomputed from Render's parameters every frame.
     }
 
     /// <inheritdoc />
@@ -110,9 +103,8 @@ internal sealed class BoardMode : ITuiMode
         TuiMessage.RefreshRequested => Refresh(),
         TuiMessage.CycleView(var delta) => CycleView(delta),
         TuiMessage.ToggleMaximize => ToggleMaximize(),
-        // OpenSelected on the board is handled by TuiShell before it ever
-        // reaches here: the shell switches to a BoardDetailMode showing the
-        // selection, mirroring how 't' opens the dependency tree.
+        // OpenSelected is handled by TuiShell before it reaches here: the shell switches to a
+        // BoardDetailMode showing the selection.
         TuiMessage.CopySelectedId => CopySelectedId(),
         _ => []
     };
@@ -173,10 +165,7 @@ internal sealed class BoardMode : ITuiMode
         {
             if (i > 0)
             {
-                // One blank row between consecutive column panels, mirroring
-                // the separator rows BoardLayout reserves for stacked heights.
-                // An empty Markup collapses to nothing inside Rows, so Text is
-                // used here to force a real blank line.
+                // Insert one blank row between stacked column panels.
                 rows.Add(new Text(string.Empty));
             }
 
@@ -207,9 +196,7 @@ internal sealed class BoardMode : ITuiMode
         var name = headerSuffix is null ? column.Definition.Name : $"{column.Definition.Name} - {headerSuffix}";
         var panel = ColumnPane.Render(name, column.Tasks.Count, lines, focused);
 
-        // Panel header title inherits the same accent color as its border,
-        // per column, rather than the global focused-border override
-        // ColumnPane computes for itself.
+        // Panel header title inherits the same accent color as its border, per column.
         var borderStyle = column.Definition.ResolveBorderStyle(focused);
         panel.BorderStyle = borderStyle;
         panel.Header = panel.Header!.SetStyle(borderStyle);
@@ -266,8 +253,6 @@ internal sealed class BoardMode : ITuiMode
     {
         if (_views.Count <= 1)
         {
-            // Nothing to switch to in v1's single built-in view; the intent is
-            // still accepted so the wiring is exercised once a second view lands.
             return [];
         }
 
@@ -310,10 +295,8 @@ internal sealed class BoardMode : ITuiMode
     }
 
     /// <summary>
-    /// Renders one column's visible rows: the scrolled task badges, padded
-    /// with blank lines so every column reports the same line count, with
-    /// "N more above/below" indicators reserving their own rows once the
-    /// column's tasks no longer fit <paramref name="interiorHeight"/>.
+    /// Renders one column's visible rows, padded with blank lines to <paramref name="interiorHeight"/>,
+    /// with "N more above/below" indicators once the column's tasks no longer fit.
     /// </summary>
     private static IReadOnlyList<string> RenderColumnLines(
         BoardColumnState column,

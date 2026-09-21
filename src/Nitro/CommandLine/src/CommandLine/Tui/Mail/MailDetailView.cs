@@ -8,10 +8,8 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine.Tui.Mail;
 
 /// <summary>
-/// Renders the mail board's detail pane: either the selected message's
-/// header and body, or its whole thread in chronological order, as a
-/// scrollable body inside a bordered panel. Owns the body's scroll
-/// position; <see cref="MailState"/> owns everything else.
+/// Renders the selected message or chronological thread in a scrollable detail
+/// panel and maintains its scroll position.
 /// </summary>
 internal sealed class MailDetailView
 {
@@ -28,9 +26,7 @@ internal sealed class MailDetailView
     private const int PanelChromeHeight = 2;
 
     /// <summary>
-    /// The number of distinct above/below indicator combinations the
-    /// body's viewport can settle on, bounding how many times reserving
-    /// space for them needs to be recomputed.
+    /// The maximum number of passes used to reserve viewport indicator rows.
     /// </summary>
     private const int MaxIndicatorSettlePasses = 3;
 
@@ -64,22 +60,13 @@ internal sealed class MailDetailView
     public void ScrollToBottom() => _bodyViewport.ScrollBy(int.MaxValue / 2);
 
     /// <summary>
-    /// Resets the body's scroll position to the top. Called whenever the
-    /// pane's content changes: a different message is selected, the
-    /// filter changes, or the view mode toggles.
+    /// Resets the body scroll position to the top.
     /// </summary>
     public void ResetScroll() => _bodyViewport.Update(0, 0);
 
     /// <summary>
-    /// Renders <paramref name="state"/>'s detail pane: the selected
-    /// message when its <see cref="MailState.ViewMode"/> is
-    /// <see cref="MailViewMode.Message"/>, or the whole thread when it is
-    /// <see cref="MailViewMode.Thread"/>. <paramref name="clientsByName"/>
-    /// attributes each party's <see cref="AgentRecord.Client"/> next to its
-    /// name (sender, and each recipient's own state line); a name absent
-    /// from it, or mapped to an empty client, renders with no attribution
-    /// at all. Null is treated as empty, so every existing caller keeps
-    /// working unchanged.
+    /// Renders the selected message or thread with optional <see cref="AgentRecord.Client"/>
+    /// attribution. A null lookup or an absent or empty client entry adds no attribution.
     /// </summary>
     public IRenderable Render(
         MailState state,
@@ -121,9 +108,7 @@ internal sealed class MailDetailView
     private static TaskDetailBodyLine PlainLine(string text) => new(text, IsMarkup: false);
 
     /// <summary>
-    /// A styled header line via the <c>detail.section.header</c> token, the same token
-    /// <see cref="Agents.AgentDetailBody"/> and <see cref="TaskDetailBody"/> use for their section
-    /// headers: the per-thread-message <c>"sender - date"</c> line here.
+    /// Returns escaped text styled as a detail section header.
     /// </summary>
     private static TaskDetailBodyLine SectionHeaderLine(string text)
     {
@@ -134,9 +119,7 @@ internal sealed class MailDetailView
     }
 
     /// <summary>
-    /// A <c>"Label: value"</c> line with just the label styled via the
-    /// <c>detail.section.header</c> token, for the message view's From/To/Cc/Date
-    /// fields.
+    /// Returns a label-and-value line with the label styled as a detail section header.
     /// </summary>
     private static TaskDetailBodyLine FieldLine(string label, string value)
     {
@@ -150,13 +133,6 @@ internal sealed class MailDetailView
     {
         if (state.ViewMode == MailViewMode.Thread)
         {
-            // ThreadMessages, not SelectedMessage: a collapsed thread row's
-            // ViewMode defaults to Thread the moment it is selected (see
-            // MailState's class remarks), and every message in a thread
-            // shares one subject (ReplyMessageAsync inherits it from the
-            // root), so this is equivalent to the old SelectedMessage-based
-            // header whenever a message row set it, and correct for a
-            // thread-row selection too.
             return state.ThreadMessages.Count > 0
                 ? $"Thread: {Markup.Escape(state.ThreadMessages[0].Subject)}"
                 : "Thread";
@@ -200,18 +176,8 @@ internal sealed class MailDetailView
     }
 
     /// <summary>
-    /// <paramref name="name"/> suffixed with its <see cref="AgentRecord.Client"/>
-    /// in parentheses when <paramref name="clientsByName"/> has a non-empty
-    /// entry for it, or <paramref name="name"/> unchanged otherwise - an
-    /// unknown name and a known name with an empty client render identically,
-    /// per the epic's "empty means nothing shown, not a placeholder" rule.
-    /// Deliberately returns raw text, not markup: both values are
-    /// agent-supplied and may contain <c>[...]</c>. Every caller building a
-    /// <see cref="TaskDetailBodyLine"/> from this text escapes it with
-    /// <see cref="Markup.Escape(string)"/> itself before wrapping it in
-    /// style markup, since it lands inside a line already carrying markup
-    /// and can no longer rely on <see cref="RenderVisibleLines"/>'s
-    /// plain-line escaping.
+    /// Returns the name with a non-empty client attribution in parentheses, or the
+    /// name alone when no attribution is available. The returned text is unescaped.
     /// </summary>
     private static string AttributeClient(string name, IReadOnlyDictionary<string, string> clientsByName)
         => clientsByName.TryGetValue(name, out var client) && client.Length > 0
@@ -219,18 +185,8 @@ internal sealed class MailDetailView
             : name;
 
     /// <summary>
-    /// One line per recipient, stating that recipient's own read/archived
-    /// state and attributed by name: <c>"alice: read 2026-01-01 00:00"</c>
-    /// or <c>"bob: unread"</c>, with <c>", archived"</c> appended where set.
-    /// Styled via <c>mail.detail.recipient.unread</c> or
-    /// <c>mail.detail.recipient.read</c> so a still-unread recipient stands
-    /// out from one who has read it. The attribution is the point - a
-    /// reader must never mistake another agent's state for their own, so
-    /// every row, including the actor's own when the actor is a recipient,
-    /// renders through this same line with no second affordance. Empty for
-    /// a message the actor sent, since <c>MailStore.BuildRecipients</c>
-    /// never adds the sender to <see cref="MailMessage.Recipients"/> -
-    /// there is no sender-side state to show and none is invented here.
+    /// Returns each recipient's read and archived state in recipient ordinal order,
+    /// with optional client attribution.
     /// </summary>
     private static IReadOnlyList<TaskDetailBodyLine> BuildRecipientStateLines(
         MailMessage message, IReadOnlyDictionary<string, string> clientsByName)
@@ -345,9 +301,7 @@ internal sealed class MailDetailView
     }
 
     /// <summary>
-    /// Wraps one already-escaped display line as markup. A blank line is
-    /// rendered as a single space: <see cref="Panel"/> silently drops a
-    /// literal empty content row instead of showing it blank.
+    /// Wraps an escaped line as markup, rendering an empty line as a single space.
     /// </summary>
     private static IRenderable Row(string line) => new Markup(line.Length == 0 ? " " : line);
 

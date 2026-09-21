@@ -11,21 +11,8 @@ using CursorDirection = ChilliCream.Nitro.CommandLine.Tui.Input.CursorDirection;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// The memory board <see cref="ITuiMode"/>: a list pane of curated memories
-/// or journal entries next to a detail pane for the selected item, modeled
-/// on the mail board's list/detail split (see <see cref="MemoryFocus"/> and
-/// <c>MailMode</c>/<c>MailFocus</c>). f cycles between the curated and
-/// journal collections, s cycles the scope filter, and / opens the search
-/// box; every list read goes through <see cref="MemoryDataLoader"/>, which
-/// wraps the same <see cref="IMemoryStore"/> reads the CLI's <c>recent</c>
-/// and <c>search</c> commands use, so no second query path exists. Beyond
-/// browsing, the tab supports exactly two writes: p promotes the selected
-/// journal entry and d forgets (hard-deletes) the selected curated memory,
-/// both going through the same store members the CLI's own commands call;
-/// there is no inline editing. This mode owns its own modal overlays (the
-/// search box, the promote form, the forget confirmation, and their shared
-/// discard confirmation) rather than routing through <see cref="TuiShell"/>'s
-/// task-specific overlay fields.
+/// Displays searchable curated memories and journal entries with a detail pane.
+/// Supports promoting journal entries and permanently deleting curated memories.
 /// </summary>
 internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 {
@@ -39,6 +26,7 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private readonly MemoryState _state;
     private readonly MemoryDetailView _detailView = new();
     private readonly TimeProvider _timeProvider;
+    private readonly Func<bool> _hasIdentity;
     private readonly Viewport _listViewport = new(0, 0);
 
     private MemorySearchForm? _searchForm;
@@ -48,18 +36,21 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private ConfirmDialog? _discardDialog;
     private bool _pendingRefresh;
 
-    public MemoryMode(IMemoryStore store, TimeProvider? timeProvider = null)
+    public MemoryMode(
+        IMemoryStore store,
+        TimeProvider? timeProvider = null,
+        Func<bool>? hasIdentity = null)
     {
         ArgumentNullException.ThrowIfNull(store);
 
         _store = store;
         _state = new MemoryState(new MemoryDataLoader(store));
         _timeProvider = timeProvider ?? TimeProvider.System;
+        _hasIdentity = hasIdentity ?? (static () => false);
     }
 
     /// <summary>
-    /// The board's current live state: loaded items, collection, scope,
-    /// selection, and focus.
+    /// The loaded memory items, collection, search text, selection, and focus.
     /// </summary>
     public MemoryState State => _state;
 
@@ -83,19 +74,14 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     /// <inheritdoc />
     /// <remarks>
-    /// Defers the blocking store read: it only marks a refresh pending,
-    /// performed lazily on the first <see cref="Render"/> or
-    /// <see cref="Handle"/> call. Memory's tab title is static, so nothing
-    /// in the tab strip needs the data eagerly at tab-construction time.
+    /// Schedules a refresh for the next <see cref="Render"/> or <see cref="Handle"/> call.
     /// </remarks>
     public void OnEnter() => _pendingRefresh = true;
 
     /// <inheritdoc />
     public void OnResize(int width, int height)
     {
-        // Render(width, height) recomputes the layout and every pane's
-        // viewport window from its parameters on every frame, so there is
-        // no per-resize state to update ahead of time.
+        // Layout is recomputed during rendering.
     }
 
     /// <inheritdoc />
@@ -122,10 +108,8 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     }
 
     /// <summary>
-    /// Handles one raw key while <see cref="IsInputCapturing"/> is true:
-    /// routed here by the host instead of through the semantic
-    /// <see cref="TuiMessage"/> dispatch, since the active overlay's text
-    /// fields need raw characters, not key-bound intents.
+    /// Handles one raw key while <see cref="IsInputCapturing"/> is true, routed
+    /// here by the host instead of through the semantic <see cref="TuiMessage"/> dispatch.
     /// </summary>
     public IReadOnlyList<TuiMessage> HandleRawKey(ConsoleKeyInfo info)
     {
@@ -308,6 +292,11 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     private IReadOnlyList<TuiMessage> OpenPromoteForm()
     {
+        if (RefuseIfIdentityUnavailable() is { } refusal)
+        {
+            return refusal;
+        }
+
         if (_state.SelectedJournalEntry is not { } entry)
         {
             return [new TuiMessage.ShowToast("No journal entry selected.", ToastStyle.Warn)];
@@ -345,6 +334,11 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     private IReadOnlyList<TuiMessage> SubmitPromote(FormResult.Submitted submitted)
     {
+        if (RefuseIfIdentityUnavailable() is { } refusal)
+        {
+            return refusal;
+        }
+
         var outcome = _promoteForm!.SubmitAsync(_store, submitted.Values, CancellationToken.None)
             .GetAwaiter().GetResult();
 
@@ -361,6 +355,11 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     private IReadOnlyList<TuiMessage> OpenForgetDialog()
     {
+        if (RefuseIfIdentityUnavailable() is { } refusal)
+        {
+            return refusal;
+        }
+
         if (_state.SelectedCuratedRecord is not { } record)
         {
             return [new TuiMessage.ShowToast("No curated memory selected.", ToastStyle.Warn)];
@@ -393,6 +392,11 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
     private IReadOnlyList<TuiMessage> SubmitForget()
     {
+        if (RefuseIfIdentityUnavailable() is { } refusal)
+        {
+            return refusal;
+        }
+
         var target = _forgetTarget!;
         _forgetDialog = null;
         _forgetTarget = null;
@@ -404,6 +408,11 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
 
         return [outcome.ToShowToast()];
     }
+
+    private IReadOnlyList<TuiMessage>? RefuseIfIdentityUnavailable() =>
+        _hasIdentity()
+            ? null
+            : [new TuiMessage.ShowToast(BoardIdentity.NoIdentityMessage, ToastStyle.Warn)];
 
     private IReadOnlyList<TuiMessage> HandleDiscardDialogKey(ConsoleKeyInfo info)
     {
@@ -607,9 +616,7 @@ internal sealed class MemoryMode : ITuiMode, IRawKeyCapturingMode
     private void RefreshBlocking() => _state.RefreshAsync(CancellationToken.None).GetAwaiter().GetResult();
 
     /// <summary>
-    /// Performs the refresh <see cref="OnEnter"/> deferred, exactly once,
-    /// the first time <see cref="Render"/> or <see cref="Handle"/> runs
-    /// after entering the tab.
+    /// Performs a pending refresh once after entering the tab.
     /// </summary>
     private void EnsureLoaded()
     {

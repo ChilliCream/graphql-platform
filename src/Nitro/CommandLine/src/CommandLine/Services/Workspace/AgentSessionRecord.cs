@@ -1,13 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Services.Workspace;
 
 /// <summary>
-/// A row of <c>agent_sessions</c>: one live harness session, claimed by an
-/// agent or not. Presence has a lifetime of minutes, distinct from the
-/// 30-day staleness semantics <see cref="AgentRecord"/> identity carries.
-/// No command reads or writes this type yet - session claim/list/status and
-/// the hook adapters land in a later bead; this shape exists so that work
-/// has a column-matched row type to build on instead of ad hoc Dapper
-/// projections.
+/// A session presence record with its actor binding, endpoint, heartbeat, and ping state.
 /// </summary>
 internal sealed record AgentSessionRecord
 {
@@ -18,7 +12,7 @@ internal sealed record AgentSessionRecord
     public const string Columns =
         "harness AS Harness, session_id AS SessionId, agent_name AS AgentName, "
         + "binding_kind AS BindingKind, host AS Host, cwd AS Cwd, workspace_path AS WorkspacePath, endpoint_kind AS EndpointKind, "
-        + "endpoint_addr AS EndpointAddr, started_at AS StartedAt, last_beat_at AS LastBeatAt, "
+        + "endpoint_addr AS EndpointAddr, endpoint_secret AS EndpointSecret, started_at AS StartedAt, last_beat_at AS LastBeatAt, "
         + "block_budget_used AS BlockBudgetUsed, last_ping_at AS LastPingAt, "
         + "last_ping_attempt AS LastPingAttempt, last_ping_result AS LastPingResult, "
         + "last_ping_detail AS LastPingDetail, role AS Role, harness_version AS HarnessVersion";
@@ -35,8 +29,7 @@ internal sealed record AgentSessionRecord
     public required string BindingKind { get; init; }
 
     /// <summary>
-    /// This Nitro instance's id (see the schema v4 migration notes), not the
-    /// OS hostname.
+    /// This Nitro instance's id, not the OS hostname.
     /// </summary>
     public required string Host { get; init; }
 
@@ -49,42 +42,41 @@ internal sealed record AgentSessionRecord
     /// </summary>
     public required string EndpointAddr { get; init; }
 
+    /// <summary>
+    /// The credential for endpoints that require one, or null when the
+    /// endpoint has no credential.
+    /// </summary>
+    public string? EndpointSecret { get; init; }
+
     public required DateTimeOffset StartedAt { get; init; }
     public required DateTimeOffset LastBeatAt { get; init; }
     public required int BlockBudgetUsed { get; init; }
     public DateTimeOffset? LastPingAt { get; init; }
 
     /// <summary>
-    /// The attempt id of the most recent ping; results only write back if
-    /// they carry this id, so an out-of-order completion cannot overwrite a
-    /// newer attempt's result.
+    /// The most recent ping attempt id, or null before an attempt is claimed.
+    /// Only results carrying the current attempt id are recorded.
     /// </summary>
     public string? LastPingAttempt { get; init; }
 
     /// <summary>
-    /// One of <c>ok</c>, <c>spawn-failed</c>, <c>endpoint-gone</c>,
-    /// <c>timeout</c>, <c>capacity-dropped</c>, <c>error</c>, or
-    /// <c>unsupported</c> (an endpoint kind or protocol the notifier cannot
-    /// transport). Null before any ping attempt.
+    /// The most recent completed ping result from <see cref="AgentPingResult"/>.
+    /// Null before any attempt or while the latest attempt has no recorded result.
     /// </summary>
     public string? LastPingResult { get; init; }
 
     /// <summary>
-    /// An application-truncated diagnostic code (never raw stderr), at most
-    /// 200 characters.
+    /// The optional ping diagnostic, limited to 200 characters.
     /// </summary>
     public string? LastPingDetail { get; init; }
 
     /// <summary>
-    /// The mutable participant role, normalized the way
-    /// <see cref="AgentRole.Normalize"/> normalizes an agent's durable role.
-    /// Blank until a caller promotes it.
+    /// The normalized session role, or empty when no role is assigned.
     /// </summary>
     public required string Role { get; init; }
 
     /// <summary>
-    /// The exact harness version, captured once for the row's lifetime.
-    /// Blank until a caller captures it.
+    /// The most recently recorded harness version, or empty when no version is recorded.
     /// </summary>
     public required string HarnessVersion { get; init; }
 }

@@ -12,6 +12,6 @@ internal sealed class SessionStartHookCommand : Command
 
         this.SetHookAction(
             "SessionStart",
-            (handler, payload, ct) => handler.HandleSessionStartAsync(payload, false, ct));
+            (handler, payload, ct) => handler.HandleSessionStartAsync(payload, skipSessionFileLookup: false, ct));
     }
 }

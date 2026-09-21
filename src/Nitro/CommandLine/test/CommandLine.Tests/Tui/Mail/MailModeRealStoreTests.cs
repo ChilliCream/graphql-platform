@@ -10,13 +10,8 @@ using Microsoft.Extensions.Time.Testing;
 namespace ChilliCream.Nitro.CommandLine.Tests.Tui.Mail;
 
 /// <summary>
-/// Exercises <see cref="MailMode"/> and its overlays against a real
-/// <see cref="MailStore"/>/SQLite workspace, the same way
-/// <c>MailStoreTests</c> does for the store itself. <see cref="FakeMailStore"/>
-/// filters and mutates through the production <see cref="MailRecipientView"/>
-/// helper, so it cannot independently prove the real store's SQL-level
-/// recipient validation and reply-recipient computation; these tests fill
-/// that gap.
+/// Exercises <see cref="MailMode"/> and its overlays against a real <see cref="MailStore"/>/SQLite
+/// workspace.
 /// </summary>
 public sealed class MailModeRealStoreTests : IAsyncDisposable
 {
@@ -37,10 +32,6 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 1, 10, 12, 0, 0, TimeSpan.Zero));
         _registry = new AgentRegistry(new TestFileSystem(_workingDirectory), _timeProvider, new AgentDatabase());
 
-        // The instance id and global config directory providers are only
-        // required for MailWakePolicy.Enqueue (see MailStore.SendMessageAsync/
-        // ReplyMessageAsync's remarks); MailMode always sends and replies
-        // with Enqueue, matching the CLI's own send/reply commands.
         _store = new MailStore(
             new TestFileSystem(_workingDirectory),
             _timeProvider,
@@ -79,12 +70,8 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     private MailMode CreateMode(string actor) => new(_store, actor, _registry, _timeProvider);
 
     /// <summary>
-    /// Polls <see cref="MailMode.Handle"/> with a <see cref="TuiMessage.RefreshRequested"/>
-    /// until a terminal compose/reply outcome toast drains, skipping over
-    /// the intermediate "Stored" notice the same way the identical helper in
-    /// <c>MailModeTests</c> does: every terminal outcome shows
-    /// <see cref="ToastStyle.Success"/>, <see cref="ToastStyle.Warn"/>, or
-    /// <see cref="ToastStyle.Error"/>, never <see cref="ToastStyle.Info"/>.
+    /// Refreshes <see cref="MailMode"/> until a non-<see cref="ToastStyle.Info"/> outcome toast
+    /// is returned. Cancels the wait after five seconds or when the supplied token is cancelled.
     /// </summary>
     private static async Task<TuiMessage.ShowToast> WaitForOutcomeToastAsync(
         MailMode mode, CancellationToken cancellationToken)
@@ -171,14 +158,8 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     [Fact]
     public async Task ComposeForm_Submit_Should_CreateImplicitRow_When_RecipientIsUnknown()
     {
-        // arrange: bd-agent-unify-814.9 replaced the store's hard fail on an
-        // unknown recipient with mailbox-on-first-message: the send now
-        // succeeds and implicit-creates the recipient's agent row, so the
-        // compose form (which has no client-side recipient check of its own
-        // and only surfaces the store's ExitException) now sees the write
-        // itself succeed (the wake status, observed Pending here by the
-        // default fake observer, is reported separately, truthfully, not
-        // rolled into whether the store write itself succeeded).
+        // arrange
+        // Compose a message to an unregistered recipient.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
         await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);
@@ -205,11 +186,8 @@ public sealed class MailModeRealStoreTests : IAsyncDisposable
     [Fact]
     public async Task ReplyForm_Submit_Should_ComputeTheSameRecipientSet_AsTheCliReplyCommand()
     {
-        // arrange: two equivalent threads, one replied to the way the CLI's
-        // reply command would (calling IMailStore.ReplyMessageAsync
-        // directly), one replied to through MailReplyForm. Since the form
-        // calls the exact same store member with the same arguments, no
-        // separate TUI recipient computation exists to diverge from it.
+        // arrange
+        // Seed matching threads for a direct reply and a reply built by the form.
         var cancellationToken = TestContext.Current.CancellationToken;
         await InitAsync(cancellationToken);
         await _registry.RegisterAsync("alice", role: "", client: "", cancellationToken);

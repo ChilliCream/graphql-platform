@@ -5,18 +5,11 @@ using ChilliCream.Nitro.CommandLine.Tui.Theming;
 namespace ChilliCream.Nitro.CommandLine.Tui.Memory;
 
 /// <summary>
-/// Renders one curated memory row for the memory list pane as a single
-/// Spectre markup line: selection prefix, scope, type, tags, and the
-/// updated-at age formatted relative to now via <see cref="MailAges"/>,
-/// reused as-is the same way <c>AgentRowBadge</c> reuses it. Each field
-/// lands in a fixed-width column, computed across the currently visible
-/// rows by <see cref="ComputeWidths"/>, so scope/type/age line up
-/// vertically; tags take the remaining width and are truncated with an
-/// ellipsis when they don't fit.
+/// Renders a curated-memory row with a selection prefix, type, tags, and
+/// relative modification time.
 /// </summary>
 internal static class MemoryRowBadge
 {
-    private const string Ellipsis = "…";
     private const string SelectedPrefix = "> ";
     private const string UnselectedPrefix = "  ";
     private const string NoTags = "-";
@@ -24,10 +17,7 @@ internal static class MemoryRowBadge
     public readonly record struct Widths(int Type, int Age);
 
     /// <summary>
-    /// Computes <see cref="Widths"/> across <paramref name="rows"/> (the
-    /// rows about to be rendered, typically just the visible slice), so
-    /// every row's columns are padded to the widest value actually on
-    /// screen rather than to every record in the list.
+    /// Computes <see cref="Widths"/> across <paramref name="rows"/>, the rows about to be rendered.
     /// </summary>
     public static Widths ComputeWidths(IReadOnlyList<MemoryRecord> rows, DateTimeOffset now)
     {
@@ -36,8 +26,8 @@ internal static class MemoryRowBadge
 
         foreach (var record in rows)
         {
-            typeWidth = Math.Max(typeWidth, record.Type.Length);
-            ageWidth = Math.Max(ageWidth, MailAges.Format(record.UpdatedAt, now).Length);
+            typeWidth = Math.Max(typeWidth, DisplayWidth.Measure(record.Type));
+            ageWidth = Math.Max(ageWidth, DisplayWidth.Measure(MailAges.Format(record.UpdatedAt, now)));
         }
 
         return new Widths(typeWidth, ageWidth);
@@ -58,26 +48,27 @@ internal static class MemoryRowBadge
         }
 
         var prefix = selected ? SelectedPrefix : UnselectedPrefix;
-        var type = record.Type.PadRight(widths.Type);
-        var age = MailAges.Format(record.UpdatedAt, now).PadRight(widths.Age);
+        var type = DisplayWidth.PadRight(record.Type, widths.Type);
+        var age = DisplayWidth.PadRight(MailAges.Format(record.UpdatedAt, now), widths.Age);
         var tagsText = record.Tags.Count == 0 ? NoTags : string.Join(",", record.Tags);
 
-        var fixedPlainLength = prefix.Length
-            + type.Length + 1
-            + age.Length + 1;
+        var fixedPlainWidth = DisplayWidth.Measure(prefix)
+            + DisplayWidth.Measure(type) + 1
+            + DisplayWidth.Measure(age) + 1;
 
-        var tagsBudget = Math.Max(0, maxWidth - fixedPlainLength);
-        var truncatedTags = Truncate(tagsText, tagsBudget);
+        var tagsBudget = Math.Max(0, maxWidth - fixedPlainWidth);
+        var truncatedTags = DisplayWidth.Truncate(tagsText, tagsBudget);
 
         var typeStyle = ThemeTokens.GetStyle("memory.list.type").ToMarkup();
         var tagsStyle = ThemeTokens.GetStyle("memory.list.tags").ToMarkup();
         var ageStyle = ThemeTokens.GetStyle("memory.list.age").ToMarkup();
 
-        var line =
-            $"{Markup.Escape(prefix)}"
-            + $"{Stylize(typeStyle, Markup.Escape(type))} "
-            + $"{Stylize(tagsStyle, Markup.Escape(truncatedTags))} "
-            + $"{Stylize(ageStyle, Markup.Escape(age))}";
+        var line = fixedPlainWidth > maxWidth
+            ? RenderNarrow(prefix, maxWidth, type, typeStyle, age, ageStyle)
+            : $"{Markup.Escape(prefix)}"
+                + $"{Stylize(typeStyle, Markup.Escape(type))} "
+                + $"{Stylize(tagsStyle, Markup.Escape(truncatedTags))} "
+                + $"{Stylize(ageStyle, Markup.Escape(age))}";
 
         if (selected)
         {
@@ -91,23 +82,49 @@ internal static class MemoryRowBadge
     private static string Stylize(string styleMarkup, string content) =>
         styleMarkup.Length == 0 ? content : $"[{styleMarkup}]{content}[/]";
 
-    private static string Truncate(string value, int width)
+    private static string RenderNarrow(
+        string prefix,
+        int maxWidth,
+        string type,
+        string typeStyle,
+        string age,
+        string ageStyle)
     {
-        if (width <= 0)
+        var prefixText = DisplayWidth.Slice(prefix, maxWidth);
+        var line = Markup.Escape(prefixText);
+        var remaining = maxWidth - DisplayWidth.Measure(prefixText);
+        var hasColumn = false;
+
+        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, type, typeStyle);
+        AppendNarrowColumn(ref line, ref remaining, ref hasColumn, age, ageStyle);
+
+        return line;
+    }
+
+    private static void AppendNarrowColumn(
+        ref string line,
+        ref int remaining,
+        ref bool hasColumn,
+        string value,
+        string styleMarkup)
+    {
+        var separatorWidth = hasColumn ? 1 : 0;
+        var valueBudget = remaining - separatorWidth;
+
+        if (valueBudget <= 0)
         {
-            return string.Empty;
+            return;
         }
 
-        if (value.Length <= width)
+        var truncatedValue = DisplayWidth.Truncate(value, valueBudget);
+
+        if (truncatedValue.Length == 0)
         {
-            return value;
+            return;
         }
 
-        if (width == 1)
-        {
-            return Ellipsis;
-        }
-
-        return string.Concat(value.AsSpan(0, width - 1), Ellipsis);
+        line += (hasColumn ? " " : string.Empty) + Stylize(styleMarkup, Markup.Escape(truncatedValue));
+        remaining -= separatorWidth + DisplayWidth.Measure(truncatedValue);
+        hasColumn = true;
     }
 }

@@ -13,6 +13,6 @@ internal sealed class SessionEndHookCommand : Command
 
         this.SetHookAction(
             "SessionEnd",
-            (handler, payload, ct) => handler.HandleSessionEndAsync(payload, false, ct));
+            (handler, payload, ct) => handler.HandleSessionEndAsync(payload, skipSessionFileLookup: false, ct));
     }
 }
