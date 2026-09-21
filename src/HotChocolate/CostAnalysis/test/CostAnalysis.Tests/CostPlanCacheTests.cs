@@ -1,4 +1,3 @@
-using HotChocolate.Caching.Memory;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
