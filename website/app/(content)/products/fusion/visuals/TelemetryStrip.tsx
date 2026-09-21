@@ -18,23 +18,40 @@ const H = 320;
 export const TELEMETRY_STRIP_RATIO = `${W} / ${H}`;
 const TRACE = { x: 16, y: 28, w: W - 32, h: 76 } as const;
 
-/** Deterministic sawtooth trace so the server and client render the same path. */
-const TRACE_POINTS = Array.from({ length: 33 }, (_, i) => {
-  const t = i / 32;
-  const wave =
-    Math.sin(i * 0.9) * 0.28 +
-    Math.sin(i * 0.31) * 0.34 +
-    Math.cos(i * 1.7) * 0.14;
-  return {
-    x: TRACE.x + t * TRACE.w,
-    y: TRACE.y + TRACE.h / 2 - wave * (TRACE.h / 2 - 8),
-  };
-});
+interface TraceGeometry {
+  readonly x: number;
+  readonly y: number;
+  readonly w: number;
+  readonly h: number;
+}
 
-const TRACE_D = TRACE_POINTS.map(
-  (point, i) =>
-    `${i === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`,
-).join("");
+/** Deterministic sawtooth trace points for any panel geometry, so the
+ * server and client render the same path regardless of viewport. */
+function tracePoints(trace: TraceGeometry) {
+  return Array.from({ length: 33 }, (_, i) => {
+    const t = i / 32;
+    const wave =
+      Math.sin(i * 0.9) * 0.28 +
+      Math.sin(i * 0.31) * 0.34 +
+      Math.cos(i * 1.7) * 0.14;
+    return {
+      x: trace.x + t * trace.w,
+      y: trace.y + trace.h / 2 - wave * (trace.h / 2 - 8),
+    };
+  });
+}
+
+/** SVG path `d` for `tracePoints(trace)`. */
+function tracePath(trace: TraceGeometry): string {
+  return tracePoints(trace)
+    .map(
+      (point, i) =>
+        `${i === 0 ? "M" : "L"}${point.x.toFixed(1)} ${point.y.toFixed(1)}`,
+    )
+    .join("");
+}
+
+const TRACE_D = tracePath(TRACE);
 
 /**
  * Below 1024px the strip is narrower still (it sits in a sidebar slot), so
@@ -44,6 +61,7 @@ const TRACE_D = TRACE_POINTS.map(
  */
 const MOBILE_W = 267;
 const MOBILE_TRACE = { x: 16, y: 58, w: MOBILE_W - 32, h: 60 } as const;
+const MOBILE_TRACE_D = tracePath(MOBILE_TRACE);
 const MOBILE_ROW_Y = MOBILE_TRACE.y + MOBILE_TRACE.h + 34;
 const MOBILE_ROW_STRIDE = 64;
 const MOBILE_BAR = { x: 16, w: MOBILE_W - 32, h: 4 } as const;
@@ -162,7 +180,7 @@ export function TelemetryStrip() {
           stroke={MC.panelEdge}
         />
         <path
-          d={TRACE_D}
+          d={MOBILE_TRACE_D}
           fill="none"
           stroke={MC.phosphor}
           strokeOpacity="0.85"
