@@ -223,7 +223,7 @@ An explicit null slicing argument is not an integer value and suppresses that ar
 
 ## Default list size is 50
 
-`CostOptions.DefaultListSize` is a `double` and now defaults to `PagingDefaults.MaxPageSize` (`50`), so an unannotated, non-paginated list assumes 50 elements rather than an unbounded count. A deeply nested unannotated list can still exceed `MaxTypeCost`, because the assumed size compounds across nesting levels. Annotate the field with `@listSize(assumedSize:)` or set `DefaultListSize` for the schema, to any non-negative finite number or `double.PositiveInfinity`:
+On 16.6, an unannotated, non-paginated list assumed a size of 1. `CostOptions.DefaultListSize` is a `double` and on 16.7 defaults to `PagingDefaults.MaxPageSize` (`50`), so that same unannotated list now assumes 50 elements. A deeply nested unannotated selection that passed on 16.6 can now exceed `MaxTypeCost`, because the assumed size compounds across nesting levels. Annotate the field with `@listSize(assumedSize:)` or set `DefaultListSize` for the schema, to any non-negative finite number or `double.PositiveInfinity`:
 
 ```diff
  builder
