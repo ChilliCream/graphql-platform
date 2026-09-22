@@ -1,0 +1,123 @@
+import type { ReactNode } from "react";
+
+import { AppWindow } from "@/src/components/AppWindow";
+
+interface ClientImpactRow {
+  readonly client: string;
+  readonly environment: string;
+  readonly ok: number;
+  readonly total: number;
+  readonly status: "ok" | "risk" | "outside";
+  readonly note?: string;
+}
+
+interface ClientImpactMatrixProps {
+  readonly title: ReactNode;
+  readonly rows: readonly ClientImpactRow[];
+}
+
+interface ImpactBarProps {
+  readonly ok: number;
+  readonly total: number;
+  readonly status: ClientImpactRow["status"];
+}
+
+function ImpactBar({ ok, total, status }: ImpactBarProps) {
+  const cells = Array.from({ length: total });
+  const color =
+    status === "ok"
+      ? "bg-cc-success"
+      : status === "risk"
+        ? "bg-cc-warning"
+        : "bg-cc-ink-dim/50";
+  return (
+    <span className="flex gap-1">
+      {cells.map((_, i) => (
+        <span
+          key={i}
+          className={`h-2 w-5 rounded-[2px] ${i < ok ? color : "bg-cc-ink-faint"}`}
+        />
+      ))}
+    </span>
+  );
+}
+
+export function ClientImpactMatrix({ title, rows }: ClientImpactMatrixProps) {
+  const statusLabel: Record<
+    ClientImpactRow["status"],
+    { text: string; cls: string }
+  > = {
+    ok: { text: "OK", cls: "text-cc-success" },
+    risk: { text: "at risk", cls: "text-cc-warning" },
+    outside: { text: "outside result", cls: "text-cc-ink-dim" },
+  };
+  return (
+    <AppWindow title={title}>
+      <table className="w-full table-fixed border-collapse">
+        <colgroup>
+          <col className="w-[43.3%]" />
+          <col className="w-[33.3%]" />
+          <col className="w-[26.6%]" />
+        </colgroup>
+        <thead>
+          <tr className="border-cc-card-border text-cc-ink-dim border-b font-mono text-[0.6rem] tracking-[0.14em] uppercase">
+            <th scope="col" className="px-4 py-2 text-left font-normal">
+              client
+            </th>
+            <th scope="col" className="px-4 py-2 text-left font-normal">
+              operations passing
+            </th>
+            <th scope="col" className="px-4 py-2 text-right font-normal">
+              status
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((c) => {
+            const s = statusLabel[c.status];
+            return (
+              <tr
+                key={c.client}
+                className="border-cc-card-border border-b last:border-b-0"
+              >
+                <td className="min-w-0 px-4 py-3">
+                  <div className="text-cc-heading truncate font-mono text-[0.78rem]">
+                    {c.client}
+                  </div>
+                  <div className="text-cc-ink-dim font-mono text-[0.62rem]">
+                    {c.environment}
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    {c.total === 0 ? (
+                      <span className="text-cc-heading font-mono text-[0.68rem]">
+                        {c.note ?? "none published"}
+                      </span>
+                    ) : (
+                      <>
+                        <ImpactBar
+                          ok={c.ok}
+                          total={c.total}
+                          status={c.status}
+                        />
+                        <span className="text-cc-ink-dim font-mono text-[0.68rem]">
+                          {c.ok}/{c.total}
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </td>
+                <td
+                  className={`px-4 py-3 text-right font-mono text-[0.72rem] font-semibold ${s.cls}`}
+                >
+                  {s.text}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </AppWindow>
+  );
+}
