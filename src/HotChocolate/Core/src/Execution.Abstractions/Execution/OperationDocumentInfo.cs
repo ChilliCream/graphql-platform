@@ -7,10 +7,23 @@ namespace HotChocolate.Execution;
 /// </summary>
 public sealed class OperationDocumentInfo : RequestFeature
 {
+    private DocumentNode? _document;
+    private OperationDocumentId _id;
+    private int? _operationCount;
+
     /// <summary>
     /// Gets or sets the parsed query document.
     /// </summary>
-    public DocumentNode? Document { get; set; }
+    public DocumentNode? Document
+    {
+        get => _document;
+        set
+        {
+            _document = value;
+            _operationCount = null;
+            OperationId = null;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the normalized operation document, i.e. the executor's internal form of
@@ -25,7 +38,15 @@ public sealed class OperationDocumentInfo : RequestFeature
     /// <summary>
     /// Gets or sets a unique identifier for an operation document.
     /// </summary>
-    public OperationDocumentId Id { get; set; }
+    public OperationDocumentId Id
+    {
+        get => _id;
+        set
+        {
+            _id = value;
+            OperationId = null;
+        }
+    }
 
     /// <summary>
     /// Gets or sets the document hash.
@@ -33,9 +54,26 @@ public sealed class OperationDocumentInfo : RequestFeature
     public OperationDocumentHash Hash { get; set; }
 
     /// <summary>
+    /// Gets or sets the identifier of the executed operation within the document.
+    /// </summary>
+    public string? OperationId { get; set; }
+
+    /// <summary>
     /// Gets the number of operation definitions in the document.
     /// </summary>
-    public int OperationCount => Document?.Definitions.Count(d => d.Kind == SyntaxKind.OperationDefinition) ?? 0;
+    public int OperationCount
+    {
+        get
+        {
+            if (_operationCount is not { } count)
+            {
+                count = Document?.Definitions.Count(d => d.Kind == SyntaxKind.OperationDefinition) ?? 0;
+                _operationCount = count;
+            }
+
+            return count;
+        }
+    }
 
     /// <summary>
     /// Defines that the document was retrieved from the cache.
@@ -59,6 +97,7 @@ public sealed class OperationDocumentInfo : RequestFeature
         NormalizedDocument = null;
         Id = default;
         Hash = default;
+        OperationId = null;
         IsCached = false;
         IsPersisted = false;
         IsValidated = false;

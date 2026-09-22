@@ -277,8 +277,7 @@ public partial class SchemaBuilder
 
                     typeRegistry.TryRegister(
                         runtimeTypeRef,
-                        binding.GetSchemaTypeReference(context.TypeInspector),
-                        explicitBinding: RuntimeTypeBindingHelper.RequiresExactBinding(runtimeTypeRef.Type));
+                        binding.GetSchemaTypeReference(context.TypeInspector));
                 }
             }
 

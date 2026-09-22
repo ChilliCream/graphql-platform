@@ -30,7 +30,7 @@ Hot Chocolate comes with many more scalars than the GraphQL core scalars, mappin
 | `Guid`                  | `UUID`          | Implicit | Universally unique identifier (RFC 9562)                      | [Spec](https://scalars.graphql.org/chillicream/uuid.html)            |
 | `Uri`                   | `URI`           | Implicit | Uniform resource identifier (replaces `URL` for `System.Uri`) | [Spec](https://scalars.graphql.org/chillicream/uri.html)             |
 | `Uri`                   | `URL`           | Explicit | Deprecated, use `URI` instead                                 | [Spec](https://scalars.graphql.org/chillicream/url.html)             |
-| `byte[]`                | `Base64String`  | Implicit | Base64-encoded byte array (replaces deprecated `ByteArray`)   | [Spec](https://scalars.graphql.org/chillicream/base64-string.html)   |
+| `byte[]`                | `Base64String`  | Explicit | Base64-encoded byte array (replaces deprecated `ByteArray`)   | [Spec](https://scalars.graphql.org/chillicream/base64-string.html)   |
 | `byte`                  | `UnsignedByte`  | Implicit | Unsigned 8-bit integer                                        | [Spec](https://scalars.graphql.org/chillicream/unsigned-byte.html)   |
 | `sbyte`                 | `Byte`          | Implicit | Signed 8-bit integer                                          | [Spec](https://scalars.graphql.org/chillicream/byte.html)            |
 | `ushort`                | `UnsignedShort` | Implicit | Unsigned 16-bit integer                                       | [Spec](https://scalars.graphql.org/chillicream/unsigned-short.html)  |
@@ -403,6 +403,8 @@ builder
     .AddGraphQL()
     .BindRuntimeType<byte[], Base64StringType>();
 ```
+
+Without this binding, `byte[]` is inferred as a list of `UnsignedByte`.
 
 # Custom Converters
 

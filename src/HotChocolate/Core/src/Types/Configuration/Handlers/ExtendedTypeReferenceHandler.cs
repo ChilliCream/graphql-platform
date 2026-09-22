@@ -44,7 +44,6 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
         {
             TryMapToExistingRegistration(
                 typeRegistrar,
-                typeRef,
                 typeInfo,
                 typeReference.Context,
                 typeReference.Scope);
@@ -53,22 +52,11 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
 
     private static void TryMapToExistingRegistration(
         ITypeRegistrar typeRegistrar,
-        ExtendedTypeReference typeRef,
         ITypeInfo typeInfo,
         TypeContext context,
         string? scope)
     {
-        // If there is an explicit runtime binding for the full type, keep the original
-        // type reference unresolved so discovery can apply that binding.
-        if (RuntimeTypeBindingHelper.RequiresExactBinding(typeRef.Type)
-            && typeRegistrar.HasRuntimeTypeBinding(typeRef))
-        {
-            typeRegistrar.MarkUnresolved(typeRef);
-            return;
-        }
-
         ExtendedTypeReference? normalizedTypeRef = null;
-        var resolved = false;
 
         foreach (var component in typeInfo.Components)
         {
@@ -76,12 +64,19 @@ internal sealed class ExtendedTypeReferenceHandler(ITypeInspector typeInspector)
 
             if (typeRegistrar.IsResolved(normalizedTypeRef))
             {
-                resolved = true;
-                break;
+                return;
+            }
+
+            // A component with a runtime type binding resolves to the bound type, so the
+            // components nested inside it are not inspected.
+            if (typeRegistrar.HasRuntimeTypeBinding(normalizedTypeRef))
+            {
+                typeRegistrar.MarkUnresolved(normalizedTypeRef);
+                return;
             }
         }
 
-        if (!resolved && normalizedTypeRef is not null)
+        if (normalizedTypeRef is not null)
         {
             typeRegistrar.MarkUnresolved(normalizedTypeRef);
         }
