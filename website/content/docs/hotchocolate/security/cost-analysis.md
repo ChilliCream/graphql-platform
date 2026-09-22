@@ -76,13 +76,13 @@ The analyzer selects a list size in this order:
 2. The maximum slicing-argument value present after coercion. Negative values become `0`, and `0` remains `0`.
 3. `slicingArgumentDefaultValue`, only when no slicing argument is present.
 4. `assumedSize`.
-5. `CostOptions.DefaultListSize`, which defaults to `Infinity`.
+5. `CostOptions.DefaultListSize`, which defaults to `50` (`PagingDefaults.MaxPageSize`).
 
 An annotation with `sizedFields` applies its selected size to the named direct child fields. The inherited size takes priority over a child's own `@listSize` annotation.
 
 Hot Chocolate paging writes `MaxPageSize` to `assumedSize` and `DefaultPageSize` to `slicingArgumentDefaultValue`. A supplied paging argument is evaluated at its coerced value, an argument-less request is evaluated at `DefaultPageSize`, and `MaxPageSize` remains the assumed bound for a variable-bound paging argument. An explicit `null` is not a slicing value and suppresses the argument's schema default. An undefined variable behaves as an absent argument, so a schema default can apply before the remaining fallbacks.
 
-An unannotated list falls through to `DefaultListSize`. With the default `Infinity`, a list whose element type has a non-zero weight exceeds any finite type-cost limit. Annotate the field with `@listSize(assumedSize:)` or set a finite `DefaultListSize` for the schema.
+An unannotated list falls through to `DefaultListSize`. With the default of `50`, a nested chain of unannotated lists can still exceed a finite type-cost limit, since the assumed size compounds at every nesting level. Annotate the field with `@listSize(assumedSize:)`, or set `DefaultListSize` for the schema with `ModifyCostOptions` to any non-negative finite number or `double.PositiveInfinity`.
 
 ## Requiring a Slicing Argument
 
@@ -279,20 +279,20 @@ Summing the costs prevents a client from splitting an expensive workload among v
 
 ## Cost Options
 
-| Option                             | Default    | Contract                                                                                                                                   |
-| ---------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `MaxFieldCost`                     | `1_000`    | Maximum allowed field cost. Valid range: non-negative finite values or `Infinity`.                                                         |
-| `MaxTypeCost`                      | `1_000`    | Maximum allowed type cost. Valid range: non-negative finite values or `Infinity`.                                                          |
-| `EnforceCostLimits`                | `true`     | Reject operations that exceed a configured limit.                                                                                          |
-| `SkipAnalyzer`                     | `false`    | Bypass cost analysis and reporting.                                                                                                        |
-| `ApplyCostDefaults`                | `true`     | Apply Hot Chocolate cost metadata to the schema.                                                                                           |
-| `ApplySlicingArgumentDefaultValue` | `true`     | Apply the paging default to argument-less evaluated requests.                                                                              |
-| `DefaultResolverCost`              | `10.0`     | Weight applied to fields without a pure resolver. `null` disables the default.                                                             |
-| `DefaultListSize`                  | `Infinity` | Size used for list fields without applicable `@listSize` metadata. Valid range: non-negative finite values or `Infinity`.                  |
-| `CostPlanCacheSize`                | `256`      | Maximum compiled cost plans cached per schema.                                                                                             |
-| `MaxResponseSize`                  | `null`     | Maximum response-object-field count. `null` disables the check and metric. Valid range: `null`, non-negative finite values, or `Infinity`. |
-| `CaseBudget`                       | `null`     | Exact cases compiled per operation before `CaseBudgetExceededBehavior` decides the fallback. `null` uses the default (510).                |
-| `CaseBudgetExceededBehavior`       | `null`     | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).                               |
+| Option                             | Default | Contract                                                                                                                                                             |
+| ---------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MaxFieldCost`                     | `1_000` | Maximum allowed field cost. Valid range: non-negative finite values or `Infinity`.                                                                                   |
+| `MaxTypeCost`                      | `1_000` | Maximum allowed type cost. Valid range: non-negative finite values or `Infinity`.                                                                                    |
+| `EnforceCostLimits`                | `true`  | Reject operations that exceed a configured limit.                                                                                                                    |
+| `SkipAnalyzer`                     | `false` | Bypass cost analysis and reporting.                                                                                                                                  |
+| `ApplyCostDefaults`                | `true`  | Apply Hot Chocolate cost metadata to the schema.                                                                                                                     |
+| `ApplySlicingArgumentDefaultValue` | `true`  | Apply the paging default to argument-less evaluated requests.                                                                                                        |
+| `DefaultResolverCost`              | `10.0`  | Weight applied to fields without a pure resolver. `null` disables the default.                                                                                       |
+| `DefaultListSize`                  | `50`    | Size used for list fields without applicable `@listSize` metadata, sourced from `PagingDefaults.MaxPageSize`. Valid range: non-negative finite values or `Infinity`. |
+| `CostPlanCacheSize`                | `256`   | Maximum compiled cost plans cached per schema.                                                                                                                       |
+| `MaxResponseSize`                  | `null`  | Maximum response-object-field count. `null` disables the check and metric. Valid range: `null`, non-negative finite values, or `Infinity`.                           |
+| `CaseBudget`                       | `null`  | Exact cases compiled per operation before `CaseBudgetExceededBehavior` decides the fallback. `null` uses the default (510).                                          |
+| `CaseBudgetExceededBehavior`       | `null`  | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).                                                         |
 
 ```csharp
 builder
