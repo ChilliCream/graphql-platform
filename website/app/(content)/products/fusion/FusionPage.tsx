@@ -4,6 +4,8 @@ import type { ReactElement, ReactNode } from "react";
 import { Band } from "@/src/components/Band";
 import { ButtonRow } from "@/src/components/ButtonRow";
 import { CardGrid } from "@/src/components/CardGrid";
+import { ClassificationCard } from "@/src/components/ClassificationCard";
+import { ClientImpactMatrix } from "@/src/components/ClientImpactMatrix";
 import { FeatureRow } from "@/src/components/FeatureRow";
 import { Section } from "@/src/components/Section";
 import { SectionHeading } from "@/src/components/SectionHeading";
@@ -16,16 +18,8 @@ import { FEATURES, NITRO_BAND, SECTIONS } from "./content";
 import { FusionHero } from "./hero/FusionHero";
 import LayeredDiagram from "./hero/LayeredDiagram";
 import { CompositionWindow } from "./visuals/CompositionWindow";
-import {
-  FLIGHT_RECORDER_RATIO,
-  FlightRecorder,
-} from "./visuals/FlightRecorder";
 import { ProtocolsWindow } from "./visuals/ProtocolsWindow";
 import { Scene } from "./visuals/Scene";
-import {
-  TELEMETRY_STRIP_RATIO,
-  TelemetryStrip,
-} from "./visuals/TelemetryStrip";
 
 /**
  * The Fusion product page: hero copy and buttons, then the diagram panel,
@@ -34,6 +28,40 @@ import {
  */
 
 const PANEL_CLASS = "border-cc-card-border bg-cc-card-bg rounded-xl border";
+
+/** client-safety row: impact of removing `Product.rating` on real clients. */
+const CLIENT_IMPACT_ROWS = [
+  { client: "web", environment: "production", ok: 5, total: 5, status: "ok" },
+  {
+    client: "mobile",
+    environment: "production",
+    ok: 3,
+    total: 5,
+    status: "risk",
+    note: "the client the subgraph team never sees",
+  },
+  {
+    client: "partner-api",
+    environment: "sandbox",
+    ok: 0,
+    total: 0,
+    status: "outside",
+  },
+  {
+    client: "internal-admin",
+    environment: "staging",
+    ok: 6,
+    total: 6,
+    status: "ok",
+  },
+] as const;
+
+/** Nitro band aside: the same schema-governance verdict Nitro's own page shows. */
+const NITRO_BAND_CHANGES = [
+  { kind: "safe", text: "+ Order.deliveryEstimate" },
+  { kind: "dangerous", text: "~ Product.price: Float → Money" },
+  { kind: "breaking", text: "- Product.rating" },
+] as const;
 
 /** Re-links the phrases the production page links, leaving the words untouched. */
 function withLinks(text: string, links: readonly CopyLink[]): ReactNode {
@@ -103,8 +131,14 @@ const VISUALS: Readonly<Record<string, Panel>> = {
   "both-specifications": { visual: <ProtocolsWindow />, kind: "html" },
   "any-server": { visual: <CompositionWindow />, kind: "html" },
   "client-safety": {
-    visual: <FlightRecorder />,
-    ratio: FLIGHT_RECORDER_RATIO,
+    visual: (
+      <ClientImpactMatrix
+        density="comfortable"
+        title="client registry · impact of removing Product.rating"
+        rows={CLIENT_IMPACT_ROWS}
+      />
+    ),
+    kind: "html",
   },
 };
 
@@ -184,9 +218,14 @@ export function FusionPage() {
           }
           aside={
             <div className="border-cc-card-border overflow-hidden rounded-lg border">
-              <Scene ratio={TELEMETRY_STRIP_RATIO}>
-                <TelemetryStrip />
-              </Scene>
+              <ClassificationCard
+                density="comfortable"
+                title="orders-api"
+                version="v14"
+                verdict="publish blocked"
+                changes={NITRO_BAND_CHANGES}
+                footer="1 safe · 1 dangerous · 1 breaking"
+              />
             </div>
           }
         />
