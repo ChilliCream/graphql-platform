@@ -19,7 +19,6 @@ import { FusionHero } from "./hero/FusionHero";
 import LayeredDiagram from "./hero/LayeredDiagram";
 import { CompositionWindow } from "./visuals/CompositionWindow";
 import { ProtocolsWindow } from "./visuals/ProtocolsWindow";
-import { Scene } from "./visuals/Scene";
 
 /**
  * The Fusion product page: hero copy and buttons, then the diagram panel,
@@ -108,27 +107,13 @@ function InPractice({ links }: InPracticeProps) {
 
 interface Panel {
   readonly visual: ReactNode;
-  /**
-   * The visual's own `viewBox` ratio, so the scene box never letterboxes it.
-   * Only meaningful for `kind: "svg"` (the default); an `"html"` visual
-   * sizes itself and ignores this.
-   */
-  readonly ratio?: string;
-  /**
-   * `"svg"` (the default) wraps `visual` in a ratio-locked `Scene`, which
-   * every console visual on this page is drawn for. `"html"` renders
-   * `visual` directly in the panel box instead: for a plain HTML component
-   * with its own motion gating, such as `LayeredDiagram`, that already
-   * sizes itself to its container.
-   */
-  readonly kind?: "svg" | "html";
 }
 
 /** One panel per text section, in the order the copy declares them. */
 const VISUALS: Readonly<Record<string, Panel>> = {
-  "what-is-fusion": { visual: <LayeredDiagram />, kind: "html" },
-  "both-specifications": { visual: <ProtocolsWindow />, kind: "html" },
-  "any-server": { visual: <CompositionWindow />, kind: "html" },
+  "what-is-fusion": { visual: <LayeredDiagram /> },
+  "both-specifications": { visual: <ProtocolsWindow /> },
+  "any-server": { visual: <CompositionWindow /> },
   "client-safety": {
     visual: (
       <ClientImpactMatrix
@@ -137,7 +122,6 @@ const VISUALS: Readonly<Record<string, Panel>> = {
         rows={CLIENT_IMPACT_ROWS}
       />
     ),
-    kind: "html",
   },
 };
 
@@ -157,11 +141,7 @@ export function FusionPage() {
               body={withLinks(firstParagraph, section.links)}
               visual={
                 <div className={`${PANEL_CLASS} overflow-hidden`}>
-                  {panel.kind === "html" ? (
-                    panel.visual
-                  ) : (
-                    <Scene ratio={panel.ratio}>{panel.visual}</Scene>
-                  )}
+                  {panel.visual}
                 </div>
               }
               reverse={i % 2 === 1}
