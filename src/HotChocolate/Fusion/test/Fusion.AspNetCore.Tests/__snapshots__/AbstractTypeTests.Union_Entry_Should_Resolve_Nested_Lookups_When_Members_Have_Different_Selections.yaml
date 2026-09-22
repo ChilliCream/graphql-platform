@@ -289,7 +289,7 @@ operationPlan:
           }
         }
       name: SearchProduct
-      hash: 8e254f5eea1e0fc464f9cf28677e9ea1
+      hash: 7cbf7513e658c89856e3d809e91f6cdb
       searchSpace: 4
       expandedNodes: 12
   nodes:
