@@ -8,7 +8,6 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using ErrorHelper = HotChocolate.CostAnalysis.Utilities.ErrorHelper;
 
 namespace HotChocolate.AspNetCore;
 
@@ -358,11 +357,9 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         result!.RootElement.MatchSnapshot();
     }
 
-    // CostAnalyzerMiddleware only reaches ErrorHelper.StateInvalidForCostAnalysis when the
-    // operation document is unexpectedly missing after variable coercion, a state that a
-    // normal request never produces. This test forces that result directly through a request
-    // middleware appended after the cost analyzer, so the assertion still goes through the
-    // real formatter rather than constructing the result and formatting it by hand.
+    // CostAnalyzerMiddleware reaches ErrorHelper.StateInvalidForCostAnalysis when the operation
+    // document is missing once it runs. This test clears the document with a middleware placed
+    // just before the cost analyzer so the real guard produces the result.
     [Fact]
     public async Task CostStateInvalid_Should_ReturnHttp500_When_StateInvalidForCostAnalysisIsHit()
     {
@@ -371,13 +368,13 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
             configureServices: services => services
                 .AddGraphQLServer()
                 .UseRequest(
-                    next => async context =>
+                    next => context =>
                     {
-                        await next(context);
-                        context.Result = ErrorHelper.StateInvalidForCostAnalysis();
+                        context.OperationDocumentInfo.Document = null;
+                        return next(context);
                     },
-                    key: "ForceCostStateInvalid",
-                    after: WellKnownRequestMiddleware.CostAnalyzerMiddleware));
+                    key: "ClearOperationDocument",
+                    before: WellKnownRequestMiddleware.CostAnalyzerMiddleware));
 
         var uri = new Uri("http://localhost:5000/graphql");
 
@@ -401,6 +398,9 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
 
         // assert
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
+        Assert.NotNull(result);
+        result!.RootElement.MatchSnapshot();
     }
 
     public class CostInterceptor : DefaultHttpRequestInterceptor
