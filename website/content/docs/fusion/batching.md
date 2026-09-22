@@ -24,8 +24,6 @@ The gateway fetches the books from the first subgraph, then needs `rating` for e
 
 Fusion knows three ways to put more than one call into one HTTP request. Each one is declared as a capability of the subgraph it is used against.
 
-See [Cost Analysis](./cost-analysis.md#rejections-and-http-status) for how cost limits apply to a batch.
-
 ## Variable Batching
 
 Variable batching sends **one operation with many sets of variables** in one request. The `variables` property carries an array instead of an object, and the subgraph runs the operation once per set:
