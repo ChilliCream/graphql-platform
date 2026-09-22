@@ -1122,6 +1122,161 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedAllow, response.Content.Headers.Allow);
     }
 
+    // When QUERY requests are enabled the endpoint lists the method in Allow and advertises the
+    // body media type it accepts through Accept-Query (RFC 10008, section 3).
+    [Fact]
+    public async Task Options_Should_ListQuery_When_QueryRequestsAreEnabled()
+    {
+        // arrange
+        var client = GetQueryClient(Draft20260903);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Options, s_url);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NoContent, response.StatusCode);
+        Assert.Equal(["GET", "HEAD", "OPTIONS", "POST", "QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
+    }
+
+    [Fact]
+    public async Task Options_Should_NotReturnAcceptQuery_When_QueryRequestsAreDisabled()
+    {
+        // arrange
+        var client = GetClient(Draft20260903);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Options, s_url);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(NoContent, response.StatusCode);
+        Assert.False(response.Headers.Contains("Accept-Query"));
+    }
+
+    [Fact]
+    public async Task Put_Should_ListQuery_When_QueryRequestsAreEnabled()
+    {
+        // arrange
+        var client = GetQueryClient(Draft20260903);
+
+        // act
+        using var request = new HttpRequestMessage(HttpMethod.Put, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["GET", "HEAD", "OPTIONS", "POST", "QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
+    }
+
+    [Fact]
+    public async Task Get_Should_ListQuery_When_GetRequestsAreDisabled()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = Draft20260903
+                }),
+            configureConventions: b => b.WithOptions(o =>
+            {
+                o.EnableGetRequests = false;
+                o.EnableQueryRequests = true;
+                o.Tool.Enable = false;
+            }));
+        var client = server.CreateClient();
+        var query = Uri.EscapeDataString("{ __typename }");
+
+        // act
+        using var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            new Uri($"{s_url}?query={query}"));
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(MethodNotAllowed, response.StatusCode);
+        Assert.Equal(["OPTIONS", "POST", "QUERY"], response.Content.Headers.Allow);
+        Assert.Equal(["application/json"], response.Headers.GetValues("Accept-Query"));
+    }
+
+    // A QUERY request the endpoint does not accept because of its Content-Type is a 415 that
+    // names the accepted media type. Without QUERY enabled the method itself is refused.
+    [Theory]
+    [InlineData(Draft20250508, NotFound, false)]
+    [InlineData(Draft20260903, UnsupportedMediaType, true)]
+    public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsUnsupported(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        bool expectAcceptQuery)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent("{ __typename }", Encoding.UTF8, "text/plain");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectAcceptQuery, response.Headers.Contains("Accept-Query"));
+        Assert.Empty(
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, NotFound)]
+    [InlineData(Draft20260903, UnsupportedMediaType)]
+    public async Task Query_Should_ReturnUnsupportedMediaType_When_ContentTypeIsMissing(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new ByteArrayContent("""{ "query": "{ __typename }" }"""u8.ToArray());
+        request.Content.Headers.ContentType = null;
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(Draft20250508, NotFound, new string[0])]
+    [InlineData(Draft20260903, MethodNotAllowed, new[] { "GET", "HEAD", "OPTIONS", "POST" })]
+    public async Task Query_Should_ReturnMethodNotAllowed_When_QueryRequestsAreDisabled(
+        HttpTransportVersion transportVersion,
+        HttpStatusCode expectedStatusCode,
+        string[] expectedAllow)
+    {
+        // arrange
+        var client = GetClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = JsonContent.Create(new ClientQueryRequest { Query = "{ __typename }" });
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedAllow, response.Content.Headers.Allow);
+        Assert.False(response.Headers.Contains("Accept-Query"));
+    }
+
     [Theory]
     [InlineData(Draft20250508, NotFound)]
     [InlineData(Draft20260903, UnsupportedMediaType)]
