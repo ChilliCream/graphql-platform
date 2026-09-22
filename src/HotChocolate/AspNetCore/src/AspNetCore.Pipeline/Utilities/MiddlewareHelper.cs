@@ -413,6 +413,28 @@ internal static class MiddlewareHelper
             ? RequestFlags.AllowQuery | RequestFlags.AllowStreams
             : RequestFlags.AllowQuery;
 
+    /// <summary>
+    /// Resolves the status code a QUERY request proposes for an execution result. An operation
+    /// kind the method does not serve is answered 422.
+    /// </summary>
+    public static HttpStatusCode? DetermineHttpQueryStatusCode(ExecuteRequestResult executionResult)
+    {
+        if (executionResult.StatusCode is null
+            && executionResult.Result?.ContextData is { } contextData
+            && contextData.ContainsKey(ExecutionContextData.OperationNotAllowed))
+        {
+            return HttpStatusCode.UnprocessableContent;
+        }
+
+        return executionResult.StatusCode;
+    }
+
+    /// <summary>
+    /// Whether the request carries a list of variable sets, which makes it a variable batch.
+    /// </summary>
+    public static bool IsVariableBatch(GraphQLRequest request)
+        => request.Variables is { RootElement.ValueKind: JsonValueKind.Array };
+
     public static async Task<ExecuteRequestResult> ExecuteRequestAsync(
         GraphQLRequest request,
         RequestFlags flags,

@@ -12,6 +12,8 @@ namespace HotChocolate.AspNetCore;
 /// </summary>
 public sealed class HttpQueryMiddleware : MiddlewareBase
 {
+    private const string BatchOperations = "batchOperations";
+
     public HttpQueryMiddleware(
         HttpRequestDelegate next,
         HttpRequestExecutorProxy executor,
@@ -57,6 +59,18 @@ public sealed class HttpQueryMiddleware : MiddlewareBase
             goto HANDLE_RESULT;
         }
 
+        // a QUERY request carries exactly one operation, so an operation batch is refused.
+        if (context.Request.Query.ContainsKey(BatchOperations))
+        {
+            var refused = MiddlewareHelper.CreateBatchingRefusedResult(
+                ErrorHelper.RequestBatchingNotSupportedForQuery(),
+                context,
+                session);
+            statusCode = refused.StatusCode;
+            result = refused.Error;
+            goto HANDLE_RESULT;
+        }
+
         // next we parse the GraphQL request.
         var parserResult = await MiddlewareHelper.ParseSingleRequestFromBodyAsync(context, session);
 
@@ -64,6 +78,18 @@ public sealed class HttpQueryMiddleware : MiddlewareBase
         {
             statusCode = parserResult.StatusCode;
             result = parserResult.Error;
+            goto HANDLE_RESULT;
+        }
+
+        // a QUERY request carries exactly one variable set, so a variable batch is refused.
+        if (MiddlewareHelper.IsVariableBatch(parserResult.Request!))
+        {
+            var refused = MiddlewareHelper.CreateBatchingRefusedResult(
+                ErrorHelper.VariableBatchingNotSupportedForQuery(),
+                context,
+                session);
+            statusCode = refused.StatusCode;
+            result = refused.Error;
             goto HANDLE_RESULT;
         }
 
@@ -77,7 +103,9 @@ public sealed class HttpQueryMiddleware : MiddlewareBase
             requestFlags,
             context,
             session);
-        statusCode = executionResult.StatusCode;
+
+        // a mutation or subscription the executor refused before it ran is answered 422.
+        statusCode = MiddlewareHelper.DetermineHttpQueryStatusCode(executionResult);
         result = executionResult.Result;
 
 HANDLE_RESULT:

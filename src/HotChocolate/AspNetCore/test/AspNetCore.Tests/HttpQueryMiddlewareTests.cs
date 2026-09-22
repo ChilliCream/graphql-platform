@@ -188,6 +188,107 @@ public class HttpQueryMiddlewareTests(TestServerFactory serverFactory)
     }
 
     [Fact]
+    public async Task Query_Should_ReturnBadRequest_When_BatchOperationsIsSet()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener),
+            configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreateQueryRequest(
+            """{ "query": "query a { __typename } query b { __typename }" }""",
+            "/graphql?batchOperations=[a,b]");
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Request batching is not supported for HTTP QUERY requests.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Query_Should_ReturnBadRequest_When_VariablesIsArray()
+    {
+        // arrange
+        var listener = new RecordingListener();
+        var server = CreateStarWarsServer(
+            configureServices: s => s
+                .AddGraphQLServer()
+                .AddDiagnosticEventListener(_ => listener),
+            configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreateQueryRequest(
+            """
+            {
+              "query": "query($episode: Episode!) { hero(episode: $episode) { name } }",
+              "variables": [{ "episode": "NEW_HOPE" }, { "episode": "EMPIRE" }]
+            }
+            """);
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        var diagnosticError = Assert.Single(listener.Errors);
+        Assert.Equal(
+            "Variable batching is not supported for HTTP QUERY requests.",
+            diagnosticError.Message);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                Headers:
+                Content-Type: application/graphql-response+json; charset=utf-8
+                -------------------------->
+                Status Code: BadRequest
+                -------------------------->
+                {"errors":[{"message":"Invalid GraphQL Request.","extensions":{"code":"HC0009"}}]}
+                """);
+    }
+
+    [Fact]
+    public async Task Query_Should_StreamResult_When_DeferIsUsed()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
+        var client = server.CreateClient();
+
+        // act
+        using var request = CreateQueryRequest(
+            """{ "query": "{ hero(episode: JEDI) { name ... @defer { appearsIn } } }" }""");
+        request.Headers.Add("Accept", "multipart/mixed");
+
+        using var response = await client.SendAsync(
+            request,
+            HttpCompletionOption.ResponseHeadersRead,
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
     public async Task Query_Should_RunRequestInterceptor_When_RequestIsCreated()
     {
         // arrange

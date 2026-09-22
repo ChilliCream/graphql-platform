@@ -22,6 +22,7 @@ namespace HotChocolate.AspNetCore;
 public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
     private static readonly Uri s_url = new("http://localhost:5000/graphql");
+    private static readonly HttpMethod s_queryMethod = new("QUERY");
 
     private const string NotWellFormedRequest = """{ "query": 123 }""";
     private const string EmptyBatchRequest = "[]";
@@ -1209,6 +1210,82 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
         Assert.Equal(expectedAllow, response.Content.Headers.Allow);
     }
 
+    // A QUERY request runs query operations only. A mutation is refused before execution with
+    // 422, which the application/json rule of the older revisions turns into 200.
+    [Theory]
+    [InlineData(
+        Legacy,
+        ContentType.GraphQLResponse,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Legacy, ContentType.Json, OK, ContentType.Json)]
+    [InlineData(
+        Draft20250508,
+        ContentType.GraphQLResponse,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Draft20250508, ContentType.Json, OK, ContentType.Json)]
+    [InlineData(
+        Draft20260903,
+        ContentType.GraphQLResponse,
+        UnprocessableContent,
+        ContentType.GraphQLResponse)]
+    [InlineData(Draft20260903, ContentType.Json, UnprocessableContent, ContentType.GraphQLResponse)]
+    public async Task Query_Should_ReturnUnprocessableContent_When_MutationIsSent(
+        HttpTransportVersion transportVersion,
+        string acceptHeader,
+        HttpStatusCode expectedStatusCode,
+        string expectedContentType)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(
+            """{ "query": "mutation { __typename }" }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, acceptHeader);
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(expectedStatusCode, response.StatusCode);
+        Assert.Equal(expectedContentType, response.Content.Headers.ContentType?.ToString());
+        Assert.Empty(response.Content.Headers.Allow);
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(Draft20250508)]
+    [InlineData(Draft20260903)]
+    public async Task Query_Should_ReturnUnprocessableContent_When_SubscriptionIsSent(
+        HttpTransportVersion transportVersion)
+    {
+        // arrange
+        var client = GetQueryClient(transportVersion);
+
+        // act
+        using var request = new HttpRequestMessage(s_queryMethod, s_url);
+        request.Content = new StringContent(
+            """{ "query": "subscription { delay(count: 1, delay: 15000) }" }""",
+            Encoding.UTF8,
+            "application/json");
+        AddAcceptHeader(request, "application/graphql-response+json, text/event-stream");
+
+        using var response = await client.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(UnprocessableContent, response.StatusCode);
+        Assert.Equal(ContentType.GraphQLResponse, response.Content.Headers.ContentType?.ToString());
+        Assert.Equal(
+            """{"errors":[{"message":"The specified operation kind is not allowed."}]}""",
+            await response.Content.ReadAsStringAsync(TestContext.Current.CancellationToken));
+    }
+
     [Fact]
     public async Task Post_Should_NotReturnAllowHeader_When_FormatterOverridesStatusCode()
     {
@@ -1651,6 +1728,19 @@ public class GraphQLOverHttpSpecTests(TestServerFactory serverFactory) : ServerT
                 {
                     HttpTransportVersion = serverTransportVersion
                 }));
+
+        return server.CreateClient();
+    }
+
+    private HttpClient GetQueryClient(HttpTransportVersion serverTransportVersion)
+    {
+        var server = CreateStarWarsServer(
+            configureServices: s => s.AddGraphQLServer().AddHttpResponseFormatter(
+                new HttpResponseFormatterOptions
+                {
+                    HttpTransportVersion = serverTransportVersion
+                }),
+            configureConventions: b => b.WithOptions(o => o.EnableQueryRequests = true));
 
         return server.CreateClient();
     }
