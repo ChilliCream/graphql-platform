@@ -196,16 +196,14 @@ export function FusionPage() {
             </div>
           }
           aside={
-            <div className="border-cc-card-border overflow-hidden rounded-lg border">
-              <ClassificationCard
-                density="comfortable"
-                title="orders-api"
-                version="v14"
-                verdict="publish blocked"
-                changes={NITRO_BAND_CHANGES}
-                footer="1 safe · 1 dangerous · 1 breaking"
-              />
-            </div>
+            <ClassificationCard
+              density="comfortable"
+              title="orders-api"
+              version="v14"
+              verdict="publish blocked"
+              changes={NITRO_BAND_CHANGES}
+              footer="1 safe · 1 dangerous · 1 breaking"
+            />
           }
         />
       </div>
