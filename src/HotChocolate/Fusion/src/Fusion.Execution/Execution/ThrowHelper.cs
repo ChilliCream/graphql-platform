@@ -59,9 +59,6 @@ internal static class ThrowHelper
     public static InvalidOperationException OperationDocumentNotAvailable()
         => new("The operation document is not available in the context.");
 
-    public static InvalidOperationException OperationDocumentHashNotAvailable()
-        => new("The operation document hash is not available in the context.");
-
     public static InvalidOperationException OperationPlanTaskCompletedWithoutResult()
         => new("The operation plan task completed without a result.");
 
