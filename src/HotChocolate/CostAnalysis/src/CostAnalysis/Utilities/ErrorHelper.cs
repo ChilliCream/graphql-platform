@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Net;
 using HotChocolate.CostAnalysis.Properties;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -66,12 +67,19 @@ internal static class ErrorHelper
     }
 
     public static IExecutionResult StateInvalidForCostAnalysis()
-        => ResultHelper.CreateError(
+    {
+        var result = OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage(CostAnalysisResources.ErrorHelper_StateInvalidForCostAnalysis)
                 .SetCode(ErrorCodes.Execution.CostStateInvalid)
-                .Build(),
-            null);
+                .Build());
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.InternalServerError);
+
+        return result;
+    }
 
     public static IExecutionResult StateInvalidForCostAnalysisMissingVariableValues()
         => ResultHelper.CreateError(

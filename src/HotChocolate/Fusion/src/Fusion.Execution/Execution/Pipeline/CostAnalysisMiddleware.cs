@@ -276,7 +276,7 @@ internal sealed class CostAnalysisMiddleware
             {
                 var schemaIndex = fc.SchemaServices.GetRequiredService<CostSchemaIndex>();
                 var cache = fc.SchemaServices.GetRequiredService<Cache<CostPlan>>();
-                var options = fc.SchemaServices.GetRequiredService<FusionRequestOptions>().Cost;
+                var options = fc.SchemaServices.GetRequiredService<FusionCostOptions>();
                 var diagnosticEvents =
                     fc.SchemaServices.GetRequiredService<IFusionExecutionDiagnosticEvents>();
                 var middleware = new CostAnalysisMiddleware(schemaIndex, cache, options, diagnosticEvents);

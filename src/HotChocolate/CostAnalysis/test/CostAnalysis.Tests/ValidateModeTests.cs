@@ -217,6 +217,12 @@ public sealed class ValidateModeTests
         Assert.Equal(
             "The cost analysis requires at least one coerced variable value set.",
             result.Errors[0].Message);
+
+        // An explicit empty variable batch is a request error, so the result still carries
+        // the validation-error context data instead of an internal-server-error override.
+        Assert.Equal(
+            new KeyValuePair<string, object?>(ExecutionContextData.ValidationErrors, true),
+            Assert.Single(result.ContextData));
     }
 
     [Fact]
