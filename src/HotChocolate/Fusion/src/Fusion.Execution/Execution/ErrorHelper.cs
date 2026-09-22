@@ -32,11 +32,19 @@ internal static class ErrorHelper
     }
 
     public static OperationResult StateInvalidForCostAnalysis()
-        => RequestError(
+    {
+        var result = OperationResult.FromError(
             ErrorBuilder.New()
                 .SetMessage("The cost analysis requires a normalized operation document.")
                 .SetCode(ErrorCodes.Execution.CostStateInvalid)
                 .Build());
+
+        result.ContextData = result.ContextData.Add(
+            ExecutionContextData.HttpStatusCode,
+            HttpStatusCode.InternalServerError);
+
+        return result;
+    }
 
     public static OperationResult StateInvalidForCostAnalysisMissingVariableValues()
         => RequestError(
