@@ -56,7 +56,11 @@ const HEADER_LABEL_CLASS =
 const BADGE_CLASS =
   "border-cc-nav-text/30 text-cc-nav-text inline-flex items-center whitespace-nowrap rounded-full border px-3 py-1 font-mono text-[0.7rem] tracking-[0.12em] uppercase";
 
-function ProtocolBadge({ protocol }: { readonly protocol: Protocol }) {
+interface ProtocolBadgeProps {
+  readonly protocol: Protocol;
+}
+
+function ProtocolBadge({ protocol }: ProtocolBadgeProps) {
   return <span className={BADGE_CLASS}>{protocol}</span>;
 }
 
