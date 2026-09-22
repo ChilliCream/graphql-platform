@@ -6,9 +6,8 @@ import { DotGridSurface } from "@/src/components/DotGridSurface";
 import { PageSection } from "@/src/components/PageSection";
 import { StatusChip } from "@/src/components/StatusChip";
 import type { ChangeStatus } from "@/src/components/StatusChip";
+import { tk } from "@/src/components/syntaxTokens";
 import { OutlineButton, SolidButton } from "@/src/design-system/Button";
-
-import { tk } from "./syntaxTokens";
 
 type DiffSign = "+" | "-" | " ";
 
