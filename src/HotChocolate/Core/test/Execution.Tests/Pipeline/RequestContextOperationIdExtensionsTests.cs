@@ -103,6 +103,16 @@ public sealed class RequestContextOperationIdExtensionsTests
     }
 
     [Fact]
+    public void OperationDocumentId_Should_Reject_Dot_Character()
+    {
+        // act
+        void Act() => new OperationDocumentId("abc.123");
+
+        // assert
+        Assert.Throws<ArgumentException>(Act);
+    }
+
+    [Fact]
     public void GetOperationId_Should_ComputeOnce_And_Cache_Result()
     {
         // arrange
