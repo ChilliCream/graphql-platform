@@ -23,7 +23,7 @@
         },
         {
           "Key": "graphql.document.hash",
-          "Value": "md5:bab802900c2eca403375ddf6a0ba8abc"
+          "Value": "md5:ae827edb7726291fa4bf2b8820afda9f"
         },
         {
           "Key": "graphql.error.count",
@@ -60,7 +60,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:bab802900c2eca403375ddf6a0ba8abc"
+              "Value": "md5:ae827edb7726291fa4bf2b8820afda9f"
             }
           ]
         }
@@ -74,7 +74,7 @@
           "tags": [
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:bab802900c2eca403375ddf6a0ba8abc"
+              "Value": "md5:ae827edb7726291fa4bf2b8820afda9f"
             }
           ],
           "event": []
@@ -91,7 +91,7 @@
             },
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:bab802900c2eca403375ddf6a0ba8abc"
+              "Value": "md5:ae827edb7726291fa4bf2b8820afda9f"
             }
           ],
           "event": []
@@ -104,7 +104,7 @@
           "tags": [
             {
               "Key": "graphql.document.hash",
-              "Value": "md5:bab802900c2eca403375ddf6a0ba8abc"
+              "Value": "md5:ae827edb7726291fa4bf2b8820afda9f"
             },
             {
               "Key": "graphql.operation.fieldCost",

@@ -556,17 +556,36 @@ public partial class ActivityExecutionDiagnosticListenerTests
     {
         using (CaptureActivities(out var activities))
         {
-            // arrange & act
-            await new ServiceCollection()
+            // arrange
+            var services = new ServiceCollection()
                 .AddGraphQL()
                 .AddInstrumentation(o =>
                     o.Scopes = ActivityScopes.All)
                 .AddCostAnalyzer()
                 .ModifyCostOptions(o => o.MaxTypeCost = 0)
                 .AddQueryType<SimpleQuery>()
-                .ExecuteRequestAsync(
-                    "query GetHello { sayHello }",
-                    cancellationToken: TestContext.Current.CancellationToken);
+                .UseRequest(
+                    next => context =>
+                    {
+                        context.OperationDocumentInfo.NormalizedDocument =
+                            Utf8GraphQLParser.Parse("query GetHello { sayHello }");
+                        return next(context);
+                    },
+                    key: "TestNormalizedDocument",
+                    after: WellKnownRequestMiddleware.DocumentValidationMiddleware)
+                .Services
+                .BuildServiceProvider();
+
+            var executor = await services.GetRequestExecutorAsync(
+                cancellationToken: TestContext.Current.CancellationToken);
+
+            var request = OperationRequestBuilder.New()
+                .SetDocument("query GetHello { sayHello } query Other { sayHello }")
+                .SetOperationName("Other")
+                .Build();
+
+            // act
+            await executor.ExecuteAsync(request, TestContext.Current.CancellationToken);
 
             // assert
             activities.MatchSnapshot();
