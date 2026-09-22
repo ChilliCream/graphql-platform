@@ -20,8 +20,8 @@ import {
   FLIGHT_RECORDER_RATIO,
   FlightRecorder,
 } from "./visuals/FlightRecorder";
+import { ProtocolsWindow } from "./visuals/ProtocolsWindow";
 import { Scene } from "./visuals/Scene";
-import { SPEC_PATCHBAY_RATIO, SpecPatchbay } from "./visuals/SpecPatchbay";
 import {
   TELEMETRY_STRIP_RATIO,
   TelemetryStrip,
@@ -100,10 +100,7 @@ interface Panel {
 /** One panel per text section, in the order the copy declares them. */
 const VISUALS: Readonly<Record<string, Panel>> = {
   "what-is-fusion": { visual: <LayeredDiagram />, kind: "html" },
-  "both-specifications": {
-    visual: <SpecPatchbay />,
-    ratio: SPEC_PATCHBAY_RATIO,
-  },
+  "both-specifications": { visual: <ProtocolsWindow />, kind: "html" },
   "any-server": { visual: <CompositionWindow />, kind: "html" },
   "client-safety": {
     visual: <FlightRecorder />,
