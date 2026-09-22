@@ -4,7 +4,7 @@ metaTitle: "Migrate from Apollo Federation to Hot Chocolate Fusion"
 description: "Map Apollo Federation concepts like @key and _entities to Hot Chocolate Fusion equivalents such as [Lookup], and migrate subgraphs, gateway, and CI/CD."
 ---
 
-If you have experience with Apollo Federation, you already understand the core idea behind distributed GraphQL: multiple services contribute types and fields to a single, unified schema, and a gateway coordinates query execution across them. HotChocolate Fusion supports two subgraph protocols: Apollo Federation and GraphQL Federation, the open [GraphQL Federation specification](https://graphql.github.io/composite-schemas-spec/) (formerly the GraphQL Composite Schemas specification). This guide is about moving a subgraph from the Apollo Federation protocol to the GraphQL Federation protocol.
+If you have experience with Apollo Federation, you already understand the core idea behind distributed GraphQL: multiple services contribute types and fields to a single, unified schema, and a gateway coordinates query execution across them. HotChocolate Fusion supports two subgraph protocols: Apollo Federation and GraphQL Federation, the open [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/) (formerly the GraphQL Composite Schemas specification). This guide is about moving a subgraph from the Apollo Federation protocol to the GraphQL Federation protocol.
 
 This guide maps Apollo Federation concepts to their Fusion equivalents, explains behavioral differences, and walks you through migrating subgraphs, the gateway, and your CI/CD pipeline. It is self-contained: you can complete a migration by following this guide alone. Links to other Fusion docs pages provide deeper context, not prerequisites.
 
@@ -794,7 +794,7 @@ Moving to the GraphQL Federation protocol resolves several common pain points fr
 
 **.NET-native tooling.** If your team is a .NET shop, Fusion means your gateway, subgraphs, and tooling are all .NET. No Node.js dependency for the gateway or CLI, no context-switching between languages.
 
-**Open standards.** Fusion implements the [GraphQL Federation specification](https://graphql.github.io/composite-schemas-spec/), an open, vendor-neutral standard under the GraphQL Foundation. Your subgraph schemas are portable. They are not locked into any vendor's directive syntax.
+**Open standards.** Fusion implements the [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/), an open, vendor-neutral standard under the GraphQL Foundation. Your subgraph schemas are portable. They are not locked into any vendor's directive syntax.
 
 **Simpler subgraph setup.** Without an Apollo Federation library, there are fewer moving parts. A minimal Fusion subgraph is a HotChocolate server with `[Lookup]` on its entity query fields and a `schema-settings.json` file. That is the entire GraphQL Federation surface area.
 

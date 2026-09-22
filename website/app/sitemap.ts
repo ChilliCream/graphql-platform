@@ -7,6 +7,13 @@ import {
 } from "@/src/helpers/blogPaths";
 import { POSTS_PER_PAGE } from "@/src/helpers/blogPaging";
 import { listBlogPostSummaries } from "@/src/helpers/blogPosts";
+import {
+  COMPARISON_COLLECTION,
+  COMPARISON_ROOT,
+  listComparisons,
+  listComparisonSummaries,
+} from "@/src/helpers/comparisonCollection";
+import { urlForEntry } from "@/src/helpers/contentCollection";
 import { getLastModifiedFromGit } from "@/src/helpers/gitMetadata";
 import { readFrontmatter } from "@/src/helpers/readFrontmatter";
 import { SITE_URL } from "@/src/helpers/siteUrl";
@@ -27,6 +34,18 @@ const EXCLUDED_PATHS = new Set([
   "/services/support/thank-you",
 ]);
 
+// Un-indexed, unlinked prototype routes: /platform/graphql-federation/vN
+// compares backbone concepts before one is picked. Path-based rather than
+// an exact-match set, since new vN routes are added over time.
+const EXCLUDED_PATH_PATTERNS = [/^\/platform\/graphql-federation\/v\d+$/];
+
+function isExcludedPath(urlPath: string): boolean {
+  return (
+    EXCLUDED_PATHS.has(urlPath) ||
+    EXCLUDED_PATH_PATTERNS.some((pattern) => pattern.test(urlPath))
+  );
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries = [
     ...rootPages(),
@@ -34,6 +53,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...(await docsPages()),
     ...blogArchivePages(),
     ...(await blogPosts()),
+    ...comparisonArchivePages(),
+    ...(await comparisonArticles()),
     ...authorPages(),
   ];
 
@@ -69,7 +90,7 @@ function staticPages(): MetadataRoute.Sitemap {
         const rel = path.relative(CONTENT_PAGES_ROOT, path.dirname(file));
         return rel === "" ? "/" : `/${rel.split(path.sep).join("/")}`;
       })
-      .filter((urlPath) => !EXCLUDED_PATHS.has(urlPath))
+      .filter((urlPath) => !isExcludedPath(urlPath))
       // Visible content commonly lives in imported components, so page.tsx's
       // commit date alone is not an accurate modification date for these routes.
       .map((urlPath) => sitemapEntry(urlPath))
@@ -126,6 +147,38 @@ async function blogPosts(): Promise<MetadataRoute.Sitemap> {
           : undefined;
       return sitemapEntry(
         blogUrlForStem(parsed),
+        updated ?? (await getLastModifiedFromGit(file)),
+      );
+    }),
+  );
+}
+
+/** Every indexable, self-canonical comparison listing page. */
+function comparisonArchivePages(): MetadataRoute.Sitemap {
+  const articles = listComparisonSummaries();
+  const entries = [sitemapEntry("/comparison")];
+  const pageCount = Math.ceil(articles.length / POSTS_PER_PAGE);
+
+  for (let page = 2; page <= pageCount; page++) {
+    entries.push(sitemapEntry(`/comparison/${page}`));
+  }
+
+  return entries;
+}
+
+async function comparisonArticles(): Promise<MetadataRoute.Sitemap> {
+  return Promise.all(
+    listComparisons().map(async ({ stem, rel }) => {
+      const file = path.join(COMPARISON_ROOT, rel);
+      const fm = readFrontmatter(file) as Record<string, unknown>;
+      // Same rule as the blog: an explicit `updated` frontmatter field wins,
+      // otherwise the last git commit touching the article.
+      const updated =
+        typeof fm.updated === "string" && fm.updated.length > 0
+          ? validDate(fm.updated)
+          : undefined;
+      return sitemapEntry(
+        urlForEntry(COMPARISON_COLLECTION, stem),
         updated ?? (await getLastModifiedFromGit(file)),
       );
     }),

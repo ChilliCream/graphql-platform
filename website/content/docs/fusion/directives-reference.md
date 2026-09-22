@@ -3,7 +3,7 @@ title: "Directive Reference"
 description: "Reference for Fusion composition directives like @key, @lookup, @require, and @shareable, with SDL definitions, arguments, and composed output examples."
 ---
 
-Fusion implements the [GraphQL Composite Schemas Specification](https://graphql.github.io/composite-schemas-spec/draft/). The directives defined in this specification are applied to source schemas (subgraph schemas) to control how they compose into a unified composite schema. Each directive entry below shows its SDL definition, what it does, and a practical example with the resulting composed output.
+Fusion implements the [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/) (formerly the GraphQL Composite Schemas specification). The directives defined in this specification are applied to source schemas (subgraph schemas) to control how they compose into a unified composite schema. Each directive entry below shows its SDL definition, what it does, and a practical example with the resulting composed output.
 
 In Hot Chocolate, many of these directives are expressed using C# attributes. See the individual guide pages for supported C# usage and tutorials.
 
@@ -705,7 +705,7 @@ During composition the two `@eventCursor` markers are recorded on the gateway's 
 
 # See Also
 
-- [GraphQL Composite Schemas Specification](https://graphql.github.io/composite-schemas-spec/draft/) -- The specification that defines these directives
+- [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/) -- The specification that defines these directives
 - [Getting Started](./getting-started.md) -- Introduction to Fusion in practice
 - [Entities and Lookups](./entities-and-lookups.md) -- Entity resolution patterns with `@key`, `@lookup`, and `@is`
 - [Field Ownership](./field-ownership-and-sharing.md) -- Ownership model with `@shareable`, `@external`, and `@provides`

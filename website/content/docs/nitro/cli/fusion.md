@@ -451,11 +451,11 @@ Both `--url` and `--dev-url` accept `{{VARIABLE_NAME}}` placeholders, which comp
 
 `--schema-type` describes the specification implemented by the source schema.
 
-| Type                  | What it declares                                                                                           |
-| --------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `graphql-federation`  | GraphQL Federation semantics from the Composite Schemas Specification. This is the default used by Fusion. |
-| `apollo-federation-1` | Apollo Federation v1 semantics through `extensions.chillicream.apolloFederationSupport.version`.           |
-| `apollo-federation-2` | Apollo Federation v2 semantics through `extensions.chillicream.apolloFederationSupport.version`.           |
+| Type                  | What it declares                                                                                            |
+| --------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `graphql-federation`  | GraphQL Federation semantics from the GraphQL Federation specification. This is the default used by Fusion. |
+| `apollo-federation-1` | Apollo Federation v1 semantics through `extensions.chillicream.apolloFederationSupport.version`.            |
+| `apollo-federation-2` | Apollo Federation v2 semantics through `extensions.chillicream.apolloFederationSupport.version`.            |
 
 Selecting an Apollo Federation type writes the corresponding `1.0` or `2.0` marker. Selecting `graphql-federation` removes that marker. Schema-type changes do not modify transport capabilities.
 

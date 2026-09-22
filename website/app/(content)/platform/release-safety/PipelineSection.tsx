@@ -4,9 +4,8 @@ import NextLink from "next/link";
 
 import { AppWindow } from "@/src/components/AppWindow";
 import { SectionHeading } from "@/src/components/SectionHeading";
+import { tk } from "@/src/components/syntaxTokens";
 import { ArrowRightIcon } from "@/src/icons/ArrowRight";
-
-import { tk } from "./syntaxTokens";
 
 const CARD_FOCUS_CLASSES =
   "focus-visible:ring-cc-accent/30 focus-visible:ring-2 focus-visible:outline-hidden";

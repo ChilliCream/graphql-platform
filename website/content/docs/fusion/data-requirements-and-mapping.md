@@ -373,7 +373,7 @@ countryCodes: [String!]! @require(field: "seller.addresses[countryCode]")
 dims: [ProductDimensionInput!]! @require(field: "dimensions[{ weight, height }]")
 ```
 
-> For the full FieldSelectionMap grammar, see the [Composite Schemas specification](https://graphql.github.io/composite-schemas-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
+> For the full FieldSelectionMap grammar, see the [GraphQL Federation specification](https://graphql.github.io/graphql-federation-spec/draft/#sec-Appendix-A-Specification-of-FieldSelectionMap-Scalar).
 
 # Troubleshooting
 
