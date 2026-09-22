@@ -56,7 +56,7 @@ const CLIENT_IMPACT_ROWS = [
   },
 ] as const;
 
-/** Nitro band aside: the same schema-governance verdict Nitro's own page shows. */
+/** Nitro band aside: a schema-governance verdict for the same orders-api v14 change. */
 const NITRO_BAND_CHANGES = [
   { kind: "safe", text: "+ Order.deliveryEstimate" },
   { kind: "dangerous", text: "~ Product.price: Float → Money" },
