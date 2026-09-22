@@ -186,13 +186,20 @@ internal sealed class FusionRequestExecutorManager
         var options = CreateOptions(setup);
         var requestOptions = CreateRequestOptions(setup);
         var plannerOptions = CreatePlannerOptions(setup, options);
+        var costOptions = CreateCostOptions(setup);
         var parserOptions = CreateParserOptions(setup);
         var features = CreateSchemaFeatures(
             setup,
             options,
             requestOptions,
             parserOptions);
-        var schemaServices = CreateSchemaServices(configuration, setup, options, requestOptions, plannerOptions);
+        var schemaServices = CreateSchemaServices(
+            configuration,
+            setup,
+            options,
+            requestOptions,
+            plannerOptions,
+            costOptions);
 
         var schema = CreateSchema(schemaName, configuration.Schema, schemaServices, features);
         _ = schemaServices.GetRequiredService<CostSchemaIndex>();
@@ -288,6 +295,20 @@ internal sealed class FusionRequestExecutorManager
         return plannerOptions;
     }
 
+    private static FusionCostOptions CreateCostOptions(FusionGatewaySetup setup)
+    {
+        var costOptions = new FusionCostOptions();
+
+        foreach (var configure in setup.CostOptionsModifiers)
+        {
+            configure.Invoke(costOptions);
+        }
+
+        costOptions.MakeReadOnly();
+
+        return costOptions;
+    }
+
     private static ParserOptions CreateParserOptions(FusionGatewaySetup setup)
     {
         var options = new FusionParserOptions();
@@ -367,7 +388,8 @@ internal sealed class FusionRequestExecutorManager
         FusionGatewaySetup setup,
         FusionOptions options,
         FusionRequestOptions requestOptions,
-        OperationPlannerOptions plannerOptions)
+        OperationPlannerOptions plannerOptions,
+        FusionCostOptions costOptions)
     {
         var schemaServices = new ServiceCollection();
 
@@ -376,7 +398,8 @@ internal sealed class FusionRequestExecutorManager
             setup,
             schemaServices,
             options,
-            requestOptions);
+            requestOptions,
+            costOptions);
         AddOperationPlanner(schemaServices, plannerOptions);
         AddParserServices(schemaServices);
         AddDocumentValidator(setup, schemaServices, options);
@@ -395,7 +418,8 @@ internal sealed class FusionRequestExecutorManager
         FusionGatewaySetup setup,
         IServiceCollection services,
         FusionOptions options,
-        FusionRequestOptions requestOptions)
+        FusionRequestOptions requestOptions,
+        FusionCostOptions costOptions)
     {
         services.AddSingleton<IRootServiceProviderAccessor>(
             new RootServiceProviderAccessor(_applicationServices));
@@ -421,10 +445,11 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(options);
         services.AddSingleton(requestOptions);
         services.AddSingleton(requestOptions.PersistedOperations);
+        services.AddSingleton(costOptions);
         services.AddSingleton(
             static sp =>
             {
-                var cost = sp.GetRequiredService<FusionRequestOptions>().Cost;
+                var cost = sp.GetRequiredService<FusionCostOptions>();
                 var schema = sp.GetRequiredService<FusionSchemaDefinition>();
                 var schemaIndexOptions = new CostSchemaIndexOptions
                 {
@@ -449,7 +474,7 @@ internal sealed class FusionRequestExecutorManager
             });
         services.AddSingleton(
             static sp => new Cache<CostPlan>(
-                sp.GetRequiredService<FusionRequestOptions>().Cost.CostPlanCacheSize));
+                sp.GetRequiredService<FusionCostOptions>().CostPlanCacheSize));
 
         if (options.EnableSemanticIntrospection)
         {

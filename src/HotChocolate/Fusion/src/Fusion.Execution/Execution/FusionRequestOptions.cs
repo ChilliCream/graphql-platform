@@ -180,22 +180,6 @@ public sealed class FusionRequestOptions : ICloneable
     } = new();
 
     /// <summary>
-    /// Gets or sets the cost analysis options.
-    /// </summary>
-    public FusionCostOptions Cost
-    {
-        get;
-        set
-        {
-            ArgumentNullException.ThrowIfNull(value);
-
-            ExpectMutableOptions();
-
-            field = value;
-        }
-    } = new();
-
-    /// <summary>
     /// Gets or sets whether exception details should be included for GraphQL
     /// errors in the GraphQL response.
     /// <see cref="Debugger.IsAttached"/> by default.
@@ -237,8 +221,7 @@ public sealed class FusionRequestOptions : ICloneable
             MaxAllowedDeferConditions = MaxAllowedDeferConditions,
             IgnoreAdditionalInputFields = IgnoreAdditionalInputFields,
             PersistedOperations = PersistedOperations,
-            IncludeExceptionDetails = IncludeExceptionDetails,
-            Cost = Cost.Clone()
+            IncludeExceptionDetails = IncludeExceptionDetails
         };
     }
 
@@ -247,7 +230,6 @@ public sealed class FusionRequestOptions : ICloneable
     internal void MakeReadOnly()
     {
         _isReadOnly = true;
-        Cost.MakeReadOnly();
     }
 
     private void ExpectMutableOptions()
