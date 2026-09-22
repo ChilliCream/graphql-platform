@@ -144,4 +144,10 @@
   <data name="ErrorHelper_RequestBatchingDisabled" xml:space="preserve">
     <value>Request batching is disabled. Enable it with GraphQLServerOptions.Batching.</value>
   </data>
+  <data name="ErrorHelper_RequestBatchingNotSupportedForQuery" xml:space="preserve">
+    <value>Request batching is not supported for HTTP QUERY requests.</value>
+  </data>
+  <data name="ErrorHelper_VariableBatchingNotSupportedForQuery" xml:space="preserve">
+    <value>Variable batching is not supported for HTTP QUERY requests.</value>
+  </data>
 </root>

@@ -1,0 +1,91 @@
+using System.Net;
+using HotChocolate.AspNetCore.Instrumentation;
+using HotChocolate.AspNetCore.Utilities;
+using Microsoft.AspNetCore.Http;
+using HttpRequestDelegate = Microsoft.AspNetCore.Http.RequestDelegate;
+
+namespace HotChocolate.AspNetCore;
+
+/// <summary>
+/// Handles GraphQL requests sent with the HTTP QUERY method. The request body has the shape of
+/// a POST body and carries exactly one query operation.
+/// </summary>
+public sealed class HttpQueryMiddleware : MiddlewareBase
+{
+    public HttpQueryMiddleware(
+        HttpRequestDelegate next,
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions baseOptions)
+        : base(next, executor, baseOptions)
+    {
+    }
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        if (HttpMethods.IsQuery(context.Request.Method)
+            && GetOptions(context).EnableQueryRequests
+            && context.ParseContentType() is RequestContentType.Json)
+        {
+            var session = await Executor.GetOrCreateSessionAsync(context.RequestAborted);
+
+            using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpQuery))
+            {
+                await HandleRequestAsync(context, session);
+            }
+
+            return;
+        }
+
+        // if the request is not a QUERY request the endpoint accepts, or if the content type is
+        // not correct, we will just invoke the next middleware and do nothing.
+        await NextAsync(context);
+    }
+
+    private static async Task HandleRequestAsync(HttpContext context, ExecutorSession session)
+    {
+        HttpStatusCode? statusCode;
+        IExecutionResult? result;
+
+        // first we validate the accept headers.
+        var validationResult = MiddlewareHelper.ValidateAcceptContentType(context, session);
+        var acceptMediaTypes = validationResult.AcceptMediaTypes;
+
+        if (!validationResult.IsValid)
+        {
+            statusCode = validationResult.StatusCode.Value;
+            result = validationResult.Error;
+            goto HANDLE_RESULT;
+        }
+
+        // next we parse the GraphQL request.
+        var parserResult = await MiddlewareHelper.ParseSingleRequestFromBodyAsync(context, session);
+
+        if (!parserResult.IsValid)
+        {
+            statusCode = parserResult.StatusCode;
+            result = parserResult.Error;
+            goto HANDLE_RESULT;
+        }
+
+        // before we can execute the request we need to determine the request flags.
+        var requestFlags =
+            MiddlewareHelper.DetermineHttpQueryRequestFlags(validationResult.RequestFlags);
+
+        // next we will execute the request.
+        var executionResult = await MiddlewareHelper.ExecuteRequestAsync(
+            parserResult.Request!,
+            requestFlags,
+            context,
+            session);
+        statusCode = executionResult.StatusCode;
+        result = executionResult.Result;
+
+HANDLE_RESULT:
+        await MiddlewareHelper.WriteResultAsync(
+            result!,
+            acceptMediaTypes,
+            statusCode,
+            context,
+            session);
+    }
+}

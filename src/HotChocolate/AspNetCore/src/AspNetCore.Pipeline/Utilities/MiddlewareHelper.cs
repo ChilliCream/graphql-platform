@@ -178,6 +178,74 @@ internal static class MiddlewareHelper
     }
 
     /// <summary>
+    /// Parses a request body that must carry exactly one GraphQL request. A body that carries a
+    /// request batch is refused as an invalid request.
+    /// </summary>
+    public static async Task<ParseRequestResult> ParseSingleRequestFromBodyAsync(
+        HttpContext context,
+        ExecutorSession executorSession)
+    {
+        GraphQLRequest[] requests;
+        using (executorSession.DiagnosticEvents.ParseHttpRequest(context))
+        {
+            try
+            {
+                requests = await executorSession.ParseRequestAsync(
+                    context.Request.BodyReader,
+                    context.RequestAborted);
+            }
+            catch (GraphQLRequestException ex)
+            {
+                // A GraphQL request exception is thrown if the HTTP request body couldn't be
+                // parsed. In this case, we propose HTTP status code 400 and return a GraphQL
+                // error result, except for a document syntax error, which leaves the status
+                // unset so the formatter applies the per-content-type rule.
+                var errors = executorSession.Handle(ex.Errors);
+                executorSession.DiagnosticEvents.ParserErrors(context, errors);
+                return new ParseRequestResult(
+                    CreateRequestErrorResult(ex, errors),
+                    IsDocumentSyntaxError(ex.Errors) ? null : HttpStatusCode.BadRequest);
+            }
+            catch (Exception ex)
+            {
+                var error = ErrorBuilder.FromException(ex).Build();
+                executorSession.DiagnosticEvents.HttpRequestError(context, error);
+                return new ParseRequestResult(error, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        foreach (var request in requests)
+        {
+            context.Response.RegisterForDispose(request);
+        }
+
+        if (requests.Length != 1)
+        {
+            return CreateBatchingRefusedResult(
+                ErrorHelper.RequestBatchingNotSupportedForQuery(),
+                context,
+                executorSession);
+        }
+
+        return new ParseRequestResult(requests[0]);
+    }
+
+    /// <summary>
+    /// Creates the 400 result for a batch the request method does not accept. The response
+    /// carries the generic invalid-request error and the reason is reported to diagnostics.
+    /// </summary>
+    public static ParseRequestResult CreateBatchingRefusedResult(
+        IError reason,
+        HttpContext context,
+        ExecutorSession executorSession)
+    {
+        executorSession.DiagnosticEvents.HttpRequestError(context, executorSession.Handle(reason));
+        var error = executorSession.Handle(ErrorHelper.InvalidRequest());
+
+        return new ParseRequestResult(OperationResult.FromError(error), HttpStatusCode.BadRequest);
+    }
+
+    /// <summary>
     /// Creates the result for a request the parser rejected. The result of a document the
     /// parser could not read carries a <c>400</c>, and the result of a request the parser read
     /// but could not accept as a GraphQL over HTTP request is marked as not well-formed. The
@@ -335,6 +403,15 @@ internal static class MiddlewareHelper
 
         return requestFlags;
     }
+
+    /// <summary>
+    /// Resolves the request flags of a QUERY request: query operations, plus incremental
+    /// delivery when the accepted media types allow it.
+    /// </summary>
+    public static RequestFlags DetermineHttpQueryRequestFlags(RequestFlags requestFlags)
+        => (requestFlags & RequestFlags.AllowStreams) == RequestFlags.AllowStreams
+            ? RequestFlags.AllowQuery | RequestFlags.AllowStreams
+            : RequestFlags.AllowQuery;
 
     public static async Task<ExecuteRequestResult> ExecuteRequestAsync(
         GraphQLRequest request,
