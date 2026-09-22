@@ -30,7 +30,7 @@ public static class FusionRequestContextExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        return context.Features.Get<FusionOperationInfo>()?.OperationPlan;
+        return context.Features.Get<OperationPlanInfo>()?.OperationPlan;
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public static class FusionRequestContextExtensions
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(plan);
 
-        context.Features.GetOrSet<FusionOperationInfo>().OperationPlan = plan;
+        context.Features.GetOrSet<OperationPlanInfo>().OperationPlan = plan;
         context.Features.Set<IOperation>(plan.Operation);
 
         // Release waiting requests as soon as the plan is available, before the leader finishes execution.

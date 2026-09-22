@@ -3,7 +3,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class FusionOperationInfo : RequestFeature
+internal sealed class OperationPlanInfo : RequestFeature
 {
     public OperationPlan? OperationPlan { get; set; }
 
