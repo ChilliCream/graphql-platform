@@ -1,3 +1,4 @@
+using System.Net;
 using HotChocolate.CostAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.CostAnalysis;
@@ -51,8 +52,12 @@ public class CostResultHelperTests
         var result = CostResultHelper.CreateResult([]);
 
         // assert
+        // An invalid cost-analysis state is an internal error, not a request error, so this
+        // does not carry the validation-error context data and instead maps to a 500 directly.
         Assert.Equal(
-            new KeyValuePair<string, object?>(ExecutionContextData.ValidationErrors, true),
+            new KeyValuePair<string, object?>(
+                ExecutionContextData.HttpStatusCode,
+                HttpStatusCode.InternalServerError),
             Assert.Single(result.ContextData));
         result.MatchInlineSnapshot(
             """

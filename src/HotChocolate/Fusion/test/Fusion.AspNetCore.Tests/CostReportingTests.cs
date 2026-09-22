@@ -894,6 +894,40 @@ public class CostReportingTests : FusionTestBase
         response.MatchSnapshot();
     }
 
+    // CostResultHelper.CreateResult only falls back to ErrorHelper.StateInvalidForCostAnalysis
+    // for an empty estimate batch, and CostAnalysisMiddleware never calls it with one: an empty
+    // variable batch is rejected earlier as StateInvalidForCostAnalysisMissingVariableValues, so
+    // there is no request shape that reaches the fallback over HTTP. This test drives it directly
+    // through a request middleware appended to the gateway pipeline, so the assertion still goes
+    // through the real formatter rather than constructing the result and formatting it by hand.
+    [Fact]
+    public async Task CostStateInvalid_Should_ReturnHttp500_When_CostResultHelperFallbackIsHit()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", Schema);
+        using var gateway = await CreateCompositeSchemaAsync(
+            [("A", server)],
+            configureGatewayBuilder: b => b.UseRequest(next => ForceCostStateInvalid(next)));
+        var request = new OperationRequest(ItemsQuery, variables: new Dictionary<string, object?> { ["n"] = 1 });
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+        using var response = await client.SendAsync(
+            new GraphQLHttpRequest(request, s_endpoint),
+            TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.InternalServerError, response.HttpResponseMessage.StatusCode);
+    }
+
+    private static HotChocolate.Execution.RequestDelegate ForceCostStateInvalid(
+        HotChocolate.Execution.RequestDelegate next)
+        => async context =>
+        {
+            await next(context);
+            context.Result = CostResultHelper.CreateResult([]);
+        };
+
     private sealed record AcceptedItem(int Value);
 
     private static GraphQLHttpRequest WithCostHeader(OperationRequest request, string mode)
