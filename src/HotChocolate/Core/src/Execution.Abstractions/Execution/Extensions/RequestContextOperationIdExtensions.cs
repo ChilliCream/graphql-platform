@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution.Pipeline;
-using HotChocolate.Features;
 
 namespace HotChocolate.Execution;
 
@@ -36,7 +35,7 @@ public static class RequestContextOperationIdExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        operationId = context.Features.Get<OperationIdInfo>()?.Value;
+        operationId = context.OperationDocumentInfo.OperationId;
         return operationId is not null;
     }
 
@@ -53,14 +52,12 @@ public static class RequestContextOperationIdExtensions
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var operationIdInfo = context.Features.GetOrSet<OperationIdInfo>();
+        var documentInfo = context.OperationDocumentInfo;
 
-        if (operationIdInfo.Value is { } operationId)
+        if (documentInfo.OperationId is { } operationId)
         {
             return operationId;
         }
-
-        var documentInfo = context.OperationDocumentInfo;
 
         if (documentInfo.Document is null)
         {
@@ -107,7 +104,7 @@ public static class RequestContextOperationIdExtensions
             }
         }
 
-        operationIdInfo.Value = operationId;
+        documentInfo.OperationId = operationId;
         return operationId;
     }
 }
