@@ -7,8 +7,6 @@ namespace HotChocolate.Diagnostics;
 
 internal sealed class ExecuteRequestSpan : ExecuteRequestSpanBase
 {
-    private readonly RequestContext _context;
-
     public ExecuteRequestSpan(
         Activity activity,
         RequestContext context,
@@ -17,7 +15,6 @@ internal sealed class ExecuteRequestSpan : ExecuteRequestSpanBase
         bool shouldDisposeActivity)
         : base(activity, context, options, enricher, shouldDisposeActivity)
     {
-        _context = context;
     }
 
     public static ExecuteRequestSpan? Start(
@@ -51,17 +48,14 @@ internal sealed class ExecuteRequestSpan : ExecuteRequestSpanBase
             operationName = operation.Name;
             return true;
         }
-
-        // Cost rejection can finish a request before compilation.
-        // Read operation details from a validated document when no compiled operation is available.
-        if (_context.OperationDocumentInfo.NormalizedDocument
+        else if (Context.OperationDocumentInfo.NormalizedDocument
             is { Definitions: [OperationDefinitionNode normalizedOperation] })
         {
             operationType = normalizedOperation.Operation;
             operationName = normalizedOperation.Name?.Value;
+            return true;
         }
-
-        if (Context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
+        else if (Context.OperationDocumentInfo is { IsValidated: true, Document: { } document }
             && document.TryGetOperationDefinition(Context.Request.OperationName, out var operationDefinition))
         {
             operationType = operationDefinition.Operation;
