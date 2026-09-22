@@ -49,8 +49,12 @@ internal sealed class OperationPlanCacheMiddleware
             if (ReferenceEquals(current, candidate))
             {
                 leaderEntry = current;
-                inFlightRelease = new OperationPlanInFlightRelease(
-                    operationId, current.Value, _cache, _diagnosticEvents);
+                inFlightRelease =
+                    new OperationPlanInFlightRelease(
+                        operationId,
+                        current.Value,
+                        _cache,
+                        _diagnosticEvents);
                 context.Features.Set(current.Value);
                 context.Features.Set(inFlightRelease);
                 resolved = true;
@@ -124,7 +128,9 @@ internal sealed class OperationPlanCacheMiddleware
             {
                 // Remove only this leader's entry; another request may have replaced it.
                 _inFlightPlans.TryRemove(
-                    new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(operationId, leaderEntry));
+                    new KeyValuePair<string, Lazy<TaskCompletionSource<OperationPlan>>>(
+                        operationId,
+                        leaderEntry));
             }
         }
     }
