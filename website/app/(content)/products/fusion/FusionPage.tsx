@@ -92,7 +92,7 @@ function InPractice({ links }: InPracticeProps) {
   if (links.length === 0) return null;
 
   return (
-    <p className="text-cc-ink-dim text-caption">
+    <p className="text-cc-ink mt-4 text-base">
       In practice:{" "}
       {links.map((link, i) => (
         <Fragment key={link.href}>
