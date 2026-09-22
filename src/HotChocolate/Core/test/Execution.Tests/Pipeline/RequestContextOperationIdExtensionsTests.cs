@@ -158,6 +158,37 @@ public sealed class RequestContextOperationIdExtensionsTests
         Assert.Equal(computed, operationId);
     }
 
+    [Fact]
+    public void GetOperationId_Should_BeCleared_After_Reset()
+    {
+        // arrange
+        var documentId = new OperationDocumentId("abc123");
+        var context = CreateContext("{ foo }", documentId, operationName: null);
+        context.GetOperationId();
+
+        // act
+        context.Reset();
+
+        // assert
+        Assert.False(context.TryGetOperationId(out _));
+    }
+
+    [Fact]
+    public void OperationCount_Should_Reflect_Replaced_Document()
+    {
+        // arrange
+        var context = new PooledRequestContext();
+        context.OperationDocumentInfo.Document = Utf8GraphQLParser.Parse("{ foo }");
+        var initialCount = context.OperationDocumentInfo.OperationCount;
+
+        // act
+        context.OperationDocumentInfo.Document = Utf8GraphQLParser.Parse("query A { foo } query B { bar }");
+
+        // assert
+        Assert.Equal(1, initialCount);
+        Assert.Equal(2, context.OperationDocumentInfo.OperationCount);
+    }
+
     private static PooledRequestContext CreateContext(
         string document,
         OperationDocumentId documentId,
