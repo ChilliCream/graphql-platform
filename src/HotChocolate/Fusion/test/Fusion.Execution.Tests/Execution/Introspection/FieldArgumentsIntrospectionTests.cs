@@ -18,7 +18,7 @@ public sealed class FieldArgumentsIntrospectionTests : FusionTestBase
             .AddGraphQLGateway()
             .AddInMemoryConfiguration(
                 ComposeSchemaDocument(
-                    1,
+                    defaultListSize: 1,
                     """
                     type Query {
                         field(

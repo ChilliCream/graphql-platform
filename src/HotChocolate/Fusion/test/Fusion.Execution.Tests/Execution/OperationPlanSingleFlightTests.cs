@@ -333,7 +333,7 @@ public sealed class OperationPlanSingleFlightTests : FusionTestBase
                 (_, _) => CreatePlanCaptureMiddleware(),
                 before: WellKnownRequestMiddleware.OperationExecutionMiddleware,
                 allowMultiple: true)
-            .AddInMemoryConfiguration(ComposeSchemaDocument(1, VariableCostSchema))
+            .AddInMemoryConfiguration(ComposeSchemaDocument(defaultListSize: 1, VariableCostSchema))
             .Services
             .BuildServiceProvider()
             .GetRequestExecutorAsync(cancellationToken: cts.Token);

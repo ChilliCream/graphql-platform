@@ -537,7 +537,7 @@ public class CostAnalysisMiddlewareTests : FusionTestBase
                     allowMultiple: true);
         }
 
-        builder.AddInMemoryConfiguration(ComposeSchemaDocument(1, schema));
+        builder.AddInMemoryConfiguration(ComposeSchemaDocument(defaultListSize: 1, schema));
         return services.BuildServiceProvider();
     }
 
