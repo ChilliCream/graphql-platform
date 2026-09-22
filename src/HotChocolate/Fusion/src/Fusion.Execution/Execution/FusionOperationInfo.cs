@@ -5,13 +5,10 @@ namespace HotChocolate.Fusion.Execution;
 
 internal sealed class FusionOperationInfo : RequestFeature
 {
-    public string? OperationId { get; set; }
-
     public OperationPlan? OperationPlan { get; set; }
 
     protected internal override void Reset()
     {
-        OperationId = null;
         OperationPlan = null;
     }
 }

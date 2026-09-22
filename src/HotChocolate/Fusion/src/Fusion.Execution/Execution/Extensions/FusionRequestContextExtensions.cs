@@ -1,4 +1,3 @@
-using System.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
@@ -6,8 +5,6 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Execution.Pipeline;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
-using static HotChocolate.Language.GraphQLCharacters;
-using ExecutionThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 // ReSharper disable once CheckNamespace
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -19,83 +16,6 @@ namespace HotChocolate.Execution;
 /// </summary>
 public static class FusionRequestContextExtensions
 {
-    // The '.' separator between the operation document hash and the operation name.
-    private const int OperationIdSeparatorLength = 1;
-
-    private const string DefaultOperationName = "Default";
-
-    /// <summary>
-    /// Gets the unique id for the selected operation and executor version.
-    /// </summary>
-    /// <param name="context">
-    /// The request context.
-    /// </param>
-    /// <returns>
-    /// The operation id.
-    /// </returns>
-    public static string GetOperationId(
-        this RequestContext context)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-
-        var operationInfo = context.Features.GetOrSet<FusionOperationInfo>();
-
-        if (operationInfo.OperationId is { } operationId)
-        {
-            return operationId;
-        }
-
-        var documentInfo = context.OperationDocumentInfo;
-
-        if (documentInfo.Document is null)
-        {
-            throw ExecutionThrowHelper.OperationDocumentNotAvailable();
-        }
-
-        if (documentInfo.Hash.IsEmpty)
-        {
-            throw ExecutionThrowHelper.OperationDocumentHashNotAvailable();
-        }
-
-        if (documentInfo.OperationCount == 1)
-        {
-            operationId = documentInfo.Hash.Value;
-        }
-        else
-        {
-            var hashValue = documentInfo.Hash.Value;
-            var operationName = context.Request.OperationName ?? DefaultOperationName;
-            var maxLength = hashValue.Length + OperationIdSeparatorLength + operationName.Length;
-
-            char[]? rented = null;
-            var buffer = maxLength <= StackallocThreshold
-                ? stackalloc char[maxLength]
-                : rented = ArrayPool<char>.Shared.Rent(maxLength);
-
-            try
-            {
-                hashValue.CopyTo(buffer);
-                var length = hashValue.Length;
-                buffer[length++] = '.';
-
-                operationName.CopyTo(buffer[length..]);
-                length += operationName.Length;
-
-                operationId = new string(buffer[..length]);
-            }
-            finally
-            {
-                if (rented is not null)
-                {
-                    ArrayPool<char>.Shared.Return(rented);
-                }
-            }
-        }
-
-        operationInfo.OperationId = operationId;
-        return operationId;
-    }
-
     /// <summary>
     /// Gets the <see cref="OperationPlan"/> from the request context.
     /// </summary>
@@ -111,25 +31,6 @@ public static class FusionRequestContextExtensions
         ArgumentNullException.ThrowIfNull(context);
 
         return context.Features.Get<FusionOperationInfo>()?.OperationPlan;
-    }
-
-    /// <summary>
-    /// Sets the operation identifier.
-    /// </summary>
-    /// <param name="context">
-    /// The request context.
-    /// </param>
-    /// <param name="id">
-    /// The operation id.
-    /// </param>
-    public static void SetOperationId(
-        this RequestContext context,
-        string id)
-    {
-        ArgumentNullException.ThrowIfNull(context);
-        ArgumentException.ThrowIfNullOrEmpty(id);
-
-        context.Features.GetOrSet<FusionOperationInfo>().OperationId = id;
     }
 
     /// <summary>
