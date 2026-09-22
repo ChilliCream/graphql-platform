@@ -23,10 +23,9 @@ export interface CopySection {
 }
 
 export const HERO = {
-  eyebrow: "GraphQL Federation Gateway",
   title: "Fusion",
   teaser:
-    "The gateway that composes your teams' subgraphs into one coherent graph and executes every query across them. Fusion is the only gateway that supports both the GraphQL Federation specification and Apollo Federation, and it composes OpenAPI and gRPC sources too.",
+    "The API gateway that composes your teams' subgraphs into one coherent graph and executes every query across them. Fusion is the only API gateway that supports both the GraphQL Federation specification and Apollo Federation, and it composes OpenAPI and gRPC sources too.",
   buttons: [
     { label: "Get Started", href: "/docs/fusion/getting-started" },
     {
@@ -35,7 +34,6 @@ export const HERO = {
     },
   ],
 } as const satisfies {
-  readonly eyebrow: string;
   readonly title: string;
   readonly teaser: string;
   readonly buttons: readonly CopyLink[];
