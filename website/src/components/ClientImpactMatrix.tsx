@@ -14,6 +14,7 @@ interface ClientImpactRow {
 interface ClientImpactMatrixProps {
   readonly title: ReactNode;
   readonly rows: readonly ClientImpactRow[];
+  readonly density?: "compact" | "comfortable";
 }
 
 interface ImpactBarProps {
@@ -42,7 +43,12 @@ function ImpactBar({ ok, total, status }: ImpactBarProps) {
   );
 }
 
-export function ClientImpactMatrix({ title, rows }: ClientImpactMatrixProps) {
+export function ClientImpactMatrix({
+  title,
+  rows,
+  density = "compact",
+}: ClientImpactMatrixProps) {
+  const comfortable = density === "comfortable";
   const statusLabel: Record<
     ClientImpactRow["status"],
     { text: string; cls: string }
@@ -51,6 +57,9 @@ export function ClientImpactMatrix({ title, rows }: ClientImpactMatrixProps) {
     risk: { text: "at risk", cls: "text-cc-warning" },
     outside: { text: "outside result", cls: "text-cc-ink-dim" },
   };
+  const headerSize = comfortable ? "text-[0.7rem]" : "text-[0.6rem]";
+  const environmentSize = comfortable ? "text-[0.7rem]" : "text-[0.62rem]";
+  const barLabelSize = comfortable ? "text-[0.7rem]" : "text-[0.68rem]";
   return (
     <AppWindow title={title}>
       <table className="w-full table-fixed border-collapse">
@@ -60,7 +69,9 @@ export function ClientImpactMatrix({ title, rows }: ClientImpactMatrixProps) {
           <col className="w-[26.6%]" />
         </colgroup>
         <thead>
-          <tr className="border-cc-card-border text-cc-ink-dim border-b font-mono text-[0.6rem] tracking-[0.14em] uppercase">
+          <tr
+            className={`border-cc-card-border text-cc-ink-dim border-b font-mono ${headerSize} tracking-[0.14em] uppercase`}
+          >
             <th scope="col" className="px-4 py-2 text-left font-normal">
               client
             </th>
@@ -84,14 +95,18 @@ export function ClientImpactMatrix({ title, rows }: ClientImpactMatrixProps) {
                   <div className="text-cc-heading truncate font-mono text-[0.78rem]">
                     {c.client}
                   </div>
-                  <div className="text-cc-ink-dim font-mono text-[0.62rem]">
+                  <div
+                    className={`text-cc-ink-dim font-mono ${environmentSize}`}
+                  >
                     {c.environment}
                   </div>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
                     {c.total === 0 ? (
-                      <span className="text-cc-heading font-mono text-[0.68rem]">
+                      <span
+                        className={`text-cc-heading font-mono ${barLabelSize}`}
+                      >
                         {c.note ?? "none published"}
                       </span>
                     ) : (
@@ -101,7 +116,9 @@ export function ClientImpactMatrix({ title, rows }: ClientImpactMatrixProps) {
                           total={c.total}
                           status={c.status}
                         />
-                        <span className="text-cc-ink-dim font-mono text-[0.68rem]">
+                        <span
+                          className={`text-cc-ink-dim font-mono ${barLabelSize}`}
+                        >
                           {c.ok}/{c.total}
                         </span>
                       </>
