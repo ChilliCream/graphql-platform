@@ -1,3 +1,5 @@
+using HotChocolate.Types.Pagination;
+
 namespace HotChocolate.CostAnalysis;
 
 /// <summary>
@@ -110,7 +112,9 @@ public sealed class CostOptions
 
     /// <summary>
     /// Gets or sets the assumed size of a list field that has no applicable
-    /// <c>@listSize</c> information. <see cref="double.PositiveInfinity"/> by default.
+    /// <c>@listSize</c> information. <see cref="PagingDefaults.MaxPageSize"/> by
+    /// default. Use ModifyCostOptions to override this with any non-negative
+    /// finite number or <see cref="double.PositiveInfinity"/>.
     /// The value must be a non-negative finite number or positive infinity.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">
@@ -128,7 +132,7 @@ public sealed class CostOptions
 
             field = value;
         }
-    } = double.PositiveInfinity;
+    } = PagingDefaults.MaxPageSize;
 
     /// <summary>
     /// Gets or sets the maximum number of compiled cost plans cached per schema.

@@ -221,9 +221,9 @@ For list fields, the first applicable source in this order supplies the size:
 
 An explicit null slicing argument is not an integer value and suppresses that argument's schema default. An undefined slicing variable behaves as an absent argument. When no schema argument default applies, both cases fall through to `slicingArgumentDefaultValue`.
 
-## Default list size is Infinity
+## Default list size is 50
 
-`CostOptions.DefaultListSize` is a `double` and now defaults to `double.PositiveInfinity`. An unannotated, non-paginated list whose element type has a non-zero weight exceeds every finite type-cost limit. Annotate the field with `@listSize(assumedSize:)` or set `DefaultListSize` for the schema:
+On 16.6, an unannotated, non-paginated list assumed a size of 1. `CostOptions.DefaultListSize` is a `double` and on 16.7 defaults to `PagingDefaults.MaxPageSize` (`50`), so that same unannotated list now assumes 50 elements. A deeply nested unannotated selection that passed on 16.6 can now exceed `MaxTypeCost`, because the assumed size compounds across nesting levels. Annotate the field with `@listSize(assumedSize:)` or set `DefaultListSize` for the schema, to any non-negative finite number or `double.PositiveInfinity`:
 
 ```diff
  builder
@@ -237,13 +237,13 @@ An explicit null slicing argument is not an integer value and suppresses that ar
 
 ## New cost options
 
-| Option                       | Type                          | Default    | Contract                                                                                                                 |
-| ---------------------------- | ----------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `DefaultListSize`            | `double`                      | `Infinity` | Size for a list without applicable `@listSize` metadata.                                                                 |
-| `MaxResponseSize`            | `double?`                     | `null`     | Maximum response-object-field count. `null` disables this check and metric.                                              |
-| `CostPlanCacheSize`          | `int`                         | `256`      | Maximum compiled cost plans cached per schema.                                                                           |
-| `CaseBudget`                 | `int?`                        | `null`     | Exact cases evaluated per operation before falling back per `CaseBudgetExceededBehavior`. `null` uses the default (510). |
-| `CaseBudgetExceededBehavior` | `CaseBudgetExceededBehavior?` | `null`     | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).             |
+| Option                       | Type                          | Default | Contract                                                                                                                 |
+| ---------------------------- | ----------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `DefaultListSize`            | `double`                      | `50`    | Size for a list without applicable `@listSize` metadata; sourced from `PagingDefaults.MaxPageSize`.                      |
+| `MaxResponseSize`            | `double?`                     | `null`  | Maximum response-object-field count. `null` disables this check and metric.                                              |
+| `CostPlanCacheSize`          | `int`                         | `256`   | Maximum compiled cost plans cached per schema.                                                                           |
+| `CaseBudget`                 | `int?`                        | `null`  | Exact cases evaluated per operation before falling back per `CaseBudgetExceededBehavior`. `null` uses the default (510). |
+| `CaseBudgetExceededBehavior` | `CaseBudgetExceededBehavior?` | `null`  | Behavior once compiling one operation exhausts `CaseBudget`. `null` uses the default (`EvaluatePerRequest`).             |
 
 When `MaxResponseSize` is enabled, `extensions.operationCost` includes `maxResponseSize`. A rejection includes `{ maxResponseSize, maxAllowedResponseSize }` in the error extensions and uses error code `HC0047`.
 

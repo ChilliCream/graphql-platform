@@ -1,12 +1,27 @@
 using System.Reflection;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
+using HotChocolate.Types.Pagination;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
 
 public sealed class OptionsTests
 {
+    private const string UnannotatedListSchema =
+        """
+        type Query {
+            items: [Item]
+        }
+
+        type Item {
+            value: Int
+        }
+        """;
+
+    private const string UnannotatedListOperation = "{ items { value } }";
+
     [Fact]
     public void CostOptions_Should_HaveExpectedCostDefaults_When_Constructed()
     {
@@ -16,7 +31,51 @@ public sealed class OptionsTests
         // assert
         Assert.Equal(1_000, options.MaxFieldCost);
         Assert.Equal(1_000, options.MaxTypeCost);
-        Assert.Equal(double.PositiveInfinity, options.DefaultListSize);
+        Assert.Equal(PagingDefaults.MaxPageSize, options.DefaultListSize);
+    }
+
+    [Fact]
+    public async Task DefaultListSize_Should_BePagingMaxPageSize_When_FieldHasNoListSizeAnnotation()
+    {
+        // arrange
+        var requestExecutor = await CreateUnannotatedListRequestExecutorBuilder()
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(UnannotatedListOperation)
+            .ReportCost()
+            .Build();
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var result = response.ExpectOperationResult();
+        var operationCost = (IReadOnlyDictionary<string, object?>)result.Extensions["operationCost"]!;
+
+        // assert
+        Assert.Empty(result.Errors);
+        Assert.Equal(1 + PagingDefaults.MaxPageSize, Convert.ToDouble(operationCost["typeCost"]));
+    }
+
+    [Fact]
+    public async Task DefaultListSize_Should_RejectUnannotatedList_When_OverriddenToInfinity()
+    {
+        // arrange
+        var requestExecutor = await CreateUnannotatedListRequestExecutorBuilder()
+            .ModifyCostOptions(o => o.DefaultListSize = double.PositiveInfinity)
+            .BuildRequestExecutorAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var request = OperationRequestBuilder.New()
+            .SetDocument(UnannotatedListOperation)
+            .ReportCost()
+            .Build();
+
+        // act
+        var response = await requestExecutor.ExecuteAsync(request, TestContext.Current.CancellationToken);
+        var result = response.ExpectOperationResult();
+
+        // assert
+        Assert.Equal(ErrorCodes.Execution.CostExceeded, result.Errors[0].Code);
+        Assert.Equal("Infinity", result.Errors[0].Extensions!["typeCost"]);
     }
 
     [Fact]
@@ -183,7 +242,7 @@ public sealed class OptionsTests
         else
         {
             Assert.IsType<ArgumentOutOfRangeException>(exception);
-            Assert.Equal(double.PositiveInfinity, options.DefaultListSize);
+            Assert.Equal(PagingDefaults.MaxPageSize, options.DefaultListSize);
         }
     }
 
@@ -329,4 +388,12 @@ public sealed class OptionsTests
             Assert.IsType<ArgumentOutOfRangeException>(withException);
         }
     }
+
+    private static IRequestExecutorBuilder CreateUnannotatedListRequestExecutorBuilder()
+        => new ServiceCollection()
+            .AddGraphQLServer()
+            .AddDocumentFromString(UnannotatedListSchema)
+            .AddResolver("Query", "items", _ => Array.Empty<object>())
+            .AddResolver("Item", "value", _ => 0)
+            .ModifyCostOptions(o => o.DefaultResolverCost = null);
 }

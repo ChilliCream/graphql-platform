@@ -8,8 +8,8 @@ namespace HotChocolate.CostAnalysis;
 
 /// <summary>
 /// An unannotated composite list falls through the list-size priority chain to
-/// <see cref="CostOptions.DefaultListSize"/>, which defaults to
-/// <see cref="double.PositiveInfinity"/>. Infinite values in
+/// <see cref="CostOptions.DefaultListSize"/>. These tests configure that option
+/// to <see cref="double.PositiveInfinity"/> to exercise how infinite values in
 /// extensions/error payloads are emitted as the JSON string <c>"Infinity"</c>.
 /// </summary>
 public sealed class InfinityReportingTests
@@ -137,5 +137,9 @@ public sealed class InfinityReportingTests
             .AddDocumentFromString(Schema)
             .AddResolver("Query", "items", _ => Array.Empty<object>())
             .AddResolver("Item", "value", _ => 0)
-            .ModifyCostOptions(o => o.DefaultResolverCost = null);
+            .ModifyCostOptions(o =>
+            {
+                o.DefaultResolverCost = null;
+                o.DefaultListSize = double.PositiveInfinity;
+            });
 }
