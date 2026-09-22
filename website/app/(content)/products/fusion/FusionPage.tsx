@@ -15,14 +15,11 @@ import type { CopyLink } from "./content";
 import { FEATURES, NITRO_BAND, SECTIONS } from "./content";
 import { FusionHero } from "./hero/FusionHero";
 import LayeredDiagram from "./hero/LayeredDiagram";
+import { CompositionWindow } from "./visuals/CompositionWindow";
 import {
   FLIGHT_RECORDER_RATIO,
   FlightRecorder,
 } from "./visuals/FlightRecorder";
-import {
-  PREFLIGHT_CHECKLIST_RATIO,
-  PreflightChecklist,
-} from "./visuals/PreflightChecklist";
 import { Scene } from "./visuals/Scene";
 import { SPEC_PATCHBAY_RATIO, SpecPatchbay } from "./visuals/SpecPatchbay";
 import {
@@ -107,10 +104,7 @@ const VISUALS: Readonly<Record<string, Panel>> = {
     visual: <SpecPatchbay />,
     ratio: SPEC_PATCHBAY_RATIO,
   },
-  "any-server": {
-    visual: <PreflightChecklist />,
-    ratio: PREFLIGHT_CHECKLIST_RATIO,
-  },
+  "any-server": { visual: <CompositionWindow />, kind: "html" },
   "client-safety": {
     visual: <FlightRecorder />,
     ratio: FLIGHT_RECORDER_RATIO,
