@@ -917,7 +917,7 @@ public class OperationCompilerTests
     }
 
     [Fact]
-    public void Defer_If_False_Reports_Incremental_Parts_Accepted_Edge_Case()
+    public void Defer_If_False_Not_Deferred()
     {
         // arrange
         // @defer(if: false) should not produce deferred selections.
@@ -946,17 +946,16 @@ public class OperationCompilerTests
             schema);
 
         // assert
-        Assert.True(operation.HasIncrementalParts);
+        Assert.False(operation.HasIncrementalParts);
         MatchSnapshot(document, operation);
     }
 
     [Fact]
-    public void Stream_With_Statically_True_Skip_Reports_Incremental_Parts_Accepted_Edge_Case()
+    public void Stream_With_Statically_True_Skip_Does_Not_Report_Incremental_Parts()
     {
         // arrange
-        // The field carrying @stream is itself statically excluded via @skip(if: true) and
-        // never reaches the compiled operation's selection set, but the rewriter still reports
-        // the operation as having incremental parts.
+        // @stream on a field that is itself statically excluded via @skip(if: true) never
+        // reaches the compiled operation, so it must not be reported as incremental either.
         var schema = SchemaBuilder.New()
             .AddStarWarsTypes()
             .Create();
@@ -977,7 +976,36 @@ public class OperationCompilerTests
             schema);
 
         // assert
-        Assert.True(operation.HasIncrementalParts);
+        Assert.False(operation.HasIncrementalParts);
+    }
+
+    [Fact]
+    public void Stream_If_False_Does_Not_Report_Incremental_Parts()
+    {
+        // arrange
+        // @stream(if: false) is a literal false if argument, so the field must not be
+        // reported as incremental even though it is not statically excluded.
+        var schema = SchemaBuilder.New()
+            .AddStarWarsTypes()
+            .Create();
+
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+              hero(episode: EMPIRE) {
+                appearsIn @stream(if: false)
+              }
+            }
+            """);
+
+        // act
+        var operation = OperationCompiler.Compile(
+            "opid",
+            document,
+            schema);
+
+        // assert
+        Assert.False(operation.HasIncrementalParts);
     }
 
     [Fact]
