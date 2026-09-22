@@ -81,7 +81,13 @@ export function ClassificationCard({
               key={c.text}
               className="flex items-center justify-between gap-3 px-4 py-2.5"
             >
-              <code className="text-cc-ink truncate font-mono text-xs">
+              <code
+                className={
+                  comfortable
+                    ? "text-cc-ink min-w-0 font-mono text-xs break-words"
+                    : "text-cc-ink truncate font-mono text-xs"
+                }
+              >
                 {c.text}
               </code>
               <KindPill kind={c.kind} comfortable={comfortable} />
