@@ -8,6 +8,7 @@ using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using ErrorHelper = HotChocolate.CostAnalysis.Utilities.ErrorHelper;
 
 namespace HotChocolate.AspNetCore;
 
@@ -355,6 +356,51 @@ public class CostTests(TestServerFactory serverFactory) : ServerTestBase(serverF
         var result = await response.Content.ReadFromJsonAsync<JsonDocument>(TestContext.Current.CancellationToken);
         Assert.NotNull(result);
         result!.RootElement.MatchSnapshot();
+    }
+
+    // CostAnalyzerMiddleware only reaches ErrorHelper.StateInvalidForCostAnalysis when the
+    // operation document is unexpectedly missing after variable coercion, a state that a
+    // normal request never produces. This test forces that result directly through a request
+    // middleware appended after the cost analyzer, so the assertion still goes through the
+    // real formatter rather than constructing the result and formatting it by hand.
+    [Fact]
+    public async Task CostStateInvalid_Should_ReturnHttp500_When_StateInvalidForCostAnalysisIsHit()
+    {
+        // arrange
+        var server = CreateStarWarsServer(
+            configureServices: services => services
+                .AddGraphQLServer()
+                .UseRequest(
+                    next => async context =>
+                    {
+                        await next(context);
+                        context.Result = ErrorHelper.StateInvalidForCostAnalysis();
+                    },
+                    key: "ForceCostStateInvalid",
+                    after: WellKnownRequestMiddleware.CostAnalyzerMiddleware));
+
+        var uri = new Uri("http://localhost:5000/graphql");
+
+        const string requestBody =
+            """
+            {
+                "query" : "query Test($id: String!){human(id: $id){name}}",
+                "variables" : { "id" : "1000" }
+            }
+            """;
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, uri)
+        {
+            Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
+        };
+        request.Headers.TryAddWithoutValidation("Accept", "application/graphql-response+json");
+
+        // act
+        using var httpClient = server.CreateClient();
+        using var response = await httpClient.SendAsync(request, TestContext.Current.CancellationToken);
+
+        // assert
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
     }
 
     public class CostInterceptor : DefaultHttpRequestInterceptor
