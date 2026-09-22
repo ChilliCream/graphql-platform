@@ -21,9 +21,10 @@ interface ImpactBarProps {
   readonly ok: number;
   readonly total: number;
   readonly status: ClientImpactRow["status"];
+  readonly comfortable: boolean;
 }
 
-function ImpactBar({ ok, total, status }: ImpactBarProps) {
+function ImpactBar({ ok, total, status, comfortable }: ImpactBarProps) {
   const cells = Array.from({ length: total });
   const color =
     status === "ok"
@@ -31,12 +32,16 @@ function ImpactBar({ ok, total, status }: ImpactBarProps) {
       : status === "risk"
         ? "bg-cc-warning"
         : "bg-cc-ink-dim/50";
+  const barCls = comfortable ? "flex min-w-0 gap-1" : "flex gap-1";
+  const cellCls = comfortable
+    ? "h-2 w-5 min-w-0 shrink rounded-[2px]"
+    : "h-2 w-5 rounded-[2px]";
   return (
-    <span className="flex gap-1">
+    <span className={barCls}>
       {cells.map((_, i) => (
         <span
           key={i}
-          className={`h-2 w-5 rounded-[2px] ${i < ok ? color : "bg-cc-ink-faint"}`}
+          className={`${cellCls} ${i < ok ? color : "bg-cc-ink-faint"}`}
         />
       ))}
     </span>
@@ -102,7 +107,13 @@ export function ClientImpactMatrix({
                   </div>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
+                  <div
+                    className={
+                      comfortable
+                        ? "flex min-w-0 flex-wrap items-center gap-3"
+                        : "flex items-center gap-3"
+                    }
+                  >
                     {c.total === 0 ? (
                       <span
                         className={`text-cc-heading font-mono ${barLabelSize}`}
@@ -115,9 +126,14 @@ export function ClientImpactMatrix({
                           ok={c.ok}
                           total={c.total}
                           status={c.status}
+                          comfortable={comfortable}
                         />
                         <span
-                          className={`text-cc-ink-dim font-mono ${barLabelSize}`}
+                          className={
+                            comfortable
+                              ? `text-cc-ink-dim font-mono ${barLabelSize} shrink-0`
+                              : `text-cc-ink-dim font-mono ${barLabelSize}`
+                          }
                         >
                           {c.ok}/{c.total}
                         </span>

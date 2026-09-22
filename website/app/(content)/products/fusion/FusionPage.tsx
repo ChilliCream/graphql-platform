@@ -38,7 +38,6 @@ const CLIENT_IMPACT_ROWS = [
     ok: 3,
     total: 5,
     status: "risk",
-    note: "the client the subgraph team never sees",
   },
   {
     client: "partner-api",
