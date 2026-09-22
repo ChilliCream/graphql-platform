@@ -84,7 +84,7 @@ public static class HotChocolateExecutionRequestContextExtensions
             var operationInfo = context.Features.GetOrSet<OperationInfo>();
             operationInfo.Operation = operation;
             operationInfo.Definition = operation.Definition;
-            context.Features.GetOrSet<OperationIdInfo>().Value = operation.Id;
+            context.OperationDocumentInfo.OperationId = operation.Id;
             context.Features.Set<IOperation>(operation);
         }
     }
