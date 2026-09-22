@@ -552,6 +552,28 @@ public partial class ActivityExecutionDiagnosticListenerTests
     }
 
     [Fact]
+    public async Task CostAnalyzer_RejectedRequest_ReportsOperationFromNormalizedDocument()
+    {
+        using (CaptureActivities(out var activities))
+        {
+            // arrange & act
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddInstrumentation(o =>
+                    o.Scopes = ActivityScopes.All)
+                .AddCostAnalyzer()
+                .ModifyCostOptions(o => o.MaxTypeCost = 0)
+                .AddQueryType<SimpleQuery>()
+                .ExecuteRequestAsync(
+                    "query GetHello { sayHello }",
+                    cancellationToken: TestContext.Current.CancellationToken);
+
+            // assert
+            activities.MatchSnapshot();
+        }
+    }
+
+    [Fact]
     public async Task DataLoader_BatchExecution_RecordsBatchSpan()
     {
         using (CaptureActivities(out var activities))

@@ -1,0 +1,123 @@
+{
+  "source": {
+    "name": "HotChocolate.Diagnostics"
+  },
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "query",
+      "Kind": "Internal",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "request"
+        },
+        {
+          "Key": "graphql.operation.type",
+          "Value": "query"
+        },
+        {
+          "Key": "graphql.operation.name",
+          "Value": "GetHello"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:bab802900c2eca403375ddf6a0ba8abc"
+        },
+        {
+          "Key": "graphql.error.count",
+          "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "HC0047"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        },
+        {
+          "Name": "graphql.error",
+          "Tags": [
+            {
+              "Key": "graphql.error.message",
+              "Value": "The maximum allowed type cost was exceeded."
+            },
+            {
+              "Key": "graphql.error.code",
+              "Value": "HC0047"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "GetHello"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:bab802900c2eca403375ddf6a0ba8abc"
+            }
+          ]
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:bab802900c2eca403375ddf6a0ba8abc"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:bab802900c2eca403375ddf6a0ba8abc"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Complexity Analysis",
+          "DisplayName": "GraphQL Complexity Analysis",
+          "Kind": "Internal",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:bab802900c2eca403375ddf6a0ba8abc"
+            },
+            {
+              "Key": "graphql.operation.fieldCost",
+              "Value": 0.0
+            },
+            {
+              "Key": "graphql.operation.typeCost",
+              "Value": 1.0
+            }
+          ],
+          "event": []
+        }
+      ]
+    }
+  ]
+}
